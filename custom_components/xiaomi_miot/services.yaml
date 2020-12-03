@@ -1,0 +1,25 @@
+send_command:
+  description: Send miio command.
+  fields:
+    entity_id:
+      description: Name of the entity.
+      example: "light.yeelight_living_e92c"
+    method:
+      description: Method of the command.
+      example: set_power
+    params:
+      description: Params for the method.
+      example: ['on']
+
+set_property:
+  description: Set miot property.
+  fields:
+    entity_id:
+      description: Name of the entity.
+      example: "xiaomi.aircondition.mt5"
+    field:
+      description: Field of property.
+      example: power
+    value:
+      description: Value of property.
+      example: True

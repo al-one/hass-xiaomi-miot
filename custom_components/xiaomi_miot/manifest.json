@@ -1,0 +1,14 @@
+{
+    "domain": "xiaomi_miot",
+    "name": "Xiaomi Miot",
+    "config_flow": true,
+    "documentation": "https://github.com/al-one/hass-xiaomi-miot",
+    "requirements": [
+      "construct>=2.10.56",
+      "python-miio>=0.5.4"
+    ],
+    "dependencies": [],
+    "codeowners": [
+      "@al-one"
+    ]
+  }

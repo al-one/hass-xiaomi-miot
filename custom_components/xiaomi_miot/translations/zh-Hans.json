@@ -1,0 +1,21 @@
+{
+    "config": {
+        "flow_title": "Xiaomi Miot: {name}",
+        "step": {
+            "title": "Xiaomi Miot",
+            "description": "配置设备信息",
+            "user": {
+                "data": {
+                    "host": "设备IP",
+                    "token": "Token",
+                    "name": "名称",
+                    "model": "型号",
+                    "mode": "模式 (climate) 为空时自动识别"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "连接设备失败"
+        }
+    }
+}
