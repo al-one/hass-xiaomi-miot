@@ -16,7 +16,7 @@ set_property:
   fields:
     entity_id:
       description: Name of the entity.
-      example: "xiaomi.aircondition.mt5"
+      example: "climate.xiaomi_mc5_374e"
     field:
       description: Field of property.
       example: power

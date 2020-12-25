@@ -1,6 +1,5 @@
 """Support for Xiaomi Aircondition."""
 import logging
-import asyncio
 import voluptuous as vol
 from enum import Enum
 from functools import partial
@@ -21,6 +20,7 @@ from . import (
     PLATFORM_SCHEMA,
     XIAOMI_MIIO_SERVICE_SCHEMA,
     MiotEntity,
+    bind_services_to_entries,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,7 +29,13 @@ DATA_KEY = f'climate.{DOMAIN}'
 DEFAULT_MIN_TEMP = 16.0
 DEFAULT_MAX_TEMP = 31.0
 
-async def async_add_entities_from_config(hass, config, async_add_entities):
+SERVICE_TO_METHOD = {}
+
+async def async_setup_entry(hass, config_entry, async_add_entities):
+    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id,config_entry.data)
+    await async_setup_platform(hass, config, async_add_entities)
+
+async def async_setup_platform(hass, config, async_add_entities, discovery_info = None):
     if DATA_KEY not in hass.data:
         hass.data[DATA_KEY] = {}
     host = config[CONF_HOST]
@@ -38,15 +44,10 @@ async def async_add_entities_from_config(hass, config, async_add_entities):
     if 1:
         entity = MiotClimateEntity(config)
         entities.append(entity)
-    hass.data[DATA_KEY][host] = entity
+    for entity in entities:
+        hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add = True)
-
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id,config_entry.data)
-    await async_add_entities_from_config(hass, config, async_add_entities)
-
-async def async_setup_platform(hass, config, async_add_entities, discovery_info = None):
-    await async_add_entities_from_config(hass, config, async_add_entities)
+    bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
 HvacModes = Enum('HvacModes',{

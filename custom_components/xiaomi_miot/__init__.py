@@ -1,5 +1,6 @@
 """Support for Xiaomi Miot."""
 import logging
+import asyncio
 from math import ceil
 from datetime import timedelta
 from functools import partial
@@ -47,32 +48,35 @@ XIAOMI_MIIO_SERVICE_SCHEMA = vol.Schema(
     },
 )
 
-
-async def async_setup(hass, config: dict):
-    hass.data.setdefault(DOMAIN, {})
-    component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
-    hass.data[DOMAIN]['component'] = component
-    await component.async_setup(config)
-    component.async_register_entity_service(
-        'send_command',
-        XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+SERVICE_TO_METHOD_BASE = {
+    'send_command': {
+        'method': 'async_command',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
                 vol.Required('method'): cv.string,
                 vol.Optional('params', default = []): cv.ensure_list,
             },
         ),
-        'async_command'
-    )
-    component.async_register_entity_service(
-        'set_property',
-        XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+    },
+    'set_property': {
+        'method': 'async_set_property',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
                 vol.Required('field'): cv.string,
                 vol.Required('value'): cv.match_all,
             },
         ),
-        'async_set_property'
-    )
+    },
+}
+
+
+async def async_setup(hass, config: dict):
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN].setdefault('entities', {})
+    component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
+    hass.data[DOMAIN]['component'] = component
+    await component.async_setup(config)
+    bind_services_to_entries(hass, SERVICE_TO_METHOD_BASE)
     return True
 
 async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entries.ConfigEntry):
@@ -108,6 +112,42 @@ async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entri
     for plat in plats:
         hass.async_create_task(hass.config_entries.async_forward_entry_setup(config_entry, plat))
     return True
+
+
+def bind_services_to_entries(hass, services):
+    async def async_service_handler(service):
+        method = services.get(service.service)
+        fun = method['method']
+        params = {
+            key: value
+            for key, value in service.data.items()
+            if key != ATTR_ENTITY_ID
+        }
+        target_devices = []
+        entity_ids = service.data.get(ATTR_ENTITY_ID)
+        if entity_ids:
+            target_devices = [
+                dvc
+                for dvc in hass.data[DOMAIN]['entities'].values()
+                if dvc.entity_id in entity_ids
+            ]
+        _LOGGER.debug('Xiaomi Miot async_service_handler %s', {
+            'targets' : [ dvc.entity_id for dvc in target_devices ],
+            'method'  : fun,
+            'params'  : params,
+        })
+        update_tasks = []
+        for dvc in target_devices:
+            if not hasattr(dvc, fun):
+                _LOGGER.info('%s have no method: %s', dvc.entity_id, fun)
+                continue
+            await getattr(dvc, fun)(**params)
+            update_tasks.append(dvc.async_update_ha_state(True))
+        if update_tasks:
+            await asyncio.wait(update_tasks)
+    for srv, obj in services.items():
+        schema = obj.get('schema', XIAOMI_MIIO_SERVICE_SCHEMA)
+        hass.services.async_register(DOMAIN, srv, async_service_handler, schema = schema)
 
 
 class MiioEntity(ToggleEntity):
