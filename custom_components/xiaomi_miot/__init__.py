@@ -1,7 +1,6 @@
 """Support for Xiaomi Miot."""
 import logging
 import asyncio
-from math import ceil
 from datetime import timedelta
 from functools import partial
 import voluptuous as vol
@@ -20,7 +19,7 @@ from homeassistant.helpers.config_validation import (  # noqa: F401
 )
 
 from miio import (
-    Device,
+    Device as MiioDevice,
     DeviceException,
 )
 from miio.miot_device import MiotDevice
@@ -28,7 +27,7 @@ from miio.miot_device import MiotDevice
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = 'xiaomi_miot'
-SCAN_INTERVAL = timedelta(seconds = 60)
+SCAN_INTERVAL = timedelta(seconds=60)
 DEFAULT_NAME = 'Xiaomi Miot'
 CONF_MODEL = 'model'
 
@@ -36,9 +35,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_HOST): cv.string,
         vol.Required(CONF_TOKEN): vol.All(cv.string, vol.Length(min=32, max=32)),
-        vol.Optional(CONF_NAME, default = DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_MODEL, default = ''): cv.string,
-        vol.Optional(CONF_MODE, default = ''): cv.string,
+        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+        vol.Optional(CONF_MODEL, default=''): cv.string,
+        vol.Optional(CONF_MODE, default=''): cv.string,
     }
 )
 
@@ -54,7 +53,7 @@ SERVICE_TO_METHOD_BASE = {
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
                 vol.Required('method'): cv.string,
-                vol.Optional('params', default = []): cv.ensure_list,
+                vol.Optional('params', default=[]): cv.ensure_list,
             },
         ),
     },
@@ -78,6 +77,7 @@ async def async_setup(hass, config: dict):
     await component.async_setup(config)
     bind_services_to_entries(hass, SERVICE_TO_METHOD_BASE)
     return True
+
 
 async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entries.ConfigEntry):
     hass.data[DOMAIN].setdefault('configs', {})
@@ -103,11 +103,11 @@ async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entri
             plats = []
     hass.data[DOMAIN]['configs'][unique_id] = config
     _LOGGER.debug('Xiaomi Miot async_setup_entry %s', {
-        'entry_id' : entry_id,
-        'unique_id' : unique_id,
-        'config' : config,
-        'plats' : plats,
-        'miio' : info,
+        'entry_id': entry_id,
+        'unique_id': unique_id,
+        'config': config,
+        'plats': plats,
+        'miio': info,
     })
     for plat in plats:
         hass.async_create_task(hass.config_entries.async_forward_entry_setup(config_entry, plat))
@@ -132,9 +132,9 @@ def bind_services_to_entries(hass, services):
                 if dvc.entity_id in entity_ids
             ]
         _LOGGER.debug('Xiaomi Miot async_service_handler %s', {
-            'targets' : [ dvc.entity_id for dvc in target_devices ],
-            'method'  : fun,
-            'params'  : params,
+            'targets': [dvc.entity_id for dvc in target_devices],
+            'method': fun,
+            'params': params,
         })
         update_tasks = []
         for dvc in target_devices:
@@ -145,9 +145,10 @@ def bind_services_to_entries(hass, services):
             update_tasks.append(dvc.async_update_ha_state(True))
         if update_tasks:
             await asyncio.wait(update_tasks)
+
     for srv, obj in services.items():
         schema = obj.get('schema', XIAOMI_MIIO_SERVICE_SCHEMA)
-        hass.services.async_register(DOMAIN, srv, async_service_handler, schema = schema)
+        hass.services.async_register(DOMAIN, srv, async_service_handler, schema=schema)
 
 
 class MiioEntity(ToggleEntity):
@@ -206,7 +207,7 @@ class MiioEntity(ToggleEntity):
             'identifiers': {(DOMAIN, self._unique_did)},
             'name': self._name,
             'model': self._model,
-            'manufacturer': (self._model or 'Xiaomi').split('.',1)[0],
+            'manufacturer': (self._model or 'Xiaomi').split('.', 1)[0],
             'sw_version': self._miio_info.firmware_version,
         }
 
@@ -221,12 +222,12 @@ class MiioEntity(ToggleEntity):
                 self._available = False
             return False
 
-    async def async_command(self, method, params = [], mask_error = None):
+    async def async_command(self, method, params=[], mask_error=None):
         _LOGGER.debug('Send miio command to %s: %s(%s)', self._name, method, params)
         if mask_error is None:
             mask_error = f'Send miio command to {self._name}: {method} failed: %s'
         result = await self._try_command(mask_error, self._device.send, method, params)
-        if result == False:
+        if not result:
             _LOGGER.info('Send miio command to %s failed: %s(%s)', self._name, method, params)
         return result
 
@@ -262,19 +263,19 @@ class MiotEntity(MiioEntity):
             for result in results:
                 break
             _LOGGER.debug('Response received from miot %s: %s', self._name, result)
-            return result.get('code',1) == self._success_result
+            return result.get('code', 1) == self._success_result
         except DeviceException as exc:
             if self._available:
                 _LOGGER.error(mask_error, exc)
                 self._available = False
             return False
 
-    async def async_command(self, method, params = [], mask_error = None):
+    async def async_command(self, method, params=[], mask_error=None):
         _LOGGER.debug('Send miot command to %s: %s(%s)', self._name, method, params)
         if mask_error is None:
             mask_error = f'Send miot command to {self._name}: {method} failed: %s'
         result = await self._try_command(mask_error, self._device.send, method, params)
-        if result == False:
+        if not result:
             _LOGGER.info('Send miot command to %s failed: %s(%s)', self._name, method, params)
         return result
 

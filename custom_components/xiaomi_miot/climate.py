@@ -31,11 +31,13 @@ DEFAULT_MAX_TEMP = 31.0
 
 SERVICE_TO_METHOD = {}
 
+
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id,config_entry.data)
+    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, config_entry.data)
     await async_setup_platform(hass, config, async_add_entities)
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info = None):
+
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     if DATA_KEY not in hass.data:
         hass.data[DATA_KEY] = {}
     host = config[CONF_HOST]
@@ -46,42 +48,45 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info 
         entities.append(entity)
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
-    async_add_entities(entities, update_before_add = True)
+    async_add_entities(entities, update_before_add=True)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-HvacModes = Enum('HvacModes',{
-    HVAC_MODE_OFF      : 0,
-    HVAC_MODE_COOL     : 2,
-    HVAC_MODE_DRY      : 3,
-    HVAC_MODE_FAN_ONLY : 4,
-    HVAC_MODE_HEAT     : 5,
+HvacModes = Enum('HvacModes', {
+    HVAC_MODE_OFF: 0,
+    HVAC_MODE_COOL: 2,
+    HVAC_MODE_DRY: 3,
+    HVAC_MODE_FAN_ONLY: 4,
+    HVAC_MODE_HEAT: 5,
 })
 
+
 class SwingModes(Enum):
-    Off        = 0
-    Vertical   = 1
+    Off = 0
+    Vertical = 1
     Horizontal = 2
-    Steric     = 3
+    Steric = 3
+
 
 class AirConditionerMiotDevice(AirConditionerMiot):
     def __init__(
-        self,
-        ip: str = None,
-        token: str = None,
-        start_id: int = 0,
-        debug: int = 0,
-        lazy_discover: bool = True,
+            self,
+            ip: str = None,
+            token: str = None,
+            start_id: int = 0,
+            debug: int = 0,
+            lazy_discover: bool = True,
     ) -> None:
         super().__init__(ip, token, start_id, debug, lazy_discover)
         self.mapping.update({
             'horizontal_swing': {'siid': 3, 'piid': 3},
         })
 
+
 class MiotClimateEntity(MiotEntity, ClimateEntity):
     def __init__(self, config):
-        name  = config[CONF_NAME]
-        host  = config[CONF_HOST]
+        name = config[CONF_NAME]
+        host = config[CONF_HOST]
         token = config[CONF_TOKEN]
         model = config.get(CONF_MODEL)
         _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
@@ -98,11 +103,11 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         await super().async_update()
         if self._available:
             self._state_attrs.update({
-                'current_temperature' : self._state_attrs.get('temperature',0),
-                'temperature' : self._state_attrs.get('target_temperature',0),
+                'current_temperature': self._state_attrs.get('temperature', 0),
+                'temperature': self._state_attrs.get('target_temperature', 0),
             })
             attrs = self._state_attrs
-            self._fan_speed = FanSpeed(attrs.get('fan_speed',0))
+            self._fan_speed = FanSpeed(attrs.get('fan_speed', 0))
 
     @property
     def state(self) -> str:
@@ -112,7 +117,7 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
     def hvac_mode(self):
         self._hvac_mode = HVAC_MODE_OFF
         if self._state:
-            self._hvac_mode = HvacModes(int(self._state_attrs.get('mode',0))).name
+            self._hvac_mode = HvacModes(int(self._state_attrs.get('mode', 0))).name
         return self._hvac_mode
 
     @property
@@ -132,11 +137,11 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         else:
             if not self._state:
                 self._device.on()
-            ret = self._device.set_property('mode',HvacModes[hvac_mode].value)
+            ret = self._device.set_property('mode', HvacModes[hvac_mode].value)
         if ret:
             self._hvac_mode = hvac_mode
             self._state_attrs.update({
-                'mode' : HvacModes[hvac_mode].value,
+                'mode': HvacModes[hvac_mode].value,
             })
         return ret
 
@@ -146,7 +151,7 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
 
     @property
     def current_temperature(self) -> Optional[float]:
-        return float(self._state_attrs.get('temperature',0))
+        return float(self._state_attrs.get('temperature', 0))
 
     @property
     def min_temp(self) -> float:
@@ -158,7 +163,7 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
 
     @property
     def target_temperature(self) -> Optional[float]:
-        return float(self._state_attrs.get('target_temperature',0))
+        return float(self._state_attrs.get('target_temperature', 0))
 
     @property
     def target_temperature_step(self) -> Optional[float]:
@@ -184,7 +189,7 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
             ret = self._device.set_target_temperature(val)
             if ret:
                 self._state_attrs.update({
-                    'target_temperature' : val,
+                    'target_temperature': val,
                 })
         return ret
 
@@ -206,9 +211,9 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
     @property
     def swing_mode(self) -> Optional[str]:
         val = 0
-        if self._state_attrs.get('vertical_swing',False):
+        if self._state_attrs.get('vertical_swing', False):
             val |= 1
-        if self._state_attrs.get('horizontal_swing',False):
+        if self._state_attrs.get('horizontal_swing', False):
             val |= 2
         return SwingModes(val).name
 
@@ -216,14 +221,14 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
     def swing_modes(self) -> Optional[List[str]]:
         lst = [v.name for v in SwingModes]
         if not self._model in ['xiaomi.aircondition.mt5']:
-            lst = ['Off','Vertical']
+            lst = ['Off', 'Vertical']
         return lst
 
     def set_swing_mode(self, swing_mode: str) -> None:
         mod = SwingModes[swing_mode]
         val = mod.value
-        ver = self._state_attrs.get('vertical_swing',False)
-        hor = self._state_attrs.get('horizontal_swing',False)
+        ver = self._state_attrs.get('vertical_swing', False)
+        hor = self._state_attrs.get('horizontal_swing', False)
         ret = None
         if val & 1:
             ver = True
@@ -236,16 +241,16 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         if val == 0:
             ver = False
             hor = False
-        if not ver == self._state_attrs.get('vertical_swing',False):
-            ret = self._device.set_property('vertical_swing',ver)
+        if not ver == self._state_attrs.get('vertical_swing', False):
+            ret = self._device.set_property('vertical_swing', ver)
             if ret:
                 self._state_attrs.update({
-                    'vertical_swing' : ver,
+                    'vertical_swing': ver,
                 })
-        if not hor == self._state_attrs.get('horizontal_swing',False):
-            ret = self._device.set_property('horizontal_swing',hor)
+        if not hor == self._state_attrs.get('horizontal_swing', False):
+            ret = self._device.set_property('horizontal_swing', hor)
             if ret:
                 self._state_attrs.update({
-                    'horizontal_swing' : hor,
+                    'horizontal_swing': hor,
                 })
         return ret
