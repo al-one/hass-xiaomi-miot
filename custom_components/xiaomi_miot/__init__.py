@@ -84,7 +84,7 @@ async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entri
     entry_id = config_entry.entry_id
     unique_id = config_entry.unique_id
     info = config_entry.data.get('miio_info') or {}
-    platforms = ['climate']
+    platforms = ['sensor', 'climate']
     plats = []
     config = {}
     for k in [CONF_HOST, CONF_TOKEN, CONF_NAME, CONF_MODE, CONF_MODE]:
@@ -99,6 +99,8 @@ async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entri
     if not plats:
         if model.find('aircondition') > 0:
             plats = ['climate']
+        elif model.find('waterpuri') > 0:
+            plats = ['sensor']
         else:
             plats = []
     hass.data[DOMAIN]['configs'][unique_id] = config
