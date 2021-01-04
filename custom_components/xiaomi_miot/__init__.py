@@ -8,7 +8,7 @@ import voluptuous as vol
 from homeassistant import core, config_entries
 from homeassistant.const import *
 from homeassistant.exceptions import PlatformNotReady
-from homeassistant.helpers.entity import ToggleEntity
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_component import EntityComponent
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
@@ -31,13 +31,17 @@ SCAN_INTERVAL = timedelta(seconds=60)
 DEFAULT_NAME = 'Xiaomi Miot'
 CONF_MODEL = 'model'
 
+SUPPORTED_DOMAINS = [
+    "climate",
+]
+
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_HOST): cv.string,
         vol.Required(CONF_TOKEN): vol.All(cv.string, vol.Length(min=32, max=32)),
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Optional(CONF_MODEL, default=''): cv.string,
-        vol.Optional(CONF_MODE, default=''): cv.string,
+        vol.Optional(CONF_MODE, default=[]): cv.ensure_list,
     }
 )
 
@@ -84,18 +88,19 @@ async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entri
     entry_id = config_entry.entry_id
     unique_id = config_entry.unique_id
     info = config_entry.data.get('miio_info') or {}
-    platforms = ['climate']
     plats = []
     config = {}
-    for k in [CONF_HOST, CONF_TOKEN, CONF_NAME, CONF_MODE, CONF_MODE]:
+    for k in [CONF_HOST, CONF_TOKEN, CONF_NAME, CONF_MODEL, CONF_MODE]:
         config[k] = config_entry.data.get(k)
     model = config.get(CONF_MODEL) or info.get(CONF_MODEL) or ''
     config[CONF_MODEL] = model
-    mode = config.get(CONF_MODE) or ''
-    for m in mode.split(','):
-        if m in platforms:
+    modes = config.get(CONF_MODE, [])
+    if not isinstance(modes, list):
+        modes = str(modes).split(',')
+    for m in modes:
+        if m in SUPPORTED_DOMAINS:
             plats.append(m)
-            config[CONF_MODE] = ''
+            config[CONF_MODE] = []
     if not plats:
         if model.find('aircondition') > 0:
             plats = ['climate']
@@ -106,7 +111,7 @@ async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entri
         'entry_id': entry_id,
         'unique_id': unique_id,
         'config': config,
-        'plats': plats,
+        'domains': plats,
         'miio': info,
     })
     for plat in plats:
@@ -151,7 +156,7 @@ def bind_services_to_entries(hass, services):
         hass.services.async_register(DOMAIN, srv, async_service_handler, schema=schema)
 
 
-class MiioEntity(ToggleEntity):
+class MiioEntity(Entity):
     def __init__(self, name, device):
         self._device = device
         try:
