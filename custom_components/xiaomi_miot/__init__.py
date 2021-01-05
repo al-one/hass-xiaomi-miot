@@ -8,7 +8,10 @@ import voluptuous as vol
 from homeassistant import core, config_entries
 from homeassistant.const import *
 from homeassistant.exceptions import PlatformNotReady
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import (
+    Entity,
+    ToggleEntity,
+)
 from homeassistant.helpers.entity_component import EntityComponent
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
@@ -317,3 +320,95 @@ class MiotEntity(MiioEntity):
 
     async def async_turn_off(self, **kwargs):
         await self.async_set_property('power', False)
+
+
+class BaseSubEntity(Entity):
+    def __init__(self, parent, attr, option=None):
+        self._unique_id = f'{parent.unique_id}-{attr}'
+        self._name = f'{parent.name} {attr}'
+        self._state = STATE_UNKNOWN
+        self._available = False
+        self._parent = parent
+        self._attr = attr
+        self._option = dict(option or {})
+        self._supported_features = int(self._option.get('supported_features', 0))
+        self._state_attrs = {}
+
+    @property
+    def unique_id(self):
+        return self._unique_id
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def state(self):
+        return self._state
+
+    @property
+    def available(self):
+        return self._available
+
+    @property
+    def supported_features(self):
+        return self._supported_features
+
+    @property
+    def device_state_attributes(self):
+        return self._state_attrs
+
+    @property
+    def device_class(self):
+        return self._option.get('device_class', self._option.get('class'))
+
+    @property
+    def device_info(self):
+        return self._parent.device_info
+
+    @property
+    def icon(self):
+        return self._option.get('icon')
+
+    @property
+    def unit_of_measurement(self):
+        return self._option.get('unit')
+
+    def update(self):
+        attrs = self._parent.device_state_attributes or {}
+        if self._attr in attrs:
+            self._available = True
+            self._state = attrs.get(self._attr)
+            keys = self._option.get('keys', [])
+            self._state_attrs = {}.update(attrs) if keys is True else {
+                k: v
+                for k, v in attrs.items()
+                if k in keys
+            }
+        self.async_write_ha_state()
+
+    def call_parent(self, method, *args, **kwargs):
+        for f in cv.ensure_list(method):
+            if hasattr(self._parent, f):
+                return getattr(self._parent, f)(*args, **kwargs)
+
+
+class ToggleSubEntity(BaseSubEntity, ToggleEntity):
+    def __init__(self, parent, attr='power', option=None):
+        super().__init__(parent, attr, option)
+
+    def update(self):
+        super().update()
+        if self._available:
+            attrs = self._state_attrs
+            self._state = attrs.get(self._attr) == 'on'
+
+    @property
+    def is_on(self):
+        return self._state
+
+    def turn_on(self, **kwargs):
+        self.call_parent('turn_on', **kwargs)
+
+    def turn_off(self, **kwargs):
+        self.call_parent('turn_off', **kwargs)

@@ -15,6 +15,7 @@ from . import (
     MiotEntity,
     MiioDevice,
     MiotDevice,
+    BaseSubEntity,
     DeviceException,
     bind_services_to_entries,
 )
@@ -33,11 +34,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     if DATA_KEY not in hass.data:
         hass.data[DATA_KEY] = {}
-    host = config[CONF_HOST]
+    hass.data[DOMAIN]['add_entities']['sensor'] = async_add_entities
     model = config.get(CONF_MODEL)
     entities = []
     if 1:
-        entity = WaterPurifierYunmiEntity(config, async_add_entities)
+        entity = WaterPurifierYunmiEntity(config)
         entities.append(entity)
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
@@ -46,7 +47,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class WaterPurifierYunmiEntity(MiioEntity, Entity):
-    def __init__(self, config, add_entities=None):
+    def __init__(self, config):
         name = config[CONF_NAME]
         host = config[CONF_HOST]
         token = config[CONF_TOKEN]
@@ -54,7 +55,6 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
 
         self._device = WaterPurifierYunmi(host, token)
         super().__init__(name, self._device)
-        self._add_entities = add_entities
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._subs = {
             'tds_in':  {'keys': ['tds_warn_thd'], 'unit': CONCENTRATION_PARTS_PER_MILLION, 'icon': 'mdi:water'},
@@ -108,60 +108,15 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
         self._state_attrs.update({
             'errors': '|'.join(status.operation_status.errors),
         })
+        add_entities = self.hass.data[DOMAIN].get('add_entities', {}).get('sensor', None)
         for k, v in self._subs.items():
             if 'entity' in v:
                 v['entity'].update()
-            else:
+            elif add_entities:
                 v['entity'] = WaterPurifierYunmiSubEntity(self, k, v)
-                self._add_entities([v['entity']])
+                add_entities([v['entity']])
 
 
-class WaterPurifierYunmiSubEntity(Entity):
+class WaterPurifierYunmiSubEntity(BaseSubEntity):
     def __init__(self, parent: WaterPurifierYunmiEntity, attr, option=None):
-        self._unique_id = f'{parent.unique_id}-{attr}'
-        self._name = f'{parent.name} {attr}'
-        self._state = STATE_UNKNOWN
-        self._parent = parent
-        self._attr = attr
-        self._option = dict(option or {})
-
-    @property
-    def unique_id(self):
-        return self._unique_id
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def device_state_attributes(self):
-        return {
-            k: v
-            for k, v in self._parent.device_state_attributes.items()
-            if k in self._option.get('keys', [])
-        }
-
-    @property
-    def device_class(self):
-        return self._option.get('class')
-
-    @property
-    def device_info(self):
-        return self._parent.device_info
-
-    @property
-    def icon(self):
-        return self._option.get('icon')
-
-    @property
-    def unit_of_measurement(self):
-        return self._option.get('unit')
-
-    def update(self):
-        if self._attr in self._parent.device_state_attributes:
-            self._state = self._parent.device_state_attributes.get(self._attr)
-        self.async_write_ha_state()
+        super().__init__(parent, attr, option)
