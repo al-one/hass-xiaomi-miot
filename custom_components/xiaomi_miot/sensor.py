@@ -1,10 +1,8 @@
 """Support for Xiaomi Water Purifier (Yunmi)."""
 import logging
-import voluptuous as vol
 from functools import partial
 
 from homeassistant.const import *
-from homeassistant.components.sensor import *
 from homeassistant.helpers.entity import Entity
 from miio.waterpurifier_yunmi import WaterPurifierYunmi
 
@@ -12,9 +10,6 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     MiioEntity,
-    MiotEntity,
-    MiioDevice,
-    MiotDevice,
     BaseSubEntity,
     DeviceException,
     bind_services_to_entries,
@@ -27,17 +22,17 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, config_entry.data)
+    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, dict(config_entry.data))
     await async_setup_platform(hass, config, async_add_entities)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    if DATA_KEY not in hass.data:
-        hass.data[DATA_KEY] = {}
-    hass.data[DOMAIN]['add_entities']['sensor'] = async_add_entities
-    model = config.get(CONF_MODEL)
+    hass.data.setdefault(DATA_KEY, {})
+    config.setdefault('add_entities', {})
+    config['add_entities']['sensor'] = async_add_entities
+    model = str(config.get(CONF_MODEL) or '')
     entities = []
-    if 1:
+    if model.find('waterpuri') >= 0:
         entity = WaterPurifierYunmiEntity(config)
         entities.append(entity)
     for entity in entities:
@@ -54,6 +49,7 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
         _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
 
         self._device = WaterPurifierYunmi(host, token)
+        self._add_entities = config.get('add_entities')
         super().__init__(name, self._device)
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._subs = {
@@ -108,7 +104,7 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
         self._state_attrs.update({
             'errors': '|'.join(status.operation_status.errors),
         })
-        add_entities = self.hass.data[DOMAIN].get('add_entities', {}).get('sensor', None)
+        add_entities = self._add_entities.get('sensor', None)
         for k, v in self._subs.items():
             if 'entity' in v:
                 v['entity'].update()

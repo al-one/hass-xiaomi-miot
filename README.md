@@ -6,6 +6,8 @@
 - xiaomi.aircondition.mt5
 - xiaomi.aircondition.mc5
 - yunmi.waterpuri.lx11
+- lumi.curtain.hagl05
+- mrbond.airer.m1pro
 
 
 ## Installing
@@ -28,8 +30,7 @@ or
 - **host**(*Required*): The IP of your device
 - **token**(*Required*): The Token of your device
 - **name**(*Optional*): The name of your device
-- **model**(*Optional*): The model of your device (like: xiaomi.aircondition.mt1), Get form miio info if empty
-- **mode**(*Optional*): `sensor,climate` Guess from Model if empty
+- **mode**(*Optional*): `sensor,climate,cover` Guess from Model if empty
 
 
 ## Obtain miio token

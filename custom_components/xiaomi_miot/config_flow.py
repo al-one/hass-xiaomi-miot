@@ -56,6 +56,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 unique_id = format_mac(info.mac_address)
                 await self.async_set_unique_id(unique_id)
                 self._abort_if_unique_id_configured()
+                if not user_input.get(CONF_MODEL):
+                    user_input[CONF_MODEL] = str(info.model or '')
                 user_input['miio_info'] = dict(info.raw or {})
                 return self.async_create_entry(
                     title=user_input.get(CONF_NAME),
