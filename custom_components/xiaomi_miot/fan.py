@@ -15,14 +15,14 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, config_entry.data)
+    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, dict(config_entry.data))
     await async_setup_platform(hass, config, async_add_entities)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    if DATA_KEY not in hass.data:
-        hass.data[DATA_KEY] = {}
-    hass.data[DOMAIN]['add_entities']['fan'] = async_add_entities
+    hass.data.setdefault(DATA_KEY, {})
+    config.setdefault('add_entities', {})
+    config['add_entities']['fan'] = async_add_entities
     model = config.get(CONF_MODEL)
     entities = []
     for entity in entities:

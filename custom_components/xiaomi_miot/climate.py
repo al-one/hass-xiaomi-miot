@@ -1,24 +1,18 @@
 """Support for Xiaomi Aircondition."""
 import logging
-import voluptuous as vol
 from enum import Enum
-from functools import partial
 
-import homeassistant.helpers.config_validation as cv
 from homeassistant.const import *
-from homeassistant.components.climate import *
+from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import *
 from miio.airconditioner_miot import (
     AirConditionerMiot,
-    OperationMode,
     FanSpeed,
 )
 
 from . import (
     DOMAIN,
     CONF_MODEL,
-    PLATFORM_SCHEMA,
-    XIAOMI_MIIO_SERVICE_SCHEMA,
     MiotEntity,
     bind_services_to_entries,
 )
@@ -33,17 +27,17 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, config_entry.data)
+    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, dict(config_entry.data))
     await async_setup_platform(hass, config, async_add_entities)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    if DATA_KEY not in hass.data:
-        hass.data[DATA_KEY] = {}
-    host = config[CONF_HOST]
-    model = config.get(CONF_MODEL)
+    hass.data.setdefault(DATA_KEY, {})
+    config.setdefault('add_entities', {})
+    config['add_entities']['climate'] = async_add_entities
+    model = str(config.get(CONF_MODEL) or '')
     entities = []
-    if 1:
+    if model.find('aircondition') >= 0:
         entity = MiotClimateEntity(config)
         entities.append(entity)
     for entity in entities:
@@ -121,11 +115,11 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         return self._hvac_mode
 
     @property
-    def hvac_modes(self) -> List[str]:
+    def hvac_modes(self):
         return [v.name for v in HvacModes]
 
     @property
-    def hvac_action(self) -> Optional[str]:
+    def hvac_action(self):
         return None
 
     def turn_on(self):
@@ -146,11 +140,11 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         return ret
 
     @property
-    def temperature_unit(self) -> str:
+    def temperature_unit(self):
         return TEMP_CELSIUS
 
     @property
-    def current_temperature(self) -> Optional[float]:
+    def current_temperature(self):
         return float(self._state_attrs.get('temperature', 0))
 
     @property
@@ -162,22 +156,23 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         return DEFAULT_MAX_TEMP
 
     @property
-    def target_temperature(self) -> Optional[float]:
+    def target_temperature(self):
         return float(self._state_attrs.get('target_temperature', 0))
 
     @property
-    def target_temperature_step(self) -> Optional[float]:
+    def target_temperature_step(self):
         return 0.50
 
     @property
-    def target_temperature_high(self) -> Optional[float]:
+    def target_temperature_high(self):
         return DEFAULT_MAX_TEMP
 
     @property
-    def target_temperature_low(self) -> Optional[float]:
+    def target_temperature_low(self):
         return DEFAULT_MIN_TEMP
 
     def set_temperature(self, **kwargs):
+        ret = False
         if ATTR_HVAC_MODE in kwargs:
             ret = self.set_hvac_mode(kwargs[ATTR_HVAC_MODE])
         if ATTR_TEMPERATURE in kwargs:
@@ -194,11 +189,11 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         return ret
 
     @property
-    def fan_mode(self) -> Optional[str]:
+    def fan_mode(self):
         return self._fan_speed.name
 
     @property
-    def fan_modes(self) -> Optional[List[str]]:
+    def fan_modes(self):
         return [v.name for v in FanSpeed]
 
     def set_fan_mode(self, fan_mode: str):
@@ -209,7 +204,7 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         return ret
 
     @property
-    def swing_mode(self) -> Optional[str]:
+    def swing_mode(self):
         val = 0
         if self._state_attrs.get('vertical_swing', False):
             val |= 1
@@ -218,9 +213,9 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         return SwingModes(val).name
 
     @property
-    def swing_modes(self) -> Optional[List[str]]:
+    def swing_modes(self):
         lst = [v.name for v in SwingModes]
-        if not self._model in ['xiaomi.aircondition.mt5']:
+        if self._model not in ['xiaomi.aircondition.mt5']:
             lst = ['Off', 'Vertical']
         return lst
 

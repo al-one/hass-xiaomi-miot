@@ -36,7 +36,11 @@ CONF_MODEL = 'model'
 
 SUPPORTED_DOMAINS = [
     "sensor",
+    "switch",
+    "light",
+    "fan",
     "climate",
+    "cover",
 ]
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -80,6 +84,7 @@ SERVICE_TO_METHOD_BASE = {
 async def async_setup(hass, config: dict):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN].setdefault('entities', {})
+    hass.data[DOMAIN].setdefault('configs', {})
     component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
     hass.data[DOMAIN]['component'] = component
     await component.async_setup(config)
@@ -88,40 +93,34 @@ async def async_setup(hass, config: dict):
 
 
 async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entries.ConfigEntry):
-    hass.data[DOMAIN].setdefault('configs', {})
     entry_id = config_entry.entry_id
     unique_id = config_entry.unique_id
     info = config_entry.data.get('miio_info') or {}
-    plats = []
     config = {}
     for k in [CONF_HOST, CONF_TOKEN, CONF_NAME, CONF_MODEL, CONF_MODE]:
         config[k] = config_entry.data.get(k)
-    model = config.get(CONF_MODEL) or info.get(CONF_MODEL) or ''
+    model = str(config.get(CONF_MODEL) or info.get(CONF_MODEL) or '')
     config[CONF_MODEL] = model
     modes = config.get(CONF_MODE, [])
     if not isinstance(modes, list):
         modes = str(modes).split(',')
-    for m in modes:
-        if m in SUPPORTED_DOMAINS:
-            plats.append(m)
-            config[CONF_MODE] = []
-    if not plats:
-        if model.find('aircondition') > 0:
-            plats = ['climate']
-        elif model.find('waterpuri') > 0:
-            plats = ['sensor']
-        else:
-            plats = []
+    modes = [
+        m
+        for m in modes
+        if m in SUPPORTED_DOMAINS
+    ]
+    config[CONF_MODE] = modes
+    config['config_entry'] = config_entry
+    hass.data[DOMAIN]['configs'][entry_id] = config
     hass.data[DOMAIN]['configs'][unique_id] = config
     _LOGGER.debug('Xiaomi Miot async_setup_entry %s', {
         'entry_id': entry_id,
         'unique_id': unique_id,
         'config': config,
-        'domains': plats,
         'miio': info,
     })
-    for plat in plats:
-        hass.async_create_task(hass.config_entries.async_forward_entry_setup(config_entry, plat))
+    for d in SUPPORTED_DOMAINS:
+        hass.async_create_task(hass.config_entries.async_forward_entry_setup(config_entry, d))
     return True
 
 
@@ -233,6 +232,17 @@ class MiioEntity(Entity):
                 self._available = False
             return False
 
+    def send_command(self, method, params=[]):
+        _LOGGER.debug('Send miio command to %s: %s(%s)', self._name, method, params)
+        try:
+            result = self._device.send(method, params)
+        except DeviceException as ex:
+            result = None
+            _LOGGER.error('Send miio command to %s: %s(%s) failed: %s', self._name, method, params, ex)
+        if not result:
+            _LOGGER.info('Send miio command to %s failed: %s(%s)', self._name, method, params)
+        return result
+
     async def async_command(self, method, params=[], mask_error=None):
         _LOGGER.debug('Send miio command to %s: %s(%s)', self._name, method, params)
         if mask_error is None:
@@ -248,7 +258,7 @@ class MiioEntity(Entity):
         except DeviceException as ex:
             if self._available:
                 self._available = False
-                _LOGGER.error('Got exception while fetching the state for %s: %s', self._name, ex)
+            _LOGGER.error('Got exception while fetching the state for %s (%s): %s', self._name, self._props, ex)
             return
         attrs = dict(zip(self._props, attrs))
         _LOGGER.debug('Got new state from %s: %s', self._name, attrs)
@@ -262,6 +272,13 @@ class MiioEntity(Entity):
     async def async_turn_off(self, **kwargs):
         await self._try_command('Turning off failed.', self._device.off)
 
+    def update_attrs(self, attrs: dict, update_parent=False):
+        self._state_attrs.update(attrs or {})
+        if update_parent and hasattr(self, '_parent'):
+            if self._parent and hasattr(self._parent, 'update_attrs'):
+                getattr(self._parent, 'update_attrs')(attrs or {}, False)
+        return self._state_attrs
+
 
 class MiotEntity(MiioEntity):
     def __init__(self, name, device):
@@ -271,6 +288,7 @@ class MiotEntity(MiioEntity):
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
             results = await self.hass.async_add_executor_job(partial(func, *args, **kwargs))
+            result = None
             for result in results:
                 break
             _LOGGER.debug('Response received from miot %s: %s', self._name, result)
@@ -281,22 +299,13 @@ class MiotEntity(MiioEntity):
                 self._available = False
             return False
 
-    async def async_command(self, method, params=[], mask_error=None):
-        _LOGGER.debug('Send miot command to %s: %s(%s)', self._name, method, params)
-        if mask_error is None:
-            mask_error = f'Send miot command to {self._name}: {method} failed: %s'
-        result = await self._try_command(mask_error, self._device.send, method, params)
-        if not result:
-            _LOGGER.info('Send miot command to %s failed: %s(%s)', self._name, method, params)
-        return result
-
     async def async_update(self):
         try:
             results = await self.hass.async_add_executor_job(partial(self._device.get_properties_for_mapping))
         except DeviceException as ex:
             if self._available:
                 self._available = False
-                _LOGGER.error('Got exception while fetching the state for %s: %s', self._name, ex)
+            _LOGGER.error('Got exception while fetching the state for %s: %s', self._name, ex)
             return
         attrs = {
             prop['did']: prop['value'] if prop['code'] == 0 else None
@@ -308,8 +317,9 @@ class MiotEntity(MiioEntity):
         self._state_attrs.update(attrs)
 
     async def async_set_property(self, field, value):
+        _LOGGER.debug('Set miot property to %s: %s(%s)', self._name, field, value)
         return await self._try_command(
-            f'Miot set_property failed. {field}: {value} %s',
+            f'Set miot property failed. {field}: {value} %s',
             self._device.set_property,
             field,
             value,
@@ -380,12 +390,20 @@ class BaseSubEntity(Entity):
             self._available = True
             self._state = attrs.get(self._attr)
             keys = self._option.get('keys', [])
+            if isinstance(keys, list):
+                keys.append(self._attr)
             self._state_attrs = {}.update(attrs) if keys is True else {
                 k: v
                 for k, v in attrs.items()
                 if k in keys
             }
-        self.async_write_ha_state()
+
+    def update_attrs(self, attrs: dict, update_parent=True):
+        self._state_attrs.update(attrs or {})
+        if update_parent:
+            if self._parent and hasattr(self._parent, 'update_attrs'):
+                getattr(self._parent, 'update_attrs')(attrs or {}, False)
+        return self._state_attrs
 
     def call_parent(self, method, *args, **kwargs):
         for f in cv.ensure_list(method):
@@ -402,6 +420,10 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
         if self._available:
             attrs = self._state_attrs
             self._state = attrs.get(self._attr) == 'on'
+
+    @property
+    def state(self):
+        return STATE_ON if self._state else STATE_OFF
 
     @property
     def is_on(self):
