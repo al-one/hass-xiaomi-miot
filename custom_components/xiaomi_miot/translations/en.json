@@ -2,20 +2,23 @@
     "config": {
         "flow_title": "Xiaomi Miot: {name}",
         "step": {
-            "title": "Xiaomi Miot",
-            "description": "Config device info.",
             "user": {
+                "title": "Xiaomi Miot",
+                "description": "Config device info.",
                 "data": {
                     "host": "Local IP for device",
                     "token": "Token",
                     "name": "Device name",
-                    "model": "Model",
-                    "mode": "Mode (climate) empty for auto"
+                    "mode": "Mode (sensor,climate,cover) empty for auto"
                 }
             }
         },
         "error": {
             "cannot_connect": "Failed to connect the device"
+        },
+        "abort": {
+            "already_configured": "Device is already configured",
+            "not_xiaomi_miio": "Not a Xiaomi miio device."
         }
     }
 }
