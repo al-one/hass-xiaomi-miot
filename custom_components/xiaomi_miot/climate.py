@@ -13,6 +13,7 @@ from miio.airconditioner_miot import (
 from . import (
     DOMAIN,
     CONF_MODEL,
+    PLATFORM_SCHEMA,
     MiotEntity,
     bind_services_to_entries,
 )

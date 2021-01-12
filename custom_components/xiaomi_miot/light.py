@@ -4,6 +4,7 @@ from homeassistant.components.light import *
 from . import (
     DOMAIN,
     CONF_MODEL,
+    PLATFORM_SCHEMA,
     ToggleSubEntity,
     bind_services_to_entries,
 )

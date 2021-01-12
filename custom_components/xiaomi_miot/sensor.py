@@ -9,6 +9,7 @@ from miio.waterpurifier_yunmi import WaterPurifierYunmi
 from . import (
     DOMAIN,
     CONF_MODEL,
+    PLATFORM_SCHEMA,
     MiioEntity,
     BaseSubEntity,
     DeviceException,

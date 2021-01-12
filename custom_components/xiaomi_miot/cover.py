@@ -22,6 +22,7 @@ from homeassistant.helpers.event import async_track_utc_time_change
 from . import (
     DOMAIN,
     CONF_MODEL,
+    PLATFORM_SCHEMA,
     MiioEntity,
     MiotEntity,
     MiioDevice,
