@@ -221,11 +221,10 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         return lst
 
     def set_swing_mode(self, swing_mode: str) -> None:
-        mod = SwingModes[swing_mode]
-        val = mod.value
-        ver = self._state_attrs.get('vertical_swing', False)
-        hor = self._state_attrs.get('horizontal_swing', False)
         ret = None
+        ver = None
+        hor = None
+        val = SwingModes[swing_mode].value
         if val & 1:
             ver = True
             if val == 1:
@@ -237,16 +236,15 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         if val == 0:
             ver = False
             hor = False
-        if not ver == self._state_attrs.get('vertical_swing', False):
-            ret = self._device.set_property('vertical_swing', ver)
+        for mk, mv in {'vertical_swing': ver, 'horizontal_swing': hor}.items():
+            old = self._state_attrs.get(mk, None)
+            if old is None or mv is None:
+                continue
+            if mv == old:
+                continue
+            ret = self.set_property(mk, mv)
             if ret:
                 self._state_attrs.update({
-                    'vertical_swing': ver,
-                })
-        if not hor == self._state_attrs.get('horizontal_swing', False):
-            ret = self._device.set_property('horizontal_swing', hor)
-            if ret:
-                self._state_attrs.update({
-                    'horizontal_swing': hor,
+                    mk: mv,
                 })
         return ret
