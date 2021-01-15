@@ -132,7 +132,7 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         else:
             if not self._state:
                 self._device.on()
-            ret = self._device.set_property('mode', HvacModes[hvac_mode].value)
+            ret = self.set_property('mode', HvacModes[hvac_mode].value)
         if ret:
             self._hvac_mode = hvac_mode
             self._state_attrs.update({

@@ -224,7 +224,7 @@ class MiioEntity(Entity):
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
             result = await self.hass.async_add_executor_job(partial(func, *args, **kwargs))
-            _LOGGER.debug('Response received from %s: %s', self._name, result)
+            _LOGGER.debug('Response received from miio %s: %s', self._name, result)
             return result == self._success_result
         except DeviceException as exc:
             if self._available:
@@ -237,24 +237,19 @@ class MiioEntity(Entity):
         try:
             result = self._device.send(method, params)
         except DeviceException as ex:
-            result = None
             _LOGGER.error('Send miio command to %s: %s(%s) failed: %s', self._name, method, params, ex)
-        if not result:
-            _LOGGER.info('Send miio command to %s failed: %s(%s)', self._name, method, params)
-        return result
+            return False
+        ret = result == self._success_result
+        if not ret:
+            _LOGGER.info('Send miio command to %s failed: %s(%s), result: %s', self._name, method, params, result)
+        return ret
 
-    async def async_command(self, method, params=[], mask_error=None):
-        _LOGGER.debug('Send miio command to %s: %s(%s)', self._name, method, params)
-        if mask_error is None:
-            mask_error = f'Send miio command to {self._name}: {method} failed: %s'
-        result = await self._try_command(mask_error, self._device.send, method, params)
-        if not result:
-            _LOGGER.info('Send miio command to %s failed: %s(%s)', self._name, method, params)
-        return result
+    async def async_command(self, method, params=[]):
+        return await self.hass.async_add_executor_job(self.send_command, method, params)
 
     async def async_update(self):
         try:
-            attrs = await self.hass.async_add_executor_job(partial(self._device.get_properties, self._props))
+            attrs = await self.hass.async_add_executor_job(self._device.get_properties, self._props)
         except DeviceException as ex:
             if self._available:
                 self._available = False
@@ -286,13 +281,16 @@ class MiotEntity(MiioEntity):
         self._success_result = 0
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
+        result = None
         try:
-            results = await self.hass.async_add_executor_job(partial(func, *args, **kwargs))
-            result = None
+            results = await self.hass.async_add_executor_job(partial(func, *args, **kwargs)) or []
             for result in results:
                 break
             _LOGGER.debug('Response received from miot %s: %s', self._name, result)
-            return result.get('code', 1) == self._success_result
+            if isinstance(result, dict):
+                return dict(result or {}).get('code', 1) == self._success_result
+            else:
+                return result == ['ok']
         except DeviceException as exc:
             if self._available:
                 _LOGGER.error(mask_error, exc)
@@ -316,14 +314,23 @@ class MiotEntity(MiioEntity):
         self._state = True if attrs.get('power') else False
         self._state_attrs.update(attrs)
 
-    async def async_set_property(self, field, value):
+    def set_property(self, field, value):
         _LOGGER.debug('Set miot property to %s: %s(%s)', self._name, field, value)
-        return await self._try_command(
-            f'Set miot property failed. {field}: {value} %s',
-            self._device.set_property,
-            field,
-            value,
-        )
+        result = None
+        try:
+            results = self._device.set_property(field, value) or []
+            for result in results:
+                break
+        except DeviceException as ex:
+            _LOGGER.error('Send miot property to %s: %s(%s) failed: %s', self._name, field, value, ex)
+            return False
+        ret = dict(result or {}).get('code', 1) == self._success_result
+        if not ret:
+            _LOGGER.info('Send miot property to %s failed: %s(%s), result: %s', self._name, field, value, result)
+        return ret
+
+    async def async_set_property(self, field, value):
+        return await self.hass.async_add_executor_job(self.set_property, field, value)
 
     async def async_turn_on(self, **kwargs):
         await self.async_set_property('power', True)
