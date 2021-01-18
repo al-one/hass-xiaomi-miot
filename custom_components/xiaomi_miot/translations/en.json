@@ -9,7 +9,7 @@
                     "host": "Local IP for device",
                     "token": "Token",
                     "name": "Device name",
-                    "mode": "Mode (sensor,climate,cover) empty for auto"
+                    "mode": "Mode (empty for auto)"
                 }
             }
         },
@@ -18,7 +18,7 @@
         },
         "abort": {
             "already_configured": "Device is already configured",
-            "not_xiaomi_miio": "Not a Xiaomi miio device."
+            "not_xiaomi_miio": "Not a Xiaomi miio/miot device."
         }
     }
 }

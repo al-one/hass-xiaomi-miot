@@ -9,7 +9,7 @@
                     "host": "设备IP",
                     "token": "Token",
                     "name": "名称",
-                    "mode": "模式 (sensor,climate,cover) 为空时自动识别"
+                    "mode": "模式(为空时自动识别)"
                 }
             }
         },
