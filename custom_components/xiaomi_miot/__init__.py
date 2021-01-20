@@ -413,9 +413,14 @@ class BaseSubEntity(Entity):
         return self._state_attrs
 
     def call_parent(self, method, *args, **kwargs):
+        ret = None
         for f in cv.ensure_list(method):
             if hasattr(self._parent, f):
-                return getattr(self._parent, f)(*args, **kwargs)
+                ret = getattr(self._parent, f)(*args, **kwargs)
+                break
+        if ret:
+            self.update()
+        return ret
 
 
 class ToggleSubEntity(BaseSubEntity, ToggleEntity):
