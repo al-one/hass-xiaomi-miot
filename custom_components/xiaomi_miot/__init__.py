@@ -232,10 +232,10 @@ class MiioEntity(Entity):
                 self._available = False
             return False
 
-    def send_command(self, method, params=[]):
+    def send_command(self, method, params=None):
         _LOGGER.debug('Send miio command to %s: %s(%s)', self._name, method, params)
         try:
-            result = self._device.send(method, params)
+            result = self._device.send(method, params if params is not None else [])
         except DeviceException as ex:
             _LOGGER.error('Send miio command to %s: %s(%s) failed: %s', self._name, method, params, ex)
             return False
@@ -244,7 +244,7 @@ class MiioEntity(Entity):
             _LOGGER.info('Send miio command to %s failed: %s(%s), result: %s', self._name, method, params, result)
         return ret
 
-    async def async_command(self, method, params=[]):
+    async def async_command(self, method, params=None):
         return await self.hass.async_add_executor_job(self.send_command, method, params)
 
     async def async_update(self):
@@ -259,13 +259,21 @@ class MiioEntity(Entity):
         _LOGGER.debug('Got new state from %s: %s', self._name, attrs)
         self._available = True
         self._state = attrs.get('power') == 'on'
-        self._state_attrs.update(attrs)
+        self.update_attrs(attrs)
 
-    async def async_turn_on(self, **kwargs):
-        await self._try_command('Turning on failed.', self._device.on)
+    def turn_on(self, **kwargs):
+        ret = self._device.on()
+        if ret:
+            self._state = True
+            self.update_attrs({'power': 'on'})
+        return ret
 
-    async def async_turn_off(self, **kwargs):
-        await self._try_command('Turning off failed.', self._device.off)
+    def turn_off(self, **kwargs):
+        ret = self._device.off()
+        if ret:
+            self._state = False
+            self.update_attrs({'power': 'off'})
+        return ret
 
     def update_attrs(self, attrs: dict, update_parent=False):
         self._state_attrs.update(attrs or {})
@@ -322,21 +330,32 @@ class MiotEntity(MiioEntity):
             for result in results:
                 break
         except DeviceException as ex:
-            _LOGGER.error('Send miot property to %s: %s(%s) failed: %s', self._name, field, value, ex)
+            _LOGGER.error('Set miot property to %s: %s(%s) failed: %s', self._name, field, value, ex)
             return False
         ret = dict(result or {}).get('code', 1) == self._success_result
-        if not ret:
-            _LOGGER.info('Send miot property to %s failed: %s(%s), result: %s', self._name, field, value, result)
+        if ret:
+            if field in self._state_attrs:
+                self.update_attrs({
+                    field: value,
+                }, update_parent=False)
+        else:
+            _LOGGER.info('Set miot property to %s failed: %s(%s), result: %s', self._name, field, value, result)
         return ret
 
     async def async_set_property(self, field, value):
         return await self.hass.async_add_executor_job(self.set_property, field, value)
 
-    async def async_turn_on(self, **kwargs):
-        await self.async_set_property('power', True)
+    def turn_on(self, **kwargs):
+        ret = self.set_property('power', True)
+        if ret:
+            self._state = True
+        return ret
 
-    async def async_turn_off(self, **kwargs):
-        await self.async_set_property('power', False)
+    def turn_off(self, **kwargs):
+        ret = self.set_property('power', False)
+        if ret:
+            self._state = False
+        return ret
 
 
 class BaseSubEntity(Entity):
