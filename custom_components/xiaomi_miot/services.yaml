@@ -23,3 +23,13 @@ set_property:
     value:
       description: Value of property.
       example: True
+
+get_properties:
+  description: Get miot properties.
+  fields:
+    entity_id:
+      description: Name of the entity.
+      example: "climate.xiaomi_mc5_374e"
+    mapping:
+      description: Mapping for properties.
+      example: "{'power': {'siid': 2, 'piid': 1}}"

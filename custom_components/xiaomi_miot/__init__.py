@@ -25,7 +25,7 @@ from miio import (
     Device as MiioDevice,
     DeviceException,
 )
-from miio.miot_device import MiotDevice
+from miio.miot_device import MiotDevice as MiotDeviceBase
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,6 +75,14 @@ SERVICE_TO_METHOD_BASE = {
             {
                 vol.Required('field'): cv.string,
                 vol.Required('value'): cv.match_all,
+            },
+        ),
+    },
+    'get_properties': {
+        'method': 'async_get_properties',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+            {
+                vol.Required('mapping'): dict,
             },
         ),
     },
@@ -161,6 +169,14 @@ def bind_services_to_entries(hass, services):
         hass.services.async_register(DOMAIN, srv, async_service_handler, schema=schema)
 
 
+class MiotDevice(MiotDeviceBase):
+    def get_properties_for_mapping(self) -> list:
+        properties = [{'did': k, **v} for k, v in self.mapping.items()]
+        return self.get_properties(
+            properties, property_getter='get_properties', max_properties=12
+        )
+
+
 class MiioEntity(Entity):
     def __init__(self, name, device):
         self._device = device
@@ -205,7 +221,8 @@ class MiioEntity(Entity):
 
     @property
     def device_state_attributes(self):
-        return self._state_attrs
+        ext = self.state_attributes or {}
+        return {**self._state_attrs, **ext}
 
     @property
     def supported_features(self):
@@ -294,7 +311,7 @@ class MiotEntity(MiioEntity):
             results = await self.hass.async_add_executor_job(partial(func, *args, **kwargs)) or []
             for result in results:
                 break
-            _LOGGER.debug('Response received from miot %s: %s', self._name, result)
+            _LOGGER.debug('Response received from miot %s: %s', self.entity_id, result)
             if isinstance(result, dict):
                 return dict(result or {}).get('code', 1) == self._success_result
             else:
@@ -311,26 +328,49 @@ class MiotEntity(MiioEntity):
         except DeviceException as ex:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got exception while fetching the state for %s: %s', self._name, ex)
+            _LOGGER.error('Got exception while fetching the state for %s: %s', self.entity_id, ex)
             return
         attrs = {
             prop['did']: prop['value'] if prop['code'] == 0 else None
             for prop in results
         }
-        _LOGGER.debug('Got new state from %s: %s', self._name, attrs)
+        _LOGGER.debug('Got new state from %s: %s', self.entity_id, attrs)
         self._available = True
         self._state = True if attrs.get('power') else False
-        self._state_attrs.update(attrs)
+        self.update_attrs(attrs)
+
+    def get_properties(self, mapping: dict):
+        if not self._miio_info:
+            return
+        dvc = MiotDevice(
+            mapping,
+            self._miio_info.network_interface.get('localIp'),
+            self._miio_info.data.get('token'),
+        )
+        try:
+            results = dvc.get_properties_for_mapping()
+        except DeviceException as ex:
+            _LOGGER.error('Got exception while get properties from %s: %s, mapping: %s', self.entity_id, ex, mapping)
+            return
+        attrs = {
+            prop['did']: prop['value'] if prop['code'] == 0 else None
+            for prop in results
+        }
+        _LOGGER.info('Get miot properties from %s: %s', self.entity_id, results)
+        return attrs
+
+    async def async_get_properties(self, mapping):
+        return await self.hass.async_add_executor_job(partial(self.get_properties, mapping))
 
     def set_property(self, field, value):
-        _LOGGER.debug('Set miot property to %s: %s(%s)', self._name, field, value)
+        _LOGGER.debug('Set miot property to %s: %s(%s)', self.entity_id, field, value)
         result = None
         try:
             results = self._device.set_property(field, value) or []
             for result in results:
                 break
         except DeviceException as ex:
-            _LOGGER.error('Set miot property to %s: %s(%s) failed: %s', self._name, field, value, ex)
+            _LOGGER.error('Set miot property to %s: %s(%s) failed: %s', self.entity_id, field, value, ex)
             return False
         ret = dict(result or {}).get('code', 1) == self._success_result
         if ret:
@@ -339,11 +379,11 @@ class MiotEntity(MiioEntity):
                     field: value,
                 }, update_parent=False)
         else:
-            _LOGGER.info('Set miot property to %s failed: %s(%s), result: %s', self._name, field, value, result)
+            _LOGGER.info('Set miot property to %s failed: %s(%s), result: %s', self.entity_id, field, value, result)
         return ret
 
     async def async_set_property(self, field, value):
-        return await self.hass.async_add_executor_job(self.set_property, field, value)
+        return await self.hass.async_add_executor_job(partial(self.set_property, field, value))
 
     def turn_on(self, **kwargs):
         ret = self.set_property('power', True)
