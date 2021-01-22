@@ -3,7 +3,12 @@ import logging
 from functools import partial
 
 from homeassistant.const import *
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import (
+    Entity,
+)
+from homeassistant.components.sensor import (
+    DOMAIN as ENTITY_DOMAIN,
+)
 from miio.waterpurifier_yunmi import WaterPurifierYunmi
 
 from . import (
@@ -11,13 +16,19 @@ from . import (
     CONF_MODEL,
     PLATFORM_SCHEMA,
     MiioEntity,
+    MiotDevice,
+    MiotEntity,
     BaseSubEntity,
     DeviceException,
     bind_services_to_entries,
 )
+from .core.miot_spec import (
+    MiotSpec,
+    MiotService,
+)
 
 _LOGGER = logging.getLogger(__name__)
-DATA_KEY = f'sensor.{DOMAIN}'
+DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
 SERVICE_TO_METHOD = {}
 
@@ -30,16 +41,60 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     hass.data.setdefault(DATA_KEY, {})
     config.setdefault('add_entities', {})
-    config['add_entities']['sensor'] = async_add_entities
+    config['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
     entities = []
-    if model.find('waterpuri') >= 0:
+    if model in ['yunmi.waterpuri.lx11']:
         entity = WaterPurifierYunmiEntity(config)
         entities.append(entity)
+    else:
+        miot = config.get('miot_type')
+        if miot:
+            spec = await MiotSpec.async_from_type(hass, miot)
+            for srv in spec.get_services('filter', 'illumination_sensor'):
+                if not srv.mapping():
+                    continue
+                cfg = {
+                    **config,
+                    'name': f"{config.get('name')} {srv.description}"
+                }
+                entities.append(MiotSensorEntity(cfg, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
+
+
+class MiotSensorEntity(MiotEntity):
+    def __init__(self, config, miot_service: MiotService):
+        name = config[CONF_NAME]
+        host = config[CONF_HOST]
+        token = config[CONF_TOKEN]
+        _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
+
+        self._miot_service = miot_service
+        mapping = miot_service.spec.services_mapping(
+            'tds_sensor', 'water_purifier', 'custom', 'custom_service',
+            'alarm', 'physical_controls_locked', 'uv', 'key_press',
+        )
+        mapping.update(miot_service.mapping())
+        self._device = MiotDevice(mapping, host, token)
+        super().__init__(name, self._device)
+        self._prop_state = miot_service.get_property(
+            'status', 'tds_out', 'temperature',
+            'filter_life_level', 'filter_left_time',
+            'illumination',
+        )
+
+    @property
+    def state(self):
+        return self._state_attrs.get(self._prop_state.full_name, STATE_UNKNOWN)
+
+    @property
+    def device_class(self):
+        if self._miot_service.name in ['illumination_sensor']:
+            return DEVICE_CLASS_ILLUMINANCE
+        return None
 
 
 class WaterPurifierYunmiEntity(MiioEntity, Entity):

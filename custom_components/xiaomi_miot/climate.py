@@ -3,23 +3,27 @@ import logging
 from enum import Enum
 
 from homeassistant.const import *
-from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate.const import *
-from miio.airconditioner_miot import (
-    AirConditionerMiot,
-    FanSpeed,
+from homeassistant.components.climate import (
+    DOMAIN as ENTITY_DOMAIN,
+    ClimateEntity,
 )
+from homeassistant.components.climate.const import *
 
 from . import (
     DOMAIN,
     CONF_MODEL,
     PLATFORM_SCHEMA,
-    MiotEntity,
+    MiotDevice,
+    MiotToggleEntity,
     bind_services_to_entries,
+)
+from .core.miot_spec import (
+    MiotSpec,
+    MiotService,
 )
 
 _LOGGER = logging.getLogger(__name__)
-DATA_KEY = f'climate.{DOMAIN}'
+DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
 DEFAULT_MIN_TEMP = 16.0
 DEFAULT_MAX_TEMP = 31.0
@@ -35,25 +39,24 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     hass.data.setdefault(DATA_KEY, {})
     config.setdefault('add_entities', {})
-    config['add_entities']['climate'] = async_add_entities
+    config['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
     entities = []
-    if model.find('aircondition') >= 0:
-        entity = MiotClimateEntity(config)
-        entities.append(entity)
+    miot = config.get('miot_type')
+    if miot:
+        spec = await MiotSpec.async_from_type(hass, miot)
+        for srv in spec.get_services(ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet'):
+            if not srv.get_property('on', 'mode'):
+                continue
+            cfg = {
+                **config,
+                'name': f"{config.get('name')} {srv.description}"
+            }
+            entities.append(MiotClimateEntity(cfg, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
-
-
-HvacModes = Enum('HvacModes', {
-    HVAC_MODE_OFF: 0,
-    HVAC_MODE_COOL: 2,
-    HVAC_MODE_DRY: 3,
-    HVAC_MODE_FAN_ONLY: 4,
-    HVAC_MODE_HEAT: 5,
-})
 
 
 class SwingModes(Enum):
@@ -63,81 +66,98 @@ class SwingModes(Enum):
     Steric = 3
 
 
-class AirConditionerMiotDevice(AirConditionerMiot):
-    def __init__(
-            self,
-            ip: str = None,
-            token: str = None,
-            start_id: int = 0,
-            debug: int = 0,
-            lazy_discover: bool = True,
-    ) -> None:
-        super().__init__(ip, token, start_id, debug, lazy_discover)
-        self.mapping.update({
-            'horizontal_swing': {'siid': 3, 'piid': 3},
-        })
-
-
-class MiotClimateEntity(MiotEntity, ClimateEntity):
-    def __init__(self, config):
+class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
         name = config[CONF_NAME]
         host = config[CONF_HOST]
         token = config[CONF_TOKEN]
-        model = config.get(CONF_MODEL)
-        _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
 
-        self._device = AirConditionerMiotDevice(host, token)
-        super().__init__(name, self._device)
+        self._miot_service = miot_service
+        mapping = miot_service.spec.services_mapping(
+            'air_conditioner', 'fan_control', 'environment', 'indicator_light',
+            'electricity', 'maintenance', 'alarm', 'enhance', 'countdown',
+            'power_consumption', 'ac_function', 'device_protect', 'device_info', 'arming',
+        )
+        mapping.update(miot_service.mapping())
+        _LOGGER.info('Initializing with host %s (token %s...), miot mapping: %s', host, token[:5], mapping)
 
-        self._supported_features = SUPPORT_FAN_MODE | SUPPORT_SWING_MODE | SUPPORT_TARGET_TEMPERATURE
+        self._device = MiotDevice(mapping, host, token)
+        super().__init__(name, self._device, miot_service)
+
+        self._fan_control = miot_service.spec.get_service('fan_control')
+        self._environment = miot_service.spec.get_service('environment')
+        self._prop_power = miot_service.get_property('on')
+        self._prop_mode = miot_service.get_property('mode')
+        self._prop_target_temp = miot_service.get_property('target_temperature')
+        self._prop_temperature = self._environment.get_property('temperature')
+        self._prop_target_humi = miot_service.get_property('target_humidity')
+        self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity')
+        self._prop_fan_level = None
+        self._prop_horizontal_swing = None
+        self._prop_vertical_swing = None
+        if self._fan_control:
+            self._prop_fan_level = self._fan_control.get_property('fan_level')
+            self._prop_horizontal_swing = self._fan_control.get_property('horizontal_swing')
+            self._prop_horizontal_angle = self._fan_control.get_property('horizontal_angle')
+            self._prop_vertical_swing = self._fan_control.get_property('vertical_swing')
+            self._prop_vertical_angle = self._fan_control.get_property('vertical_angle')
+
+        self._supported_features = 0
+        if self._prop_target_temp:
+            self._supported_features |= SUPPORT_TARGET_TEMPERATURE
+        if self._prop_target_humi:
+            self._supported_features |= SUPPORT_TARGET_HUMIDITY
+        if self.fan_modes or self._prop_mode.list_first('Fan') is not None:
+            self._supported_features |= SUPPORT_FAN_MODE
+        if self._prop_horizontal_swing or self._prop_vertical_swing:
+            self._supported_features |= SUPPORT_SWING_MODE
+
         self._state_attrs.update({'entity_class': self.__class__.__name__})
-        self._hvac_mode = HVAC_MODE_OFF
-        self._fan_speed = FanSpeed(0)
-
-    async def async_update(self):
-        await super().async_update()
-        if self._available:
-            self._state_attrs.update({
-                'current_temperature': self._state_attrs.get('temperature', 0),
-                'temperature': self._state_attrs.get('target_temperature', 0),
-            })
-            attrs = self._state_attrs
-            self._fan_speed = FanSpeed(attrs.get('fan_speed', 0))
+        self._hvac_modes = {
+            HVAC_MODE_AUTO: ['Auto'],
+            HVAC_MODE_COOL: ['Cool'],
+            HVAC_MODE_HEAT: ['Heat'],
+            HVAC_MODE_DRY:  ['Dry'],
+            HVAC_MODE_FAN_ONLY: ['Fan'],
+        }
 
     @property
-    def state(self) -> str:
+    def state(self):
         return self.hvac_mode
 
     @property
     def hvac_mode(self):
-        self._hvac_mode = HVAC_MODE_OFF
-        if self._state:
-            self._hvac_mode = HvacModes(int(self._state_attrs.get('mode', 0))).name
-        return self._hvac_mode
+        if not self.is_on:
+            return HVAC_MODE_OFF
+        acm = int(self._prop_mode.from_dict(self._state_attrs) or -1)
+        for mk, mv in self._hvac_modes.items():
+            if acm in self._prop_mode.list_search(*mv):
+                return mk
+        return None
 
     @property
     def hvac_modes(self):
-        return [v.name for v in HvacModes]
+        hms = [HVAC_MODE_OFF]
+        for mk, mv in self._hvac_modes.items():
+            if self._prop_mode.list_search(*mv):
+                hms.append(mk)
+        return hms
 
     @property
     def hvac_action(self):
         return None
 
-    def turn_on(self):
-        return self._device.on()
-
     def set_hvac_mode(self, hvac_mode: str):
         if hvac_mode == HVAC_MODE_OFF:
-            ret = self._device.off()
+            ret = self.turn_off()
         else:
             if not self._state:
-                self._device.on()
-            ret = self.set_property('mode', HvacModes[hvac_mode].value)
-        if ret:
-            self._hvac_mode = hvac_mode
-            self._state_attrs.update({
-                'mode': HvacModes[hvac_mode].value,
-            })
+                self.turn_on()
+            val = self._prop_mode.list_first(*self._hvac_modes.get(hvac_mode) or [])
+            if val is None:
+                ret = False
+            else:
+                ret = self.set_property(self._prop_mode.full_name, val)
         return ret
 
     @property
@@ -146,23 +166,33 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
 
     @property
     def current_temperature(self):
-        return float(self._state_attrs.get('temperature', 0))
+        if self._prop_temperature:
+            return float(self._prop_temperature.from_dict(self._state_attrs) or 0)
+        return None
 
     @property
-    def min_temp(self) -> float:
+    def min_temp(self):
+        if self._prop_target_temp:
+            return self._prop_target_temp.range_min()
         return DEFAULT_MIN_TEMP
 
     @property
-    def max_temp(self) -> float:
+    def max_temp(self):
+        if self._prop_target_temp:
+            return self._prop_target_temp.range_max()
         return DEFAULT_MAX_TEMP
 
     @property
     def target_temperature(self):
-        return float(self._state_attrs.get('target_temperature', 0))
+        if self._prop_target_temp:
+            return float(self._prop_target_temp.from_dict(self._state_attrs) or 0)
+        return None
 
     @property
     def target_temperature_step(self):
-        return 0.50
+        if self._prop_target_temp:
+            return self._prop_target_temp.range_step()
+        return 1
 
     @property
     def target_temperature_high(self):
@@ -182,42 +212,78 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
                 val = self.min_temp
             if val > self.max_temp:
                 val = self.max_temp
-            ret = self._device.set_target_temperature(val)
-            if ret:
-                self._state_attrs.update({
-                    'target_temperature': val,
-                })
+            ret = self.set_property(self._prop_target_temp.full_name, val)
         return ret
+
+    @property
+    def current_humidity(self):
+        if self._prop_humidity:
+            return int(self._prop_humidity.from_dict(self._state_attrs) or 0)
+        return None
+
+    @property
+    def target_humidity(self):
+        if self._prop_target_humi:
+            return int(self._prop_target_humi.from_dict(self._state_attrs) or 0)
+        return None
+
+    @property
+    def min_humidity(self):
+        if self._prop_target_humi:
+            return self._prop_target_humi.range_min()
+        return DEFAULT_MIN_HUMIDITY
+
+    @property
+    def max_humidity(self):
+        if self._prop_target_humi:
+            return self._prop_target_humi.range_max()
+        return DEFAULT_MAX_HUMIDITY
+
+    def set_humidity(self, humidity):
+        if self._prop_target_humi:
+            return self.set_property(self._prop_target_humi.full_name, humidity)
+        return False
 
     @property
     def fan_mode(self):
-        return self._fan_speed.name
+        if self._prop_fan_level:
+            val = self._prop_fan_level.from_dict(self._state_attrs)
+            if val is not None:
+                return self._prop_fan_level.list_description(val)
+        return None
 
     @property
     def fan_modes(self):
-        return [v.name for v in FanSpeed]
+        return self._prop_fan_level.list_description(None) or []
 
     def set_fan_mode(self, fan_mode: str):
-        spd = FanSpeed[fan_mode]
-        ret = self._device.set_fan_speed(spd)
-        if ret:
-            self._fan_speed = spd
-        return ret
+        if self._prop_fan_level:
+            val = self._prop_fan_level.list_value(fan_mode)
+            return self.set_property(self._prop_fan_level.full_name, val)
+        return False
 
     @property
     def swing_mode(self):
         val = 0
-        if self._state_attrs.get('vertical_swing', False):
+        pvs = self._prop_vertical_swing
+        phs = self._prop_horizontal_swing
+        if pvs and pvs.from_dict(self._state_attrs, False):
             val |= 1
-        if self._state_attrs.get('horizontal_swing', False):
+        if phs and phs.from_dict(self._state_attrs, False):
             val |= 2
         return SwingModes(val).name
 
     @property
     def swing_modes(self):
-        lst = [v.name for v in SwingModes]
-        if self._model not in ['xiaomi.aircondition.mt5']:
-            lst = ['Off', 'Vertical']
+        lst = [SwingModes(0).name]
+        pvs = self._prop_vertical_swing
+        phs = self._prop_horizontal_swing
+        if pvs:
+            lst.append(SwingModes(1).name)
+        if phs:
+            lst.append(SwingModes(2).name)
+        if pvs and phs:
+            lst.append(SwingModes(3).name)
         return lst
 
     def set_swing_mode(self, swing_mode: str) -> None:
@@ -236,15 +302,16 @@ class MiotClimateEntity(MiotEntity, ClimateEntity):
         if val == 0:
             ver = False
             hor = False
-        for mk, mv in {'vertical_swing': ver, 'horizontal_swing': hor}.items():
+        swm = {}
+        if self._prop_vertical_swing:
+            swm[self._prop_vertical_swing.name] = ver
+        if self._prop_horizontal_swing:
+            swm[self._prop_horizontal_swing.name] = hor
+        for mk, mv in swm.items():
             old = self._state_attrs.get(mk, None)
             if old is None or mv is None:
                 continue
             if mv == old:
                 continue
             ret = self.set_property(mk, mv)
-            if ret:
-                self._state_attrs.update({
-                    mk: mv,
-                })
         return ret

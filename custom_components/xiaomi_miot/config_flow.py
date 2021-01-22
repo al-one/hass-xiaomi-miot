@@ -18,6 +18,7 @@ from . import (
     DEFAULT_NAME,
     SUPPORTED_DOMAINS,
 )
+from .core.miot_spec import MiotSpec
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,6 +60,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 if not user_input.get(CONF_MODEL):
                     user_input[CONF_MODEL] = str(info.model or '')
                 user_input['miio_info'] = dict(info.raw or {})
+                miot_type = await MiotSpec.async_get_model_type(self.hass, user_input.get(CONF_MODEL))
+                user_input['miot_type'] = miot_type
                 return self.async_create_entry(
                     title=user_input.get(CONF_NAME),
                     data=user_input,

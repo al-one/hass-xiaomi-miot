@@ -5,7 +5,10 @@ from datetime import timedelta
 from functools import partial
 import voluptuous as vol
 
-from homeassistant import core, config_entries
+from homeassistant import (
+    core as hass_core,
+    config_entries,
+)
 from homeassistant.const import *
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity import (
@@ -26,6 +29,11 @@ from miio import (
     DeviceException,
 )
 from miio.miot_device import MiotDevice as MiotDeviceBase
+
+from .core.miot_spec import (
+    MiotSpec,
+    MiotService,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -100,7 +108,7 @@ async def async_setup(hass, config: dict):
     return True
 
 
-async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entries.ConfigEntry):
+async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
     entry_id = config_entry.entry_id
     unique_id = config_entry.unique_id
     info = config_entry.data.get('miio_info') or {}
@@ -118,6 +126,10 @@ async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entri
         if m in SUPPORTED_DOMAINS
     ]
     config[CONF_MODE] = modes
+    if 'miot_type' in config_entry.data:
+        config['miot_type'] = config_entry.data.get('miot_type')
+    else:
+        config['miot_type'] = await MiotSpec.async_get_model_type(hass, model)
     config['config_entry'] = config_entry
     hass.data[DOMAIN]['configs'][entry_id] = config
     hass.data[DOMAIN]['configs'][unique_id] = config
@@ -396,6 +408,26 @@ class MiotEntity(MiioEntity):
         if ret:
             self._state = False
         return ret
+
+
+class MiotToggleEntity(MiotEntity, ToggleEntity):
+    def __init__(self, name, device, miot_service: MiotService):
+        super().__init__(name, device)
+        self._miot_service = miot_service
+        self._prop_power = miot_service.get_property('on', 'power', 'switch')
+
+    @property
+    def is_on(self):
+        return self._state_attrs.get(self._prop_power.full_name) and True
+
+    def turn_on(self, **kwargs):
+        ret = False
+        if not self.is_on:
+            ret = self.set_property(self._prop_power.full_name, True)
+        return ret
+
+    def turn_off(self, **kwargs):
+        return self.set_property(self._prop_power.full_name, False)
 
 
 class BaseSubEntity(Entity):

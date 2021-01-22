@@ -7,6 +7,7 @@ from functools import partial
 from homeassistant.const import *
 from homeassistant.core import callback
 from homeassistant.components.cover import (
+    DOMAIN as ENTITY_DOMAIN,
     CoverEntity,
     SUPPORT_OPEN,
     SUPPORT_CLOSE,
@@ -29,11 +30,15 @@ from . import (
     DeviceException,
     bind_services_to_entries,
 )
+from .core.miot_spec import (
+    MiotSpec,
+    MiotService,
+)
 from .light import LightSubEntity
 from .fan import FanSubEntity
 
 _LOGGER = logging.getLogger(__name__)
-DATA_KEY = f'cover.{DOMAIN}'
+DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
 SERVICE_TO_METHOD = {}
 
@@ -46,19 +51,125 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     hass.data.setdefault(DATA_KEY, {})
     config.setdefault('add_entities', {})
-    config['add_entities']['cover'] = async_add_entities
+    config['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
     entities = []
     if model.find('mrbond.airer') >= 0:
         entity = MrBondAirerProEntity(config)
         entities.append(entity)
-    elif model.find('curtain') >= 0:
-        entity = LumiCurtainEntity(config)
-        entities.append(entity)
+    else:
+        miot = config.get('miot_type')
+        if miot:
+            spec = await MiotSpec.async_from_type(hass, miot)
+            for srv in spec.get_services(ENTITY_DOMAIN, 'curtain', 'airer'):
+                if not srv.get_property('motor_control'):
+                    continue
+                cfg = {
+                    **config,
+                    'name': f"{config.get('name')} {srv.description}"
+                }
+                entities.append(MiotCoverEntity(cfg, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
+
+
+class MiotCoverEntity(MiotEntity, CoverEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        name = config[CONF_NAME]
+        host = config[CONF_HOST]
+        token = config[CONF_TOKEN]
+        _LOGGER.info('Initializing %s with host %s (token %s...)', name, host, token[:5])
+
+        self._miot_service = miot_service
+        mapping = miot_service.spec.services_mapping(
+            ENTITY_DOMAIN, 'indicator_light', 'yl_curtain', 'curtain_cfg', 'motor_controller',
+        )
+        mapping.update(miot_service.mapping())
+        self._device = MiotDevice(mapping, host, token)
+        super().__init__(name, self._device)
+
+        self._prop_status = miot_service.get_property('status')
+        self._prop_motor_control = miot_service.get_property('motor_control')
+        self._prop_current_position = miot_service.get_property('current_position')
+        self._prop_target_position = miot_service.get_property('target_position')
+
+        self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
+        if self._prop_target_position:
+            self._supported_features |= SUPPORT_SET_POSITION
+        if self._prop_motor_control.list_first('Pause', 'Stop') is not None:
+            self._supported_features |= SUPPORT_STOP
+
+        self._state_attrs.update({'entity_class': self.__class__.__name__})
+
+    @property
+    def device_class(self):
+        typ = f'{self._model} {self._miot_service.spec.type}'
+        if typ.find('curtain') >= 0:
+            return DEVICE_CLASS_CURTAIN
+        return None
+
+    @property
+    def current_cover_position(self):
+        pos = -1
+        if self._prop_current_position:
+            pos = int(self._prop_current_position.from_dict(self._state_attrs, -1) or 0)
+            range_max = self._prop_current_position.range_max()
+            if not range_max:
+                pos = -1
+            elif range_max != 100 and pos >= 0:
+                pos = pos / range_max * 100
+        return pos
+
+    def set_cover_position(self, **kwargs):
+        pos = round(kwargs.get(ATTR_POSITION) or 0)
+        if self._prop_target_position:
+            return self.set_property(self._prop_target_position.full_name, pos)
+        return False
+
+    @property
+    def is_closed(self):
+        pos = self.current_cover_position
+        if pos < 0:
+            return None
+        return self.current_cover_position < 1
+
+    @property
+    def is_closing(self):
+        if not self._prop_status:
+            return None
+        sta = int(self._prop_status.from_dict(self._state_attrs) or -1)
+        return sta in self._prop_status.list_search('Closing', 'Down')
+
+    @property
+    def is_opening(self):
+        if not self._prop_status:
+            return None
+        sta = int(self._prop_status.from_dict(self._state_attrs) or -1)
+        return sta in self._prop_status.list_search('Opening', 'Up')
+
+    def open_cover(self, **kwargs):
+        val = self._prop_motor_control.list_first('Open', 'Up')
+        ret = self.set_property(self._prop_motor_control.full_name, val)
+        if ret and self._prop_status:
+            self.update_attrs({
+                self._prop_status.full_name: self._prop_status.list_first('Opening', 'Up')
+            })
+        return ret
+
+    def close_cover(self, **kwargs):
+        val = self._prop_motor_control.list_first('Close', 'Down')
+        ret = self.set_property(self._prop_motor_control.full_name, val)
+        if ret and self._prop_status:
+            self.update_attrs({
+                self._prop_status.full_name: self._prop_status.list_first('Closing', 'Down')
+            })
+        return ret
+
+    def stop_cover(self, **kwargs):
+        val = self._prop_motor_control.list_first('Pause', 'Stop')
+        return self.set_property(self._prop_motor_control.full_name, val)
 
 
 class MiioCoverEntity(MiioEntity, CoverEntity):
@@ -122,95 +233,6 @@ class MiioCoverEntity(MiioEntity, CoverEntity):
             'set_position': self._set_position,
             'requested_closing': self._requested_closing,
         })
-
-
-class LumiCurtainEntity(MiotEntity, MiioCoverEntity):
-    mapping = {
-        # http://miot-spec.org/miot-spec-v2/instance?type=urn:miot-spec-v2:device:curtain:0000A00C:lumi-hagl05:1
-        'motor_control':    {'siid': 2, 'piid': 2},  # 0:Pause 1:Open 2:Close 3:auto, writeOnly
-        'current_position': {'siid': 2, 'piid': 3},  # [0, 100], step 1
-        'status':           {'siid': 2, 'piid': 6},  # 0:Stopped 1:Opening 2:Closing
-        'target_position':  {'siid': 2, 'piid': 7},  # [0, 100], step 1
-        'manual_enabled':   {'siid': 4, 'piid': 1},  # 0:Disable 1:Enable
-        'polarity':         {'siid': 4, 'piid': 2},  # 0:Positive 1:Reverse
-        'pos_limit':        {'siid': 4, 'piid': 3},  # 0:Unlimit 1:Limit
-        'night_tip_light':  {'siid': 4, 'piid': 4},  # 0:Disable 1:Enable
-        'run_time':         {'siid': 4, 'piid': 5},  # [0, 255], step 1
-        'adjust_value':     {'siid': 5, 'piid': 1},  # [-100, 100], step 1, writeOnly
-    }
-
-    def __init__(self, config):
-        name = config[CONF_NAME]
-        host = config[CONF_HOST]
-        token = config[CONF_TOKEN]
-        _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
-
-        self._device = MiotDevice(self.mapping, host, token)
-        super().__init__(name, self._device)
-        self._device_class = DEVICE_CLASS_CURTAIN
-        self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_STOP | SUPPORT_SET_POSITION
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
-
-    async def async_update(self):
-        await super().async_update()
-        if self._available:
-            attrs = self._state_attrs
-            self._position = round(attrs.get('current_position') or 0, -1)
-            self._is_opening = int(attrs.get('status') or 0) == 1
-            self._is_closing = int(attrs.get('status') or 0) == 2
-            self._closed = self._position <= 0
-            self._state_attrs.update({
-                'position': self._position,
-                'closed':   self._closed,
-                'stopped':  bool(not self._is_opening and not self._is_closing),
-            })
-            if self._unsub_listener_cover is not None and self._state_attrs['stopped']:
-                self._unsub_listener_cover()
-                self._unsub_listener_cover = None
-
-    def open_cover(self, **kwargs):
-        return self.set_property('motor_control', 1)
-
-    async def async_open_cover(self, **kwargs):
-        if self._position is None or self._position >= 99:
-            return
-        if await self.async_set_property('motor_control', 1):
-            self._state_attrs['status'] = 1
-            self._is_opening = True
-            self._requested_closing = False
-            self._set_position = 100
-            self._listen_cover()
-            self.async_write_ha_state()
-
-    def close_cover(self, **kwargs):
-        return self.set_property('motor_control', 2)
-
-    async def async_close_cover(self, **kwargs):
-        if self.is_closed or self._position is None:
-            return
-        if await self.async_set_property('motor_control', 2):
-            self._state_attrs['status'] = 2
-            self._is_closing = True
-            self._requested_closing = True
-            self._set_position = 0
-            self._listen_cover()
-            self.async_write_ha_state()
-
-    async def async_set_cover_position(self, **kwargs):
-        position = kwargs.get(ATTR_POSITION)
-        self._set_position = round(position, -1)
-        if self._position == position:
-            return
-        if await self.async_set_property('target_position', self._set_position):
-            self._listen_cover()
-            self._requested_closing = position < self._position
-
-    async def async_stop_cover(self, **kwargs):
-        if self._position is None:
-            return
-        if await self.async_set_property('motor_control', 0):
-            self._is_closing = False
-            self._is_opening = False
 
 
 class MrBondAirerProEntity(MiotEntity, MiioCoverEntity):
