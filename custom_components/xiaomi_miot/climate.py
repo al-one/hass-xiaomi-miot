@@ -45,7 +45,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services(ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet'):
+        for srv in spec.get_services(
+            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
+            'air_purifier', 'heater',
+        ):
             if not srv.get_property('on', 'mode'):
                 continue
             cfg = {
@@ -75,7 +78,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._miot_service = miot_service
         mapping = miot_service.spec.services_mapping(
             'air_conditioner', 'fan_control', 'environment', 'indicator_light',
-            'electricity', 'maintenance', 'alarm', 'enhance', 'countdown',
+            'air_purifier', 'filter_time', 'motor_speed', 'aqi', 'rfid', 'physical_controls_locked',
+            'electricity', 'maintenance', 'alarm', 'enhance', 'countdown', 'others', 'private_service',
             'power_consumption', 'ac_function', 'device_protect', 'device_info', 'arming',
         )
         mapping.update(miot_service.mapping())
@@ -92,7 +96,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._prop_temperature = self._environment.get_property('temperature')
         self._prop_target_humi = miot_service.get_property('target_humidity')
         self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity')
-        self._prop_fan_level = None
+        self._prop_fan_level = self._fan_control.get_property('fan_level')
         self._prop_horizontal_swing = None
         self._prop_vertical_swing = None
         if self._fan_control:
@@ -254,7 +258,9 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
     @property
     def fan_modes(self):
-        return self._prop_fan_level.list_description(None) or []
+        if self._prop_fan_level:
+            return self._prop_fan_level.list_description(None) or []
+        return None
 
     def set_fan_mode(self, fan_mode: str):
         if self._prop_fan_level:
