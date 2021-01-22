@@ -51,7 +51,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         miot = config.get('miot_type')
         if miot:
             spec = await MiotSpec.async_from_type(hass, miot)
-            for srv in spec.get_services('filter', 'illumination_sensor'):
+            for srv in spec.get_services(
+                'filter', 'illumination_sensor',
+                'cooker', 'induction_cooker', 'pressure_cooker',
+            ):
                 if not srv.mapping():
                     continue
                 cfg = {
