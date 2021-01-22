@@ -241,7 +241,7 @@ class MiioEntity(Entity):
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
             result = await self.hass.async_add_executor_job(partial(func, *args, **kwargs))
-            _LOGGER.debug('Response received from miio %s: %s', self._name, result)
+            _LOGGER.debug('Response received from miio %s: %s', self.entity_id, result)
             return result == self._success_result
         except DeviceException as exc:
             if self._available:
@@ -250,15 +250,15 @@ class MiioEntity(Entity):
             return False
 
     def send_command(self, method, params=None):
-        _LOGGER.debug('Send miio command to %s: %s(%s)', self._name, method, params)
+        _LOGGER.debug('Send miio command to %s: %s(%s)', self.entity_id, method, params)
         try:
             result = self._device.send(method, params if params is not None else [])
         except DeviceException as ex:
-            _LOGGER.error('Send miio command to %s: %s(%s) failed: %s', self._name, method, params, ex)
+            _LOGGER.error('Send miio command to %s: %s(%s) failed: %s', self.entity_id, method, params, ex)
             return False
         ret = result == self._success_result
         if not ret:
-            _LOGGER.info('Send miio command to %s failed: %s(%s), result: %s', self._name, method, params, result)
+            _LOGGER.info('Send miio command to %s failed: %s(%s), result: %s', self.entity_id, method, params, result)
         return ret
 
     async def async_command(self, method, params=None):
@@ -270,10 +270,10 @@ class MiioEntity(Entity):
         except DeviceException as ex:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got exception while fetching the state for %s (%s): %s', self._name, self._props, ex)
+            _LOGGER.error('Got exception while fetching the state for %s (%s): %s', self.entity_id, self._props, ex)
             return
         attrs = dict(zip(self._props, attrs))
-        _LOGGER.debug('Got new state from %s: %s', self._name, attrs)
+        _LOGGER.debug('Got new state from %s: %s', self.entity_id, attrs)
         self._available = True
         self._state = attrs.get('power') == 'on'
         self.update_attrs(attrs)
@@ -296,14 +296,14 @@ class MiioEntity(Entity):
         self._state_attrs.update(attrs or {})
         if update_parent and hasattr(self, '_parent'):
             if self._parent and hasattr(self._parent, 'update_attrs'):
-                getattr(self._parent, 'update_attrs')(attrs or {}, False)
+                getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
         return self._state_attrs
 
 
 class MiotEntity(MiioEntity):
     def __init__(self, name, device):
         super().__init__(name, device)
-        self._success_result = 0
+        self._success_code = 0
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
         result = None
@@ -313,9 +313,9 @@ class MiotEntity(MiioEntity):
                 break
             _LOGGER.debug('Response received from miot %s: %s', self.entity_id, result)
             if isinstance(result, dict):
-                return dict(result or {}).get('code', 1) == self._success_result
+                return dict(result or {}).get('code', 1) == self._success_code
             else:
-                return result == ['ok']
+                return result == self._success_result
         except DeviceException as exc:
             if self._available:
                 _LOGGER.error(mask_error, exc)
@@ -372,7 +372,7 @@ class MiotEntity(MiioEntity):
         except DeviceException as ex:
             _LOGGER.error('Set miot property to %s: %s(%s) failed: %s', self.entity_id, field, value, ex)
             return False
-        ret = dict(result or {}).get('code', 1) == self._success_result
+        ret = dict(result or {}).get('code', 1) == self._success_code
         if ret:
             if field in self._state_attrs:
                 self.update_attrs({
@@ -468,7 +468,7 @@ class BaseSubEntity(Entity):
         self._state_attrs.update(attrs or {})
         if update_parent:
             if self._parent and hasattr(self._parent, 'update_attrs'):
-                getattr(self._parent, 'update_attrs')(attrs or {}, False)
+                getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
         return self._state_attrs
 
     def call_parent(self, method, *args, **kwargs):
@@ -490,7 +490,7 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
         super().update()
         if self._available:
             attrs = self._state_attrs
-            self._state = attrs.get(self._attr) == 'on'
+            self._state = attrs.get(self._attr) == STATE_ON
 
     @property
     def state(self):

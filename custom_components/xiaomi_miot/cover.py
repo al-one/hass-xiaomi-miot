@@ -13,7 +13,6 @@ from homeassistant.components.cover import (
     SUPPORT_STOP,
     SUPPORT_SET_POSITION,
     DEVICE_CLASS_CURTAIN,
-    DEVICE_CLASS_DAMPER,
     ATTR_POSITION,
 )
 from homeassistant.components.fan import SUPPORT_SET_SPEED
@@ -71,7 +70,6 @@ class MiioCoverEntity(MiioEntity, CoverEntity):
         self._unsub_listener_cover = None
         self._is_opening = False
         self._is_closing = False
-        self._closed = False
         self._requested_closing = True
 
     @property
@@ -80,7 +78,9 @@ class MiioCoverEntity(MiioEntity, CoverEntity):
 
     @property
     def is_closed(self):
-        return self._closed
+        if self._position is not None:
+            return self._position <= 0
+        return None
 
     @property
     def is_closing(self):
@@ -116,9 +116,8 @@ class MiioCoverEntity(MiioEntity, CoverEntity):
             self._unsub_listener_cover()
             self._unsub_listener_cover = None
             self._set_position = None
-        self._closed = self.current_cover_position <= 1
         self.async_write_ha_state()
-        _LOGGER.debug('cover process %s: %s', self.name, {
+        _LOGGER.debug('cover process %s: %s', self.entity_id, {
             'position': self._position,
             'set_position': self._set_position,
             'requested_closing': self._requested_closing,
@@ -214,7 +213,7 @@ class LumiCurtainEntity(MiotEntity, MiioCoverEntity):
             self._is_opening = False
 
 
-class MrBondAirerProEntity(MiioCoverEntity):
+class MrBondAirerProEntity(MiotEntity, MiioCoverEntity):
     def __init__(self, config):
         name = config[CONF_NAME]
         host = config[CONF_HOST]
@@ -224,14 +223,13 @@ class MrBondAirerProEntity(MiioCoverEntity):
         self._device = MiioDevice(host, token)
         self._add_entities = config.get('add_entities')
         super().__init__(name, self._device)
-        self._device_class = DEVICE_CLASS_DAMPER
         self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_STOP
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._props = ['dry', 'led', 'motor', 'drytime', 'airer_location']
         self._subs = {}
 
     def get_single_prop(self, prop):
-        rls = self._device.get_properties([prop]) or []
+        rls = self._device.get_properties([prop]) or [None]
         return rls[0]
 
     async def async_get_single_prop(self, prop):
@@ -252,9 +250,9 @@ class MrBondAirerProEntity(MiioCoverEntity):
                 # Unknown Error: {'code': -10000, 'message': 'error'}
                 try:
                     attrs = [
-                        self.get_single_prop('dry'),
-                        self.get_single_prop('led'),
-                        self.get_single_prop('motor'),
+                        await self.async_get_single_prop('dry'),
+                        await self.async_get_single_prop('led'),
+                        await self.async_get_single_prop('motor'),
                         None,
                         None,
                     ]
@@ -264,34 +262,36 @@ class MrBondAirerProEntity(MiioCoverEntity):
                         self._available = False
                     _LOGGER.error(
                         'Got exception while fetching the state for %s (%s): %s %s',
-                        self._name, self._props, ex, exc
+                        self.entity_id, self._props, ex, exc
                     )
             else:
                 _LOGGER.error(
                     'Got exception while fetching the state for %s (%s): %s',
-                    self._name, self._props, ex
+                    self.entity_id, self._props, ex
                 )
         if self._available:
             attrs = dict(zip(self._props, attrs))
-            _LOGGER.debug('Got new state from %s: %s', self.name, attrs)
+            _LOGGER.debug('Got new state from %s: %s', self.entity_id, attrs)
             self._state_attrs.update(attrs)
-            self._position = 100 if int(attrs.get('airer_location', 1) or 1) else 0
             self._is_opening = int(attrs.get('motor', 0)) == 1
             self._is_closing = int(attrs.get('motor', 0)) == 2
-            if attrs.get('airer_location', None) is None:
+            self._position = None
+            loc = attrs.get('airer_location', None)
+            if loc is None:
                 if self._is_opening:
                     self._position = 100
                 if self._is_closing:
                     self._position = 0
-            self._closed = self._position <= 0
+            else:
+                if loc == 1:
+                    self._position = 100
+                if loc == 2:
+                    self._position = 0
             self._state_attrs.update({
                 'position': self._position,
-                'closed':   self._closed,
+                'closed':   self.is_closed,
                 'stopped':  bool(not self._is_opening and not self._is_closing),
             })
-            if self._unsub_listener_cover is not None and self._state_attrs['stopped']:
-                self._unsub_listener_cover()
-                self._unsub_listener_cover = None
 
             add_lights = self._add_entities.get('light', None)
             if 'light' in self._subs:
@@ -307,36 +307,43 @@ class MrBondAirerProEntity(MiioCoverEntity):
                 self._subs['fan'] = MrBondAirerProDryEntity(self, option={'keys': ['drytime']})
                 add_fans([self._subs['fan']])
 
-    def open_cover(self, **kwargs):
-        self._device.send('set_motor', [1])
+    def set_motor(self, val):
+        ret = self.send_command('set_motor', [val])
+        if ret:
+            self.update_attrs({'motor': val})
+            self._is_opening = val == 1
+            self._is_closing = val == 2
+            if self._is_opening:
+                self._position = 100
+            if self._is_closing:
+                self._position = 0
+        return ret
 
-    async def async_open_cover(self, **kwargs):
-        if self._position is None or self._position >= 100:
-            return
-        if await self.async_command('set_motor', [1]):
-            self._is_opening = True
-            self._listen_cover()
-            self._requested_closing = False
-            self.async_write_ha_state()
+    def open_cover(self, **kwargs):
+        return self.set_motor(1)
 
     def close_cover(self, **kwargs):
-        self._device.send('set_motor', [2])
+        return self.set_motor(2)
 
-    async def async_close_cover(self, **kwargs):
-        if self._position == 0 or self.is_closed:
-            return
-        if await self.async_command('set_motor', [2]):
-            self._is_closing = True
-            self._listen_cover()
-            self._requested_closing = True
-            self.async_write_ha_state()
+    def stop_cover(self, **kwargs):
+        return self.set_motor(0)
 
-    async def async_stop_cover(self, **kwargs):
-        if self._position is None:
-            return
-        if await self.async_command('set_motor', [0]):
-            self._is_closing = False
-            self._is_opening = False
+    def set_led(self, val):
+        ret = self.send_command('set_led', [val])
+        if ret:
+            self.update_attrs({'led': val})
+        return ret
+
+    def set_dry(self, lvl):
+        if lvl == 0:
+            ret = self.send_command('set_dryswitch', [0])
+        elif lvl >= 4:
+            ret = self.send_command('set_dryswitch', [1])
+        else:
+            ret = self.send_command('set_dry', [lvl])
+        if ret:
+            self.update_attrs({'dry': lvl})
+        return ret
 
     @property
     def icon(self):
@@ -354,14 +361,10 @@ class MrBondAirerProLightEntity(LightSubEntity):
             self._state = int(attrs.get(self._attr, 0)) >= 1
 
     def turn_on(self, **kwargs):
-        if self.call_parent('send_command', 'set_led', [1]):
-            self._state = True
-            self.update_attrs({self._attr: 1}, True)
+        return self.call_parent('set_led', 1)
 
     def turn_off(self, **kwargs):
-        if self.call_parent('send_command', 'set_led', [0]):
-            self._state = False
-            self.update_attrs({self._attr: 0}, True)
+        return self.call_parent('set_led', 0)
 
 
 class MrBondAirerProDryEntity(FanSubEntity):
@@ -375,8 +378,8 @@ class MrBondAirerProDryEntity(FanSubEntity):
             attrs = self._state_attrs
             self._state = int(attrs.get(self._attr, 0)) >= 1
 
-    def turn_on(self, speed, **kwargs):
-        return self.set_speed(speed)
+    def turn_on(self, speed=None, **kwargs):
+        return self.set_speed(speed or MrBondAirerProDryLevels(1).name)
 
     def turn_off(self, **kwargs):
         return self.set_speed(MrBondAirerProDryLevels(0).name)
@@ -391,16 +394,7 @@ class MrBondAirerProDryEntity(FanSubEntity):
 
     def set_speed(self, speed: str):
         lvl = MrBondAirerProDryLevels[speed].value
-        if lvl == 0:
-            ret = self.call_parent('send_command', 'set_dryswitch', [0])
-        elif lvl >= 4:
-            ret = self.call_parent('send_command', 'set_dryswitch', [1])
-        else:
-            ret = self.call_parent('send_command', 'set_dry', [lvl])
-        if ret:
-            self._state = lvl >= 1
-            self.update_attrs({self._attr: lvl}, True)
-        return ret
+        return self.call_parent('set_dry', lvl)
 
 
 class MrBondAirerProDryLevels(Enum):
