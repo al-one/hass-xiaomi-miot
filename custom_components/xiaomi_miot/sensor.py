@@ -52,6 +52,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         if miot:
             spec = await MiotSpec.async_from_type(hass, miot)
             for srv in spec.get_services(
+                'air_monitor', 'environment',
                 'filter', 'illumination_sensor',
                 'cooker', 'induction_cooker', 'pressure_cooker',
             ):
@@ -77,6 +78,7 @@ class MiotSensorEntity(MiotEntity):
 
         self._miot_service = miot_service
         mapping = miot_service.spec.services_mapping(
+            'battery', 'screen', 'settings',
             'tds_sensor', 'water_purifier', 'custom', 'custom_service',
             'alarm', 'physical_controls_locked', 'uv', 'key_press',
         )
