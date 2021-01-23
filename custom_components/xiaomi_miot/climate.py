@@ -88,17 +88,20 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service)
 
-        self._fan_control = miot_service.spec.get_service('fan_control')
-        self._environment = miot_service.spec.get_service('environment')
         self._prop_power = miot_service.get_property('on')
         self._prop_mode = miot_service.get_property('mode')
         self._prop_target_temp = miot_service.get_property('target_temperature')
-        self._prop_temperature = self._environment.get_property('temperature')
         self._prop_target_humi = miot_service.get_property('target_humidity')
-        self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity')
         self._prop_fan_level = self._fan_control.get_property('fan_level')
+        self._prop_temperature = None
+        self._prop_humidity = None
+        self._environment = miot_service.spec.get_service('environment')
+        if self._environment:
+            self._prop_temperature = self._environment.get_property('temperature')
+            self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity')
         self._prop_horizontal_swing = None
         self._prop_vertical_swing = None
+        self._fan_control = miot_service.spec.get_service('fan_control')
         if self._fan_control:
             self._prop_fan_level = self._fan_control.get_property('fan_level')
             self._prop_horizontal_swing = self._fan_control.get_property('horizontal_swing')
