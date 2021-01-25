@@ -76,7 +76,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         mapping = miot_service.spec.services_mapping(
             ENTITY_DOMAIN, 'yl_fan', 'off_delay_time', 'indicator_light', 'environment',
             'motor_controller', 'physical_controls_locked',
-        )
+        ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service)

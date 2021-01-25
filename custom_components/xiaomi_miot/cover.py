@@ -84,8 +84,9 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
         self._miot_service = miot_service
         mapping = miot_service.spec.services_mapping(
-            ENTITY_DOMAIN, 'indicator_light', 'yl_curtain', 'curtain_cfg', 'motor_controller',
-        )
+            'curtain', 'airer', 'indicator_light', 'yl_curtain', 'curtain_cfg',
+            'motor_controller', 'motor_reverse',
+        ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device)

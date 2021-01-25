@@ -72,7 +72,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         mapping = miot_service.spec.services_mapping(
             ENTITY_DOMAIN, 'yl_light', 'light_extension', 'battery',
             'night_light_times',
-        )
+        ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service)

@@ -81,7 +81,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             'air_purifier', 'filter_time', 'motor_speed', 'aqi', 'rfid', 'physical_controls_locked',
             'electricity', 'maintenance', 'alarm', 'enhance', 'countdown', 'others', 'private_service',
             'power_consumption', 'ac_function', 'device_protect', 'device_info', 'arming',
-        )
+        ) or {}
         mapping.update(miot_service.mapping())
         _LOGGER.info('Initializing with host %s (token %s...), miot mapping: %s', host, token[:5], mapping)
 
@@ -92,7 +92,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._prop_mode = miot_service.get_property('mode')
         self._prop_target_temp = miot_service.get_property('target_temperature')
         self._prop_target_humi = miot_service.get_property('target_humidity')
-        self._prop_fan_level = self._fan_control.get_property('fan_level')
+        self._prop_fan_level = miot_service.get_property('fan_level')
         self._prop_temperature = None
         self._prop_humidity = None
         self._environment = miot_service.spec.get_service('environment')

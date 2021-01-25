@@ -72,7 +72,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         mapping = miot_service.spec.services_mapping(
             ENTITY_DOMAIN, 'dehumidifier', 'environment', 'indicator_light',
             'function', 'alarm', 'physical_controls_locked', 'screen', 'others',
-        )
+        ) or {}
         mapping.update(miot_service.mapping())
         _LOGGER.info('Initializing with host %s (token %s...), miot mapping: %s', host, token[:5], mapping)
 
