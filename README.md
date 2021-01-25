@@ -66,6 +66,22 @@ or
 - **model**(*Optional*): The model of device, required if config by yaml
 - **mode**(*Optional*): `sensor,climate,cover` Guess from Model if empty
 
+### Configuration Xiaomi Cloud:
+
+> Some miot device return code -4004 or -9999
+
+```yaml
+# configuration.yaml
+xiaomi_miot:
+  username: xiaomi_username
+  password: xiaomi_password
+
+# customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
+climate.xiaomi_mc5_374e: # Your entity id
+  miot_did: 123456789 # Your miot device id
+  miot_cloud: true # Enabled
+```
+
 
 ## Obtain miio token
 

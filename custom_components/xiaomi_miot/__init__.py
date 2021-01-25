@@ -10,6 +10,7 @@ from homeassistant import (
     config_entries,
 )
 from homeassistant.const import *
+from homeassistant.config import DATA_CUSTOMIZE
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity import (
     Entity,
@@ -33,6 +34,10 @@ from miio.miot_device import MiotDevice as MiotDeviceBase
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+)
+from .core.xiaomi_cloud import (
+    MiotCloud,
+    MiCloudException,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -96,15 +101,42 @@ SERVICE_TO_METHOD_BASE = {
     },
 }
 
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Optional(CONF_USERNAME): cv.string,
+                vol.Optional(CONF_PASSWORD): cv.string,
+            }
+        )
+    },
+    extra=vol.ALLOW_EXTRA,
+)
 
-async def async_setup(hass, config: dict):
+
+async def async_setup(hass, hass_config: dict):
     hass.data.setdefault(DOMAIN, {})
+    config = hass_config.get(DOMAIN) or {}
+    hass.data[DOMAIN]['config'] = config
     hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('configs', {})
     component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
     hass.data[DOMAIN]['component'] = component
     await component.async_setup(config)
     bind_services_to_entries(hass, SERVICE_TO_METHOD_BASE)
+
+    if config.get('username') and config.get('password'):
+        try:
+            mic = MiotCloud(
+                config.get('username'),
+                config.get('password'),
+            )
+            mic.login()
+            hass.data[DOMAIN]['xiaomi_cloud'] = mic
+            _LOGGER.debug('Setup xiaomi cloud for user: %s', config.get('username'))
+        except MiCloudException as exc:
+            _LOGGER.info('Setup xiaomi cloud for user: %s failed:', config.get('username'), exc)
+
     return True
 
 
@@ -311,11 +343,39 @@ class MiioEntity(Entity):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
         return self._state_attrs
 
+    def global_config(self, key=None):
+        if not self.hass:
+            return None
+        cfg = self.hass.data[DOMAIN]['config'] or {}
+        return cfg if key is None else cfg.get(key)
+
+    def custom_config(self, key=None):
+        if not self.hass:
+            return None
+        if not self.entity_id:
+            return None
+        cfg = self.hass.data[DATA_CUSTOMIZE].get(self.entity_id)
+        return cfg if key is None else cfg.get(key)
+
 
 class MiotEntity(MiioEntity):
     def __init__(self, name, device):
         super().__init__(name, device)
         self._success_code = 0
+
+    @property
+    def miot_did(self):
+        return self.custom_config('miot_did')
+
+    @property
+    def miot_cloud(self):
+        if self.hass and self.miot_did and self.custom_config('miot_cloud'):
+            return self.hass.data[DOMAIN].get('xiaomi_cloud')
+        return None
+
+    @property
+    def miot_mapping(self):
+        return self._device.mapping
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
         result = None
@@ -335,18 +395,32 @@ class MiotEntity(MiioEntity):
             return False
 
     async def async_update(self):
+        updater = 'lan'
         try:
-            results = await self.hass.async_add_executor_job(partial(self._device.get_properties_for_mapping))
+            if self.miot_cloud:
+                results = await self.hass.async_add_executor_job(
+                    partial(self.miot_cloud.get_properties_for_mapping, self.miot_did, self.miot_mapping)
+                )
+                updater = 'cloud'
+            else:
+                results = await self.hass.async_add_executor_job(
+                    partial(self._device.get_properties_for_mapping)
+                )
         except DeviceException as ex:
             if self._available:
                 self._available = False
             _LOGGER.error('Got exception while fetching the state for %s: %s', self.entity_id, ex)
             return
+        except MiCloudException as ex:
+            if self._available:
+                self._available = False
+            _LOGGER.error('Got exception while fetching the state from cloud for %s: %s', self.entity_id, ex)
+            return
         attrs = {
             prop['did']: prop['value'] if prop['code'] == 0 else None
             for prop in results
         }
-        _LOGGER.debug('Got new state from %s: %s', self.entity_id, attrs)
+        _LOGGER.debug('Got new state from %s: %s, updater: %s', self.entity_id, attrs, updater)
         self._available = True
         self._state = True if attrs.get('power') else False
         self.update_attrs(attrs)
@@ -378,11 +452,19 @@ class MiotEntity(MiioEntity):
         _LOGGER.debug('Set miot property to %s: %s(%s)', self.entity_id, field, value)
         result = None
         try:
-            results = self._device.set_property(field, value) or []
+            if self.miot_cloud:
+                ext = self.miot_mapping.get(field) or {}
+                pms = [{'did': self.miot_did, **ext, 'value': value}]
+                results = self.miot_cloud.set_props(pms)
+            else:
+                results = self._device.set_property(field, value) or []
             for result in results:
                 break
         except DeviceException as ex:
             _LOGGER.error('Set miot property to %s: %s(%s) failed: %s', self.entity_id, field, value, ex)
+            return False
+        except MiCloudException as ex:
+            _LOGGER.error('Set miot property to cloud for %s: %s(%s) failed: %s', self.entity_id, field, value, ex)
             return False
         ret = dict(result or {}).get('code', 1) == self._success_code
         if ret:
