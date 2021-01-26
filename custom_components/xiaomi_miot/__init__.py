@@ -125,12 +125,14 @@ async def async_setup(hass, hass_config: dict):
     if config.get('username') and config.get('password'):
         try:
             mic = MiotCloud(
+                hass,
                 config.get('username'),
                 config.get('password'),
                 config.get('server_country'),
             )
             mic.login()
             hass.data[DOMAIN]['xiaomi_cloud'] = mic
+            hass.data[DOMAIN]['devices_by_mac'] = await mic.async_get_devices_by_key('mac') or {}
             _LOGGER.debug('Setup xiaomi cloud for user: %s', config.get('username'))
         except MiCloudException as exc:
             _LOGGER.info('Setup xiaomi cloud for user: %s failed:', config.get('username'), exc)
@@ -363,7 +365,13 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_did(self):
-        return self.custom_config('miot_did')
+        did = self.custom_config('miot_did')
+        if self.entity_id and not did:
+            mac = self._miio_info.mac_address
+            dvs = self.hass.data[DOMAIN].get('devices_by_mac') or {}
+            if mac in dvs:
+                return dvs[mac].get('did')
+        return did
 
     @property
     def miot_cloud(self):

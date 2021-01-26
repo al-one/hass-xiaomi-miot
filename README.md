@@ -78,8 +78,8 @@ xiaomi_miot:
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
 climate.xiaomi_mc5_374e: # Your entity id
-  miot_did: 123456789 # Your miot device id
-  miot_cloud: true # Enabled
+  miot_cloud: true    # Enabled cloud
+  # miot_did: 123456789 # Your miot device id, Optional (Get form cloud)
 ```
 
 
