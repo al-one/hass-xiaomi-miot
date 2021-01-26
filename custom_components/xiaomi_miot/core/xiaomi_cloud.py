@@ -1,7 +1,7 @@
 import logging
 import json
 import micloud
-from micloud.micloudexception import MiCloudException
+from micloud.micloudexception import MiCloudException  # noqa: F401
 
 _LOGGER = logging.getLogger(__name__)
 

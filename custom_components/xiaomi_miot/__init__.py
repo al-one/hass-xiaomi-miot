@@ -19,14 +19,9 @@ from homeassistant.helpers.entity import (
 from homeassistant.helpers.entity_component import EntityComponent
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.config_validation import (  # noqa: F401
-    PLATFORM_SCHEMA,
-    PLATFORM_SCHEMA_BASE,
-    make_entity_service_schema,
-)
 
 from miio import (
-    Device as MiioDevice,
+    Device as MiioDevice,  # noqa: F401
     DeviceException,
 )
 from miio.miot_device import MiotDevice as MiotDeviceBase
@@ -56,7 +51,7 @@ SUPPORTED_DOMAINS = [
     "cover",
 ]
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
+XIAOMI_CONFIG_SCHEMA = cv.PLATFORM_SCHEMA_BASE.extend(
     {
         vol.Required(CONF_HOST): cv.string,
         vol.Required(CONF_TOKEN): vol.All(cv.string, vol.Length(min=32, max=32)),
@@ -107,7 +102,8 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Optional(CONF_USERNAME): cv.string,
                 vol.Optional(CONF_PASSWORD): cv.string,
-            }
+            },
+            extra=vol.ALLOW_EXTRA,
         )
     },
     extra=vol.ALLOW_EXTRA,

@@ -22,7 +22,7 @@ from homeassistant.helpers.event import async_track_utc_time_change
 from . import (
     DOMAIN,
     CONF_MODEL,
-    PLATFORM_SCHEMA,
+    XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiioEntity,
     MiotEntity,
     MiioDevice,

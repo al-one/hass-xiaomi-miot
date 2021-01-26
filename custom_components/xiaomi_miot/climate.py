@@ -12,7 +12,7 @@ from homeassistant.components.climate.const import *
 from . import (
     DOMAIN,
     CONF_MODEL,
-    PLATFORM_SCHEMA,
+    XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotDevice,
     MiotToggleEntity,
     bind_services_to_entries,
