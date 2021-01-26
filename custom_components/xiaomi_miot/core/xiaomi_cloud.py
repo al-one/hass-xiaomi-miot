@@ -7,9 +7,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MiotCloud(micloud.MiCloud):
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.default_server = 'cn'
+    def __init__(self, username, password, country=None):
+        super().__init__(username, password)
+        self.default_server = country or 'cn'
 
     def get_properties_for_mapping(self, did, mapping: dict):
         pms = []

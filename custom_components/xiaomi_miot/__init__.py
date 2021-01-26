@@ -102,6 +102,7 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Optional(CONF_USERNAME): cv.string,
                 vol.Optional(CONF_PASSWORD): cv.string,
+                vol.Optional('server_country'): cv.string,
             },
             extra=vol.ALLOW_EXTRA,
         )
@@ -126,6 +127,7 @@ async def async_setup(hass, hass_config: dict):
             mic = MiotCloud(
                 config.get('username'),
                 config.get('password'),
+                config.get('server_country'),
             )
             mic.login()
             hass.data[DOMAIN]['xiaomi_cloud'] = mic
