@@ -50,6 +50,7 @@ SUPPORTED_DOMAINS = [
     "climate",
     "cover",
     "humidifier",
+    "media_player",
 ]
 
 XIAOMI_CONFIG_SCHEMA = cv.PLATFORM_SCHEMA_BASE.extend(
