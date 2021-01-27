@@ -136,11 +136,18 @@ class MiotService:
             if p.name in args
         ]
 
-    def get_property(self, *args):
+    def get_property(self, *args, only_format=None):
+        if only_format:
+            only_format = only_format if isinstance(only_format, list) else [only_format]
         for p in self.properties.values():
             if p.name in args:
+                if only_format and p.format not in only_format:
+                    continue
                 return p
         return None
+
+    def bool_property(self, *args):
+        return self.get_property(*args, only_format='bool')
 
     def get_actions(self, *args):
         return [

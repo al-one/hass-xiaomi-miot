@@ -296,7 +296,7 @@ class MiioEntity(Entity):
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
             result = await self.hass.async_add_executor_job(partial(func, *args, **kwargs))
-            _LOGGER.debug('Response received from miio %s: %s', self.entity_id, result)
+            _LOGGER.debug('Response received from miio %s: %s', self.name, result)
             return result == self._success_result
         except DeviceException as exc:
             if self._available:
@@ -305,15 +305,15 @@ class MiioEntity(Entity):
             return False
 
     def send_command(self, method, params=None):
-        _LOGGER.debug('Send miio command to %s: %s(%s)', self.entity_id, method, params)
+        _LOGGER.debug('Send miio command to %s: %s(%s)', self.name, method, params)
         try:
             result = self._device.send(method, params if params is not None else [])
         except DeviceException as ex:
-            _LOGGER.error('Send miio command to %s: %s(%s) failed: %s', self.entity_id, method, params, ex)
+            _LOGGER.error('Send miio command to %s: %s(%s) failed: %s', self.name, method, params, ex)
             return False
         ret = result == self._success_result
         if not ret:
-            _LOGGER.info('Send miio command to %s failed: %s(%s), result: %s', self.entity_id, method, params, result)
+            _LOGGER.info('Send miio command to %s failed: %s(%s), result: %s', self.name, method, params, result)
         return ret
 
     async def async_command(self, method, params=None):
@@ -325,10 +325,10 @@ class MiioEntity(Entity):
         except DeviceException as ex:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got exception while fetching the state for %s (%s): %s', self.entity_id, self._props, ex)
+            _LOGGER.error('Got exception while fetching the state for %s (%s): %s', self.name, self._props, ex)
             return
         attrs = dict(zip(self._props, attrs))
-        _LOGGER.debug('Got new state from %s: %s', self.entity_id, attrs)
+        _LOGGER.debug('Got new state from %s: %s', self.name, attrs)
         self._available = True
         self._state = attrs.get('power') == 'on'
         self.update_attrs(attrs)
@@ -400,7 +400,7 @@ class MiotEntity(MiioEntity):
             results = await self.hass.async_add_executor_job(partial(func, *args, **kwargs)) or []
             for result in results:
                 break
-            _LOGGER.debug('Response received from miot %s: %s', self.entity_id, result)
+            _LOGGER.debug('Response received from miot %s: %s', self.name, result)
             if isinstance(result, dict):
                 return dict(result or {}).get('code', 1) == self._success_code
             else:
@@ -426,19 +426,19 @@ class MiotEntity(MiioEntity):
         except DeviceException as ex:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got exception while fetching the state for %s: %s', self.entity_id, ex)
+            _LOGGER.error('Got exception while fetching the state for %s: %s', self.name, ex)
             return
         except MiCloudException as ex:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got exception while fetching the state from cloud for %s: %s', self.entity_id, ex)
+            _LOGGER.error('Got exception while fetching the state from cloud for %s: %s', self.name, ex)
             return
         attrs = {
             prop.get('did'): prop.get('value') if prop.get('code') == 0 else None
             for prop in results
             if isinstance(prop, dict) and 'did' in prop
         }
-        _LOGGER.debug('Got new state from %s: %s, updater: %s', self.entity_id, attrs, updater)
+        _LOGGER.debug('Got new state from %s: %s, updater: %s', self.name, attrs, updater)
         self._available = True
         self._state = True if attrs.get('power') else False
         self.update_attrs(attrs)
@@ -454,20 +454,20 @@ class MiotEntity(MiioEntity):
         try:
             results = dvc.get_properties_for_mapping()
         except DeviceException as ex:
-            _LOGGER.error('Got exception while get properties from %s: %s, mapping: %s', self.entity_id, ex, mapping)
+            _LOGGER.error('Got exception while get properties from %s: %s, mapping: %s', self.name, ex, mapping)
             return
         attrs = {
             prop['did']: prop['value'] if prop['code'] == 0 else None
             for prop in results
         }
-        _LOGGER.info('Get miot properties from %s: %s', self.entity_id, results)
+        _LOGGER.info('Get miot properties from %s: %s', self.name, results)
         return attrs
 
     async def async_get_properties(self, mapping):
         return await self.hass.async_add_executor_job(partial(self.get_properties, mapping))
 
     def set_property(self, field, value):
-        _LOGGER.debug('Set miot property to %s: %s(%s)', self.entity_id, field, value)
+        _LOGGER.debug('Set miot property to %s: %s(%s)', self.name, field, value)
         result = None
         try:
             if self.miot_cloud:
@@ -479,10 +479,10 @@ class MiotEntity(MiioEntity):
             for result in results:
                 break
         except DeviceException as ex:
-            _LOGGER.error('Set miot property to %s: %s(%s) failed: %s', self.entity_id, field, value, ex)
+            _LOGGER.error('Set miot property to %s: %s(%s) failed: %s', self.name, field, value, ex)
             return False
         except MiCloudException as ex:
-            _LOGGER.error('Set miot property to cloud for %s: %s(%s) failed: %s', self.entity_id, field, value, ex)
+            _LOGGER.error('Set miot property to cloud for %s: %s(%s) failed: %s', self.name, field, value, ex)
             return False
         ret = dict(result or {}).get('code', 1) == self._success_code
         if ret:
@@ -491,7 +491,7 @@ class MiotEntity(MiioEntity):
                     field: value,
                 }, update_parent=False)
         else:
-            _LOGGER.info('Set miot property to %s failed: %s(%s), result: %s', self.entity_id, field, value, result)
+            _LOGGER.info('Set miot property to %s failed: %s(%s), result: %s', self.name, field, value, result)
         return ret
 
     async def async_set_property(self, field, value):
@@ -538,16 +538,19 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
 
     @property
     def is_on(self):
-        return self._state_attrs.get(self._prop_power.full_name) and True
+        if self._prop_power:
+            return self._state_attrs.get(self._prop_power.full_name) and True
+        return None
 
     def turn_on(self, **kwargs):
-        ret = False
-        if not self.is_on:
-            ret = self.set_property(self._prop_power.full_name, True)
-        return ret
+        if self._prop_power:
+            return self.set_property(self._prop_power.full_name, True)
+        return False
 
     def turn_off(self, **kwargs):
-        return self.set_property(self._prop_power.full_name, False)
+        if self._prop_power:
+            return self.set_property(self._prop_power.full_name, False)
+        return False
 
 
 class BaseSubEntity(Entity):
