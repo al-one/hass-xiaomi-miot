@@ -252,7 +252,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 return TEMP_FAHRENHEIT
             if prop.unit in ['kelvin', TEMP_KELVIN]:
                 return TEMP_KELVIN
-        return None
+        return TEMP_CELSIUS
 
     @property
     def current_temperature(self):
