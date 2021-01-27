@@ -170,10 +170,6 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
     def turn_on(self, **kwargs):
         if self._prop_power:
             return self.set_property(self._prop_power.full_name, True)
-        for mode in (HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_COOL):
-            if mode not in self.hvac_modes:
-                continue
-            return self.set_hvac_mode(mode)
         for m in self._power_modes:
             p = self._miot_service.bool_property(m)
             if not p:
@@ -181,11 +177,23 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             return self.set_property(p.full_name, True)
         if self._prop_fan_power:
             return self.set_property(self._prop_fan_power.full_name, True)
+        srv = self._miot_service.spec.get_service('viomi_bath_heater')
+        if srv:
+            act = srv.get_action('power_on')
+            if act:
+                return self.miot_action(srv.iid, act.iid)
+        for mode in (HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_COOL):
+            if mode not in self.hvac_modes:
+                continue
+            return self.set_hvac_mode(mode)
         return False
 
     def turn_off(self, **kwargs):
         if self._prop_power:
             return self.set_property(self._prop_power.full_name, False)
+        act = self._miot_service.get_action('stop_working', 'power_off')
+        if act:
+            return self.miot_action(self._miot_service.iid, act.iid)
         ret = None
         for m in self._power_modes:
             p = self._miot_service.bool_property(m)
@@ -223,6 +231,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         return hms
 
     def set_hvac_mode(self, hvac_mode: str):
+        if hvac_mode == HVAC_MODE_OFF:
+            return self.turn_off()
         if not self._prop_mode:
             return False
         val = self._prop_mode.list_first(*(self._hvac_modes.get(hvac_mode) or []))
