@@ -95,7 +95,7 @@ SERVICE_TO_METHOD_BASE = {
             },
         ),
     },
-    'do_action': {
+    'call_action': {
         'method': 'async_miot_action',
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
@@ -468,7 +468,6 @@ class MiotEntity(MiioEntity):
         return await self.hass.async_add_executor_job(partial(self.get_properties, mapping))
 
     def set_property(self, field, value):
-        _LOGGER.debug('Set miot property to %s: %s(%s)', self.name, field, value)
         result = None
         try:
             if self.miot_cloud:
@@ -491,6 +490,7 @@ class MiotEntity(MiioEntity):
                 self.update_attrs({
                     field: value,
                 }, update_parent=False)
+            _LOGGER.debug('Set miot property to %s: %s(%s), result: %s', self.name, field, value, result)
         else:
             _LOGGER.info('Set miot property to %s failed: %s(%s), result: %s', self.name, field, value, result)
         return ret
@@ -499,20 +499,27 @@ class MiotEntity(MiioEntity):
         return await self.hass.async_add_executor_job(partial(self.set_property, field, value))
 
     def miot_action(self, siid, aiid, params=None, did=None):
-        if not self.miot_cloud:
-            _LOGGER.warning('Run miot action to %s without cloud', self.name)
-            return False
+        ret = None
         pms = {
-            'did':  did or self.miot_did,
+            'did':  did or self.miot_did or f'action-{siid}-{aiid}',
             'siid': siid,
             'aiid': aiid,
             'in':   params or [],
         }
-        ret = self.miot_cloud.do_action(pms)
+        try:
+            exc = None
+            if self.miot_cloud:
+                ret = self.miot_cloud.do_action(pms)
+            else:
+                ret = self._device.send('action', pms)
+        except DeviceException as exc:
+            pass
+        except MiCloudException as exc:
+            pass
         if ret:
-            _LOGGER.debug('Run miot action to %s (%s), result: %s', self.name, pms, ret)
+            _LOGGER.debug('Call miot action to %s (%s), result: %s', self.name, pms, ret)
         else:
-            _LOGGER.warning('Run miot action to %s (%s) failed.', self.name, pms)
+            _LOGGER.warning('Call miot action to %s (%s) failed: %s', self.name, pms, exc)
         return ret
 
     async def async_miot_action(self, siid, aiid, params=None):

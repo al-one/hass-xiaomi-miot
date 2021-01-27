@@ -34,8 +34,8 @@ get_properties:
       description: Mapping for properties.
       example: "{'power': {'siid': 2, 'piid': 1}}"
 
-do_action:
-  description: Do miot action (only cloud).
+call_action:
+  description: Call miot action.
   fields:
     entity_id:
       description: ID of the entity.
