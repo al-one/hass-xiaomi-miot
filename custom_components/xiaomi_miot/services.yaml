@@ -2,7 +2,7 @@ send_command:
   description: Send miio command.
   fields:
     entity_id:
-      description: Name of the entity.
+      description: ID of the entity.
       example: "light.yeelight_living_e92c"
     method:
       description: Method of the command.
@@ -15,7 +15,7 @@ set_property:
   description: Set miot property.
   fields:
     entity_id:
-      description: Name of the entity.
+      description: ID of the entity.
       example: "climate.xiaomi_mc5_374e"
     field:
       description: Field of property.
@@ -28,8 +28,24 @@ get_properties:
   description: Get miot properties.
   fields:
     entity_id:
-      description: Name of the entity.
+      description: ID of the entity.
       example: "climate.xiaomi_mc5_374e"
     mapping:
       description: Mapping for properties.
       example: "{'power': {'siid': 2, 'piid': 1}}"
+
+do_action:
+  description: Do miot action (only cloud).
+  fields:
+    entity_id:
+      description: ID of the entity.
+      example: "media_player.xiaoai_x08c"
+    siid:
+      description: Miot service ID.
+      example: 3
+    aiid:
+      description: Miot action ID.
+      example: 5
+    params:
+      description: Miot action params.
+      example: "['Turn on light', 1]"

@@ -94,6 +94,17 @@ SERVICE_TO_METHOD_BASE = {
             },
         ),
     },
+    'do_action': {
+        'method': 'async_miot_action',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+            {
+                vol.Optional('did'): cv.string,
+                vol.Required('siid'): int,
+                vol.Required('aiid'): int,
+                vol.Optional('params', default=[]): cv.ensure_list,
+            },
+        ),
+    },
 }
 
 CONFIG_SCHEMA = vol.Schema(
@@ -130,7 +141,7 @@ async def async_setup(hass, hass_config: dict):
                 config.get('password'),
                 config.get('server_country'),
             )
-            mic.login()
+            await mic.async_login()
             hass.data[DOMAIN]['xiaomi_cloud'] = mic
             hass.data[DOMAIN]['devices_by_mac'] = await mic.async_get_devices_by_key('mac') or {}
             _LOGGER.debug('Setup xiaomi cloud for user: %s', config.get('username'))
@@ -423,8 +434,9 @@ class MiotEntity(MiioEntity):
             _LOGGER.error('Got exception while fetching the state from cloud for %s: %s', self.entity_id, ex)
             return
         attrs = {
-            prop['did']: prop['value'] if prop['code'] == 0 else None
+            prop.get('did'): prop.get('value') if prop.get('code') == 0 else None
             for prop in results
+            if isinstance(prop, dict) and 'did' in prop
         }
         _LOGGER.debug('Got new state from %s: %s, updater: %s', self.entity_id, attrs, updater)
         self._available = True
@@ -484,6 +496,26 @@ class MiotEntity(MiioEntity):
 
     async def async_set_property(self, field, value):
         return await self.hass.async_add_executor_job(partial(self.set_property, field, value))
+
+    def miot_action(self, siid, aiid, params=None, did=None):
+        if not self.miot_cloud:
+            _LOGGER.warning('Run miot action to %s without cloud', self.name)
+            return False
+        pms = {
+            'did':  did or self.miot_did,
+            'siid': siid,
+            'aiid': aiid,
+            'in':   params or [],
+        }
+        ret = self.miot_cloud.do_action(pms)
+        if ret:
+            _LOGGER.debug('Run miot action to %s (%s), result: %s', self.name, pms, ret)
+        else:
+            _LOGGER.warning('Run miot action to %s (%s) failed.', self.name, pms)
+        return ret
+
+    async def async_miot_action(self, siid, aiid, params=None):
+        return await self.hass.async_add_executor_job(partial(self.miot_action, siid, aiid, params))
 
     def turn_on(self, **kwargs):
         ret = self.set_property('power', True)

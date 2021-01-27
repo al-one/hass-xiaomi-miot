@@ -40,25 +40,16 @@ class MiotCloud(micloud.MiCloud):
         return dls
 
     def get_props(self, params=None):
-        url = self._get_api_url(self.default_server) + '/miotspec/prop/get'
-        rsp = self.request(url, {
-            'data': json.dumps({
-                'datasource': 1,
-                'params': params or []
-            })
-        })
-        try:
-            rdt = json.loads(rsp)
-            exc = None
-        except ValueError as exc:
-            rdt = {}
-        rls = rdt.get('result')
-        if not rls:
-            _LOGGER.debug('Get miot props: %s from cloud failed: %s %s', params, rsp, exc)
-        return rls
+        return self.request_miot_spec('prop/get', params)
 
     def set_props(self, params=None):
-        url = self._get_api_url(self.default_server) + '/miotspec/prop/set'
+        return self.request_miot_spec('prop/set', params)
+
+    def do_action(self, params=None):
+        return self.request_miot_spec('action', params)
+
+    def request_miot_spec(self, api, params=None):
+        url = self._get_api_url(self.default_server) + '/miotspec/' + api
         rsp = self.request(url, {
             'data': json.dumps({
                 'params': params or []
@@ -71,7 +62,10 @@ class MiotCloud(micloud.MiCloud):
             rdt = {}
         rls = rdt.get('result')
         if not rls:
-            _LOGGER.debug('Set miot props: %s to cloud failed: %s %s', params, rsp, exc)
+            _LOGGER.debug(
+                'Request miot spec: %s, params: %s to cloud failed: %s %s',
+                api, params, rsp, exc,
+            )
         return rls
 
     async def async_get_device(self, mac=None, host=None):
@@ -107,3 +101,6 @@ class MiotCloud(micloud.MiCloud):
             if k:
                 dat[k] = d
         return dat
+
+    async def async_login(self):
+        return await self.hass.async_add_executor_job(self.login)

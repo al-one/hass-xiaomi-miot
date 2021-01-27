@@ -103,16 +103,22 @@ class MiotService:
         self.type = str(dat.get('type') or '')
         self.name = MiotSpec.name_by_type(self.type)
         self.description = dat.get('description') or self.name
-        self.properties = []
+        self.properties = {}
         for p in (dat.get('properties') or []):
             prop = MiotProperty(p, self)
             if not prop.name:
                 continue
-            self.properties.append(prop)
+            self.properties[prop.iid] = prop
+        self.actions = {}
+        for a in (dat.get('actions') or []):
+            act = MiotAction(a, self)
+            if not act.name:
+                continue
+            self.actions[act.iid] = act
 
     def mapping(self):
         dat = {}
-        for p in self.properties:
+        for p in self.properties.values():
             if not isinstance(p, MiotProperty):
                 continue
             if not p.full_name:
@@ -126,14 +132,27 @@ class MiotService:
     def get_properties(self, *args):
         return [
             p
-            for p in self.properties
+            for p in self.properties.values()
             if p.name in args
         ]
 
     def get_property(self, *args):
-        for p in self.properties:
+        for p in self.properties.values():
             if p.name in args:
                 return p
+        return None
+
+    def get_actions(self, *args):
+        return [
+            a
+            for a in self.actions.values()
+            if a.name in args
+        ]
+
+    def get_action(self, *args):
+        for a in self.actions.values():
+            if a.name in args:
+                return a
         return None
 
 
@@ -224,4 +243,29 @@ class MiotProperty:
     def range_step(self):
         if len(self.value_range) > 2:
             return self.value_range[2]
+        return None
+
+
+class MiotAction:
+    def __init__(self, dat: dict, service: MiotService):
+        self.service = service
+        self.raw = dat
+        self.iid = int(dat.get('iid') or 0)
+        self.type = str(dat.get('type') or '')
+        self.name = MiotSpec.name_by_type(self.type)
+        self.full_name = f'{service.name}.{self.name}'
+        self.description = dat.get('description') or self.name
+        self.ins = dat.get('in') or []
+        self.out = dat.get('out') or []
+
+    def out_results(self, out=None):
+        kls = []
+        for pid in self.out:
+            prop = self.service.properties.get(pid)
+            if prop:
+                kls.append(prop.full_name)
+        if out is None:
+            out = []
+        if len(kls) == len(out):
+            return dict(zip(kls, out))
         return None
