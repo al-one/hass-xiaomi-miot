@@ -86,9 +86,10 @@ class MiotSensorEntity(MiotEntity):
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device)
         self._prop_state = miot_service.get_property(
-            'status', 'tds_out', 'temperature',
-            'filter_life_level', 'filter_left_time',
-            'illumination', 'fault',
+            'temperature', 'relative_humidity', 'humidity',
+            'illumination', 'battery',
+            'tds_out', 'filter_life_level', 'filter_left_time',
+            'status', 'fault',
         )
 
     @property
@@ -97,8 +98,16 @@ class MiotSensorEntity(MiotEntity):
 
     @property
     def device_class(self):
+        if self._prop_state.name in ['temperature']:
+            return DEVICE_CLASS_TEMPERATURE
+        if self._prop_state.name in ['relative_humidity', 'humidity']:
+            return DEVICE_CLASS_HUMIDITY
+        if self._prop_state.name in ['illumination']:
+            return DEVICE_CLASS_ILLUMINANCE
         if self._miot_service.name in ['illumination_sensor']:
             return DEVICE_CLASS_ILLUMINANCE
+        if self._prop_state.name in ['battery']:
+            return DEVICE_CLASS_BATTERY
         return None
 
 
