@@ -117,15 +117,16 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
     def state(self):
         if self._prop_state:
             sta = self._prop_state.from_dict(self._state_attrs)
-            if sta == self._prop_state.list_value('Playing'):
-                return STATE_PLAYING
-            if sta == self._prop_state.list_value('Pause'):
-                return STATE_PAUSED
-            if sta == self._prop_state.list_value('Idle'):
-                return STATE_IDLE
+            if sta is not None:
+                if sta == self._prop_state.list_value('Playing'):
+                    return STATE_PLAYING
+                if sta == self._prop_state.list_value('Pause'):
+                    return STATE_PAUSED
+                if sta == self._prop_state.list_value('Idle'):
+                    return STATE_IDLE
         if self.available:
             return STATE_UNKNOWN
-        return None
+        return STATE_UNAVAILABLE
 
     def turn_on(self):
         act = self._miot_service.get_action('turn_on')
@@ -158,26 +159,44 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
 
     def set_volume_level(self, volume):
         if self._prop_volume:
-            vol = volume * self._prop_volume.range_max()
+            vol = round(volume * (self._prop_volume.range_max() or 1))
+            stp = self._prop_volume.range_step()
+            if stp and stp > 1:
+                vol = round(vol / stp) * stp
             return self.set_property(self._prop_volume.full_name, vol)
         return False
 
     def media_play(self):
         act = self._miot_service.get_action('play')
         if act:
-            return self.miot_action(self._miot_service.iid, act.iid)
+            if self.miot_action(self._miot_service.iid, act.iid):
+                if self._prop_state:
+                    self.update_attrs({
+                        self._prop_state.full_name: self._prop_state.list_value('Playing'),
+                    })
+                return True
         return False
 
     def media_pause(self):
         act = self._miot_service.get_action('pause')
         if act:
-            return self.miot_action(self._miot_service.iid, act.iid)
+            if self.miot_action(self._miot_service.iid, act.iid):
+                if self._prop_state:
+                    self.update_attrs({
+                        self._prop_state.full_name: self._prop_state.list_value('Pause'),
+                    })
+                return True
         return False
 
     def media_stop(self):
         act = self._miot_service.get_action('stop')
         if act:
-            return self.miot_action(self._miot_service.iid, act.iid)
+            if self.miot_action(self._miot_service.iid, act.iid):
+                if self._prop_state:
+                    self.update_attrs({
+                        self._prop_state.full_name: self._prop_state.list_value('Stopped', 'Stop', 'Idle'),
+                    })
+                return True
         return self.media_pause()
 
     def media_previous_track(self):
