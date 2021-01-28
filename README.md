@@ -64,7 +64,6 @@ or
 - **token**(*Required*): The Token of your device
 - **name**(*Optional*): The name of your device
 - **model**(*Optional*): The model of device, required if config by yaml
-- **mode**(*Optional*): `sensor,climate,cover` Guess from Model if empty
 
 ### Configuration Xiaomi Cloud:
 

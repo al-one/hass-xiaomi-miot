@@ -5,7 +5,6 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import *
 from homeassistant.helpers.device_registry import format_mac
-import homeassistant.helpers.config_validation as cv
 
 from miio import (
     Device as MiioDevice,
@@ -16,7 +15,6 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     DEFAULT_NAME,
-    SUPPORTED_DOMAINS,
 )
 from .core.miot_spec import MiotSpec
 
@@ -26,7 +24,6 @@ MIIO_CONFIG_SCHEMA = vol.Schema({
     vol.Required(CONF_HOST): str,
     vol.Required(CONF_TOKEN): vol.All(str, vol.Length(min=32, max=32)),
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
-    vol.Optional(CONF_MODE, default=[]): cv.multi_select(SUPPORTED_DOMAINS),
 })
 
 
