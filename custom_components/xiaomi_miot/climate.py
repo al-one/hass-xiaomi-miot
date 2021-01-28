@@ -22,14 +22,16 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
 )
-from .switch import SwitchSubEntity
+from .fan import (
+    FanSubEntity,
+    SUPPORT_SET_SPEED,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
 DEFAULT_MIN_TEMP = 16.0
 DEFAULT_MAX_TEMP = 31.0
-HVAC_MODE_DEFOG = 'defog'
 
 SERVICE_TO_METHOD = {}
 
@@ -80,10 +82,10 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
         self._miot_service = miot_service
         mapping = miot_service.spec.services_mapping(
-            'air_conditioner', 'fan_control', 'environment', 'indicator_light',
+            'air_conditioner', 'fan_control', 'environment', 'indicator_light', 'countdown',
             'air_purifier', 'filter_time', 'motor_speed', 'aqi', 'rfid', 'physical_controls_locked',
-            'electricity', 'maintenance', 'alarm', 'enhance', 'countdown', 'others', 'private_service',
-            'power_consumption', 'ac_function', 'device_protect', 'device_info', 'arming',
+            'electricity', 'maintenance', 'alarm', 'enhance', 'others', 'private_service',
+            'power_consumption', 'ac_function', 'device_protect', 'device_info', 'arming', 'smart_action',
         ) or {}
         mapping.update(miot_service.mapping())
         _LOGGER.info('Initializing with host %s (token %s...), miot mapping: %s', host, token[:5], mapping)
@@ -97,9 +99,6 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._prop_target_temp = miot_service.get_property('target_temperature')
         self._prop_target_humi = miot_service.get_property('target_humidity')
         self._prop_fan_level = miot_service.get_property('fan_level')
-        self._prop_blow = miot_service.get_property('blow')
-        self._prop_heating = miot_service.get_property('heating')
-        self._prop_ventilation = miot_service.get_property('ventilation')
 
         self._environment = miot_service.spec.get_service('environment')
         self._prop_temperature = miot_service.get_property('temperature')
@@ -120,12 +119,11 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             self._prop_vertical_swing = self._fan_control.get_property('vertical_swing')
             self._prop_vertical_angle = self._fan_control.get_property('vertical_angle')
 
-        self._supported_features = 0
         if self._prop_target_temp:
             self._supported_features |= SUPPORT_TARGET_TEMPERATURE
         if self._prop_target_humi:
             self._supported_features |= SUPPORT_TARGET_HUMIDITY
-        if self.fan_modes or self._prop_mode.list_first('Fan') is not None:
+        if self.fan_modes or (self._prop_mode and self._prop_mode.list_first('Fan') is not None):
             self._supported_features |= SUPPORT_FAN_MODE
         if self._prop_horizontal_swing or self._prop_vertical_swing:
             self._supported_features |= SUPPORT_SWING_MODE
@@ -133,38 +131,70 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._power_modes = ['blow', 'heating', 'ventilation']
         self._hvac_modes = {
-            HVAC_MODE_OFF:  ['Off', 'Idle', 'None'],
-            HVAC_MODE_AUTO: ['Auto'],
-            HVAC_MODE_COOL: ['Cool'],
-            HVAC_MODE_HEAT: ['Heat', 'Quick Heat'],
-            HVAC_MODE_DRY:  ['Dry'],
-            HVAC_MODE_DEFOG: ['Defog', 'Quick Defog'],
-            HVAC_MODE_FAN_ONLY: ['Fan'],
+            HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None']},
+            HVAC_MODE_AUTO: {'list': ['Auto']},
+            HVAC_MODE_COOL: {'list': ['Cool']},
+            HVAC_MODE_HEAT: {'list': ['Heat']},
+            HVAC_MODE_DRY:  {'list': ['Dry']},
+            HVAC_MODE_FAN_ONLY: {'list': ['Fan']},
         }
+        if self._prop_mode:
+            for mk, mv in self._hvac_modes.items():
+                val = self._prop_mode.list_first(*(mv.get('list') or []))
+                if val is not None:
+                    self._hvac_modes[mk]['value'] = val
         self._subs = {}
 
     async def async_update(self):
         await super().async_update()
         if self._available:
-            add_switches = self._add_entities.get('switch', None)
+            add_fans = self._add_entities.get('fan', None)
             for m in self._power_modes:
                 p = self._miot_service.bool_property(m)
                 if m in self._subs:
                     self._subs[m].update()
-                elif add_switches and p:
+                elif add_fans and p:
                     self._subs[m] = ClimateModeSubEntity(self, p)
-                    add_switches([self._subs[m]])
+                    add_fans([self._subs[m]])
+            if self._prop_mode:
+                off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
+                for v in self._prop_mode.value_list:
+                    val = v.get('value')
+                    des = v.get('description')
+                    has = False
+                    for mk, mv in self._hvac_modes.items():
+                        if des in mv.get('list', []):
+                            has = True
+                            break
+                    if not has:
+                        if des in self._subs:
+                            self._subs[des].update()
+                        elif add_fans:
+                            self._subs[des] = ClimateModeSubEntity(self, self._prop_mode, {
+                                'unique_id': f'{self.unique_id}-{self._prop_mode.full_name}-{val}',
+                                'name':      f'{self.name} {des}',
+                                'value_on':  val,
+                                'value_off': off,
+                            })
+                            add_fans([self._subs[des]])
 
     @property
     def is_on(self):
         if self._prop_power:
-            return self._state_attrs.get(self._prop_power.full_name) and True
+            return self._prop_power.from_dict(self._state_attrs) and True
         for m in self._power_modes:
             p = self._miot_service.bool_property(m)
             if not p:
                 continue
             if self._state_attrs.get(p.full_name):
                 return True
+        if self._prop_mode:
+            off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
+            if off is not None:
+                return off != self._prop_mode.from_dict(self._state_attrs)
+        power = self._state_attrs.get('power')
+        if power is not None:
+            return power and True
         return None
 
     def turn_on(self, **kwargs):
@@ -181,7 +211,10 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         if srv:
             act = srv.get_action('power_on')
             if act:
-                return self.miot_action(srv.iid, act.iid)
+                ret = self.miot_action(srv.iid, act.iid)
+                if ret:
+                    self.update_attrs({'power': True})
+                    return ret
         for mode in (HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_COOL):
             if mode not in self.hvac_modes:
                 continue
@@ -191,9 +224,16 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
     def turn_off(self, **kwargs):
         if self._prop_power:
             return self.set_property(self._prop_power.full_name, False)
+        if self._prop_mode:
+            off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
+            if off is not None:
+                return self.set_property(self._prop_mode.full_name, off)
         act = self._miot_service.get_action('stop_working', 'power_off')
         if act:
-            return self.miot_action(self._miot_service.iid, act.iid)
+            ret = self.miot_action(self._miot_service.iid, act.iid)
+            if ret:
+                self.update_attrs({'power': False})
+                return ret
         ret = None
         for m in self._power_modes:
             p = self._miot_service.bool_property(m)
@@ -214,17 +254,21 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
     def hvac_mode(self):
         if not self.is_on:
             return HVAC_MODE_OFF
-        acm = int(self._prop_mode.from_dict(self._state_attrs) or -1)
-        for mk, mv in self._hvac_modes.items():
-            if acm in self._prop_mode.list_search(*mv):
-                return mk
+        if self._prop_mode:
+            acm = self._prop_mode.from_dict(self._state_attrs)
+            acm = -1 if acm is None else int(acm or 0)
+            for mk, mv in self._hvac_modes.items():
+                if acm == mv.get('value'):
+                    return mk
         return None
 
     @property
     def hvac_modes(self):
         hms = []
-        for mk, mv in self._hvac_modes.items():
-            if self._prop_mode.list_search(*mv):
+        if self._prop_mode:
+            for mk, mv in self._hvac_modes.items():
+                if mv.get('value') is None:
+                    continue
                 hms.append(mk)
         if HVAC_MODE_OFF not in hms:
             hms.append(HVAC_MODE_OFF)
@@ -235,11 +279,11 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             return self.turn_off()
         if not self._prop_mode:
             return False
-        val = self._prop_mode.list_first(*(self._hvac_modes.get(hvac_mode) or []))
-        if val is None:
-            return False
         if self._prop_power:
             return self.set_property(self._prop_power.full_name, True)
+        val = self._hvac_modes.get(hvac_mode, {}).get('value')
+        if val is None:
+            return False
         return self.set_property(self._prop_mode.full_name, val)
 
     @property
@@ -409,23 +453,52 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         return ret
 
 
-class ClimateModeSubEntity(SwitchSubEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None):
-        self._prop_power = miot_property
+class ClimateModeSubEntity(FanSubEntity):
+    def __init__(self, parent: MiotClimateEntity, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property.full_name, option)
+        self._miot_property = miot_property
+        self._prop_power = None
+        if miot_property.format == 'bool':
+            self._prop_power = miot_property
+        self._value_on = self._option.get('value_on')
+        self._value_off = self._option.get('value_off')
+
+        if self.speed_list:
+            self._supported_features |= SUPPORT_SET_SPEED
 
     def update(self):
         super().update()
         if self._available:
             attrs = self._state_attrs
-            self._state = attrs.get(self._attr) and True
+            if self._value_on is not None:
+                self._state = attrs.get(self._attr) == self._value_on
+            else:
+                self._state = attrs.get(self._attr) and True
 
-    def turn_on(self, **kwargs):
+    def turn_on(self, speed=None, **kwargs):
+        ret = False
         if self._prop_power:
-            return self._parent.set_property(self._prop_power.full_name, True)
-        return False
+            ret = self.call_parent('set_property', self._miot_property.full_name, True)
+        elif self._value_on is not None:
+            ret = self.call_parent('set_property', self._miot_property.full_name, self._value_on)
+        if speed:
+            ret = self.set_speed(speed)
+        return ret
 
     def turn_off(self, **kwargs):
         if self._prop_power:
-            return self._parent.set_property(self._prop_power.full_name, False)
+            return self.call_parent('set_property', self._prop_power.full_name, False)
+        if self._value_off is not None:
+            return self.call_parent('set_property', self._miot_property.full_name, self._value_off)
         return False
+
+    @property
+    def speed(self):
+        return self._parent.fan_mode
+
+    @property
+    def speed_list(self):
+        return self._parent.fan_modes or []
+
+    def set_speed(self, speed):
+        return self.call_parent('set_fan_mode', speed)

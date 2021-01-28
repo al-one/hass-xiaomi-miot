@@ -571,6 +571,10 @@ class BaseSubEntity(Entity):
         self._parent = parent
         self._attr = attr
         self._option = dict(option or {})
+        if self._option.get('unique_id'):
+            self._unique_id = self._option.get('unique_id')
+        if self._option.get('name'):
+            self._name = self._option.get('name')
         self._supported_features = int(self._option.get('supported_features', 0))
         self._state_attrs = {}
 
