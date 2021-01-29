@@ -84,7 +84,7 @@ class MiotSensorEntity(MiotEntity):
         ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device)
+        super().__init__(name, self._device, miot_service)
         first_property = None
         if len(miot_service.properties) > 0:
             first_property = list(miot_service.properties.values() or [])[0].name

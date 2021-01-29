@@ -89,7 +89,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device)
+        super().__init__(name, self._device, miot_service)
 
         self._prop_status = miot_service.get_property('status')
         self._prop_motor_control = miot_service.get_property('motor_control')
@@ -216,7 +216,7 @@ class MiioCoverEntity(MiioEntity, CoverEntity):
     def _listen_cover(self):
         if self._unsub_listener_cover is None:
             self._unsub_listener_cover = async_track_utc_time_change(
-                self.hass, self._time_changed_cover
+                self.hass, self._time_changed_cover  # noqa
             )
 
     async def _time_changed_cover(self, now):

@@ -319,11 +319,11 @@ class MiioEntity(Entity):
         return ret
 
     async def async_command(self, method, params=None):
-        return await self.hass.async_add_executor_job(self.send_command, method, params)
+        return await self.hass.async_add_executor_job(partial(self.send_command, method, params))
 
     async def async_update(self):
         try:
-            attrs = await self.hass.async_add_executor_job(self._device.get_properties, self._props)
+            attrs = await self.hass.async_add_executor_job(partial(self._device.get_properties, self._props))
         except DeviceException as ex:
             if self._available:
                 self._available = False
@@ -372,9 +372,13 @@ class MiioEntity(Entity):
 
 
 class MiotEntity(MiioEntity):
-    def __init__(self, name, device):
+    def __init__(self, name, device, miot_service=None):
         super().__init__(name, device)
         self._success_code = 0
+
+        self._miot_service = miot_service
+        if isinstance(miot_service, MiotService):
+            self._unique_id = f'{self._unique_id}-{miot_service.iid}'
 
     @property
     def miot_did(self):
