@@ -1,5 +1,9 @@
 # Xiaomi Miot For HomeAssistant
 
+
+> ⚠️⚠️⚠️ auto-miot已合并至master分支，请从master分支下载最新版本，或者通过HACS更新 ⚠️⚠️⚠️
+
+
 ## Supported Devices
 
 - HA Domain
