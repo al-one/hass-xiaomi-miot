@@ -7,9 +7,12 @@ from homeassistant.components.light import (
     LightEntity,
     SUPPORT_BRIGHTNESS,
     SUPPORT_COLOR_TEMP,
+    SUPPORT_COLOR,
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP,
+    ATTR_HS_COLOR,
 )
+from homeassistant.util import color
 
 from . import (
     DOMAIN,
@@ -80,12 +83,15 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         self._prop_power = miot_service.get_property('on')
         self._prop_brightness = miot_service.get_property('brightness')
         self._prop_color_temp = miot_service.get_property('color_temperature')
+        self._prop_color = miot_service.get_property('color')
 
         self._supported_features = 0
         if self._prop_brightness:
             self._supported_features |= SUPPORT_BRIGHTNESS
         if self._prop_color_temp:
             self._supported_features |= SUPPORT_COLOR_TEMP
+        if self._prop_color:
+            self._supported_features |= SUPPORT_COLOR
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
@@ -106,11 +112,25 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             _LOGGER.debug('Setting color temperature: %s mireds, %s ct', mired, color_temp)
             ret = self.set_property(self._prop_color_temp.full_name, color_temp)
 
+        if self.supported_features & SUPPORT_COLOR and ATTR_HS_COLOR in kwargs:
+            rgb = color.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
+            num = rgb[0] | rgb[1] << 8 | rgb[2] << 16
+            _LOGGER.debug('Setting light color: %s', rgb)
+            ret = self.set_property(self._prop_color.full_name, num)
+
         return ret
 
     @property
     def brightness(self):
         return round(255 / 100 * int(self._state_attrs.get(self._prop_brightness.full_name) or 0))
+
+    @property
+    def hs_color(self):
+        if self._prop_color:
+            num = round(self._prop_color.from_dict(self._state_attrs) or 0)
+            rgb = [0xFF & num, (0xFF00 & num) >> 8, (0xFF0000 & num) >> 16]
+            return color.color_RGB_to_hs(*rgb)
+        return None
 
     @property
     def color_temp(self):
