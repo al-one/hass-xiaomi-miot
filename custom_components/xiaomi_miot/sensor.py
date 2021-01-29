@@ -52,8 +52,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         if miot:
             spec = await MiotSpec.async_from_type(hass, miot)
             for srv in spec.get_services(
-                'air_monitor', 'environment',
-                'filter', 'washer', 'illumination_sensor',
+                'air_monitor', 'environment', 'illumination_sensor',
+                'water_purifier', 'filter', 'washer',
                 'cooker', 'induction_cooker', 'pressure_cooker',
             ):
                 if not srv.mapping():
@@ -85,11 +85,14 @@ class MiotSensorEntity(MiotEntity):
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device)
+        first_property = None
+        if len(miot_service.properties) > 0:
+            first_property = list(miot_service.properties.values() or [])[0].name
         self._prop_state = miot_service.get_property(
             'temperature', 'relative_humidity', 'humidity',
-            'illumination', 'battery',
-            'tds_out', 'filter_life_level', 'filter_left_time',
-            'status', 'fault',
+            'illumination', 'battery', 'status', 'fault',
+            'tds_out', 'tds_in', 'filter_life_level', 'filter_left_time',
+            'filter_used_time', 'filter_used_flow', first_property or 'status'
         )
 
     @property
