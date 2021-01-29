@@ -1,6 +1,7 @@
 """Support for Xiaomi Miot."""
 import logging
 import asyncio
+import socket
 from datetime import timedelta
 from functools import partial
 import voluptuous as vol
@@ -241,6 +242,9 @@ class MiioEntity(Entity):
             self._miio_info = device.info()
         except DeviceException as exc:
             _LOGGER.error("Device %s unavailable or token incorrect: %s", name, exc)
+            raise PlatformNotReady from exc
+        except socket.gaierror as exc:
+            _LOGGER.error("Device %s unavailable: %s", name, exc)
             raise PlatformNotReady from exc
         self._unique_did = dr.format_mac(self._miio_info.mac_address)
         self._unique_id = self._unique_did
