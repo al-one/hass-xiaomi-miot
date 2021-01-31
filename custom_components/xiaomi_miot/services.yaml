@@ -11,19 +11,6 @@ send_command:
       description: Params for the method.
       example: ['on']
 
-set_property:
-  description: Set miot property.
-  fields:
-    entity_id:
-      description: ID of the entity.
-      example: "climate.xiaomi_mc5_374e"
-    field:
-      description: Field of property.
-      example: power
-    value:
-      description: Value of property.
-      example: True
-
 get_properties:
   description: Get miot properties.
   fields:
@@ -33,6 +20,35 @@ get_properties:
     mapping:
       description: Mapping for properties.
       example: "{'power': {'siid': 2, 'piid': 1}}"
+
+set_property:
+  description: Set miot property.
+  fields:
+    entity_id:
+      description: ID of the entity.
+      example: "climate.xiaomi_mc5_374e"
+    field:
+      description: Field of property.
+      example: "air_conditioner.on"
+    value:
+      description: Value of property.
+      example: True
+
+set_miot_property:
+  description: Set miot property by siid/piid.
+  fields:
+    entity_id:
+      description: ID of the entity.
+      example: "climate.xiaomi_mc5_374e"
+    siid:
+      description: Miot service ID.
+      example: 2
+    piid:
+      description: Miot property ID.
+      example: 1
+    value:
+      description: Miot property value.
+      example: True
 
 call_action:
   description: Call miot action.

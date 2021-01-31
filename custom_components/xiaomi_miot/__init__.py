@@ -90,6 +90,17 @@ SERVICE_TO_METHOD_BASE = {
             },
         ),
     },
+    'set_miot_property': {
+        'method': 'async_set_miot_property',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+            {
+                vol.Optional('did'): cv.string,
+                vol.Required('siid'): int,
+                vol.Required('piid'): int,
+                vol.Required('value'): cv.match_all,
+            },
+        ),
+    },
     'get_properties': {
         'method': 'async_get_properties',
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
@@ -434,15 +445,15 @@ class MiotEntity(MiioEntity):
                 results = await self.hass.async_add_executor_job(
                     partial(self._device.get_properties_for_mapping)
                 )
-        except DeviceException as ex:
+        except DeviceException as exc:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got exception while fetching the state for %s: %s', self.name, ex)
+            _LOGGER.error('Got exception while fetching the state for %s: %s', self.name, exc)
             return
-        except MiCloudException as ex:
+        except MiCloudException as exc:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got exception while fetching the state from cloud for %s: %s', self.name, ex)
+            _LOGGER.error('Got exception while fetching the state from cloud for %s: %s', self.name, exc)
             return
         attrs = {
             prop.get('did'): prop.get('value') if prop.get('code') == 0 else None
@@ -464,8 +475,8 @@ class MiotEntity(MiioEntity):
         )
         try:
             results = dvc.get_properties_for_mapping()
-        except DeviceException as ex:
-            _LOGGER.error('Got exception while get properties from %s: %s, mapping: %s', self.name, ex, mapping)
+        except DeviceException as exc:
+            _LOGGER.error('Got exception while get properties from %s: %s, mapping: %s', self.name, exc, mapping)
             return
         attrs = {
             prop['did']: prop['value'] if prop['code'] == 0 else None
@@ -478,21 +489,18 @@ class MiotEntity(MiioEntity):
         return await self.hass.async_add_executor_job(partial(self.get_properties, mapping))
 
     def set_property(self, field, value):
-        result = None
         try:
-            if self.miot_cloud:
-                ext = self.miot_mapping.get(field) or {}
-                pms = [{'did': self.miot_did, **ext, 'value': value}]
-                results = self.miot_cloud.set_props(pms)
+            ext = self.miot_mapping.get(field) or {}
+            if ext:
+                result = self.set_miot_property(ext['siid'], ext['piid'], value)
             else:
-                results = self._device.set_property(field, value) or []
-            for result in results:
-                break
-        except DeviceException as ex:
-            _LOGGER.error('Set miot property to %s: %s(%s) failed: %s', self.name, field, value, ex)
+                _LOGGER.warning('Set miot property to %s: %s(%s) failed: property not found', self.name, field, value)
+                return False
+        except DeviceException as exc:
+            _LOGGER.error('Set miot property to %s: %s(%s) failed: %s', self.name, field, value, exc)
             return False
-        except MiCloudException as ex:
-            _LOGGER.error('Set miot property to cloud for %s: %s(%s) failed: %s', self.name, field, value, ex)
+        except MiCloudException as exc:
+            _LOGGER.error('Set miot property to cloud for %s: %s(%s) failed: %s', self.name, field, value, exc)
             return False
         ret = dict(result or {}).get('code', 1) == self._success_code
         if ret:
@@ -507,6 +515,35 @@ class MiotEntity(MiioEntity):
 
     async def async_set_property(self, field, value):
         return await self.hass.async_add_executor_job(partial(self.set_property, field, value))
+
+    def set_miot_property(self, siid, piid, value, did=None):
+        ret = None
+        pms = {
+            'did':  did or self.miot_did or f'property-{siid}-{piid}',
+            'siid': siid,
+            'piid': piid,
+            'value': value,
+        }
+        try:
+            exc = None
+            if self.miot_cloud:
+                results = self.miot_cloud.set_props([pms])
+            else:
+                results = self._device.send('set_properties', [pms])
+            for ret in (results or []):
+                break
+        except DeviceException as exc:
+            pass
+        except MiCloudException as exc:
+            pass
+        if ret:
+            _LOGGER.debug('Set miot property to %s (%s), result: %s', self.name, pms, ret)
+        else:
+            _LOGGER.warning('Set miot property to %s (%s) failed: %s', self.name, pms, exc)
+        return ret
+
+    async def async_set_miot_property(self, siid, piid, value, did=None):
+        return await self.hass.async_add_executor_job(partial(self.set_miot_property, siid, piid, value, did))
 
     def miot_action(self, siid, aiid, params=None, did=None):
         ret = None
@@ -532,8 +569,8 @@ class MiotEntity(MiioEntity):
             _LOGGER.warning('Call miot action to %s (%s) failed: %s', self.name, pms, exc)
         return ret
 
-    async def async_miot_action(self, siid, aiid, params=None):
-        return await self.hass.async_add_executor_job(partial(self.miot_action, siid, aiid, params))
+    async def async_miot_action(self, siid, aiid, params=None, did=None):
+        return await self.hass.async_add_executor_job(partial(self.miot_action, siid, aiid, params, did))
 
     def turn_on(self, **kwargs):
         ret = self.set_property('power', True)
