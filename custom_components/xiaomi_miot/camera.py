@@ -151,11 +151,12 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
             result = {}
             updater = 'lan'
             try:
+                vda = int(self.custom_config('video_attribute') or 0)
                 if self.miot_cloud:
                     result = await self.async_miot_action(
                         self._srv_stream.iid,
                         self._act_start_stream.iid,
-                        [0],
+                        [vda],
                     ) or {}
                     updater = 'cloud'
                 else:
@@ -168,8 +169,9 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
                 self.update_attrs(odt)
                 if self._prop_stream_address:
                     self._last_url = self._prop_stream_address.from_dict(odt)
+                self._url_expiration = 0
                 if self._prop_expiration_time:
-                    self._url_expiration = self._prop_expiration_time.from_dict(odt)
+                    self._url_expiration = int(self._prop_expiration_time.from_dict(odt) or 0)
                 if not self._url_expiration:
                     self._url_expiration = now + 1000 * 60 * 4
         self.is_streaming = self._last_url and True
