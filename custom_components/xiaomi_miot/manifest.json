@@ -9,7 +9,7 @@
       "python-miio>=0.5.3",
       "micloud>=0.3"
     ],
-    "dependencies": [],
+    "dependencies": ["ffmpeg"],
     "codeowners": [
       "@al-one"
     ]
