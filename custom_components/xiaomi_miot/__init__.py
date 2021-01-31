@@ -25,6 +25,7 @@ from miio import (
     Device as MiioDevice,  # noqa: F401
     DeviceException,
 )
+from miio.device import DeviceInfo as MiioInfo
 from miio.miot_device import MiotDevice as MiotDeviceBase
 
 from .core.miot_spec import (
@@ -188,6 +189,7 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
         config['miot_type'] = config_entry.data.get('miot_type')
     else:
         config['miot_type'] = await MiotSpec.async_get_model_type(hass, model)
+    config['miio_info'] = info
     config['config_entry'] = config_entry
     hass.data[DOMAIN]['configs'][entry_id] = config
     hass.data[DOMAIN]['configs'][unique_id] = config
@@ -248,10 +250,12 @@ class MiotDevice(MiotDeviceBase):
 
 
 class MiioEntity(Entity):
-    def __init__(self, name, device):
+    def __init__(self, name, device, miio_info=None):
         self._device = device
         try:
-            self._miio_info = device.info()
+            if miio_info and isinstance(miio_info, dict):
+                miio_info = MiioInfo(miio_info)
+            self._miio_info = miio_info if isinstance(miio_info, MiioInfo) else device.info()
         except DeviceException as exc:
             _LOGGER.error("Device %s unavailable or token incorrect: %s", name, exc)
             raise PlatformNotReady from exc
@@ -388,8 +392,8 @@ class MiioEntity(Entity):
 
 
 class MiotEntity(MiioEntity):
-    def __init__(self, name, device, miot_service=None):
-        super().__init__(name, device)
+    def __init__(self, name, device, miot_service=None, miio_info=None):
+        super().__init__(name, device, miio_info)
         self._success_code = 0
 
         self._miot_service = miot_service
@@ -586,8 +590,8 @@ class MiotEntity(MiioEntity):
 
 
 class MiotToggleEntity(MiotEntity, ToggleEntity):
-    def __init__(self, name, device, miot_service: MiotService):
-        super().__init__(name, device)
+    def __init__(self, name, device, miot_service: MiotService, miio_info=None):
+        super().__init__(name, device, miio_info)
         self._miot_service = miot_service
         self._prop_power = miot_service.get_property('on', 'power', 'switch')
 

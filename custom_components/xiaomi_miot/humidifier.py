@@ -68,6 +68,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         name = config[CONF_NAME]
         host = config[CONF_HOST]
         token = config[CONF_TOKEN]
+        miio_info = config.get('miio_info') or None
 
         self._miot_service = miot_service
         mapping = miot_service.spec.services_mapping(
@@ -78,7 +79,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         _LOGGER.info('Initializing with host %s (token %s...), miot mapping: %s', host, token[:5], mapping)
 
         self._device = MiotDevice(host, token)
-        super().__init__(name, self._device, miot_service)
+        super().__init__(name, self._device, miot_service, miio_info)
 
         self._prop_power = miot_service.get_property('on')
         self._prop_mode = miot_service.get_property('mode')
