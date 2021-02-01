@@ -64,4 +64,20 @@ call_action:
       example: 5
     params:
       description: Miot action params.
-      example: "['Turn on light', 1]"
+      example: "['Turn on light', true]"
+
+intelligent_speaker:
+  description: Play text / Execute text directive.
+  fields:
+    entity_id:
+      description: ID of the entity.
+      example: "media_player.xiaoai_x08c"
+    text:
+      description: Text content.
+      example: "Turn on light"
+    execute:
+      description: Execute text directive.
+      example: true
+    silent:
+      description: Silent execution.
+      example: false

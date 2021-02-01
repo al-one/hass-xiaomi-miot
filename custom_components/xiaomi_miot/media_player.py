@@ -1,5 +1,6 @@
 """Support for Xiaomi WiFi speakers."""
 import logging
+import voluptuous as vol
 from datetime import timedelta
 
 from homeassistant.const import *
@@ -11,11 +12,13 @@ from homeassistant.components.media_player import (
     DEVICE_CLASS_RECEIVER,
 )
 from homeassistant.components.media_player.const import *
+import homeassistant.helpers.config_validation as cv
 
 from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
+    XIAOMI_MIIO_SERVICE_SCHEMA,
     MiotDevice,
     MiotToggleEntity,
     bind_services_to_entries,
@@ -29,7 +32,18 @@ _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 SCAN_INTERVAL = timedelta(seconds=60)
 
-SERVICE_TO_METHOD = {}
+SERVICE_TO_METHOD = {
+    'intelligent_speaker': {
+        'method': 'async_intelligent_speaker',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+            {
+                vol.Required('text'): cv.string,
+                vol.Optional('execute', default=False): cv.boolean,
+                vol.Optional('silent', default=False): cv.boolean,
+            },
+        ),
+    },
+}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -46,7 +60,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services('play_control', 'television'):
+        for srv in spec.get_services('play_control'):
             if not srv.mapping():
                 continue
             cfg = {
@@ -69,7 +83,7 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
 
         mapping = miot_service.spec.services_mapping(
             'play_control', 'intelligent_speaker', 'speaker',
-            'microphone', 'clock', 'input_control',
+            'microphone', 'clock', 'television', 'tv_box',
         ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
@@ -80,6 +94,15 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
         self._speaker = miot_service.spec.get_service('speaker')
         self._prop_volume = self._speaker.get_property('volume')
         self._prop_mute = self._speaker.get_property('mute')
+        self._act_turn_on = None
+        self._act_turn_off = None
+        for srv in miot_service.spec.services:
+            act = srv.get_action('turn_on')
+            if act:
+                self._act_turn_on = act
+            act = srv.get_action('turn_off')
+            if act:
+                self._act_turn_off = act
 
         if miot_service.get_action('play'):
             self._supported_features |= SUPPORT_PLAY
@@ -91,14 +114,14 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
             self._supported_features |= SUPPORT_NEXT_TRACK
         if miot_service.get_action('stop'):
             self._supported_features |= SUPPORT_STOP
-        if miot_service.get_action('turn_on'):
-            self._supported_features |= SUPPORT_TURN_ON
-        if miot_service.get_action('turn_off'):
-            self._supported_features |= SUPPORT_TURN_OFF
         if self._prop_volume:
             self._supported_features |= SUPPORT_VOLUME_SET
         if self._prop_mute:
             self._supported_features |= SUPPORT_VOLUME_MUTE
+        if self._act_turn_on:
+            self._supported_features |= SUPPORT_TURN_ON
+        if self._act_turn_off:
+            self._supported_features |= SUPPORT_TURN_OFF
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
@@ -129,15 +152,13 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
         return STATE_UNAVAILABLE
 
     def turn_on(self):
-        act = self._miot_service.get_action('turn_on')
-        if act:
-            return self.miot_action(self._miot_service.iid, act.iid)
+        if self._act_turn_on:
+            return self.miot_action(self._act_turn_on.service.iid, self._act_turn_on.iid)
         return False
 
     def turn_off(self):
-        act = self._miot_service.get_action('turn_off')
-        if act:
-            return self.miot_action(self._miot_service.iid, act.iid)
+        if self._act_turn_off:
+            return self.miot_action(self._act_turn_off.service.iid, self._act_turn_off.iid)
         return False
 
     @property
@@ -231,3 +252,22 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
 
     def set_repeat(self, repeat):
         return False
+
+    def intelligent_speaker(self, text, execute=False, silent=False):
+        srv = self._miot_service.spec.get_service('intelligent_speaker')
+        if srv:
+            anm = 'execute_text_directive' if execute else 'play_text'
+            act = srv.get_action(anm)
+            if act:
+                pms = [text]
+                if execute:
+                    pms.append(silent)
+                return self.miot_action(srv.iid, act.iid, pms)
+            else:
+                _LOGGER.info('%s have no action: %s', self.name, anm)
+        else:
+            _LOGGER.info('%s have no service: %s', self.name, 'intelligent_speaker')
+        return False
+
+    async def async_intelligent_speaker(self, text, execute=False, silent=False):
+        await self.hass.async_add_executor_job(self.intelligent_speaker, text, execute, silent)
