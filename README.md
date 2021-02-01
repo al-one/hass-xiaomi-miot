@@ -16,6 +16,7 @@
     - other
         - [environment](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:environment:0000780A)
         - [filter](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:filter:0000780B)
+        - [battery](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:battery:00007805)
         - [illumination-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:illumination-sensor:0000783D)
 - [switch](https://www.home-assistant.io/integrations/switch)
     - [switch](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:switch:0000780C)
@@ -34,6 +35,8 @@
     - [air-conditioner-outlet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:air-condition-outlet:000078A3)
     - [air-purifier](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:air-purifier:0000A007)
     - [heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:heater:0000A01A)
+    - [ptc-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:ptc-bath-heater:0000783B)
+    - [light-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:light-bath-heater:0000783A)
 - [cover](https://www.home-assistant.io/integrations/cover)
     - [curtain](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:curtain:00007816)
     - [airer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:airer:00007817)
@@ -41,6 +44,14 @@
 - [humidifier](https://www.home-assistant.io/integrations/humidifier)
     - [humidifier](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:humidifier:0000A00E)
     - [dehumidifier](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:dehumidifier:0000A02D)
+- [camera](https://www.home-assistant.io/integrations/camera)
+    - [camera-control](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:camera-control:0000782F)
+    - [camera-stream-for-google-home](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:camera-stream-for-google-home:00007831)
+    - [camera-stream-for-amazon-alexa](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:camera-stream-for-amazon-alexa:00007830)
+- [media_player](https://www.home-assistant.io/integrations/media_player)
+    - [play-control](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:play-control:0000781D)
+    - [speaker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:speaker:0000781C)
+    - [intelligent-speaker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:intelligent-speaker:0000789B)
 
 
 ## Installing
@@ -67,18 +78,21 @@ or
 
 ### Configuration Xiaomi Cloud:
 
-> Some miot device return code -4004 or -9999
+> If your device return code -4004 or -9999 in logs, You can try this way.
 
 ```yaml
 # configuration.yaml
+homeassistant:
+  customize: !include customize.yaml
+
 xiaomi_miot:
   username: xiaomi_username
   password: xiaomi_password
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
 climate.xiaomi_mc5_374e: # Your entity id
-  miot_cloud: true    # Enabled cloud
-  # miot_did: 123456789 # Your miot device id, Optional (Get form cloud)
+  miot_cloud: true       # Enabled cloud
+  # miot_did: 123456789  # Your miot device id, Optional (Get form cloud)
 ```
 
 
