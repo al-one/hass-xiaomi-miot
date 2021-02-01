@@ -90,10 +90,21 @@ class MiotSensorEntity(MiotEntity):
             first_property = list(miot_service.properties.values() or [])[0].name
         self._prop_state = miot_service.get_property(
             'temperature', 'relative_humidity', 'humidity',
-            'illumination', 'battery', 'status', 'fault',
+            'illumination', 'battery', 'battery_level', 'status', 'fault',
             'tds_out', 'tds_in', 'filter_life_level', 'filter_left_time',
             'filter_used_time', 'filter_used_flow', first_property or 'status'
         )
+
+    async def async_update(self):
+        await super().async_update()
+        if self._available:
+            ext = {}
+            if self._prop_state.value_list:
+                des = self._prop_state.list_description(self.state)
+                if des:
+                    ext[f'{self._prop_state.full_name}_desc'] = des
+            if ext:
+                self.update_attrs(ext)
 
     @property
     def state(self):
@@ -109,7 +120,7 @@ class MiotSensorEntity(MiotEntity):
             return DEVICE_CLASS_ILLUMINANCE
         if self._miot_service.name in ['illumination_sensor']:
             return DEVICE_CLASS_ILLUMINANCE
-        if self._prop_state.name in ['battery']:
+        if self._prop_state.name in ['battery', 'battery_level']:
             return DEVICE_CLASS_BATTERY
         return None
 
