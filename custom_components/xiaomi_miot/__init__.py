@@ -250,9 +250,10 @@ class MiotDevice(MiotDeviceBase):
 
 
 class MiioEntity(Entity):
-    def __init__(self, name, device, miio_info=None):
+    def __init__(self, name, device, **kwargs):
         self._device = device
         try:
+            miio_info = kwargs.get('miio_info')
             if miio_info and isinstance(miio_info, dict):
                 miio_info = MiioInfo(miio_info)
             self._miio_info = miio_info if isinstance(miio_info, MiioInfo) else device.info()
@@ -260,7 +261,7 @@ class MiioEntity(Entity):
             _LOGGER.error("Device %s unavailable or token incorrect: %s", name, exc)
             raise PlatformNotReady from exc
         except socket.gaierror as exc:
-            _LOGGER.error("Device %s unavailable: %s", name, exc)
+            _LOGGER.error("Device %s unavailable: socket.gaierror %s", name, exc)
             raise PlatformNotReady from exc
         self._unique_did = dr.format_mac(self._miio_info.mac_address)
         self._unique_id = self._unique_did
@@ -392,13 +393,13 @@ class MiioEntity(Entity):
 
 
 class MiotEntity(MiioEntity):
-    def __init__(self, name, device, miot_service=None, miio_info=None):
-        super().__init__(name, device, miio_info)
+    def __init__(self, name, device, miot_service=None, **kwargs):
+        super().__init__(name, device, **kwargs)
         self._success_code = 0
 
         self._miot_service = miot_service
-        if isinstance(miot_service, MiotService):
-            self._unique_id = f'{self._unique_id}-{miot_service.iid}'
+        if isinstance(self._miot_service, MiotService):
+            self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
 
     @property
     def miot_did(self):
@@ -590,9 +591,8 @@ class MiotEntity(MiioEntity):
 
 
 class MiotToggleEntity(MiotEntity, ToggleEntity):
-    def __init__(self, name, device, miot_service: MiotService, miio_info=None):
-        super().__init__(name, device, miio_info)
-        self._miot_service = miot_service
+    def __init__(self, name, device, miot_service: MiotService, **kwargs):
+        super().__init__(name, device, miot_service, **kwargs)
         self._prop_power = miot_service.get_property('on', 'power', 'switch')
 
     @property
