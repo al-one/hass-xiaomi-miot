@@ -279,8 +279,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             return self.turn_off()
         if not self._prop_mode:
             return False
-        if self._prop_power:
-            return self.set_property(self._prop_power.full_name, True)
+        if self._prop_power and not self.is_on:
+            self.set_property(self._prop_power.full_name, True)
         val = self._hvac_modes.get(hvac_mode, {}).get('value')
         if val is None:
             return False
