@@ -708,7 +708,7 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
         super().update()
         if self._available:
             attrs = self._state_attrs
-            self._state = attrs.get(self._attr) == STATE_ON
+            self._state = cv.boolean(attrs.get(self._attr) or False)
 
     @property
     def state(self):

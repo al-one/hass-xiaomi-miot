@@ -31,6 +31,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from .switch import SwitchSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -83,6 +84,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service)
         Camera.__init__(self)
+        self._add_entities = config.get('add_entities') or {}
 
         self._prop_motion_tracking = miot_service.get_property('motion_tracking')
         self._srv_stream = None
@@ -112,6 +114,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         self._url_expiration = 0
         self._extra_arguments = None
         self._manager = hass.data.get(DATA_FFMPEG)
+        self._subs = {}
 
     async def async_added_to_hass(self):
         self._manager = self.hass.data.get(DATA_FFMPEG)
@@ -127,6 +130,15 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
 
     async def async_update(self):
         await super().async_update()
+        if self._available:
+            if self._prop_power:
+                add_switches = self._add_entities.get('switch', None)
+                pnm = self._prop_power.full_name
+                if pnm in self._subs:
+                    self._subs[pnm].update()
+                elif add_switches:
+                    self._subs[pnm] = SwitchSubEntity(self, pnm)
+                    add_switches([self._subs[pnm]])
 
     @property
     def state(self):
