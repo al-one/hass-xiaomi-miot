@@ -64,7 +64,7 @@ call_action:
       example: 5
     params:
       description: Miot action params.
-      example: "['Turn on light', true]"
+      example: "['Turn on light', 1]"
 
 intelligent_speaker:
   description: Play text / Execute text directive.

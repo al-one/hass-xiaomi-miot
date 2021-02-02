@@ -261,7 +261,7 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
             if act:
                 pms = [text]
                 if execute:
-                    pms.append(silent)
+                    pms.append(0 if silent else 1)
                 return self.miot_action(srv.iid, act.iid, pms)
             else:
                 _LOGGER.info('%s have no action: %s', self.name, anm)
