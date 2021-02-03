@@ -1,8 +1,8 @@
 # Xiaomi Miot For HomeAssistant
 
-## Supported Devices
+## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)
 
-- HA Domain
+- HomeAssistant Domain
     - [Miot Device](https://miot-spec.org/miot-spec-v2/spec/devices)
         - [Miot Service](https://miot-spec.org/miot-spec-v2/spec/services)
 
@@ -13,6 +13,7 @@
     - [cooker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:cooker:0000A00B)
     - [pressure-cooker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:pressure-cooker:0000A04B)
     - [induction-cooker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:induction-cooker:0000A033)
+    - [washer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:washer:00007834)
     - other
         - [environment](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:environment:0000780A)
         - [filter](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:filter:0000780B)
@@ -88,6 +89,7 @@ homeassistant:
 xiaomi_miot:
   username: xiaomi_username
   password: xiaomi_password
+  # server_country: cn
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
 climate.xiaomi_mc5_374e: # Your entity id
