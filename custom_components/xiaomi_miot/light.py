@@ -29,6 +29,10 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from miio.utils import (
+    rgb_to_int,
+    int_to_rgb,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -119,7 +123,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
 
         if self.supported_features & SUPPORT_COLOR and ATTR_HS_COLOR in kwargs:
             rgb = color.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
-            num = rgb[0] | rgb[1] << 8 | rgb[2] << 16
+            num = rgb_to_int(rgb)
             _LOGGER.debug('Setting light: %s color: %s', self.name, rgb)
             ret = self.set_property(self._prop_color.full_name, num)
 
@@ -138,7 +142,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
     def hs_color(self):
         if self._prop_color:
             num = round(self._prop_color.from_dict(self._state_attrs) or 0)
-            rgb = [0xFF & num, (0xFF00 & num) >> 8, (0xFF0000 & num) >> 16]
+            rgb = int_to_rgb(num)
             return color.color_RGB_to_hs(*rgb)
         return None
 
