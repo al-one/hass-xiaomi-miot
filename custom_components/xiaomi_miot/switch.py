@@ -22,6 +22,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from .fan import MiotWasherSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -43,7 +44,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services(ENTITY_DOMAIN, 'outlet'):
+        for srv in spec.get_services(ENTITY_DOMAIN, 'outlet', 'washer'):
             if not srv.get_property('on'):
                 continue
             cfg = {
@@ -68,7 +69,10 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service)
+        self._add_entities = config.get('add_entities') or {}
+
         self._state_attrs.update({'entity_class': self.__class__.__name__})
+        self._subs = {}
 
     @property
     def device_class(self):
@@ -76,6 +80,24 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
         if typ.find('outlet') >= 0:
             return DEVICE_CLASS_OUTLET
         return DEVICE_CLASS_SWITCH
+
+    async def async_update(self):
+        await super().async_update()
+        if self._available:
+            if self._miot_service.name in ['washer']:
+                add_fans = self._add_entities.get('fan')
+                pls = self._miot_service.get_properties(
+                    'mode', 'spin_speed', 'drying_level',
+                    'target_temperature', 'target_water_level',
+                )
+                for p in pls:
+                    if not p.value_list:
+                        continue
+                    if p.name in self._subs:
+                        self._subs[p.name].update()
+                    elif add_fans:
+                        self._subs[p.name] = MiotWasherSubEntity(self, p)
+                        add_fans([self._subs[p.name]])
 
 
 class SwitchSubEntity(ToggleSubEntity, SwitchEntity):

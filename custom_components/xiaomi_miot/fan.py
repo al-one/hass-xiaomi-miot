@@ -25,6 +25,7 @@ from . import (
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+    MiotProperty,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -80,13 +81,13 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service)
+        self._add_entities = config.get('add_entities') or {}
 
         self._prop_power = miot_service.get_property('on', 'dryer')
         self._prop_speed = miot_service.get_property('fan_level', 'drying_level')
         self._prop_direction = miot_service.get_property('horizontal_angle', 'vertical_angle')
         self._prop_oscillate = miot_service.get_property('horizontal_swing', 'vertical_swing')
 
-        self._supported_features = 0
         if self._prop_speed:
             self._supported_features |= SUPPORT_SET_SPEED
         if self._prop_direction:
@@ -177,6 +178,14 @@ class FanSubEntity(ToggleSubEntity, FanEntity):
     def update(self):
         super().update()
 
+    @property
+    def speed(self):
+        return self._state_attrs.get(self._attr)
+
+    @property
+    def speed_list(self):
+        return list(self._option.get('speed_list') or [])
+
     def set_speed(self, speed: str):
         self.call_parent('set_speed', speed)
 
@@ -185,3 +194,29 @@ class FanSubEntity(ToggleSubEntity, FanEntity):
 
     def oscillate(self, oscillating: bool):
         self.call_parent('oscillate', oscillating)
+
+
+class MiotWasherSubEntity(FanSubEntity):
+    def __init__(self, parent, miot_property: MiotProperty, option=None):
+        super().__init__(parent, miot_property.full_name, option)
+        self._miot_property = miot_property
+        self._supported_features = SUPPORT_SET_SPEED
+
+    @property
+    def state(self):
+        return self._parent.state
+
+    @property
+    def speed(self):
+        val = self._miot_property.from_dict(self._state_attrs)
+        return self._miot_property.list_description(val)
+
+    @property
+    def speed_list(self):
+        return self._miot_property.list_description(None)
+
+    def set_speed(self, speed: str):
+        val = self._miot_property.list_first(speed)
+        if val is not None:
+            return self.call_parent('set_property', self._miot_property.full_name, val)
+        return False
