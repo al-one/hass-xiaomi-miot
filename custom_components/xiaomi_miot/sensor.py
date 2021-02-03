@@ -124,6 +124,20 @@ class MiotSensorEntity(MiotEntity):
             return DEVICE_CLASS_BATTERY
         return None
 
+    @property
+    def unit_of_measurement(self):
+        prop = self._prop_state
+        if prop:
+            if prop.unit in ['celsius', TEMP_CELSIUS]:
+                return TEMP_CELSIUS
+            if prop.unit in ['fahrenheit', TEMP_FAHRENHEIT]:
+                return TEMP_FAHRENHEIT
+            if prop.unit in ['kelvin', TEMP_KELVIN]:
+                return TEMP_KELVIN
+            if prop.unit in ['percentage', PERCENTAGE]:
+                return PERCENTAGE
+        return None
+
 
 class WaterPurifierYunmiEntity(MiioEntity, Entity):
     def __init__(self, config):
