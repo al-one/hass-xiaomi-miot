@@ -148,6 +148,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
     async def async_update(self):
         await super().async_update()
         if self._available:
+            self.update_bind_sensor()
             add_fans = self._add_entities.get('fan', None)
             for m in self._power_modes:
                 p = self._miot_service.bool_property(m)
@@ -177,6 +178,29 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                                 'value_off': off,
                             })
                             add_fans([self._subs[des]])
+
+    def update_bind_sensor(self):
+        bss = str(self.custom_config('bind_sensor') or '').split(',')
+        ext = {}
+        for bse in bss:
+            bse = f'{bse}'.strip()
+            if not bse:
+                continue
+            sta = self.hass.states.get(bse)
+            if not sta or not sta.state or sta.state == STATE_UNKNOWN:
+                continue
+            else:
+                cls = sta.attributes.get(ATTR_DEVICE_CLASS)
+                unit = sta.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
+                if cls == DEVICE_CLASS_TEMPERATURE or unit in [TEMP_CELSIUS, TEMP_KELVIN, TEMP_FAHRENHEIT]:
+                    ext[ATTR_CURRENT_TEMPERATURE] = self.hass.config.units.temperature(
+                        float(sta.state or 0), unit
+                    )
+                elif cls == DEVICE_CLASS_HUMIDITY:
+                    ext[ATTR_CURRENT_HUMIDITY] = float(sta.state or 0)
+        if ext:
+            self.update_attrs(ext)
+            _LOGGER.debug('Got bound state from %s for %s: %s', bss, self.name, ext)
 
     @property
     def is_on(self):
@@ -300,6 +324,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
     @property
     def current_temperature(self):
+        if ATTR_CURRENT_TEMPERATURE in self._state_attrs:
+            return float(self._state_attrs[ATTR_CURRENT_TEMPERATURE] or 0)
         if self._prop_temperature:
             return float(self._prop_temperature.from_dict(self._state_attrs) or 0)
         return None
@@ -351,6 +377,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
     @property
     def current_humidity(self):
+        if ATTR_CURRENT_HUMIDITY in self._state_attrs:
+            return float(self._state_attrs[ATTR_CURRENT_HUMIDITY] or 0)
         if self._prop_humidity:
             return int(self._prop_humidity.from_dict(self._state_attrs) or 0)
         return None

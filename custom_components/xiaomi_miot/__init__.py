@@ -453,12 +453,12 @@ class MiotEntity(MiioEntity):
         except DeviceException as exc:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got exception while fetching the state for %s: %s', self.name, exc)
+            _LOGGER.error('Got MiioException while fetching the state for %s: %s', updater, self.name, exc)
             return
         except MiCloudException as exc:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got exception while fetching the state from cloud for %s: %s', self.name, exc)
+            _LOGGER.error('Got MiCloudException while fetching the state for %s: %s', updater, self.name, exc)
             return
         attrs = {
             prop.get('did'): prop.get('value') if prop.get('code') == 0 else None
