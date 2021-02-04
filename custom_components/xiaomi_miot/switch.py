@@ -111,6 +111,16 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
                         self._subs[p.name] = MiotWasherSubEntity(self, p)
                         add_fans([self._subs[p.name]])
 
+                add_switches = self._add_entities.get(ENTITY_DOMAIN)
+                if self._miot_service.get_action('start_wash', 'pause'):
+                    pnm = 'action'
+                    prop = self._miot_service.get_property('status')
+                    if pnm in self._subs:
+                        self._subs[pnm].update()
+                    elif add_switches and prop:
+                        self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
+                        add_switches([self._subs[pnm]])
+
 
 class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
     def update(self):
