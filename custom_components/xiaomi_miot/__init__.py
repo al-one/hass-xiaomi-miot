@@ -712,7 +712,7 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
 
     @property
     def state(self):
-        return STATE_ON if self._state else STATE_OFF
+        return STATE_ON if self.is_on else STATE_OFF
 
     @property
     def is_on(self):

@@ -21,6 +21,7 @@ from . import (
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+    MiotProperty,
 )
 from .fan import MiotWasherSubEntity
 
@@ -81,6 +82,12 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
             return DEVICE_CLASS_OUTLET
         return DEVICE_CLASS_SWITCH
 
+    @property
+    def icon(self):
+        if self._miot_service.name in ['washer']:
+            return 'mdi:washing-machine'
+        return super().icon
+
     async def async_update(self):
         await super().async_update()
         if self._available:
@@ -103,3 +110,41 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
 class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
     def update(self):
         super().update()
+
+
+class MiotWasherActionSubEntity(SwitchSubEntity):
+    def __init__(self, parent, miot_property: MiotProperty, option=None):
+        super().__init__(parent, miot_property.full_name, option)
+        self._miot_property = miot_property
+        self._miot_service = miot_property.service
+        self._values_on = miot_property.list_search('Busy', 'Delay')
+        self._values_off = miot_property.list_search('Off', 'Idle', 'Pause', 'Fault')
+
+    def update(self):
+        super().update()
+        if self._available:
+            sta = self._state_attrs.get(self._attr)
+            self._state = sta not in self._values_off
+
+    def turn_on(self, **kwargs):
+        val = self._values_on[0] if self._values_on else None
+        return self.miot_action('start_wash', val)
+
+    def turn_off(self, **kwargs):
+        val = self._values_off[0] if self._values_off else None
+        return self.miot_action('pause', val)
+
+    def miot_action(self, act, sta=None):
+        ret = False
+        act = self._miot_service.get_action(act)
+        if act:
+            ret = self.call_parent('miot_action', self._miot_service.iid, act.iid)
+            if ret and sta is not None:
+                self.update_attrs({
+                    self._attr: sta,
+                })
+        return ret
+
+    @property
+    def icon(self):
+        return 'mdi:play-box'

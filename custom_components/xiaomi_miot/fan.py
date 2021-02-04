@@ -175,8 +175,13 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
 class FanSubEntity(ToggleSubEntity, FanEntity):
 
-    def update(self):
-        super().update()
+    def turn_on(self, speed=None, **kwargs):
+        ret = False
+        if not self.is_on:
+            ret = self.call_parent('turn_on', **kwargs)
+        if speed:
+            ret = self.set_speed(speed)
+        return ret
 
     @property
     def speed(self):
@@ -203,8 +208,39 @@ class MiotWasherSubEntity(FanSubEntity):
         self._supported_features = SUPPORT_SET_SPEED
 
     @property
-    def state(self):
-        return self._parent.state
+    def icon(self):
+        if self._miot_property.name in ['mode']:
+            return 'mdi:menu'
+        if self._miot_property.name in ['spin_speed']:
+            return 'mdi:speedometer'
+        if self._miot_property.name in ['target_temperature']:
+            return 'mdi:coolant-temperature'
+        if self._miot_property.name in ['target_water_level']:
+            return 'mdi:water-plus'
+        if self._miot_property.name in ['drying_level']:
+            return 'mdi:tumble-dryer'
+        return super().icon
+
+    @property
+    def is_on(self):
+        if not self._parent.is_on:
+            return False
+        sta = self._state_attrs.get(self._attr)
+        if self._miot_property.name in ['spin_speed']:
+            return sta != self._miot_property.list_search('no spin')
+        if self._miot_property.name in ['target_temperature']:
+            return sta != self._miot_property.list_search('cold')
+        if self._miot_property.name in ['drying_level']:
+            return sta != self._miot_property.list_search('none')
+        return True
+
+    def turn_on(self, speed=None, **kwargs):
+        ret = False
+        if not self._parent.is_on:
+            ret = self.call_parent('turn_on', **kwargs)
+        if speed:
+            ret = self.set_speed(speed)
+        return ret
 
     @property
     def speed(self):
