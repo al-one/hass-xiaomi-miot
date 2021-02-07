@@ -107,6 +107,9 @@ homeassistant:
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
 climate.xiaomi_mc5_374e: # Your entity id
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
+
+camera.entity_id:
+  video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
 ```
 
 

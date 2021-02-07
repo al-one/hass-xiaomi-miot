@@ -118,7 +118,6 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
 
     async def async_added_to_hass(self):
         self._manager = self.hass.data.get(DATA_FFMPEG)
-        await self.stream_source()
 
     @property
     def should_poll(self):
@@ -159,7 +158,11 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         if self._url_expiration <= now:
             self._last_url = None
             _LOGGER.debug('Miot camera: %s url: %s expired: %s', self.name, self._last_url, self._url_expiration)
-        if not self._last_url and self._act_start_stream:
+        if not self._act_start_stream:
+            self.update_attrs({
+                'miot_error': 'Nonsupport start hls/rstp stream',
+            })
+        elif not self._last_url:
             result = {}
             updater = 'lan'
             try:
@@ -187,6 +190,10 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
                 if not self._url_expiration:
                     self._url_expiration = now + 1000 * 60 * 4
         self.is_streaming = self._last_url and True
+        if self.is_streaming:
+            self.update_attrs({
+                'miot_error': None,
+            })
         return self._last_url
 
     async def async_camera_image(self):
