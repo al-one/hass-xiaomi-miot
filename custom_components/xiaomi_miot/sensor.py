@@ -53,7 +53,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             spec = await MiotSpec.async_from_type(hass, miot)
             for srv in spec.get_services(
                 'air_monitor', 'environment', 'illumination_sensor',
-                'water_purifier', 'filter',
+                'water_purifier', 'filter', 'oven', 'microwave_oven',
                 'cooker', 'induction_cooker', 'pressure_cooker',
             ):
                 if not srv.mapping():
