@@ -27,6 +27,7 @@
 - [fan](https://www.home-assistant.io/integrations/fan)
     - [fan](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:fan:00007808)
     - [ceiling-fan](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:ceiling-fan:00007849)
+    - [hood](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:hood:0000782B)
     - [airer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:airer:00007817)
         - [dryer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:dryer:00007895)
 - [climate](https://www.home-assistant.io/integrations/climate)
