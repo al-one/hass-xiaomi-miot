@@ -1,6 +1,7 @@
 """Support for Xiaomi Aircondition."""
 import logging
 from enum import Enum
+from numbers import Number
 
 from homeassistant.const import *
 from homeassistant.components.climate import (
@@ -189,7 +190,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             sta = self.hass.states.get(bse)
             if not sta or not sta.state or sta.state == STATE_UNKNOWN:
                 continue
-            else:
+            elif isinstance(sta.state, Number):
                 cls = sta.attributes.get(ATTR_DEVICE_CLASS)
                 unit = sta.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
                 if cls == DEVICE_CLASS_TEMPERATURE or unit in [TEMP_CELSIUS, TEMP_KELVIN, TEMP_FAHRENHEIT]:
