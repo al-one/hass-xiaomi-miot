@@ -57,7 +57,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         miot = config.get('miot_type')
         if miot:
             spec = await MiotSpec.async_from_type(hass, miot)
-            for srv in spec.get_services(ENTITY_DOMAIN):
+            for srv in spec.get_services(ENTITY_DOMAIN, 'night_light'):
                 if not srv.get_property('on'):
                     continue
                 cfg = {
