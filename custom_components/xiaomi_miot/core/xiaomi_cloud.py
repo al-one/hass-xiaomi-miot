@@ -1,5 +1,6 @@
 import logging
 import json
+import time
 import micloud
 from micloud.micloudexception import MiCloudException  # noqa: F401
 
@@ -79,21 +80,35 @@ class MiotCloud(micloud.MiCloud):
                 return d
         return None
 
-    async def async_get_devices(self):
+    async def async_get_devices(self, renew=False):
         if not self.user_id:
             return None
         fnm = f'xiaomi_miot/devices-{self.user_id}.json'
         store = Store(self.hass, 1, fnm)
-        dat = await store.async_load() or {}
-        if not dat:
-            dat = await self.hass.async_add_executor_job(self.get_devices)
-            if dat:
+        now = time.time()
+        dvs = None
+        if not renew:
+            dat = await store.async_load() or {}
+            if isinstance(dat, dict):
+                if dat.get('update_time', 0) > (now - 86400):
+                    dvs = dat.get('devices') or []
+        if not dvs:
+            dvs = await self.hass.async_add_executor_job(self.get_devices)
+            if dvs:
+                dat = {
+                    'update_time': now,
+                    'devices': dvs,
+                }
                 await store.async_save(dat)
-        return dat
+                _LOGGER.info('Got %s devices from xiaomi cloud', len(dvs))
+        return dvs
 
-    async def async_get_devices_by_key(self, key):
+    async def async_renew_devices(self):
+        return await self.async_get_devices(renew=True)
+
+    async def async_get_devices_by_key(self, key, renew=False):
         dat = {}
-        dvs = await self.async_get_devices() or []
+        dvs = await self.async_get_devices(renew=renew) or []
         for d in dvs:
             if not isinstance(d, dict):
                 continue
