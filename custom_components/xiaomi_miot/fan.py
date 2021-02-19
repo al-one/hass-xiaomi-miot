@@ -256,6 +256,7 @@ class MiotCookerSubEntity(MiotModesSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, prop_status: MiotProperty, option=None):
         super().__init__(parent, miot_property, option)
         self._prop_status = prop_status
+        self._option['keys'] = [prop_status.full_name, *(self._option.get('keys') or [])]
         self._values_on = prop_status.list_search('Busy', 'Running', 'Delay')
         self._values_off = prop_status.list_search(
             'Idle', 'Completed', 'CookFinish', 'Paused', 'Fault', 'Error', 'Stop', 'Off',
@@ -264,7 +265,7 @@ class MiotCookerSubEntity(MiotModesSubEntity):
     @property
     def is_on(self):
         val = self._prop_status.from_dict(self._state_attrs)
-        return val not in self._values_off
+        return val not in [*self._values_off, None]
 
     def turn_off(self, **kwargs):
         act = self._miot_service.get_action('cancel_cooking', 'pause')
