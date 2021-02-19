@@ -96,9 +96,9 @@ xiaomi_miot:
   # server_country: cn
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
-climate.xiaomi_mc5_374e: # Your entity id
-  miot_cloud: true       # Enabled cloud
-  # miot_did: 123456789  # Your miot device id, Optional (Get form cloud)
+camera.entity_id:         # Your entity id
+  miot_cloud: true        # Enabled cloud
+  # miot_did: '123456789' # Your miot device id, Optional (Get form cloud)
 ```
 
 ### Customize entity
@@ -109,7 +109,7 @@ homeassistant:
   customize: !include customize.yaml
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
-climate.xiaomi_mc5_374e: # Your entity id
+climate.entity_id: # Your entity id
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
 
 camera.entity_id:

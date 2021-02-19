@@ -552,8 +552,10 @@ class MiotEntity(MiioEntity):
 
     def miot_action(self, siid, aiid, params=None, did=None):
         ret = None
+        if did is None:
+            did = self.miot_did or f'action-{siid}-{aiid}'
         pms = {
-            'did':  did or self.miot_did or f'action-{siid}-{aiid}',
+            'did':  str(did),
             'siid': siid,
             'aiid': aiid,
             'in':   params or [],
