@@ -721,7 +721,7 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
         return self._state
 
     def turn_on(self, **kwargs):
-        self.call_parent('turn_on', **kwargs)
+        return self.call_parent('turn_on', **kwargs)
 
     def turn_off(self, **kwargs):
-        self.call_parent('turn_off', **kwargs)
+        return self.call_parent('turn_off', **kwargs)

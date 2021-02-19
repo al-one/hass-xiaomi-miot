@@ -165,6 +165,15 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
         return 'mdi:play-box'
 
 
+class MiotCookerSwitchSubEntity(SwitchSubEntity):
+    def __init__(self, parent, miot_property: MiotProperty, option=None):
+        super().__init__(parent, miot_property.full_name, option)
+
+    @property
+    def is_on(self):
+        return self._parent.is_on
+
+
 class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
     def __init__(self, config: dict):
         name = config[CONF_NAME]
