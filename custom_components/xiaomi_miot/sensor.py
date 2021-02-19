@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             for srv in spec.get_services(
                 'air_monitor', 'environment', 'illumination_sensor',
                 'water_purifier', 'filter', 'oven', 'microwave_oven',
-                'cooker', 'induction_cooker', 'pressure_cooker',
+                'cooker', 'induction_cooker', 'pressure_cooker', 'health_pot',
             ):
                 if not srv.mapping():
                     continue
@@ -160,15 +160,14 @@ class MiotCookerEntity(MiotSensorEntity):
     def icon(self):
         if self._miot_service.name in ['oven', 'microwave_oven']:
             return 'mdi:microwave'
+        if self._miot_service.name in ['health_pot']:
+            return 'mdi:coffee'
         return 'mdi:chef-hat'
 
     async def async_update(self):
         await super().async_update()
         if self._available:
-            if self._prop_state.name in ['status'] and self._miot_service.name in [
-                'cooker', 'induction_cooker', 'pressure_cooker',
-                'oven', 'microwave_oven',
-            ]:
+            if self._prop_state.name in ['status']:
                 add_fans = self._add_entities.get('fan')
                 pls = self._miot_service.get_properties('cook_mode')
                 for p in pls:
