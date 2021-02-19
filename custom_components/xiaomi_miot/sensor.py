@@ -26,6 +26,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from .fan import MiotCookerSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -85,6 +86,11 @@ class MiotSensorEntity(MiotEntity):
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service)
+        self._add_entities = config.get('add_entities') or {}
+
+        self._state_attrs.update({'entity_class': self.__class__.__name__})
+        self._subs = {}
+
         first_property = None
         if len(miot_service.properties) > 0:
             first_property = list(miot_service.properties.values() or [])[0].name
@@ -99,8 +105,9 @@ class MiotSensorEntity(MiotEntity):
         await super().async_update()
         if self._available:
             ext = {}
-            if self._prop_state.value_list:
-                des = self._prop_state.list_description(self.state)
+            sta = self._prop_state.from_dict(self._state_attrs)
+            if self._prop_state.value_list and sta is not None:
+                des = self._prop_state.list_description(sta)
                 if des:
                     ext[f'{self._prop_state.full_name}_desc'] = des
             if ext:
@@ -108,7 +115,10 @@ class MiotSensorEntity(MiotEntity):
 
     @property
     def state(self):
-        return self._state_attrs.get(self._prop_state.full_name, STATE_UNKNOWN)
+        key = f'{self._prop_state.full_name}_desc'
+        if key in self._state_attrs:
+            return f'{self._state_attrs[key]}'.lower()
+        return self._prop_state.from_dict(self._state_attrs, STATE_UNKNOWN)
 
     @property
     def device_class(self):
@@ -137,6 +147,38 @@ class MiotSensorEntity(MiotEntity):
             if prop.unit in ['percentage', PERCENTAGE]:
                 return PERCENTAGE
         return None
+
+
+class MiotCookerEntity(MiotSensorEntity):
+    def __init__(self, config, miot_service: MiotService):
+        super().__init__(config, miot_service)
+        self._prop_state = miot_service.get_property(
+            'status', 'fault', 'cook_mode', 'left_time', 'temperature', 'auto_keep_warm',
+        )
+
+    @property
+    def icon(self):
+        if self._miot_service.name in ['oven', 'microwave_oven']:
+            return 'mdi:microwave'
+        return 'mdi:chef-hat'
+
+    async def async_update(self):
+        await super().async_update()
+        if self._available:
+            if self._prop_state.name in ['status'] and self._miot_service.name in [
+                'cooker', 'induction_cooker', 'pressure_cooker',
+                'oven', 'microwave_oven',
+            ]:
+                add_fans = self._add_entities.get('fan')
+                pls = self._miot_service.get_properties('cook_mode')
+                for p in pls:
+                    if not p.value_list:
+                        continue
+                    if p.name in self._subs:
+                        self._subs[p.name].update()
+                    elif add_fans:
+                        self._subs[p.name] = MiotCookerSubEntity(self, p, self._prop_state)
+                        add_fans([self._subs[p.name]])
 
 
 class WaterPurifierYunmiEntity(MiioEntity, Entity):
