@@ -15,6 +15,7 @@
     - [induction-cooker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:induction-cooker:0000A033)
     - [oven](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:oven:00007862)
     - [microwave-oven](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:microwave-oven:00007843)
+    - [health-pot](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:health-pot:00007860)
     - other
         - [environment](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:environment:0000780A)
         - [filter](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:filter:0000780B)
@@ -61,18 +62,18 @@
 
 ## Installing
 
-> Or manually copy `xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
+> Or manually copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
 
 or
 
-> You can install component with [HACS](https://hacs.xyz) custom repo: `al-one/hass-xiaomi-miot`
+> You can install component with [HACS](https://hacs.xyz)
 
 
 ## Config
 
 ### HomeAssistant GUI
 
-> Configuration > Integration > ➕ > Xiaomi Miot Auto
+> Configuration > Integration > ➕ > Search `Xiaomi Miot Auto`
 
 ### Configuration variables:
 
