@@ -71,7 +71,10 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
         token = config[CONF_TOKEN]
         _LOGGER.info('Initializing %s with host %s (token %s...)', name, host, token[:5])
 
-        mapping = miot_service.spec.services_mapping(ENTITY_DOMAIN, 'indicator_light', 'switch_control') or {}
+        mapping = miot_service.spec.services_mapping(
+            ENTITY_DOMAIN, 'indicator_light', 'switch_control',
+            'power_consumption', 'imilab_timer',
+        ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service, config=config)
