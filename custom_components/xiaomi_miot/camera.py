@@ -82,7 +82,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device, miot_service)
+        super().__init__(name, self._device, miot_service, config=config)
         Camera.__init__(self)
         self._add_entities = config.get('add_entities') or {}
 

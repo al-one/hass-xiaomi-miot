@@ -89,7 +89,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device, miot_service)
+        super().__init__(name, self._device, miot_service, config=config)
 
         self._prop_status = miot_service.get_property('status')
         self._prop_motor_control = miot_service.get_property('motor_control')

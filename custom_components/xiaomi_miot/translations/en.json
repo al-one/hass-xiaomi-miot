@@ -19,5 +19,21 @@
             "already_configured": "Device is already configured",
             "not_xiaomi_miio": "Not a Xiaomi miio/miot device."
         }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "Config device info.",
+                "data": {
+                    "host": "Local IP for device",
+                    "token": "Token",
+                    "miot_cloud": "Enable miot cloud"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Failed to connect the device"
+        }
     }
 }

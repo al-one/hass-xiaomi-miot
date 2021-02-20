@@ -73,7 +73,8 @@ or
 
 ### HomeAssistant GUI
 
-> Configuration > Integration > ➕ > Search `Xiaomi Miot Auto`
+> Configuration > Integrations > ➕ > Search `Xiaomi Miot Auto`
+
 
 ### Configuration variables:
 
@@ -81,6 +82,7 @@ or
 - **token**(*Required*): The Token of your device
 - **name**(*Optional*): The name of your device
 - **model**(*Optional*): The model of device, required if config by yaml
+
 
 ### Configuration Xiaomi Cloud:
 
@@ -98,9 +100,14 @@ xiaomi_miot:
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
 camera.entity_id:         # Your entity id
-  miot_cloud: true        # Enabled cloud
+  miot_cloud: true        # Enable miot cloud for entity
   # miot_did: '123456789' # Your miot device id, Optional (Get form cloud)
 ```
+
+Enabled miot cloud for device:
+
+> Configuration > Integrations > Xiaomi Miot Auto > Options > Enable miot cloud
+
 
 ### Customize entity
 

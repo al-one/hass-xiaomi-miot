@@ -84,7 +84,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device, miot_service)
+        super().__init__(name, self._device, miot_service, config=config)
 
         self._prop_power = miot_service.get_property('on')
         self._prop_brightness = miot_service.get_property('brightness')

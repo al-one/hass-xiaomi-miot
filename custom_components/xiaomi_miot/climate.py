@@ -91,7 +91,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         _LOGGER.info('Initializing with host %s (token %s...), miot mapping: %s', host, token[:5], mapping)
 
         self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device, miot_service)
+        super().__init__(name, self._device, miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
 
         self._prop_power = miot_service.get_property('on')

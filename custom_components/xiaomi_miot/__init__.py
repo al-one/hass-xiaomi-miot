@@ -172,6 +172,7 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     unique_id = config_entry.unique_id
     info = config_entry.data.get('miio_info') or {}
     config = {}
+    config.update(config_entry.options or {})
     for k in [CONF_HOST, CONF_TOKEN, CONF_NAME, CONF_MODEL, CONF_MODE]:
         config[k] = config_entry.data.get(k)
     model = str(config.get(CONF_MODEL) or info.get(CONF_MODEL) or '')
@@ -185,6 +186,7 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
         if m in SUPPORTED_DOMAINS
     ]
     config[CONF_MODE] = modes
+
     if 'miot_type' in config_entry.data:
         config['miot_type'] = config_entry.data.get('miot_type')
     else:
@@ -193,15 +195,29 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     config['config_entry'] = config_entry
     hass.data[DOMAIN]['configs'][entry_id] = config
     hass.data[DOMAIN]['configs'][unique_id] = config
-    _LOGGER.debug('Xiaomi Miot async_setup_entry %s', {
+    _LOGGER.debug('Xiaomi Miot setup config entry: %s', {
         'entry_id': entry_id,
         'unique_id': unique_id,
         'config': config,
         'miio': info,
     })
+
+    if not config_entry.update_listeners:
+        config_entry.add_update_listener(async_update_options)
+
     for d in SUPPORTED_DOMAINS:
         hass.async_create_task(hass.config_entries.async_forward_entry_setup(config_entry, d))
     return True
+
+
+async def async_update_options(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
+    await hass.config_entries.async_reload(config_entry.entry_id)
+    _LOGGER.debug('Xiaomi Miot update config entry options: %s', {
+        'entry_id': config_entry.entry_id,
+        'unique_id': config_entry.unique_id,
+        'data': config_entry.data,
+        'options': config_entry.options,
+    })
 
 
 def bind_services_to_entries(hass, services):
@@ -252,6 +268,7 @@ class MiotDevice(MiotDeviceBase):
 class MiioEntity(Entity):
     def __init__(self, name, device, **kwargs):
         self._device = device
+        self._config = dict(kwargs.get('config') or {})
         try:
             miio_info = kwargs.get('miio_info')
             if miio_info and isinstance(miio_info, dict):
@@ -413,7 +430,12 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_cloud(self):
-        if self.hass and self.miot_did and self.custom_config('miot_cloud'):
+        isc = False
+        if self._config.get('miot_cloud'):
+            isc = True
+        elif self.custom_config('miot_cloud'):
+            isc = True
+        if isc and self.hass and self.miot_did:
             return self.hass.data[DOMAIN].get('xiaomi_cloud')
         return None
 

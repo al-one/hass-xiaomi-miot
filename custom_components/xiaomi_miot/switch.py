@@ -74,7 +74,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
         mapping = miot_service.spec.services_mapping(ENTITY_DOMAIN, 'indicator_light', 'switch_control') or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device, miot_service)
+        super().__init__(name, self._device, miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
