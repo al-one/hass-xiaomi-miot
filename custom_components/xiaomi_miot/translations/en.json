@@ -8,8 +8,7 @@
                 "data": {
                     "host": "Local IP for device",
                     "token": "Token",
-                    "name": "Device name",
-                    "mode": "Mode (empty for auto)"
+                    "name": "Device name"
                 }
             }
         },
