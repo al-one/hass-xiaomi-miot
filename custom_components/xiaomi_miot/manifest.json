@@ -1,6 +1,6 @@
 {
     "domain": "xiaomi_miot",
-    "name": "Xiaomi Miot",
+    "name": "Xiaomi Miot Auto",
     "version": "0.2.3",
     "config_flow": true,
     "documentation": "https://github.com/al-one/hass-xiaomi-miot",

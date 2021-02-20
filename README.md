@@ -72,7 +72,7 @@ or
 
 ### HomeAssistant GUI
 
-> Configuration > Integration > ➕ > Xiaomi Miot
+> Configuration > Integration > ➕ > Xiaomi Miot Auto
 
 ### Configuration variables:
 
