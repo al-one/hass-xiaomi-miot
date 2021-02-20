@@ -1,7 +1,6 @@
 """Support for Xiaomi Aircondition."""
 import logging
 from enum import Enum
-from numbers import Number
 
 from homeassistant.const import *
 from homeassistant.components.climate import (
@@ -190,15 +189,18 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             sta = self.hass.states.get(bse)
             if not sta or not sta.state or sta.state == STATE_UNKNOWN:
                 continue
-            elif isinstance(sta.state, Number):
+            try:
+                num = float(sta.state)
+            except ValueError:
+                num = None
+                _LOGGER.info('Got bound state from %s for %s: %s, state invalid', bse, self.name, sta.state)
+            if num is not None:
                 cls = sta.attributes.get(ATTR_DEVICE_CLASS)
                 unit = sta.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
                 if cls == DEVICE_CLASS_TEMPERATURE or unit in [TEMP_CELSIUS, TEMP_KELVIN, TEMP_FAHRENHEIT]:
-                    ext[ATTR_CURRENT_TEMPERATURE] = self.hass.config.units.temperature(
-                        float(sta.state or 0), unit
-                    )
+                    ext[ATTR_CURRENT_TEMPERATURE] = self.hass.config.units.temperature(num, unit)
                 elif cls == DEVICE_CLASS_HUMIDITY:
-                    ext[ATTR_CURRENT_HUMIDITY] = float(sta.state or 0)
+                    ext[ATTR_CURRENT_HUMIDITY] = num
         if ext:
             self.update_attrs(ext)
             _LOGGER.debug('Got bound state from %s for %s: %s', bss, self.name, ext)
