@@ -57,6 +57,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'air_monitor', 'environment', 'illumination_sensor',
                 'water_purifier', 'filter', 'oven', 'microwave_oven',
                 'cooker', 'induction_cooker', 'pressure_cooker', 'health_pot',
+                'brush_cleaner',
             ):
                 if not srv.mapping():
                     continue

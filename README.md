@@ -47,6 +47,8 @@
     - [ptc-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:ptc-bath-heater:0000783B)
     - [light-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:light-bath-heater:0000783A)
     - [electric-blanket](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:electric-blanket:00007844)
+- [vacuum](https://www.home-assistant.io/integrations/vacuum)
+    - [vacuum](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:vacuum:00007810) (Don't support clean area/point)
 - [cover](https://www.home-assistant.io/integrations/cover)
     - [curtain](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:curtain:00007816)
     - [airer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:airer:00007817)
