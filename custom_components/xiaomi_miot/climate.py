@@ -52,7 +52,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         spec = await MiotSpec.async_from_type(hass, miot)
         for srv in spec.get_services(
             ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
-            'air_purifier', 'heater', 'ptc_bath_heater', 'light_bath_heater',
+            'heater', 'ptc_bath_heater', 'light_bath_heater',
+            'air_purifier', 'electric_blanket',
         ):
             if not srv.get_property('on', 'mode'):
                 continue
@@ -84,7 +85,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         mapping = miot_service.spec.services_mapping(
             'air_conditioner', 'fan_control', 'environment', 'indicator_light', 'countdown',
             'air_purifier', 'filter_time', 'motor_speed', 'aqi', 'rfid', 'physical_controls_locked',
-            'electricity', 'maintenance', 'alarm', 'enhance', 'others', 'private_service',
+            'electricity', 'maintenance', 'alarm', 'enhance', 'custom', 'others', 'private_service',
             'power_consumption', 'ac_function', 'device_protect', 'device_info', 'arming', 'smart_action',
         ) or {}
         mapping.update(miot_service.mapping())
@@ -119,6 +120,10 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             self._prop_vertical_swing = self._fan_control.get_property('vertical_swing')
             self._prop_vertical_angle = self._fan_control.get_property('vertical_angle')
 
+        if miot_service.name in ['electric_blanket']:
+            if not self._prop_fan_level:
+                self._prop_fan_level = miot_service.get_property('heat_level', 'water_level')
+
         if self._prop_target_temp:
             self._supported_features |= SUPPORT_TARGET_TEMPERATURE
         if self._prop_target_humi:
@@ -138,11 +143,24 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             HVAC_MODE_DRY:  {'list': ['Dry']},
             HVAC_MODE_FAN_ONLY: {'list': ['Fan']},
         }
+        self._preset_modes = {}
         if self._prop_mode:
             for mk, mv in self._hvac_modes.items():
                 val = self._prop_mode.list_first(*(mv.get('list') or []))
                 if val is not None:
                     self._hvac_modes[mk]['value'] = val
+            for v in self._prop_mode.value_list:
+                val = v.get('value')
+                des = v.get('description')
+                has = False
+                for mk, mv in self._hvac_modes.items():
+                    if des in mv.get('list', []):
+                        has = True
+                        break
+                if not has:
+                    self._preset_modes[val] = des
+        if self._preset_modes:
+            self._supported_features |= SUPPORT_PRESET_MODE
         self._subs = {}
 
     async def async_update(self):
@@ -157,27 +175,18 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 elif add_fans and p:
                     self._subs[m] = ClimateModeSubEntity(self, p)
                     add_fans([self._subs[m]])
-            if self._prop_mode:
-                off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
-                for v in self._prop_mode.value_list:
-                    val = v.get('value')
-                    des = v.get('description')
-                    has = False
-                    for mk, mv in self._hvac_modes.items():
-                        if des in mv.get('list', []):
-                            has = True
-                            break
-                    if not has:
-                        if des in self._subs:
-                            self._subs[des].update()
-                        elif add_fans:
-                            self._subs[des] = ClimateModeSubEntity(self, self._prop_mode, {
-                                'unique_id': f'{self.unique_id}-{self._prop_mode.full_name}-{val}',
-                                'name':      f'{self.name} {des}',
-                                'value_on':  val,
-                                'value_off': off,
-                            })
-                            add_fans([self._subs[des]])
+            off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
+            for val, des in self._preset_modes.items():
+                if des in self._subs:
+                    self._subs[des].update()
+                elif add_fans and self._miot_service.name in ['ptc_bath_heater']:
+                    self._subs[des] = ClimateModeSubEntity(self, self._prop_mode, {
+                        'unique_id': f'{self.unique_id}-{self._prop_mode.full_name}-{val}',
+                        'name':      f'{self.name} {des}',
+                        'value_on':  val,
+                        'value_off': off,
+                    })
+                    add_fans([self._subs[des]])
 
     def update_bind_sensor(self):
         bss = str(self.custom_config('bind_sensor') or '').split(',')
@@ -301,17 +310,44 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             hms.append(HVAC_MODE_OFF)
         return hms
 
-    def set_hvac_mode(self, hvac_mode: str):
-        if hvac_mode == HVAC_MODE_OFF:
+    def set_hvac_mode(self, mode: str):
+        if mode == HVAC_MODE_OFF:
             return self.turn_off()
         if not self._prop_mode:
             return False
         if self._prop_power and not self.is_on:
             self.set_property(self._prop_power.full_name, True)
-        val = self._hvac_modes.get(hvac_mode, {}).get('value')
+        val = self._hvac_modes.get(mode, {}).get('value')
+        if val is None:
+            val = self._prop_mode.list_first(mode)
         if val is None:
             return False
         return self.set_property(self._prop_mode.full_name, val)
+
+    @property
+    def preset_mode(self):
+        if not self.is_on:
+            return HVAC_MODE_OFF
+        if self._preset_modes:
+            acm = self._prop_mode.from_dict(self._state_attrs)
+            acm = -1 if acm is None else int(acm or 0)
+            return self._preset_modes.get(acm, HVAC_MODE_OFF)
+        return None
+
+    @property
+    def preset_modes(self):
+        pms = []
+        if self._preset_modes:
+            for mk, mv in self._preset_modes.items():
+                pms.append(mv)
+        if HVAC_MODE_OFF not in pms:
+            pms.append(HVAC_MODE_OFF)
+        return pms
+
+    def set_preset_mode(self, mode: str):
+        if not self._preset_modes:
+            return False
+        return self.set_hvac_mode(mode)
 
     @property
     def temperature_unit(self):
