@@ -1,4 +1,4 @@
-"""Support for Xiaomi Water Purifier (Yunmi)."""
+"""Support for Xiaomi sensors."""
 import logging
 from functools import partial
 
@@ -104,7 +104,7 @@ class MiotSensorEntity(MiotEntity):
             'temperature', 'relative_humidity', 'humidity',
             'illumination', 'battery', 'battery_level', 'status', 'fault',
             'tds_out', 'tds_in', 'filter_life_level', 'filter_left_time',
-            'filter_used_time', 'filter_used_flow', first_property or 'status'
+            'filter_used_time', 'filter_used_flow', first_property or 'status',
         )
 
     async def async_update(self):

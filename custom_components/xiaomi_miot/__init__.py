@@ -46,6 +46,7 @@ CONF_MODEL = 'model'
 
 SUPPORTED_DOMAINS = [
     "sensor",
+    "binary_sensor",
     "switch",
     "light",
     "fan",
@@ -635,6 +636,9 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
     def turn_off(self, **kwargs):
         if self._prop_power:
             return self.set_property(self._prop_power.full_name, False)
+        act = self._miot_service.get_action('stop_working', 'power_off')
+        if act:
+            return self.miot_action(self._miot_service.iid, act.iid)
         return False
 
 
