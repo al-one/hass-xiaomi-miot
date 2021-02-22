@@ -21,6 +21,8 @@
         - [filter](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:filter:0000780B)
         - [battery](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:battery:00007805)
         - [illumination-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:illumination-sensor:0000783D)
+- [binary_sensor](https://www.home-assistant.io/integrations/binary_sensor)
+    - [toilet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:toilet:00007877)
 - [switch](https://www.home-assistant.io/integrations/switch)
     - [switch](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:switch:0000780C)
     - [outlet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:switch:0000780C)
@@ -64,11 +66,16 @@
 
 ## Installing
 
-> Or manually copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
+> Copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
 
-or
+```shell
+wget https://github.com/al-one/hass-xiaomi-miot/archive/master.zip
+unzip master.zip
+cp -rf hass-xiaomi-miot-master/custom_components/xiaomi_miot ~/.homeassistant/custom_components/
+rm -rf hass-xiaomi-miot-master
+```
 
-> You can install component with [HACS](https://hacs.xyz)
+> Or you can install component with [HACS](https://hacs.xyz)
 
 
 ## Config
