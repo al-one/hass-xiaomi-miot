@@ -483,11 +483,18 @@ class MiotEntity(MiioEntity):
                 self._available = False
             _LOGGER.error('Got MiCloudException while fetching the state for %s: %s', updater, self.name, exc)
             return
-        attrs = {
-            prop.get('did'): prop.get('value') if prop.get('code') == 0 else None
-            for prop in results
-            if isinstance(prop, dict) and 'did' in prop
-        }
+        attrs = {}
+        for prop in results:
+            if not isinstance(prop, dict):
+                continue
+            did = prop.get('did')
+            if did is None:
+                continue
+            cod = prop.get('code')
+            if cod == 0:
+                attrs[did] = prop.get('value')
+            else:
+                attrs[f'{did}.error'] = cod
         _LOGGER.debug('Got new state from %s: %s, updater: %s', self.name, attrs, updater)
         self._available = True
         self._state = True if attrs.get('power') else False

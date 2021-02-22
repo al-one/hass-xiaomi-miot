@@ -56,16 +56,21 @@ class MiotCloud(micloud.MiCloud):
                 'params': params or []
             })
         })
+        exc = None
         try:
             rdt = json.loads(rsp)
-            exc = None
         except ValueError as exc:
             rdt = {}
         rls = rdt.get('result')
         if not rls:
-            _LOGGER.debug(
+            _LOGGER.info(
                 'Request miot spec: %s, params: %s to cloud failed: %s %s',
                 api, params, rsp, exc,
+            )
+        else:
+            _LOGGER.debug(
+                'Request miot spec: %s, params: %s to cloud result: %s',
+                api, params, rsp,
             )
         return rls
 
