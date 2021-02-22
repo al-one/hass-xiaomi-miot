@@ -161,6 +161,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     self._preset_modes[val] = des
         if self._preset_modes:
             self._supported_features |= SUPPORT_PRESET_MODE
+            if len(self.hvac_modes) <= 1:
+                self._hvac_modes[HVAC_MODE_AUTO]['list'].append('Manual')
         self._subs = {}
 
     async def async_update(self):
@@ -284,7 +286,14 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
     @property
     def state(self):
-        return self.hvac_mode
+        sta = self.hvac_mode
+        if sta is None:
+            val = self._prop_mode.from_dict(self._state_attrs)
+            if val is not None:
+                sta = self._prop_mode.list_description(val)
+            if sta:
+                sta = str(sta).lower()
+        return sta
 
     @property
     def hvac_mode(self):
