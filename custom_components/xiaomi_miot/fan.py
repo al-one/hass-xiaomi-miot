@@ -75,8 +75,10 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         _LOGGER.info('Initializing %s with host %s (token %s...)', name, host, token[:5])
 
         mapping = miot_service.spec.services_mapping(
-            ENTITY_DOMAIN, 'yl_fan', 'off_delay_time', 'indicator_light', 'environment',
+            ENTITY_DOMAIN, 'fan_control', 'yl_fan', 'off_delay_time',
+            'indicator_light', 'environment',
             'motor_controller', 'physical_controls_locked',
+            'stove', 'bluetooth', 'function',
         ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
@@ -87,6 +89,15 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         self._prop_speed = miot_service.get_property('fan_level', 'drying_level')
         self._prop_direction = miot_service.get_property('horizontal_angle', 'vertical_angle')
         self._prop_oscillate = miot_service.get_property('horizontal_swing', 'vertical_swing')
+
+        self._fan_control = miot_service.spec.get_service('fan_control')
+        if self._fan_control:
+            if not self._prop_speed:
+                self._prop_speed = self._fan_control.get_property('fan_level')
+            if not self._prop_direction:
+                self._prop_direction = self._fan_control.get_property('horizontal_angle', 'vertical_angle')
+            if not self._prop_oscillate:
+                self._prop_oscillate = self._fan_control.get_property('horizontal_swing', 'vertical_swing')
 
         if self._prop_speed:
             self._supported_features |= SUPPORT_SET_SPEED
