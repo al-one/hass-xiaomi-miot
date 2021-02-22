@@ -544,15 +544,17 @@ class MiotEntity(MiioEntity):
         return await self.hass.async_add_executor_job(partial(self.set_property, field, value))
 
     def set_miot_property(self, siid, piid, value, did=None):
-        ret = None
+        if did is None:
+            did = self.miot_did or f'property-{siid}-{piid}'
         pms = {
-            'did':  did or self.miot_did or f'property-{siid}-{piid}',
+            'did':  str(did),
             'siid': siid,
             'piid': piid,
             'value': value,
         }
+        ret = None
+        exc = None
         try:
-            exc = None
             if self.miot_cloud:
                 results = self.miot_cloud.set_props([pms])
             else:
@@ -573,7 +575,6 @@ class MiotEntity(MiioEntity):
         return await self.hass.async_add_executor_job(partial(self.set_miot_property, siid, piid, value, did))
 
     def miot_action(self, siid, aiid, params=None, did=None):
-        ret = None
         if did is None:
             did = self.miot_did or f'action-{siid}-{aiid}'
         pms = {
@@ -582,8 +583,9 @@ class MiotEntity(MiioEntity):
             'aiid': aiid,
             'in':   params or [],
         }
+        ret = None
+        exc = None
         try:
-            exc = None
             if self.miot_cloud:
                 ret = self.miot_cloud.do_action(pms)
             else:
