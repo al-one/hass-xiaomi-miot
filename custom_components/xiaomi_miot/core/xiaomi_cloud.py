@@ -24,7 +24,6 @@ class MiotCloud(micloud.MiCloud):
             s = v.get('siid')
             p = v.get('piid')
             pms.append({'did': str(did), 'siid': s, 'piid': p})
-            rmp.setdefault(s, {})
             rmp[f'{s}{p}'] = k
         rls = self.get_props(pms)
         if not rls:

@@ -465,6 +465,7 @@ class MiotEntity(MiioEntity):
 
     async def async_update(self):
         updater = 'lan'
+        rmp = {}
         try:
             if self.miot_cloud:
                 results = await self.hass.async_add_executor_job(
@@ -472,6 +473,10 @@ class MiotEntity(MiioEntity):
                 )
                 updater = 'cloud'
             else:
+                for k, v in self.miot_mapping.items():
+                    s = v.get('siid')
+                    p = v.get('piid')
+                    rmp[f'{s}{p}'] = k
                 results = await self.hass.async_add_executor_job(
                     partial(self._device.get_properties_for_mapping)
                 )
@@ -489,14 +494,16 @@ class MiotEntity(MiioEntity):
         for prop in results:
             if not isinstance(prop, dict):
                 continue
-            did = prop.get('did')
-            if did is None:
+            s = prop.get('siid')
+            p = prop.get('piid')
+            k = rmp.get(f'{s}{p}', prop.get('did'))
+            if k is None:
                 continue
-            cod = prop.get('code')
-            if cod == 0:
-                attrs[did] = prop.get('value')
+            e = prop.get('code')
+            if e == 0:
+                attrs[k] = prop.get('value')
             else:
-                attrs[f'{did}.error'] = cod
+                attrs[f'{k}.error'] = e
         _LOGGER.debug('Got new state from %s: %s, updater: %s', self.name, attrs, updater)
         self._available = True
         self._state = True if attrs.get('power') else False
