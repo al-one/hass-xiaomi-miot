@@ -572,7 +572,6 @@ class MiotEntity(MiioEntity):
             'value': value,
         }
         ret = None
-        exc = None
         try:
             if self.miot_cloud:
                 results = self.miot_cloud.set_props([pms])
@@ -581,13 +580,11 @@ class MiotEntity(MiioEntity):
             for ret in (results or []):
                 break
         except DeviceException as exc:
-            pass
+            _LOGGER.warning('Set miot property to %s (%s) failed: %s', self.name, pms, exc)
         except MiCloudException as exc:
-            pass
+            _LOGGER.warning('Set miot property to cloud for %s (%s) failed: %s', self.name, pms, exc)
         if ret:
             _LOGGER.debug('Set miot property to %s (%s), result: %s', self.name, pms, ret)
-        else:
-            _LOGGER.warning('Set miot property to %s (%s) failed: %s', self.name, pms, exc)
         return ret
 
     async def async_set_miot_property(self, siid, piid, value, did=None):
@@ -603,20 +600,17 @@ class MiotEntity(MiioEntity):
             'in':   params or [],
         }
         ret = None
-        exc = None
         try:
             if self.miot_cloud:
                 ret = self.miot_cloud.do_action(pms)
             else:
                 ret = self._device.send('action', pms)
         except DeviceException as exc:
-            pass
+            _LOGGER.warning('Call miot action to %s (%s) failed: %s', self.name, pms, exc)
         except MiCloudException as exc:
-            pass
+            _LOGGER.warning('Call miot action to cloud for %s (%s) failed: %s', self.name, pms, exc)
         if ret:
             _LOGGER.debug('Call miot action to %s (%s), result: %s', self.name, pms, ret)
-        else:
-            _LOGGER.warning('Call miot action to %s (%s) failed: %s', self.name, pms, exc)
         return ret
 
     async def async_miot_action(self, siid, aiid, params=None, did=None):
