@@ -122,7 +122,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 )
                 return self.async_create_entry(title='', data=opt)
         else:
-            user_input = self.config_entry.data or {}
+            user_input = {**self.config_entry.data, **self.config_entry.options}
         return self.async_show_form(
             step_id='user',
             data_schema=vol.Schema({

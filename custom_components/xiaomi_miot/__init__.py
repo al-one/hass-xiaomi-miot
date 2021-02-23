@@ -527,6 +527,7 @@ class MiotEntity(MiioEntity):
         self._state = True if attrs.get('power') else False
         if self._subs:
             attrs['sub_entities'] = list(self._subs.keys())
+        attrs['state_updater'] = updater
         self.update_attrs(attrs)
 
     def get_properties(self, mapping: dict):
