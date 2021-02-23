@@ -266,6 +266,8 @@ class MiotModesSubEntity(FanSubEntity):
 class MiotCookerSubEntity(MiotModesSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, prop_status: MiotProperty, option=None):
         super().__init__(parent, miot_property, option)
+        if not miot_property.readable:
+            self._attr = prop_status.full_name
         self._prop_status = prop_status
         self._option['keys'] = [prop_status.full_name, *(self._option.get('keys') or [])]
         self._values_on = self._option.get('values_on') or []
