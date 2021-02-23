@@ -141,6 +141,22 @@ camera.entity_id:
 ```
 
 
+## Debug
+
+### Get Entity State Attributes
+
+> Developer tools > State > Filter Entity
+
+### Get Debug Logs
+
+```yaml
+logger:
+  default: warning
+  logs:
+    custom_components.xiaomi_miot: debug
+```
+
+
 ## Obtain miio token
 
 - Use MiHome mod by [@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)
