@@ -415,6 +415,7 @@ class MiotEntity(MiioEntity):
     def __init__(self, name, device, miot_service=None, **kwargs):
         super().__init__(name, device, **kwargs)
         self._success_code = 0
+        self._subs = {}
 
         self._miot_service = miot_service
         if isinstance(self._miot_service, MiotService):
@@ -499,6 +500,8 @@ class MiotEntity(MiioEntity):
         _LOGGER.debug('Got new state from %s: %s, updater: %s', self.name, attrs, updater)
         self._available = True
         self._state = True if attrs.get('power') else False
+        if self._subs:
+            attrs['sub_entities'] = list(self._subs.keys())
         self.update_attrs(attrs)
 
     def get_properties(self, mapping: dict):
