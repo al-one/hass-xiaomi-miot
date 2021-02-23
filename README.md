@@ -112,9 +112,11 @@ xiaomi_miot:
   # server_country: cn
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
-camera.entity_id:         # Your entity id
-  miot_cloud: true        # Enable miot cloud for entity
-  # miot_did: '123456789' # Your miot device id, Optional (Get form cloud)
+camera.entity_id:           # Your entity id
+  miot_cloud: true          # Enable miot cloud for entity (read, write, action)
+  # miot_cloud_write: true  # (Optional) Enable miot cloud (only write)
+  # miot_cloud_action: true # (Optional) Enable miot cloud (only action)
+  # miot_did: '123456789'   # (Optional) Your miot device id (Get form cloud if empty)
 ```
 
 Enabled miot cloud for device:

@@ -443,6 +443,24 @@ class MiotEntity(MiioEntity):
         return None
 
     @property
+    def miot_cloud_write(self):
+        isc = False
+        if self.custom_config('miot_cloud_write'):
+            isc = True
+        if isc and self.hass and self.miot_did:
+            return self.hass.data[DOMAIN].get('xiaomi_cloud')
+        return self.miot_cloud
+
+    @property
+    def miot_cloud_action(self):
+        isc = False
+        if self.custom_config('miot_cloud_action'):
+            isc = True
+        if isc and self.hass and self.miot_did:
+            return self.hass.data[DOMAIN].get('xiaomi_cloud')
+        return self.miot_cloud
+
+    @property
     def miot_mapping(self):
         return self._device.mapping
 
@@ -573,8 +591,9 @@ class MiotEntity(MiioEntity):
         }
         ret = None
         try:
-            if self.miot_cloud:
-                results = self.miot_cloud.set_props([pms])
+            mcw = self.miot_cloud_write
+            if mcw:
+                results = mcw.set_props([pms])
             else:
                 results = self._device.send('set_properties', [pms])
             for ret in (results or []):
@@ -601,8 +620,9 @@ class MiotEntity(MiioEntity):
         }
         ret = None
         try:
-            if self.miot_cloud:
-                ret = self.miot_cloud.do_action(pms)
+            mca = self.miot_cloud_action
+            if mca:
+                ret = mca.do_action(pms)
             else:
                 ret = self._device.send('action', pms)
         except DeviceException as exc:
