@@ -84,7 +84,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
         self._miot_service = miot_service
         mapping = miot_service.spec.services_mapping(
-            'air_conditioner', 'fan_control', 'environment', 'indicator_light', 'countdown',
+            'air_conditioner', 'fan_control', 'environment', 'indicator_light', 'countdown', 'user',
             'air_purifier', 'filter_time', 'motor_speed', 'aqi', 'rfid', 'physical_controls_locked',
             'electricity', 'maintenance', 'alarm', 'enhance', 'custom', 'others', 'private_service',
             'power_consumption', 'ac_function', 'device_protect', 'device_info', 'arming', 'smart_action',
