@@ -54,8 +54,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
             'heater', 'ptc_bath_heater', 'light_bath_heater',
             'air_purifier', 'electric_blanket',
+            'water_heater', 'water_dispenser',
         ):
-            if not srv.get_property('on', 'mode'):
+            if not srv.get_property('on', 'mode', 'target_temperature'):
                 continue
             cfg = {
                 **config,
@@ -120,7 +121,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             self._prop_vertical_swing = self._fan_control.get_property('vertical_swing')
             self._prop_vertical_angle = self._fan_control.get_property('vertical_angle')
 
-        if miot_service.name in ['electric_blanket']:
+        if miot_service.name in ['electric_blanket', 'water_heater', 'water_dispenser']:
             if not self._prop_fan_level:
                 self._prop_fan_level = miot_service.get_property('heat_level', 'water_level')
 
