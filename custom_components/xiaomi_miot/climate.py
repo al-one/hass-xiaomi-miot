@@ -26,6 +26,7 @@ from .fan import (
     FanSubEntity,
     SUPPORT_SET_SPEED,
 )
+from .switch import MiotWasherActionSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -53,7 +54,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(
             ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
             'heater', 'ptc_bath_heater', 'light_bath_heater',
-            'air_purifier', 'electric_blanket',
+            'air_purifier', 'electric_blanket', 'dishwasher',
             'water_heater', 'water_dispenser',
         ):
             if not srv.get_property('on', 'mode', 'target_temperature'):
@@ -83,20 +84,14 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         token = config[CONF_TOKEN]
 
         self._miot_service = miot_service
-        mapping = miot_service.spec.services_mapping(
-            'air_conditioner', 'fan_control', 'environment', 'indicator_light', 'countdown', 'user',
-            'air_purifier', 'filter_time', 'motor_speed', 'aqi', 'rfid', 'physical_controls_locked',
-            'electricity', 'maintenance', 'alarm', 'enhance', 'custom', 'others', 'private_service',
-            'power_consumption', 'ac_function', 'device_protect', 'device_info', 'arming', 'smart_action',
-        ) or {}
-        mapping.update(miot_service.mapping())
-        _LOGGER.info('Initializing with host %s (token %s...), miot mapping: %s', host, token[:5], mapping)
+        mapping = miot_service.spec.services_mapping() or {}
+        _LOGGER.info('Initializing %s (%s, token %s...), miot mapping: %s', name, host, token[:5], mapping)
 
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
 
-        self._prop_power = miot_service.get_property('on')
+        self._prop_power = miot_service.bool_property('on')
         self._prop_mode = miot_service.get_property('mode')
         self._prop_target_temp = miot_service.get_property('target_temperature')
         self._prop_target_humi = miot_service.get_property('target_humidity')
@@ -146,20 +141,28 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         }
         self._preset_modes = {}
         if self._prop_mode:
+            mvs = []
+            dls = []
             for mk, mv in self._hvac_modes.items():
                 val = self._prop_mode.list_first(*(mv.get('list') or []))
                 if val is not None:
                     self._hvac_modes[mk]['value'] = val
+                    mvs.append(val)
+                elif mk != HVAC_MODE_OFF:
+                    dls.append(mk)
+            for k in dls:
+                self._hvac_modes.pop(k, None)
+            fst = None
             for v in self._prop_mode.value_list:
+                fst = fst or v
                 val = v.get('value')
-                des = v.get('description')
-                has = False
-                for mk, mv in self._hvac_modes.items():
-                    if des in mv.get('list', []):
-                        has = True
-                        break
-                if not has:
-                    self._preset_modes[val] = des
+                if val not in mvs:
+                    self._preset_modes[val] = v.get('description')
+            if fst and len(self._hvac_modes) <= 1:
+                self._hvac_modes[HVAC_MODE_AUTO] = {
+                    'list':  [fst.get('description')],
+                    'value': [fst.get('value')],
+                }
         if self._preset_modes:
             self._supported_features |= SUPPORT_PRESET_MODE
 
@@ -167,7 +170,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         await super().async_update()
         if self._available:
             self.update_bind_sensor()
-            add_fans = self._add_entities.get('fan', None)
+            add_fans = self._add_entities.get('fan')
             for m in self._power_modes:
                 p = self._miot_service.bool_property(m)
                 if m in self._subs:
@@ -187,6 +190,17 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                         'value_off': off,
                     })
                     add_fans([self._subs[des]])
+
+            add_switches = self._add_entities.get('switch')
+            if self._miot_service.get_action('start_wash'):
+                pnm = 'action_wash'
+                prop = self._miot_service.get_property('status')
+                if pnm in self._subs:
+                    self._subs[pnm].update()
+                elif add_switches and prop:
+                    self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
+                    add_switches([self._subs[pnm]])
+
 
     def update_bind_sensor(self):
         bss = str(self.custom_config('bind_sensor') or '').split(',')

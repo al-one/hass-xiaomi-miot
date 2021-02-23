@@ -518,16 +518,19 @@ class MiotEntity(MiioEntity):
             if k is None:
                 continue
             e = prop.get('code')
+            ek = f'{k}.error'
             if e == 0:
                 attrs[k] = prop.get('value')
+                if ek in self._state_attrs:
+                    self._state_attrs.pop(ek, None)
             else:
-                attrs[f'{k}.error'] = e
-        _LOGGER.debug('Got new state from %s: %s, updater: %s', self.name, attrs, updater)
+                attrs[ek] = e
         self._available = True
         self._state = True if attrs.get('power') else False
         if self._subs:
             attrs['sub_entities'] = list(self._subs.keys())
         attrs['state_updater'] = updater
+        _LOGGER.debug('Got new state from %s: %s', self.name, attrs)
         self.update_attrs(attrs)
 
     def get_properties(self, mapping: dict):
@@ -653,7 +656,7 @@ class MiotEntity(MiioEntity):
 class MiotToggleEntity(MiotEntity, ToggleEntity):
     def __init__(self, name, device, miot_service: MiotService, **kwargs):
         super().__init__(name, device, miot_service, **kwargs)
-        self._prop_power = miot_service.get_property('on', 'power', 'switch')
+        self._prop_power = miot_service.bool_property('on', 'power', 'switch')
 
     @property
     def is_on(self):

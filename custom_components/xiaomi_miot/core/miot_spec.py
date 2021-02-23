@@ -20,20 +20,22 @@ class MiotSpec:
                 continue
             self.services.append(srv)
 
-    def services_mapping(self, *args):
+    def services_mapping(self, *args, **kwargs):
         dat = None
-        for s in self.get_services(*args):
+        for s in self.get_services(*args, **kwargs):
             if dat is None:
                 dat = {}
             nxt = s.mapping() or {}
             dat = {**nxt, **dat}
         return dat
 
-    def get_services(self, *args):
+    def get_services(self, *args, **kwargs):
+        excludes = kwargs.get('excludes', [])
+        excludes.append('device_information')
         return [
             s
             for s in self.services
-            if s.name in args
+            if (s.name in args or not args) and s.name not in excludes
         ]
 
     def get_service(self, *args):

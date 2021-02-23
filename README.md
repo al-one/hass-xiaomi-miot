@@ -44,6 +44,7 @@
         - [environment](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:environment:0000780A)
     - [air-conditioner-outlet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:air-condition-outlet:000078A3)
     - [air-purifier](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:air-purifier:0000A007)
+    - [dishwasher](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:dishwasher:0000784D)
     - [heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:heater:0000A01A)
     - [ptc-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:ptc-bath-heater:0000783B)
     - [light-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:light-bath-heater:0000783A)
@@ -113,7 +114,7 @@ xiaomi_miot:
   # server_country: cn
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
-camera.entity_id:           # Your entity id
+camera.your_entity_id:
   miot_cloud: true          # Enable miot cloud for entity (read, write, action)
   # miot_cloud_write: true  # (Optional) Enable miot cloud (only write)
   # miot_cloud_action: true # (Optional) Enable miot cloud (only action)
@@ -133,10 +134,10 @@ homeassistant:
   customize: !include customize.yaml
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
-climate.entity_id: # Your entity id
+climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
 
-camera.entity_id:
+camera.your_entity_id:
   video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
 ```
 

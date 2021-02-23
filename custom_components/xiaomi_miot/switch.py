@@ -69,13 +69,14 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
         name = config[CONF_NAME]
         host = config[CONF_HOST]
         token = config[CONF_TOKEN]
-        _LOGGER.info('Initializing %s with host %s (token %s...)', name, host, token[:5])
 
         mapping = miot_service.spec.services_mapping(
             ENTITY_DOMAIN, 'indicator_light', 'switch_control',
             'power_consumption', 'imilab_timer',
         ) or {}
         mapping.update(miot_service.mapping())
+        _LOGGER.info('Initializing %s (%s, token %s...), miot mapping: %s', name, host, token[:5], mapping)
+
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
@@ -136,7 +137,7 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
         self._miot_property = miot_property
         self._miot_service = miot_property.service
         self._values_on = miot_property.list_search('Busy', 'Delay')
-        self._values_off = miot_property.list_search('Off', 'Idle', 'Pause', 'Fault')
+        self._values_off = miot_property.list_search('Off', 'Idle', 'Pause', 'Paused', 'Completed', 'Fault')
 
     def update(self):
         super().update()
@@ -150,11 +151,13 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
 
     def turn_off(self, **kwargs):
         val = self._values_off[0] if self._values_off else None
-        return self.miot_action('pause', val)
+        return self.miot_action(['pause', 'stop_washing'], val)
 
     def miot_action(self, act, sta=None):
         ret = False
-        act = self._miot_service.get_action(act)
+        if not isinstance(act, list):
+            act = [act]
+        act = self._miot_service.get_action(*act)
         if act:
             ret = self.call_parent('miot_action', self._miot_service.iid, act.iid)
             if ret and sta is not None:
