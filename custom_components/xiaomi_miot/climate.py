@@ -138,7 +138,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._power_modes = ['blow', 'heating', 'ventilation']
         self._hvac_modes = {
             HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None']},
-            HVAC_MODE_AUTO: {'list': ['Auto']},
+            HVAC_MODE_AUTO: {'list': ['Auto', 'Manual', 'Normal']},
             HVAC_MODE_COOL: {'list': ['Cool']},
             HVAC_MODE_HEAT: {'list': ['Heat']},
             HVAC_MODE_DRY:  {'list': ['Dry']},
@@ -162,9 +162,6 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     self._preset_modes[val] = des
         if self._preset_modes:
             self._supported_features |= SUPPORT_PRESET_MODE
-            if len(self.hvac_modes) <= 1:
-                self._hvac_modes[HVAC_MODE_AUTO]['list'].append('Manual')
-        self._subs = {}
 
     async def async_update(self):
         await super().async_update()
@@ -306,6 +303,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             for mk, mv in self._hvac_modes.items():
                 if acm == mv.get('value'):
                     return mk
+        elif self._prop_power:
+            return HVAC_MODE_AUTO
         return None
 
     @property
@@ -316,6 +315,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 if mv.get('value') is None:
                     continue
                 hms.append(mk)
+        elif self._prop_power:
+            hms.append(HVAC_MODE_AUTO)
         if HVAC_MODE_OFF not in hms:
             hms.append(HVAC_MODE_OFF)
         return hms
@@ -323,10 +324,10 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
     def set_hvac_mode(self, mode: str):
         if mode == HVAC_MODE_OFF:
             return self.turn_off()
-        if not self._prop_mode:
-            return False
         if self._prop_power and not self.is_on:
             self.set_property(self._prop_power.full_name, True)
+        if not self._prop_mode:
+            return False
         val = self._hvac_modes.get(mode, {}).get('value')
         if val is None:
             val = self._prop_mode.list_first(mode)
