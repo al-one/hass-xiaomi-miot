@@ -218,16 +218,29 @@ class MiotModesSubEntity(FanSubEntity):
         super().__init__(parent, miot_property.full_name, option)
         self._miot_property = miot_property
         self._miot_service = miot_property.service
+        self._prop_power = self._option.get('power_property')
+        if self._prop_power:
+            self._option['keys'] = [self._prop_power.full_name, *(self._option.get('keys') or [])]
         self._supported_features = SUPPORT_SET_SPEED
 
     @property
     def icon(self):
+        if self._miot_property.name in ['heat_level']:
+            if self._miot_property.service.name in ['seat']:
+                return 'mdi:car-seat-heater'
+            return 'mdi:radiator'
+        if self._miot_property.name in ['washing_strength']:
+            return 'mdi:waves'
+        if self._miot_property.name in ['nozzle_position']:
+            return 'mdi:spray'
         if self._miot_property.name in ['mode']:
             return 'mdi:menu'
         return super().icon
 
     @property
     def is_on(self):
+        if self._prop_power:
+            return self._prop_power.from_dict(self._state_attrs) and True
         if self._parent.is_on is False:
             return False
         sta = self._state_attrs.get(self._attr)
@@ -242,11 +255,19 @@ class MiotModesSubEntity(FanSubEntity):
 
     def turn_on(self, speed=None, **kwargs):
         ret = False
-        if not self._parent.is_on:
-            ret = self.call_parent('turn_on', **kwargs)
+        if self._prop_power:
+            ret = self.call_parent('set_property', self._prop_power.full_name, True)
+        else:
+            if not self._parent.is_on:
+                ret = self.call_parent('turn_on', **kwargs)
         if speed:
             ret = self.set_speed(speed)
         return ret
+
+    def turn_off(self, **kwargs):
+        if self._prop_power:
+            return self.call_parent('set_property', self._prop_power.full_name, True)
+        return self.call_parent('turn_off', **kwargs)
 
     @property
     def speed(self):

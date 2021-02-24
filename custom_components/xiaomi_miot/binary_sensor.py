@@ -120,15 +120,25 @@ class MiotToiletEntity(MiotBinarySensorEntity):
             return
         add_fans = self._add_entities.get('fan')
         pls = self._miot_service.get_properties(
-            'mode', 'washing_strength', 'nozzle_position',
+            'mode', 'washing_strength', 'nozzle_position', 'heat_level',
         )
+        seat = self._miot_service.spec.get_service('seat')
+        if seat:
+            prop = seat.get_property('heat_level')
+            if prop:
+                pls.append(prop)
         for p in pls:
             if not p.value_list and not p.value_range:
                 continue
             if p.name in self._subs:
                 self._subs[p.name].update()
             elif add_fans:
-                self._subs[p.name] = MiotModesSubEntity(self, p)
+                opt = None
+                if p.name in ['heat_level']:
+                    opt = {
+                        'power_property': p.service.bool_property('heating'),
+                    }
+                self._subs[p.name] = MiotModesSubEntity(self, p, opt)
                 add_fans([self._subs[p.name]])
 
         add_switches = self._add_entities.get('switch')
