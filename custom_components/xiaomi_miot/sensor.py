@@ -61,6 +61,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             ):
                 if not srv.mapping():
                     continue
+                if srv.name in ['environment'] and srv.get_property('pm2_5_density'):
+                    continue
                 cfg = {
                     **config,
                     'name': f"{config.get('name')} {srv.description}"
