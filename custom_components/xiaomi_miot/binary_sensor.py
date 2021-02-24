@@ -71,14 +71,16 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
         super().__init__(name, self._device, miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
 
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
-
         pls = []
         if len(miot_service.properties) > 0:
             first_property = list(miot_service.properties.values() or [])[0].name
             if first_property:
                 pls.append(first_property)
         self._prop_state = miot_service.get_property(*pls)
+        self._state_attrs.update({
+            'entity_class': self.__class__.__name__,
+            'state_property': self._prop_state.full_name if self._prop_state else None,
+        })
 
     @property
     def is_on(self):
@@ -104,6 +106,10 @@ class MiotToiletEntity(MiotBinarySensorEntity):
             self._prop_state = miot_service.get_property(
                 'mode', self._prop_state.name if self._prop_state else 'status',
             )
+        self._state_attrs.update({
+            'entity_class': self.__class__.__name__,
+            'state_property': self._prop_state.full_name if self._prop_state else None,
+        })
 
     async def async_update(self):
         await super().async_update()
