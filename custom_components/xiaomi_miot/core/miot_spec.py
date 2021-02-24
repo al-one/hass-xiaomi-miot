@@ -118,14 +118,14 @@ class MiotService:
                 continue
             self.actions[act.iid] = act
 
-    def mapping(self, readable=True):
+    def mapping(self):
         dat = {}
         for p in self.properties.values():
             if not isinstance(p, MiotProperty):
                 continue
             if not p.full_name:
                 continue
-            if not p.readable:
+            if not p.readable and not p.writeable:
                 continue
             dat[p.full_name] = {
                 'siid': self.iid,
