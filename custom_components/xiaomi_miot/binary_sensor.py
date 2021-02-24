@@ -49,7 +49,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 **config,
                 'name': f"{config.get('name')} {srv.description}"
             }
-            entities.append(MiotBinarySensorEntity(cfg, srv))
+            if srv.name in ['toilet']:
+                entities.append(MiotToiletEntity(cfg, srv))
+            else:
+                entities.append(MiotBinarySensorEntity(cfg, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
