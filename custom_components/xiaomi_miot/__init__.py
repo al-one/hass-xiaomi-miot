@@ -56,6 +56,7 @@ SUPPORTED_DOMAINS = [
     "media_player",
     "camera",
     "vacuum",
+    "air_quality",
 ]
 
 XIAOMI_CONFIG_SCHEMA = cv.PLATFORM_SCHEMA_BASE.extend(
