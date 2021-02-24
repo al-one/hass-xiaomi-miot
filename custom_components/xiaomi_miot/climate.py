@@ -54,8 +54,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(
             ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
             'heater', 'ptc_bath_heater', 'light_bath_heater',
-            'air_purifier', 'electric_blanket', 'dishwasher',
-            'water_heater', 'water_dispenser',
+            'air_purifier', 'air_fresh', 'electric_blanket',
+            'water_heater', 'water_dispenser', 'dishwasher',
         ):
             if not srv.get_property('on', 'mode', 'target_temperature'):
                 continue
@@ -110,7 +110,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._prop_vertical_swing = None
         if self._fan_control:
             self._prop_fan_power = self._fan_control.get_property('on')
-            self._prop_fan_level = self._fan_control.get_property('fan_level')
+            self._prop_fan_level = self._fan_control.get_property('fan_level', 'heat_level')
             self._prop_horizontal_swing = self._fan_control.get_property('horizontal_swing')
             self._prop_horizontal_angle = self._fan_control.get_property('horizontal_angle')
             self._prop_vertical_swing = self._fan_control.get_property('vertical_swing')
@@ -130,7 +130,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             self._supported_features |= SUPPORT_SWING_MODE
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
-        self._power_modes = ['blow', 'heating', 'ventilation']
+        self._power_modes = ['blow', 'heating', 'ventilation', 'heater']
         self._hvac_modes = {
             HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None']},
             HVAC_MODE_AUTO: {'list': ['Auto', 'Manual', 'Normal']},
@@ -555,6 +555,12 @@ class ClimateModeSubEntity(FanSubEntity):
         self._value_on = self._option.get('value_on')
         self._value_off = self._option.get('value_off')
 
+        self._prop_speed = None
+        if miot_property.name in ['heater']:
+            self._prop_speed = miot_property.service.get_property('heat_level')
+        if self._prop_speed:
+            self._option['keys'] = [self._prop_speed.full_name, *(self._option.get('keys') or [])]
+
         if self.speed_list:
             self._supported_features |= SUPPORT_SET_SPEED
 
@@ -586,11 +592,18 @@ class ClimateModeSubEntity(FanSubEntity):
 
     @property
     def speed(self):
+        if self._prop_speed:
+            return self._prop_speed.from_dict(self._state_attrs)
         return self._parent.fan_mode
 
     @property
     def speed_list(self):
+        if self._prop_speed:
+            return self._prop_speed.list_description(None)
         return self._parent.fan_modes or []
 
     def set_speed(self, speed):
+        if self._prop_speed:
+            val = self._prop_speed.list_first(speed)
+            return self.call_parent('set_property', self._prop_speed.full_name, val)
         return self.call_parent('set_fan_mode', speed)
