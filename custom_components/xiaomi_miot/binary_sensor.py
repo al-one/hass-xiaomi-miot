@@ -61,17 +61,17 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
         name = config[CONF_NAME]
         host = config[CONF_HOST]
         token = config[CONF_TOKEN]
-        _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
 
         self._miot_service = miot_service
         mapping = dict(kwargs.get('mapping') or {})
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
+        _LOGGER.info('Initializing %s (%s, token %s...), miot mapping: %s', name, host, token[:5], mapping)
+
         super().__init__(name, self._device, miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
-        self._subs = {}
 
         pls = []
         if len(miot_service.properties) > 0:
@@ -114,7 +114,7 @@ class MiotToiletEntity(MiotBinarySensorEntity):
             'mode', 'washing_strength', 'nozzle_position',
         )
         for p in pls:
-            if not p.value_list:
+            if not p.value_list and not p.value_range:
                 continue
             if p.name in self._subs:
                 self._subs[p.name].update()

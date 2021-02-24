@@ -72,7 +72,6 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         name = config[CONF_NAME]
         host = config[CONF_HOST]
         token = config[CONF_TOKEN]
-        _LOGGER.info('Initializing %s with host %s (token %s...)', name, host, token[:5])
 
         mapping = miot_service.spec.services_mapping(
             ENTITY_DOMAIN, 'fan_control', 'yl_fan', 'off_delay_time',
@@ -81,6 +80,8 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             'stove', 'bluetooth', 'function',
         ) or {}
         mapping.update(miot_service.mapping())
+        _LOGGER.info('Initializing %s (%s, token %s...), miot mapping: %s', name, host, token[:5], mapping)
+
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
@@ -250,14 +251,38 @@ class MiotModesSubEntity(FanSubEntity):
     @property
     def speed(self):
         val = self._miot_property.from_dict(self._state_attrs)
+        if self._miot_property.value_range:
+            return val
         return self._miot_property.list_description(val)
 
     @property
     def speed_list(self):
+        if self._miot_property.value_range:
+            lst = []
+            cur = self._miot_property.range_min()
+            rmx = self._miot_property.range_max()
+            stp = self._miot_property.range_step()
+            cnt = 0
+            while cur <= rmx:
+                cnt += 1
+                if cnt > 200:
+                    lst.append(rmx)
+                    break
+                lst.append(cur)
+                cur += stp
+            return lst
         return self._miot_property.list_description(None)
 
     def set_speed(self, speed: str):
-        val = self._miot_property.list_first(speed)
+        if self._miot_property.value_range:
+            stp = self._miot_property.range_step()
+            try:
+                val = round(float(speed) / stp) * stp
+            except ValueError as exc:
+                val = None
+                _LOGGER.warning('Switch mode: %s to %s failed: %s', speed, self.name, exc)
+        else:
+            val = self._miot_property.list_first(speed)
         if val is not None:
             return self.call_parent('set_property', self._miot_property.full_name, val)
         return False
