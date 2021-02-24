@@ -20,6 +20,7 @@ from .core.miot_spec import (
     MiotService,
 )
 from .fan import MiotModesSubEntity
+from .switch import SwitchSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -98,11 +99,11 @@ class MiotToiletEntity(MiotBinarySensorEntity):
     def __init__(self, config, miot_service: MiotService):
         mapping = miot_service.spec.services_mapping('seat') or {}
         super().__init__(config, miot_service, mapping=mapping)
-        self._prop_state = miot_service.get_property(
-            'seating_state', 'on', 'mode', 'deodorization',
-            'washing_strength', 'nozzle_position',
-            self._prop_state.name if self._prop_state else 'status',
-        )
+        self._prop_state = miot_service.get_property('seating_state')
+        if not self._prop_state:
+            self._prop_state = miot_service.get_property(
+                'mode', self._prop_state.name if self._prop_state else 'status',
+            )
 
     async def async_update(self):
         await super().async_update()
@@ -121,4 +122,11 @@ class MiotToiletEntity(MiotBinarySensorEntity):
                 self._subs[p.name] = MiotModesSubEntity(self, p)
                 add_fans([self._subs[p.name]])
 
-
+            add_switches = self._add_entities.get('switch')
+            if self._prop_power:
+                pnm = self._prop_state.full_name
+                if pnm in self._subs:
+                    self._subs[pnm].update()
+                elif add_switches:
+                    self._subs[pnm] = SwitchSubEntity(self, pnm)
+                    add_switches([self._subs[pnm]])
