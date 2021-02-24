@@ -487,10 +487,12 @@ class MiotEntity(MiioEntity):
         rmp = {}
         try:
             if self.miot_cloud:
+                updater = 'cloud'
                 results = await self.hass.async_add_executor_job(
                     partial(self.miot_cloud.get_properties_for_mapping, self.miot_did, self.miot_mapping)
                 )
-                updater = 'cloud'
+                if self.custom_config('check_lan'):
+                    await self.hass.async_add_executor_job(self._device.info)
             else:
                 for k, v in self.miot_mapping.items():
                     s = v.get('siid')

@@ -142,6 +142,7 @@ climate.your_entity_id:
 
 camera.your_entity_id:
   video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
+  check_lan: true    # Check LAN connection in cloud mode
 ```
 
 
