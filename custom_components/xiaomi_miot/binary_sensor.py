@@ -122,11 +122,11 @@ class MiotToiletEntity(MiotBinarySensorEntity):
                 self._subs[p.name] = MiotModesSubEntity(self, p)
                 add_fans([self._subs[p.name]])
 
-            add_switches = self._add_entities.get('switch')
-            if self._prop_power:
-                pnm = self._prop_state.full_name
-                if pnm in self._subs:
-                    self._subs[pnm].update()
-                elif add_switches:
-                    self._subs[pnm] = SwitchSubEntity(self, pnm)
-                    add_switches([self._subs[pnm]])
+        add_switches = self._add_entities.get('switch')
+        if self._prop_power:
+            pnm = self._prop_state.full_name
+            if pnm in self._subs:
+                self._subs[pnm].update()
+            elif add_switches:
+                self._subs[pnm] = SwitchSubEntity(self, pnm)
+                add_switches([self._subs[pnm]])
