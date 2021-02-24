@@ -124,7 +124,7 @@ class MiotToiletEntity(MiotBinarySensorEntity):
 
         add_switches = self._add_entities.get('switch')
         if self._prop_power:
-            pnm = self._prop_state.full_name
+            pnm = self._prop_power.full_name
             if pnm in self._subs:
                 self._subs[pnm].update()
             elif add_switches:
