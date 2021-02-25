@@ -43,21 +43,22 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     config.setdefault('add_entities', {})
     config['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
+    miot = config.get('miot_type')
     entities = []
     if model in ['pwzn.relay.banana']:
         entities.append(PwznRelaySwitchEntity(config))
-    else:
-        miot = config.get('miot_type')
-        if miot:
-            spec = await MiotSpec.async_from_type(hass, miot)
-            for srv in spec.get_services(ENTITY_DOMAIN, 'outlet', 'washer'):
-                if not srv.get_property('on'):
-                    continue
-                cfg = {
-                    **config,
-                    'name': f"{config.get('name')} {srv.description}"
-                }
-                entities.append(MiotSwitchEntity(cfg, srv))
+    elif miot:
+        spec = await MiotSpec.async_from_type(hass, miot)
+        for srv in spec.get_services(
+            ENTITY_DOMAIN, 'outlet', 'washer', 'pet_drinking_fountain',
+        ):
+            if not srv.get_property('on'):
+                continue
+            cfg = {
+                **config,
+                'name': f"{config.get('name')} {srv.description}"
+            }
+            entities.append(MiotSwitchEntity(cfg, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
@@ -70,11 +71,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
         host = config[CONF_HOST]
         token = config[CONF_TOKEN]
 
-        mapping = miot_service.spec.services_mapping(
-            ENTITY_DOMAIN, 'indicator_light', 'switch_control',
-            'power_consumption', 'imilab_timer',
-        ) or {}
-        mapping.update(miot_service.mapping())
+        mapping = miot_service.spec.services_mapping() or {}
         _LOGGER.info('Initializing %s (%s, token %s...), miot mapping: %s', name, host, token[:5], mapping)
 
         self._device = MiotDevice(mapping, host, token)
@@ -95,19 +92,21 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
     def icon(self):
         if self._miot_service.name in ['washer']:
             return 'mdi:washing-machine'
+        if self._miot_service.name in ['pet_drinking_fountain']:
+            return 'mdi:fountain'
         return super().icon
 
     async def async_update(self):
         await super().async_update()
         if self._available:
-            if self._miot_service.name in ['washer']:
+            if self._miot_service.name in ['washer', 'pet_drinking_fountain']:
                 add_fans = self._add_entities.get('fan')
                 pls = self._miot_service.get_properties(
                     'mode', 'spin_speed', 'drying_level',
                     'target_temperature', 'target_water_level',
                 )
                 for p in pls:
-                    if not p.value_list:
+                    if not p.value_list or len(p.value_list) <= 1:
                         continue
                     if p.name in self._subs:
                         self._subs[p.name].update()
