@@ -93,7 +93,10 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
     @property
     def state(self):
-        return STATE_ON if self.is_on else STATE_OFF
+        iso = self.is_on
+        if iso is None:
+            return STATE_UNKNOWN
+        return STATE_ON if iso else STATE_OFF
 
     @property
     def device_class(self):
@@ -149,3 +152,7 @@ class MiotToiletEntity(MiotBinarySensorEntity):
             elif add_switches:
                 self._subs[pnm] = SwitchSubEntity(self, pnm)
                 add_switches([self._subs[pnm]])
+
+    @property
+    def icon(self):
+        return 'mdi:toilet'
