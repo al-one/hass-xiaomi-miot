@@ -146,6 +146,8 @@ camera.your_entity_id:
   check_lan: true    # Check LAN connection in cloud mode
 ```
 
+> **Recommended**: [Customization Using The UI](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui)
+
 
 ## Debug
 
