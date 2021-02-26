@@ -133,8 +133,18 @@ class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
 class MiotSwitchSubEntity(SwitchSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property.full_name, option)
-        self._miot_property = miot_property
         self._name = self.format_name_by_property(miot_property)
+        self._miot_service = miot_property.service
+        self._miot_property = miot_property
+        self._prop_power = self._miot_service.get_property('on', 'power')
+        if self._prop_power:
+            self._option['keys'] = [*(self._option.get('keys') or []), self._prop_power.full_name]
+
+    @property
+    def is_on(self):
+        if self._prop_power and self._miot_service.name in ['air_conditioner']:
+            self._state = self._state and self._prop_power.from_dict(self._state_attrs)
+        return self._state
 
     def set_parent_property(self, val):
         ret = self.call_parent('set_property', self._miot_property.full_name, val)
