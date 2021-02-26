@@ -300,6 +300,7 @@ class MiioEntity(Entity):
         self._supported_features = 0
         self._props = ['power']
         self._success_result = ['ok']
+        self._vars = {}
 
     @property
     def unique_id(self):
@@ -483,6 +484,9 @@ class MiotEntity(MiioEntity):
             return False
 
     async def async_update(self):
+        if self._vars.get('delay_update'):
+            await asyncio.sleep(self._vars.get('delay_update'))
+            self._vars.pop('delay_update', 0)
         updater = 'lan'
         rmp = {}
         try:
@@ -610,6 +614,7 @@ class MiotEntity(MiioEntity):
         except MiCloudException as exc:
             _LOGGER.warning('Set miot property to cloud for %s (%s) failed: %s', self.name, pms, exc)
         if ret:
+            self._vars['delay_update'] = 2
             _LOGGER.debug('Set miot property to %s (%s), result: %s', self.name, pms, ret)
         return ret
 
