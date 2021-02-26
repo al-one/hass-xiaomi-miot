@@ -109,6 +109,8 @@ class MiotSensorEntity(MiotEntity):
             'tds_out', 'tds_in', 'filter_life_level', 'filter_left_time',
             'filter_used_time', 'filter_used_flow', first_property or 'status',
         )
+        if miot_service.name in ['tds_sensor']:
+            self._prop_state = miot_service.get_property('tds_out') or self._prop_state
 
     async def async_update(self):
         await super().async_update()
