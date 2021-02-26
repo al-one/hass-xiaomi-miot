@@ -130,6 +130,27 @@ class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
         super().update()
 
 
+class MiotSwitchSubEntity(SwitchSubEntity):
+    def __init__(self, parent, miot_property: MiotProperty, option=None):
+        super().__init__(parent, miot_property.full_name, option)
+        self._miot_property = miot_property
+        self._name = self.format_name_by_property(miot_property)
+
+    def set_parent_property(self, val):
+        ret = self.call_parent('set_property', self._miot_property.full_name, val)
+        if ret:
+            self.update_attrs({
+                self._attr: val,
+            })
+        return ret
+
+    def turn_on(self, **kwargs):
+        return self.set_parent_property(True)
+
+    def turn_off(self, **kwargs):
+        return self.set_parent_property(False)
+
+
 class MiotWasherActionSubEntity(SwitchSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property.full_name, option)

@@ -26,6 +26,7 @@ from .fan import (
     FanSubEntity,
     SUPPORT_SET_SPEED,
 )
+from .switch import MiotSwitchSubEntity
 from .switch import MiotWasherActionSubEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -95,7 +96,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._prop_mode = miot_service.get_property('mode')
         self._prop_target_temp = miot_service.get_property('target_temperature')
         self._prop_target_humi = miot_service.get_property('target_humidity')
-        self._prop_fan_level = miot_service.get_property('fan_level')
+        self._prop_fan_level = miot_service.get_property('fan_level', 'heat_level')
 
         self._environment = miot_service.spec.get_service('environment')
         self._prop_temperature = miot_service.get_property('temperature')
@@ -130,7 +131,9 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             self._supported_features |= SUPPORT_SWING_MODE
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
-        self._power_modes = ['blow', 'heating', 'ventilation', 'heater']
+        self._power_modes = ['blow', 'heating', 'ventilation']
+        if miot_service.get_property('heat_level'):
+            self._power_modes.append('heater')
         self._hvac_modes = {
             HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None']},
             HVAC_MODE_AUTO: {'list': ['Auto', 'Manual', 'Normal']},
@@ -192,6 +195,19 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     add_fans([self._subs[des]])
 
             add_switches = self._add_entities.get('switch')
+            for p in self._miot_service.properties.values():
+                if not (p.format == 'bool' and p.readable and p.writeable):
+                    continue
+                if p.name in self._power_modes:
+                    continue
+                if self._prop_power and self._prop_power.name == p.name:
+                    continue
+                pnm = p.full_name
+                if pnm in self._subs:
+                    self._subs[pnm].update()
+                elif add_switches:
+                    self._subs[pnm] = MiotSwitchSubEntity(self, p)
+                    add_switches([self._subs[pnm]])
             if self._miot_service.get_action('start_wash'):
                 pnm = 'action_wash'
                 prop = self._miot_service.get_property('status')

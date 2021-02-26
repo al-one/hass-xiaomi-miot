@@ -2,6 +2,7 @@
 import logging
 import asyncio
 import socket
+import re
 from datetime import timedelta
 from functools import partial
 import voluptuous as vol
@@ -31,6 +32,7 @@ from miio.miot_device import MiotDevice as MiotDeviceBase
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+    MiotProperty,
 )
 from .core.xiaomi_cloud import (
     MiotCloud,
@@ -708,6 +710,13 @@ class BaseSubEntity(Entity):
 
     @property
     def name(self):
+        return self._name
+
+    def format_name_by_property(self, prop: MiotProperty):
+        nam = str(self._name).lower()
+        nam = re.sub(r'\W+', '_', nam)
+        if nam.find(prop.service.name):
+            return f'{self._parent.name} {prop.name}'
         return self._name
 
     @property
