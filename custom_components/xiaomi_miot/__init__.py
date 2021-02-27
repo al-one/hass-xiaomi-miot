@@ -167,7 +167,7 @@ async def async_setup(hass, hass_config: dict):
             hass.data[DOMAIN]['devices_by_mac'] = await mic.async_get_devices_by_key('mac') or {}
             _LOGGER.debug('Setup xiaomi cloud for user: %s', config.get('username'))
         except MiCloudException as exc:
-            _LOGGER.info('Setup xiaomi cloud for user: %s failed:', config.get('username'), exc)
+            _LOGGER.info('Setup xiaomi cloud for user: %s failed: %s', config.get('username'), exc)
 
     return True
 
@@ -510,12 +510,12 @@ class MiotEntity(MiioEntity):
         except DeviceException as exc:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got MiioException while fetching the state for %s: %s', updater, self.name, exc)
+            _LOGGER.error('Got MiioException while fetching the state for %s: %s', self.name, exc)
             return
         except MiCloudException as exc:
             if self._available:
                 self._available = False
-            _LOGGER.error('Got MiCloudException while fetching the state for %s: %s', updater, self.name, exc)
+            _LOGGER.error('Got MiCloudException while fetching the state for %s: %s', self.name, exc)
             return
         attrs = {}
         for prop in results:
