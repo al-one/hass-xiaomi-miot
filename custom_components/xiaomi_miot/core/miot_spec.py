@@ -219,7 +219,30 @@ class MiotProperty:
                 rls.append(des)
             elif val == v.get('value'):
                 return des
+        if self.value_range:
+            if val is None:
+                # range to list
+                return self.list_description(None)
+            else:
+                return val
         return rls if val is None else None
+
+    def list_descriptions(self, max_length=200):
+        if self.value_range:
+            lst = []
+            cur = self.range_min()
+            rmx = self.range_max()
+            stp = self.range_step()
+            cnt = 0
+            while cur <= rmx:
+                cnt += 1
+                if cnt > max_length:
+                    lst.append(rmx)
+                    break
+                lst.append(cur)
+                cur += stp
+            return lst
+        return self.list_description(None)
 
     def list_search(self, *args, **kwargs):
         rls = []

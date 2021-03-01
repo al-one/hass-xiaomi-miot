@@ -16,7 +16,6 @@ from homeassistant.components.cover import (
     DEVICE_CLASS_CURTAIN,
     ATTR_POSITION,
 )
-from homeassistant.components.fan import SUPPORT_SET_SPEED
 from homeassistant.helpers.event import async_track_utc_time_change
 
 from . import (
@@ -35,7 +34,11 @@ from .core.miot_spec import (
     MiotService,
 )
 from .light import LightSubEntity
-from .fan import FanSubEntity
+from .fan import (
+    FanSubEntity,
+    SUPPORT_SET_SPEED,
+    SUPPORT_PRESET_MODE,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -393,7 +396,7 @@ class MrBondAirerProLightEntity(LightSubEntity):
 class MrBondAirerProDryEntity(FanSubEntity):
     def __init__(self, parent: MrBondAirerProEntity, attr='dry', option=None):
         super().__init__(parent, attr, option)
-        self._supported_features = SUPPORT_SET_SPEED
+        self._supported_features = SUPPORT_PRESET_MODE or SUPPORT_SET_SPEED
 
     def update(self):
         super().update()
@@ -401,7 +404,7 @@ class MrBondAirerProDryEntity(FanSubEntity):
             attrs = self._state_attrs
             self._state = int(attrs.get(self._attr, 0)) >= 1
 
-    def turn_on(self, speed=None, **kwargs):
+    def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         return self.set_speed(speed or MrBondAirerProDryLevels(1).name)
 
     def turn_off(self, **kwargs):
@@ -409,13 +412,24 @@ class MrBondAirerProDryEntity(FanSubEntity):
 
     @property
     def speed(self):
-        return MrBondAirerProDryLevels(int(self._state_attrs.get(self._attr, 0))).name
+        return self.preset_mode
 
     @property
     def speed_list(self):
-        return [v.name for v in MrBondAirerProDryLevels]
+        return self.preset_modes
 
     def set_speed(self, speed: str):
+        return self.set_preset_mode(speed)
+
+    @property
+    def preset_mode(self):
+        return MrBondAirerProDryLevels(int(self._state_attrs.get(self._attr, 0))).name
+
+    @property
+    def preset_modes(self):
+        return [v.name for v in MrBondAirerProDryLevels]
+
+    def set_preset_mode(self, speed: str):
         lvl = MrBondAirerProDryLevels[speed].value
         return self.call_parent('set_dry', lvl)
 

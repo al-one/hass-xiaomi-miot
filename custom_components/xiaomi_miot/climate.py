@@ -23,8 +23,9 @@ from .core.miot_spec import (
     MiotProperty,
 )
 from .fan import (
-    FanSubEntity,
-    SUPPORT_SET_SPEED,
+    MiotModesSubEntity,
+    SUPPORT_SET_SPEED as SUPPORT_SET_SPEED_FAN,
+    SUPPORT_PRESET_MODE as SUPPORT_PRESET_MODE_FAN,
 )
 from .switch import MiotSwitchSubEntity
 from .switch import MiotWasherActionSubEntity
@@ -187,10 +188,11 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     self._subs[des].update()
                 elif add_fans and self._miot_service.name in ['ptc_bath_heater']:
                     self._subs[des] = ClimateModeSubEntity(self, self._prop_mode, {
-                        'unique_id': f'{self.unique_id}-{self._prop_mode.full_name}-{val}',
-                        'name':      f'{self.name} {des}',
-                        'value_on':  val,
-                        'value_off': off,
+                        'unique_id':  f'{self.unique_id}-{self._prop_mode.full_name}-{val}',
+                        'name':       f'{self.name} {des}',
+                        'value_on':   val,
+                        'value_off':  off,
+                        'prop_speed': self._prop_fan_level,
                     })
                     add_fans([self._subs[des]])
 
@@ -561,24 +563,24 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         return ret
 
 
-class ClimateModeSubEntity(FanSubEntity):
+class ClimateModeSubEntity(MiotModesSubEntity):
     def __init__(self, parent: MiotClimateEntity, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property.full_name, option)
-        self._miot_property = miot_property
+        super().__init__(parent, miot_property, option)
         self._prop_power = None
         if miot_property.format == 'bool':
             self._prop_power = miot_property
         self._value_on = self._option.get('value_on')
         self._value_off = self._option.get('value_off')
 
-        self._prop_speed = None
+        self._prop_speed = self._option.get('prop_speed')
         if miot_property.name in ['heater']:
-            self._prop_speed = miot_property.service.get_property('heat_level')
+            self._prop_speed = miot_property.service.get_property('heat_level') or self._prop_speed
         if self._prop_speed:
             self._option['keys'] = [self._prop_speed.full_name, *(self._option.get('keys') or [])]
 
+        self._supported_features = 0
         if self.speed_list:
-            self._supported_features |= SUPPORT_SET_SPEED
+            self._supported_features |= SUPPORT_PRESET_MODE_FAN or SUPPORT_SET_SPEED_FAN
 
     def update(self):
         super().update()
@@ -589,10 +591,10 @@ class ClimateModeSubEntity(FanSubEntity):
             else:
                 self._state = attrs.get(self._attr) and True
 
-    def turn_on(self, speed=None, **kwargs):
+    def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         ret = False
         if self._prop_power:
-            ret = self.call_parent('set_property', self._miot_property.full_name, True)
+            ret = self.call_parent('set_property', self._prop_power.full_name, True)
         elif self._value_on is not None:
             ret = self.call_parent('set_property', self._miot_property.full_name, self._value_on)
         if speed:
@@ -607,19 +609,21 @@ class ClimateModeSubEntity(FanSubEntity):
         return False
 
     @property
-    def speed(self):
+    def preset_mode(self):
         if self._prop_speed:
-            return self._prop_speed.from_dict(self._state_attrs)
+            val = self._prop_speed.from_dict(self._state_attrs)
+            if val is not None:
+                return self._prop_speed.list_description(val)
         return self._parent.fan_mode
 
     @property
-    def speed_list(self):
+    def preset_modes(self):
         if self._prop_speed:
-            return self._prop_speed.list_description(None)
+            return self._prop_speed.list_descriptions()
         return self._parent.fan_modes or []
 
-    def set_speed(self, speed):
+    def set_preset_mode(self, preset_mode):
         if self._prop_speed:
-            val = self._prop_speed.list_first(speed)
+            val = self._prop_speed.list_first(preset_mode)
             return self.call_parent('set_property', self._prop_speed.full_name, val)
-        return self.call_parent('set_fan_mode', speed)
+        return self.call_parent('set_fan_mode', preset_mode)

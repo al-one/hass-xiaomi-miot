@@ -11,6 +11,7 @@ from homeassistant.components.fan import (
     SPEED_OFF,
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
+    NotValidSpeedError,
 )
 
 from . import (
@@ -30,6 +31,12 @@ from .core.miot_spec import (
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
+
+try:
+    # hass 2021.3.0b0+
+    from homeassistant.components.fan import SUPPORT_PRESET_MODE
+except ImportError:
+    SUPPORT_PRESET_MODE = None
 
 SERVICE_TO_METHOD = {}
 
@@ -73,13 +80,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         host = config[CONF_HOST]
         token = config[CONF_TOKEN]
 
-        mapping = miot_service.spec.services_mapping(
-            ENTITY_DOMAIN, 'fan_control', 'yl_fan', 'off_delay_time',
-            'indicator_light', 'environment',
-            'motor_controller', 'physical_controls_locked',
-            'stove', 'bluetooth', 'function',
-        ) or {}
-        mapping.update(miot_service.mapping())
+        mapping = miot_service.spec.services_mapping() or {}
         _LOGGER.info('Initializing %s (%s, token %s...), miot mapping: %s', name, host, token[:5], mapping)
 
         self._device = MiotDevice(mapping, host, token)
@@ -88,6 +89,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
         self._prop_power = miot_service.get_property('on', 'dryer')
         self._prop_speed = miot_service.get_property('fan_level', 'drying_level')
+        self._prop_mode = miot_service.get_property('mode')
         self._prop_direction = miot_service.get_property('horizontal_angle', 'vertical_angle')
         self._prop_oscillate = miot_service.get_property('horizontal_swing', 'vertical_swing')
 
@@ -100,62 +102,122 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             if not self._prop_oscillate:
                 self._prop_oscillate = self._fan_control.get_property('horizontal_swing', 'vertical_swing')
 
+        self._prop_percentage = None
+        for s in miot_service.spec.get_services():
+            for p in s.get_properties('speed_level', 'wind_speed'):
+                if not p.value_range:
+                    continue
+                self._prop_percentage = p
+                break
+
         if self._prop_speed:
             self._supported_features |= SUPPORT_SET_SPEED
         if self._prop_direction:
             self._supported_features |= SUPPORT_DIRECTION
         if self._prop_oscillate:
             self._supported_features |= SUPPORT_OSCILLATE
+        if self._prop_mode and SUPPORT_PRESET_MODE:
+            self._supported_features |= SUPPORT_PRESET_MODE
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
-    def turn_on(self, speed=None, **kwargs):
+    def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         ret = False
         if not self.is_on:
             ret = self.set_property(self._prop_power.full_name, True)
-        if speed:
-            ret = self.set_speed(speed)
+        if percentage and self._prop_percentage:
+            ret = self.set_property(self._prop_percentage.full_name, percentage)
+        elif speed and self._prop_speed:
+            val = self._prop_speed.list_first(speed)
+            if val is not None:
+                ret = self.set_property(self._prop_speed.full_name, val)
+        if preset_mode and self._prop_mode:
+            val = self._prop_mode.list_first(preset_mode)
+            if val is not None:
+                ret = self.set_property(self._prop_mode.full_name, val)
         return ret
 
     @property
     def speed(self):
         if not self.is_on:
             return SPEED_OFF
-        spd = int(self._state_attrs.get(self._prop_speed.full_name, 0))
-        for s in self._prop_speed.value_list:
-            if spd == s.get('value'):
-                return s.get('description')
-        return SPEED_OFF
+        spd = int(self._prop_speed.from_dict(self._state_attrs, 0))
+        return self._prop_speed.list_description(spd)
 
     @property
     def speed_list(self):
-        lst = [
-            s.get('description')
-            for s in self._prop_speed.value_list
-            if isinstance(s, dict) and 'description' in s
-        ]
-        return [SPEED_OFF, *lst]
+        lst = self._prop_speed.list_descriptions()
+        if self._prop_speed.list_first(SPEED_OFF) is None:
+            lst = [SPEED_OFF, *lst]
+        return lst
 
     def set_speed(self, speed):
-        spd = None
-        for s in self._prop_speed.value_list:
-            if speed == s.get('description'):
-                spd = int(s.get('value', 0))
-                break
-        if spd is not None:
-            _LOGGER.debug('Setting speed to %s: %s(%s)', self.name, speed, spd)
-            return self.set_property(self._prop_speed.full_name, spd)
-        _LOGGER.info('Setting speed to %s failed: %s(%s)', self.name, speed, spd)
-        return False
+        return self.turn_on(speed=speed)
+
+    @property
+    def speed_count(self):
+        """Return the number of speeds the fan supports."""
+        if self._prop_percentage:
+            return round(self._prop_percentage.range_max() / self._prop_percentage.range_step())
+        return super().speed_count
+
+    @property
+    def percentage(self):
+        """Return the current speed as a percentage."""
+        if self._prop_percentage:
+            return self._prop_percentage.from_dict(self._state_attrs)
+        try:
+            return super().percentage
+        except NotValidSpeedError:
+            return None
+
+    @property
+    def percentage_step(self):
+        """Return the step size for percentage."""
+        if self._prop_percentage:
+            return self._prop_percentage.range_step()
+        return round(super().percentage_step)
+
+    def set_percentage(self, percentage: int):
+        """Set the speed of the fan, as a percentage."""
+        return self.turn_on(percentage=percentage)
+
+    @property
+    def preset_mode(self):
+        """Return the current preset mode, e.g., auto, smart, interval, favorite."""
+        if self._prop_mode:
+            val = self._prop_mode.from_dict(self._state_attrs)
+            if val is not None:
+                return self._prop_mode.list_description(val)
+        return None
+
+    @property
+    def preset_modes(self):
+        """Return a list of available preset modes."""
+        lst = []
+        if self._prop_mode:
+            lst = self._prop_mode.list_descriptions()
+        return lst
+
+    def set_preset_mode(self, preset_mode: str):
+        """Set new preset mode."""
+        return self.turn_on(preset_mode=preset_mode)
 
     @property
     def current_direction(self):
         num = int(self._state_attrs.get(self._prop_direction.full_name) or 0)
-        vls = [
-            int(v.get('value'))
-            for v in self._prop_direction.value_list
-            if v.get('value')
-        ] or [-1]
+        vls = [-1]
+        if self._prop_direction.value_list:
+            vls = [
+                int(v.get('value'))
+                for v in self._prop_direction.value_list
+                if v.get('value')
+            ]
+        elif self._prop_direction.value_range:
+            vls = [
+                self._prop_direction.range_min(),
+                self._prop_direction.range_max(),
+            ]
         if num <= min(vls):
             return DIRECTION_REVERSE
         if num >= max(vls):
@@ -187,13 +249,27 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
 class FanSubEntity(ToggleSubEntity, FanEntity):
 
-    def turn_on(self, speed=None, **kwargs):
+    def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         ret = False
         if not self.is_on:
             ret = self.call_parent('turn_on', **kwargs)
         if speed:
             ret = self.set_speed(speed)
         return ret
+
+    @property
+    def percentage(self):
+        try:
+            return super().percentage
+        except NotValidSpeedError:
+            return None
+
+    @property
+    def percentage_step(self):
+        return round(super().percentage_step)
+
+    def set_percentage(self, percentage: int):
+        return False
 
     @property
     def speed(self):
@@ -221,7 +297,7 @@ class MiotModesSubEntity(FanSubEntity):
         self._prop_power = self._option.get('power_property')
         if self._prop_power:
             self._option['keys'] = [self._prop_power.full_name, *(self._option.get('keys') or [])]
-        self._supported_features = SUPPORT_SET_SPEED
+        self._supported_features = SUPPORT_PRESET_MODE or SUPPORT_SET_SPEED
 
     @property
     def icon(self):
@@ -253,7 +329,7 @@ class MiotModesSubEntity(FanSubEntity):
                 return sta not in self._miot_property.list_search(*fvs)
         return True
 
-    def turn_on(self, speed=None, **kwargs):
+    def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         ret = False
         if self._prop_power:
             ret = self.call_parent('set_property', self._prop_power.full_name, True)
@@ -262,6 +338,8 @@ class MiotModesSubEntity(FanSubEntity):
                 ret = self.call_parent('turn_on', **kwargs)
         if speed:
             ret = self.set_speed(speed)
+        if preset_mode:
+            ret = self.set_preset_mode(preset_mode)
         return ret
 
     def turn_off(self, **kwargs):
@@ -271,39 +349,36 @@ class MiotModesSubEntity(FanSubEntity):
 
     @property
     def speed(self):
-        val = self._miot_property.from_dict(self._state_attrs)
-        if self._miot_property.value_range:
-            return val
-        return self._miot_property.list_description(val)
+        return self.preset_mode
 
     @property
     def speed_list(self):
-        if self._miot_property.value_range:
-            lst = []
-            cur = self._miot_property.range_min()
-            rmx = self._miot_property.range_max()
-            stp = self._miot_property.range_step()
-            cnt = 0
-            while cur <= rmx:
-                cnt += 1
-                if cnt > 200:
-                    lst.append(rmx)
-                    break
-                lst.append(cur)
-                cur += stp
-            return lst
-        return self._miot_property.list_description(None)
+        return self.preset_modes
 
     def set_speed(self, speed: str):
+        return self.set_preset_mode(speed)
+
+    @property
+    def preset_mode(self):
+        val = self._miot_property.from_dict(self._state_attrs)
+        if val is not None:
+            return self._miot_property.list_description(val)
+        return None
+
+    @property
+    def preset_modes(self):
+        return self._miot_property.list_descriptions()
+
+    def set_preset_mode(self, preset_mode: str):
         if self._miot_property.value_range:
             stp = self._miot_property.range_step()
             try:
-                val = round(float(speed) / stp) * stp
+                val = round(float(preset_mode) / stp) * stp
             except ValueError as exc:
                 val = None
-                _LOGGER.warning('Switch mode: %s to %s failed: %s', speed, self.name, exc)
+                _LOGGER.warning('Switch mode: %s to %s failed: %s', preset_mode, self.name, exc)
         else:
-            val = self._miot_property.list_first(speed)
+            val = self._miot_property.list_first(preset_mode)
         if val is not None:
             return self.call_parent('set_property', self._miot_property.full_name, val)
         return False
@@ -323,11 +398,11 @@ class MiotCookerSubEntity(MiotModesSubEntity):
     def is_on(self):
         return self._parent.is_on
 
-    def set_speed(self, speed: str):
+    def set_preset_mode(self, preset_mode: str):
         if not self._miot_property.writeable:
             ret = False
             act = self._miot_service.get_action('start_cook')
-            val = self._miot_property.list_first(speed)
+            val = self._miot_property.list_first(preset_mode)
             if act and val is not None:
                 ret = self.call_parent('miot_action', self._miot_service.iid, act.iid, [val])
                 sta = self._values_on[0] if self._values_on else None
@@ -337,7 +412,7 @@ class MiotCookerSubEntity(MiotModesSubEntity):
                         self._attr: val,
                     })
             return ret
-        return super().set_speed(speed)
+        return super().set_preset_mode(preset_mode)
 
 
 class MiotWasherSubEntity(MiotModesSubEntity):
