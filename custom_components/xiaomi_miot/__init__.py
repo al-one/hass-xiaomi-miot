@@ -199,7 +199,6 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     config['miio_info'] = info
     config['config_entry'] = config_entry
     hass.data[DOMAIN]['configs'][entry_id] = config
-    hass.data[DOMAIN]['configs'][unique_id] = config
     _LOGGER.debug('Xiaomi Miot setup config entry: %s', {
         'entry_id': entry_id,
         'unique_id': unique_id,
@@ -216,13 +215,28 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
 
 
 async def async_update_options(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
-    await hass.config_entries.async_reload(config_entry.entry_id)
     _LOGGER.debug('Xiaomi Miot update config entry options: %s', {
         'entry_id': config_entry.entry_id,
         'unique_id': config_entry.unique_id,
+        'state': config_entry.state,
         'data': config_entry.data,
         'options': config_entry.options,
     })
+    await hass.config_entries.async_reload(config_entry.entry_id)
+
+
+async def async_unload_entry(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
+    unload_ok = all(
+        await asyncio.gather(
+            *[
+                hass.config_entries.async_forward_entry_unload(config_entry, sd)
+                for sd in SUPPORTED_DOMAINS
+            ]
+        )
+    )
+    if unload_ok:
+        hass.data[DOMAIN].pop(config_entry.entry_id, None)
+    return unload_ok
 
 
 def bind_services_to_entries(hass, services):
