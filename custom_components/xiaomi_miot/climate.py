@@ -98,6 +98,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._prop_target_temp = miot_service.get_property('target_temperature')
         self._prop_target_humi = miot_service.get_property('target_humidity')
         self._prop_fan_level = miot_service.get_property('fan_level', 'heat_level')
+        self._prev_target_temp = None
 
         self._environment = miot_service.spec.get_service('environment')
         self._prop_temperature = miot_service.get_property('temperature', 'indoor_temperature')
@@ -255,8 +256,13 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
     @property
     def is_on(self):
-        if self._prop_power:
-            return self._prop_power.from_dict(self._state_attrs) and True
+        ret = None
+        if self._prop_power and not ret:
+            ret = self._prop_power.from_dict(self._state_attrs) and True
+        if self._prop_fan_power and not ret:
+            ret = self._prop_fan_power.from_dict(self._state_attrs) and True
+        if ret is not None:
+            return ret
         for m in self._power_modes:
             p = self._miot_service.bool_property(m)
             if not p:
@@ -273,15 +279,18 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         return None
 
     def turn_on(self, **kwargs):
+        ret = None
+        if self._prop_fan_power:
+            ret = self.set_property(self._prop_fan_power.full_name, True)
         if self._prop_power:
-            return self.set_property(self._prop_power.full_name, True)
+            ret = self.set_property(self._prop_power.full_name, True)
+        if ret is not None:
+            return ret
         for m in self._power_modes:
             p = self._miot_service.bool_property(m)
             if not p:
                 continue
             return self.set_property(p.full_name, True)
-        if self._prop_fan_power:
-            return self.set_property(self._prop_fan_power.full_name, True)
         srv = self._miot_service.spec.get_service('viomi_bath_heater')
         if srv:
             act = srv.get_action('power_on')
@@ -298,6 +307,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
     def turn_off(self, **kwargs):
         if self._prop_power:
+            if self._prop_fan_power:
+                self.set_property(self._prop_fan_power.full_name, False)
             return self.set_property(self._prop_power.full_name, False)
         if self._prop_mode:
             off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
@@ -363,6 +374,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
     def set_hvac_mode(self, mode: str):
         if mode == HVAC_MODE_OFF:
             return self.turn_off()
+        if self._prop_fan_power and not self.is_on:
+            self.set_property(self._prop_fan_power.full_name, True)
         if self._prop_power and not self.is_on:
             self.set_property(self._prop_power.full_name, True)
         if not self._prop_mode:
@@ -434,7 +447,12 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
     @property
     def target_temperature(self):
         if self._prop_target_temp:
-            return float(self._prop_target_temp.from_dict(self._state_attrs) or 0)
+            val = float(self._prop_target_temp.from_dict(self._state_attrs) or 0)
+            if val:
+                self._prev_target_temp = val
+            elif self._prev_target_temp:
+                val = self._prev_target_temp
+            return val
         return None
 
     @property
@@ -462,6 +480,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             if val > self.max_temp:
                 val = self.max_temp
             ret = self.set_property(self._prop_target_temp.full_name, val)
+            if ret:
+                self._prev_target_temp = val
         return ret
 
     @property
@@ -539,7 +559,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             lst.append(SwingModes(3).name)
         return lst
 
-    def set_swing_mode(self, swing_mode: str) -> None:
+    def set_swing_mode(self, swing_mode: str):
         ret = None
         ver = None
         hor = None
