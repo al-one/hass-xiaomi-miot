@@ -280,17 +280,12 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
     def turn_on(self, **kwargs):
         ret = None
-        if self._prop_fan_power:
-            ret = self.set_property(self._prop_fan_power.full_name, True)
         if self._prop_power:
             ret = self.set_property(self._prop_power.full_name, True)
+        if self._prop_fan_power:
+            ret = self.set_property(self._prop_fan_power.full_name, True)
         if ret is not None:
             return ret
-        for m in self._power_modes:
-            p = self._miot_service.bool_property(m)
-            if not p:
-                continue
-            return self.set_property(p.full_name, True)
         srv = self._miot_service.spec.get_service('viomi_bath_heater')
         if srv:
             act = srv.get_action('power_on')
@@ -299,10 +294,16 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 if ret:
                     self.update_attrs({'power': True})
                     return ret
-        for mode in (HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_COOL):
-            if mode not in self.hvac_modes:
-                continue
-            return self.set_hvac_mode(mode)
+        if not kwargs.get('without_modes'):
+            for m in self._power_modes:
+                p = self._miot_service.bool_property(m)
+                if not p:
+                    continue
+                return self.set_property(p.full_name, True)
+            for mode in (HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_COOL):
+                if mode not in self.hvac_modes:
+                    continue
+                return self.set_hvac_mode(mode)
         return False
 
     def turn_off(self, **kwargs):
@@ -374,10 +375,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
     def set_hvac_mode(self, mode: str):
         if mode == HVAC_MODE_OFF:
             return self.turn_off()
-        if self._prop_fan_power and not self.is_on:
-            self.set_property(self._prop_fan_power.full_name, True)
-        if self._prop_power and not self.is_on:
-            self.set_property(self._prop_power.full_name, True)
+        if not self.is_on:
+            self.turn_on(without_modes=True)
         if not self._prop_mode:
             return False
         val = self._hvac_modes.get(mode, {}).get('value')
