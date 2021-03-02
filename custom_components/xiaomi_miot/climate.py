@@ -114,6 +114,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             self._prop_horizontal_angle = self._fan_control.get_property('horizontal_angle')
             self._prop_vertical_swing = self._fan_control.get_property('vertical_swing')
             self._prop_vertical_angle = self._fan_control.get_property('vertical_angle')
+            if not self._prop_mode:
+                self._prop_mode = self._fan_control.get_property('mode')
 
         for s in [self._environment, self._fan_control]:
             if not s:
