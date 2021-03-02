@@ -14,6 +14,7 @@ from homeassistant.components.cover import (
     SUPPORT_STOP,
     SUPPORT_SET_POSITION,
     DEVICE_CLASS_CURTAIN,
+    DEVICE_CLASS_WINDOW,
     ATTR_POSITION,
 )
 from homeassistant.helpers.event import async_track_utc_time_change
@@ -64,7 +65,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         miot = config.get('miot_type')
         if miot:
             spec = await MiotSpec.async_from_type(hass, miot)
-            for srv in spec.get_services(ENTITY_DOMAIN, 'curtain', 'airer'):
+            for srv in spec.get_services(ENTITY_DOMAIN, 'curtain', 'airer', 'window_opener'):
                 if not srv.get_property('motor_control'):
                     continue
                 cfg = {
@@ -86,11 +87,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         _LOGGER.info('Initializing %s with host %s (token %s...)', name, host, token[:5])
 
         self._miot_service = miot_service
-        mapping = miot_service.spec.services_mapping(
-            'curtain', 'airer', 'indicator_light', 'yl_curtain', 'curtain_cfg',
-            'motor_controller', 'motor_reverse',
-        ) or {}
-        mapping.update(miot_service.mapping())
+        mapping = miot_service.spec.services_mapping() or {}
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service, config=config)
 
@@ -112,6 +109,8 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         typ = f'{self._model} {self._miot_service.spec.type}'
         if typ.find('curtain') >= 0:
             return DEVICE_CLASS_CURTAIN
+        if typ.find('window_opener') >= 0:
+            return DEVICE_CLASS_WINDOW
         return None
 
     @property
