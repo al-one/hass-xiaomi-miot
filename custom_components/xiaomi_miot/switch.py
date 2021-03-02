@@ -142,8 +142,13 @@ class MiotSwitchSubEntity(SwitchSubEntity):
 
     @property
     def is_on(self):
-        if self._prop_power and self._miot_service.name in ['air_conditioner']:
-            self._state = self._state and self._prop_power.from_dict(self._state_attrs)
+        if self._miot_service.name in ['air_conditioner']:
+            if self._prop_power:
+                self._state = self._state and self._prop_power.from_dict(self._state_attrs)
+            if self._miot_property.name in ['heater']:
+                self.update_attrs({
+                    'warning': 'heater of air_conditioner is deprecated, please use aux_heat in climate entity.',
+                }, update_parent=False)
         return self._state
 
     def set_parent_property(self, val):

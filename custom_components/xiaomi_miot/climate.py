@@ -95,6 +95,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
         self._prop_power = miot_service.bool_property('on')
         self._prop_mode = miot_service.get_property('mode')
+        self._prop_heater = miot_service.bool_property('heater')
         self._prop_target_temp = miot_service.get_property('target_temperature')
         self._prop_target_humi = miot_service.get_property('target_humidity')
         self._prop_fan_level = miot_service.get_property('fan_level', 'heat_level')
@@ -110,7 +111,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._prop_vertical_swing = None
         if self._fan_control:
             self._prop_fan_power = self._fan_control.get_property('on')
-            self._prop_fan_level = self._fan_control.get_property('fan_level', 'heat_level')
+            self._prop_fan_level = self._fan_control.get_property('fan_level', 'heat_level') or self._prop_fan_level
             self._prop_horizontal_swing = self._fan_control.get_property('horizontal_swing')
             self._prop_horizontal_angle = self._fan_control.get_property('horizontal_angle')
             self._prop_vertical_swing = self._fan_control.get_property('vertical_swing')
@@ -138,6 +139,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             self._supported_features |= SUPPORT_FAN_MODE
         if self._prop_horizontal_swing or self._prop_vertical_swing:
             self._supported_features |= SUPPORT_SWING_MODE
+        if self._prop_heater and miot_service.name in ['air_conditioner', 'air_condition_outlet']:
+            self._supported_features |= SUPPORT_AUX_HEAT
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._power_modes = ['blow', 'heating', 'ventilation']
@@ -587,6 +590,29 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 continue
             ret = self.set_property(mk, mv)
         return ret
+
+    @property
+    def is_aux_heat(self):
+        """Return true if aux heater."""
+        if self._prop_heater:
+            return self._prop_heater.from_dict(self._state_attrs) and self.hvac_mode in [
+                HVAC_MODE_AUTO,
+                HVAC_MODE_HEAT,
+                HVAC_MODE_HEAT_COOL,
+            ]
+        raise NotImplementedError
+
+    def turn_aux_heat_on(self):
+        """Turn auxiliary heater on."""
+        if self._prop_heater:
+            return self.set_property(self._prop_heater.full_name, True)
+        return False
+
+    def turn_aux_heat_off(self):
+        """Turn auxiliary heater off."""
+        if self._prop_heater:
+            return self.set_property(self._prop_heater.full_name, False)
+        return False
 
 
 class ClimateModeSubEntity(MiotModesSubEntity):
