@@ -11,7 +11,6 @@ from homeassistant.components.fan import (
     SPEED_OFF,
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
-    NotValidSpeedError,
 )
 
 from . import (
@@ -168,7 +167,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             return self._prop_percentage.from_dict(self._state_attrs)
         try:
             return super().percentage
-        except NotValidSpeedError:
+        except ValueError:
             return None
 
     @property
@@ -261,7 +260,7 @@ class FanSubEntity(ToggleSubEntity, FanEntity):
     def percentage(self):
         try:
             return super().percentage
-        except NotValidSpeedError:
+        except ValueError:
             return None
 
     @property
