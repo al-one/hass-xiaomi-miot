@@ -1,5 +1,84 @@
 # Xiaomi Miot For HomeAssistant
 
+[MIoT-Spec](https://iot.mi.com/new/doc/design/spec/overall): The protocol specification for Xiaomi IoT devices, is a standard designed by the Xiaomi IoT platform to describe the function definition of hardware products according to the networking mode of hardware products, the characteristics of product functions, the characteristics of user usage scenarios and the user's requirements for hardware product use experience specification.
+This component uses the MIoT-Spec to automatically integrate Xiaomi devices into HomeAssistant, and currently supports most Xiaomi MIoT devices. And it supports HA Web UI, and you can easily integrate Xiaomi devices into HA without configuring yaml.
+
+
+## Installing
+
+> Download and copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
+
+```shell
+wget https://github.com/al-one/hass-xiaomi-miot/archive/master.zip
+unzip master.zip
+cp -rf hass-xiaomi-miot-master/custom_components/xiaomi_miot ~/.homeassistant/custom_components/
+rm -rf hass-xiaomi-miot-master
+```
+
+> Or you can install component with [HACS](https://hacs.xyz)
+
+
+## Config
+
+### HomeAssistant GUI
+
+> Configuration > Integrations > ➕ > Search `Xiaomi Miot Auto`
+
+
+### Configuration variables:
+
+- **host**(*Required*): The IP of your device
+- **token**(*Required*): The Token of your device
+- **name**(*Optional*): The name of your device
+- **model**(*Optional*): The model of device, required if config by yaml
+
+
+### Configuration Xiaomi Cloud:
+
+> If your device unavailable or return code -4004 or -9999 in logs, You can try this way.
+
+```yaml
+# configuration.yaml
+homeassistant:
+  customize: !include customize.yaml
+
+xiaomi_miot:
+  username: xiaomi_username
+  password: xiaomi_password
+  # server_country: cn
+
+# customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
+camera.your_entity_id:
+  miot_cloud: true          # Enable miot cloud for entity (read, write, action)
+  # miot_cloud_write: true  # (Optional) Enable miot cloud (only write)
+  # miot_cloud_action: true # (Optional) Enable miot cloud (only action)
+  # miot_did: '123456789'   # (Optional) Your miot device id (Get form cloud if empty)
+```
+
+Enabled miot cloud for device:
+
+> Configuration > Integrations > Xiaomi Miot Auto > Options > Enable miot cloud
+
+
+### Customize entity
+
+```yaml
+# configuration.yaml
+homeassistant:
+  customize: !include customize.yaml
+
+# customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
+climate.your_entity_id:
+  bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
+
+camera.your_entity_id:
+  video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
+  check_lan: true    # Check LAN connection in cloud mode
+```
+
+> **Recommended**: [Customization Using The UI](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui)
+
+
 ## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)
 
 - HomeAssistant Domain
@@ -74,90 +153,16 @@
     - [intelligent-speaker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:intelligent-speaker:0000789B)
 
 
-## Installing
-
-> Copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
-
-```shell
-wget https://github.com/al-one/hass-xiaomi-miot/archive/master.zip
-unzip master.zip
-cp -rf hass-xiaomi-miot-master/custom_components/xiaomi_miot ~/.homeassistant/custom_components/
-rm -rf hass-xiaomi-miot-master
-```
-
-> Or you can install component with [HACS](https://hacs.xyz)
-
-
-## Config
-
-### HomeAssistant GUI
-
-> Configuration > Integrations > ➕ > Search `Xiaomi Miot Auto`
-
-
-### Configuration variables:
-
-- **host**(*Required*): The IP of your device
-- **token**(*Required*): The Token of your device
-- **name**(*Optional*): The name of your device
-- **model**(*Optional*): The model of device, required if config by yaml
-
-
-### Configuration Xiaomi Cloud:
-
-> If your device return code -4004 or -9999 in logs, You can try this way.
-
-```yaml
-# configuration.yaml
-homeassistant:
-  customize: !include customize.yaml
-
-xiaomi_miot:
-  username: xiaomi_username
-  password: xiaomi_password
-  # server_country: cn
-
-# customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
-camera.your_entity_id:
-  miot_cloud: true          # Enable miot cloud for entity (read, write, action)
-  # miot_cloud_write: true  # (Optional) Enable miot cloud (only write)
-  # miot_cloud_action: true # (Optional) Enable miot cloud (only action)
-  # miot_did: '123456789'   # (Optional) Your miot device id (Get form cloud if empty)
-```
-
-Enabled miot cloud for device:
-
-> Configuration > Integrations > Xiaomi Miot Auto > Options > Enable miot cloud
-
-
-### Customize entity
-
-```yaml
-# configuration.yaml
-homeassistant:
-  customize: !include customize.yaml
-
-# customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
-climate.your_entity_id:
-  bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
-
-camera.your_entity_id:
-  video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
-  check_lan: true    # Check LAN connection in cloud mode
-```
-
-> **Recommended**: [Customization Using The UI](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui)
-
-
 ## Debug
 
 ### Get Entity State Attributes
 
 > Developer tools > State > Filter Entity
 
-### Get Debug Logs
+### [Get Debug Logs](https://www.home-assistant.io/integrations/logger)
 
 ```yaml
+# configuration.yaml
 logger:
   default: warning
   logs:
