@@ -291,6 +291,7 @@ class FanSubEntity(ToggleSubEntity, FanEntity):
 class MiotModesSubEntity(FanSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property.full_name, option)
+        self._name = self.format_name_by_property(miot_property)
         self._miot_property = miot_property
         self._miot_service = miot_property.service
         self._prop_power = self._option.get('power_property')
