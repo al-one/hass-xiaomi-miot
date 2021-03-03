@@ -1,6 +1,7 @@
 # Xiaomi Miot For HomeAssistant
 
 [MIoT-Spec](https://iot.mi.com/new/doc/design/spec/overall): The protocol specification for Xiaomi IoT devices, is a standard designed by the Xiaomi IoT platform to describe the function definition of hardware products according to the networking mode of hardware products, the characteristics of product functions, the characteristics of user usage scenarios and the user's requirements for hardware product use experience specification.
+
 This component uses the MIoT-Spec to automatically integrate Xiaomi devices into HomeAssistant, and currently supports most Xiaomi MIoT devices. And it supports HA Web UI, and you can easily integrate Xiaomi devices into HA without configuring yaml.
 
 

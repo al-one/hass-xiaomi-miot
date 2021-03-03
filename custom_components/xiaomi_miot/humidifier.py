@@ -1,6 +1,5 @@
 """Support for humidifier and dehumidifier."""
 import logging
-from enum import Enum
 
 from homeassistant.const import *
 from homeassistant.components.humidifier import (
@@ -56,12 +55,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
-
-
-class MiotDehumidifierModes(Enum):
-    Off = -1
-    TargetHumid = 0
-    DryCloth = 1
 
 
 class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
