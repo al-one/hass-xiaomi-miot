@@ -21,6 +21,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from .fan import MiotModesSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -71,32 +72,47 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         miio_info = config.get('miio_info') or None
 
         self._miot_service = miot_service
-        mapping = miot_service.spec.services_mapping(
-            ENTITY_DOMAIN, 'dehumidifier', 'environment', 'indicator_light',
-            'function', 'alarm', 'physical_controls_locked', 'screen', 'others',
-        ) or {}
-        mapping.update(miot_service.mapping())
+        mapping = miot_service.spec.services_mapping() or {}
         _LOGGER.info('Initializing with host %s (token %s...), miot mapping: %s', host, token[:5], mapping)
 
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service, config=config, miio_info=miio_info)
+        self._add_entities = config.get('add_entities') or {}
 
         self._prop_power = miot_service.get_property('on')
         self._prop_mode = miot_service.get_property('mode')
         self._prop_fan_level = miot_service.get_property('fan_level')
         self._prop_water_level = miot_service.get_property('water_level')
         self._prop_target_humi = miot_service.get_property('target_humidity')
-        self._prop_temperature = None
-        self._prop_humidity = None
+        self._prop_temperature = miot_service.get_property('temperature')
+        self._prop_humidity = miot_service.get_property('relative_humidity', 'humidity')
         self._environment = miot_service.spec.get_service('environment')
         if self._environment:
-            self._prop_temperature = self._environment.get_property('temperature')
-            self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity')
+            self._prop_temperature = self._environment.get_property('temperature') or self._prop_temperature
+            self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity') or self._prop_humidity
 
         if self._prop_mode or self._prop_fan_level or self._prop_water_level:
             self._supported_features = SUPPORT_MODES
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        add_fans = self._add_entities.get('fan')
+        humidifier_mode = None
+        for p in [self._prop_mode, self._prop_fan_level, self._prop_water_level]:
+            if not p:
+                continue
+            if not humidifier_mode:
+                humidifier_mode = p
+                continue
+            if p.name in self._subs:
+                self._subs[p.name].update()
+            elif add_fans:
+                self._subs[p.name] = MiotModesSubEntity(self, p)
+                add_fans([self._subs[p.name]])
 
     @property
     def device_class(self):
