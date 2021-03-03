@@ -140,6 +140,7 @@ camera.your_entity_id:
     - [curtain](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:curtain:00007816)
     - [airer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:airer:00007817)
         - [light](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:light:00007802)
+    - [window-opener](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:window-opener:00007889)
 - [humidifier](https://www.home-assistant.io/integrations/humidifier)
     - [humidifier](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:humidifier:0000A00E)
     - [dehumidifier](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:dehumidifier:0000A02D)
