@@ -25,6 +25,8 @@ rm -rf hass-xiaomi-miot-master
 
 > Configuration > Integrations > ➕ > Search `Xiaomi Miot Auto`
 
+Or click (HA v2021.3.0+): [![add](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
+
 
 ### Configuration variables:
 
