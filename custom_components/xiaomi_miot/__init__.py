@@ -47,18 +47,18 @@ DEFAULT_NAME = 'Xiaomi Miot'
 CONF_MODEL = 'model'
 
 SUPPORTED_DOMAINS = [
-    "sensor",
-    "binary_sensor",
-    "switch",
-    "light",
-    "fan",
-    "climate",
-    "cover",
-    "humidifier",
-    "media_player",
-    "camera",
-    "vacuum",
-    "air_quality",
+    'sensor',
+    'binary_sensor',
+    'switch',
+    'light',
+    'fan',
+    'climate',
+    'cover',
+    'humidifier',
+    'media_player',
+    'camera',
+    'vacuum',
+    'air_quality',
 ]
 
 XIAOMI_CONFIG_SCHEMA = cv.PLATFORM_SCHEMA_BASE.extend(
@@ -277,10 +277,12 @@ def bind_services_to_entries(hass, services):
 
 
 class MiotDevice(MiotDeviceBase):
-    def get_properties_for_mapping(self) -> list:
+    def get_properties_for_mapping(self, max_properties=12) -> list:
         properties = [{'did': k, **v} for k, v in self.mapping.items()]
         return self.get_properties(
-            properties, property_getter='get_properties', max_properties=12
+            properties,
+            property_getter='get_properties',
+            max_properties=max_properties,
         )
 
 
@@ -359,10 +361,9 @@ class MiioEntity(Entity):
             _LOGGER.debug('Response received from miio %s: %s', self.name, result)
             return result == self._success_result
         except DeviceException as exc:
-            if self._available:
-                _LOGGER.error(mask_error, exc)
-                self._available = False
-            return False
+            _LOGGER.error(mask_error, exc)
+            self._available = False
+        return False
 
     def send_command(self, method, params=None):
         _LOGGER.debug('Send miio command to %s: %s(%s)', self.name, method, params)
@@ -383,8 +384,7 @@ class MiioEntity(Entity):
         try:
             attrs = await self.hass.async_add_executor_job(partial(self._device.get_properties, self._props))
         except DeviceException as ex:
-            if self._available:
-                self._available = False
+            self._available = False
             _LOGGER.error('Got exception while fetching the state for %s (%s): %s', self.name, self._props, ex)
             return
         attrs = dict(zip(self._props, attrs))
@@ -414,19 +414,19 @@ class MiioEntity(Entity):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
         return self._state_attrs
 
-    def global_config(self, key=None):
+    def global_config(self, key=None, default=None):
         if not self.hass:
-            return None
+            return default
         cfg = self.hass.data[DOMAIN]['config'] or {}
-        return cfg if key is None else cfg.get(key)
+        return cfg if key is None else cfg.get(key, default)
 
-    def custom_config(self, key=None):
+    def custom_config(self, key=None, default=None):
         if not self.hass:
-            return None
+            return default
         if not self.entity_id:
-            return None
-        cfg = self.hass.data[DATA_CUSTOMIZE].get(self.entity_id)
-        return cfg if key is None else cfg.get(key)
+            return default
+        cfg = self.hass.data[DATA_CUSTOMIZE].get(self.entity_id) or {}
+        return cfg if key is None else cfg.get(key, default)
 
 
 class MiotEntity(MiioEntity):
@@ -494,10 +494,9 @@ class MiotEntity(MiioEntity):
             else:
                 return result == self._success_result
         except DeviceException as exc:
-            if self._available:
-                _LOGGER.error(mask_error, exc)
-                self._available = False
-            return False
+            _LOGGER.error(mask_error, exc)
+            self._available = False
+        return False
 
     async def async_update(self):
         if self._vars.get('delay_update'):
@@ -518,17 +517,16 @@ class MiotEntity(MiioEntity):
                     s = v.get('siid')
                     p = v.get('piid')
                     rmp[f'{s}{p}'] = k
+                max_properties = self.custom_config('chunk_properties', 12)
                 results = await self.hass.async_add_executor_job(
-                    partial(self._device.get_properties_for_mapping)
+                    partial(self._device.get_properties_for_mapping, max_properties=max_properties)
                 )
         except DeviceException as exc:
-            if self._available:
-                self._available = False
+            self._available = False
             _LOGGER.error('Got MiioException while fetching the state for %s: %s', self.name, exc)
             return
         except MiCloudException as exc:
-            if self._available:
-                self._available = False
+            self._available = False
             _LOGGER.error('Got MiCloudException while fetching the state for %s: %s', self.name, exc)
             return
         attrs = {}

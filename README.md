@@ -46,7 +46,7 @@ homeassistant:
 xiaomi_miot:
   username: xiaomi_username
   password: xiaomi_password
-  # server_country: cn
+  # server_country: cn # location of xiaomi cloud: cn(default), de, i2, ru, sg, us
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
 camera.your_entity_id:
@@ -69,12 +69,16 @@ homeassistant:
   customize: !include customize.yaml
 
 # customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
+
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
 
 camera.your_entity_id:
   video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
   check_lan: true    # Check LAN connection in cloud mode
+
+doamin.your_entity_id:
+  chunk_properties: 10 # Chunk miot properties on update state
 ```
 
 > **Recommended**: [Customization Using The UI](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui)
