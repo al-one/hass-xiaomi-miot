@@ -59,6 +59,7 @@ SUPPORTED_DOMAINS = [
     'camera',
     'vacuum',
     'air_quality',
+    'water_heater',
 ]
 
 XIAOMI_CONFIG_SCHEMA = cv.PLATFORM_SCHEMA_BASE.extend(

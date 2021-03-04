@@ -57,7 +57,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
             'heater', 'ptc_bath_heater', 'light_bath_heater',
             'air_purifier', 'air_fresh', 'electric_blanket',
-            'water_heater', 'water_dispenser', 'dishwasher',
+            'water_dispenser', 'dishwasher',
         ):
             if not srv.get_property('on', 'mode', 'target_temperature'):
                 continue
@@ -127,7 +127,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             if not self._prop_humidity:
                 self._prop_humidity = s.get_property('relative_humidity', 'humidity')
 
-        if miot_service.name in ['electric_blanket', 'water_heater', 'water_dispenser']:
+        if miot_service.name in ['electric_blanket', 'water_dispenser']:
             if not self._prop_fan_level:
                 self._prop_fan_level = miot_service.get_property('heat_level', 'water_level')
 
