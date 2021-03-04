@@ -38,7 +38,6 @@ from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
 )
-from .switch import MiotSwitchSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -678,6 +677,7 @@ class MiotEntity(MiioEntity):
         return ret
 
     def _update_sub_entities(self, properties, services=None):
+        from .switch import MiotSwitchSubEntity
         if isinstance(services, list):
             sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
         else:
