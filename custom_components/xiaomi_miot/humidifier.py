@@ -173,9 +173,9 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         mds = [MODE_OFF]
         if self._prop_mode:
             mds.extend(self._prop_mode.list_description(None) or [])
-        if self._prop_fan_level:
+        elif self._prop_fan_level:
             mds.extend(self._prop_fan_level.list_description(None) or [])
-        if self._prop_water_level:
+        elif self._prop_water_level:
             mds.extend(self._prop_water_level.list_description(None) or [])
         return mds
 
