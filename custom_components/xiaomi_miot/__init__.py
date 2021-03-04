@@ -38,6 +38,7 @@ from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
 )
+from .switch import MiotSwitchSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -549,11 +550,12 @@ class MiotEntity(MiioEntity):
                 attrs[ek] = e
         self._available = True
         self._state = True if attrs.get('power') else False
+        attrs['state_updater'] = updater
+        self._update_sub_entities('physical_controls_locked', 'physical_controls_locked')
         if self._subs:
             attrs['sub_entities'] = list(self._subs.keys())
-        attrs['state_updater'] = updater
-        _LOGGER.debug('Got new state from %s: %s', self.name, attrs)
         self.update_attrs(attrs)
+        _LOGGER.debug('Got new state from %s: %s', self.name, attrs)
 
     def get_properties(self, mapping: dict):
         if not self._miio_info:
@@ -674,6 +676,24 @@ class MiotEntity(MiioEntity):
         if ret:
             self._state = False
         return ret
+
+    def _update_sub_entities(self, properties, services=None):
+        if isinstance(services, list):
+            sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
+        else:
+            sls = [self._miot_service]
+        ads = self._config.get('add_entities') or {}
+        add_switches = ads.get('switch')
+        for s in sls:
+            pls = s.get_properties(*cv.ensure_list(properties))
+            for p in pls:
+                if p.full_name not in self._state_attrs:
+                    continue
+                if p.full_name in self._subs:
+                    self._subs[p.full_name].update()
+                elif add_switches and p.format == 'bool':
+                    self._subs[p.full_name] = MiotSwitchSubEntity(self, p)
+                    add_switches([self._subs[p.full_name]])
 
 
 class MiotToggleEntity(MiotEntity, ToggleEntity):

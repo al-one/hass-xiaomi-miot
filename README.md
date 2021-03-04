@@ -116,6 +116,7 @@ doamin.your_entity_id:
         - [power-consumption](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:power-consumption:0000780E)
     - [washer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:washer:00007834)
     - [pet-drinking-fountain](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:pet-drinking-fountain:00007850)
+    - [physical-controls-locked](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:physical-controls-locked:00007807)
 - [light](https://www.home-assistant.io/integrations/light)
     - [light](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:light:0000A001)
     - [night-light](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:night-light:00007883)
