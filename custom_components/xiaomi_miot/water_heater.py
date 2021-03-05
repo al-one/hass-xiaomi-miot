@@ -5,6 +5,8 @@ from homeassistant.const import *
 from homeassistant.components.water_heater import (
     DOMAIN as ENTITY_DOMAIN,
     WaterHeaterEntity,
+    SUPPORT_TARGET_TEMPERATURE,
+    SUPPORT_OPERATION_MODE,
 )
 
 from . import (
@@ -69,13 +71,24 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         super().__init__(name, self._device, miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
 
-        self._prop_mode = miot_service.get_property('mode')
         self._prop_modes = miot_service.get_properties('mode', 'water_level')
         self._prop_temperature = miot_service.get_property('temperature', 'indoor_temperature')
         self._prop_target_temp = miot_service.get_property('target_temperature')
-
         self._prev_target_temp = None
+
+        if self._prop_target_temp:
+            self._supported_features |= SUPPORT_TARGET_TEMPERATURE
+        if self._prop_modes:
+            self._supported_features |= SUPPORT_OPERATION_MODE
+
         self._state_attrs.update({'entity_class': self.__class__.__name__})
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        if self._prop_power:
+            self._update_sub_entities(self._prop_power.name)
 
     @property
     def current_operation(self):
