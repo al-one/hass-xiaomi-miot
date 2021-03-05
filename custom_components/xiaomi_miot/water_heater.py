@@ -71,6 +71,8 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         super().__init__(name, self._device, miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
 
+        self._prop_status = miot_service.get_property('status')
+        self._prop_mode = miot_service.get_property('mode')
         self._prop_modes = miot_service.get_properties('mode', 'water_level')
         self._prop_temperature = miot_service.get_property('temperature', 'indoor_temperature')
         self._prop_target_temp = miot_service.get_property('target_temperature')
@@ -88,7 +90,29 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         if not self._available:
             return
         if self._prop_power:
+            if not self._prop_power.readable and self._prop_status:
+                # https://github.com/al-one/hass-xiaomi-miot/issues/30
+                val = self._prop_status.from_dict(self._state_attrs)
+                off = val in self._prop_status.list_search('Off')
+                self.update_attrs({
+                    self._prop_power.full_name: not off,
+                })
             self._update_sub_entities(self._prop_power.name)
+
+    @property
+    def state(self):
+        """Return the current state."""
+        sta = self.current_operation
+        mds = []
+        if self._prop_mode:
+            mds = self._prop_mode.list_descriptions()
+        if sta is None or sta not in mds:
+            if self._prop_status:
+                val = self._prop_status.from_dict(self._state_attrs)
+                sta = self._prop_status.list_description(val)
+        if sta:
+            sta = str(sta).lower()
+        return sta
 
     @property
     def current_operation(self):
