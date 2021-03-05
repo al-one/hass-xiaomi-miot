@@ -23,7 +23,7 @@ rm -rf hass-xiaomi-miot-master
 
 ### HomeAssistant GUI
 
-> Configuration > Integrations > ➕ > Search `Xiaomi Miot Auto`
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > [➕ Add Integration](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 Search `Xiaomi Miot Auto`
 
 Or click (HA v2021.3.0+): [![add](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
@@ -60,7 +60,7 @@ camera.your_entity_id:
 
 Enabled miot cloud for device:
 
-> Configuration > Integrations > Xiaomi Miot Auto > Options > Enable miot cloud
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > Options > Enable miot cloud
 
 
 ### Customize entity
@@ -70,7 +70,8 @@ Enabled miot cloud for device:
 homeassistant:
   customize: !include customize.yaml
 
-# customize.yaml (Configuration > Customize > Select Entity > Add Other Attribute)
+
+# customize.yaml
 
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
@@ -83,7 +84,9 @@ doamin.your_entity_id:
   chunk_properties: 10 # Chunk miot properties on update state
 ```
 
-> **Recommended**: [Customization Using The UI](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui)
+**Recommended**: [Customization Using The UI](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui)
+
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > 🖌 Customize > 🔍 Select Entity > Add Other Attribute
 
 
 ## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)
@@ -184,5 +187,5 @@ logger:
 
 - Use MiHome mod by [@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)
   1. Down apk from [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html)
-  2. Create folder `/your_interlal_storage/vevs/logs/` ⚠️
+  2. Create folder `/sdcard/vevs/logs/` ⚠️
   3. Find token from `vevs/logs/misc/devices.txt`
