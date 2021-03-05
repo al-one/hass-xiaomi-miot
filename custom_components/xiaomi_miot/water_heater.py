@@ -93,10 +93,11 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
             if not self._prop_power.readable and self._prop_status:
                 # https://github.com/al-one/hass-xiaomi-miot/issues/30
                 val = self._prop_status.from_dict(self._state_attrs)
-                off = val in self._prop_status.list_search('Off')
-                self.update_attrs({
-                    self._prop_power.full_name: not off,
-                })
+                if val is not None:
+                    off = val in self._prop_status.list_search('Off')
+                    self.update_attrs({
+                        self._prop_power.full_name: not off,
+                    })
             self._update_sub_entities(self._prop_power.name)
 
     @property
@@ -109,7 +110,10 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         if sta is None or sta not in mds:
             if self._prop_status:
                 val = self._prop_status.from_dict(self._state_attrs)
-                sta = self._prop_status.list_description(val)
+                if val is not None:
+                    sta = self._prop_status.list_description(val)
+        if sta is None and self._prop_power and self._prop_power.readable:
+            sta = STATE_ON if self._prop_power.from_dict(self._state_attrs) else STATE_OFF
         if sta:
             sta = str(sta).lower()
         return sta
