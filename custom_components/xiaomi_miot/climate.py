@@ -87,6 +87,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
         self._miot_service = miot_service
         mapping = miot_service.spec.services_mapping() or {}
+        mapping.update(miot_service.mapping())
         _LOGGER.info('Initializing %s (%s, token %s...), miot mapping: %s', name, host, token[:5], mapping)
 
         self._device = MiotDevice(mapping, host, token)

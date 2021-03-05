@@ -88,6 +88,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
         self._miot_service = miot_service
         mapping = miot_service.spec.services_mapping() or {}
+        mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
         super().__init__(name, self._device, miot_service, config=config)
 

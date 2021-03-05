@@ -80,6 +80,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         token = config[CONF_TOKEN]
 
         mapping = miot_service.spec.services_mapping() or {}
+        mapping.update(miot_service.mapping())
         _LOGGER.info('Initializing %s (%s, token %s...), miot mapping: %s', name, host, token[:5], mapping)
 
         self._device = MiotDevice(mapping, host, token)
