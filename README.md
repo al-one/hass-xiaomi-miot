@@ -170,7 +170,7 @@ doamin.your_entity_id:
 
 ### Get Entity State Attributes
 
-> Developer tools > State > Filter Entity
+> [🔨 Developer tools](https://my.home-assistant.io/redirect/developer_states) > [ℹ️ State](https://my.home-assistant.io/redirect/developer_states) > 🔍 Filter Entity
 
 ### [Get Debug Logs](https://www.home-assistant.io/integrations/logger)
 
@@ -181,6 +181,8 @@ logger:
   logs:
     custom_components.xiaomi_miot: debug
 ```
+
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [✍️ Logs](https://my.home-assistant.io/redirect/logs)
 
 
 ## Obtain miio token
