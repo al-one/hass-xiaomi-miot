@@ -550,7 +550,11 @@ class MiotEntity(MiioEntity):
         self._available = True
         self._state = True if attrs.get('power') else False
         attrs['state_updater'] = updater
-        self._update_sub_entities('physical_controls_locked', 'physical_controls_locked')
+        if self._miot_service:
+            self._update_sub_entities(
+                'physical_controls_locked',
+                ['physical_controls_locked', self._miot_service.name],
+            )
         if self._subs:
             attrs['sub_entities'] = list(self._subs.keys())
         self.update_attrs(attrs)
