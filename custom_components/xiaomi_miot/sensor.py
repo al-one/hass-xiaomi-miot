@@ -90,7 +90,7 @@ class MiotSensorEntity(MiotEntity):
         mapping = miot_service.spec.services_mapping(
             'battery', 'screen', 'settings', 'left_time',
             'tds_sensor', 'water_purifier', 'custom', 'custom_service',
-            'alarm', 'physical_controls_locked', 'uv', 'key_press',
+            'alarm', 'uv', 'key_press',
         ) or {}
         mapping.update(miot_service.mapping())
         self._device = MiotDevice(mapping, host, token)
