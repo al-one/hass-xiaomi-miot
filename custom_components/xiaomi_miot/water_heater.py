@@ -1,5 +1,6 @@
 """Support for Xiaomi water heaters."""
 import logging
+import math
 
 from homeassistant.const import *
 from homeassistant.components.water_heater import (
@@ -145,7 +146,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     def current_temperature(self):
         """Return the current temperature."""
         if self._prop_temperature:
-            return self._prop_temperature.from_dict(self._state_attrs)
+            return int(self._prop_temperature.from_dict(self._state_attrs) or 0)
         return None
 
     @property
@@ -163,7 +164,16 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
         if self._prop_target_temp:
-            val = kwargs.get(ATTR_TEMPERATURE)
+            val = kwargs.get(ATTR_TEMPERATURE) or 0
+            stp = self._prop_target_temp.range_step()
+            if stp and stp > 1:
+                val = round(val / stp) * stp
+            elif self._prev_target_temp is None:
+                val = round(val)
+            elif val >= self._prev_target_temp:
+                val = math.ceil(val)
+            else:
+                val = int(val)
             ret = self.set_property(self._prop_target_temp.full_name, val)
             if ret:
                 self._prev_target_temp = val
@@ -174,7 +184,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     def target_temperature(self):
         """Return the temperature we try to reach."""
         if self._prop_target_temp:
-            val = float(self._prop_target_temp.from_dict(self._state_attrs) or 0)
+            val = int(self._prop_target_temp.from_dict(self._state_attrs) or 0)
             if val:
                 self._prev_target_temp = val
             elif self._prev_target_temp:
