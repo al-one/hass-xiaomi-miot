@@ -466,11 +466,11 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
     @property
     def target_temperature_high(self):
-        return DEFAULT_MAX_TEMP
+        return self.max_temp
 
     @property
     def target_temperature_low(self):
-        return DEFAULT_MIN_TEMP
+        return self.min_temp
 
     def set_temperature(self, **kwargs):
         ret = False
