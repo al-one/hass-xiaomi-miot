@@ -26,6 +26,9 @@ from .core.miot_spec import (
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
+DEFAULT_MIN_TEMP = 40
+DEFAULT_MAX_TEMP = 65
+
 SERVICE_TO_METHOD = {}
 
 
@@ -205,6 +208,16 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         if self._prop_target_temp:
             return self._prop_target_temp.range_min()
         return None
+
+    @property
+    def min_temp(self):
+        """Return the minimum temperature."""
+        return self.target_temperature_low or DEFAULT_MIN_TEMP
+
+    @property
+    def max_temp(self):
+        """Return the maximum temperature."""
+        return self.target_temperature_high or DEFAULT_MAX_TEMP
 
     @property
     def is_away_mode_on(self):
