@@ -1,7 +1,7 @@
 """Support for Xiaomi lights."""
 import logging
 
-from homeassistant.const import *
+from homeassistant.const import *  # noqa: F401
 from homeassistant.components.light import (
     DOMAIN as ENTITY_DOMAIN,
     LightEntity,
@@ -20,9 +20,9 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
-    MiotDevice,
     MiotToggleEntity,
     ToggleSubEntity,
+    async_setup_config_entry,
     bind_services_to_entries,
 )
 from .core.miot_spec import (
@@ -41,8 +41,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, dict(config_entry.data))
-    await async_setup_platform(hass, config, async_add_entities)
+    await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -73,18 +72,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotLightEntity(MiotToggleEntity, LightEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        name = config[CONF_NAME]
-        host = config[CONF_HOST]
-        token = config[CONF_TOKEN]
-        _LOGGER.info('Initializing %s with host %s (token %s...)', name, host, token[:5])
-
-        mapping = miot_service.spec.services_mapping(
-            ENTITY_DOMAIN, 'yl_light', 'light_extension', 'battery',
-            'night_light_times',
-        ) or {}
-        mapping.update(miot_service.mapping())
-        self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device, miot_service, config=config)
+        super().__init__(miot_service, config=config)
+        self._add_entities = config.get('add_entities') or {}
 
         self._prop_power = miot_service.get_property('on')
         self._prop_brightness = miot_service.get_property('brightness')
@@ -92,7 +81,6 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         self._prop_color = miot_service.get_property('color')
         self._prop_mode = miot_service.get_property('mode')
 
-        self._supported_features = 0
         if self._prop_brightness:
             self._supported_features |= SUPPORT_BRIGHTNESS
         if self._prop_color_temp:

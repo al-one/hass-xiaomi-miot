@@ -4,6 +4,7 @@ import time
 import micloud
 from micloud.micloudexception import MiCloudException  # noqa: F401
 
+from homeassistant.const import *
 from homeassistant.helpers.storage import Store
 
 _LOGGER = logging.getLogger(__name__)
@@ -110,16 +111,56 @@ class MiotCloud(micloud.MiCloud):
     async def async_renew_devices(self):
         return await self.async_get_devices(renew=True)
 
-    async def async_get_devices_by_key(self, key, renew=False):
+    async def async_get_devices_by_key(self, key, renew=False, filters=None):
         dat = {}
+        if filters is None:
+            filters = {}
+        fls = ['ssid', 'bssid', 'model']
         dvs = await self.async_get_devices(renew=renew) or []
         for d in dvs:
             if not isinstance(d, dict):
                 continue
             k = d.get(key)
+            for f in fls:
+                ft = filters.get(f'filter_{f}')
+                if not ft:
+                    continue
+                ex = ft != 'include'
+                fl = filters.get(f'{f}_list') or {}
+                fv = d.get(f)
+                if ex:
+                    ok = fv not in fl
+                else:
+                    ok = fv in fl
+                if not ok:
+                    k = None
             if k:
                 dat[k] = d
         return dat
 
     async def async_login(self):
         return await self.hass.async_add_executor_job(self.login)
+
+    def to_config(self):
+        return {
+            CONF_USERNAME: self.username,
+            CONF_PASSWORD: self.password,
+            'server_country': self.default_server,
+            'user_id': self.user_id,
+            'service_token': self.service_token,
+            'ssecurity': self.ssecurity,
+        }
+
+    @staticmethod
+    async def from_token(hass, config: dict):
+        mic = MiotCloud(
+            hass,
+            config.get(CONF_USERNAME),
+            config.get(CONF_PASSWORD),
+            config.get('server_country'),
+        )
+        mic.user_id = config.get('user_id')
+        mic.service_token = config.get('service_token')
+        mic.ssecurity = config.get('ssecurity')
+        ret = await mic.async_login()
+        return mic if ret else ret

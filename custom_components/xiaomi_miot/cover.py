@@ -4,7 +4,7 @@ import time
 from enum import Enum
 from functools import partial
 
-from homeassistant.const import *
+from homeassistant.const import *  # noqa: F401
 from homeassistant.core import callback
 from homeassistant.components.cover import (
     DOMAIN as ENTITY_DOMAIN,
@@ -26,8 +26,8 @@ from . import (
     MiioEntity,
     MiotEntity,
     MiioDevice,
-    MiotDevice,
     DeviceException,
+    async_setup_config_entry,
     bind_services_to_entries,
 )
 from .core.miot_spec import (
@@ -48,8 +48,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, dict(config_entry.data))
-    await async_setup_platform(hass, config, async_add_entities)
+    await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -81,16 +80,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotCoverEntity(MiotEntity, CoverEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        name = config[CONF_NAME]
-        host = config[CONF_HOST]
-        token = config[CONF_TOKEN]
-        _LOGGER.info('Initializing %s with host %s (token %s...)', name, host, token[:5])
-
-        self._miot_service = miot_service
-        mapping = miot_service.spec.services_mapping() or {}
-        mapping.update(miot_service.mapping())
-        self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device, miot_service, config=config)
+        super().__init__(miot_service, config=config)
 
         self._prop_status = miot_service.get_property('status')
         self._prop_motor_control = miot_service.get_property('motor_control')

@@ -4,7 +4,7 @@ import asyncio
 import time
 from datetime import timedelta
 
-from homeassistant.const import *
+from homeassistant.const import *  # noqa: F401
 from homeassistant.components.camera import (
     DOMAIN as ENTITY_DOMAIN,
     Camera,
@@ -22,9 +22,9 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
-    MiotDevice,
     MiotToggleEntity,
     MiCloudException,
+    async_setup_config_entry,
     bind_services_to_entries,
 )
 from .core.miot_spec import (
@@ -41,8 +41,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, dict(config_entry.data))
-    await async_setup_platform(hass, config, async_add_entities)
+    await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -70,19 +69,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotCameraEntity(MiotToggleEntity, Camera):
     def __init__(self, hass, config: dict, miot_service: MiotService):
-        name = config[CONF_NAME]
-        host = config[CONF_HOST]
-        token = config[CONF_TOKEN]
-        _LOGGER.info('Initializing %s with host %s (token %s...)', name, host, token[:5])
-
-        self._miot_service = miot_service
-        mapping = miot_service.spec.services_mapping(
-            ENTITY_DOMAIN, 'camera_control', 'p2p_stream',
-            'camera_stream_for_google_home', 'camera_stream_for_amazon_alexa',
-        ) or {}
-        mapping.update(miot_service.mapping())
-        self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device, miot_service, config=config)
+        super().__init__(miot_service, config=config)
         Camera.__init__(self)
         self._add_entities = config.get('add_entities') or {}
 

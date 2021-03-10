@@ -2,7 +2,7 @@
 import logging
 import math
 
-from homeassistant.const import *
+from homeassistant.const import *  # noqa: F401
 from homeassistant.components.water_heater import (
     DOMAIN as ENTITY_DOMAIN,
     WaterHeaterEntity,
@@ -14,8 +14,8 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
-    MiotDevice,
     MiotToggleEntity,
+    async_setup_config_entry,
     bind_services_to_entries,
 )
 from .core.miot_spec import (
@@ -33,8 +33,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, dict(config_entry.data))
-    await async_setup_platform(hass, config, async_add_entities)
+    await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -61,18 +60,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
-    def __init__(self, config, miot_service: MiotService, **kwargs):
-        name = config[CONF_NAME]
-        host = config[CONF_HOST]
-        token = config[CONF_TOKEN]
-
-        self._miot_service = miot_service
-        mapping = dict(kwargs.get('mapping') or {})
-        mapping.update(miot_service.mapping())
-        self._device = MiotDevice(mapping, host, token)
-        _LOGGER.info('Initializing %s (%s, token %s...), miot mapping: %s', name, host, token[:5], mapping)
-
-        super().__init__(name, self._device, miot_service, config=config)
+    def __init__(self, config, miot_service: MiotService):
+        super().__init__(miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
 
         self._prop_status = miot_service.get_property('status')

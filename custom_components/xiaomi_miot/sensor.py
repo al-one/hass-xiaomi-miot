@@ -2,7 +2,7 @@
 import logging
 from functools import partial
 
-from homeassistant.const import *
+from homeassistant.const import *  # noqa: F401
 from homeassistant.helpers.entity import (
     Entity,
 )
@@ -16,10 +16,10 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiioEntity,
-    MiotDevice,
     MiotEntity,
     BaseSubEntity,
     DeviceException,
+    async_setup_config_entry,
     bind_services_to_entries,
 )
 from .core.miot_spec import (
@@ -36,8 +36,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    config = hass.data[DOMAIN]['configs'].get(config_entry.entry_id, dict(config_entry.data))
-    await async_setup_platform(hass, config, async_add_entities)
+    await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -81,24 +80,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotSensorEntity(MiotEntity):
     def __init__(self, config, miot_service: MiotService):
-        name = config[CONF_NAME]
-        host = config[CONF_HOST]
-        token = config[CONF_TOKEN]
-        _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
-
-        self._miot_service = miot_service
-        mapping = miot_service.spec.services_mapping(
-            'battery', 'screen', 'settings', 'left_time',
-            'tds_sensor', 'water_purifier', 'custom', 'custom_service',
-            'alarm', 'uv', 'key_press',
-        ) or {}
-        mapping.update(miot_service.mapping())
-        self._device = MiotDevice(mapping, host, token)
-        super().__init__(name, self._device, miot_service, config=config)
+        super().__init__(miot_service, config=config)
         self._add_entities = config.get('add_entities') or {}
-
         self._state_attrs.update({'entity_class': self.__class__.__name__})
-        self._subs = {}
 
         first_property = None
         if len(miot_service.properties) > 0:

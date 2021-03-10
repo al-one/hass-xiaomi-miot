@@ -3,17 +3,43 @@
         "flow_title": "Xiaomi Miot: {name}",
         "step": {
             "user": {
-                "title": "Xiaomi Miot",
+                "title": "Select Action",
+                "data": {
+                    "action": "Action"
+                }
+            },
+            "token": {
                 "description": "Config device info.",
                 "data": {
-                    "host": "Local IP for device",
+                    "host": "Local IP",
                     "token": "Token",
                     "name": "Device name"
+                }
+            },
+            "cloud": {
+                "description": "Config xiaomi cloud account.",
+                "data": {
+                    "username": "Xiaomi Account ID / Email",
+                    "password": "Password",
+                    "server_country": "Server location of MiCloud"
+                }
+            },
+            "cloud_filter": {
+                "description": "Filter cloud devices",
+                "data": {
+                    "filter_ssid": "Filter WiFi SSID",
+                    "ssid_list": "WiFi SSID List",
+                    "filter_bssid": "Filter WiFi BSSID",
+                    "bssid_list": "WiFi BSSID List",
+                    "filter_model": "Filter Device Model",
+                    "model_list": "Device Model List"
                 }
             }
         },
         "error": {
-            "cannot_connect": "Failed to connect the device"
+            "cannot_connect": "Failed to connect the device",
+            "cannot_login": "Failed to login the xiaomi cloud account",
+            "none_devices": "None devices in the xiaomi cloud account"
         },
         "abort": {
             "already_configured": "Device is already configured",
@@ -26,14 +52,35 @@
                 "title": "Xiaomi Miot",
                 "description": "Config device info.",
                 "data": {
-                    "host": "Local IP for device",
+                    "host": "Local IP",
                     "token": "Token",
                     "miot_cloud": "Enable miot cloud"
+                }
+            },
+            "cloud": {
+                "description": "Config xiaomi cloud account.",
+                "data": {
+                    "username": "Xiaomi Account ID / Email",
+                    "password": "Password",
+                    "server_country": "Server location of MiCloud"
+                }
+            },
+            "cloud_filter": {
+                "description": "Filter cloud devices",
+                "data": {
+                    "filter_ssid": "Filter WiFi SSID",
+                    "ssid_list": "WiFi SSID List",
+                    "filter_bssid": "Filter WiFi BSSID",
+                    "bssid_list": "WiFi BSSID List",
+                    "filter_model": "Filter Device Model",
+                    "model_list": "Device Model List"
                 }
             }
         },
         "error": {
-            "cannot_connect": "Failed to connect the device"
+            "cannot_connect": "Failed to connect the device",
+            "cannot_login": "Failed to login the xiaomi cloud account",
+            "none_devices": "None devices in the xiaomi cloud account"
         }
     }
 }
