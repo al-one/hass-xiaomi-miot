@@ -34,8 +34,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     hass.data.setdefault(DATA_KEY, {})
-    config.setdefault('add_entities', {})
-    config['add_entities'][ENTITY_DOMAIN] = async_add_entities
+    hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
     entities = []
     miot = config.get('miot_type')
@@ -61,7 +60,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
     def __init__(self, config, miot_service: MiotService, **kwargs):
         super().__init__(miot_service, config=config, **kwargs)
-        self._add_entities = config.get('add_entities') or {}
 
         pls = []
         if len(miot_service.properties) > 0:

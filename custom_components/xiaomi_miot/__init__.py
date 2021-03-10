@@ -150,6 +150,7 @@ async def async_setup(hass, hass_config: dict):
     hass.data[DOMAIN]['config'] = config
     hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('configs', {})
+    hass.data[DOMAIN].setdefault('add_entities', {})
     component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
     hass.data[DOMAIN]['component'] = component
     await component.async_setup(config)
@@ -263,6 +264,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             'entry_id': entry_id,
         }
         config['configs'].append(cfg)
+        _LOGGER.debug('Xiaomi cloud device: %s', {**cfg, CONF_TOKEN: ''})
     hass.data[DOMAIN][entry_id] = config
     return True
 
@@ -382,6 +384,7 @@ class MiioEntity(Entity):
         self._supported_features = 0
         self._props = ['power']
         self._success_result = ['ok']
+        self._add_entities = {}
         self._vars = {}
 
     @property
@@ -418,6 +421,10 @@ class MiioEntity(Entity):
             'manufacturer': (self._model or 'Xiaomi').split('.', 1)[0],
             'sw_version': self._miio_info.firmware_version,
         }
+
+    async def async_added_to_hass(self):
+        if self.hass:
+            self._add_entities = self.hass.data[DOMAIN].get('add_entities') or {}
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
@@ -507,7 +514,10 @@ class MiotEntity(MiioEntity):
             host = self._config.get(CONF_HOST) or ''
             token = self._config.get(CONF_TOKEN) or ''
             _LOGGER.info('Initializing with host %s (%s), miot mapping: %s', host, name, self._miot_mapping)
-            device = MiotDevice(self._miot_mapping, host, token)
+            try:
+                device = MiotDevice(self._miot_mapping, host, token)
+            except ValueError as exc:
+                _LOGGER.warning('Initializing with host %s (%s) failed: %s', host, name, exc)
 
         super().__init__(name, device, **kwargs)
         if self._miot_service:
@@ -615,7 +625,7 @@ class MiotEntity(MiioEntity):
             _LOGGER.error('Got MiCloudException while fetching the state for %s: %s', self.name, exc)
             return
         attrs = {}
-        for prop in results:
+        for prop in results or []:
             if not isinstance(prop, dict):
                 continue
             s = prop.get('siid')
@@ -770,8 +780,7 @@ class MiotEntity(MiioEntity):
             sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
         else:
             sls = [self._miot_service]
-        ads = self._config.get('add_entities') or {}
-        add_switches = ads.get('switch')
+        add_switches = self._add_entities.get('switch')
         for s in sls:
             pls = s.get_properties(*cv.ensure_list(properties))
             for p in pls:

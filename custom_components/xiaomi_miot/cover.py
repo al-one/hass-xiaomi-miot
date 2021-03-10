@@ -53,8 +53,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     hass.data.setdefault(DATA_KEY, {})
-    config.setdefault('add_entities', {})
-    config['add_entities'][ENTITY_DOMAIN] = async_add_entities
+    hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
     entities = []
     if model.find('mrbond.airer') >= 0:
@@ -237,7 +236,6 @@ class MrBondAirerProEntity(MiotEntity, MiioCoverEntity):
         _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
 
         self._device = MiioDevice(host, token)
-        self._add_entities = config.get('add_entities')
         super().__init__(name, self._device)
         self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_STOP
         self._state_attrs.update({'entity_class': self.__class__.__name__})
@@ -309,14 +307,14 @@ class MrBondAirerProEntity(MiotEntity, MiioCoverEntity):
                 'stopped':  bool(not self._is_opening and not self._is_closing),
             })
 
-            add_lights = self._add_entities.get('light', None)
+            add_lights = self._add_entities.get('light')
             if 'light' in self._subs:
                 self._subs['light'].update()
             elif add_lights and 'led' in attrs:
                 self._subs['light'] = MrBondAirerProLightEntity(self)
                 add_lights([self._subs['light']])
 
-            add_fans = self._add_entities.get('fan', None)
+            add_fans = self._add_entities.get('fan')
             if 'fan' in self._subs:
                 self._subs['fan'].update()
             elif add_fans and 'dry' in attrs:

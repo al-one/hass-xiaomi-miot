@@ -46,8 +46,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     hass.data.setdefault(DATA_KEY, {})
-    config.setdefault('add_entities', {})
-    config['add_entities'][ENTITY_DOMAIN] = async_add_entities
+    hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
     entities = []
     miot = config.get('miot_type')
@@ -71,7 +70,6 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
     def __init__(self, hass, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config)
         Camera.__init__(self)
-        self._add_entities = config.get('add_entities') or {}
 
         self._prop_motion_tracking = miot_service.get_property('motion_tracking')
         self._srv_stream = None
@@ -104,6 +102,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         self._subs = {}
 
     async def async_added_to_hass(self):
+        await super().async_added_to_hass()
         self._manager = self.hass.data.get(DATA_FFMPEG)
 
     @property
@@ -118,7 +117,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         await super().async_update()
         if self._available:
             if self._prop_power:
-                add_switches = self._add_entities.get('switch', None)
+                add_switches = self._add_entities.get('switch')
                 pnm = self._prop_power.full_name
                 if pnm in self._subs:
                     self._subs[pnm].update()

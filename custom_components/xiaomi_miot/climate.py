@@ -45,8 +45,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     hass.data.setdefault(DATA_KEY, {})
-    config.setdefault('add_entities', {})
-    config['add_entities'][ENTITY_DOMAIN] = async_add_entities
+    hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
     entities = []
     miot = config.get('miot_type')
@@ -81,7 +80,6 @@ class SwingModes(Enum):
 class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config)
-        self._add_entities = config.get('add_entities') or {}
 
         self._prop_power = miot_service.bool_property('on')
         self._prop_mode = miot_service.get_property('mode')

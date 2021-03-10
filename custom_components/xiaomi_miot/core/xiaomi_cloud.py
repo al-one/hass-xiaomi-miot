@@ -120,6 +120,8 @@ class MiotCloud(micloud.MiCloud):
         for d in dvs:
             if not isinstance(d, dict):
                 continue
+            if not d.get('mac'):
+                d['mac'] = d.get('did')
             k = d.get(key)
             for f in fls:
                 ft = filters.get(f'filter_{f}')
