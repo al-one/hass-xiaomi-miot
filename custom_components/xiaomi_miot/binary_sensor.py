@@ -12,12 +12,14 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotToggleEntity,
+    ToggleSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+    MiotProperty,
 )
 from .fan import MiotModesSubEntity
 from .switch import SwitchSubEntity
@@ -144,3 +146,11 @@ class MiotToiletEntity(MiotBinarySensorEntity):
     @property
     def icon(self):
         return 'mdi:toilet'
+
+
+class MiotBinarySensorSubEntity(ToggleSubEntity, BinarySensorEntity):
+    def __init__(self, parent, miot_property: MiotProperty, option=None):
+        super().__init__(parent, miot_property.full_name, option)
+        self._name = self.format_name_by_property(miot_property)
+        self._miot_service = miot_property.service
+        self._miot_property = miot_property
