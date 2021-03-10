@@ -54,7 +54,7 @@
                 "data": {
                     "host": "Local IP",
                     "token": "Token",
-                    "miot_cloud": "Enable miot cloud"
+                    "miot_cloud": "Enable miot cloud (Config account in YAML)"
                 }
             },
             "cloud": {

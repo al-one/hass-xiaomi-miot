@@ -3,17 +3,43 @@
         "flow_title": "Xiaomi Miot: {name}",
         "step": {
             "user": {
-                "title": "Xiaomi Miot",
+                "title": "选择操作",
+                "data": {
+                    "action": "操作"
+                }
+            },
+            "token": {
                 "description": "配置设备信息",
                 "data": {
                     "host": "设备IP",
                     "token": "Token",
                     "name": "名称"
                 }
+            },
+            "cloud": {
+                "description": "配置小米账户",
+                "data": {
+                    "username": "小米ID / 邮箱",
+                    "password": "小米密码",
+                    "server_country": "小米服务器"
+                }
+            },
+            "cloud_filter": {
+                "description": "筛选设备",
+                "data": {
+                    "filter_ssid": "筛选 WiFi SSID",
+                    "ssid_list": "WiFi SSID 列表",
+                    "filter_bssid": "筛选 WiFi BSSID",
+                    "bssid_list": "WiFi BSSID 列表",
+                    "filter_model": "筛选设备型号",
+                    "model_list": "设备型号列表"
+                }
             }
         },
         "error": {
-            "cannot_connect": "连接设备失败"
+            "cannot_connect": "连接设备失败",
+            "cannot_login": "小米账户登录失败",
+            "none_devices": "该小米账户下没有设备"
         },
         "abort": {
             "already_configured": "该设备已经配置过",
@@ -28,12 +54,33 @@
                 "data": {
                     "host": "设备IP",
                     "token": "Token",
-                    "miot_cloud": "开启云端模式"
+                    "miot_cloud": "开启云端模式(请先配置账户密码)"
+                }
+            },
+            "cloud": {
+                "description": "配置小米账户",
+                "data": {
+                    "username": "小米ID / 邮箱",
+                    "password": "小米密码",
+                    "server_country": "小米服务器"
+                }
+            },
+            "cloud_filter": {
+                "description": "筛选设备",
+                "data": {
+                    "filter_ssid": "筛选 WiFi SSID",
+                    "ssid_list": "WiFi SSID 列表",
+                    "filter_bssid": "筛选 WiFi BSSID",
+                    "bssid_list": "WiFi BSSID 列表",
+                    "filter_model": "筛选设备型号",
+                    "model_list": "设备型号列表"
                 }
             }
         },
         "error": {
-            "cannot_connect": "连接设备失败"
+            "cannot_connect": "连接设备失败",
+            "cannot_login": "小米账户登录失败",
+            "none_devices": "该小米账户下没有设备"
         }
     }
 }
