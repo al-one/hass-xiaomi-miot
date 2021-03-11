@@ -38,7 +38,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services('air_monitor', 'environment'):
+        for srv in spec.get_services('air_monitor'):
             if not srv.get_property('pm2_5_density', 'co2_density'):
                 continue
             cfg = {
@@ -55,10 +55,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class MiotAirQualityEntity(MiotToggleEntity, AirQualityEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config)
+        self._environment = miot_service.spec.get_service('environment') or self._miot_service
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     def get_property_value(self, *args):
-        prop = self._miot_service.get_property(*args)
+        prop = self._environment.get_property(*args)
         if prop:
             return prop.from_dict(self._state_attrs)
         return None

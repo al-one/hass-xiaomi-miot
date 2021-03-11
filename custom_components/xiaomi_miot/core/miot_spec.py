@@ -104,6 +104,7 @@ class MiotService:
         self.iid = int(dat.get('iid') or 0)
         self.type = str(dat.get('type') or '')
         self.name = MiotSpec.name_by_type(self.type)
+        self.unique_name = f'{self.name}-{self.iid}'
         self.description = dat.get('description') or self.name
         self.properties = {}
         for p in (dat.get('properties') or []):
@@ -183,6 +184,7 @@ class MiotProperty:
                 if len(self.full_name) >= 32:
                     # miot did length must less than 32
                     self.full_name = self.name
+        self.unique_name = f'{service.unique_name}-{self.iid}'
         self.description = dat.get('description') or self.name
         self.format = dat.get('format') or ''
         self.access = dat.get('access') or []

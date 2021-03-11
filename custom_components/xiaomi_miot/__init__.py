@@ -393,6 +393,10 @@ class MiioEntity(Entity):
         return self._unique_id
 
     @property
+    def unique_did(self):
+        return self._unique_did
+
+    @property
     def name(self):
         return self._name
 
@@ -575,6 +579,14 @@ class MiotEntity(MiioEntity):
         return self.miot_cloud
 
     @property
+    def miot_config(self):
+        return self._config
+
+    @property
+    def miot_device(self):
+        return self._device
+
+    @property
     def miot_mapping(self):
         return self._miot_mapping or self._device.mapping
 
@@ -645,7 +657,36 @@ class MiotEntity(MiioEntity):
         self._available = True
         self._state = True if attrs.get('power') else False
         attrs['state_updater'] = updater
+
         if self._miot_service:
+            self._update_sub_entities(
+                [
+                    'temperature', 'indoor_temperature', 'relative_humidity', 'humidity',
+                    'pm2_5_density', 'co2_density', 'illumination', 'motion_state',
+                ],
+                ['environment', 'illumination_sensor', 'motion_sensor'],
+                domain='sensor',
+            )
+            self._update_sub_entities(
+                ['filter_life_level', 'filter_left_time', 'filter_used_time', 'filter_left_flow', 'filter_used_flow'],
+                ['filter'],
+                domain='sensor',
+            )
+            self._update_sub_entities(
+                ['battery_level', 'charging_state', 'voltage'],
+                ['battery'],
+                domain='sensor',
+            )
+            self._update_sub_entities(
+                ['tds_in', 'tds_out'],
+                ['tds_sensor'],
+                domain='sensor',
+            )
+            self._update_sub_entities(
+                ['brush_life_level', 'brush_left_time'],
+                ['brush_cleaner'],
+                domain='sensor',
+            )
             self._update_sub_entities(
                 'physical_controls_locked',
                 ['physical_controls_locked', self._miot_service.name],
@@ -775,23 +816,40 @@ class MiotEntity(MiioEntity):
             self._state = False
         return ret
 
-    def _update_sub_entities(self, properties, services=None):
+    def _update_sub_entities(self, properties, services=None, domain=None):
         from .switch import MiotSwitchSubEntity
+        from .light import MiotLightSubEntity
         if isinstance(services, list):
             sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
+        elif isinstance(services, MiotService):
+            sls = [services]
         else:
             sls = [self._miot_service]
+        add_sensors = self._add_entities.get('sensor')
         add_switches = self._add_entities.get('switch')
+        add_lights = self._add_entities.get('light')
         for s in sls:
+            if not properties:
+                if s.unique_name in self._subs:
+                    self._subs[s.unique_name].update()
+                elif add_lights and domain == 'light' and s.get_property('on'):
+                    self._subs[s.unique_name] = MiotLightSubEntity(self, s)
+                    add_lights([self._subs[s.unique_name]])
+                continue
             pls = s.get_properties(*cv.ensure_list(properties))
             for p in pls:
-                if p.full_name not in self._state_attrs:
+                fnm = p.full_name
+                if fnm not in self._state_attrs:
                     continue
-                if p.full_name in self._subs:
-                    self._subs[p.full_name].update()
+                if fnm in self._subs:
+                    self._subs[fnm].update()
                 elif add_switches and p.format == 'bool':
-                    self._subs[p.full_name] = MiotSwitchSubEntity(self, p)
-                    add_switches([self._subs[p.full_name]])
+                    self._subs[fnm] = MiotSwitchSubEntity(self, p)
+                    add_switches([self._subs[fnm]])
+                elif add_sensors and domain == 'sensor':
+                    self._subs[fnm] = MiotSensorSubEntity(self, p)
+                    add_sensors([self._subs[fnm]])
+
 
 
 class MiotToggleEntity(MiotEntity, ToggleEntity):
@@ -896,6 +954,9 @@ class BaseSubEntity(Entity):
                 if k in keys
             }
 
+    async def async_update(self):
+        await self.hass.async_add_executor_job(self.update)
+
     def update_attrs(self, attrs: dict, update_parent=True):
         self._state_attrs.update(attrs or {})
         if update_parent:
@@ -937,3 +998,35 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
 
     def turn_off(self, **kwargs):
         return self.call_parent('turn_off', **kwargs)
+
+
+class MiotSensorSubEntity(BaseSubEntity):
+    def __init__(self, parent, miot_property: MiotProperty, option=None):
+        self._miot_service = miot_property.service
+        self._miot_property = miot_property
+        super().__init__(parent, miot_property.full_name, option)
+        self._name = self.format_name_by_property(miot_property)
+        if not self._option.get('unique_id'):
+            self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
+
+        if miot_property.unit in ['celsius', TEMP_CELSIUS]:
+            self._option['unit'] = TEMP_CELSIUS
+        elif miot_property.unit in ['fahrenheit', TEMP_FAHRENHEIT]:
+            self._option['unit'] = TEMP_FAHRENHEIT
+        elif miot_property.unit in ['kelvin', TEMP_KELVIN]:
+            self._option['unit'] = TEMP_KELVIN
+        elif miot_property.unit in ['percentage', PERCENTAGE]:
+            self._option['unit'] = PERCENTAGE
+        elif miot_property.unit in ['μg/m3', CONCENTRATION_MICROGRAMS_PER_CUBIC_METER]:
+            self._option['unit'] = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        elif miot_property.unit:
+            self._option['unit'] = miot_property.unit
+
+        if 'temperature' in miot_property.full_name:
+            self._option['device_class'] = DEVICE_CLASS_TEMPERATURE
+        elif 'humidity' in miot_property.full_name:
+            self._option['device_class'] = DEVICE_CLASS_HUMIDITY
+        elif 'battery' in miot_property.full_name:
+            self._option['device_class'] = DEVICE_CLASS_BATTERY
+        elif 'illumination' in miot_property.full_name:
+            self._option['device_class'] = DEVICE_CLASS_ILLUMINANCE

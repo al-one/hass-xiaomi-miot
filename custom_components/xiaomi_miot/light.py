@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         miot = config.get('miot_type')
         if miot:
             spec = await MiotSpec.async_from_type(hass, miot)
-            for srv in spec.get_services(ENTITY_DOMAIN, 'night_light'):
+            for srv in spec.get_services(ENTITY_DOMAIN):
                 if not srv.get_property('on'):
                     continue
                 cfg = {
@@ -70,8 +70,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class MiotLightEntity(MiotToggleEntity, LightEntity):
-    def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+    def __init__(self, config: dict, miot_service: MiotService, **kwargs):
+        super().__init__(miot_service, config=config, **kwargs)
 
         self._prop_power = miot_service.get_property('on')
         self._prop_brightness = miot_service.get_property('brightness')
@@ -165,6 +165,24 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             if val is not None:
                 return self._prop_mode.list_description(val)
         return None
+
+
+class MiotLightSubEntity(ToggleSubEntity, MiotLightEntity):
+    def __init__(self, parent, miot_service: MiotService):
+        self._prop_power = miot_service.get_property('on')
+        ToggleSubEntity.__init__(self, parent, self._prop_power.full_name, {
+            'keys': list((miot_service.mapping() or {}).keys()),
+        })
+        MiotLightEntity.__init__(self, {
+            **parent.miot_config,
+            'name': f'{parent.name} {miot_service.description}',
+        }, miot_service, device=parent.miot_device)
+
+    def update(self):
+        super().update()
+        self._state_attrs.update({'entity_class': self.__class__.__name__})
+        if not self._available:
+            return
 
 
 class LightSubEntity(ToggleSubEntity, LightEntity):
