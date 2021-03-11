@@ -152,6 +152,7 @@ async def async_setup(hass, hass_config: dict):
     hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('configs', {})
     hass.data[DOMAIN].setdefault('add_entities', {})
+    hass.data[DOMAIN].setdefault('sub_entities', {})
     component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
     hass.data[DOMAIN]['component'] = component
     await component.async_setup(config)
@@ -673,8 +674,11 @@ class MiotEntity(MiioEntity):
                 domain='sensor',
             )
             self._update_sub_entities(
-                ['battery_level', 'charging_state', 'voltage'],
-                ['battery'],
+                [
+                    'battery_level', 'charging_state', 'voltage', 'power_consumption', 'electric_current',
+                    'leakage_current', 'surge_power', 'electric_power', 'elec_count',
+                ],
+                ['battery', 'power_consumption', 'electricity'],
                 domain='sensor',
             )
             self._update_sub_entities(
@@ -818,38 +822,69 @@ class MiotEntity(MiioEntity):
         return ret
 
     def _update_sub_entities(self, properties, services=None, domain=None):
+        from .binary_sensor import MiotBinarySensorSubEntity
         from .switch import MiotSwitchSubEntity
         from .light import MiotLightSubEntity
-        if isinstance(services, list):
-            sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
-        elif isinstance(services, MiotService):
+        if isinstance(services, MiotService):
             sls = [services]
+        elif services:
+            sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
         else:
             sls = [self._miot_service]
         add_sensors = self._add_entities.get('sensor')
+        add_binary_sensors = self._add_entities.get('binary_sensor')
         add_switches = self._add_entities.get('switch')
         add_lights = self._add_entities.get('light')
         for s in sls:
             if not properties:
-                if s.unique_name in self._subs:
-                    self._subs[s.unique_name].update()
+                fnm = s.unique_name
+                tms = self._check_same_sub_entity(fnm, domain)
+                new = True
+                if fnm in self._subs:
+                    new = False
+                    self._subs[fnm].update()
+                elif tms > 0:
+                    if tms <= 1:
+                        _LOGGER.info('Device %s sub entity %s: %s already exists.', self.name, domain, fnm)
                 elif add_lights and domain == 'light' and s.get_property('on'):
-                    self._subs[s.unique_name] = MiotLightSubEntity(self, s)
-                    add_lights([self._subs[s.unique_name]])
+                    self._subs[fnm] = MiotLightSubEntity(self, s)
+                    add_lights([self._subs[fnm]])
+                if new and fnm in self._subs:
+                    self._check_same_sub_entity(fnm, domain, add=1)
+                    _LOGGER.debug('Added sub entity %s: %s for %s.', domain, fnm, self.name)
                 continue
             pls = s.get_properties(*cv.ensure_list(properties))
             for p in pls:
-                fnm = p.full_name
-                if fnm not in self._state_attrs:
+                if p.full_name not in self._state_attrs:
                     continue
+                fnm = p.unique_name
+                tms = self._check_same_sub_entity(fnm, domain)
+                new = True
                 if fnm in self._subs:
+                    new = False
                     self._subs[fnm].update()
-                elif add_switches and p.format == 'bool':
+                elif tms > 0:
+                    if tms <= 1:
+                        _LOGGER.info('Device %s sub entity %s: %s already exists.', self.name, domain, fnm)
+                elif add_switches and p.format == 'bool' and p.writeable:
                     self._subs[fnm] = MiotSwitchSubEntity(self, p)
                     add_switches([self._subs[fnm]])
+                elif add_binary_sensors and p.format == 'bool':
+                    self._subs[fnm] = MiotBinarySensorSubEntity(self, p)
+                    add_binary_sensors([self._subs[fnm]])
                 elif add_sensors and domain == 'sensor':
                     self._subs[fnm] = MiotSensorSubEntity(self, p)
                     add_sensors([self._subs[fnm]])
+                if new and fnm in self._subs:
+                    self._check_same_sub_entity(fnm, domain, add=1)
+                    _LOGGER.debug('Added sub entity %s: %s for %s.', domain, fnm, self.name)
+
+    def _check_same_sub_entity(self, name, domain=None, add=0):
+        uni = f'{self._unique_did}-{name}-{domain}'
+        pre = int(self.hass.data[DOMAIN]['sub_entities'].get(uni) or 0)
+        if add:
+            self.hass.data[DOMAIN]['sub_entities'][uni] = pre + add
+        return pre
 
 
 
@@ -1010,18 +1045,19 @@ class MiotSensorSubEntity(BaseSubEntity):
         if not self._option.get('unique_id'):
             self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
 
-        if miot_property.unit in ['celsius', TEMP_CELSIUS]:
+        unit = miot_property.unit
+        if unit in ['celsius', TEMP_CELSIUS]:
             self._option['unit'] = TEMP_CELSIUS
-        elif miot_property.unit in ['fahrenheit', TEMP_FAHRENHEIT]:
+        elif unit in ['fahrenheit', TEMP_FAHRENHEIT]:
             self._option['unit'] = TEMP_FAHRENHEIT
-        elif miot_property.unit in ['kelvin', TEMP_KELVIN]:
+        elif unit in ['kelvin', TEMP_KELVIN]:
             self._option['unit'] = TEMP_KELVIN
-        elif miot_property.unit in ['percentage', PERCENTAGE]:
+        elif unit in ['percentage', PERCENTAGE]:
             self._option['unit'] = PERCENTAGE
-        elif miot_property.unit in ['μg/m3', CONCENTRATION_MICROGRAMS_PER_CUBIC_METER]:
+        elif unit in ['μg/m3', CONCENTRATION_MICROGRAMS_PER_CUBIC_METER]:
             self._option['unit'] = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
-        elif miot_property.unit:
-            self._option['unit'] = miot_property.unit
+        elif unit and unit not in ['none']:
+            self._option['unit'] = unit
 
         if 'temperature' in miot_property.full_name:
             self._option['device_class'] = DEVICE_CLASS_TEMPERATURE
@@ -1031,3 +1067,9 @@ class MiotSensorSubEntity(BaseSubEntity):
             self._option['device_class'] = DEVICE_CLASS_BATTERY
         elif 'illumination' in miot_property.full_name:
             self._option['device_class'] = DEVICE_CLASS_ILLUMINANCE
+        elif 'voltage' in miot_property.full_name:
+            self._option['device_class'] = DEVICE_CLASS_VOLTAGE
+        elif 'electric_current' in miot_property.full_name:
+            self._option['device_class'] = DEVICE_CLASS_CURRENT
+        elif 'electric_power' in miot_property.full_name:
+            self._option['device_class'] = DEVICE_CLASS_POWER
