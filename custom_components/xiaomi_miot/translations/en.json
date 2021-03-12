@@ -62,7 +62,8 @@
                 "data": {
                     "username": "Xiaomi Account ID / Email",
                     "password": "Password",
-                    "server_country": "Server location of MiCloud"
+                    "server_country": "Server location of MiCloud",
+                    "renew_devices": "Force renew devices"
                 }
             },
             "cloud_filter": {

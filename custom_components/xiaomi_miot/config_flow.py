@@ -60,14 +60,14 @@ async def check_miio_device(hass, user_input, errors):
     return user_input
 
 
-async def check_xiaomi_account(hass, user_input, errors):
+async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
     dvs = []
     try:
         mic = await MiotCloud.from_token(hass, user_input)
         if not mic:
             raise MiCloudException('Login failed')
         user_input['xiaomi_cloud'] = mic
-        dvs = await mic.async_get_devices() or []
+        dvs = await mic.async_get_devices(renew=renew_devices) or []
     except MiCloudException as exc:
         errors['base'] = 'cannot_login'
         _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', user_input.get(CONF_USERNAME), exc)
@@ -276,7 +276,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         errors = {}
         if isinstance(user_input, dict):
             user_input = {**self.config_entry.data, **self.config_entry.options, **user_input}
-            await check_xiaomi_account(self.hass, user_input, errors)
+            renew = user_input.get('renew_devices') and True
+            await check_xiaomi_account(self.hass, user_input, errors, renew_devices=renew)
             if not errors:
                 return await self.async_step_cloud_filter(user_input)
         else:
@@ -288,6 +289,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
                 vol.Required('server_country', default=user_input.get('server_country', 'cn')):
                     vol.In(CLOUD_SERVERS),
+                vol.Optional('renew_devices', default=user_input.get('renew_devices', False)): bool,
             }),
             errors=errors,
         )
