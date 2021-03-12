@@ -114,6 +114,7 @@ doamin.your_entity_id:
         - [power-consumption](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:power-consumption:0000780E)
         - [tds-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:tds-sensor:0000780D)
         - [illumination-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:illumination-sensor:0000783D)
+        - [temperature-humidity-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:temperature-humidity-sensor:00007814)
 - [binary_sensor](https://www.home-assistant.io/integrations/binary_sensor)
     - [toilet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:toilet:00007877)
 - [air_quality](https://www.home-assistant.io/integrations/air_quality)

@@ -55,9 +55,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'water_purifier', 'oven', 'microwave_oven',
                 'cooker', 'induction_cooker', 'pressure_cooker',
                 'health_pot', 'coffee_machine', 'router', 'video_doorbell',
+                'temperature_humidity_sensor',
             ):
                 if srv.name in ['video_doorbell']:
                     if not (srv.mapping() or spec.get_service('battery')):
+                        continue
+                elif srv.name in ['temperature_humidity_sensor']:
+                    if spec.name not in ['temperature_humidity_sensor']:
                         continue
                 elif not srv.mapping():
                     continue
@@ -90,6 +94,8 @@ class MiotSensorEntity(MiotEntity):
         )
         if miot_service.name in ['tds_sensor']:
             self._prop_state = miot_service.get_property('tds_out') or self._prop_state
+        elif miot_service.name in ['temperature_humidity_sensor']:
+            self._prop_state = miot_service.get_property('temperature', 'indoor_temperature') or self._prop_state
 
     async def async_update(self):
         await super().async_update()
@@ -115,6 +121,11 @@ class MiotSensorEntity(MiotEntity):
                 ['on'],
                 ['router', 'wifi', 'guest_wifi'],
                 domain='switch',
+            )
+            self._update_sub_entities(
+                ['relative_humidity', 'humidity', 'pm2_5_density'],
+                ['temperature_humidity_sensor'],
+                domain='sensor',
             )
 
     @property
