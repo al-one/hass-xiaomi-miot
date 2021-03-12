@@ -123,7 +123,7 @@ class MiotSensorEntity(MiotEntity):
                 domain='switch',
             )
             self._update_sub_entities(
-                ['relative_humidity', 'humidity', 'pm2_5_density'],
+                ['relative_humidity', 'humidity', 'pm2_5_density', 'battery_level'],
                 ['temperature_humidity_sensor'],
                 domain='sensor',
             )
