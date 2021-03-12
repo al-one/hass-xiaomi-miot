@@ -1045,6 +1045,14 @@ class MiotSensorSubEntity(BaseSubEntity):
         if not self._option.get('unique_id'):
             self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
 
+        self._prop_battery = None
+        for s in self._miot_service.spec.get_services('battery', self._miot_service.name):
+            p = s.get_property('battery_level')
+            if p:
+                self._prop_battery = p
+        if self._prop_battery:
+            self._option['keys'] = [*(self._option.get('keys') or []), self._prop_battery.full_name]
+
         unit = miot_property.unit
         if unit in ['celsius', TEMP_CELSIUS]:
             self._option['unit'] = TEMP_CELSIUS
