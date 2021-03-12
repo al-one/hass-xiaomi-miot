@@ -54,11 +54,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             for srv in spec.get_services(
                 'water_purifier', 'oven', 'microwave_oven',
                 'cooker', 'induction_cooker', 'pressure_cooker',
-                'health_pot', 'coffee_machine', 'router',
+                'health_pot', 'coffee_machine', 'router', 'video_doorbell',
             ):
-                if not srv.mapping():
-                    continue
-                if srv.name in ['environment'] and srv.get_property('pm2_5_density'):
+                if srv.name in ['video_doorbell']:
+                    if not (srv.mapping() or spec.get_service('battery')):
+                        continue
+                elif not srv.mapping():
                     continue
                 cfg = {
                     **config,
@@ -101,6 +102,7 @@ class MiotSensorEntity(MiotEntity):
                     ext[f'{self._prop_state.full_name}_desc'] = des
             if ext:
                 self.update_attrs(ext)
+            self._update_sub_entities('on', domain='switch')
             self._update_sub_entities(
                 [
                     'download_speed', 'upload_speed', 'connected_device_number', 'network_connection_type',
@@ -176,7 +178,6 @@ class MiotCookerEntity(MiotSensorEntity):
     async def async_update(self):
         await super().async_update()
         if self._available:
-            self._update_sub_entities('on')
             if self._prop_state:
                 add_fans = self._add_entities.get('fan')
                 add_switches = self._add_entities.get('switch')
