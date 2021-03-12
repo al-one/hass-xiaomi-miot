@@ -89,12 +89,13 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None):
         for d in dvs:
             for f in fls:
                 v = d.get(f)
-                if not v:
+                if v is None:
                     continue
                 grp.setdefault(v, 0)
                 grp[v] += 1
                 vls.setdefault(f, {})
-                vls[f][v] = f'{v} ({grp[v]})'
+                des = '<empty>' if v == '' else v
+                vls[f][v] = f'{des} ({grp[v]})'
         ies = {
             'include': 'Include (包含)',
             'exclude': 'Exclude (排除)',

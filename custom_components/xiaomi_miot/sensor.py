@@ -54,7 +54,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             for srv in spec.get_services(
                 'water_purifier', 'oven', 'microwave_oven',
                 'cooker', 'induction_cooker', 'pressure_cooker',
-                'health_pot', 'coffee_machine',
+                'health_pot', 'coffee_machine', 'router',
             ):
                 if not srv.mapping():
                     continue
@@ -85,10 +85,7 @@ class MiotSensorEntity(MiotEntity):
         if len(miot_service.properties) > 0:
             first_property = list(miot_service.properties.values() or [])[0].name
         self._prop_state = miot_service.get_property(
-            'temperature', 'relative_humidity', 'humidity',
-            'illumination', 'battery', 'battery_level', 'status', 'fault',
-            'tds_out', 'tds_in', 'filter_life_level', 'filter_left_time',
-            'filter_used_time', 'filter_used_flow', first_property or 'status',
+            'status', 'fault', first_property or 'status',
         )
         if miot_service.name in ['tds_sensor']:
             self._prop_state = miot_service.get_property('tds_out') or self._prop_state
@@ -104,6 +101,19 @@ class MiotSensorEntity(MiotEntity):
                     ext[f'{self._prop_state.full_name}_desc'] = des
             if ext:
                 self.update_attrs(ext)
+            self._update_sub_entities(
+                [
+                    'download_speed', 'upload_speed', 'connected_device_number', 'network_connection_type',
+                    'ip_address', 'online_time', 'wifi_ssid', 'wifi_bandwidth',
+                ],
+                ['router', 'wifi', 'guest_wifi'],
+                domain='sensor',
+            )
+            self._update_sub_entities(
+                ['on'],
+                ['router', 'wifi', 'guest_wifi'],
+                domain='switch',
+            )
 
     @property
     def state(self):
