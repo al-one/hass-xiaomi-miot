@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'water_purifier', 'oven', 'microwave_oven',
                 'cooker', 'induction_cooker', 'pressure_cooker',
                 'health_pot', 'coffee_machine', 'router', 'video_doorbell',
-                'temperature_humidity_sensor',
+                'temperature_humidity_sensor', 'printer',
             ):
                 if srv.name in ['video_doorbell']:
                     if not (srv.mapping() or spec.get_service('battery')):
