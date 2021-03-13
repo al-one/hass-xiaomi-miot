@@ -48,7 +48,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities)
+    await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):

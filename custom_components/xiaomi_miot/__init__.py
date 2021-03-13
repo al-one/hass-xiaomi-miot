@@ -332,12 +332,18 @@ def bind_services_to_entries(hass, services):
         hass.services.async_register(DOMAIN, srv, async_service_handler, schema=schema)
 
 
-async def async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities):
-    cfg = hass.data[DOMAIN].get(config_entry.entry_id) or {}
+async def async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, domain=None):
+    eid = config_entry.entry_id
+    cfg = hass.data[DOMAIN].get(eid) or {}
+    if not cfg:
+        hass.data[DOMAIN].setdefault(eid, {})
+    if domain:
+        hass.data[DOMAIN][eid].setdefault('add_entities', {})
+        hass.data[DOMAIN][eid]['add_entities'][domain] = async_add_entities
     cls = cfg.get('configs')
     if not cls:
         cls = [
-            hass.data[DOMAIN]['configs'].get(config_entry.entry_id, dict(config_entry.data)),
+            hass.data[DOMAIN]['configs'].get(eid, dict(config_entry.data)),
         ]
     for c in cls:
         await async_setup_platform(hass, c, async_add_entities)
@@ -430,6 +436,10 @@ class MiioEntity(Entity):
 
     async def async_added_to_hass(self):
         if self.hass:
+            if self.platform and self.platform.config_entry:
+                eid = self.platform.config_entry.entry_id
+                self._add_entities = self.hass.data[DOMAIN][eid].get('add_entities') or {}
+        else:
             self._add_entities = self.hass.data[DOMAIN].get('add_entities') or {}
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
