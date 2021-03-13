@@ -85,7 +85,7 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None):
     else:
         grp = {}
         vls = {}
-        fls = ['ssid', 'bssid', 'model']
+        fls = ['model', 'ssid', 'bssid']
         for d in dvs:
             for f in fls:
                 v = d.get(f)
@@ -107,9 +107,10 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None):
             fl = f'{f}_list'
             lst = vls.get(f, {})
             lst = dict(sorted(lst.items()))
+            fkd = 'include' if f in ['model'] else 'exclude'
             schema = schema.extend({
-                vol.Optional(fk, default=user_input.get(fk, 'include')): vol.In(ies),
-                vol.Optional(fl, default=user_input.get(fl, '')): cv.multi_select(lst),
+                vol.Optional(fk, default=user_input.get(fk, fkd)): vol.In(ies),
+                vol.Optional(fl, default=user_input.get(fl, [])): cv.multi_select(lst),
             })
         hass.data[DOMAIN]['prev_input'] = user_input
     return schema
