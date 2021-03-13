@@ -14,11 +14,14 @@ class MiotSpec:
         self.name = self.name_by_type(self.type)
         self.description = dat.get('description') or ''
         self.services = []
+        self.services_count = {}
         for s in (dat.get('services') or []):
             srv = MiotService(s, self)
             if not srv.name:
                 continue
             self.services.append(srv)
+            self.services_count.setdefault(srv.name, 0)
+            self.services_count[srv.name] += 1
 
     def services_mapping(self, *args, **kwargs):
         dat = None
@@ -105,6 +108,7 @@ class MiotService:
         self.type = str(dat.get('type') or '')
         self.name = MiotSpec.name_by_type(self.type)
         self.unique_name = f'{self.name}-{self.iid}'
+        self.name_count = self.spec.services_count.get(self.name) or 0
         self.description = dat.get('description') or self.name
         self.properties = {}
         for p in (dat.get('properties') or []):
@@ -184,6 +188,8 @@ class MiotProperty:
                 if len(self.full_name) >= 32:
                     # miot did length must less than 32
                     self.full_name = self.name
+            if service.name_count > 1:
+                self.full_name = f'{service.name}-{service.iid}.{self.name}'
         self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
         self.description = dat.get('description') or self.name
         self.format = dat.get('format') or ''
