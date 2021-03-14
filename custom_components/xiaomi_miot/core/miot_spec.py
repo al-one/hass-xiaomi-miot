@@ -247,7 +247,7 @@ class MiotProperty:
                 if cnt > max_length:
                     lst.append(rmx)
                     break
-                lst.append(cur)
+                lst.append(f'{cur}')
                 cur += stp
             return lst
         return self.list_description(None)
