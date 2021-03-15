@@ -26,7 +26,7 @@ from miio import (
     Device as MiioDevice,  # noqa: F401
     DeviceException,
 )
-from miio.device import DeviceInfo as MiioInfo
+from miio.device import DeviceInfo as MiioInfoBase
 from miio.miot_device import MiotDevice as MiotDeviceBase
 
 from .core.miot_spec import (
@@ -348,6 +348,18 @@ async def async_setup_config_entry(hass, config_entry, async_setup_platform, asy
     for c in cls:
         await async_setup_platform(hass, c, async_add_entities)
     return cls
+
+
+class MiioInfo(MiioInfoBase):
+    @property
+    def firmware_version(self):
+        """Firmware version if available."""
+        return self.data.get('fw_ver')
+
+    @property
+    def hardware_version(self):
+        """Hardware version if available."""
+        return self.data.get('hw_ver')
 
 
 class MiotDevice(MiotDeviceBase):
