@@ -2,6 +2,7 @@
 import logging
 import voluptuous as vol
 from datetime import timedelta
+from functools import partial
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.media_player import (
@@ -257,4 +258,6 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
         return False
 
     async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
-        await self.hass.async_add_executor_job(self.intelligent_speaker, text, execute, silent, **kwargs)
+        return await self.hass.async_add_executor_job(
+            partial(self.intelligent_speaker, text, execute, silent, **kwargs)
+        )
