@@ -40,6 +40,7 @@ SERVICE_TO_METHOD = {
                 vol.Required('text'): cv.string,
                 vol.Optional('execute', default=False): cv.boolean,
                 vol.Optional('silent', default=False): cv.boolean,
+                vol.Optional('throw', default=False): cv.boolean,
             },
         ),
     },
@@ -239,7 +240,7 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
     def set_repeat(self, repeat):
         return False
 
-    def intelligent_speaker(self, text, execute=False, silent=False):
+    def intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         srv = self._miot_service.spec.get_service('intelligent_speaker')
         if srv:
             anm = 'execute_text_directive' if execute else 'play_text'
@@ -248,12 +249,12 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
                 pms = [text]
                 if execute:
                     pms.append(0 if silent else 1)
-                return self.miot_action(srv.iid, act.iid, pms)
+                return self.miot_action(srv.iid, act.iid, pms, **kwargs)
             else:
-                _LOGGER.info('%s have no action: %s', self.name, anm)
+                _LOGGER.warning('%s have no action: %s', self.name, anm)
         else:
-            _LOGGER.info('%s have no service: %s', self.name, 'intelligent_speaker')
+            _LOGGER.warning('%s have no service: %s', self.name, 'intelligent_speaker')
         return False
 
-    async def async_intelligent_speaker(self, text, execute=False, silent=False):
-        await self.hass.async_add_executor_job(self.intelligent_speaker, text, execute, silent)
+    async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
+        await self.hass.async_add_executor_job(self.intelligent_speaker, text, execute, silent, **kwargs)

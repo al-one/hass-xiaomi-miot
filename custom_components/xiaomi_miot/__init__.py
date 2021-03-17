@@ -125,6 +125,7 @@ SERVICE_TO_METHOD_BASE = {
                 vol.Required('siid'): int,
                 vol.Required('aiid'): int,
                 vol.Optional('params', default=[]): cv.ensure_list,
+                vol.Optional('throw', default=False): cv.boolean,
             },
         ),
     },
@@ -641,7 +642,7 @@ class MiotEntity(MiioEntity):
                 results = await self.hass.async_add_executor_job(
                     partial(self.miot_cloud.get_properties_for_mapping, self.miot_did, self.miot_mapping)
                 )
-                if self.custom_config('check_lan'):
+                if self._device and self.custom_config('check_lan'):
                     await self.hass.async_add_executor_job(self._device.info)
             else:
                 for k, v in self.miot_mapping.items():
@@ -804,7 +805,7 @@ class MiotEntity(MiioEntity):
     async def async_set_miot_property(self, siid, piid, value, did=None):
         return await self.hass.async_add_executor_job(partial(self.set_miot_property, siid, piid, value, did))
 
-    def miot_action(self, siid, aiid, params=None, did=None):
+    def miot_action(self, siid, aiid, params=None, did=None, **kwargs):
         if did is None:
             did = self.miot_did or f'action-{siid}-{aiid}'
         pms = {
@@ -826,10 +827,15 @@ class MiotEntity(MiioEntity):
             _LOGGER.warning('Call miot action to cloud for %s (%s) failed: %s', self.name, pms, exc)
         if ret:
             _LOGGER.debug('Call miot action to %s (%s), result: %s', self.name, pms, ret)
+        self._state_attrs['miot_action_result'] = ret
+        if kwargs.get('throw'):
+            raise ValueError(f'Miot action result: {ret}')
         return ret
 
-    async def async_miot_action(self, siid, aiid, params=None, did=None):
-        return await self.hass.async_add_executor_job(partial(self.miot_action, siid, aiid, params, did))
+    async def async_miot_action(self, siid, aiid, params=None, did=None, **kwargs):
+        return await self.hass.async_add_executor_job(
+            partial(self.miot_action, siid, aiid, params, did, **kwargs)
+        )
 
     def turn_on(self, **kwargs):
         ret = self.set_property('power', True)
