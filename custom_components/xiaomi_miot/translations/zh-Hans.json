@@ -21,8 +21,7 @@
                 "data": {
                     "username": "小米ID / 邮箱",
                     "password": "小米密码",
-                    "server_country": "小米服务器",
-                    "renew_devices": "更新设备列表"
+                    "server_country": "小米服务器"
                 }
             },
             "cloud_filter": {
@@ -63,7 +62,8 @@
                 "data": {
                     "username": "小米ID / 邮箱",
                     "password": "小米密码",
-                    "server_country": "小米服务器"
+                    "server_country": "小米服务器",
+                    "renew_devices": "更新设备列表"
                 }
             },
             "cloud_filter": {
