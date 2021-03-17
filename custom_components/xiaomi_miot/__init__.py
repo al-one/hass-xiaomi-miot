@@ -635,6 +635,7 @@ class MiotEntity(MiioEntity):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
         updater = 'lan'
+        results = []
         rmp = {}
         try:
             if self.miot_cloud:
@@ -644,7 +645,7 @@ class MiotEntity(MiioEntity):
                 )
                 if self._device and self.custom_config('check_lan'):
                     await self.hass.async_add_executor_job(self._device.info)
-            else:
+            elif self._device:
                 for k, v in self.miot_mapping.items():
                     s = v.get('siid')
                     p = v.get('piid')
@@ -653,6 +654,8 @@ class MiotEntity(MiioEntity):
                 results = await self.hass.async_add_executor_job(
                     partial(self._device.get_properties_for_mapping, max_properties=max_properties)
                 )
+            else:
+                _LOGGER.error('None local device and miot cloud not ready %s', self.name)
         except DeviceException as exc:
             self._available = False
             _LOGGER.error('Got MiioException while fetching the state for %s: %s', self.name, exc)

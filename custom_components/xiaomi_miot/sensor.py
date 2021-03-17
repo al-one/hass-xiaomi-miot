@@ -44,7 +44,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
     entities = []
-    if model in ['yunmi.waterpuri.lx9', 'yunmi.waterpuri.lx11']:
+    if model in ['yunmi.waterpuri.lx9', 'yunmi.waterpuri.lx11-']:
         entity = WaterPurifierYunmiEntity(config)
         entities.append(entity)
     else:
