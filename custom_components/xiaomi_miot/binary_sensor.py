@@ -5,6 +5,7 @@ from homeassistant.const import *  # noqa: F401
 from homeassistant.components.binary_sensor import (
     DOMAIN as ENTITY_DOMAIN,
     BinarySensorEntity,
+    DEVICE_CLASS_MOTION,
 )
 
 from . import (
@@ -42,7 +43,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services('toilet'):
+        for srv in spec.get_services('toilet', 'motion_sensor'):
             if not srv.mapping():
                 continue
             cfg = {
@@ -69,10 +70,21 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
             if first_property:
                 pls.append(first_property)
         self._prop_state = miot_service.get_property(*pls)
+
+        if miot_service.name in ['motion_sensor']:
+            self._prop_state = miot_service.get_property('motion_state') or self._prop_state
+            self._vars['device_class'] = DEVICE_CLASS_MOTION
+
         self._state_attrs.update({
             'entity_class': self.__class__.__name__,
             'state_property': self._prop_state.full_name if self._prop_state else None,
         })
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        self._update_sub_entities(['illumination', 'no_motion_duration'], domain='sensor')
 
     @property
     def is_on(self):
@@ -89,7 +101,7 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
     @property
     def device_class(self):
-        return None
+        return self._vars.get('device_class')
 
 
 class MiotToiletEntity(MiotBinarySensorEntity):
