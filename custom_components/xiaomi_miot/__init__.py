@@ -1116,3 +1116,16 @@ class MiotSensorSubEntity(BaseSubEntity):
             self._option['device_class'] = DEVICE_CLASS_CURRENT
         elif 'electric_power' in miot_property.full_name:
             self._option['device_class'] = DEVICE_CLASS_POWER
+
+    def update(self):
+        super().update()
+        if not self._available:
+            return
+        self._miot_property.description_to_dict(self._state_attrs)
+
+    @property
+    def state(self):
+        key = f'{self._miot_property.full_name}_desc'
+        if key in self._state_attrs:
+            return f'{self._state_attrs[key]}'.lower()
+        return self._miot_property.from_dict(self._state_attrs, STATE_UNKNOWN)

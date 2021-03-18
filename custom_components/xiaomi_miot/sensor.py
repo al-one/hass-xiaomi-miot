@@ -55,9 +55,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'water_purifier', 'oven', 'microwave_oven',
                 'cooker', 'induction_cooker', 'pressure_cooker',
                 'health_pot', 'coffee_machine', 'router', 'video_doorbell',
-                'temperature_humidity_sensor', 'printer',
+                'temperature_humidity_sensor', 'printer', 'lock',
             ):
-                if srv.name in ['video_doorbell']:
+                if srv.name in ['lock']:
+                    if not srv.get_property('operation_method'):
+                        continue
+                elif srv.name in ['video_doorbell']:
                     if not (srv.mapping() or spec.get_service('battery')):
                         continue
                 elif srv.name in ['temperature_humidity_sensor']:
@@ -84,7 +87,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class MiotSensorEntity(MiotEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config)
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
         first_property = None
         if len(miot_service.properties) > 0:
@@ -92,23 +94,28 @@ class MiotSensorEntity(MiotEntity):
         self._prop_state = miot_service.get_property(
             'status', 'fault', first_property or 'status',
         )
+        if miot_service.name in ['lock']:
+            self._prop_state = miot_service.get_property('operation_method') or self._prop_state
         if miot_service.name in ['tds_sensor']:
             self._prop_state = miot_service.get_property('tds_out') or self._prop_state
         elif miot_service.name in ['temperature_humidity_sensor']:
             self._prop_state = miot_service.get_property('temperature', 'indoor_temperature') or self._prop_state
 
+        self._state_attrs.update({
+            'entity_class': self.__class__.__name__,
+            'state_property': self._prop_state.full_name if self._prop_state else None,
+        })
+
     async def async_update(self):
         await super().async_update()
         if self._available:
-            ext = {}
-            sta = self._prop_state.from_dict(self._state_attrs)
-            if self._prop_state.value_list and sta is not None:
-                des = self._prop_state.list_description(sta)
-                if des:
-                    ext[f'{self._prop_state.full_name}_desc'] = des
-            if ext:
-                self.update_attrs(ext)
+            self._prop_state.description_to_dict(self._state_attrs)
             self._update_sub_entities('on', domain='switch')
+            self._update_sub_entities(
+                ['status', 'operation_id', 'abnormal_condition', 'current_time'],
+                ['lock', 'door'],
+                domain='sensor',
+            )
             self._update_sub_entities(
                 [
                     'download_speed', 'upload_speed', 'connected_device_number', 'network_connection_type',

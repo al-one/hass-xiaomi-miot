@@ -212,6 +212,17 @@ class MiotProperty:
     def from_dict(self, dat: dict, default=None):
         return dat.get(self.full_name, default)
 
+    def description_to_dict(self, dat: dict):
+        if not self.value_list:
+            return None
+        val = self.from_dict(dat)
+        if val is None:
+            return val
+        des = self.list_description(val)
+        if des:
+            dat[f'{self.full_name}_desc'] = des
+        return des
+
     def list_value(self, des):
         rls = []
         for v in self.value_list:
