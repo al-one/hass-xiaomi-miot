@@ -52,10 +52,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         if miot:
             spec = await MiotSpec.async_from_type(hass, miot)
             for srv in spec.get_services(
-                'water_purifier', 'oven', 'microwave_oven',
-                'cooker', 'induction_cooker', 'pressure_cooker',
-                'health_pot', 'coffee_machine', 'router', 'video_doorbell',
-                'temperature_humidity_sensor', 'printer', 'lock',
+                'water_purifier', 'oven', 'microwave_oven', 'health_pot',
+                'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer',
+                'coffee_machine', 'router', 'video_doorbell', 'lock',
+                'temperature_humidity_sensor', 'printer',
             ):
                 if srv.name in ['lock']:
                     if not srv.get_property('operation_method'):
@@ -180,9 +180,9 @@ class MiotCookerEntity(MiotSensorEntity):
         self._values_on = []
         self._values_off = []
         if self._prop_state:
-            self._values_on = self._prop_state.list_search('Busy', 'Running', 'Delay')
+            self._values_on = self._prop_state.list_search('Busy', 'Running', 'Cooking', 'Delay')
             self._values_off = self._prop_state.list_search(
-                'Idle', 'Completed', 'CookFinish', 'Paused', 'Fault', 'Error', 'Stop', 'Off',
+                'Idle', 'Completed', 'Shutdown', 'CookFinish', 'Pause', 'Paused', 'Fault', 'Error', 'Stop', 'Off',
             )
 
     @property
@@ -195,29 +195,33 @@ class MiotCookerEntity(MiotSensorEntity):
 
     async def async_update(self):
         await super().async_update()
-        if self._available:
-            if self._prop_state:
-                add_fans = self._add_entities.get('fan')
-                add_switches = self._add_entities.get('switch')
-                pls = self._miot_service.get_properties('cook_mode')
-                for p in pls:
-                    if not p.value_list:
-                        continue
-                    if p.name in self._subs:
-                        self._subs[p.name].update()
-                    elif add_fans:
-                        self._subs[p.name] = MiotCookerSubEntity(self, p, self._prop_state, {
+        if not self._available:
+            return
+        if self._prop_state:
+            add_fans = self._add_entities.get('fan')
+            add_switches = self._add_entities.get('switch')
+            pls = self._miot_service.get_properties('cook_mode', 'target_time', 'target_temperature')
+            for p in pls:
+                if not p.writeable:
+                    continue
+                if p.name in self._subs:
+                    self._subs[p.name].update()
+                elif add_fans and (p.value_list or p.value_range):
+                    opt = None
+                    if p.value_list:
+                        opt = {
                             'values_on':  self._values_on,
                             'values_off': self._values_off,
-                        })
-                        add_fans([self._subs[p.name]])
-                if not pls and self._action_cancel:
-                    pnm = 'cook_switch'
-                    if pnm in self._subs:
-                        self._subs[pnm].update()
-                    elif add_switches:
-                        self._subs[pnm] = MiotCookerSwitchSubEntity(self, self._prop_state)
-                        add_switches([self._subs[pnm]])
+                        }
+                    self._subs[p.name] = MiotCookerSubEntity(self, p, self._prop_state, opt)
+                    add_fans([self._subs[p.name]])
+            if not pls and self._action_cancel:
+                pnm = 'cook_switch'
+                if pnm in self._subs:
+                    self._subs[pnm].update()
+                elif add_switches:
+                    self._subs[pnm] = MiotCookerSwitchSubEntity(self, self._prop_state)
+                    add_switches([self._subs[pnm]])
 
     @property
     def is_on(self):
