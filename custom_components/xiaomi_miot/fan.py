@@ -247,6 +247,7 @@ class FanSubEntity(ToggleSubEntity, FanEntity):
 
     @property
     def percentage(self):
+        """Return the current speed as a percentage."""
         try:
             return super().percentage
         except ValueError:
@@ -254,9 +255,11 @@ class FanSubEntity(ToggleSubEntity, FanEntity):
 
     @property
     def percentage_step(self):
+        """Return the step size for percentage."""
         return round(super().percentage_step)
 
     def set_percentage(self, percentage: int):
+        """Set the speed of the fan, as a percentage."""
         return False
 
     @property
@@ -286,7 +289,10 @@ class MiotModesSubEntity(FanSubEntity):
         self._prop_power = self._option.get('power_property')
         if self._prop_power:
             self._option['keys'] = [self._prop_power.full_name, *(self._option.get('keys') or [])]
-        self._supported_features = SUPPORT_PRESET_MODE or SUPPORT_SET_SPEED
+        if self._miot_property.value_range and self.modes_count > 20:
+            self._supported_features |= SUPPORT_SET_SPEED
+        else:
+            self._supported_features |= SUPPORT_PRESET_MODE or SUPPORT_SET_SPEED
 
     @property
     def icon(self):
@@ -316,6 +322,8 @@ class MiotModesSubEntity(FanSubEntity):
                 return sta in self._miot_property.list_search(*tvs)
             if fvs and isinstance(fvs, list):
                 return sta not in self._miot_property.list_search(*fvs)
+        if self._miot_property.value_range:
+            return round(sta) > self._miot_property.range_min()
         return True
 
     def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
@@ -325,7 +333,9 @@ class MiotModesSubEntity(FanSubEntity):
         else:
             if not self._parent.is_on:
                 ret = self.call_parent('turn_on', **kwargs)
-        if speed:
+        if percentage is not None:
+            ret = self.set_percentage(percentage)
+        elif speed:
             ret = self.set_speed(speed)
         if preset_mode:
             ret = self.set_preset_mode(preset_mode)
@@ -348,6 +358,32 @@ class MiotModesSubEntity(FanSubEntity):
         return self.set_preset_mode(speed)
 
     @property
+    def percentage(self):
+        """Return the current speed as a percentage."""
+        if self._miot_property.value_range:
+            val = self._miot_property.from_dict(self._state_attrs)
+            if val is not None:
+                return round(val / self._miot_property.range_max() * 100, 2)
+        return super().percentage
+
+    @property
+    def percentage_step(self):
+        """Return the step size for percentage."""
+        if self._miot_property.value_range:
+            stp = self._miot_property.range_step()
+            return round(stp / self._miot_property.range_max() * 100, 2)
+        return super().percentage_step
+
+    def set_percentage(self, percentage: int):
+        """Set the speed of the fan, as a percentage."""
+        if self._miot_property.value_range:
+            stp = self._miot_property.range_step()
+            top = self._miot_property.range_max()
+            val = round(top * (percentage / 100) / stp) * stp
+            return self.call_parent('set_property', self._miot_property.full_name, val)
+        return False
+
+    @property
     def preset_mode(self):
         val = self._miot_property.from_dict(self._state_attrs)
         if val is not None:
@@ -356,7 +392,10 @@ class MiotModesSubEntity(FanSubEntity):
 
     @property
     def preset_modes(self):
-        return self._miot_property.list_descriptions()
+        """Return a list of available preset modes."""
+        if self._supported_features & SUPPORT_PRESET_MODE:
+            return self._miot_property.list_descriptions()
+        return None
 
     def set_preset_mode(self, preset_mode: str):
         if self._miot_property.value_range:
@@ -371,6 +410,14 @@ class MiotModesSubEntity(FanSubEntity):
         if val is not None:
             return self.call_parent('set_property', self._miot_property.full_name, val)
         return False
+
+    @property
+    def modes_count(self):
+        if self._miot_property.value_range:
+            return int(self._miot_property.range_max() / self._miot_property.range_step())
+        if self._miot_property.value_list:
+            return len(self._miot_property.value_list)
+        return 0
 
 
 class MiotCookerSubEntity(MiotModesSubEntity):

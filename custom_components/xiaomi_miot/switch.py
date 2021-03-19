@@ -91,9 +91,10 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
                 pls = self._miot_service.get_properties(
                     'mode', 'spin_speed', 'drying_level',
                     'target_temperature', 'target_water_level',
+                    'rinsh_times',
                 )
                 for p in pls:
-                    if not p.value_list or len(p.value_list) <= 1:
+                    if not p.value_list and not p.value_range:
                         continue
                     if p.name in self._subs:
                         self._subs[p.name].update()
@@ -165,6 +166,7 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
     def update(self):
         super().update()
         if self._available:
+            self._miot_property.description_to_dict(self._state_attrs)
             sta = self._state_attrs.get(self._attr)
             self._state = sta not in self._values_off
 
