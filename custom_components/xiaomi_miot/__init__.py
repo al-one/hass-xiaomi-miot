@@ -180,6 +180,7 @@ async def async_setup(hass, hass_config: dict):
 
 
 async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
+    hass.data.setdefault(DOMAIN, {})
     entry_id = config_entry.entry_id
     unique_id = config_entry.unique_id
 
