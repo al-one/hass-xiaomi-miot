@@ -175,6 +175,7 @@ class MiotCookerEntity(MiotSensorEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(config, miot_service)
         self._prop_state = miot_service.get_property('status')
+        self._action_start = miot_service.get_action('start_cook')
         self._action_cancel = miot_service.get_action('cancel_cooking', 'pause')
 
         self._values_on = []
@@ -202,7 +203,7 @@ class MiotCookerEntity(MiotSensorEntity):
             add_switches = self._add_entities.get('switch')
             pls = self._miot_service.get_properties('cook_mode', 'target_time', 'target_temperature')
             for p in pls:
-                if not p.writeable:
+                if not p.writeable and not self._action_start:
                     continue
                 if p.name in self._subs:
                     self._subs[p.name].update()
