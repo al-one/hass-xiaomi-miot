@@ -67,7 +67,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         self._prop_modes = []
         if self._prop_mode:
             self._prop_modes.append(self._prop_mode)
-        self._prop_modes.extend(*miot_service.get_properties('water_level'))
+        self._prop_modes.extend(miot_service.get_properties('water_level'))
         self._prop_temperature = miot_service.get_property('temperature', 'indoor_temperature')
         self._prop_target_temp = miot_service.get_property('target_temperature')
         self._prev_target_temp = None
