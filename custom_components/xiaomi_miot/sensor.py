@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'water_purifier', 'oven', 'microwave_oven', 'health_pot',
                 'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer',
                 'coffee_machine', 'router', 'video_doorbell', 'lock',
-                'temperature_humidity_sensor', 'printer',
+                'temperature_humidity_sensor', 'printer', 'bed',
             ):
                 if srv.name in ['lock']:
                     if not srv.get_property('operation_method'):
@@ -133,6 +133,19 @@ class MiotSensorEntity(MiotEntity):
                 ['relative_humidity', 'humidity', 'pm2_5_density', 'battery_level'],
                 ['temperature_humidity_sensor'],
                 domain='sensor',
+            )
+            self._update_sub_entities(
+                [
+                    'mode', 'mode_time', 'hardness', 'start_pause', 'leg_pillow', 'rl_control',
+                    'heat_level', 'heat_time', 'heat_zone', 'intensity_mode', 'massage_strength',
+                ],
+                ['bed', 'backrest_control', 'leg_rest_control', 'massage_mattress'],
+                domain='fan',
+            )
+            self._update_sub_entities(
+                ['motor_control', 'backrest_angle', 'leg_rest_angle'],
+                ['bed', 'backrest_control', 'leg_rest_control'],
+                domain='cover',
             )
 
     @property

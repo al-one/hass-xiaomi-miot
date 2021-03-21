@@ -861,6 +861,8 @@ class MiotEntity(MiioEntity):
         from .binary_sensor import MiotBinarySensorSubEntity
         from .switch import MiotSwitchSubEntity
         from .light import MiotLightSubEntity
+        from .fan import MiotModesSubEntity
+        from .cover import MiotCoverSubEntity
         if isinstance(services, MiotService):
             sls = [services]
         elif services:
@@ -871,6 +873,8 @@ class MiotEntity(MiioEntity):
         add_binary_sensors = self._add_entities.get('binary_sensor')
         add_switches = self._add_entities.get('switch')
         add_lights = self._add_entities.get('light')
+        add_fans = self._add_entities.get('fan')
+        add_covers = self._add_entities.get('cover')
         for s in sls:
             if not properties:
                 fnm = s.unique_name
@@ -911,6 +915,12 @@ class MiotEntity(MiioEntity):
                 elif add_sensors and domain == 'sensor':
                     self._subs[fnm] = MiotSensorSubEntity(self, p)
                     add_sensors([self._subs[fnm]])
+                elif add_fans and domain == 'fan':
+                    self._subs[fnm] = MiotModesSubEntity(self, p)
+                    add_fans([self._subs[fnm]])
+                elif add_covers and domain == 'cover':
+                    self._subs[fnm] = MiotCoverSubEntity(self, p)
+                    add_covers([self._subs[fnm]])
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
                     _LOGGER.debug('Added sub entity %s: %s for %s.', domain, fnm, self.name)
@@ -1046,6 +1056,14 @@ class BaseSubEntity(Entity):
             self.update()
         return ret
 
+    def set_parent_property(self, val, prop):
+        ret = self.call_parent('set_property', prop, val)
+        if ret:
+            self.update_attrs({
+                prop: val,
+            })
+        return ret
+
 
 class ToggleSubEntity(BaseSubEntity, ToggleEntity):
     def __init__(self, parent, attr='power', option=None):
@@ -1130,3 +1148,13 @@ class MiotSensorSubEntity(BaseSubEntity):
         if key in self._state_attrs:
             return f'{self._state_attrs[key]}'.lower()
         return self._miot_property.from_dict(self._state_attrs, STATE_UNKNOWN)
+
+    def set_parent_property(self, val, prop=None):
+        if prop is None:
+            prop = self._miot_property
+        ret = self.call_parent('set_miot_property', prop.service.iid, prop.iid, val)
+        if ret and prop.readable:
+            self.update_attrs({
+                prop.full_name: val,
+            })
+        return ret

@@ -135,13 +135,10 @@ class MiotSwitchSubEntity(SwitchSubEntity):
                 self._state = self._state and self._prop_power.from_dict(self._state_attrs)
         return self._state
 
-    def set_parent_property(self, val):
-        ret = self.call_parent('set_property', self._miot_property.full_name, val)
-        if ret:
-            self.update_attrs({
-                self._attr: val,
-            })
-        return ret
+    def set_parent_property(self, val, prop=None):
+        if prop is None:
+            prop = self._miot_property
+        return super().set_parent_property(val, prop.full_name)
 
     def turn_on(self, **kwargs):
         return self.set_parent_property(True)
