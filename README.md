@@ -124,6 +124,7 @@ doamin.your_entity_id:
 - [air_quality](https://www.home-assistant.io/integrations/air_quality)
     - [air-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:air-monitor:0000A008)
 - [switch](https://www.home-assistant.io/integrations/switch)
+    - [massager](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:massager:0000788E)
     - [outlet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:switch:0000780C)
     - [pet-drinking-fountain](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:pet-drinking-fountain:00007850)
     - [physical-controls-locked](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:physical-controls-locked:00007807)

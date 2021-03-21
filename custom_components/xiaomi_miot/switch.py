@@ -48,7 +48,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     elif miot:
         spec = await MiotSpec.async_from_type(hass, miot)
         for srv in spec.get_services(
-            ENTITY_DOMAIN, 'outlet', 'washer', 'pet_drinking_fountain',
+            ENTITY_DOMAIN, 'outlet', 'washer', 'pet_drinking_fountain', 'massager',
         ):
             if not srv.get_property('on'):
                 continue
@@ -85,32 +85,47 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
 
     async def async_update(self):
         await super().async_update()
-        if self._available:
-            if self._miot_service.name in ['washer', 'pet_drinking_fountain']:
-                add_fans = self._add_entities.get('fan')
-                pls = self._miot_service.get_properties(
-                    'mode', 'spin_speed', 'drying_level',
-                    'target_temperature', 'target_water_level',
-                    'rinsh_times',
-                )
-                for p in pls:
-                    if not p.value_list and not p.value_range:
-                        continue
-                    if p.name in self._subs:
-                        self._subs[p.name].update()
-                    elif add_fans:
-                        self._subs[p.name] = MiotWasherSubEntity(self, p)
-                        add_fans([self._subs[p.name]])
+        if not self._available:
+            return
+        if self._miot_service.name in ['washer']:
+            add_fans = self._add_entities.get('fan')
+            pls = self._miot_service.get_properties(
+                'mode', 'spin_speed', 'drying_level',
+                'target_temperature', 'target_water_level',
+                'rinsh_times',
+            )
+            for p in pls:
+                if not p.value_list and not p.value_range:
+                    continue
+                if p.name in self._subs:
+                    self._subs[p.name].update()
+                elif add_fans:
+                    self._subs[p.name] = MiotWasherSubEntity(self, p)
+                    add_fans([self._subs[p.name]])
 
-                add_switches = self._add_entities.get(ENTITY_DOMAIN)
-                if self._miot_service.get_action('start_wash', 'pause'):
-                    pnm = 'action'
-                    prop = self._miot_service.get_property('status')
-                    if pnm in self._subs:
-                        self._subs[pnm].update()
-                    elif add_switches and prop:
-                        self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
-                        add_switches([self._subs[pnm]])
+            add_switches = self._add_entities.get(ENTITY_DOMAIN)
+            if self._miot_service.get_action('start_wash', 'pause'):
+                pnm = 'action'
+                prop = self._miot_service.get_property('status')
+                if pnm in self._subs:
+                    self._subs[pnm].update()
+                elif add_switches and prop:
+                    self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
+                    add_switches([self._subs[pnm]])
+        else:
+            self._update_sub_entities(
+                ['heat_level'],
+                ['massager'],
+                domain='fan',
+                option={
+                    'power_property': self._miot_service.get_property('heating'),
+                }
+            )
+            self._update_sub_entities(
+                ['mode', 'massage_strength', 'massage_part', 'massage_manipulation'],
+                ['pet_drinking_fountain', 'massager'],
+                domain='fan',
+            )
 
 
 class SwitchSubEntity(ToggleSubEntity, SwitchEntity):

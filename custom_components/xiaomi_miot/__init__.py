@@ -857,7 +857,7 @@ class MiotEntity(MiioEntity):
             self._state = False
         return ret
 
-    def _update_sub_entities(self, properties, services=None, domain=None):
+    def _update_sub_entities(self, properties, services=None, domain=None, option=None):
         from .binary_sensor import MiotBinarySensorSubEntity
         from .switch import MiotSwitchSubEntity
         from .light import MiotLightSubEntity
@@ -907,19 +907,19 @@ class MiotEntity(MiioEntity):
                     if tms <= 1:
                         _LOGGER.info('Device %s sub entity %s: %s already exists.', self.name, domain, fnm)
                 elif add_switches and p.format == 'bool' and p.writeable:
-                    self._subs[fnm] = MiotSwitchSubEntity(self, p)
+                    self._subs[fnm] = MiotSwitchSubEntity(self, p, option=option)
                     add_switches([self._subs[fnm]])
                 elif add_binary_sensors and p.format == 'bool':
-                    self._subs[fnm] = MiotBinarySensorSubEntity(self, p)
+                    self._subs[fnm] = MiotBinarySensorSubEntity(self, p, option=option)
                     add_binary_sensors([self._subs[fnm]])
                 elif add_sensors and domain == 'sensor':
-                    self._subs[fnm] = MiotSensorSubEntity(self, p)
+                    self._subs[fnm] = MiotSensorSubEntity(self, p, option=option)
                     add_sensors([self._subs[fnm]])
                 elif add_fans and domain == 'fan':
-                    self._subs[fnm] = MiotModesSubEntity(self, p)
+                    self._subs[fnm] = MiotModesSubEntity(self, p, option=option)
                     add_fans([self._subs[fnm]])
                 elif add_covers and domain == 'cover':
-                    self._subs[fnm] = MiotCoverSubEntity(self, p)
+                    self._subs[fnm] = MiotCoverSubEntity(self, p, option=option)
                     add_covers([self._subs[fnm]])
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
