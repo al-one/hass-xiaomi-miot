@@ -1,13 +1,13 @@
 # Xiaomi Miot For HomeAssistant
 
-[MIoT-Spec](https://iot.mi.com/new/doc/design/spec/overall): The protocol specification for Xiaomi IoT devices, is a standard designed by the Xiaomi IoT platform to describe the function definition of hardware products according to the networking mode of hardware products, the characteristics of product functions, the characteristics of user usage scenarios and the user's requirements for hardware product use experience specification.
+[MIoT-Spec](https://iot.mi.com/new/doc/design/spec/overall) 是小米IoT平台根据硬件产品的联网方式、产品功能的特点、用户使用场景的特征和用户对硬件产品使用体验的要求，设计的描述硬件产品功能定义的标准规范。
 
-This component uses the MIoT-Spec to automatically integrate Xiaomi devices into HomeAssistant, and currently supports most Xiaomi MIoT devices. And it supports HA Web UI, and you can easily integrate Xiaomi devices into HA without configuring yaml.
+本插件利用了MIoT-Spec的规范，可将小米设备自动接入[HomeAssistant](https://www.home-assistant.io)，目前已支持大部分小米MIoT设备。且该插件支持HA后台界面集成，无需配置yaml即可轻松将小米设备接入HA。
 
 
-## Installing
+## 安装
 
-> Download and copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
+> 下载并复制`custom_components/xiaomi_miot`文件夹到HA根目录下的`custom_components`文件夹
 
 ```shell
 wget https://github.com/al-one/hass-xiaomi-miot/archive/master.zip
@@ -16,41 +16,41 @@ cp -rf hass-xiaomi-miot-master/custom_components/xiaomi_miot ~/.homeassistant/cu
 rm -rf hass-xiaomi-miot-master
 ```
 
-> Or you can install component with [HACS](https://hacs.xyz)
+> 或者通过[HACS](https://hacs.xyz)搜索`Xiaomi Miot Auto`安装
 
 
-## Config
+## 配置
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > [➕ Add Integration](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 Search `Xiaomi Miot Auto`
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > [➕ 添加集成](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 搜索 `Xiaomi Miot Auto`
 
-Or click (HA v2021.3.0+): [![add](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
+或者点击(HA v2021.3.0+): [![add](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
-**You have two ways to integrate xiaomi devices:**
+**目前有两种方式集成小米设备:**
 
 - Add device using host/token
-  > Suitable for devices supporting miot-spec in LAN
+  > 通过设备host/token接入，适用于在局域网环境下支持miot-spec的设备
 
 - Add devices using Mi Account
-  > Suitable for miio, ble and ZigBee devices ([miot_cloud](https://github.com/al-one/hass-xiaomi-miot#configuration-xiaomi-cloud) will be enabled)
+  > 通过小米账号接入设备，适用于miio、ZigBee、蓝牙（默认开启[云端模式](https://github.com/al-one/hass-xiaomi-miot#configuration-xiaomi-cloud)）
 
-### Configuration Xiaomi Cloud:
+### 配置云端模式:
 
-> If your device (**integrate by token**) unavailable or return code -4004 or -9999 in logs, You can try this way.
+> 如果你的设备(**通过token集成**)`不可用`或者出现`-4004`或`-9999`错误码，你可以尝试此方法
 
 ```yaml
 # configuration.yaml
 xiaomi_miot:
   username: xiaomi_username
   password: xiaomi_password
-  # server_country: cn # location of xiaomi cloud: cn(default), de, i2, ru, sg, us
+  # server_country: cn # 小米云服务器位置: cn(默认), de, i2, ru, sg, us
 ```
 
-Enabled miot cloud for device:
+为设备开启云端模式：
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > Options > ☑️ Enable miot cloud
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
 
 
-### Customize entity
+### 自定义实体
 
 ```yaml
 # configuration.yaml
@@ -60,31 +60,31 @@ homeassistant:
 
 # customize.yaml
 domain.your_entity_id:
-  miot_cloud: true          # Enable miot cloud for entity (read, write, action)
-  # miot_cloud_write: true  # (Optional) Enable miot cloud (only write)
-  # miot_cloud_action: true # (Optional) Enable miot cloud (only action)
+  miot_cloud: true          # 为该实体开启云端模式 (read, write, action)
+  # miot_cloud_write: true  # (可选) 仅写属性使用云端模式
+  # miot_cloud_action: true # (可选) 仅action使用云端模式
 
 climate.your_entity_id:
-  bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
+  bind_sensor: sensor.temperature_entity,sensor.humidity_entity # 绑定传感器实体
 
 camera.your_entity_id:
   video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
-  check_lan: true    # Check LAN connection in cloud mode
+  check_lan: true    # 云端模式下检查设备在局域网是否可用
 
 doamin.your_entity_id:
-  chunk_properties: 10 # Chunk miot properties on update state (LAN)
+  chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)
 ```
 
-**Recommended** [Customization Using The UI](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui):
+**推荐**[使用界面自定义实体](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui):
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > 🖌 Customize > 🔍 Select Entity > Add Other Attribute
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 🖌 自定义 > 🔍 选择实体 > 选择要覆盖的属性 > 添加Other属性
 
 
-## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)
+## [支持的设备](https://github.com/al-one/hass-xiaomi-miot/issues/12)
 
-- HomeAssistant Domain
-    - [Miot Device](https://miot-spec.org/miot-spec-v2/spec/devices)
-    - [Miot Service](https://miot-spec.org/miot-spec-v2/spec/services)
+- HomeAssistant设备类型
+    - [Miot设备](https://miot-spec.org/miot-spec-v2/spec/devices)
+    - [Miot服务](https://miot-spec.org/miot-spec-v2/spec/services)
 
 - [sensor](https://www.home-assistant.io/integrations/sensor)
     - [air-fryer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:air-fryer:00007897)
@@ -166,13 +166,13 @@ doamin.your_entity_id:
     - [rearview-mirror](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:rearview-mirror:00007879)
 
 
-## Debug
+## 调试
 
-### Get Entity State Attributes
+### 获取实体状态属性
 
-> [🔨 Developer tools](https://my.home-assistant.io/redirect/developer_states) > [ℹ️ State](https://my.home-assistant.io/redirect/developer_states) > 🔍 Filter Entity
+> [🔨 开发者工具](https://my.home-assistant.io/redirect/developer_states) > [ℹ️ 状态](https://my.home-assistant.io/redirect/developer_states) > 🔍 筛选实体
 
-### [Get Debug Logs](https://www.home-assistant.io/integrations/logger)
+### [获取调试日志](https://www.home-assistant.io/integrations/logger)
 
 ```yaml
 # configuration.yaml
@@ -182,12 +182,12 @@ logger:
     custom_components.xiaomi_miot: debug
 ```
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [✍️ Logs](https://my.home-assistant.io/redirect/logs)
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [✍️ 日志](https://my.home-assistant.io/redirect/logs)
 
 
-## Obtain miio token
+## 获取 miio token
 
-- Use MiHome mod by [@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)
-  1. Down apk from [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html)
-  2. Create folder `/sdcard/vevs/logs/` ⚠️
-  3. Find token from `vevs/logs/misc/devices.txt`
+- 使用[@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)修改版的米家
+  1. 下载APK [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html)
+  2. 创建目录`/sdcard/vevs/logs/` ⚠️
+  3. 在`vevs/logs/misc/devices.txt`文件中找到token
