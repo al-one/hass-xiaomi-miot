@@ -90,6 +90,12 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         self._srv_audio = miot_service.spec.get_service('audio', 'voice')
         if self._srv_audio and not self._act_locate:
             self._act_locate = self._srv_battery.get_property('position', 'find_device')
+        self._act_charge = None
+        for srv in [miot_service, *miot_service.spec.get_services('battery', 'go_charging')]:
+            act = srv.get_property('start_charge', 'start_charging')
+            if act:
+                self._act_charge = act
+                break
 
         if self._prop_power:
             self._supported_features |= SUPPORT_TURN_ON
@@ -100,6 +106,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._supported_features |= SUPPORT_PAUSE
         if self._act_stop:
             self._supported_features |= SUPPORT_STOP
+        if self._act_charge:
             self._supported_features |= SUPPORT_RETURN_HOME
         if self._prop_mode:
             self._supported_features |= SUPPORT_FAN_SPEED
@@ -177,10 +184,8 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         return self.start()
 
     def return_to_base(self, **kwargs):
-        if self._srv_battery:
-            act = self._srv_battery.get_action('start_charge')
-            if act:
-                return self.miot_action(self._srv_battery.iid, act.iid)
+        if self._act_charge:
+            return self.miot_action(self._srv_battery.iid, self._act_charge.iid)
         return self.stop()
 
     def locate(self, **kwargs):
