@@ -13,7 +13,7 @@ This component uses the MIoT-Spec to automatically integrate Xiaomi devices into
 wget https://github.com/al-one/hass-xiaomi-miot/archive/master.zip
 unzip master.zip
 cp -rf hass-xiaomi-miot-master/custom_components/xiaomi_miot ~/.homeassistant/custom_components/
-rm -rf hass-xiaomi-miot-master
+rm -rf hass-xiaomi-miot-master master.zip
 ```
 
 > Or you can install component with [HACS](https://hacs.xyz)

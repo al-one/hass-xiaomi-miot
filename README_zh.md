@@ -13,7 +13,7 @@
 wget https://github.com/al-one/hass-xiaomi-miot/archive/master.zip
 unzip master.zip
 cp -rf hass-xiaomi-miot-master/custom_components/xiaomi_miot ~/.homeassistant/custom_components/
-rm -rf hass-xiaomi-miot-master
+rm -rf hass-xiaomi-miot-master master.zip
 ```
 
 > 或者通过[HACS](https://hacs.xyz)搜索`Xiaomi Miot Auto`安装
