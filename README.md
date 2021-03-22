@@ -150,6 +150,7 @@ doamin.your_entity_id:
     - [ptc-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:ptc-bath-heater:0000783B)
     - [water-dispenser](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:water-dispenser:00007891)
 - [water_heater](https://www.home-assistant.io/integrations/water_heater)
+    - [kettle](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:kettle:00007813)
     - [water-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:water-heater:0000783E)
 - [vacuum](https://www.home-assistant.io/integrations/vacuum)
     - [vacuum](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:vacuum:00007810) (Don't support clean area/point)
