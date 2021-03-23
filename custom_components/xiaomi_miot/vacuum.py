@@ -92,7 +92,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._act_locate = self._srv_battery.get_property('position', 'find_device')
         self._act_charge = None
         for srv in [miot_service, *miot_service.spec.get_services('battery', 'go_charging')]:
-            act = srv.get_property('start_charge', 'start_charging')
+            act = srv.get_action('start_charge', 'start_charging')
             if act:
                 self._act_charge = act
                 break
