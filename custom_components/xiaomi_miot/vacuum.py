@@ -91,7 +91,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         if self._srv_audio and not self._act_locate:
             self._act_locate = self._srv_battery.get_property('position', 'find_device')
         self._act_charge = None
-        for srv in [miot_service, *miot_service.spec.get_services('battery', 'go_charging')]:
+        for srv in [*miot_service.spec.get_services('battery', 'go_charging'), miot_service]:
             act = srv.get_action('start_charge', 'start_charging')
             if act:
                 self._act_charge = act
