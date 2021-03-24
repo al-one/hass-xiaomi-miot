@@ -280,6 +280,7 @@ async def async_update_options(hass: hass_core.HomeAssistant, config_entry: conf
     entry.pop('service_token', None)
     entry.pop('ssecurity', None)
     _LOGGER.debug('Xiaomi Miot update options: %s', entry)
+    hass.data[DOMAIN]['sub_entities'] = {}
     await hass.config_entries.async_reload(config_entry.entry_id)
 
 
