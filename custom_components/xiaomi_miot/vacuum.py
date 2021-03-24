@@ -164,17 +164,17 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
     def start(self):
         if self._act_start:
-            return self.miot_action(self._miot_service.iid, self._act_start.iid)
+            return self.miot_action(self._act_start.service.iid, self._act_start.iid)
         return False
 
     def stop(self, **kwargs):
         if self._act_stop:
-            return self.miot_action(self._miot_service.iid, self._act_stop.iid)
+            return self.miot_action(self._act_stop.service.iid, self._act_stop.iid)
         return False
 
     def pause(self):
         if self._act_pause:
-            return self.miot_action(self._miot_service.iid, self._act_pause.iid)
+            return self.miot_action(self._act_pause.service.iid, self._act_pause.iid)
         return self.stop()
 
     def start_pause(self, **kwargs):
@@ -185,7 +185,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
     def return_to_base(self, **kwargs):
         if self._act_charge:
-            return self.miot_action(self._srv_battery.iid, self._act_charge.iid)
+            return self.miot_action(self._act_charge.service.iid, self._act_charge.iid)
         return self.stop()
 
     def locate(self, **kwargs):
