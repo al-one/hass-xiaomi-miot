@@ -132,7 +132,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     def state(self):
         if self._prop_status:
             val = self._prop_status.from_dict(self._state_attrs)
-            if val is not None:
+            if val is None:
                 pass
             elif val in self._prop_status.list_search(
                 'Cleaning', 'Sweeping', 'Mopping', 'Sweeping and Mopping',
