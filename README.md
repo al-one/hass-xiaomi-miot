@@ -71,6 +71,9 @@ camera.your_entity_id:
   video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
   check_lan: true    # Check LAN connection in cloud mode
 
+cover.your_entity_id:
+  closed_position: 5 # Change cover state to closed when position <= 5%
+
 doamin.your_entity_id:
   chunk_properties: 10 # Chunk miot properties on update state (LAN)
 ```

@@ -128,7 +128,8 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         pos = self.current_cover_position
         if pos < 0:
             return None
-        return self.current_cover_position < 1
+        pos = self.custom_config('closed_position', 1)
+        return self.current_cover_position <= pos
 
     @property
     def is_closing(self):

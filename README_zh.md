@@ -71,6 +71,9 @@ camera.your_entity_id:
   video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
   check_lan: true    # 云端模式下检查设备在局域网是否可用
 
+cover.your_entity_id:
+  closed_position: 5 # 当实体位置值小于等于此值时为关闭状态
+
 doamin.your_entity_id:
   chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)
 ```
