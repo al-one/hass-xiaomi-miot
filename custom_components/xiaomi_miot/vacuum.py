@@ -144,6 +144,8 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 return STATE_DOCKED
             elif val in self._prop_status.list_search('Go Charging'):
                 return STATE_RETURNING
+            elif val in self._prop_status.list_search('Paused'):
+                return STATE_PAUSED
             elif val in self._prop_status.list_search('Error'):
                 return STATE_ERROR
         return None
