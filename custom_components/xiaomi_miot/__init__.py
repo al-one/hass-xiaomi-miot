@@ -114,6 +114,7 @@ SERVICE_TO_METHOD_BASE = {
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
                 vol.Required('mapping'): dict,
+                vol.Optional('throw', default=False): cv.boolean,
             },
         ),
     },
@@ -733,28 +734,37 @@ class MiotEntity(MiioEntity):
         self.update_attrs(attrs)
         _LOGGER.debug('Got new state from %s: %s', self.name, attrs)
 
-    def get_properties(self, mapping: dict):
+    def get_properties(self, mapping: dict, throw=False, **kwargs):
         if not self._miio_info:
             return
-        dvc = MiotDevice(
-            mapping,
-            self._miio_info.network_interface.get('localIp'),
-            self._miio_info.data.get('token'),
-        )
         try:
-            results = dvc.get_properties_for_mapping()
-        except DeviceException as exc:
-            _LOGGER.error('Got exception while get properties from %s: %s, mapping: %s', self.name, exc, mapping)
+            device = MiotDevice(
+                mapping,
+                self._miio_info.network_interface.get('localIp'),
+                self._miio_info.data.get('token'),
+            )
+            results = device.get_properties_for_mapping()
+        except (ValueError, DeviceException) as exc:
+            if throw:
+                raise exc
+            _LOGGER.error(
+                'Got exception while get properties from %s: %s, mapping: %s, miio: %s',
+                self.name, exc, mapping, self._miio_info.data,
+            )
             return
         attrs = {
             prop['did']: prop['value'] if prop['code'] == 0 else None
             for prop in results
         }
         _LOGGER.info('Get miot properties from %s: %s', self.name, results)
+        if throw:
+            raise ValueError(f'Miot properties: {results}')
         return attrs
 
-    async def async_get_properties(self, mapping):
-        return await self.hass.async_add_executor_job(partial(self.get_properties, mapping))
+    async def async_get_properties(self, mapping, **kwargs):
+        return await self.hass.async_add_executor_job(
+            partial(self.get_properties, mapping, **kwargs)
+        )
 
     def set_property(self, field, value):
         try:

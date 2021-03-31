@@ -4,12 +4,22 @@ send_command:
     entity_id:
       description: ID of the entity.
       example: "light.yeelight_living_e92c"
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
     method:
       description: Method of the command.
       example: set_power
+      required: true
+      selector:
+        text:
     params:
       description: Params for the method.
       example: ['on']
+      required: true
+      selector:
+        object:
 
 get_properties:
   description: Get miot properties.
@@ -17,9 +27,21 @@ get_properties:
     entity_id:
       description: ID of the entity.
       example: "climate.xiaomi_mc5_374e"
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
     mapping:
       description: Mapping for properties.
       example: "{'power': {'siid': 2, 'piid': 1}}"
+      required: true
+      selector:
+        object:
+    throw:
+      description: Throw properties.
+      example: true
+      selector:
+        boolean:
 
 set_property:
   description: Set miot property.
@@ -27,12 +49,22 @@ set_property:
     entity_id:
       description: ID of the entity.
       example: "climate.xiaomi_mc5_374e"
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
     field:
       description: Field of property.
       example: "air_conditioner.on"
+      required: true
+      selector:
+        text:
     value:
       description: Value of property.
-      example: True
+      example: true
+      required: true
+      selector:
+        object:
 
 set_miot_property:
   description: Set miot property by siid/piid.
@@ -40,15 +72,34 @@ set_miot_property:
     entity_id:
       description: ID of the entity.
       example: "climate.xiaomi_mc5_374e"
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
     siid:
       description: Miot service ID.
       example: 2
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
     piid:
       description: Miot property ID.
       example: 1
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
     value:
       description: Miot property value.
-      example: True
+      example: true
+      required: true
+      selector:
+        object:
 
 call_action:
   description: Call miot action.
@@ -56,15 +107,38 @@ call_action:
     entity_id:
       description: ID of the entity.
       example: "media_player.xiaoai_x08c"
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
     siid:
       description: Miot service ID.
       example: 3
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
     aiid:
       description: Miot action ID.
       example: 5
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
     params:
       description: Miot action params.
       example: "['Turn on light', 1]"
+      selector:
+        object:
+    throw:
+      description: Throw result.
+      example: false
+      selector:
+        boolean:
 
 intelligent_speaker:
   description: Play text / Execute text directive.
@@ -72,12 +146,29 @@ intelligent_speaker:
     entity_id:
       description: ID of the entity.
       example: "media_player.xiaoai_x08c"
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
+          domain: media_player
     text:
       description: Text content.
       example: "Turn on light"
+      required: true
+      selector:
+        text:
     execute:
       description: Execute text directive.
       example: true
+      selector:
+        boolean:
     silent:
       description: Silent execution.
       example: false
+      selector:
+        boolean:
+    throw:
+      description: Throw result.
+      example: false
+      selector:
+        boolean:
