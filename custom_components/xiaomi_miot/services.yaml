@@ -173,6 +173,22 @@ intelligent_speaker:
       selector:
         boolean:
 
+get_token:
+  description: Get xiaomi device token.
+  fields:
+    entity_id:
+      description: ID of the entity.
+      example: "climate.xiaomi_mc5_374e"
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
+    throw:
+      description: Throw result.
+      example: true
+      selector:
+        boolean:
+
 get_bindkey:
   description: Get bindkey for ble device from cloud.
   fields:

@@ -130,6 +130,14 @@ SERVICE_TO_METHOD_BASE = {
             },
         ),
     },
+    'get_token': {
+        'method': 'async_get_token',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+            {
+                vol.Optional('throw', default=True): cv.boolean,
+            },
+        ),
+    },
     'get_bindkey': {
         'method': 'async_get_bindkey',
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
@@ -950,6 +958,18 @@ class MiotEntity(MiioEntity):
         if add:
             self.hass.data[DOMAIN]['sub_entities'][uni] = pre + add
         return pre
+
+    async def async_get_token(self, throw=True):
+        dat = {
+            CONF_HOST: self._miio_info.network_interface.get('localIp'),
+            CONF_TOKEN: self._miio_info.data.get('token'),
+            CONF_MODEL: self._miio_info.model,
+        }
+        if throw:
+            raise ValueError(f'Miot device: {dat}')
+        else:
+            _LOGGER.warning('Miot device: %s', dat)
+        return dat.get(CONF_TOKEN)
 
     async def async_get_bindkey(self, throw=True):
         mic = self.miot_cloud
