@@ -172,3 +172,19 @@ intelligent_speaker:
       example: false
       selector:
         boolean:
+
+get_bindkey:
+  description: Get bindkey for ble device from cloud.
+  fields:
+    entity_id:
+      description: ID of the entity.
+      example: "sensor.lywsd03mmc"
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
+    throw:
+      description: Throw result.
+      example: true
+      selector:
+        boolean:

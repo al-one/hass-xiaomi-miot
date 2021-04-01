@@ -130,6 +130,14 @@ SERVICE_TO_METHOD_BASE = {
             },
         ),
     },
+    'get_bindkey': {
+        'method': 'async_get_bindkey',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+            {
+                vol.Optional('throw', default=True): cv.boolean,
+            },
+        ),
+    },
 }
 
 CONFIG_SCHEMA = vol.Schema(
@@ -943,6 +951,19 @@ class MiotEntity(MiioEntity):
             self.hass.data[DOMAIN]['sub_entities'][uni] = pre + add
         return pre
 
+    async def async_get_bindkey(self, throw=True):
+        mic = self.miot_cloud
+        if not isinstance(mic, MiotCloud):
+            return None
+        dat = {'did': self.miot_did, 'pdid': 1}
+        result = await self.hass.async_add_executor_job(
+            partial(mic.request_miot_api, 'v2/device/blt_get_beaconkey', dat)
+        )
+        if throw:
+            raise ValueError(f'Miot bindkey for {self.name}: {result}')
+        else:
+            _LOGGER.warning('Miot bindkey for %s: %s', self.name, result)
+        return (result or {}).get('beaconkey')
 
 
 class MiotToggleEntity(MiotEntity, ToggleEntity):

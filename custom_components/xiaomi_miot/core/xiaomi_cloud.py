@@ -50,31 +50,32 @@ class MiotCloud(micloud.MiCloud):
         return self.request_miot_spec('action', params)
 
     def request_miot_spec(self, api, params=None):
-        url = self._get_api_url(self.default_server) + '/miotspec/' + api
+        rdt = self.request_miot_api('miotspec/' + api, {
+            'params': params or [],
+        }) or {}
+        return rdt.get('result')
+
+    def request_miot_api(self, api, data: dict):
+        url = self._get_api_url(self.default_server) + '/' + api
         rsp = self.request(url, {
-            'data': json.dumps({
-                'params': params or []
-            })
+            'data': json.dumps(data, separators=(',', ':')),
         })
         exc = None
         try:
             rdt = json.loads(rsp)
-        except TypeError as exc:
-            rdt = {}
-        except ValueError as exc:
-            rdt = {}
-        rls = rdt.get('result')
-        if not rls:
+        except (TypeError, ValueError) as exc:
+            rdt = None
+        if not rdt:
             _LOGGER.warning(
-                'Request miot spec: %s, params: %s to cloud result: %s failed: %s',
-                api, params, rsp, exc,
+                'Request miot api: %s %s to cloud result: %s failed: %s',
+                api, data, rsp, exc,
             )
         else:
             _LOGGER.debug(
-                'Request miot spec: %s, params: %s to cloud result: %s',
-                api, params, rsp,
+                'Request miot api: %s %s to cloud result: %s',
+                api, data, rsp,
             )
-        return rls
+        return rdt
 
     async def async_get_device(self, mac=None, host=None):
         dvs = await self.async_get_devices() or []
