@@ -111,9 +111,7 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
 class MiotToiletEntity(MiotBinarySensorEntity):
     def __init__(self, config, miot_service: MiotService):
-        mapping = miot_service.spec.services_mapping('seat') or {}
-        mapping.update(miot_service.mapping())
-        super().__init__(config, miot_service, mapping=mapping)
+        super().__init__(config, miot_service)
         self._prop_state = miot_service.get_property('seating_state')
         if not self._prop_state:
             self._prop_state = miot_service.get_property(
