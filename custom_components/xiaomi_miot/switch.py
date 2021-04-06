@@ -1,6 +1,5 @@
 """Support for Xiaomi switches."""
 import logging
-import json
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.switch import (
@@ -193,12 +192,9 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
             act = [act]
         act = self._miot_service.get_action(*act)
         if act:
-            aps = self.custom_config(f'{act.name}_params')
-            try:
-                pms = json.loads(str(aps or '[]').strip())
-            except (TypeError, ValueError) as exc:
-                pms = []
-                _LOGGER.warning('Miot action for %s custom params: %s parse failed: %s', self.name, aps, exc)
+            pms = []
+            if act.ins:
+                pms = act.in_params(self._parent_attrs)
             ret = self.call_parent('miot_action', self._miot_service.iid, act.iid, pms)
             if ret and sta is not None:
                 self.update_attrs({

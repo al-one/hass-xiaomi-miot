@@ -74,10 +74,6 @@ camera.your_entity_id:
 cover.your_entity_id:
   closed_position: 5 # Change cover state to closed when position <= 5%
 
-switch.your_washer_action_entity_id:
-  start_wash_params: [11] # For viomi.washer.v13
-  pause_params: [0]       # https://github.com/al-one/hass-xiaomi-miot/issues/47
-
 doamin.your_entity_id:
   chunk_properties: 10 # Chunk miot properties on update state (LAN)
 ```

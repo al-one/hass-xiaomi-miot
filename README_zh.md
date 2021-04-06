@@ -74,10 +74,6 @@ camera.your_entity_id:
 cover.your_entity_id:
   closed_position: 5 # 当实体位置值小于等于此值时为关闭状态
 
-switch.your_washer_action_entity_id:
-  start_wash_params: [11] # 解决部分型号洗衣机无法控制开始/暂停
-  pause_params: [0]       # https://github.com/al-one/hass-xiaomi-miot/issues/47
-
 doamin.your_entity_id:
   chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)
 ```

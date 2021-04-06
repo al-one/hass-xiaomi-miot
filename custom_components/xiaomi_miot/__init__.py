@@ -1028,6 +1028,7 @@ class BaseSubEntity(BaseEntity):
             self._name = self._option.get('name')
         self._supported_features = int(self._option.get('supported_features', 0))
         self._state_attrs = {}
+        self._parent_attrs = {}
 
     @property
     def unique_id(self):
@@ -1078,6 +1079,7 @@ class BaseSubEntity(BaseEntity):
 
     def update(self):
         attrs = self._parent.device_state_attributes or {}
+        self._parent_attrs = attrs
         if self._attr in attrs:
             self._available = True
             self._state = attrs.get(self._attr)

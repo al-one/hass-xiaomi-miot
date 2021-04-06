@@ -314,6 +314,14 @@ class MiotAction:
         self.ins = dat.get('in') or []
         self.out = dat.get('out') or []
 
+    def in_params(self, dat: dict):
+        pms = []
+        for pid in self.ins:
+            prop = self.service.properties.get(pid)
+            if prop:
+                pms.append(dat.get(prop.full_name))
+        return pms
+
     def out_results(self, out=None):
         kls = []
         for pid in self.out:
