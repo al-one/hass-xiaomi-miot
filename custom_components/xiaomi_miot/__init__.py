@@ -392,7 +392,23 @@ class MiotDevice(MiotDeviceBase):
         )
 
 
-class MiioEntity(Entity):
+class BaseEntity(Entity):
+    def global_config(self, key=None, default=None):
+        if not self.hass:
+            return default
+        cfg = self.hass.data[DOMAIN]['config'] or {}
+        return cfg if key is None else cfg.get(key, default)
+
+    def custom_config(self, key=None, default=None):
+        if not self.hass:
+            return default
+        if not self.entity_id:
+            return default
+        cfg = self.hass.data[DATA_CUSTOMIZE].get(self.entity_id) or {}
+        return cfg if key is None else cfg.get(key, default)
+
+
+class MiioEntity(BaseEntity):
     def __init__(self, name, device, **kwargs):
         self._device = device
         self._config = dict(kwargs.get('config') or {})
@@ -532,20 +548,6 @@ class MiioEntity(Entity):
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
         return self._state_attrs
-
-    def global_config(self, key=None, default=None):
-        if not self.hass:
-            return default
-        cfg = self.hass.data[DOMAIN]['config'] or {}
-        return cfg if key is None else cfg.get(key, default)
-
-    def custom_config(self, key=None, default=None):
-        if not self.hass:
-            return default
-        if not self.entity_id:
-            return default
-        cfg = self.hass.data[DATA_CUSTOMIZE].get(self.entity_id) or {}
-        return cfg if key is None else cfg.get(key, default)
 
 
 class MiotEntity(MiioEntity):
@@ -1011,7 +1013,7 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
         return False
 
 
-class BaseSubEntity(Entity):
+class BaseSubEntity(BaseEntity):
     def __init__(self, parent, attr, option=None):
         self._unique_id = f'{parent.unique_id}-{attr}'
         self._name = f'{parent.name} {attr}'
