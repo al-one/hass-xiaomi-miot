@@ -12,9 +12,10 @@ This component uses the MIoT-Spec to automatically integrate Xiaomi devices into
 > Download and copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
 
 ```shell
+cd ~/.homeassistant/ # Enter your HomeAssistant config folder
 wget https://github.com/al-one/hass-xiaomi-miot/archive/master.zip
 unzip master.zip
-cp -rf hass-xiaomi-miot-master/custom_components/xiaomi_miot ~/.homeassistant/custom_components/
+cp -rf hass-xiaomi-miot-master/custom_components/xiaomi_miot ./custom_components/
 rm -rf hass-xiaomi-miot-master master.zip
 ```
 
