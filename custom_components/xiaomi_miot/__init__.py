@@ -915,9 +915,11 @@ class MiotEntity(MiioEntity):
                 elif tms > 0:
                     if tms <= 1:
                         _LOGGER.info('Device %s sub entity %s: %s already exists.', self.name, domain, fnm)
-                elif add_lights and domain == 'light' and s.get_property('on'):
-                    self._subs[fnm] = MiotLightSubEntity(self, s)
-                    add_lights([self._subs[fnm]])
+                elif add_lights and domain == 'light':
+                    pon = s.get_property('on')
+                    if pon and pon.full_name in self._state_attrs:
+                        self._subs[fnm] = MiotLightSubEntity(self, s)
+                        add_lights([self._subs[fnm]])
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
                     _LOGGER.debug('Added sub entity %s: %s for %s.', domain, fnm, self.name)
