@@ -55,7 +55,7 @@ class MiotCloud(micloud.MiCloud):
         }) or {}
         return rdt.get('result')
 
-    def request_miot_api(self, api, data: dict):
+    def request_miot_api(self, api, data: dict, debug=True):
         url = self._get_api_url(self.default_server) + '/' + api
         rsp = self.request(url, {
             'data': json.dumps(data, separators=(',', ':')),
@@ -67,12 +67,12 @@ class MiotCloud(micloud.MiCloud):
             rdt = None
         if not rdt:
             _LOGGER.warning(
-                'Request miot api: %s %s to cloud result: %s failed: %s',
+                'Request miot api: %s %s result: %s failed: %s',
                 api, data, rsp, exc,
             )
-        else:
+        elif debug:
             _LOGGER.debug(
-                'Request miot api: %s %s to cloud result: %s',
+                'Request miot api: %s %s result: %s',
                 api, data, rsp,
             )
         return rdt
@@ -88,6 +88,15 @@ class MiotCloud(micloud.MiCloud):
                 return d
         return None
 
+    def get_device_list(self):
+        rdt = self.request_miot_api('home/device_list', {
+            'getVirtualModel': True,
+            'getHuamiDevices': 0,
+        }, debug=False)
+        if rdt and 'result' in rdt:
+            return rdt['result']['list']
+        return None
+
     async def async_get_devices(self, renew=False):
         if not self.user_id:
             return None
@@ -101,7 +110,7 @@ class MiotCloud(micloud.MiCloud):
                 if dat.get('update_time', 0) > (now - 86400):
                     dvs = dat.get('devices') or []
         if not dvs:
-            dvs = await self.hass.async_add_executor_job(self.get_devices)
+            dvs = await self.hass.async_add_executor_job(self.get_device_list)
             if dvs:
                 dat = {
                     'update_time': now,
