@@ -92,9 +92,23 @@ class MiotCloud(micloud.MiCloud):
         rdt = self.request_miot_api('home/device_list', {
             'getVirtualModel': True,
             'getHuamiDevices': 0,
-        }, debug=False)
+        }, debug=False) or {}
         if rdt and 'result' in rdt:
             return rdt['result']['list']
+        _LOGGER.warning('Got xiaomi cloud devices for %s failed: %s', self.username, rdt)
+        eno = rdt.get('code')
+        if eno == 3:
+            # auth err
+            _LOGGER.error(
+                'Xiaomi cloud: %s auth failed, Please update option for this integration to refresh token.',
+                self.user_id,
+            )
+            self.user_id = None
+            self.service_token = None
+            self.ssecurity = None
+            if self.login():
+                return self.get_device_list()
+            _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
         return None
 
     async def async_get_devices(self, renew=False):
