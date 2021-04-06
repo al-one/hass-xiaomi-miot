@@ -1,5 +1,7 @@
 # Xiaomi Miot For HomeAssistant
 
+[English](https://github.com/al-one/hass-xiaomi-miot/blob/master/README.md) | 简体中文
+
 [MIoT-Spec](https://iot.mi.com/new/doc/design/spec/overall) 是小米IoT平台根据硬件产品的联网方式、产品功能的特点、用户使用场景的特征和用户对硬件产品使用体验的要求，设计的描述硬件产品功能定义的标准规范。
 
 本插件利用了MIoT-Spec的规范，可将小米设备自动接入[HomeAssistant](https://www.home-assistant.io)，目前已支持大部分小米MIoT设备。且该插件支持HA后台界面集成，无需配置yaml即可轻松将小米设备接入HA。
@@ -148,7 +150,7 @@ doamin.your_entity_id:
     - [kettle](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:kettle:00007813)
     - [water-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:water-heater:0000783E)
 - [vacuum](https://www.home-assistant.io/integrations/vacuum)
-    - [vacuum](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:vacuum:00007810) (Don't support clean area/point)
+    - [vacuum](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:vacuum:00007810) (不支持定点/划区清扫)
 - [cover](https://www.home-assistant.io/integrations/cover)
     - [airer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:airer:00007817)
     - [backrest-control](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:backrest-control:0000782A)
