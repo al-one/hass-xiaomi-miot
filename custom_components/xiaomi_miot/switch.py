@@ -90,9 +90,9 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
         if self._miot_service.name in ['washer']:
             add_fans = self._add_entities.get('fan')
             pls = self._miot_service.get_properties(
-                'mode', 'spin_speed', 'drying_level',
+                'mode', 'spin_speed', 'rinsh_times',
                 'target_temperature', 'target_water_level',
-                'rinsh_times',
+                'drying_level', 'drying_time',
             )
             for p in pls:
                 if not p.value_list and not p.value_range:

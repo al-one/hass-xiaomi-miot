@@ -238,6 +238,8 @@ class MiotProperty:
         for v in self.value_list:
             des = v.get('description')
             if val is None:
+                if des == '':
+                    des = v.get('value')
                 rls.append(des)
             elif val == v.get('value'):
                 return des
