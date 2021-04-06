@@ -1123,6 +1123,7 @@ class BaseSubEntity(BaseEntity):
 
 class ToggleSubEntity(BaseSubEntity, ToggleEntity):
     def __init__(self, parent, attr='power', option=None):
+        self._prop_power = None
         super().__init__(parent, attr, option)
 
     def update(self):
@@ -1140,9 +1141,19 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
         return self._state
 
     def turn_on(self, **kwargs):
+        if self._prop_power:
+            ret = self.call_parent('set_property', self._prop_power.full_name, True)
+            if ret:
+                self._state = True
+            return ret
         return self.call_parent('turn_on', **kwargs)
 
     def turn_off(self, **kwargs):
+        if self._prop_power:
+            ret = self.call_parent('set_property', self._prop_power.full_name, False)
+            if ret:
+                self._state = False
+            return ret
         return self.call_parent('turn_off', **kwargs)
 
 
