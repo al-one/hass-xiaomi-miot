@@ -111,6 +111,10 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
         if self._act_turn_off:
             self._supported_features |= SUPPORT_TURN_OFF
 
+        self._intelligent_speaker = miot_service.spec.get_service('intelligent_speaker')
+        if self._intelligent_speaker:
+            self._state_attrs[ATTR_ATTRIBUTION] = 'Support TTS through service'
+
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     @property
@@ -242,7 +246,7 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
         return False
 
     def intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
-        srv = self._miot_service.spec.get_service('intelligent_speaker')
+        srv = self._intelligent_speaker
         if srv:
             anm = 'execute_text_directive' if execute else 'play_text'
             act = srv.get_action(anm)
