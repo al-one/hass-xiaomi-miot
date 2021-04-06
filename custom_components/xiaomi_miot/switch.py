@@ -43,7 +43,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     model = str(config.get(CONF_MODEL) or '')
     miot = config.get('miot_type')
     entities = []
-    if model in ['pwzn.switch.apple', 'pwzn.relay.banana']:
+    if model in ['pwzn.relay.banana']:
         entities.append(PwznRelaySwitchEntity(config))
     elif miot:
         spec = await MiotSpec.async_from_type(hass, miot)
