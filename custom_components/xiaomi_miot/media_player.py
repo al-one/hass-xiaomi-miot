@@ -82,9 +82,12 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
     def __init__(self, miot_service: MiotService):
         self._miot_service = miot_service
         self._prop_state = miot_service.get_property('playing_state')
+        self._prop_volume = miot_service.get_property('volume')
+        self._prop_mute = miot_service.get_property('mute')
         self._speaker = miot_service.spec.get_service('speaker')
-        self._prop_volume = self._speaker.get_property('volume')
-        self._prop_mute = self._speaker.get_property('mute')
+        if self._speaker:
+            self._prop_volume = self._speaker.get_property('volume') or self._prop_volume
+            self._prop_mute = self._speaker.get_property('mute') or self._prop_mute
         self._act_turn_on = None
         self._act_turn_off = None
         for srv in miot_service.spec.services:
