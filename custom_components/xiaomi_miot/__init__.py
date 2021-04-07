@@ -550,6 +550,25 @@ class MiioEntity(BaseEntity):
         return self._state_attrs
 
 
+class MiotEntityInterface:
+    _miot_service = None
+    _model = ''
+    _state_attrs = {}
+    _supported_features = 0
+
+    def set_property(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def set_miot_property(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def miot_action(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def update_attrs(self, *args, **kwargs):
+        raise NotImplementedError()
+
+
 class MiotEntity(MiioEntity):
     def __init__(self, miot_service=None, device=None, **kwargs):
         self._config = dict(kwargs.get('config') or {})

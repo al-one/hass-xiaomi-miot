@@ -20,7 +20,8 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     XIAOMI_MIIO_SERVICE_SCHEMA,
-    MiotToggleEntity,
+    MiotEntityInterface,
+    MiotEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -60,24 +61,26 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services('play_control'):
+        for srv in spec.get_services('play_control', 'doorbell'):
             if not srv.mapping():
                 continue
             cfg = {
                 **config,
                 'name': f"{config.get('name')} {srv.description}"
             }
-            entities.append(MiotMediaPlayerEntity(cfg, srv))
+            if srv.name in ['doorbell']:
+                entities.append(MiotDoorbellEntity(cfg, srv))
+            else:
+                entities.append(MiotMediaPlayerEntity(cfg, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
-    def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
-
+class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
+    def __init__(self, miot_service: MiotService):
+        self._miot_service = miot_service
         self._prop_state = miot_service.get_property('playing_state')
         self._speaker = miot_service.spec.get_service('speaker')
         self._prop_volume = self._speaker.get_property('volume')
@@ -111,11 +114,9 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
         if self._act_turn_off:
             self._supported_features |= SUPPORT_TURN_OFF
 
-        self._intelligent_speaker = miot_service.spec.get_service('intelligent_speaker')
-        if self._intelligent_speaker:
-            self._state_attrs[ATTR_ATTRIBUTION] = 'Support TTS through service'
-
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
+    @property
+    def supported_features(self):
+        return self._supported_features
 
     @property
     def device_class(self):
@@ -139,6 +140,9 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
                     return STATE_PAUSED
                 if sta == self._prop_state.list_value('Idle'):
                     return STATE_IDLE
+                des = self._prop_state.list_description(sta)
+                if des is not None:
+                    return des
         if self.available:
             return STATE_UNKNOWN
         return STATE_UNAVAILABLE
@@ -172,11 +176,11 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
 
     def set_volume_level(self, volume):
         if self._prop_volume:
-            vol = round(volume * (self._prop_volume.range_max() or 1))
+            val = round(volume * (self._prop_volume.range_max() or 1))
             stp = self._prop_volume.range_step()
             if stp and stp > 1:
-                vol = round(vol / stp) * stp
-            return self.set_property(self._prop_volume.full_name, vol)
+                val = round(val / stp) * stp
+            return self.set_property(self._prop_volume.full_name, val)
         return False
 
     def media_play(self):
@@ -245,6 +249,27 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
     def set_repeat(self, repeat):
         return False
 
+    async def async_browse_media(self, media_content_type=None, media_content_id=None):
+        """Return a BrowseMedia instance."""
+        pass
+
+
+class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(miot_service, config=config)
+        BaseMediaPlayerEntity.__init__(self, miot_service)
+        self._state_attrs.update({'entity_class': self.__class__.__name__})
+
+        self._intelligent_speaker = miot_service.spec.get_service('intelligent_speaker')
+        if self._intelligent_speaker:
+            self._state_attrs[ATTR_ATTRIBUTION] = 'Support TTS through service'
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        self._update_sub_entities('on', domain='switch')
+
     def intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         srv = self._intelligent_speaker
         if srv:
@@ -265,3 +290,9 @@ class MiotMediaPlayerEntity(MiotToggleEntity, MediaPlayerEntity):
         return await self.hass.async_add_executor_job(
             partial(self.intelligent_speaker, text, execute, silent, **kwargs)
         )
+
+
+class MiotDoorbellEntity(MiotMediaPlayerEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(config, miot_service)
+        self._state_attrs.update({'entity_class': self.__class__.__name__})
