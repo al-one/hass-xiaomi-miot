@@ -383,8 +383,10 @@ class MiioInfo(MiioInfoBase):
 
 
 class MiotDevice(MiotDeviceBase):
-    def get_properties_for_mapping(self, max_properties=12) -> list:
-        properties = [{'did': k, **v} for k, v in self.mapping.items()]
+    def get_properties_for_mapping(self, *, max_properties=12, mapping=None) -> list:
+        if mapping is None:
+            mapping = self.mapping
+        properties = [{'did': k, **v} for k, v in mapping.items()]
         return self.get_properties(
             properties,
             property_getter='get_properties',
@@ -584,7 +586,8 @@ class MiotEntity(MiioEntity):
             token = self._config.get(CONF_TOKEN) or None
             _LOGGER.info('Initializing with host %s (%s), miot mapping: %s', host, name, self._miot_mapping)
             try:
-                device = MiotDevice(ip=host, token=token, mapping=self._miot_mapping)
+                device = MiotDevice(ip=host, token=token)
+                device.mapping = self._miot_mapping
             except ValueError as exc:
                 _LOGGER.warning('Initializing with host %s (%s) failed: %s', host, name, exc)
 
@@ -775,12 +778,7 @@ class MiotEntity(MiioEntity):
         if not self._miio_info:
             return
         try:
-            device = MiotDevice(
-                ip=self._miio_info.network_interface.get('localIp'),
-                token=self._miio_info.data.get('token') or None,
-                mapping=mapping,
-            )
-            results = device.get_properties_for_mapping()
+            results = self._device.get_properties_for_mapping(mapping=mapping)
         except (ValueError, DeviceException) as exc:
             if throw:
                 raise exc
