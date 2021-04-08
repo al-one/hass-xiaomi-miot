@@ -588,6 +588,10 @@ class MiotEntity(MiioEntity):
             try:
                 device = MiotDevice(ip=host, token=token)
                 device.mapping = self._miot_mapping
+            except TypeError as exc:
+                if f'{exc}'.find('mapping') >= 0:
+                    # for python-miio <= v0.5.4
+                    device = MiotDevice(self._miot_mapping, host, token)
             except ValueError as exc:
                 _LOGGER.warning('Initializing with host %s (%s) failed: %s', host, name, exc)
 
