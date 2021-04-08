@@ -581,10 +581,10 @@ class MiotEntity(MiioEntity):
         name = self._config.get(CONF_NAME) or ''
         if device is None and CONF_TOKEN in self._config:
             host = self._config.get(CONF_HOST) or ''
-            token = self._config.get(CONF_TOKEN) or ''
+            token = self._config.get(CONF_TOKEN) or None
             _LOGGER.info('Initializing with host %s (%s), miot mapping: %s', host, name, self._miot_mapping)
             try:
-                device = MiotDevice(self._miot_mapping, host, token)
+                device = MiotDevice(ip=host, token=token, mapping=self._miot_mapping)
             except ValueError as exc:
                 _LOGGER.warning('Initializing with host %s (%s) failed: %s', host, name, exc)
 
@@ -776,9 +776,9 @@ class MiotEntity(MiioEntity):
             return
         try:
             device = MiotDevice(
-                mapping,
-                self._miio_info.network_interface.get('localIp'),
-                self._miio_info.data.get('token'),
+                ip=self._miio_info.network_interface.get('localIp'),
+                token=self._miio_info.data.get('token') or None,
+                mapping=mapping,
             )
             results = device.get_properties_for_mapping()
         except (ValueError, DeviceException) as exc:
