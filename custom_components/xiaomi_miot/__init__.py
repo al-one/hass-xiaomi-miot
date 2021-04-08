@@ -586,8 +586,7 @@ class MiotEntity(MiioEntity):
             token = self._config.get(CONF_TOKEN) or None
             _LOGGER.info('Initializing with host %s (%s), miot mapping: %s', host, name, self._miot_mapping)
             try:
-                device = MiotDevice(ip=host, token=token)
-                device.mapping = self._miot_mapping
+                device = MiotDevice(ip=host, token=token, mapping=self._miot_mapping)
             except ValueError as exc:
                 _LOGGER.warning('Initializing with host %s (%s) failed: %s', host, name, exc)
 
