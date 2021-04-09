@@ -13,7 +13,8 @@
                 "data": {
                     "host": "Local IP",
                     "token": "Token",
-                    "name": "Device name"
+                    "name": "Device name",
+                    "scan_interval": "Update state interval (seconds)"
                 }
             },
             "cloud": {
@@ -54,6 +55,7 @@
                 "data": {
                     "host": "Local IP",
                     "token": "Token",
+                    "scan_interval": "Update state interval (seconds)",
                     "miot_cloud": "Enable miot cloud (Config account in YAML)"
                 }
             },

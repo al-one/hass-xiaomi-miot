@@ -78,6 +78,7 @@ cover.your_entity_id:
   closed_position: 5 # 当实体位置值小于等于此值时为关闭状态
 
 doamin.your_entity_id:
+  interval_seconds: 30 # 每次更新状态间隔秒数(需要重载集成配置)
   chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)
 ```
 

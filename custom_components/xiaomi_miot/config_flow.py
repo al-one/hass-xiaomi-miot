@@ -25,6 +25,7 @@ from .core.xiaomi_cloud import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+DEFAULT_INTERVAL = 30
 
 CLOUD_SERVERS = {
     'cn': 'China',
@@ -162,6 +163,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_TOKEN, default=user_input.get(CONF_TOKEN, vol.UNDEFINED)):
                     vol.All(str, vol.Length(min=32, max=32)),
                 vol.Optional(CONF_NAME, default=user_input.get(CONF_NAME, DEFAULT_NAME)): str,
+                vol.Optional(CONF_SCAN_INTERVAL, default=user_input.get(CONF_SCAN_INTERVAL, DEFAULT_INTERVAL)):
+                    cv.positive_int,
             }),
             errors=errors,
         )
@@ -252,7 +255,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             cfg = {}
             opt = {}
             for k, v in user_input.items():
-                if k in [CONF_HOST, CONF_TOKEN, CONF_NAME]:
+                if k in [CONF_HOST, CONF_TOKEN, CONF_NAME, CONF_SCAN_INTERVAL]:
                     cfg[k] = v
                 else:
                     opt[k] = v
@@ -270,6 +273,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required(CONF_HOST, default=user_input.get(CONF_HOST, vol.UNDEFINED)): str,
                 vol.Required(CONF_TOKEN, default=user_input.get(CONF_TOKEN, vol.UNDEFINED)):
                     vol.All(str, vol.Length(min=32, max=32)),
+                vol.Optional(CONF_SCAN_INTERVAL, default=user_input.get(CONF_SCAN_INTERVAL, DEFAULT_INTERVAL)):
+                    cv.positive_int,
                 vol.Optional('miot_cloud', default=user_input.get('miot_cloud', False)): bool,
             }),
             errors=errors,

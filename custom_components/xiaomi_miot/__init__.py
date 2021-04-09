@@ -69,7 +69,6 @@ XIAOMI_CONFIG_SCHEMA = cv.PLATFORM_SCHEMA_BASE.extend(
         vol.Optional(CONF_TOKEN): vol.All(cv.string, vol.Length(min=32, max=32)),
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Optional(CONF_MODEL, default=''): cv.string,
-        vol.Optional(CONF_MODE, default=[]): cv.ensure_list,
     }
 )
 
@@ -167,8 +166,8 @@ async def async_setup(hass, hass_config: dict):
     hass.data.setdefault(DOMAIN, {})
     config = hass_config.get(DOMAIN) or {}
     hass.data[DOMAIN]['config'] = config
-    hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('configs', {})
+    hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('add_entities', {})
     hass.data[DOMAIN].setdefault('sub_entities', {})
     component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
@@ -210,18 +209,15 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
         model = str(config.get(CONF_MODEL) or info.get(CONF_MODEL) or '')
         config[CONF_MODEL] = model
 
-        if 'miot_type' in config_entry.data:
-            config['miot_type'] = config_entry.data.get('miot_type')
-        else:
+        if 'miot_type' not in config:
             config['miot_type'] = await MiotSpec.async_get_model_type(hass, model)
         config['miio_info'] = info
         config['config_entry'] = config_entry
-        hass.data[DOMAIN]['configs'][entry_id] = config
+        hass.data[DOMAIN][entry_id] = config
         _LOGGER.debug('Xiaomi Miot setup config entry: %s', {
             'entry_id': entry_id,
             'unique_id': unique_id,
             'config': config,
-            'miio': info,
         })
 
     if not config_entry.update_listeners:
@@ -363,7 +359,7 @@ async def async_setup_config_entry(hass, config_entry, async_setup_platform, asy
     cls = cfg.get('configs')
     if not cls:
         cls = [
-            hass.data[DOMAIN]['configs'].get(eid, dict(config_entry.data)),
+            hass.data[DOMAIN].get(eid, dict(config_entry.data)),
         ]
     for c in cls:
         await async_setup_platform(hass, c, async_add_entities)
@@ -395,6 +391,8 @@ class MiotDevice(MiotDeviceBase):
 
 
 class BaseEntity(Entity):
+    _config = None
+
     def global_config(self, key=None, default=None):
         if not self.hass:
             return default
@@ -408,6 +406,34 @@ class BaseEntity(Entity):
             return default
         cfg = self.hass.data[DATA_CUSTOMIZE].get(self.entity_id) or {}
         return cfg if key is None else cfg.get(key, default)
+
+    def entry_config(self, key=None, default=None):
+        if not self.hass:
+            return default
+        cfg = self.hass.data[DOMAIN]
+        eid = None
+        if self._config:
+            eid = self._config.get('entry_id')
+        if not eid and self.platform.config_entry:
+            eid = self.platform.config_entry.entry_id
+        if eid:
+            cfg = self.hass.data[DOMAIN].get(eid) or {}
+        return cfg if key is None else cfg.get(key, default)
+
+    def update_custom_scan_interval(self, only_custom=False):
+        if not self.platform:
+            return
+        sec = self.custom_config('interval_seconds')
+        if not sec and not only_custom:
+            sec = self.entry_config(CONF_SCAN_INTERVAL)
+        try:
+            sec = int(sec or 0)
+        except (TypeError, ValueError):
+            sec = 0
+        tim = timedelta(seconds=sec)
+        if sec > 0 and tim != self.platform.scan_interval:
+            self.platform.scan_interval = tim
+            _LOGGER.debug('Update custom scan interval: %s for %s', tim, self.name)
 
 
 class MiioEntity(BaseEntity):
@@ -485,12 +511,14 @@ class MiioEntity(BaseEntity):
         }
 
     async def async_added_to_hass(self):
-        if self.hass:
-            if self.platform and self.platform.config_entry:
+        if not self.hass:
+            self._add_entities = self.hass.data[DOMAIN].get('add_entities') or {}
+            return
+        if self.platform:
+            self.update_custom_scan_interval()
+            if self.platform.config_entry:
                 eid = self.platform.config_entry.entry_id
                 self._add_entities = self.hass.data[DOMAIN][eid].get('add_entities') or {}
-        else:
-            self._add_entities = self.hass.data[DOMAIN].get('add_entities') or {}
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
@@ -600,15 +628,6 @@ class MiotEntity(MiioEntity):
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
         self._success_code = 0
         self._subs = {}
-
-    def entry_config(self, key=None, default=None):
-        if self.hass:
-            cfg = self.hass.data[DOMAIN]
-            eid = self._config.get('entry_id')
-            if eid:
-                cfg = self.hass.data[DOMAIN].get(eid) or {}
-            return cfg if key is None else cfg.get(key, default)
-        return default
 
     @property
     def miot_did(self):
@@ -1099,6 +1118,10 @@ class BaseSubEntity(BaseEntity):
     @property
     def unit_of_measurement(self):
         return self._option.get('unit')
+
+    async def async_added_to_hass(self):
+        if self.platform:
+            self.update_custom_scan_interval(only_custom=True)
 
     def update(self):
         attrs = self._parent.device_state_attributes or {}

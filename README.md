@@ -78,6 +78,7 @@ cover.your_entity_id:
   closed_position: 5 # Change cover state to closed when position <= 5%
 
 doamin.your_entity_id:
+  interval_seconds: 30 # Seconds between each update state (Requires reload config entry)
   chunk_properties: 10 # Chunk miot properties on update state (LAN)
 ```
 

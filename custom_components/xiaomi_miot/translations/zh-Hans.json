@@ -13,7 +13,8 @@
                 "data": {
                     "host": "设备IP",
                     "token": "Token",
-                    "name": "名称"
+                    "name": "名称",
+                    "scan_interval": "更新状态频率(秒)"
                 }
             },
             "cloud": {
@@ -54,6 +55,7 @@
                 "data": {
                     "host": "设备IP",
                     "token": "Token",
+                    "scan_interval": "更新状态频率(秒)",
                     "miot_cloud": "开启云端模式(请先配置账户密码)"
                 }
             },
