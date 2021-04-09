@@ -316,12 +316,23 @@ class MiotAction:
         self.ins = dat.get('in') or []
         self.out = dat.get('out') or []
 
-    def in_params(self, dat: dict):
+    def in_params_from_attrs(self, dat: dict):
         pms = []
         for pid in self.ins:
             prop = self.service.properties.get(pid)
-            if prop:
-                pms.append(dat.get(prop.full_name))
+            pms.append({
+                'piid': pid,
+                'value': dat.get(prop.full_name) if prop else None,
+            })
+        return pms
+
+    def in_params(self, params: list):
+        pms = []
+        for pid in self.ins:
+            pms.append({
+                'piid': pid,
+                'value': params.pop(0),
+            })
         return pms
 
     def out_results(self, out=None):

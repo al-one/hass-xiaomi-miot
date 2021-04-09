@@ -33,6 +33,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
     MiotProperty,
+    MiotAction,
 )
 from .core.xiaomi_cloud import (
     MiotCloud,
@@ -882,6 +883,12 @@ class MiotEntity(MiioEntity):
     async def async_set_miot_property(self, siid, piid, value, did=None):
         return await self.hass.async_add_executor_job(partial(self.set_miot_property, siid, piid, value, did))
 
+    def call_action(self, action: MiotAction, params=None, did=None, **kwargs):
+        aiid = action.iid
+        siid = action.service.iid
+        pms = action.in_params(params or [])
+        return self.miot_action(siid, aiid, pms, did, **kwargs)
+
     def miot_action(self, siid, aiid, params=None, did=None, **kwargs):
         if did is None:
             did = self.miot_did or f'action-{siid}-{aiid}'
@@ -903,6 +910,7 @@ class MiotEntity(MiioEntity):
         except MiCloudException as exc:
             _LOGGER.warning('Call miot action to cloud for %s (%s) failed: %s', self.name, pms, exc)
         if ret:
+            self._vars['delay_update'] = 2
             _LOGGER.debug('Call miot action to %s (%s), result: %s', self.name, pms, ret)
         self._state_attrs['miot_action_result'] = ret
         if kwargs.get('throw'):
