@@ -206,7 +206,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 pnm = p.full_name
                 if pnm in self._subs:
                     self._subs[pnm].update()
-                elif add_switches and pnm not in [self._prop_heater.full_name]:
+                elif add_switches and pnm not in [self._prop_heater.full_name if self._prop_heater else None]:
                     self._subs[pnm] = MiotSwitchSubEntity(self, p)
                     add_switches([self._subs[pnm]])
             if self._miot_service.get_action('start_wash'):
