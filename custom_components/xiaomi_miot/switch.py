@@ -47,16 +47,21 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         entities.append(PwznRelaySwitchEntity(config))
     elif miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services(
-            ENTITY_DOMAIN, 'outlet', 'washer', 'pet_drinking_fountain', 'massager',
-        ):
-            if not srv.get_property('on'):
-                continue
-            cfg = {
-                **config,
-                'name': f"{config.get('name')} {srv.description}"
-            }
-            entities.append(MiotSwitchEntity(cfg, srv))
+        if model in ['pwzn.switch.apple']:
+            srv = spec.get_service('relays')
+            if srv:
+                entities.append(MiotPwznRelaySwitchEntity(config, srv))
+        else:
+            for srv in spec.get_services(
+                ENTITY_DOMAIN, 'outlet', 'washer', 'pet_drinking_fountain', 'massager',
+            ):
+                if not srv.get_property('on'):
+                    continue
+                cfg = {
+                    **config,
+                    'name': f"{config.get('name')} {srv.description}"
+                }
+                entities.append(MiotSwitchEntity(cfg, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
@@ -194,7 +199,7 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
         if act:
             pms = []
             if act.ins:
-                pms = act.in_params(self._parent_attrs)
+                pms = act.in_params_from_attrs(self._parent_attrs)
             ret = self.call_parent('miot_action', self._miot_service.iid, act.iid, pms)
             if ret and sta is not None:
                 self.update_attrs({
@@ -215,6 +220,87 @@ class MiotCookerSwitchSubEntity(SwitchSubEntity):
     @property
     def is_on(self):
         return self._parent.is_on
+
+
+class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(miot_service, config=config)
+        self._prop_status = miot_service.get_property('all_status')
+        self._prop_power = self._prop_status
+        self._state_attrs.update({'entity_class': self.__class__.__name__})
+
+    @property
+    def device_class(self):
+        return DEVICE_CLASS_SWITCH
+
+    @property
+    def all_status(self):
+        return (1 << 16) - 1
+
+    async def async_update(self):
+        await super().async_update()
+        await self.hass.async_add_executor_job(self.update_all)
+
+    def update_all(self):
+        if not self._available:
+            return
+        sta = int(self._prop_status.from_dict(self._state_attrs) or 0)
+        self._state = (sta & self.all_status) and True
+        add_switches = self._add_entities.get(ENTITY_DOMAIN)
+        for idx in range(0, 32):
+            s = idx + 1
+            b = 1 << idx
+            k = 'switch_%02d' % s
+            self._state_attrs[k] = STATE_ON if sta & b else STATE_OFF
+            if k in self._subs:
+                self._subs[k].update()
+            elif add_switches:
+                self._subs[k] = PwznRelaySwitchSubEntity(self, 0, s, {
+                    'attr': k,
+                    'index': idx,
+                })
+                add_switches([self._subs[k]])
+
+    def relay_ctrl(self, select, ctrl):
+        act = self._miot_service.get_action('relay_ctrl')
+        if act:
+            return self.call_action(act, [select, ctrl])
+        return False
+
+    def turn_channel(self, channel, on):
+        act = self._miot_service.get_action('relay_chnl_on' if on else 'relay_chnl_off')
+        if act:
+            return self.call_action(act, [channel])
+        return False
+
+    @property
+    def is_on(self):
+        return self._state
+
+    def turn_on(self, **kwargs):
+        act = self._miot_service.get_action('relay_all_on')
+        ret = self.call_action(act) if act else False
+        if ret:
+            self._vars['delay_update'] = 5
+            self.update_attrs({
+                self._prop_status.full_name: self.all_status,
+            }, update_parent=False)
+            self.update_all()
+            self._state = True
+        return ret
+
+    def turn_off(self, **kwargs):
+        act = self._miot_service.get_action('relay_all_off')
+        ret = self.call_action(act) if act else False
+        if ret:
+            self._vars['delay_update'] = 5
+            sta = int(self._prop_status.from_dict(self._state_attrs) or 0)
+            self.update_attrs({
+                self._prop_status.full_name: sta & ~ self.all_status,
+            }, update_parent=False)
+            self.update_all()
+            self._state = False
+        return ret
 
 
 class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
@@ -313,7 +399,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
 
 
 class PwznRelaySwitchSubEntity(SwitchSubEntity):
-    def __init__(self, parent: PwznRelaySwitchEntity, group, switch, option=None):
+    def __init__(self, parent, group, switch, option=None):
         self._group = group
         self._switch = switch
         self._switch_index = 0
@@ -329,6 +415,8 @@ class PwznRelaySwitchSubEntity(SwitchSubEntity):
             ret = self.call_parent('send_command', 'set_g2enable', [1 if on else 0])
         elif self._attr == 'codeEnable':
             ret = self.call_parent('send_command', 'set_codeEnable', [1 if on else 0])
+        elif isinstance(self._parent, MiotPwznRelaySwitchEntity):
+            ret = self.call_parent('turn_channel', self._switch_index, on)
         else:
             ret = self.call_parent('send_command', 'power_on' if on else 'power_off', [self._switch_index])
         if ret:
