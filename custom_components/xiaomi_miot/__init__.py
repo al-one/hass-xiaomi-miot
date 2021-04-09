@@ -627,6 +627,7 @@ class MiotEntity(MiioEntity):
         super().__init__(name, device, **kwargs)
         if self._miot_service:
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
+            self._state_attrs['miot_type'] = self._miot_service.spec.type
         self._success_code = 0
         self._subs = {}
 

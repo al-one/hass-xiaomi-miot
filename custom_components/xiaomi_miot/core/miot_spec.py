@@ -70,14 +70,27 @@ class MiotSpec:
             try:
                 res = await hass.async_add_executor_job(requests.get, url)
                 dat = res.json() or {}
-                await store.async_save(dat)
             except ValueError:
                 dat = {}
+            if dat:
+                sdt = {}
+                for v in (dat.get('instances') or []):
+                    m = v.get('model')
+                    o = sdt.get(m)
+                    if o and v.get('version') < o.get('version'):
+                        continue
+                    v.pop('model', None)
+                    sdt[m] = v
+                await store.async_save(sdt)
+                dat = sdt
         typ = None
-        for v in (dat.get('instances') or []):
-            if model == v.get('model'):
-                typ = v.get('type')
-                break
+        if 'instances' in dat:
+            for v in (dat.get('instances') or []):
+                if model == v.get('model'):
+                    typ = v.get('type')
+                    break
+        elif model in dat:
+            typ = dat[model].get('type')
         if typ is None and not use_remote:
             return await MiotSpec.async_get_model_type(hass, model, True)
         return typ
