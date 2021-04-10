@@ -851,8 +851,11 @@ class MiotEntity(MiioEntity):
             _LOGGER.info('Set miot property to %s failed: %s(%s), result: %s', self.name, field, value, result)
         return ret
 
-    async def async_set_property(self, field, value):
-        return await self.hass.async_add_executor_job(partial(self.set_property, field, value))
+    async def async_set_property(self, *args, **kwargs):
+        if not self.hass:
+            _LOGGER.info('Set miot property (%s) to %s failed: hass not ready.', args, self.name)
+            return False
+        return await self.hass.async_add_executor_job(partial(self.set_property, *args, **kwargs))
 
     def set_miot_property(self, siid, piid, value, did=None):
         if did is None:
