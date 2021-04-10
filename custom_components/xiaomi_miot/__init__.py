@@ -411,14 +411,14 @@ class BaseEntity(Entity):
     def entry_config(self, key=None, default=None):
         if not self.hass:
             return default
-        cfg = self.hass.data[DOMAIN]
+        cfg = self.hass.data[DOMAIN] or {}
         eid = None
         if self._config:
             eid = self._config.get('entry_id')
         if not eid and self.platform.config_entry:
             eid = self.platform.config_entry.entry_id
         if eid:
-            cfg = self.hass.data[DOMAIN].get(eid) or {}
+            cfg = {**cfg, **(self.hass.data[DOMAIN].get(eid) or {})}
         return cfg if key is None else cfg.get(key, default)
 
     def update_custom_scan_interval(self, only_custom=False):
