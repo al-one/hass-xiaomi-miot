@@ -243,13 +243,18 @@ class MiotCookerEntity(MiotSensorEntity):
         return val not in [*self._values_off, None]
 
     def turn_on(self, **kwargs):
-        return False
+        return self.turn_action(True)
 
     def turn_off(self, **kwargs):
+        return self.turn_action(False)
+
+    def turn_action(self, on):
         ret = False
-        if self._action_cancel:
-            ret = self.miot_action(self._miot_service.iid, self._action_cancel.iid)
-            sta = self._values_off[0] if self._values_off else None
+        act = self._action_start if on else self._action_cancel
+        vls = self._values_on if on else self._values_off
+        if act:
+            ret = self.call_action(act)
+            sta = vls[0] if vls else None
             if ret and sta is not None:
                 self.update_attrs({
                     self._prop_state.full_name: sta,
