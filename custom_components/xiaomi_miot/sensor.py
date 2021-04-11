@@ -259,6 +259,8 @@ class MiotCookerEntity(MiotSensorEntity):
                 self.update_attrs({
                     self._prop_state.full_name: sta,
                 })
+        else:
+            _LOGGER.warning('Miot device %s has no turn_action: %s', self.name, on)
         return ret
 
 

@@ -1166,6 +1166,7 @@ class BaseSubEntity(BaseEntity):
             if hasattr(self._parent, f):
                 ret = getattr(self._parent, f)(*args, **kwargs)
                 break
+            _LOGGER.info('Parent entity of %s has no method: %s', self.name, f)
         if ret:
             self.update()
         return ret
