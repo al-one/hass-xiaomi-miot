@@ -12,6 +12,10 @@ from homeassistant.components.fan import (
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
 )
+from homeassistant.util.percentage import (
+    ordered_list_item_to_percentage,
+    percentage_to_ordered_list_item,
+)
 
 from . import (
     DOMAIN,
@@ -113,10 +117,15 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         ret = False
         if not self.is_on:
             ret = self.set_property(self._prop_power.full_name, True)
-        if percentage and self._prop_percentage:
-            ret = self.set_property(self._prop_percentage.full_name, percentage)
-        elif speed and self._prop_speed:
-            val = self._prop_speed.list_first(speed)
+        if self._prop_percentage:
+            if not percentage and speed:
+                percentage = ordered_list_item_to_percentage(self.speed_list, speed)
+            if percentage:
+                ret = self.set_property(self._prop_percentage.full_name, percentage)
+        elif self._prop_speed:
+            if not speed and percentage:
+                speed = percentage_to_ordered_list_item(self.speed_list, percentage)
+            val = self._prop_speed.list_first(speed) if speed else None
             if val is not None:
                 ret = self.set_property(self._prop_speed.full_name, val)
         if preset_mode and self._prop_mode:
@@ -129,14 +138,18 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
     def speed(self):
         if not self.is_on:
             return SPEED_OFF
-        spd = int(self._prop_speed.from_dict(self._state_attrs, 0))
-        return self._prop_speed.list_description(spd)
+        if self._prop_speed:
+            spd = int(self._prop_speed.from_dict(self._state_attrs, 0))
+            return self._prop_speed.list_description(spd)
+        return None
 
     @property
     def speed_list(self):
-        lst = self._prop_speed.list_descriptions()
-        if self._prop_speed.list_first(SPEED_OFF) is None:
-            lst = [SPEED_OFF, *lst]
+        lst = []
+        if self._prop_speed:
+            lst = self._prop_speed.list_descriptions()
+            if self._prop_speed.list_first(SPEED_OFF) is None:
+                lst = [SPEED_OFF, *lst]
         return lst
 
     def set_speed(self, speed):
