@@ -890,7 +890,9 @@ class MiotEntity(MiioEntity):
     def call_action(self, action: MiotAction, params=None, did=None, **kwargs):
         aiid = action.iid
         siid = action.service.iid
-        pms = action.in_params(params or [])
+        pms = params or []
+        if not self.miot_cloud_action:
+            pms = action.in_params(params or [])
         return self.miot_action(siid, aiid, pms, did, **kwargs)
 
     def miot_action(self, siid, aiid, params=None, did=None, **kwargs):
