@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'water_purifier', 'oven', 'microwave_oven', 'health_pot',
                 'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer',
                 'coffee_machine', 'router', 'video_doorbell', 'lock',
-                'temperature_humidity_sensor', 'printer', 'bed',
+                'temperature_humidity_sensor', 'printer', 'bed', 'sleep_monitor',
             ):
                 if srv.name in ['lock']:
                     if not srv.get_property('operation_method'):
@@ -100,6 +100,8 @@ class MiotSensorEntity(MiotEntity):
             self._prop_state = miot_service.get_property('tds_out') or self._prop_state
         elif miot_service.name in ['temperature_humidity_sensor']:
             self._prop_state = miot_service.get_property('temperature', 'indoor_temperature') or self._prop_state
+        elif miot_service.name in ['sleep_monitor']:
+            self._prop_state = miot_service.get_property('sleep_state') or self._prop_state
 
         self._state_attrs.update({
             'entity_class': self.__class__.__name__,
