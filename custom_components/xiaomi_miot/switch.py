@@ -199,7 +199,7 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
         if act:
             pms = []
             if act.ins:
-                pms = act.in_params_from_attrs(self._parent_attrs)
+                pms = act.in_params_from_attrs(self._parent_attrs, with_piid=False)
             ret = self.call_parent('miot_action', self._miot_service.iid, act.iid, pms)
             if ret and sta is not None:
                 self.update_attrs({
