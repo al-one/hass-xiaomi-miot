@@ -47,6 +47,7 @@ DOMAIN = 'xiaomi_miot'
 SCAN_INTERVAL = timedelta(seconds=60)
 DEFAULT_NAME = 'Xiaomi Miot'
 CONF_MODEL = 'model'
+CONF_SERVER_COUNTRY = 'server_country'
 
 SUPPORTED_DOMAINS = [
     'sensor',

@@ -114,7 +114,7 @@ class MiotCloud(micloud.MiCloud):
     async def async_get_devices(self, renew=False):
         if not self.user_id:
             return None
-        fnm = f'xiaomi_miot/devices-{self.user_id}.json'
+        fnm = f'xiaomi_miot/devices-{self.user_id}-{self.default_server}.json'
         store = Store(self.hass, 1, fnm)
         now = time.time()
         dvs = None

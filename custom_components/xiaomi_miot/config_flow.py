@@ -16,6 +16,7 @@ from miio import (
 from . import (
     DOMAIN,
     CONF_MODEL,
+    CONF_SERVER_COUNTRY,
     DEFAULT_NAME,
 )
 from .core.miot_spec import MiotSpec
@@ -176,7 +177,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             user_input = {}
         else:
-            await self.async_set_unique_id(user_input[CONF_USERNAME])
+            await self.async_set_unique_id(f'{user_input[CONF_USERNAME]}-{user_input[CONF_SERVER_COUNTRY]}')
             self._abort_if_unique_id_configured()
             await check_xiaomi_account(self.hass, user_input, errors)
             if not errors:
@@ -186,7 +187,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema({
                 vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
                 vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
-                vol.Required('server_country', default=user_input.get('server_country', 'cn')):
+                vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
                     vol.In(CLOUD_SERVERS),
             }),
             errors=errors,
@@ -295,7 +296,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema({
                 vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
                 vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
-                vol.Required('server_country', default=user_input.get('server_country', 'cn')):
+                vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
                     vol.In(CLOUD_SERVERS),
                 vol.Optional('renew_devices', default=user_input.get('renew_devices', False)): bool,
             }),
