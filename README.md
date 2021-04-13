@@ -102,6 +102,7 @@ doamin.your_entity_id:
     - [door](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:door:00007856)
     - [doorbell](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:doorbell:00007857)
     - [environment](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:environment:0000780A)
+    - [pet-feeder](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:pet-feeder:00007847)
     - [filter](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:filter:0000780B)
     - [health-pot](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:health-pot:00007860)
     - [illumination-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:illumination-sensor:0000783D)
