@@ -76,22 +76,8 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         self._act_start_stream = None
         self._prop_stream_address = None
         self._prop_expiration_time = None
-        for s in ['camera_stream_for_google_home', 'camera_stream_for_amazon_alexa']:
-            srv = miot_service.spec.get_service(s)
-            if not srv:
-                continue
-            act = srv.get_action('start_hls_stream', 'start_rtsp_stream')
-            if act:
-                self._srv_stream = srv
-                self._act_start_stream = act
-                self._prop_stream_address = srv.get_property('stream_address')
-                self._prop_expiration_time = srv.get_property('expiration_time')
-                break
-
         if self._prop_power:
             self._supported_features |= SUPPORT_ON_OFF
-        if self._prop_stream_address:
-            self._supported_features |= SUPPORT_STREAM
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._last_image = None
@@ -104,6 +90,24 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         self._manager = self.hass.data.get(DATA_FFMPEG)
+
+        sls = ['camera_stream_for_google_home', 'camera_stream_for_amazon_alexa']
+        if self.custom_config('use_rtsp_stream'):
+            sls.reverse()
+        for s in sls:
+            srv = self._miot_service.spec.get_service(s)
+            if not srv:
+                continue
+            act = srv.get_action('start_hls_stream', 'start_rtsp_stream')
+            if act:
+                self._srv_stream = srv
+                self._act_start_stream = act
+                self._prop_stream_address = srv.get_property('stream_address')
+                self._prop_expiration_time = srv.get_property('expiration_time')
+                break
+        if self._prop_stream_address:
+            self._supported_features |= SUPPORT_STREAM
+
 
     @property
     def should_poll(self):
