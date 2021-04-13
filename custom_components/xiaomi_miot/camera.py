@@ -166,15 +166,18 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
             except MiCloudException as exc:
                 _LOGGER.error('Get miot camera stream from %s for %s failed: %s', updater, self.name, exc)
             if result.get('out'):
-                odt = self._act_start_stream.out_results(result.get('out')) or {}
+                odt = self._act_start_stream.out_results(result.get('out')) or {
+                    'stream_address': None,
+                }
                 self.update_attrs(odt)
-                if self._prop_stream_address:
-                    self._last_url = self._prop_stream_address.from_dict(odt)
                 self._url_expiration = 0
                 if self._prop_expiration_time:
-                    self._url_expiration = int(self._prop_expiration_time.from_dict(odt) or 0)
+                    self._url_expiration = int(self._prop_expiration_time.from_dict(odt) or 10) - 10
                 if not self._url_expiration:
                     self._url_expiration = now + 1000 * 60 * 4
+                if self._prop_stream_address:
+                    self._last_url = self._prop_stream_address.from_dict(odt)
+                    self.async_write_ha_state()
         self.is_streaming = self._last_url and True
         if self.is_streaming:
             self.update_attrs({
