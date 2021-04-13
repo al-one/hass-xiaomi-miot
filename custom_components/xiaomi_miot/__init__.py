@@ -18,6 +18,7 @@ from homeassistant.helpers.entity import (
     Entity,
     ToggleEntity,
 )
+from homeassistant.components import persistent_notification
 from homeassistant.helpers.entity_component import EntityComponent
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
@@ -818,6 +819,12 @@ class MiotEntity(MiioEntity):
         }
         _LOGGER.info('Get miot properties from %s: %s', self.name, results)
         if throw:
+            persistent_notification.create(
+                self.hass,
+                f'{results}',
+                'Miot properties',
+                f'{DOMAIN}-debug',
+            )
             raise ValueError(f'Miot properties: {results}')
         return attrs
 
@@ -920,6 +927,12 @@ class MiotEntity(MiioEntity):
             _LOGGER.debug('Call miot action to %s (%s), result: %s', self.name, pms, ret)
         self._state_attrs['miot_action_result'] = ret
         if kwargs.get('throw'):
+            persistent_notification.create(
+                self.hass,
+                f'{ret}',
+                'Miot action result',
+                f'{DOMAIN}-debug',
+            )
             raise ValueError(f'Miot action result: {ret}')
         return ret
 
@@ -1024,6 +1037,12 @@ class MiotEntity(MiioEntity):
             CONF_MODEL: self._miio_info.model,
         }
         if throw:
+            persistent_notification.async_create(
+                self.hass,
+                f'{dat}',
+                'Miot device',
+                f'{DOMAIN}-debug',
+            )
             raise ValueError(f'Miot device: {dat}')
         else:
             _LOGGER.warning('Miot device: %s', dat)
@@ -1038,6 +1057,12 @@ class MiotEntity(MiioEntity):
             partial(mic.request_miot_api, 'v2/device/blt_get_beaconkey', dat)
         )
         if throw:
+            persistent_notification.async_create(
+                self.hass,
+                f'{result}',
+                f'Miot bindkey: {self.name}',
+                f'{DOMAIN}-debug',
+            )
             raise ValueError(f'Miot bindkey for {self.name}: {result}')
         else:
             _LOGGER.warning('Miot bindkey for %s: %s', self.name, result)
