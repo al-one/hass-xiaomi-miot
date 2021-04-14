@@ -6,6 +6,7 @@ from micloud.micloudexception import MiCloudException  # noqa: F401
 
 from homeassistant.const import *
 from homeassistant.helpers.storage import Store
+from homeassistant.components import persistent_notification
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,6 +71,34 @@ class MiotCloud(micloud.MiCloud):
         rdt = self.request_miot_api('user/get_user_device_data', params) or {}
         return rdt
 
+    def check_auth(self):
+        rdt = self.request_miot_api('v2/device/blt_get_beaconkey', {
+            'did': 'blt.0.14cj9o6b4eg00',
+            'pdid': 1,
+        }) or {}
+        eno = rdt.get('code', 0)
+        if eno == 3:
+            # auth err
+            persistent_notification.create(
+                self.hass,
+                f'Xiaomi cloud: {self.user_id} auth failed, '
+                'Please update option for this integration to refresh token.\n'
+                f'小米账号：{self.user_id} 登陆失效，请重新保存集成选项以更新登陆信息。',
+                'Xiaomi Miot Warning',
+                f'xiaomi-miot-auth-warning-{self.user_id}',
+            )
+            _LOGGER.error(
+                'Xiaomi cloud: %s auth failed, Please update option for this integration to refresh token.',
+                self.user_id,
+            )
+            self.user_id = None
+            self.service_token = None
+            self.ssecurity = None
+            if self.login():
+                return True
+            _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
+        return False
+
     def request_miot_api(self, api, data: dict, debug=True):
         url = self._get_api_url(self.default_server) + '/' + api
         rsp = self.request(url, {
@@ -111,19 +140,6 @@ class MiotCloud(micloud.MiCloud):
         if rdt and 'result' in rdt:
             return rdt['result']['list']
         _LOGGER.warning('Got xiaomi cloud devices for %s failed: %s', self.username, rdt)
-        eno = rdt.get('code')
-        if eno == 3:
-            # auth err
-            _LOGGER.error(
-                'Xiaomi cloud: %s auth failed, Please update option for this integration to refresh token.',
-                self.user_id,
-            )
-            self.user_id = None
-            self.service_token = None
-            self.ssecurity = None
-            if self.login():
-                return self.get_device_list()
-            _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
         return None
 
     async def async_get_devices(self, renew=False):
