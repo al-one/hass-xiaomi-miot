@@ -265,3 +265,27 @@ get_bindkey:
       example: true
       selector:
         boolean:
+
+request_xiaomi_api:
+  description: Request xiaomi cloud api.
+  fields:
+    entity_id:
+      description: ID of the entity.
+      example: "sensor.xiaomi_device"
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
+    api:
+      example: "/home/device_list"
+      selector:
+        text:
+    params:
+      example: "{'getVirtualModel':true}"
+      selector:
+        object:
+    throw:
+      description: Throw result.
+      example: true
+      selector:
+        boolean:

@@ -164,6 +164,16 @@ SERVICE_TO_METHOD_BASE = {
             },
         ),
     },
+    'request_xiaomi_api': {
+        'method': 'async_request_xiaomi_api',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+            {
+                vol.Required('api'): cv.string,
+                vol.Optional('params', default={}): dict,
+                vol.Optional('throw', default=True): cv.boolean,
+            },
+        ),
+    },
 }
 
 CONFIG_SCHEMA = vol.Schema(
@@ -1116,6 +1126,25 @@ class MiotEntity(MiioEntity):
         else:
             _LOGGER.warning('Miot bindkey for %s: %s', self.name, result)
         return (result or {}).get('beaconkey')
+
+    async def async_request_xiaomi_api(self, api, params=None, throw=True):
+        mic = self.miot_cloud
+        if not isinstance(mic, MiotCloud):
+            return None
+        result = await self.hass.async_add_executor_job(
+            partial(mic.request_miot_api, str(api).lstrip('/'), params)
+        )
+        if throw:
+            persistent_notification.async_create(
+                self.hass,
+                f'{result}',
+                f'Xiaomi Api: {api}',
+                f'{DOMAIN}-debug',
+            )
+            raise ValueError(f'Xiaomi Api {api}: {result}')
+        else:
+            _LOGGER.debug('Xiaomi Api %s: %s', api, result)
+        return result
 
 
 class MiotToggleEntity(MiotEntity, ToggleEntity):
