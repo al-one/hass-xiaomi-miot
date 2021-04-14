@@ -125,10 +125,25 @@ SERVICE_TO_METHOD_BASE = {
         'method': 'async_miot_action',
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
-                vol.Optional('did'): cv.string,
                 vol.Required('siid'): int,
                 vol.Required('aiid'): int,
+                vol.Optional('did'): cv.string,
                 vol.Optional('params', default=[]): cv.ensure_list,
+                vol.Optional('throw', default=False): cv.boolean,
+            },
+        ),
+    },
+    'get_device_data': {
+        'method': 'async_get_device_data',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+            {
+                vol.Optional('type', default='prop'): cv.string,
+                vol.Required('key'): cv.string,
+                vol.Optional('did'): cv.string,
+                vol.Optional('time_start'): int,
+                vol.Optional('time_end'): int,
+                vol.Optional('limit'): int,
+                vol.Optional('group'): cv.string,
                 vol.Optional('throw', default=False): cv.boolean,
             },
         ),
@@ -1042,6 +1057,27 @@ class MiotEntity(MiioEntity):
         if add:
             self.hass.data[DOMAIN]['sub_entities'][uni] = pre + add
         return pre
+
+    async def async_get_device_data(self, key, did=None, throw=False, **kwargs):
+        if did is None:
+            did = self.miot_did
+        mic = self.miot_cloud
+        if not isinstance(mic, MiotCloud):
+            return None
+        result = await self.hass.async_add_executor_job(
+            partial(mic.get_user_device_data, did, key, **kwargs)
+        )
+        if throw:
+            persistent_notification.async_create(
+                self.hass,
+                f'{result}',
+                f'Miot device data: {self.name}',
+                f'{DOMAIN}-debug',
+            )
+            raise ValueError(f'Miot device data for {self.name}: {result}')
+        else:
+            _LOGGER.debug('Miot device data for %s: %s', self.name, result)
+        return result
 
     async def async_get_token(self, throw=True):
         dat = {

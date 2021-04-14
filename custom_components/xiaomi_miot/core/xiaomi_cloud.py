@@ -55,6 +55,21 @@ class MiotCloud(micloud.MiCloud):
         }) or {}
         return rdt.get('result')
 
+    def get_user_device_data(self, did, key, typ='prop', **kwargs):
+        now = int(time.time())
+        params = {
+            "uid": self.user_id,
+            "did": did,
+            "key": key,
+            "type": typ,
+            "time_start": now - 86400 * 7,
+            "time_end": now + 60,
+            "limit": 5,
+            **kwargs,
+        }
+        rdt = self.request_miot_api('user/get_user_device_data', params) or {}
+        return rdt
+
     def request_miot_api(self, api, data: dict, debug=True):
         url = self._get_api_url(self.default_server) + '/' + api
         rsp = self.request(url, {
