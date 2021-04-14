@@ -2,7 +2,7 @@
 import logging
 import asyncio
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.camera import (
@@ -14,6 +14,7 @@ from homeassistant.components.camera import (
     STATE_STREAMING,
 )
 from homeassistant.components.ffmpeg import DATA_FFMPEG
+from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from haffmpeg.camera import CameraMjpeg
 from haffmpeg.tools import IMAGE_JPEG, ImageFrame
@@ -85,6 +86,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         self._url_expiration = 0
         self._extra_arguments = None
         self._manager = hass.data.get(DATA_FFMPEG)
+        self._stream_refresh_unsub = None
         self._subs = {}
 
     async def async_added_to_hass(self):
@@ -108,7 +110,6 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         if self._prop_stream_address:
             self._supported_features |= SUPPORT_STREAM
 
-
     @property
     def should_poll(self):
         return True
@@ -119,15 +120,16 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
 
     async def async_update(self):
         await super().async_update()
-        if self._available:
-            if self._prop_power:
-                add_switches = self._add_entities.get('switch')
-                pnm = self._prop_power.full_name
-                if pnm in self._subs:
-                    self._subs[pnm].update()
-                elif add_switches:
-                    self._subs[pnm] = SwitchSubEntity(self, pnm)
-                    add_switches([self._subs[pnm]])
+        if not self._available:
+            return
+        if self._prop_power:
+            add_switches = self._add_entities.get('switch')
+            pnm = self._prop_power.full_name
+            if pnm in self._subs:
+                self._subs[pnm].update()
+            elif add_switches:
+                self._subs[pnm] = SwitchSubEntity(self, pnm)
+                add_switches([self._subs[pnm]])
 
     @property
     def state(self):
@@ -144,10 +146,10 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         return True
 
     async def stream_source(self):
-        now = time.time() * 1000
-        if self._url_expiration <= now:
+        now = time.time()
+        if now >= self._url_expiration:
             self._last_url = None
-            _LOGGER.debug('Miot camera: %s url: %s expired: %s', self.name, self._last_url, self._url_expiration)
+            _LOGGER.debug('Miot camera: %s stream: %s expired: %s', self.name, self._last_url, self._url_expiration)
         if not self._act_start_stream:
             self.update_attrs({
                 'miot_error': 'Nonsupport start hls/rstp stream',
@@ -171,23 +173,40 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
                 _LOGGER.error('Get miot camera stream from %s for %s failed: %s', updater, self.name, exc)
             if result.get('out'):
                 odt = self._act_start_stream.out_results(result.get('out')) or {
-                    'stream_address': None,
+                    'stream_address': '',
                 }
-                self.update_attrs(odt)
                 self._url_expiration = 0
                 if self._prop_expiration_time:
-                    self._url_expiration = int(self._prop_expiration_time.from_dict(odt) or 10) - 10
-                if not self._url_expiration:
-                    self._url_expiration = now + 1000 * 60 * 4
+                    self._url_expiration = int(self._prop_expiration_time.from_dict(odt) or 0) / 1000
+                if self._url_expiration:
+                    self._url_expiration -= 10
+                else:
+                    self._url_expiration = now + 60 * 4.5
                 if self._prop_stream_address:
                     self._last_url = self._prop_stream_address.from_dict(odt)
                     self.async_write_ha_state()
+                    if self.custom_config('keep_streaming'):
+                        self._schedule_stream_refresh()
+                odt['expire_at'] = f'{datetime.fromtimestamp(self._url_expiration)}'
+                self.update_attrs(odt)
         self.is_streaming = self._last_url and True
         if self.is_streaming:
             self.update_attrs({
                 'miot_error': None,
             })
         return self._last_url
+
+    async def _handle_stream_refresh(self, now, *_):
+        await self.stream_source()
+
+    def _schedule_stream_refresh(self):
+        if self._stream_refresh_unsub is not None:
+            self._stream_refresh_unsub()
+        self._stream_refresh_unsub = async_track_point_in_utc_time(
+            self.hass,
+            self._handle_stream_refresh,  # noqa
+            datetime.fromtimestamp(self._url_expiration),
+        )
 
     async def async_camera_image(self):
         url = await self.stream_source()

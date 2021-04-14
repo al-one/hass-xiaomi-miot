@@ -71,8 +71,9 @@ climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # 绑定传感器实体
 
 camera.your_entity_id:
-  video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
-  check_lan: true    # 云端模式下检查设备在局域网是否可用
+  video_attribute: 1   # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
+  keep_streaming: true # 持续更新流地址
+  check_lan: true      # 云端模式下检查设备在局域网是否可用
 
 cover.your_entity_id:
   closed_position: 5 # 当实体位置值小于等于此值时为关闭状态

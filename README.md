@@ -71,8 +71,9 @@ climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
 
 camera.your_entity_id:
-  video_attribute: 1 # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
-  check_lan: true    # Check LAN connection in cloud mode
+  video_attribute: 1   # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
+  keep_streaming: true # Continuously update stream address
+  check_lan: true      # Check LAN connection in cloud mode
 
 cover.your_entity_id:
   closed_position: 5 # Change cover state to closed when position <= 5%
