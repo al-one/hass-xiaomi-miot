@@ -48,6 +48,7 @@ SCAN_INTERVAL = timedelta(seconds=60)
 DEFAULT_NAME = 'Xiaomi Miot'
 CONF_MODEL = 'model'
 CONF_SERVER_COUNTRY = 'server_country'
+CONF_CONFIG_VERSION = 'config_version'
 
 SUPPORTED_DOMAINS = [
     'sensor',
@@ -282,6 +283,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             'miio_info': mif,
             'miot_cloud': True,
             'entry_id': entry_id,
+            CONF_CONFIG_VERSION: entry.get(CONF_CONFIG_VERSION) or 0,
         }
         config['configs'].append(cfg)
         _LOGGER.debug('Xiaomi cloud device: %s', {**cfg, CONF_TOKEN: ''})
@@ -454,7 +456,7 @@ class MiioEntity(BaseEntity):
         except socket.gaierror as exc:
             _LOGGER.error("Device %s unavailable: socket.gaierror %s", name, exc)
             raise PlatformNotReady from exc
-        self._unique_did = dr.format_mac(self._miio_info.mac_address)
+        self._unique_did = self.unique_did
         self._unique_id = self._unique_did
         self._name = name
         self._model = self._miio_info.model or ''
@@ -480,7 +482,12 @@ class MiioEntity(BaseEntity):
 
     @property
     def unique_did(self):
-        return self._unique_did
+        did = dr.format_mac(self._miio_info.mac_address)
+        eid = self._config.get('entry_id')
+        ver = self._config.get(CONF_CONFIG_VERSION) or 0
+        if eid and ver > 0:
+            did = f'{did}-{eid}'
+        return did
 
     @property
     def name(self):

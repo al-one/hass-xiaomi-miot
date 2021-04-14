@@ -17,6 +17,7 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     CONF_SERVER_COUNTRY,
+    CONF_CONFIG_VERSION,
     DEFAULT_NAME,
 )
 from .core.miot_spec import MiotSpec
@@ -27,6 +28,7 @@ from .core.xiaomi_cloud import (
 
 _LOGGER = logging.getLogger(__name__)
 DEFAULT_INTERVAL = 30
+ENTRY_VERSION = 0.1
 
 CLOUD_SERVERS = {
     'cn': 'China',
@@ -153,6 +155,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(user_input['unique_did'])
                 self._abort_if_unique_id_configured()
             if user_input.get('miio_info'):
+                user_input[CONF_CONFIG_VERSION] = ENTRY_VERSION
                 return self.async_create_entry(
                     title=user_input.get(CONF_NAME),
                     data=user_input,
@@ -204,6 +207,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             prev_input = self.hass.data[DOMAIN].pop('prev_input', None) or {}
             cfg = prev_input['xiaomi_cloud'].to_config() or {}
             cfg.update(user_input or {})
+            cfg[CONF_CONFIG_VERSION] = ENTRY_VERSION
             return self.async_create_entry(
                 title=f"MiCloud: {cfg.get('user_id')}",
                 data=cfg,
