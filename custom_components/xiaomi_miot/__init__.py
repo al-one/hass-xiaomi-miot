@@ -619,10 +619,20 @@ class MiotEntity(MiioEntity):
             self._miot_mapping.update(miot_service.mapping())
 
         name = self._config.get(CONF_NAME) or ''
-        if device is None and CONF_TOKEN in self._config:
+        _LOGGER.info('Initializing miot device: %s, mapping: %s', name, self._miot_mapping)
+        super().__init__(name, device, **kwargs)
+        if self._miot_service:
+            self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
+            self._state_attrs['miot_type'] = self._miot_service.spec.type
+        self._success_code = 0
+        self._subs = {}
+
+    @property
+    def miot_device(self):
+        if self.hass and not self._device and CONF_TOKEN in self._config:
             host = self._config.get(CONF_HOST) or ''
             token = self._config.get(CONF_TOKEN) or None
-            _LOGGER.info('Initializing with host %s (%s), miot mapping: %s', host, name, self._miot_mapping)
+            device = None
             try:
                 device = MiotDevice(ip=host, token=token)
                 device.mapping = self._miot_mapping
@@ -631,14 +641,10 @@ class MiotEntity(MiioEntity):
                     # for python-miio <= v0.5.4
                     device = MiotDevice(self._miot_mapping, host, token)
             except ValueError as exc:
-                _LOGGER.warning('Initializing with host %s (%s) failed: %s', host, name, exc)
-
-        super().__init__(name, device, **kwargs)
-        if self._miot_service:
-            self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
-            self._state_attrs['miot_type'] = self._miot_service.spec.type
-        self._success_code = 0
-        self._subs = {}
+                _LOGGER.warning('Initializing with host %s (%s) failed: %s', host, self.name, exc)
+            if device:
+                self._device = device
+        return self._device
 
     @property
     def miot_did(self):
@@ -681,15 +687,14 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_config(self):
-        return self._config
-
-    @property
-    def miot_device(self):
-        return self._device
+        return self._config or {}
 
     @property
     def miot_mapping(self):
-        return self._miot_mapping or self._device.mapping
+        if not self._miot_mapping:
+            if self.miot_mapping:
+                return self.miot_device.mapping
+        return self._miot_mapping
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
         result = None
@@ -721,19 +726,19 @@ class MiotEntity(MiioEntity):
                     partial(self.miot_cloud.get_properties_for_mapping, self.miot_did, self.miot_mapping)
                 )
                 if self.custom_config('check_lan'):
-                    if self._device:
-                        await self.hass.async_add_executor_job(self._device.info)
+                    if self.miot_device:
+                        await self.hass.async_add_executor_job(self.miot_device.info)
                     else:
                         self._available = False
                         return
-            elif self._device:
+            elif self.miot_device:
                 for k, v in self.miot_mapping.items():
                     s = v.get('siid')
                     p = v.get('piid')
                     rmp[f'{s}{p}'] = k
                 max_properties = self.custom_config('chunk_properties', 12)
                 results = await self.hass.async_add_executor_job(
-                    partial(self._device.get_properties_for_mapping, max_properties=max_properties)
+                    partial(self.miot_device.get_properties_for_mapping, max_properties=max_properties)
                 )
             else:
                 _LOGGER.error('None local device and miot cloud not ready %s', self.name)
@@ -809,10 +814,10 @@ class MiotEntity(MiioEntity):
         _LOGGER.debug('Got new state from %s: %s', self.name, attrs)
 
     def get_properties(self, mapping: dict, throw=False, **kwargs):
-        if not self._miio_info:
+        if not self.miot_device:
             return
         try:
-            results = self._device.get_properties_for_mapping(mapping=mapping)
+            results = self.miot_device.get_properties_for_mapping(mapping=mapping)
         except (ValueError, DeviceException) as exc:
             if throw:
                 raise exc
@@ -887,7 +892,7 @@ class MiotEntity(MiioEntity):
             if isinstance(mcw, MiotCloud):
                 results = mcw.set_props([pms])
             else:
-                results = self._device.send('set_properties', [pms])
+                results = self.miot_device.send('set_properties', [pms])
             for ret in (results or []):
                 break
         except DeviceException as exc:
@@ -925,7 +930,7 @@ class MiotEntity(MiioEntity):
             if isinstance(mca, MiotCloud):
                 ret = mca.do_action(pms)
             else:
-                ret = self._device.send('action', pms)
+                ret = self.miot_device.send('action', pms)
         except DeviceException as exc:
             _LOGGER.warning('Call miot action to %s (%s) failed: %s', self.name, pms, exc)
         except MiCloudException as exc:
