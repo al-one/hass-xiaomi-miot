@@ -14,6 +14,7 @@ from homeassistant.components.camera import (
     STATE_STREAMING,
 )
 from homeassistant.components.ffmpeg import DATA_FFMPEG
+from homeassistant.components import persistent_notification
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from haffmpeg.camera import CameraMjpeg
@@ -55,6 +56,15 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         spec = await MiotSpec.async_from_type(hass, miot)
         for srv in spec.get_services(ENTITY_DOMAIN, 'camera_control', 'video_doorbell'):
             if not spec.get_service('camera_stream_for_google_home', 'camera_stream_for_amazon_alexa'):
+                persistent_notification.create(
+                    hass,
+                    f'Your camera [**{model}**](https://miot-spec.org/miot-spec-v2/instance?type={miot}) '
+                    'doesn\'t support streaming services.\n'
+                    f'你的摄像机不支持流服务。\n'
+                    'https://github.com/al-one/hass-xiaomi-miot/issues/60#issuecomment-819435571',
+                    'Xiaomi Miot Warning',
+                    f'{DATA_KEY}-warning-{model}',
+                )
                 continue
             cfg = {
                 **config,
@@ -242,7 +252,10 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
                 timeout=60,
             )
         finally:
-            await stream.close()
+            try:
+                await stream.close()
+            except BrokenPipeError as exc:
+                _LOGGER.error('Got BrokenPipeError when close stream: %s', url)
 
     @property
     def motion_detection_enabled(self):
