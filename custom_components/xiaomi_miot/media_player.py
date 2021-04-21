@@ -62,7 +62,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
         for srv in spec.get_services('play_control', 'doorbell'):
-            if not srv.mapping():
+            if not srv.mapping() and not srv.get_action('play'):
                 continue
             cfg = {
                 **config,
@@ -92,10 +92,10 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
         self._act_turn_off = None
         for srv in miot_service.spec.services:
             act = srv.get_action('turn_on')
-            if act:
+            if act and not self._act_turn_on:
                 self._act_turn_on = act
             act = srv.get_action('turn_off')
-            if act:
+            if act and not self._act_turn_off:
                 self._act_turn_off = act
 
         if miot_service.get_action('play'):
@@ -149,16 +149,6 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
         if self.available:
             return STATE_UNKNOWN
         return STATE_UNAVAILABLE
-
-    def turn_on(self):
-        if self._act_turn_on:
-            return self.miot_action(self._act_turn_on.service.iid, self._act_turn_on.iid)
-        return False
-
-    def turn_off(self):
-        if self._act_turn_off:
-            return self.miot_action(self._act_turn_off.service.iid, self._act_turn_off.iid)
-        return False
 
     @property
     def is_volume_muted(self):
@@ -264,6 +254,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
         self._intelligent_speaker = miot_service.spec.get_service('intelligent_speaker')
+        self._message_router = miot_service.spec.get_service('message_router')
         if self._intelligent_speaker:
             self._state_attrs[ATTR_ATTRIBUTION] = 'Support TTS through service'
 
@@ -272,6 +263,21 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         if not self._available:
             return
         self._update_sub_entities('on', domain='switch')
+        self._update_sub_entities(
+            ['input_control'],
+            ['television'],
+            domain='fan',
+        )
+
+    def turn_on(self):
+        if self._act_turn_on:
+            return self.call_action(self._act_turn_on)
+        return False
+
+    def turn_off(self):
+        if self._act_turn_off:
+            return self.call_action(self._act_turn_off)
+        return False
 
     def intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         srv = self._intelligent_speaker
@@ -285,8 +291,12 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 return self.miot_action(srv.iid, act.iid, pms, **kwargs)
             else:
                 _LOGGER.warning('%s have no action: %s', self.name, anm)
+        elif self._message_router:
+            act = self._message_router.get_action('post')
+            if act and execute:
+                return self.call_action(act, [text], **kwargs)
         else:
-            _LOGGER.warning('%s have no service: %s', self.name, 'intelligent_speaker')
+            _LOGGER.warning('%s have no service: %s', self.name, 'intelligent_speaker/message_router')
         return False
 
     async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
