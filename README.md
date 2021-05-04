@@ -198,7 +198,10 @@ logger:
 
 
 ## Obtain miio token
-
+- [Xiaomi Cloud Tokens Extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor)
+  1. Download and run [token_extractor.exe](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor/blob/master/token_extractor.exe) for Windows or install [for Python](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor#other-platforms)
+  2. Enter username, password and your server region
+  3. Extracts tokens from your cloud account. Also reveals the bind_key for BT devices
 - Use MiHome mod by [@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)
   1. Down apk from [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html)
   2. Create folder `/sdcard/vevs/logs/` ⚠️
