@@ -65,6 +65,7 @@ SUPPORTED_DOMAINS = [
     'air_quality',
     'water_heater',
     'device_tracker',
+    'number',
 ]
 
 XIAOMI_CONFIG_SCHEMA = cv.PLATFORM_SCHEMA_BASE.extend(
@@ -998,6 +999,7 @@ class MiotEntity(MiioEntity):
         from .light import MiotLightSubEntity
         from .fan import MiotModesSubEntity
         from .cover import MiotCoverSubEntity
+        from .number import MiotNumberSubEntity
         if isinstance(services, MiotService):
             sls = [services]
         elif services:
@@ -1010,6 +1012,7 @@ class MiotEntity(MiioEntity):
         add_lights = self._add_entities.get('light')
         add_fans = self._add_entities.get('fan')
         add_covers = self._add_entities.get('cover')
+        add_numbers = self._add_entities.get('number')
         for s in sls:
             if not properties:
                 fnm = s.unique_name
@@ -1058,6 +1061,9 @@ class MiotEntity(MiioEntity):
                 elif add_covers and domain == 'cover':
                     self._subs[fnm] = MiotCoverSubEntity(self, p, option=option)
                     add_covers([self._subs[fnm]])
+                elif add_covers and domain == 'number':
+                    self._subs[fnm] = MiotNumberSubEntity(self, p, option=option)
+                    add_numbers([self._subs[fnm]])
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
                     _LOGGER.debug('Added sub entity %s: %s for %s.', domain, fnm, self.name)

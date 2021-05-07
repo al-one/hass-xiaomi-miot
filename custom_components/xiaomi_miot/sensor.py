@@ -56,7 +56,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer',
                 'coffee_machine', 'router', 'video_doorbell', 'lock', 'bed',
                 'temperature_humidity_sensor', 'printer', 'sleep_monitor',
-                'pet_feeder',
+                'pet_feeder', 'fridge_chamber',
             ):
                 if srv.name in ['lock']:
                     if not srv.get_property('operation_method'):
@@ -132,7 +132,7 @@ class MiotSensorEntity(MiotEntity):
             )
             self._update_sub_entities(
                 ['on'],
-                ['router', 'wifi', 'guest_wifi'],
+                ['router', 'wifi', 'guest_wifi', 'fridge_chamber'],
                 domain='switch',
             )
             self._update_sub_entities(
@@ -145,13 +145,21 @@ class MiotSensorEntity(MiotEntity):
                     'mode', 'mode_time', 'hardness', 'start_pause', 'leg_pillow', 'rl_control',
                     'heat_level', 'heat_time', 'heat_zone', 'intensity_mode', 'massage_strength',
                 ],
-                ['bed', 'backrest_control', 'leg_rest_control', 'massage_mattress'],
+                [
+                    'bed', 'backrest_control', 'leg_rest_control', 'massage_mattress',
+                    'fridge',
+                ],
                 domain='fan',
             )
             self._update_sub_entities(
                 ['motor_control', 'backrest_angle', 'leg_rest_angle'],
                 ['bed', 'backrest_control', 'leg_rest_control'],
                 domain='cover',
+            )
+            self._update_sub_entities(
+                ['target_temperature'],
+                ['fridge_chamber'],
+                domain='number',
             )
 
     @property
