@@ -98,7 +98,8 @@ class MiotCloud(micloud.MiCloud):
                 persistent_notification.dismiss(self.hass, nid)
                 return True
             _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
-        return False
+            return False
+        return True
 
     async def async_check_auth(self, notify=False):
         return await self.hass.async_add_executor_job(self.check_auth, notify)
