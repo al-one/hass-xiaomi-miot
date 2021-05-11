@@ -202,7 +202,12 @@ logger:
 
 ## Obtain miio token
 
+- Use HomeAssistant Service
+  1. [![Goto HomeAssistant service developer tools](https://my.home-assistant.io/badges/developer_services.svg)](https://my.home-assistant.io/redirect/developer_services/)
+  2. Select `xiaomi_miot.get_token`, Enter the entity ID and device name
+  3. Find the token from the HA notifications
+
 - Use MiHome mod by [@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)
   1. Down apk from [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html)
   2. Create folder `/sdcard/vevs/logs/` ⚠️
-  3. Find token from `vevs/logs/misc/devices.txt`
+  3. Find the token from `vevs/logs/misc/devices.txt`
