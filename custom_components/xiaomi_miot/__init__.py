@@ -686,7 +686,9 @@ class MiotEntity(MiioEntity):
     @property
     def miot_cloud(self):
         isc = False
-        if self._config.get('miot_cloud'):
+        if self.miot_local:
+            isc = False
+        elif self._config.get('miot_cloud'):
             isc = True
         elif self.custom_config('miot_cloud'):
             isc = True
@@ -711,6 +713,12 @@ class MiotEntity(MiioEntity):
         if isc and self.hass and self.miot_did:
             return self.entry_config('xiaomi_cloud')
         return self.miot_cloud
+
+    @property
+    def miot_local(self):
+        if self.custom_config('miot_local'):
+            return self.miot_device
+        return None
 
     @property
     def miot_config(self):
@@ -768,7 +776,7 @@ class MiotEntity(MiioEntity):
                     partial(self.miot_device.get_properties_for_mapping, max_properties=max_properties)
                 )
             else:
-                _LOGGER.error('None local device and miot cloud not ready %s', self.name)
+                _LOGGER.error('Local device and miot cloud not ready %s', self.name)
         except DeviceException as exc:
             self._available = False
             _LOGGER.error('Got MiioException while fetching the state for %s: %s', self.name, exc)

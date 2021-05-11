@@ -66,6 +66,7 @@ domain.your_entity_id:
   miot_cloud: true          # 为该实体开启云端模式 (read, write, action)
   # miot_cloud_write: true  # (可选) 仅写属性使用云端模式
   # miot_cloud_action: true # (可选) 仅action使用云端模式
+  # miot_local: true        # 使用本地模式 (通过账号接入的设备)
 
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # 绑定传感器实体

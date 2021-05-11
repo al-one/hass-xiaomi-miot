@@ -66,6 +66,7 @@ domain.your_entity_id:
   miot_cloud: true          # Enable miot cloud for entity (read, write, action)
   # miot_cloud_write: true  # (Optional) Enable miot cloud (only write)
   # miot_cloud_action: true # (Optional) Enable miot cloud (only action)
+  # miot_local: true        # Force to read and write data in LAN
 
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
