@@ -129,6 +129,7 @@ doamin.your_entity_id:
     - [toilet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:toilet:00007877)
 - [air_quality](https://www.home-assistant.io/integrations/air_quality)
     - [air-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:air-monitor:0000A008)
+    - [environment](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:environment:0000780A)
 - [switch](https://www.home-assistant.io/integrations/switch)
     - [massager](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:massager:0000788E)
     - [outlet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:switch:0000780C)
