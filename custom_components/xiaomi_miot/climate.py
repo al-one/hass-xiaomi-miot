@@ -383,8 +383,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             return HVAC_MODE_OFF
         if self._preset_modes and self._prop_mode:
             acm = self._prop_mode.from_dict(self._state_attrs)
-            acm = -1 if acm is None else int(acm or 0)
-            return self._preset_modes.get(acm, HVAC_MODE_OFF)
+            acm = -1 if acm is None else acm
+            return self._preset_modes.get(acm)
         return None
 
     @property

@@ -315,7 +315,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             CONF_CONFIG_VERSION: entry.get(CONF_CONFIG_VERSION) or 0,
         }
         config['configs'].append(cfg)
-        _LOGGER.debug('Xiaomi cloud device: %s', {**cfg, CONF_TOKEN: ''})
+        _LOGGER.debug('Xiaomi cloud device: %s', {**cfg, CONF_TOKEN: '****'})
     hass.data[DOMAIN][entry_id] = config
     return True
 
