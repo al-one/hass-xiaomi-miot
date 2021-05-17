@@ -13,7 +13,7 @@ This component uses the MIoT-Spec to automatically integrate Xiaomi devices into
 
 ```shell
 # Auto install via terminal shell
-wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | bash -
+wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh | bash -
 ```
 
 > Or you can install component with [HACS](https://hacs.xyz)

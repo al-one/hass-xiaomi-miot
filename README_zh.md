@@ -13,7 +13,7 @@
 
 ```shell
 # 执行下面的命令可以自动安装
-wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | bash -
+wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh | bash -
 ```
 
 > 或者通过[HACS](https://hacs.xyz)搜索`Xiaomi Miot Auto`安装

@@ -1,5 +1,5 @@
 #!/bin/bash
-# wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | bash -
+# wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh | bash -
 set -e
 
 [ -z "$DOMAIN" ] && DOMAIN="xiaomi_miot"
