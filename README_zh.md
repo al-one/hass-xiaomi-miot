@@ -12,11 +12,8 @@
 > 下载并复制`custom_components/xiaomi_miot`文件夹到HA根目录下的`custom_components`文件夹
 
 ```shell
-cd ~/.homeassistant/ # 进入你的HA根目录
-wget https://github.com/al-one/hass-xiaomi-miot/archive/master.zip
-unzip master.zip
-cp -rf hass-xiaomi-miot-master/custom_components/xiaomi_miot ./custom_components/
-rm -rf hass-xiaomi-miot-master master.zip
+# 执行下面的命令可以自动安装
+wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | bash -
 ```
 
 > 或者通过[HACS](https://hacs.xyz)搜索`Xiaomi Miot Auto`安装
