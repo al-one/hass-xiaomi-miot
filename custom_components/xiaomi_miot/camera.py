@@ -57,15 +57,16 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         spec = await MiotSpec.async_from_type(hass, miot)
         for srv in spec.get_services(ENTITY_DOMAIN, 'camera_control', 'video_doorbell'):
             if not spec.get_service('camera_stream_for_google_home', 'camera_stream_for_amazon_alexa'):
-                persistent_notification.create(
-                    hass,
-                    f'Your camera [**{model}**](https://miot-spec.org/miot-spec-v2/instance?type={miot}) '
-                    'doesn\'t support streaming services.\n'
-                    f'你的摄像机不支持流服务。\n'
-                    'https://github.com/al-one/hass-xiaomi-miot/issues/60#issuecomment-819435571',
-                    'Xiaomi Miot Warning',
-                    f'{DATA_KEY}-warning-{model}',
-                )
+                if srv.name in ['camera_control']:
+                    persistent_notification.create(
+                        hass,
+                        f'Your camera [**{model}**](https://miot-spec.org/miot-spec-v2/instance?type={miot}) '
+                        'doesn\'t support streaming services.\n'
+                        f'你的摄像机不支持流服务。\n'
+                        'https://github.com/al-one/hass-xiaomi-miot/issues/60#issuecomment-819435571',
+                        'Xiaomi Miot Warning',
+                        f'{DATA_KEY}-warning-{model}',
+                    )
                 continue
             cfg = {
                 **config,
@@ -86,6 +87,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         self._prop_motion_tracking = miot_service.get_property('motion_tracking')
         self._srv_stream = None
         self._act_start_stream = None
+        self._act_stop_stream = None
         self._prop_stream_address = None
         self._prop_expiration_time = None
         if self._prop_power:
@@ -115,6 +117,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
             if act:
                 self._srv_stream = srv
                 self._act_start_stream = act
+                self._act_stop_stream = srv.get_action('stop_stream')
                 self._prop_stream_address = srv.get_property('stream_address')
                 self._prop_expiration_time = srv.get_property('expiration_time')
                 break
@@ -156,7 +159,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
             return self._state_attrs.get(self._prop_power.full_name) and True
         return True
 
-    async def stream_source(self):
+    async def stream_source(self, **kwargs):
         now = time.time()
         if now >= self._url_expiration:
             self._last_url = None
@@ -171,6 +174,11 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
             try:
                 vda = int(self.custom_config('video_attribute') or 0)
                 if self.miot_cloud:
+                    if self._act_stop_stream:
+                        await self.async_miot_action(
+                            self._srv_stream.iid,
+                            self._act_stop_stream.iid,
+                        )
                     result = await self.async_miot_action(
                         self._srv_stream.iid,
                         self._act_start_stream.iid,
@@ -195,9 +203,9 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
                     self._url_expiration = now + 60 * 4.5
                 if self._prop_stream_address:
                     self._last_url = self._prop_stream_address.from_dict(odt)
-                    await self.async_check_stream_address(self._last_url)
                     self.async_write_ha_state()
-                    if self.custom_config('keep_streaming'):
+                    await self.async_check_stream_address(self._last_url)
+                    if not kwargs.get('scheduled') or self.custom_config('keep_streaming'):
                         self._schedule_stream_refresh()
                 odt['expire_at'] = f'{datetime.fromtimestamp(self._url_expiration)}'
                 self.update_attrs(odt)
@@ -225,7 +233,8 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         return True
 
     async def _handle_stream_refresh(self, now, *_):
-        await self.stream_source()
+        self._stream_refresh_unsub = None
+        await self.stream_source(scheduled=True)
 
     def _schedule_stream_refresh(self):
         if self._stream_refresh_unsub is not None:
