@@ -2,6 +2,7 @@
 import logging
 import asyncio
 import time
+import requests
 from datetime import datetime, timedelta
 
 from homeassistant.const import *  # noqa: F401
@@ -194,6 +195,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
                     self._url_expiration = now + 60 * 4.5
                 if self._prop_stream_address:
                     self._last_url = self._prop_stream_address.from_dict(odt)
+                    await self.async_check_stream_address(self._last_url)
                     self.async_write_ha_state()
                     if self.custom_config('keep_streaming'):
                         self._schedule_stream_refresh()
@@ -205,6 +207,22 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
                 'miot_error': None,
             })
         return self._last_url
+
+    async def async_check_stream_address(self, url):
+        res = await self.hass.async_add_executor_job(requests.head, url)
+        if res.status_code >= 300:
+            self.update_attrs({
+                'stream_http_status':  res.status_code,
+                'stream_http_reason':  res.reason,
+            })
+            _LOGGER.warning(
+                '%s stream address status invalid: %s (%s)',
+                self.name,
+                res.status_code,
+                res.reason,
+            )
+            return False
+        return True
 
     async def _handle_stream_refresh(self, now, *_):
         await self.stream_source()
