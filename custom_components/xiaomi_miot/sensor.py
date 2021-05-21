@@ -270,7 +270,10 @@ class MiotCookerEntity(MiotSensorEntity):
         act = self._action_start if on else self._action_cancel
         vls = self._values_on if on else self._values_off
         if act:
-            ret = self.call_action(act)
+            pms = []
+            if on:
+                pms = str(self.custom_config('start_cook_params') or '').split(',')
+            ret = self.call_action(act, pms)
             sta = vls[0] if vls else None
             if ret and sta is not None:
                 self.update_attrs({
