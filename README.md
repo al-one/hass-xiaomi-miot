@@ -118,6 +118,7 @@ doamin.your_entity_id:
     - [sleep-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:sleep-monitor:00007885)
     - [tds-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:tds-sensor:0000780D)
     - [temperature-humidity-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:temperature-humidity-sensor:00007814)
+    - [vibration-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:vibration-sensor:0000786A)
     - [video-doorbell](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:video-doorbell:00007863)
     - [water-purifier](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:water-purifier:00007821)
 - [binary_sensor](https://www.home-assistant.io/integrations/binary_sensor)

@@ -56,7 +56,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer',
                 'coffee_machine', 'router', 'video_doorbell', 'lock', 'bed',
                 'temperature_humidity_sensor', 'printer', 'sleep_monitor',
-                'pet_feeder', 'fridge_chamber', 'plant_monitor',
+                'pet_feeder', 'fridge_chamber', 'plant_monitor', 'vibration_sensor',
             ):
                 if srv.name in ['lock']:
                     if not srv.get_property('operation_method'):
