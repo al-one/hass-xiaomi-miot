@@ -123,6 +123,7 @@ doamin.your_entity_id:
 - [binary_sensor](https://www.home-assistant.io/integrations/binary_sensor)
     - [magnet-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:magnet-sensor:00007827)
     - [motion-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:motion-sensor:00007825)
+    - [submersion-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:submersion-sensor:00007839)
     - [toilet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:toilet:00007877)
 - [air_quality](https://www.home-assistant.io/integrations/air_quality)
     - [air-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:air-monitor:0000A008)

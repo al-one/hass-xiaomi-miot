@@ -7,6 +7,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     DEVICE_CLASS_MOTION,
     DEVICE_CLASS_DOOR,
+    DEVICE_CLASS_SAFETY,
 )
 
 from . import (
@@ -44,7 +45,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services('toilet', 'motion_sensor', 'magnet_sensor'):
+        for srv in spec.get_services('toilet', 'motion_sensor', 'magnet_sensor', 'submersion_sensor'):
             if not srv.mapping():
                 continue
             cfg = {
@@ -79,6 +80,10 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
         if miot_service.name in ['magnet_sensor']:
             self._prop_state = miot_service.get_property('contact_state') or self._prop_state
             self._vars['device_class'] = DEVICE_CLASS_DOOR
+
+        if miot_service.name in ['submersion_sensor']:
+            self._prop_state = miot_service.get_property('submersion_state') or self._prop_state
+            self._vars['device_class'] = DEVICE_CLASS_SAFETY
 
         self._state_attrs.update({
             'entity_class': self.__class__.__name__,
