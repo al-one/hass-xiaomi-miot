@@ -775,6 +775,10 @@ class MiotEntity(MiioEntity):
                     p = v.get('piid')
                     rmp[f'{s}{p}'] = k
                 max_properties = self.custom_config('chunk_properties', 12)
+                try:
+                    max_properties = int(max_properties)
+                except (TypeError, ValueError):
+                    max_properties = 10
                 results = await self.hass.async_add_executor_job(
                     partial(self.miot_device.get_properties_for_mapping, max_properties=max_properties)
                 )
