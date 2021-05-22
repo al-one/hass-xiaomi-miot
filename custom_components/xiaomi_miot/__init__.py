@@ -813,6 +813,10 @@ class MiotEntity(MiioEntity):
         attrs['state_updater'] = updater
 
         if self._miot_service:
+            for d in ['sensor', 'binary_sensor', 'switch', 'number', 'fan', 'cover']:
+                pls = str(self.custom_config(f'{d}_properties') or '').split(',')
+                if pls:
+                    self._update_sub_entities(pls, '*', domain=d)
             self._update_sub_entities(
                 [
                     'temperature', 'indoor_temperature', 'relative_humidity', 'humidity',
@@ -848,6 +852,7 @@ class MiotEntity(MiioEntity):
             self._update_sub_entities(
                 'physical_controls_locked',
                 ['physical_controls_locked', self._miot_service.name],
+                domain='switch',
             )
             self._update_sub_entities(None, ['indicator_light', 'night_light'], domain='light')
         if self._subs:
@@ -1017,6 +1022,8 @@ class MiotEntity(MiioEntity):
         from .number import MiotNumberSubEntity
         if isinstance(services, MiotService):
             sls = [services]
+        elif services == '*':
+            sls = self._miot_service.spec.services
         elif services:
             sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
         else:
@@ -1061,10 +1068,10 @@ class MiotEntity(MiioEntity):
                 elif tms > 0:
                     if tms <= 1:
                         _LOGGER.info('Device %s sub entity %s: %s already exists.', self.name, domain, fnm)
-                elif add_switches and p.format == 'bool' and p.writeable:
+                elif add_switches and domain == 'switch' and p.format == 'bool' and p.writeable:
                     self._subs[fnm] = MiotSwitchSubEntity(self, p, option=option)
                     add_switches([self._subs[fnm]])
-                elif add_binary_sensors and p.format == 'bool':
+                elif add_binary_sensors and domain == 'binary_sensor' and p.format == 'bool':
                     self._subs[fnm] = MiotBinarySensorSubEntity(self, p, option=option)
                     add_binary_sensors([self._subs[fnm]])
                 elif add_sensors and domain == 'sensor':
@@ -1076,7 +1083,7 @@ class MiotEntity(MiioEntity):
                 elif add_covers and domain == 'cover':
                     self._subs[fnm] = MiotCoverSubEntity(self, p, option=option)
                     add_covers([self._subs[fnm]])
-                elif add_covers and domain == 'number':
+                elif add_numbers and domain == 'number':
                     self._subs[fnm] = MiotNumberSubEntity(self, p, option=option)
                     add_numbers([self._subs[fnm]])
                 if new and fnm in self._subs:

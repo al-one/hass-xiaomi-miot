@@ -65,6 +65,15 @@ domain.your_entity_id:
   # miot_cloud_action: true # (Optional) Enable miot cloud (only action)
   # miot_local: true        # Force to read and write data in LAN
 
+# Custom sub entities
+domain.parent_entity_id:
+  sensor_properties: temperature,humidity,illumination # Miot properties
+  binary_sensor_properties: is_volume_muted,any_boolen_property
+  switch_properties: on,power
+  number_properties: volume
+  fan_properties: mode,fan_level
+  cover_properties: motor_control
+
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
 
