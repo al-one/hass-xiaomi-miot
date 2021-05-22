@@ -644,8 +644,9 @@ class MiotEntity(MiioEntity):
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         self._miot_service = miot_service if isinstance(miot_service, MiotService) else None
         if not self._miot_mapping and self._miot_service:
+            dic = miot_service.mapping() or {}
             self._miot_mapping = miot_service.spec.services_mapping() or {}
-            self._miot_mapping.update(miot_service.mapping())
+            self._miot_mapping = {**dic, **self._miot_mapping, **dic}
 
         name = self._config.get(CONF_NAME) or ''
         _LOGGER.info('Initializing miot device: %s, mapping: %s', name, self._miot_mapping)
@@ -668,7 +669,7 @@ class MiotEntity(MiioEntity):
             except TypeError as exc:
                 if f'{exc}'.find('mapping') >= 0:
                     # for python-miio <= v0.5.4
-                    device = MiotDevice(self._miot_mapping, host, token)
+                    device = MiotDevice(self._miot_mapping, host, token)  # noqa
             except ValueError as exc:
                 _LOGGER.warning('Initializing with host %s (%s) failed: %s', host, self.name, exc)
             if device:
