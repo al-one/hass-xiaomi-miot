@@ -26,7 +26,8 @@
                 }
             },
             "cloud_filter": {
-                "description": "筛选设备",
+                "title": "筛选设备",
+                "description": "你可以通过勾选WiFi SSID/BSSID包含或排除同账号下的不同位置(家庭)的设备，也可以通过筛选型号只集成想要的设备。在排除模式中，如果不勾选列表任何中的任何选项，则相当于包含所有选项。",
                 "data": {
                     "filter_ssid": "筛选 WiFi SSID",
                     "ssid_list": "WiFi SSID 列表",
@@ -69,7 +70,8 @@
                 }
             },
             "cloud_filter": {
-                "description": "筛选设备",
+                "title": "筛选设备",
+                "description": "你可以通过勾选WiFi SSID/BSSID包含或排除同账号下的不同位置(家庭)的设备，也可以通过筛选型号只集成想要的设备。在排除模式中，如果不勾选列表任何中的任何选项，则相当于包含所有选项。",
                 "data": {
                     "filter_ssid": "筛选 WiFi SSID",
                     "ssid_list": "WiFi SSID 列表",
