@@ -781,7 +781,10 @@ class MiotEntity(MiioEntity):
                 _LOGGER.error('Local device and miot cloud not ready %s', self.name)
         except DeviceException as exc:
             self._available = False
-            _LOGGER.error('Got MiioException while fetching the state for %s: %s', self.name, exc)
+            _LOGGER.error(
+                'Got MiioException while fetching the state for %s: %s, mapping: %s',
+                self.name, exc, self.miot_mapping,
+            )
             return
         except MiCloudException as exc:
             self._available = False
