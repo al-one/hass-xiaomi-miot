@@ -42,7 +42,6 @@ SERVICE_TO_METHOD = {
                 vol.Required('text'): cv.string,
                 vol.Optional('execute', default=False): cv.boolean,
                 vol.Optional('silent', default=False): cv.boolean,
-                vol.Optional('throw', default=False): cv.boolean,
             },
         ),
     },

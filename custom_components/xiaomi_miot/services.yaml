@@ -167,11 +167,6 @@ intelligent_speaker:
       example: false
       selector:
         boolean:
-    throw:
-      description: Throw result.
-      example: false
-      selector:
-        boolean:
 
 get_device_data:
   description: Get xiaomi device data from cloud.
@@ -228,11 +223,6 @@ get_device_data:
             - day
             - week
             - month
-    throw:
-      description: Throw result.
-      example: true
-      selector:
-        boolean:
 
 get_token:
   description: Get xiaomi device token.
@@ -248,11 +238,6 @@ get_token:
       description: Device name.
       selector:
         text:
-    throw:
-      description: Throw result.
-      example: true
-      selector:
-        boolean:
 
 get_bindkey:
   description: Get bindkey for ble device from cloud.
@@ -268,11 +253,6 @@ get_bindkey:
       description: Xiaomi device ID.
       selector:
         text:
-    throw:
-      description: Throw result.
-      example: true
-      selector:
-        boolean:
 
 request_xiaomi_api:
   description: Request xiaomi cloud api.
@@ -292,8 +272,3 @@ request_xiaomi_api:
       example: "{'getVirtualModel':true}"
       selector:
         object:
-    throw:
-      description: Throw result.
-      example: true
-      selector:
-        boolean:

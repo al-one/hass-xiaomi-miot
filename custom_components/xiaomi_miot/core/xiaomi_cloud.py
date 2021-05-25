@@ -56,7 +56,7 @@ class MiotCloud(micloud.MiCloud):
         }) or {}
         return rdt.get('result')
 
-    def get_user_device_data(self, did, key, typ='prop', **kwargs):
+    def get_user_device_data(self, did, key, typ='prop', raw=False, **kwargs):
         now = int(time.time())
         params = {
             "uid": self.user_id,
@@ -69,7 +69,7 @@ class MiotCloud(micloud.MiCloud):
             **kwargs,
         }
         rdt = self.request_miot_api('user/get_user_device_data', params) or {}
-        return rdt
+        return rdt if raw else rdt.get('result')
 
     def check_auth(self, notify=False):
         rdt = self.get_user_device_data('1', 'power') or {}
