@@ -72,6 +72,7 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
             raise MiCloudException('Login error')
         if not await mic.async_check_auth(False):
             raise MiCloudException('Login failed')
+        await mic.async_stored_auth(mic.user_id, save=True)
         user_input['xiaomi_cloud'] = mic
         dvs = await mic.async_get_devices(renew=renew_devices) or []
     except MiCloudException as exc:

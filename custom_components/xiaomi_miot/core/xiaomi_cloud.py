@@ -2,6 +2,7 @@ import logging
 import json
 import time
 import micloud
+from datetime import datetime
 from micloud.micloudexception import MiCloudException  # noqa: F401
 
 from homeassistant.const import *
@@ -71,58 +72,54 @@ class MiotCloud(micloud.MiCloud):
         rdt = self.request_miot_api('user/get_user_device_data', params) or {}
         return rdt if raw else rdt.get('result')
 
-    def check_auth(self, notify=False):
-        rdt = self.get_user_device_data('1', 'power') or {}
+    async def async_check_auth(self, notify=False):
+        rdt = await self.hass.async_add_executor_job(self.get_user_device_data, '1', 'check_auth') or {}
         nid = f'xiaomi-miot-auth-warning-{self.user_id}'
         eno = rdt.get('code', 0)
-        if eno == 3:
-            # auth err
-            if notify:
-                persistent_notification.create(
-                    self.hass,
-                    f'Xiaomi cloud: {self.user_id} auth failed, '
-                    'Please update option for this integration to refresh token.\n'
-                    f'小米账号：{self.user_id} 登陆失效，请重新保存集成选项以更新登陆信息。',
-                    'Xiaomi Miot Warning',
-                    nid,
-                )
-                _LOGGER.error(
-                    'Xiaomi cloud: %s auth failed, Please update option for this integration to refresh token.\n%s',
-                    self.user_id,
-                    rdt,
-                )
-            self.user_id = None
-            self.service_token = None
-            self.ssecurity = None
-            if self.login():
-                persistent_notification.dismiss(self.hass, nid)
-                return True
-            _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
-            return False
-        return True
-
-    async def async_check_auth(self, notify=False):
-        return await self.hass.async_add_executor_job(self.check_auth, notify)
+        if eno != 3:
+            return True
+        # auth err
+        if notify:
+            persistent_notification.create(
+                self.hass,
+                f'Xiaomi cloud: {self.user_id} auth failed, '
+                'Please update option for this integration to refresh token.\n'
+                f'小米账号：{self.user_id} 登陆失效，请重新保存集成选项以更新登陆信息。',
+                'Xiaomi Miot Warning',
+                nid,
+            )
+            _LOGGER.error(
+                'Xiaomi cloud: %s auth failed, Please update option for this integration to refresh token.\n%s',
+                self.user_id,
+                rdt,
+            )
+        self.user_id = None
+        self.service_token = None
+        self.ssecurity = None
+        if await self.async_login():
+            await self.async_stored_auth(self.user_id, save=True)
+            persistent_notification.dismiss(self.hass, nid)
+            return True
+        _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
+        return False
 
     def request_miot_api(self, api, data: dict, debug=True):
         url = self._get_api_url(self.default_server) + '/' + api
         rsp = self.request(url, {
             'data': json.dumps(data, separators=(',', ':')),
         })
-        exc = None
         try:
             rdt = json.loads(rsp)
+            if debug:
+                _LOGGER.debug(
+                    'Request miot api: %s %s result: %s',
+                    api, data, rsp,
+                )
         except (TypeError, ValueError) as exc:
             rdt = None
-        if not rdt:
             _LOGGER.warning(
                 'Request miot api: %s %s result: %s failed: %s',
                 api, data, rsp, exc,
-            )
-        elif debug:
-            _LOGGER.debug(
-                'Request miot api: %s %s result: %s',
-                api, data, rsp,
             )
         return rdt
 
@@ -224,7 +221,26 @@ class MiotCloud(micloud.MiCloud):
             config.get('server_country'),
         )
         mic.user_id = config.get('user_id')
+        sdt = await mic.async_stored_auth(mic.user_id, save=False)
+        config.update(sdt)
         mic.service_token = config.get('service_token')
         mic.ssecurity = config.get('ssecurity')
         ret = await mic.async_login()
         return mic if ret else ret
+
+    async def async_stored_auth(self, uid=None, save=False):
+        if uid is None:
+            uid = self.username
+        fnm = f'xiaomi_miot/auth-{uid}-{self.default_server}.json'
+        store = Store(self.hass, 1, fnm)
+        old = await store.async_load() or {}
+        if save:
+            cfg = self.to_config()
+            cfg.pop(CONF_PASSWORD, None)
+            if cfg.get('service_token') == old.get('service_token'):
+                cfg['update_at'] = old.get('update_at')
+            else:
+                cfg['update_at'] = f'{datetime.fromtimestamp(int(time.time()))}'
+            await store.async_save(cfg)
+            return cfg
+        return old

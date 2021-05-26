@@ -40,7 +40,7 @@
         },
         "error": {
             "cannot_connect": "Failed to connect the device",
-            "cannot_login": "Failed to login the xiaomi cloud account",
+            "cannot_login": "Failed to login the xiaomi cloud account, please check password. If you always fail to login, login to mi.com in the same environment as the current network and try again.",
             "none_devices": "None devices in the xiaomi cloud account"
         },
         "abort": {
@@ -84,7 +84,7 @@
         },
         "error": {
             "cannot_connect": "Failed to connect the device",
-            "cannot_login": "Failed to login the xiaomi cloud account",
+            "cannot_login": "Failed to login the xiaomi cloud account, please check password. If you always fail to login, login to mi.com in the same environment as the current network and try again.",
             "none_devices": "None devices in the xiaomi cloud account"
         }
     }
