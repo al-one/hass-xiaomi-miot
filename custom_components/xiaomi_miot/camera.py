@@ -190,25 +190,24 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
                 _LOGGER.debug('Get miot camera stream from %s for %s: %s', updater, self.name, result)
             except MiCloudException as exc:
                 _LOGGER.error('Get miot camera stream from %s for %s failed: %s', updater, self.name, exc)
-            if result.get('out'):
-                odt = self._act_start_stream.out_results(result.get('out')) or {
-                    'stream_address': '',
-                }
-                self._url_expiration = 0
-                if self._prop_expiration_time:
-                    self._url_expiration = int(self._prop_expiration_time.from_dict(odt) or 0) / 1000
-                if self._url_expiration:
-                    self._url_expiration -= 10
-                else:
-                    self._url_expiration = now + 60 * 4.5
-                if self._prop_stream_address:
-                    self._last_url = self._prop_stream_address.from_dict(odt)
-                    self.async_write_ha_state()
-                    await self.async_check_stream_address(self._last_url)
-                    if not kwargs.get('scheduled') or self.custom_config('keep_streaming'):
-                        self._schedule_stream_refresh()
-                odt['expire_at'] = f'{datetime.fromtimestamp(self._url_expiration)}'
-                self.update_attrs(odt)
+            odt = self._act_start_stream.out_results(result.get('out')) or {
+                'stream_address': '',
+            }
+            self._url_expiration = 0
+            if self._prop_expiration_time:
+                self._url_expiration = int(self._prop_expiration_time.from_dict(odt) or 0) / 1000
+            if self._url_expiration:
+                self._url_expiration -= 10
+            else:
+                self._url_expiration = now + 60 * 4.5
+            if self._prop_stream_address:
+                self._last_url = self._prop_stream_address.from_dict(odt)
+                self.async_write_ha_state()
+                await self.async_check_stream_address(self._last_url)
+                if not kwargs.get('scheduled') or self.custom_config('keep_streaming'):
+                    self._schedule_stream_refresh()
+            odt['expire_at'] = f'{datetime.fromtimestamp(self._url_expiration)}'
+            self.update_attrs(odt)
         self.is_streaming = self._last_url and True
         if self.is_streaming:
             self.update_attrs({
