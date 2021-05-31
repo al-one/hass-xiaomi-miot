@@ -3,6 +3,7 @@ import json
 import time
 import micloud
 from datetime import datetime
+from functools import partial
 from micloud.micloudexception import MiCloudException  # noqa: F401
 
 from homeassistant.const import *
@@ -73,12 +74,21 @@ class MiotCloud(micloud.MiCloud):
         return rdt if raw else rdt.get('result')
 
     async def async_check_auth(self, notify=False):
-        rdt = await self.hass.async_add_executor_job(self.get_user_device_data, '1', 'check_auth') or {}
+        rdt = await self.hass.async_add_executor_job(
+            partial(self.get_user_device_data, '1', 'check_auth', raw=True)
+        ) or {}
         nid = f'xiaomi-miot-auth-warning-{self.user_id}'
         eno = rdt.get('code', 0)
         if eno != 3:
             return True
         # auth err
+        self.user_id = None
+        self.service_token = None
+        self.ssecurity = None
+        if await self.async_login():
+            await self.async_stored_auth(self.user_id, save=True)
+            persistent_notification.dismiss(self.hass, nid)
+            return True
         if notify:
             persistent_notification.create(
                 self.hass,
@@ -93,14 +103,8 @@ class MiotCloud(micloud.MiCloud):
                 self.user_id,
                 rdt,
             )
-        self.user_id = None
-        self.service_token = None
-        self.ssecurity = None
-        if await self.async_login():
-            await self.async_stored_auth(self.user_id, save=True)
-            persistent_notification.dismiss(self.hass, nid)
-            return True
-        _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
+        else:
+            _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
         return False
 
     def request_miot_api(self, api, data: dict, debug=True):
@@ -225,8 +229,8 @@ class MiotCloud(micloud.MiCloud):
         config.update(sdt)
         mic.service_token = config.get('service_token')
         mic.ssecurity = config.get('ssecurity')
-        ret = await mic.async_login()
-        return mic if ret else ret
+        await mic.async_login()
+        return mic
 
     async def async_stored_auth(self, uid=None, save=False):
         if uid is None:

@@ -272,9 +272,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
     }
     try:
         mic = await MiotCloud.from_token(hass, entry)
-        if not mic:
-            raise MiCloudException('Login failed')
-        await mic.async_check_auth(True)
+        await mic.async_check_auth(notify=True)
         config['xiaomi_cloud'] = mic
         config['devices_by_mac'] = await mic.async_get_devices_by_key('mac', filters=entry) or {}
     except MiCloudException as exc:
