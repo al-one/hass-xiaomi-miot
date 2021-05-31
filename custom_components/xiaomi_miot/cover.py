@@ -87,14 +87,15 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         self._prop_motor_control = miot_service.get_property('motor_control')
         self._prop_current_position = miot_service.get_property('current_position')
         self._prop_target_position = miot_service.get_property('target_position')
+        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
         self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
-        if self._prop_target_position:
+        if self._prop_target_position and not self.custom_config('disable_target_position'):
             self._supported_features |= SUPPORT_SET_POSITION
         if self._prop_motor_control.list_first('Pause', 'Stop') is not None:
             self._supported_features |= SUPPORT_STOP
-
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     @property
     def device_class(self):
@@ -119,9 +120,13 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
     def set_cover_position(self, **kwargs):
         pos = round(kwargs.get(ATTR_POSITION) or 0)
-        if self._prop_target_position:
-            return self.set_property(self._prop_target_position.full_name, pos)
-        return False
+        srv = self._miot_service
+        for p in srv.get_properties('target_position'):
+            if not p.value_range:
+                continue
+            if p.range_min() <= pos <= p.range_max():
+                return self.set_miot_property(srv.iid, p.iid, pos)
+        raise NotImplementedError()
 
     @property
     def is_closed(self):
