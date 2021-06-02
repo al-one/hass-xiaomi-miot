@@ -216,6 +216,8 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         return self._last_url
 
     async def async_check_stream_address(self, url):
+        if not url:
+            return False
         res = await self.hass.async_add_executor_job(requests.head, url)
         if res.status_code >= 300:
             self.update_attrs({
