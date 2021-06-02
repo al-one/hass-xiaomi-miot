@@ -1045,6 +1045,7 @@ class MiotEntity(MiioEntity):
                 if fnm in self._subs:
                     new = False
                     self._subs[fnm].update()
+                    self._check_same_sub_entity(fnm, domain, add=1)
                 elif tms > 0:
                     if tms <= 1:
                         _LOGGER.info('Device %s sub entity %s: %s already exists.', self.name, domain, fnm)
@@ -1067,6 +1068,7 @@ class MiotEntity(MiioEntity):
                 if fnm in self._subs:
                     new = False
                     self._subs[fnm].update()
+                    self._check_same_sub_entity(fnm, domain, add=1)
                 elif tms > 0:
                     if tms <= 1:
                         _LOGGER.info('Device %s sub entity %s: %s already exists.', self.name, domain, fnm)
@@ -1095,7 +1097,7 @@ class MiotEntity(MiioEntity):
     def _check_same_sub_entity(self, name, domain=None, add=0):
         uni = f'{self._unique_did}-{name}-{domain}'
         pre = int(self.hass.data[DOMAIN]['sub_entities'].get(uni) or 0)
-        if add:
+        if add and pre < 999999:
             self.hass.data[DOMAIN]['sub_entities'][uni] = pre + add
         return pre
 
