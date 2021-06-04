@@ -71,13 +71,8 @@ if [ -n "$haPath" ]; then
     info "Downloading..."
     wget -t 2 -O "$ccPath/$ARCHIVE_TAG.zip" "$ARCHIVE_URL"
 
-    if [ -d "$ccPath/$REPO_NAME-$ver" ]; then
-        warn "$REPO_NAME-$ver directory already exist, cleaning up..."
-        rm -R "$ccPath/$REPO_NAME-$ver"
-    fi
-
     info "Unpacking..."
-    unzip "$ccPath/$ARCHIVE_TAG.zip" -d "$ccPath" >/dev/null 2>&1
+    unzip -o "$ccPath/$ARCHIVE_TAG.zip" -d "$ccPath" >/dev/null 2>&1
 
     if [ -d "$ccPath/$DOMAIN" ]; then
         warn "custom_components/$DOMAIN directory already exist, cleaning up..."
@@ -85,6 +80,13 @@ if [ -n "$haPath" ]; then
     fi
 
     ver=${ARCHIVE_TAG/#v/}
+    if [ ! -d "$ccPath/$REPO_NAME-$ver" ]; then
+        ver=$ARCHIVE_TAG
+    fi
+    if [ ! -d "$ccPath/$REPO_NAME-$ver" ]; then
+        error "Could not find $REPO_NAME-$ver directory" false
+        error "找不到文件夹: $REPO_NAME-$ver"
+    fi
     cp -rf "$ccPath/$REPO_NAME-$ver/custom_components/$DOMAIN" "$ccPath"
 
     info "Removing temp files..."
@@ -99,6 +101,7 @@ if [ -n "$haPath" ]; then
 else
     echo
     error "Could not find the directory for Home Assistant" false
+    error "找不到 Home Assistant 根目录" false
     echo "Manually change the directory to the root of your Home Assistant configuration"
     echo "With the user that is running Home Assistant"
     echo "and run the script again"
