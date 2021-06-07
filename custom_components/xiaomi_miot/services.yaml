@@ -167,6 +167,11 @@ intelligent_speaker:
       example: false
       selector:
         boolean:
+    throw:
+      description: Throw result.
+      example: false
+      selector:
+        boolean:
 
 get_device_data:
   description: Get xiaomi device data from cloud.
