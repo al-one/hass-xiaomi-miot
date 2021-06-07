@@ -101,7 +101,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
             self._supported_features |= SUPPORT_SET_POSITION
         if self._prop_motor_control.list_first('Pause', 'Stop') is not None:
             self._supported_features |= SUPPORT_STOP
-        if cv.boolean(self.custom_config('motor_reverse')):
+        if cv.boolean(self.custom_config('motor_reverse') or False):
             self._motor_reverse = True
         self._open_texts = [
             *str(self.custom_config('open_texts') or '').split(','),
