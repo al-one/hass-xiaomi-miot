@@ -6,6 +6,7 @@ from functools import partial
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.core import callback
+from homeassistant.helpers import config_validation as cv
 from homeassistant.components.cover import (
     DOMAIN as ENTITY_DOMAIN,
     CoverEntity,
@@ -87,6 +88,10 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         self._prop_motor_control = miot_service.get_property('motor_control')
         self._prop_current_position = miot_service.get_property('current_position')
         self._prop_target_position = miot_service.get_property('target_position')
+
+        self._motor_reverse = miot_service.name in ['airer']
+        self._open_texts = []
+        self._close_texts = []
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     async def async_added_to_hass(self):
@@ -96,6 +101,20 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
             self._supported_features |= SUPPORT_SET_POSITION
         if self._prop_motor_control.list_first('Pause', 'Stop') is not None:
             self._supported_features |= SUPPORT_STOP
+        if cv.boolean(self.custom_config('motor_reverse')):
+            self._motor_reverse = True
+        self._open_texts = [
+            *str(self.custom_config('open_texts') or '').split(','),
+            'Opening', 'Opened', 'Open', 'Up',
+        ]
+        self._close_texts = [
+            *str(self.custom_config('close_texts') or '').split(','),
+            'Closing', 'Closed', 'Close', 'Down',
+        ]
+        if self._motor_reverse:
+            ols = self._open_texts
+            self._open_texts = self._close_texts
+            self._close_texts = ols
 
     @property
     def device_class(self):
@@ -105,6 +124,12 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         if typ.find('window_opener') >= 0:
             return DEVICE_CLASS_WINDOW
         return None
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        self._update_sub_entities(['dryer'], domain='switch')
 
     @property
     def current_cover_position(self):
@@ -134,39 +159,40 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         if pos < 0:
             return None
         pos = self.custom_config('closed_position', 1)
-        return self.current_cover_position <= pos
+        isc = self.current_cover_position <= pos
+        if self._motor_reverse:
+            isc = not isc
+        return isc
 
     @property
     def is_closing(self):
         if not self._prop_status:
             return None
         sta = int(self._prop_status.from_dict(self._state_attrs) or -1)
-        return sta in self._prop_status.list_search('Closing', 'Down')
+        return sta in self._prop_status.list_search(*self._close_texts)
 
     @property
     def is_opening(self):
         if not self._prop_status:
             return None
         sta = int(self._prop_status.from_dict(self._state_attrs) or -1)
-        return sta in self._prop_status.list_search('Opening', 'Up')
+        return sta in self._prop_status.list_search(*self._open_texts)
+
+    def motor_control(self, open_cover=True, **kwargs):
+        tls = self._open_texts if open_cover else self._close_texts
+        val = self._prop_motor_control.list_first(*tls)
+        ret = self.set_property(self._prop_motor_control.full_name, val)
+        if ret and self._prop_status:
+            self.update_attrs({
+                self._prop_status.full_name: self._prop_status.list_first(*tls)
+            })
+        return ret
 
     def open_cover(self, **kwargs):
-        val = self._prop_motor_control.list_first('Open', 'Up')
-        ret = self.set_property(self._prop_motor_control.full_name, val)
-        if ret and self._prop_status:
-            self.update_attrs({
-                self._prop_status.full_name: self._prop_status.list_first('Opening', 'Up')
-            })
-        return ret
+        return self.motor_control(open_cover=True, **kwargs)
 
     def close_cover(self, **kwargs):
-        val = self._prop_motor_control.list_first('Close', 'Down')
-        ret = self.set_property(self._prop_motor_control.full_name, val)
-        if ret and self._prop_status:
-            self.update_attrs({
-                self._prop_status.full_name: self._prop_status.list_first('Closing', 'Down')
-            })
-        return ret
+        return self.motor_control(open_cover=False, **kwargs)
 
     def stop_cover(self, **kwargs):
         val = self._prop_motor_control.list_first('Pause', 'Stop')
