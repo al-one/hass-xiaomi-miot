@@ -121,11 +121,11 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
                     add_switches([self._subs[pnm]])
         else:
             self._update_sub_entities(
-                ['water_pump', 'automatic_feeding'],
+                ['water_pump', 'automatic_feeding', 'heating'],
                 domain='switch',
             )
             self._update_sub_entities(
-                ['pump_flux', 'target_feeding_measure'],
+                ['pump_flux', 'target_feeding_measure', 'target_temperature'],
                 domain='number',
             )
             self._update_sub_entities(
@@ -138,7 +138,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
             )
             self._update_sub_entities(
                 ['mode', 'massage_strength', 'massage_part', 'massage_manipulation'],
-                ['pet_drinking_fountain', 'massager'],
+                ['fish_tank', 'pet_drinking_fountain', 'massager'],
                 domain='fan',
             )
 
