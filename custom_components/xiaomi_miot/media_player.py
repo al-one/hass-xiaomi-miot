@@ -63,14 +63,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services('play_control', 'doorbell'):
             if not srv.mapping() and not srv.get_action('play'):
                 continue
-            cfg = {
-                **config,
-                'name': f"{config.get('name')} {srv.description}"
-            }
             if srv.name in ['doorbell']:
-                entities.append(MiotDoorbellEntity(cfg, srv))
+                entities.append(MiotDoorbellEntity(config, srv))
             else:
-                entities.append(MiotMediaPlayerEntity(cfg, srv))
+                entities.append(MiotMediaPlayerEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)

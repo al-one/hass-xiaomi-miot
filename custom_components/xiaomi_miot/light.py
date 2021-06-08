@@ -58,11 +58,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             for srv in spec.get_services(ENTITY_DOMAIN):
                 if not srv.get_property('on'):
                     continue
-                cfg = {
-                    **config,
-                    'name': f"{config.get('name')} {srv.description}"
-                }
-                entities.append(MiotLightEntity(cfg, srv))
+                entities.append(MiotLightEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)

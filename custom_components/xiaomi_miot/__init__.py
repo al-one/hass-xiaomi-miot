@@ -541,7 +541,7 @@ class MiioEntity(BaseEntity):
     def device_info(self):
         return {
             'identifiers': {(DOMAIN, self._unique_did)},
-            'name': self._name,
+            'name': self._config.get(CONF_NAME) or self._name,
             'model': self._model,
             'manufacturer': (self._model or 'Xiaomi').split('.', 1)[0],
             'sw_version': self._miio_info.firmware_version,
@@ -647,6 +647,8 @@ class MiotEntity(MiioEntity):
             self._miot_mapping = {**dic, **self._miot_mapping, **dic}
 
         name = self._config.get(CONF_NAME) or ''
+        if miot_service:
+            name = f"{name} {miot_service.description}"
         _LOGGER.info('Initializing miot device: %s, mapping: %s', name, self._miot_mapping)
         super().__init__(name, device, **kwargs)
         if self._miot_service:

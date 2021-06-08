@@ -75,16 +75,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                     pass
                 elif not srv.mapping():
                     continue
-                cfg = {
-                    **config,
-                    'name': f"{config.get('name')} {srv.description}"
-                }
                 if srv.get_property('cook_mode') or srv.get_action('start_cook', 'cancel_cooking'):
-                    entities.append(MiotCookerEntity(cfg, srv))
+                    entities.append(MiotCookerEntity(config, srv))
                 elif srv.name in ['oven', 'microwave_oven']:
-                    entities.append(MiotCookerEntity(cfg, srv))
+                    entities.append(MiotCookerEntity(config, srv))
                 else:
-                    entities.append(MiotSensorEntity(cfg, srv))
+                    entities.append(MiotSensorEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
