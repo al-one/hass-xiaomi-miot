@@ -1079,6 +1079,8 @@ class MiotEntity(MiioEntity):
                     self._subs[fnm] = MiotBinarySensorSubEntity(self, p, option=option)
                     add_binary_sensors([self._subs[fnm]])
                 elif add_sensors and domain == 'sensor':
+                    if p.full_name == self._state_attrs.get('state_property'):
+                        continue
                     self._subs[fnm] = MiotSensorSubEntity(self, p, option=option)
                     add_sensors([self._subs[fnm]])
                 elif add_fans and domain == 'fan':
