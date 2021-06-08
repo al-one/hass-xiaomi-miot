@@ -53,7 +53,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 entities.append(MiotPwznRelaySwitchEntity(config, srv))
         else:
             for srv in spec.get_services(
-                ENTITY_DOMAIN, 'outlet', 'washer', 'pet_drinking_fountain', 'massager',
+                ENTITY_DOMAIN, 'outlet', 'washer', 'fish_tank', 'pet_drinking_fountain', 'massager',
             ):
                 if not srv.get_property('on'):
                     continue
@@ -84,6 +84,8 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
     def icon(self):
         if self._miot_service.name in ['washer']:
             return 'mdi:washing-machine'
+        if self._miot_service.name in ['fish_tank']:
+            return 'mdi:fishbowl'
         if self._miot_service.name in ['pet_drinking_fountain']:
             return 'mdi:fountain'
         return super().icon
@@ -119,12 +121,20 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
                     add_switches([self._subs[pnm]])
         else:
             self._update_sub_entities(
+                ['water_pump', 'automatic_feeding'],
+                domain='switch',
+            )
+            self._update_sub_entities(
+                ['pump_flux', 'target_feeding_measure'],
+                domain='number',
+            )
+            self._update_sub_entities(
                 ['heat_level'],
                 ['massager'],
                 domain='fan',
                 option={
                     'power_property': self._miot_service.get_property('heating'),
-                }
+                },
             )
             self._update_sub_entities(
                 ['mode', 'massage_strength', 'massage_part', 'massage_manipulation'],

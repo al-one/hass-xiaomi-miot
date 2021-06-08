@@ -856,7 +856,11 @@ class MiotEntity(MiioEntity):
                 ['physical_controls_locked', self._miot_service.name],
                 domain='switch',
             )
-            self._update_sub_entities(None, ['indicator_light', 'night_light'], domain='light')
+            self._update_sub_entities(
+                None,
+                ['indicator_light', 'night_light', 'ambient_light', 'plant_light'],
+                domain='light',
+            )
         if self._subs:
             attrs['sub_entities'] = list(self._subs.keys())
         self.update_attrs(attrs)
