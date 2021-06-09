@@ -70,10 +70,15 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         super().__init__(miot_service, config=config, **kwargs)
 
         self._prop_power = miot_service.get_property('on')
+        self._prop_mode = miot_service.get_property('mode')
         self._prop_brightness = miot_service.get_property('brightness')
         self._prop_color_temp = miot_service.get_property('color_temperature')
         self._prop_color = miot_service.get_property('color')
-        self._prop_mode = miot_service.get_property('mode')
+
+        self._srv_ambient_custom = miot_service.spec.get_service('ambient_light_custom')
+        if self._srv_ambient_custom:
+            if not self._prop_color:
+                self._prop_color = self._srv_ambient_custom.get_property('color')
 
         if self._prop_brightness:
             self._supported_features |= SUPPORT_BRIGHTNESS

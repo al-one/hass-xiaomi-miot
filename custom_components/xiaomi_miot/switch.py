@@ -121,7 +121,8 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
                 domain='switch',
             )
             self._update_sub_entities(
-                ['pump_flux', 'target_feeding_measure', 'target_temperature'],
+                ['pump_flux', 'target_feeding_measure', 'target_temperature', 'stream', 'speed'],
+                [self._miot_service.name, 'ambient_light_custom'],
                 domain='number',
             )
             self._update_sub_entities(
