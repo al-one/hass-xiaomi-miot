@@ -168,7 +168,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         return None
 
 
-class MiotLightSubEntity(ToggleSubEntity, MiotLightEntity):
+class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
     def __init__(self, parent, miot_service: MiotService):
         prop_power = miot_service.get_property('on')
         ToggleSubEntity.__init__(self, parent, prop_power.full_name, {
