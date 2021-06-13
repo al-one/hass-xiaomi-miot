@@ -214,7 +214,6 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
                     add_switches([self._subs[pnm]])
 
-
     def update_bind_sensor(self):
         bss = str(self.custom_config('bind_sensor') or '').split(',')
         ext = {}
@@ -563,9 +562,9 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             hor = False
         swm = {}
         if self._prop_vertical_swing:
-            swm[self._prop_vertical_swing.name] = ver
+            swm[self._prop_vertical_swing.full_name] = ver
         if self._prop_horizontal_swing:
-            swm[self._prop_horizontal_swing.name] = hor
+            swm[self._prop_horizontal_swing.full_name] = hor
         for mk, mv in swm.items():
             old = self._state_attrs.get(mk, None)
             if old is None or mv is None:
