@@ -638,17 +638,16 @@ class MiotEntityInterface:
 
 class MiotEntity(MiioEntity):
     def __init__(self, miot_service=None, device=None, **kwargs):
+        name = self._config.get(CONF_NAME) or ''
         self._config = dict(kwargs.get('config') or {})
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         self._miot_service = miot_service if isinstance(miot_service, MiotService) else None
-        if not self._miot_mapping and self._miot_service:
-            dic = miot_service.mapping() or {}
-            self._miot_mapping = miot_service.spec.services_mapping() or {}
-            self._miot_mapping = {**dic, **self._miot_mapping, **dic}
-
-        name = self._config.get(CONF_NAME) or ''
-        if miot_service:
-            name = f"{name} {miot_service.description}"
+        if self._miot_service:
+            name = f"{name} {self._miot_service.description}"
+            if not self._miot_mapping:
+                dic = miot_service.mapping() or {}
+                self._miot_mapping = miot_service.spec.services_mapping() or {}
+                self._miot_mapping = {**dic, **self._miot_mapping, **dic}
         _LOGGER.info('Initializing miot device: %s, mapping: %s', name, self._miot_mapping)
         super().__init__(name, device, **kwargs)
         if self._miot_service:

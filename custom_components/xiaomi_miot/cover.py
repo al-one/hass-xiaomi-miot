@@ -358,7 +358,7 @@ class MrBondAirerProEntity(MiotEntity, MiioCoverEntity):
         _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
 
         self._device = MiioDevice(host, token)
-        super().__init__(name, self._device)
+        super().__init__(None, self._device, config=config)
         self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_STOP
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._props = ['dry', 'led', 'motor', 'drytime', 'airer_location']
