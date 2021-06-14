@@ -288,8 +288,8 @@ class MiotCoverSubEntity(MiotSensorSubEntity, CoverEntity):
 
 
 class MiioCoverEntity(MiioEntity, CoverEntity):
-    def __init__(self, name, device):
-        super().__init__(name, device)
+    def __init__(self, name, device, **kwargs):
+        super().__init__(name, device, **kwargs)
         self._device_class = None
         self._position = None
         self._set_position = None
@@ -350,7 +350,7 @@ class MiioCoverEntity(MiioEntity, CoverEntity):
         })
 
 
-class MrBondAirerProEntity(MiotEntity, MiioCoverEntity):
+class MrBondAirerProEntity(MiioCoverEntity):
     def __init__(self, config):
         name = config[CONF_NAME]
         host = config[CONF_HOST]
@@ -358,7 +358,7 @@ class MrBondAirerProEntity(MiotEntity, MiioCoverEntity):
         _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
 
         self._device = MiioDevice(host, token)
-        super().__init__(None, self._device, config=config)
+        super().__init__(name, device=self._device, config=config)
         self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_STOP
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._props = ['dry', 'led', 'motor', 'drytime', 'airer_location']

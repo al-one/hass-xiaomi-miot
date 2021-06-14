@@ -639,7 +639,7 @@ class MiotEntityInterface:
 class MiotEntity(MiioEntity):
     def __init__(self, miot_service=None, device=None, **kwargs):
         self._config = dict(kwargs.get('config') or {})
-        name = self._config.get(CONF_NAME) or ''
+        name = kwargs.get(CONF_NAME) or self._config.get(CONF_NAME) or ''
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         self._miot_service = miot_service if isinstance(miot_service, MiotService) else None
         if self._miot_service:
