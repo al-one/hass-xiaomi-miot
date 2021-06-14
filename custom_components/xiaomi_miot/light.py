@@ -135,7 +135,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
 
     @property
     def color_temp(self):
-        return self.translate_mired(self._state_attrs.get(self._prop_color_temp.full_name) or 2700)
+        return self.translate_mired(self._prop_color_temp.from_dict(self._state_attrs) or 2700)
 
     @property
     def min_mireds(self):
@@ -147,7 +147,10 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
 
     @staticmethod
     def translate_mired(num):
-        return round(1000000 / num)
+        try:
+            return round(1000000 / num)
+        except TypeError:
+            return round(1000000 / 2700)
 
     @property
     def effect_list(self):
