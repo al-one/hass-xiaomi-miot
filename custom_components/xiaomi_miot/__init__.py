@@ -149,15 +149,6 @@ SERVICE_TO_METHOD_BASE = {
             },
         ),
     },
-    'get_token': {
-        'method': 'async_get_token',
-        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
-            {
-                vol.Optional('name', default=''): cv.string,
-                vol.Optional('throw', default=False): cv.boolean,
-            },
-        ),
-    },
     'get_bindkey': {
         'method': 'async_get_bindkey',
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
@@ -205,6 +196,7 @@ async def async_setup(hass, hass_config: dict):
     component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
     hass.data[DOMAIN]['component'] = component
     await component.async_setup(config)
+    await async_setup_component_services(hass)
     bind_services_to_entries(hass, SERVICE_TO_METHOD_BASE)
 
     if config.get('username') and config.get('password'):
@@ -378,6 +370,53 @@ def bind_services_to_entries(hass, services):
     for srv, obj in services.items():
         schema = obj.get('schema', XIAOMI_MIIO_SERVICE_SCHEMA)
         hass.services.async_register(DOMAIN, srv, async_service_handler, schema=schema)
+
+
+async def async_setup_component_services(hass):
+
+    async def async_get_token(call):
+        nam = call.data.get('name')
+        cls = []
+        for k, v in hass.data[DOMAIN].items():
+            if isinstance(v, dict):
+                v = v.get('xiaomi_cloud')
+            if isinstance(v, MiotCloud):
+                cls.append(v)
+        cnt = 0
+        lst = []
+        dls = {}
+        for cld in cls:
+            dvs = await cld.async_get_devices() or []
+            for d in dvs:
+                did = d.get('did')
+                if dls.get(did):
+                    continue
+                if isinstance(d, dict) and nam in d.get('name'):
+                    lst.append({
+                        'did': did,
+                        CONF_NAME: d.get('name'),
+                        CONF_HOST: d.get('localip'),
+                        CONF_TOKEN: d.get('token'),
+                        CONF_MODEL: d.get('model'),
+                    })
+                dls[did] = 1
+                cnt += 1
+        if not lst:
+            lst = [f'Not Found in {cnt} devices.']
+        msg = '\n\n'.join(map(lambda vv: f'{vv}', lst))
+        persistent_notification.async_create(
+            hass, msg, 'Miot device', f'{DOMAIN}-debug',
+        )
+        return lst
+
+    hass.services.async_register(
+        DOMAIN, 'get_token', async_get_token,
+        schema=XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+        {
+            vol.Required('name', default=''): cv.string,
+        }),
+    )
+
 
 
 async def async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, domain=None):
@@ -1128,44 +1167,6 @@ class MiotEntity(MiioEntity):
         else:
             _LOGGER.debug('Miot device data for %s: %s', self.name, result)
         return result
-
-    async def async_get_token(self, name=None, throw=False):
-        if name:
-            cld = self.entry_config('xiaomi_cloud')
-            dvs = (await cld.async_get_devices() or []) if isinstance(cld, MiotCloud) else []
-            cnt = len(dvs)
-            lst = [
-                {
-                    'did': d.get('did'),
-                    CONF_NAME: d.get('name'),
-                    CONF_HOST: d.get('localip'),
-                    CONF_TOKEN: d.get('token'),
-                    CONF_MODEL: d.get('model'),
-                }
-                for d in dvs
-                if isinstance(d, dict) and name in d.get('name')
-            ] or [f'Not Found in {cnt} devices.']
-        else:
-            lst = [
-                {
-                    CONF_NAME: self._name,
-                    CONF_HOST: self._miio_info.network_interface.get('localIp'),
-                    CONF_TOKEN: self._miio_info.data.get('token'),
-                    CONF_MODEL: self._miio_info.model,
-                }
-            ]
-        msg = '\n\n'.join(map(lambda v: f'{v}', lst))
-        persistent_notification.async_create(
-            self.hass,
-            msg,
-            'Miot device',
-            f'{DOMAIN}-debug',
-        )
-        if throw:
-            raise Warning(f'Miot device: {msg}')
-        else:
-            _LOGGER.warning('Miot device: %s', msg)
-        return self._miio_info.data.get('token')
 
     async def async_get_bindkey(self, did=None, throw=False):
         mic = self.miot_cloud
