@@ -30,6 +30,7 @@ from miio import (
 from miio.device import DeviceInfo as MiioInfoBase
 from miio.miot_device import MiotDevice as MiotDeviceBase
 
+from .core.const import *
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -43,30 +44,7 @@ from .core.xiaomi_cloud import (
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = 'xiaomi_miot'
 SCAN_INTERVAL = timedelta(seconds=60)
-DEFAULT_NAME = 'Xiaomi Miot'
-CONF_MODEL = 'model'
-CONF_SERVER_COUNTRY = 'server_country'
-CONF_CONFIG_VERSION = 'config_version'
-
-SUPPORTED_DOMAINS = [
-    'sensor',
-    'binary_sensor',
-    'switch',
-    'light',
-    'fan',
-    'climate',
-    'cover',
-    'humidifier',
-    'media_player',
-    'camera',
-    'vacuum',
-    'air_quality',
-    'water_heater',
-    'device_tracker',
-    'number',
-]
 
 XIAOMI_CONFIG_SCHEMA = cv.PLATFORM_SCHEMA_BASE.extend(
     {
@@ -199,17 +177,17 @@ async def async_setup(hass, hass_config: dict):
     await async_setup_component_services(hass)
     bind_services_to_entries(hass, SERVICE_TO_METHOD_BASE)
 
-    if config.get('username') and config.get('password'):
+    if config.get(CONF_USERNAME) and config.get(CONF_PASSWORD):
         try:
             mic = MiotCloud(
                 hass,
                 config.get(CONF_USERNAME),
                 config.get(CONF_PASSWORD),
-                config.get('server_country'),
+                config.get(CONF_SERVER_COUNTRY),
             )
             if not await mic.async_login():
                 raise MiCloudException('Login failed')
-            hass.data[DOMAIN]['xiaomi_cloud'] = mic
+            hass.data[DOMAIN][CONF_XIAOMI_CLOUD] = mic
             hass.data[DOMAIN]['devices_by_mac'] = await mic.async_get_devices_by_key('mac') or {}
             cnt = len(hass.data[DOMAIN]['devices_by_mac'])
             _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', config.get(CONF_USERNAME), cnt)
@@ -265,7 +243,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
     try:
         mic = await MiotCloud.from_token(hass, entry)
         await mic.async_check_auth(notify=True)
-        config['xiaomi_cloud'] = mic
+        config[CONF_XIAOMI_CLOUD] = mic
         config['devices_by_mac'] = await mic.async_get_devices_by_key('mac', filters=entry) or {}
     except MiCloudException as exc:
         _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', entry.get(CONF_USERNAME), exc)
@@ -379,7 +357,7 @@ async def async_setup_component_services(hass):
         cls = []
         for k, v in hass.data[DOMAIN].items():
             if isinstance(v, dict):
-                v = v.get('xiaomi_cloud')
+                v = v.get(CONF_XIAOMI_CLOUD)
             if isinstance(v, MiotCloud):
                 cls.append(v)
         cnt = 0
@@ -416,7 +394,6 @@ async def async_setup_component_services(hass):
             vol.Required('name', default=''): cv.string,
         }),
     )
-
 
 
 async def async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, domain=None):
@@ -596,6 +573,22 @@ class MiioEntity(BaseEntity):
                 eid = self.platform.config_entry.entry_id
                 self._add_entities = self.hass.data[DOMAIN][eid].get('add_entities') or {}
 
+    def custom_config(self, key=None, default=None):
+        wil = re.sub(r'\.[^.]+$', '.*', self._model)
+        mar = [
+            self._model,
+            wil,
+            re.sub(r'^[^.]+\.', '*.', wil),
+        ]
+        for m in mar:
+            cus = GLOBAL_CUSTOMIZES['models'].get(m) or {}
+            if cus.get(key) is not None:
+                default = cus[key]
+                break
+        if not self.hass:
+            return default
+        return super().custom_config(key, default)
+
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
             result = await self.hass.async_add_executor_job(partial(func, *args, **kwargs))
@@ -734,7 +727,7 @@ class MiotEntity(MiioEntity):
         elif self.custom_config('miot_cloud'):
             isc = True
         if isc and self.hass and self.miot_did:
-            return self.entry_config('xiaomi_cloud')
+            return self.entry_config(CONF_XIAOMI_CLOUD)
         return None
 
     @property
@@ -743,7 +736,7 @@ class MiotEntity(MiioEntity):
         if self.custom_config('miot_cloud_write'):
             isc = True
         if isc and self.hass and self.miot_did:
-            return self.entry_config('xiaomi_cloud')
+            return self.entry_config(CONF_XIAOMI_CLOUD)
         return self.miot_cloud
 
     @property
@@ -752,7 +745,7 @@ class MiotEntity(MiioEntity):
         if self.custom_config('miot_cloud_action'):
             isc = True
         if isc and self.hass and self.miot_did:
-            return self.entry_config('xiaomi_cloud')
+            return self.entry_config(CONF_XIAOMI_CLOUD)
         return self.miot_cloud
 
     @property

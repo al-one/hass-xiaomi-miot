@@ -2,6 +2,7 @@ import logging
 import requests
 import re
 
+from .const import DOMAIN
 from homeassistant.helpers.storage import Store
 
 _LOGGER = logging.getLogger(__name__)
@@ -62,7 +63,7 @@ class MiotSpec:
         if not model:
             return None
         url = 'https://miot-spec.org/miot-spec-v2/instances?status=released'
-        fnm = 'xiaomi_miot/instances.json'
+        fnm = f'{DOMAIN}/instances.json'
         store = Store(hass, 1, fnm)
         if not use_remote:
             dat = await store.async_load() or {}
@@ -98,7 +99,7 @@ class MiotSpec:
     @staticmethod
     async def async_from_type(hass, typ):
         url = f'https://miot-spec.org/miot-spec-v2/instance?type={typ}'
-        fnm = f'xiaomi_miot/{typ}.json'
+        fnm = f'{DOMAIN}/{typ}.json'
         store = Store(hass, 1, fnm)
         dat = await store.async_load() or {}
         if not dat.get('type'):
@@ -158,7 +159,7 @@ class MiotService:
         return [
             p
             for p in self.properties.values()
-            if p.name in args
+            if p.name in args or p.full_name in args
         ]
 
     def get_property(self, *args, only_format=None):
