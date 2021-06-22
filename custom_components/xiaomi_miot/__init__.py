@@ -1392,34 +1392,8 @@ class MiotSensorSubEntity(BaseSubEntity):
         if self._prop_battery:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_battery.full_name]
 
-        unit = miot_property.unit
-        if unit in ['celsius', TEMP_CELSIUS]:
-            self._option['unit'] = TEMP_CELSIUS
-        elif unit in ['fahrenheit', TEMP_FAHRENHEIT]:
-            self._option['unit'] = TEMP_FAHRENHEIT
-        elif unit in ['kelvin', TEMP_KELVIN]:
-            self._option['unit'] = TEMP_KELVIN
-        elif unit in ['percentage', PERCENTAGE]:
-            self._option['unit'] = PERCENTAGE
-        elif unit in ['μg/m3', CONCENTRATION_MICROGRAMS_PER_CUBIC_METER]:
-            self._option['unit'] = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
-        elif unit and unit not in ['none']:
-            self._option['unit'] = unit
-
-        if 'temperature' in miot_property.full_name:
-            self._option['device_class'] = DEVICE_CLASS_TEMPERATURE
-        elif 'humidity' in miot_property.full_name:
-            self._option['device_class'] = DEVICE_CLASS_HUMIDITY
-        elif 'battery' in miot_property.full_name:
-            self._option['device_class'] = DEVICE_CLASS_BATTERY
-        elif 'illumination' in miot_property.full_name:
-            self._option['device_class'] = DEVICE_CLASS_ILLUMINANCE
-        elif 'voltage' in miot_property.full_name:
-            self._option['device_class'] = DEVICE_CLASS_VOLTAGE
-        elif 'electric_current' in miot_property.full_name:
-            self._option['device_class'] = DEVICE_CLASS_CURRENT
-        elif 'electric_power' in miot_property.full_name:
-            self._option['device_class'] = DEVICE_CLASS_POWER
+        self._option['unit'] = miot_property.unit_of_measurement
+        self._option['device_class'] = miot_property.device_class
 
     def update(self):
         super().update()

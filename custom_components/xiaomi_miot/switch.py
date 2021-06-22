@@ -78,13 +78,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
 
     @property
     def icon(self):
-        if self._miot_service.name in ['washer']:
-            return 'mdi:washing-machine'
-        if self._miot_service.name in ['fish_tank']:
-            return 'mdi:fishbowl'
-        if self._miot_service.name in ['pet_drinking_fountain']:
-            return 'mdi:fountain'
-        return super().icon
+        return self._miot_service.entity_icon or super().icon
 
     async def async_update(self):
         await super().async_update()

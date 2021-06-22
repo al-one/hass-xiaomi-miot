@@ -3,6 +3,7 @@ import requests
 import re
 
 from .const import DOMAIN
+from homeassistant.const import *
 from homeassistant.helpers.storage import Store
 
 _LOGGER = logging.getLogger(__name__)
@@ -188,6 +189,18 @@ class MiotService:
                 return a
         return None
 
+    @property
+    def entity_icon(self):
+        icon = None
+        name = self.name
+        if name in ['washer']:
+            icon = 'mdi:washing-machine'
+        elif name in ['fish_tank']:
+            icon = 'mdi:fishbowl'
+        elif name in ['pet_drinking_fountain']:
+            icon = 'mdi:fountain'
+        return icon
+
 
 class MiotProperty:
     def __init__(self, dat: dict, service: MiotService):
@@ -316,6 +329,62 @@ class MiotProperty:
         if len(self.value_range) > 2:
             return self.value_range[2]
         return None
+
+    @property
+    def unit_of_measurement(self):
+        name = self.name
+        unit = self.unit
+        if not unit or unit in ['none', 'null']:
+            unit = None
+        elif unit in ['celsius']:
+            unit = TEMP_CELSIUS
+        elif unit in ['fahrenheit']:
+            unit = TEMP_FAHRENHEIT
+        elif unit in ['kelvin']:
+            unit = TEMP_KELVIN
+        elif unit in ['percentage']:
+            unit = PERCENTAGE
+        elif unit in ['lux']:
+            unit = LIGHT_LUX
+        elif unit in ['μg/m3'] or name in ['pm2_5_density']:
+            unit = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        return unit
+
+    @property
+    def device_class(self):
+        ret = None
+        name = self.full_name
+        if 'temperature' in name:
+            ret = DEVICE_CLASS_TEMPERATURE
+        elif 'humidity' in name:
+            ret = DEVICE_CLASS_HUMIDITY
+        elif 'battery' in name:
+            ret = DEVICE_CLASS_BATTERY
+        elif 'illumination' in name:
+            ret = DEVICE_CLASS_ILLUMINANCE
+        elif 'voltage' in name:
+            ret = DEVICE_CLASS_VOLTAGE
+        elif 'electric_current' in name:
+            ret = DEVICE_CLASS_CURRENT
+        elif 'electric_power' in name:
+            ret = DEVICE_CLASS_POWER
+        return ret
+
+    @property
+    def entity_icon(self):
+        icon = None
+        name = self.name
+        if name in ['heat_level']:
+            icon = 'mdi:radiator'
+            if self.service.name in ['seat']:
+                icon = 'mdi:car-seat-heater'
+        elif name in ['washing_strength']:
+            icon = 'mdi:waves'
+        elif name in ['nozzle_position']:
+            icon = 'mdi:spray'
+        elif name in ['mode']:
+            icon = 'mdi:menu'
+        return icon
 
 
 class MiotAction:

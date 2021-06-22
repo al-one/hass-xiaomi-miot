@@ -305,17 +305,7 @@ class MiotModesSubEntity(FanSubEntity):
 
     @property
     def icon(self):
-        if self._miot_property.name in ['heat_level']:
-            if self._miot_property.service.name in ['seat']:
-                return 'mdi:car-seat-heater'
-            return 'mdi:radiator'
-        if self._miot_property.name in ['washing_strength']:
-            return 'mdi:waves'
-        if self._miot_property.name in ['nozzle_position']:
-            return 'mdi:spray'
-        if self._miot_property.name in ['mode']:
-            return 'mdi:menu'
-        return super().icon
+        return self._miot_property.entity_icon or super().icon
 
     @property
     def is_on(self):
