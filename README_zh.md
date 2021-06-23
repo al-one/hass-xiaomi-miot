@@ -45,7 +45,7 @@ xiaomi_miot:
   # server_country: cn # 小米云服务器位置: cn(默认), de, i2, ru, sg, us
 ```
 
-为设备开启云端模式：
+为Token集成的设备开启云端模式：
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
 
@@ -93,7 +93,7 @@ doamin.your_entity_id:
   chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)
 ```
 
-**推荐**[使用界面自定义实体](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui):
+**推荐**[使用界面自定义实体](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-864678774):
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 🖌 自定义 > 🔍 选择实体 > 选择要覆盖的属性 > 添加Other属性
 
@@ -204,7 +204,12 @@ doamin.your_entity_id:
 ### [获取调试日志](https://www.home-assistant.io/integrations/logger)
 
 ```yaml
-# configuration.yaml
+# 使用HA服务 (无需重启)
+service: logger.set_level
+data:
+  custom_components.xiaomi_miot: debug
+
+# 或者修改 configuration.yaml (需重启)
 logger:
   default: warning
   logs:
