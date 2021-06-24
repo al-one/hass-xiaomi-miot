@@ -281,8 +281,14 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             act = srv.get_action(anm)
             if act:
                 pms = [text]
-                if execute:
-                    pms.append(0 if silent else 1)
+                pse = srv.get_property('silent_execution')
+                if execute and pse:
+                    sil = silent and True
+                    if pse.value_list:
+                        sil = pse.list_value('On' if silent else 'Off')
+                        if sil is None:
+                            sil = 0 if silent else 1
+                    pms.append(sil)
                 return self.miot_action(srv.iid, act.iid, pms, **kwargs)
             else:
                 _LOGGER.warning('%s have no action: %s', self.name, anm)
@@ -291,7 +297,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             if act and execute:
                 return self.call_action(act, [text], **kwargs)
         else:
-            _LOGGER.warning('%s have no service: %s', self.name, 'intelligent_speaker/message_router')
+            _LOGGER.error('%s have no service: %s', self.name, 'intelligent_speaker/message_router')
         return False
 
     async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
