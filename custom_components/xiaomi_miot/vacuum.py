@@ -62,7 +62,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(ENTITY_DOMAIN):
             if not srv.get_property('status'):
                 continue
-            if 'viomi.' in model:
+            if 'roborock.' in model:
+                entities.append(MiotRoborockVacuumEntity(config, srv))
+            elif 'viomi.' in model:
                 entities.append(MiotViomiVacuumEntity(config, srv))
             else:
                 entities.append(MiotVacuumEntity(config, srv))
@@ -229,6 +231,21 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         await self.hass.async_add_executor_job(
             partial(self.send_vacuum_command, command, params=params, **kwargs)
         )
+
+
+class MiotRoborockVacuumEntity(MiotVacuumEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(config, miot_service)
+
+    def clean_spot(self, **kwargs):
+        return self.send_command('app_spot')
+
+    def send_vacuum_command(self, command, params=None, **kwargs):
+        """Send a command to a vacuum cleaner."""
+        dvc = self.miot_device
+        if not dvc:
+            raise NotImplementedError()
+        return self.send_command(command, params)
 
 
 class MiotViomiVacuumEntity(MiotVacuumEntity):
