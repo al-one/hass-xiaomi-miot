@@ -114,9 +114,8 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None):
             fl = f'{f}_list'
             lst = vls.get(f, {})
             lst = dict(sorted(lst.items()))
-            fkd = 'include' if f in ['model'] else 'exclude'
             schema = schema.extend({
-                vol.Optional(fk, default=user_input.get(fk, fkd)): vol.In(ies),
+                vol.Optional(fk, default=user_input.get(fk, 'exclude')): vol.In(ies),
                 vol.Optional(fl, default=user_input.get(fl, [])): cv.multi_select(lst),
             })
         hass.data[DOMAIN]['prev_input'] = user_input
@@ -141,8 +140,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id='user',
             data_schema=vol.Schema({
                 vol.Required('action', default=user_input.get('action', 'token')): vol.In({
-                    'token': 'Add device using host/token',
                     'cloud': 'Add devices using Mi Account',
+                    'token': 'Add device using host/token',
                 }),
             }),
             errors=errors,
