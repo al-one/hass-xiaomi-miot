@@ -1,6 +1,7 @@
 """Support for Xiaomi vacuums."""
 import logging
 from datetime import timedelta
+from functools import partial
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.vacuum import (  # noqa: F401
@@ -61,7 +62,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(ENTITY_DOMAIN):
             if not srv.get_property('status'):
                 continue
-            entities.append(MiotVacuumEntity(config, srv))
+            if 'viomi.' in model:
+                entities.append(MiotViomiVacuumEntity(config, srv))
+            else:
+                entities.append(MiotVacuumEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
@@ -213,3 +217,55 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             val = self._prop_mode.list_value(fan_speed)
             return self.set_property(self._prop_mode.full_name, val)
         return False
+
+    def send_vacuum_command(self, command, params=None, **kwargs):
+        """Send a command to a vacuum cleaner."""
+        raise NotImplementedError()
+
+    async def async_send_command(self, command, params=None, **kwargs):
+        """Send a command to a vacuum cleaner.
+        This method must be run in the event loop.
+        """
+        await self.hass.async_add_executor_job(
+            partial(self.send_vacuum_command, command, params=params, **kwargs)
+        )
+
+
+class MiotViomiVacuumEntity(MiotVacuumEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(config, miot_service)
+
+    def send_vacuum_command(self, command, params=None, **kwargs):
+        """Send a command to a vacuum cleaner."""
+        dvc = self.miot_device
+        if not dvc:
+            raise NotImplementedError()
+        _LOGGER.debug('Send command to %s: %s %s', self.name, command, params)
+        if command == 'app_zoned_clean':
+            rpt = 1
+            lst = []
+            for z in params or []:
+                rpt = z.pop(-1)
+                lst.append(z)
+            return self.clean_zones(lst, rpt)
+        elif command == 'app_goto_target':
+            return self.clean_point(params)
+        return self.send_command(command, params)
+
+    def clean_zones(self, zones, repeats=1):
+        result = []
+        i = 0
+        for z in zones:
+            x1, y2, x2, y1 = z
+            res = '_'.join(str(x) for x in [i, 0, x1, y1, x1, y2, x2, y2, x2, y1])
+            for _ in range(repeats):
+                result.append(res)
+                i += 1
+        result = [i, *result]
+        self.send_command('set_uploadmap', [1])
+        self.send_command('set_zone', result)
+        return self.send_command('set_mode', [3, 1])
+
+    def clean_point(self, point):
+        self.send_command('set_uploadmap', [0])
+        return self.send_command('set_pointclean', [1, *point])
