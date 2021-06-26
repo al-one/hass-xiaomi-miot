@@ -986,7 +986,7 @@ class MiotEntity(MiioEntity):
         except MiCloudException as exc:
             _LOGGER.warning('Set miot property to cloud for %s (%s) failed: %s', self.name, pms, exc)
         if ret:
-            self._vars['delay_update'] = 2
+            self._vars['delay_update'] = 5
             _LOGGER.debug('Set miot property to %s (%s), result: %s', self.name, pms, ret)
         return ret
 
@@ -1022,7 +1022,7 @@ class MiotEntity(MiioEntity):
         except MiCloudException as exc:
             _LOGGER.warning('Call miot action to cloud for %s (%s) failed: %s', self.name, pms, exc)
         if ret:
-            self._vars['delay_update'] = 2
+            self._vars['delay_update'] = 5
             _LOGGER.debug('Call miot action to %s (%s), result: %s', self.name, pms, ret)
         self._state_attrs['miot_action_result'] = ret
         if kwargs.get('throw'):
