@@ -67,7 +67,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                         'Xiaomi Miot Warning',
                         f'{DATA_KEY}-warning-{model}',
                     )
-                continue
             entities.append(MiotCameraEntity(hass, config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
