@@ -154,10 +154,10 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Optional(CONF_USERNAME): cv.string,
                 vol.Optional(CONF_PASSWORD): cv.string,
-                vol.Optional('server_country'): cv.string,
+                vol.Optional(CONF_SERVER_COUNTRY): cv.string,
             },
             extra=vol.ALLOW_EXTRA,
-        )
+        ),
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -554,10 +554,14 @@ class MiioEntity(BaseEntity):
         return self._supported_features
 
     @property
+    def device_name(self):
+        return self._config.get(CONF_NAME) or self._name
+
+    @property
     def device_info(self):
         return {
             'identifiers': {(DOMAIN, self._unique_did)},
-            'name': self._config.get(CONF_NAME) or self._name,
+            'name': self.device_name,
             'model': self._model,
             'manufacturer': (self._model or 'Xiaomi').split('.', 1)[0],
             'sw_version': self._miio_info.firmware_version,
@@ -1259,11 +1263,12 @@ class BaseSubEntity(BaseEntity):
         return self._name
 
     def format_name_by_property(self, prop: MiotProperty):
-        nam = str(self._name).lower()
-        nam = re.sub(r'\W+', '_', nam)
-        if nam.find(prop.service.name):
-            return f'{self._parent.name} {prop.name}'
-        return self._name
+        dnm = self._parent.device_name
+        snm = prop.service.description
+        pnm = prop.description
+        if snm == pnm:
+            pnm = ''
+        return f'{dnm} {snm} {pnm}'.strip()
 
     @property
     def state(self):

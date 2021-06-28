@@ -179,7 +179,7 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
         })
         MiotLightEntity.__init__(self, {
             **parent.miot_config,
-            'name': f'{parent.name} {miot_service.description}',
+            'name': f'{parent.device_name}',
         }, miot_service, device=parent.miot_device)
         self._prop_power = prop_power
 
