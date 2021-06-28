@@ -12,10 +12,6 @@ from homeassistant.components.fan import (
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
 )
-from homeassistant.util.percentage import (
-    ordered_list_item_to_percentage,
-    percentage_to_ordered_list_item,
-)
 
 from . import (
     DOMAIN,
@@ -38,8 +34,19 @@ DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 try:
     # hass 2021.3.0b0+
     from homeassistant.components.fan import SUPPORT_PRESET_MODE
+    from homeassistant.util.percentage import (
+        ordered_list_item_to_percentage,
+        percentage_to_ordered_list_item,
+    )
 except ImportError:
     SUPPORT_PRESET_MODE = None
+
+    def ordered_list_item_to_percentage(ordered_list, item):
+        raise NotImplementedError()
+
+    def percentage_to_ordered_list_item(ordered_list, percentage):
+        raise NotImplementedError()
+
 
 SERVICE_TO_METHOD = {}
 
@@ -454,15 +461,7 @@ class MiotWasherSubEntity(MiotModesSubEntity):
 
     @property
     def icon(self):
-        if self._miot_property.name in ['spin_speed']:
-            return 'mdi:speedometer'
-        if self._miot_property.name in ['target_temperature']:
-            return 'mdi:coolant-temperature'
-        if self._miot_property.name in ['target_water_level']:
-            return 'mdi:water-plus'
-        if self._miot_property.name in ['drying_level']:
-            return 'mdi:tumble-dryer'
-        return super().icon
+        return self._miot_property.entity_icon or super().icon
 
     @property
     def is_on(self):

@@ -334,19 +334,21 @@ class MiotProperty:
     def unit_of_measurement(self):
         name = self.name
         unit = self.unit
+        aliases = {
+            'celsius': TEMP_CELSIUS,
+            'fahrenheit': TEMP_FAHRENHEIT,
+            'kelvin': TEMP_KELVIN,
+            'percentage': PERCENTAGE,
+            'lux': LIGHT_LUX,
+            'μg/m3': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+            'mg/m3': CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
+            'p/m3': CONCENTRATION_PARTS_PER_CUBIC_METER,
+        }
         if not unit or unit in ['none', 'null']:
             unit = None
-        elif unit in ['celsius']:
-            unit = TEMP_CELSIUS
-        elif unit in ['fahrenheit']:
-            unit = TEMP_FAHRENHEIT
-        elif unit in ['kelvin']:
-            unit = TEMP_KELVIN
-        elif unit in ['percentage']:
-            unit = PERCENTAGE
-        elif unit in ['lux']:
-            unit = LIGHT_LUX
-        elif unit in ['μg/m3'] or name in ['pm2_5_density']:
+        elif unit in aliases:
+            unit = aliases[unit]
+        elif name in ['pm2_5_density']:
             unit = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
         return unit
 
@@ -374,16 +376,21 @@ class MiotProperty:
     def entity_icon(self):
         icon = None
         name = self.name
+        icons = {
+            'mode': 'mdi:menu',
+            'washing_strength': 'mdi:waves',
+            'nozzle_position': 'mdi:spray',
+            'spin_speed': 'mdi:speedometer',
+            'target_temperature': 'mdi:coolant-temperature',
+            'target_water_level': 'mdi:water-plus',
+            'drying_level': 'mdi:tumble-dryer',
+        }
         if name in ['heat_level']:
             icon = 'mdi:radiator'
             if self.service.name in ['seat']:
                 icon = 'mdi:car-seat-heater'
-        elif name in ['washing_strength']:
-            icon = 'mdi:waves'
-        elif name in ['nozzle_position']:
-            icon = 'mdi:spray'
-        elif name in ['mode']:
-            icon = 'mdi:menu'
+        elif name in icons:
+            icon = icons[name]
         return icon
 
 
