@@ -37,6 +37,12 @@ GLOBAL_CUSTOMIZES = {
         'xiaomi.tv.*': {
             'number_properties': 'speaker.volume',
         },
+        '*.fishbowl.*': {
+            'number_properties': 'feeding_measure',
+        },
+        '*.feeder.*': {
+            'number_properties': 'feeding_measure',
+        },
     },
 
 }

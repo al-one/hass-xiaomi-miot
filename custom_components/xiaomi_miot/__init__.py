@@ -1059,6 +1059,7 @@ class MiotEntity(MiioEntity):
         from .fan import MiotModesSubEntity
         from .cover import MiotCoverSubEntity
         from .number import MiotNumberSubEntity
+        from .number import MiotNumberActionSubEntity
         if isinstance(services, MiotService):
             sls = [services]
         elif services == '*':
@@ -1097,8 +1098,6 @@ class MiotEntity(MiioEntity):
                 continue
             pls = s.get_properties(*cv.ensure_list(properties))
             for p in pls:
-                if p.full_name not in self._state_attrs:
-                    continue
                 fnm = p.unique_name
                 tms = self._check_same_sub_entity(fnm, domain)
                 new = True
@@ -1109,6 +1108,14 @@ class MiotEntity(MiioEntity):
                 elif tms > 0:
                     if tms <= 1:
                         _LOGGER.info('Device %s sub entity %s: %s already exists.', self.name, domain, fnm)
+                elif p.full_name not in self._state_attrs:
+                    if add_numbers and p.name in ['feeding_measure']:
+                        act = s.get_action('pet_food_out')
+                        if not act:
+                            continue
+                        self._subs[fnm] = MiotNumberActionSubEntity(self, p, act, option=option)
+                        add_numbers([self._subs[fnm]])
+                    continue
                 elif add_switches and domain == 'switch' and p.format == 'bool' and p.writeable:
                     self._subs[fnm] = MiotSwitchSubEntity(self, p, option=option)
                     add_switches([self._subs[fnm]])

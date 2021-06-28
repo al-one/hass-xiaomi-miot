@@ -20,6 +20,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
     MiotProperty,
+    MiotAction,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -97,3 +98,30 @@ class MiotNumberSubEntity(MiotSensorSubEntity, NumberEntity):
     def step(self):
         """Return the increment/decrement step."""
         return self._miot_property.range_step()
+
+
+class MiotNumberActionSubEntity(MiotNumberSubEntity):
+    def __init__(self, parent, miot_property: MiotProperty, miot_action: MiotAction, option=None):
+        super().__init__(parent, miot_property, option)
+        self._miot_action = miot_action
+        self._value = 0
+        self.update_attrs({
+            'miot_action': miot_action.full_name,
+        }, update_parent=False)
+
+    def update(self):
+        self._available = True
+        self._value = 0
+
+    @property
+    def value(self):
+        """Return the entity value to represent the entity state."""
+        return self._value
+
+    def set_value(self, value: float):
+        """Set new value."""
+        val = int(value)
+        ret = self.call_parent('call_action', self._miot_action, [val])
+        if ret:
+            self._value = val
+        return ret
