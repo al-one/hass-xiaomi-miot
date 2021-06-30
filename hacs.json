@@ -1,4 +1,8 @@
 {
-    "name": "Xiaomi Miot Auto",
-    "render_readme": true
+  "name": "Xiaomi Miot Auto",
+  "content_in_root": false,
+  "zip_release": true,
+  "filename": "xiaomi_miot.zip",
+  "render_readme": true,
+  "iot_class": ["Local Polling", "Cloud Polling"]
 }
