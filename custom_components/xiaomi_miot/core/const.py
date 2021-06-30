@@ -34,6 +34,9 @@ GLOBAL_CUSTOMIZES = {
         'deerma.humidifier.jsq3': {
             'chunk_properties': 6,
         },
+        'yeelink.light.nl1': {
+            'interval_seconds': 15,
+        },
         'xiaomi.tv.*': {
             'number_properties': 'speaker.volume',
         },

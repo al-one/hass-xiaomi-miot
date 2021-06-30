@@ -94,9 +94,15 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
     @property
     def is_on(self):
-        if self._prop_state:
-            return self._prop_state.from_dict(self._state_attrs) and True
-        return None
+        if not self._prop_state:
+            return None
+        val = self._prop_state.from_dict(self._state_attrs)
+        if self._prop_state.name in ['no_motion_duration']:
+            dur = 60
+            if self._prop_state.value_range:
+                dur = self._prop_state.range_min() + self._prop_state.range_step()
+            return val <= dur
+        return val and True
 
     @property
     def state(self):
