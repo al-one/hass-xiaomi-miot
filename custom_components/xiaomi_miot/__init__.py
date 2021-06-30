@@ -764,10 +764,11 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_mapping(self):
-        if not self._miot_mapping:
-            if self.miot_mapping:
-                return self.miot_device.mapping
-        return self._miot_mapping
+        if self._miot_mapping:
+            return self._miot_mapping
+        if self.miot_device:
+            return self.miot_device.mapping
+        return None
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
         result = None
@@ -789,11 +790,13 @@ class MiotEntity(MiioEntity):
         if self._vars.get('delay_update'):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
-        updater = 'lan'
+        updater = 'none'
         results = []
         rmp = {}
         try:
-            if self.miot_cloud:
+            if not self.miot_mapping:
+                pass
+            elif self.miot_cloud:
                 updater = 'cloud'
                 results = await self.hass.async_add_executor_job(
                     partial(self.miot_cloud.get_properties_for_mapping, self.miot_did, self.miot_mapping)
@@ -805,6 +808,7 @@ class MiotEntity(MiioEntity):
                         self._available = False
                         return
             elif self.miot_device:
+                updater = 'lan'
                 for k, v in self.miot_mapping.items():
                     s = v.get('siid')
                     p = v.get('piid')
