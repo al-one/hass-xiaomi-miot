@@ -1,5 +1,9 @@
 """Support for Xiaomi binary sensors."""
 import logging
+import time
+import json
+from functools import partial
+from datetime import datetime
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.binary_sensor import (
@@ -23,6 +27,10 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
     MiotProperty,
+)
+from .core.xiaomi_cloud import (
+    MiotCloud,
+    MiCloudException,
 )
 from .fan import MiotModesSubEntity
 from .switch import SwitchSubEntity
@@ -50,6 +58,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 continue
             if srv.name in ['toilet']:
                 entities.append(MiotToiletEntity(config, srv))
+            elif srv.name in ['motion_sensor'] and 'lumi.sensor_motion.' in model:
+                entities.append(LumiMotionEntity(config, srv))
             else:
                 entities.append(MiotBinarySensorEntity(config, srv))
     for entity in entities:
@@ -172,6 +182,39 @@ class MiotToiletEntity(MiotBinarySensorEntity):
     @property
     def icon(self):
         return 'mdi:toilet'
+
+
+class LumiMotionEntity(MiotBinarySensorEntity):
+    def __init__(self, config, miot_service: MiotService):
+        super().__init__(config, miot_service)
+        self._state_attrs.update({
+            'entity_class': self.__class__.__name__,
+        })
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        mic = self.miot_cloud
+        pes = dlg = None
+        if isinstance(mic, MiotCloud):
+            dlg = await self.hass.async_add_executor_job(
+                partial(mic.get_last_device_data, self.miot_did, 'device_log')
+            )
+            pes = json.loads(dlg or '[]')
+        adt = {}
+        if not pes or len(pes) < 2:
+            _LOGGER.warning('Get miio data for %s failed: %s', self.name, dlg)
+        elif pes[1][0] == 'prop.illumination':
+            adt['motion_time'] = pes[0]
+            adt['motion_sensor.illumination'] = pes[1][1][0]
+        elif pes[1][0] == 'event.motion':
+            adt['motion_time'] = pes[0]
+        if adt.get('motion_time'):
+            dif = time.time() - adt['motion_time']
+            adt['motion_sensor.motion_state'] = dif <= int(self.custom_config('motion_timeout') or 60)
+            adt['motion_at'] = f'{datetime.fromtimestamp(adt["motion_time"])}'
+        self.update_attrs(adt)
 
 
 class MiotBinarySensorSubEntity(ToggleSubEntity, BinarySensorEntity):

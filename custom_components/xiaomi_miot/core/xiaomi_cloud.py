@@ -73,6 +73,22 @@ class MiotCloud(micloud.MiCloud):
         rdt = self.request_miot_api('user/get_user_device_data', params) or {}
         return rdt if raw else rdt.get('result')
 
+    def get_last_device_data(self, did, key, typ='prop', **kwargs):
+        kwargs['raw'] = False
+        kwargs['limit'] = 1
+        rls = self.get_user_device_data(did, key, typ, **kwargs) or [None]
+        rdt = rls.pop(0) or {}
+        if kwargs.get('not_value'):
+            return rdt
+        val = rdt.get('value')
+        if val is None:
+            return None
+        try:
+            vls = json.loads(val)
+        except (TypeError, ValueError):
+            vls = [val]
+        return vls.pop(0)
+
     async def async_check_auth(self, notify=False):
         rdt = await self.hass.async_add_executor_job(
             partial(self.get_user_device_data, '1', 'check_auth', raw=True)

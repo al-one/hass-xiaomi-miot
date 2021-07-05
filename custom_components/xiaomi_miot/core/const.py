@@ -37,6 +37,10 @@ GLOBAL_CUSTOMIZES = {
         'yeelink.light.nl1': {
             'interval_seconds': 15,
         },
+        'lumi.sensor_motion.*': {
+            'interval_seconds': 15,
+            'motion_timeout': 60,
+        },
         'xiaomi.tv.*': {
             'number_properties': 'speaker.volume',
         },
