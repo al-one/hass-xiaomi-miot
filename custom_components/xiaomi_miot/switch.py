@@ -24,6 +24,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
     MiotProperty,
+    MiotAction,
 )
 from .fan import MiotWasherSubEntity
 
@@ -166,6 +167,43 @@ class MiotSwitchSubEntity(SwitchSubEntity):
 
     def turn_off(self, **kwargs):
         return self.set_parent_property(False)
+
+
+class MiotSwitchActionSubEntity(SwitchSubEntity):
+    def __init__(self, parent, miot_property: MiotProperty, miot_action: MiotAction, option=None):
+        super().__init__(parent, miot_action.full_name, option)
+        self._miot_property = miot_property
+        self._miot_action = miot_action
+        self._state = False
+        self.update_attrs({
+            'miot_action': miot_action.full_name,
+        }, update_parent=False)
+
+    def update(self):
+        self._available = True
+        self._state = False
+
+    @property
+    def is_on(self):
+        """Return True if entity is on."""
+        return self._state
+
+    def turn_on(self, **kwargs):
+        """Turn the entity on."""
+        val = None
+        if self._miot_property.value_range:
+            val = int(self._miot_property.range_min() or 0)
+        elif self._miot_property.value_list:
+            val = self._miot_property.value_list[0].get('value')
+        ret = self.call_parent('call_action', self._miot_action, None if val is None else [val])
+        if ret:
+            self._state = True
+        return ret
+
+    def turn_off(self, **kwargs):
+        """Turn the entity off."""
+        self._state = False
+        return True
 
 
 class MiotWasherActionSubEntity(SwitchSubEntity):

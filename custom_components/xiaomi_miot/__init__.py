@@ -1063,6 +1063,7 @@ class MiotEntity(MiioEntity):
     def _update_sub_entities(self, properties, services=None, domain=None, option=None):
         from .binary_sensor import MiotBinarySensorSubEntity
         from .switch import MiotSwitchSubEntity
+        from .switch import MiotSwitchActionSubEntity
         from .light import MiotLightSubEntity
         from .fan import MiotModesSubEntity
         from .cover import MiotCoverSubEntity
@@ -1117,12 +1118,12 @@ class MiotEntity(MiioEntity):
                     if tms <= 1:
                         _LOGGER.info('Device %s sub entity %s: %s already exists.', self.name, domain, fnm)
                 elif p.full_name not in self._state_attrs:
-                    if add_numbers and p.name in ['feeding_measure']:
+                    if add_switches and p.name in ['feeding_measure']:
                         act = s.get_action('pet_food_out')
                         if not act:
                             continue
-                        self._subs[fnm] = MiotNumberActionSubEntity(self, p, act, option=option)
-                        add_numbers([self._subs[fnm]])
+                        self._subs[fnm] = MiotSwitchActionSubEntity(self, p, act, option=option)
+                        add_switches([self._subs[fnm]])
                     continue
                 elif add_switches and domain == 'switch' and p.format == 'bool' and p.writeable:
                     self._subs[fnm] = MiotSwitchSubEntity(self, p, option=option)
