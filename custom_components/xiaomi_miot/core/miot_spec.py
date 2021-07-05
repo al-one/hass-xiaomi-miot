@@ -273,7 +273,7 @@ class MiotProperty:
         if self.value_range:
             if val is None:
                 # range to list
-                return self.list_description(None)
+                return self.list_descriptions()
             else:
                 return val
         return rls if val is None else None
@@ -288,7 +288,7 @@ class MiotProperty:
             while cur <= rmx:
                 cnt += 1
                 if cnt > max_length:
-                    lst.append(rmx)
+                    lst.append(f'{rmx}')
                     break
                 lst.append(f'{cur}')
                 cur += stp
