@@ -167,6 +167,7 @@ doamin.your_entity_id:
     - [heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:heater:0000A01A)
     - [light-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:light-bath-heater:0000783A)
     - [ptc-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:ptc-bath-heater:0000783B)
+    - [thermostat](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:thermostat:0000784A)
     - [water-dispenser](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:water-dispenser:00007891)
 - [water_heater](https://www.home-assistant.io/integrations/water_heater)
     - [kettle](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:kettle:00007813)

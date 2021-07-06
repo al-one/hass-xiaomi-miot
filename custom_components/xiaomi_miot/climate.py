@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
             'heater', 'ptc_bath_heater', 'light_bath_heater',
             'air_purifier', 'air_fresh', 'electric_blanket',
-            'water_dispenser', 'dishwasher',
+            'water_dispenser', 'dishwasher', 'thermostat',
         ):
             if not srv.get_property('on', 'mode', 'target_temperature'):
                 continue
