@@ -1,5 +1,6 @@
 """Support for Xiaomi switches."""
 import logging
+import time
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.switch import (
@@ -175,12 +176,15 @@ class MiotSwitchActionSubEntity(SwitchSubEntity):
         self._miot_property = miot_property
         self._miot_action = miot_action
         self._state = False
+        if miot_action.name in ['pet_food_out']:
+            self._option['icon'] = 'mdi:shaker'
         self.update_attrs({
             'miot_action': miot_action.full_name,
         }, update_parent=False)
 
     def update(self):
         self._available = True
+        time.sleep(0.5)
         self._state = False
 
     @property
@@ -198,6 +202,7 @@ class MiotSwitchActionSubEntity(SwitchSubEntity):
         ret = self.call_parent('call_action', self._miot_action, None if val is None else [val])
         if ret:
             self._state = True
+            self.async_write_ha_state()
         return ret
 
     def turn_off(self, **kwargs):
