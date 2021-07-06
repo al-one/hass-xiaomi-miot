@@ -1,5 +1,6 @@
 """Support for Xiaomi lights."""
 import logging
+from functools import partial
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.light import (
@@ -182,12 +183,15 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
             'name': f'{parent.device_name}',
         }, miot_service, device=parent.miot_device)
         self._prop_power = prop_power
+        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     def update(self):
         super().update()
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
         if not self._available:
             return
+
+    async def async_update(self):
+        await self.hass.async_add_executor_job(partial(self.update))
 
 
 class LightSubEntity(ToggleSubEntity, LightEntity):
