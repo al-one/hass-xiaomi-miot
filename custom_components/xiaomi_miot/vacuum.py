@@ -204,6 +204,10 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     def fan_speed(self):
         if self._prop_mode:
             val = self._prop_mode.from_dict(self._state_attrs)
+            try:
+                val = int(val)
+            except (TypeError, ValueError):
+                val = None
             if val is not None:
                 return self._prop_mode.list_description(val)
         return None

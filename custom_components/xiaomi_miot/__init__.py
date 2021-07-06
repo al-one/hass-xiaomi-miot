@@ -692,6 +692,16 @@ class MiotEntity(MiioEntity):
         self._success_code = 0
         self._subs = {}
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if not self._miot_service:
+            return
+        dic = self.global_config('translations') or {}
+        lan = self.global_config('language')
+        if lan and isinstance(TRANSLATION_LANGUAGES.get(lan), dict):
+            dic = {**TRANSLATION_LANGUAGES[lan], **dic}
+        self._miot_service.set_translations(dic)
+
     @property
     def miot_device(self):
         if self.hass and not self._device and CONF_TOKEN in self._config:

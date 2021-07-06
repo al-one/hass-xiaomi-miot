@@ -314,6 +314,10 @@ class MiotModesSubEntity(FanSubEntity):
     def icon(self):
         return self._miot_property.entity_icon or super().icon
 
+    def update(self):
+        super().update()
+        self._miot_property.description_to_dict(self._state_attrs)
+
     @property
     def is_on(self):
         if self._prop_power:

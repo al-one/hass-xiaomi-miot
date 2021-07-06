@@ -122,6 +122,7 @@ class MiotService:
         self.name = MiotSpec.name_by_type(self.type)
         self.unique_name = f'{self.name}-{self.iid}'
         self.description = dat.get('description') or self.name
+        self.translations = {}
         spec.services_count.setdefault(self.name, 0)
         spec.services_count[self.name] += 1
         self.properties = {}
@@ -201,12 +202,20 @@ class MiotService:
             icon = 'mdi:fountain'
         return icon
 
+    def set_translations(self, dic: dict, merge=False):
+        if merge:
+            self.translations.update(dic)
+        else:
+            self.translations = dic
+        return self
+
 
 class MiotProperty:
     def __init__(self, dat: dict, service: MiotService):
         self.service = service
         self.raw = dat
         self.iid = int(dat.get('iid') or 0)
+        self.siid = service.iid
         self.type = str(dat.get('type') or '')
         self.name = MiotSpec.name_by_type(self.type)
         self.full_name = ''
@@ -236,6 +245,33 @@ class MiotProperty:
     def writeable(self):
         return 'write' in self.access
 
+    @property
+    def translations(self):
+        dic = self.service.translations
+        kls = [
+            self.service.name,
+            self.name,
+            f'{self.service.name}.{self.name}',
+        ]
+        for k in kls:
+            d = dic.get(k)
+            if not isinstance(d, dict):
+                continue
+            dic = {**dic, **d}
+        return dic
+
+    def get_translation(self, des):
+        dls = [
+            des,
+            des.lower(),
+        ]
+        tls = self.translations
+        for d in dls:
+            if d not in tls:
+                continue
+            return tls[d]
+        return des
+
     def from_dict(self, dat: dict, default=None):
         return dat.get(self.full_name, default)
 
@@ -254,16 +290,17 @@ class MiotProperty:
         rls = []
         for v in self.value_list:
             val = v.get('value')
+            vde = v.get('description')
             if des is None:
                 rls.append(val)
-            elif des == v.get('description'):
+            elif des == vde or des == self.get_translation(vde):
                 return val
         return rls if des is None else None
 
     def list_description(self, val):
         rls = []
         for v in self.value_list:
-            des = v.get('description')
+            des = self.get_translation(v.get('description'))
             if val is None:
                 if des == '':
                     des = v.get('value')
@@ -303,13 +340,15 @@ class MiotProperty:
             dls = [
                 des,
                 des.lower(),
-                re.sub(r'\W+', '_', des),
+                re.sub(r'\W+', '_', des).lower(),
+                self.get_translation(des),
             ]
             for d in dls:
-                if d in args:
-                    if get_first:
-                        return v.get('value')
-                    rls.append(v.get('value'))
+                if d not in args:
+                    continue
+                if get_first:
+                    return v.get('value')
+                rls.append(v.get('value'))
         return rls if not get_first else None
 
     def list_first(self, *args):
@@ -399,6 +438,7 @@ class MiotAction:
         self.service = service
         self.raw = dat
         self.iid = int(dat.get('iid') or 0)
+        self.siid = service.iid
         self.type = str(dat.get('type') or '')
         self.name = MiotSpec.name_by_type(self.type)
         self.full_name = f'{service.name}.{self.name}'
