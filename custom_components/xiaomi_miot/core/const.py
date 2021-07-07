@@ -41,6 +41,9 @@ GLOBAL_CUSTOMIZES = {
             'interval_seconds': 15,
             'motion_timeout': 60,
         },
+        'lumi.sensor_magnet.*': {
+            'interval_seconds': 15,
+        },
         'xiaomi.tv.*': {
             'number_properties': 'speaker.volume',
         },

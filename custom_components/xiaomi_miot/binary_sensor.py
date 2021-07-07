@@ -60,6 +60,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 entities.append(MiotToiletEntity(config, srv))
             elif srv.name in ['motion_sensor'] and 'lumi.sensor_motion.' in model:
                 entities.append(LumiMotionEntity(config, srv))
+            elif srv.name in ['magnet_sensor'] and 'lumi.sensor_magnet.' in model:
+                entities.append(LumiMotionEntity(config, srv))
             else:
                 entities.append(MiotBinarySensorEntity(config, srv))
     for entity in entities:
@@ -108,7 +110,7 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
             return None
         val = self._prop_state.from_dict(self._state_attrs)
         if self._prop_state.name in ['no_motion_duration']:
-            dur = 60
+            dur = int(self.custom_config('motion_timeout') or 60)
             if self._prop_state.value_range:
                 dur = self._prop_state.range_min() + self._prop_state.range_step()
             return val <= dur
@@ -203,17 +205,24 @@ class LumiMotionEntity(MiotBinarySensorEntity):
             )
             pes = json.loads(dlg or '[]')
         adt = {}
-        if not pes or len(pes) < 2:
+        typ = None
+        dif = time.time()
+        if pes and len(pes) >= 2:
+            typ = pes[1][0]
+            adt['trigger_type'] = typ
+            adt['trigger_time'] = int(pes[0] or 0)
+            adt['trigger_at'] = f'{datetime.fromtimestamp(adt["trigger_time"])}'
+            dif = time.time() - adt['trigger_time']
+        else:
             _LOGGER.warning('Get miio data for %s failed: %s', self.name, dlg)
-        elif pes[1][0] == 'prop.illumination':
-            adt['motion_time'] = pes[0]
-            adt['motion_sensor.illumination'] = pes[1][1][0]
-        elif pes[1][0] == 'event.motion':
-            adt['motion_time'] = pes[0]
-        if adt.get('motion_time'):
-            dif = time.time() - adt['motion_time']
-            adt['motion_sensor.motion_state'] = dif <= int(self.custom_config('motion_timeout') or 60)
-            adt['motion_at'] = f'{datetime.fromtimestamp(adt["motion_time"])}'
+        if typ == 'prop.illumination':
+            prop = self._miot_service.get_property('illumination')
+            if prop:
+                adt[prop.full_name] = pes[1][1][0]
+        if typ == 'event.motion' or self._miot_service.name in ['motion_sensor']:
+            adt[self._prop_state.full_name] = dif <= int(self.custom_config('motion_timeout') or 60)
+        elif typ in ['event.open', 'event.close']:
+            adt[self._prop_state.full_name] = typ == 'event.open'
         self.update_attrs(adt)
 
 
