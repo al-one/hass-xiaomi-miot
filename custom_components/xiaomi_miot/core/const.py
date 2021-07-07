@@ -31,6 +31,9 @@ GLOBAL_CUSTOMIZES = {
         'chuangmi.plug.212a01': {
             'chunk_properties': 7,
         },
+        'cgllc.airm.cgdn1': {
+            'chunk_properties': 9,
+        },
         'deerma.humidifier.jsq3': {
             'chunk_properties': 6,
         },
