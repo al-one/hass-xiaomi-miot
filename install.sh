@@ -103,7 +103,7 @@ else
     error "Could not find the directory for Home Assistant" false
     error "找不到 Home Assistant 根目录" false
     echo "Manually change the directory to the root of your Home Assistant configuration"
-    echo "With the user that is running Home Assistant"
-    echo "and run the script again"
+    echo "With the user that is running Home Assistant and run the script again"
+    echo "请手动进入 Home Assistant 根目录后再次执行此脚本"
     exit 1
 fi
