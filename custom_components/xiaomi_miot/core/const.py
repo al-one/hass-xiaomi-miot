@@ -67,9 +67,45 @@ TRANSLATION_LANGUAGES = {
         'pause': '暂停',
         'fault': '错误',
 
+        'fan_level': {
+            'auto': '自动',
+            'low': '低档',
+            'medium': '中档',
+            'high': '高档',
+        },
+
+        'mode': {
+            'auto': '自动',
+            'basic': '标准',
+            'low': '低档',
+            'medium': '中档',
+            'high': '高档',
+            'sleep': '睡眠模式',
+            'smart': '智能模式',
+            'favorite': '喜爱模式',
+        },
+
+        'air_conditioner.mode': {
+            'Cool': '制冷',
+            'Dry': '除湿',
+            'Fan': '风扇',
+            'Heat': '制热',
+        },
+
+        'air_fresh.mode': {
+            'Interval': '间歇模式',
+        },
+
+        'ptc_bath_heater.mode': {
+            'Fan': '吹风',
+            'Heat': '暖风',
+            'Ventilate': '换气',
+            'Dry': '除湿',
+            'Defog': '除雾',
+        },
+
         'vacuum.mode': {
             'Silent': '安静',
-            'Basic': '标准',
             'Strong': '强力',
         },
 

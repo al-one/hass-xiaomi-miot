@@ -139,6 +139,9 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             HVAC_MODE_FAN_ONLY: {'list': ['Fan']},
         }
         self._preset_modes = {}
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
         if self._prop_mode:
             mvs = []
             dls = []
@@ -156,7 +159,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 fst = fst or v
                 val = v.get('value')
                 if val not in mvs:
-                    self._preset_modes[val] = v.get('description')
+                    des = self._prop_mode.get_translation(v.get('description'))
+                    self._preset_modes[val] = des
             if fst and len(self._hvac_modes) <= 1:
                 self._hvac_modes[HVAC_MODE_AUTO] = {
                     'list':  [fst.get('description')],
