@@ -240,9 +240,17 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 class MiotRoborockVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
+        self._supported_features |= SUPPORT_LOCATE
 
     def clean_spot(self, **kwargs):
+        """Perform a spot clean-up."""
         return self.send_command('app_spot')
+
+    def locate(self, **kwargs):
+        """Locate the vacuum cleaner."""
+        if not self._act_locate:
+            return self.send_command('find_me', [''])
+        return super().locate()
 
     def send_vacuum_command(self, command, params=None, **kwargs):
         """Send a command to a vacuum cleaner."""
@@ -255,6 +263,13 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
 class MiotViomiVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
+        self._supported_features |= SUPPORT_LOCATE
+
+    def locate(self, **kwargs):
+        """Locate the vacuum cleaner."""
+        if not self._act_locate:
+            return self.send_command('set_resetpos', [1])
+        return super().locate()
 
     def send_vacuum_command(self, command, params=None, **kwargs):
         """Send a command to a vacuum cleaner."""
