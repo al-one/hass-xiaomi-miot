@@ -52,7 +52,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         if miot:
             spec = await MiotSpec.async_from_type(hass, miot)
             for srv in spec.get_services(
-                'water_purifier', 'oven', 'microwave_oven', 'health_pot',
+                'environment', 'water_purifier', 'oven', 'microwave_oven', 'health_pot',
                 'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer',
                 'coffee_machine', 'router', 'video_doorbell', 'battery', 'lock',
                 'temperature_humidity_sensor', 'printer', 'sleep_monitor', 'bed',
@@ -66,6 +66,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                         continue
                 elif srv.name in ['battery']:
                     if spec.name not in ['video_doorbell']:
+                        continue
+                elif srv.name in ['environment']:
+                    if spec.name not in ['air_monitor']:
                         continue
                 elif srv.name in ['temperature_humidity_sensor']:
                     if spec.name not in ['temperature_humidity_sensor']:
@@ -106,6 +109,7 @@ class MiotSensorEntity(MiotEntity):
         elif miot_service.name in ['sleep_monitor']:
             self._prop_state = miot_service.get_property('sleep_state') or self._prop_state
 
+        self._name = f'{self._name} {self._prop_state.description}'
         self._state_attrs.update({
             'entity_class': self.__class__.__name__,
             'state_property': self._prop_state.full_name if self._prop_state else None,

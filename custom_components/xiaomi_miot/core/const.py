@@ -19,7 +19,6 @@ SUPPORTED_DOMAINS = [
     'media_player',
     'camera',
     'vacuum',
-    'air_quality',
     'water_heater',
     'device_tracker',
     'number',

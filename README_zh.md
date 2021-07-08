@@ -106,6 +106,7 @@ doamin.your_entity_id:
 
 - [sensor](https://www.home-assistant.io/integrations/sensor)
     - [air-fryer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:air-fryer:00007897)
+    - [air-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:air-monitor:0000A008)
     - [battery](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:battery:00007805)
     - [bed](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:bed:0000785C)
     - [coffee-machine](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:coffee-machine:00007873)
@@ -138,9 +139,6 @@ doamin.your_entity_id:
     - [motion-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:motion-sensor:00007825)
     - [submersion-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:submersion-sensor:00007839)
     - [toilet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:toilet:00007877)
-- [air_quality](https://www.home-assistant.io/integrations/air_quality)
-    - [air-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:air-monitor:0000A008)
-    - [environment](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:environment:0000780A)
 - [switch](https://www.home-assistant.io/integrations/switch)
     - [fish-tank](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:fish-tank:00007894)
     - [massager](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:massager:0000788E)
