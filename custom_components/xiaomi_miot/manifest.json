@@ -1,17 +1,15 @@
 {
-    "domain": "xiaomi_miot",
-    "name": "Xiaomi Miot Auto",
-    "version": "0.3.6",
-    "config_flow": true,
-    "documentation": "https://github.com/al-one/hass-xiaomi-miot",
-    "issue_tracker": "https://github.com/al-one/hass-xiaomi-miot/issues",
-    "requirements": [
-      "construct==2.10.56",
-      "python-miio==0.5.6",
-      "micloud==0.3"
-    ],
-    "dependencies": ["ffmpeg"],
-    "codeowners": [
-      "@al-one"
-    ]
-  }
+  "domain": "xiaomi_miot",
+  "name": "Xiaomi Miot Auto",
+  "version": "0.3.7",
+  "config_flow": true,
+  "documentation": "https://github.com/al-one/hass-xiaomi-miot",
+  "issue_tracker": "https://github.com/al-one/hass-xiaomi-miot/issues",
+  "codeowners": ["@al-one"],
+  "dependencies": ["ffmpeg"],
+  "requirements": [
+    "construct==2.10.56",
+    "python-miio==0.5.6",
+    "micloud==0.3"
+  ]
+}
