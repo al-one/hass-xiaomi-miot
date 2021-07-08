@@ -34,7 +34,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
-from .switch import SwitchSubEntity
+from .switch import MiotSwitchSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -137,7 +137,7 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
             if pnm in self._subs:
                 self._subs[pnm].update()
             elif add_switches:
-                self._subs[pnm] = SwitchSubEntity(self, pnm)
+                self._subs[pnm] = MiotSwitchSubEntity(self, self._prop_power)
                 add_switches([self._subs[pnm]])
 
     @property

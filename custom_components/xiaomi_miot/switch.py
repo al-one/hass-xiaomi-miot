@@ -150,6 +150,7 @@ class MiotSwitchSubEntity(SwitchSubEntity):
         self._prop_power = self._miot_service.get_property('on', 'power')
         if self._prop_power:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_power.full_name]
+            self._option['icon'] = self._prop_power.entity_icon or self._option.get('icon')
 
     @property
     def is_on(self):

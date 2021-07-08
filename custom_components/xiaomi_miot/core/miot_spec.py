@@ -387,6 +387,8 @@ class MiotProperty:
             unit = None
         elif unit in aliases:
             unit = aliases[unit]
+        elif name in ['power_consumption']:
+            unit = ENERGY_WATT_HOUR
         elif name in ['pm2_5_density']:
             unit = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
         return unit
@@ -409,6 +411,8 @@ class MiotProperty:
             ret = DEVICE_CLASS_CURRENT
         elif 'electric_power' in name:
             ret = DEVICE_CLASS_POWER
+        elif 'co2' in name:
+            ret = DEVICE_CLASS_CO2
         return ret
 
     @property
@@ -416,6 +420,7 @@ class MiotProperty:
         icon = None
         name = self.name
         icons = {
+            'on': 'mdi:power',
             'mode': 'mdi:menu',
             'washing_strength': 'mdi:waves',
             'nozzle_position': 'mdi:spray',
@@ -423,6 +428,7 @@ class MiotProperty:
             'target_temperature': 'mdi:coolant-temperature',
             'target_water_level': 'mdi:water-plus',
             'drying_level': 'mdi:tumble-dryer',
+            'co2_density': 'mdi:molecule-co2',
         }
         if name in ['heat_level']:
             icon = 'mdi:radiator'
