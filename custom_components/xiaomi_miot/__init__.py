@@ -880,8 +880,11 @@ class MiotEntity(MiioEntity):
                 domain='sensor',
             )
             self._update_sub_entities(
-                ['filter_life_level', 'filter_left_time', 'filter_used_time', 'filter_left_flow', 'filter_used_flow'],
-                ['filter'],
+                [
+                    'filter_life', 'filter_life_level', 'filter_left_time', 'filter_used_time',
+                    'filter_left_flow', 'filter_used_flow',
+                ],
+                ['filter', 'filter_life'],
                 domain='sensor',
             )
             self._update_sub_entities(
