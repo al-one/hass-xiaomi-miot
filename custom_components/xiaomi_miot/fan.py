@@ -125,12 +125,26 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
                 percentage = ordered_list_item_to_percentage(self.speed_list, speed)
             if percentage:
                 ret = self.set_property(self._prop_percentage.full_name, percentage)
+            elif percentage is not None:
+                _LOGGER.warning('Set fan speed percentage to %s failed: %s', self.name, {
+                    'speed': speed,
+                    'percentage': percentage,
+                })
         elif self._prop_speed:
             if not speed and percentage:
                 speed = percentage_to_ordered_list_item(self.speed_list, percentage)
             val = self._prop_speed.list_first(speed) if speed else None
+            if val is None and self._prop_speed.value_range:
+                if speed is not None:
+                    val = int(speed)
             if val is not None:
                 ret = self.set_property(self._prop_speed.full_name, val)
+            elif speed is not None:
+                _LOGGER.warning('Set fan speed level to %s failed: %s', self.name, {
+                    'speed': speed,
+                    'percentage': percentage,
+                    'value':  val,
+                })
         if preset_mode and self._prop_mode:
             val = self._prop_mode.list_first(preset_mode)
             if val is not None:
@@ -169,9 +183,11 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
     def percentage(self):
         """Return the current speed as a percentage."""
         if self._prop_percentage:
-            return self._prop_percentage.from_dict(self._state_attrs)
+            val = self._prop_percentage.from_dict(self._state_attrs)
+            if val is not None:
+                return val
         try:
-            return super().percentage
+            return self.speed_to_percentage(str(self.speed))
         except ValueError:
             return None
 
