@@ -796,6 +796,11 @@ class MiotEntity(MiioEntity):
             self._available = False
         return False
 
+    def send_command(self, method, params=None):
+        if self.miot_device:
+            return super().send_command(method, params)
+        _LOGGER.error('None local device for send command to %s', self.name)
+
     async def async_update(self):
         if self._vars.get('delay_update'):
             await asyncio.sleep(self._vars.get('delay_update'))
