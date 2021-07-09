@@ -96,6 +96,11 @@ TRANSLATION_LANGUAGES = {
             'Interval': '间歇模式',
         },
 
+        'fan.mode': {
+            'Straight Wind': '直吹风',
+            'Natural Wind': '自然风',
+        },
+
         'ptc_bath_heater.mode': {
             'Fan': '吹风',
             'Heat': '暖风',
