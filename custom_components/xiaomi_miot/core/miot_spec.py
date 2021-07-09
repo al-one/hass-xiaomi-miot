@@ -383,14 +383,14 @@ class MiotProperty:
             'mg/m3': CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
             'p/m3': CONCENTRATION_PARTS_PER_CUBIC_METER,
         }
-        if not unit or unit in ['none', 'null']:
-            unit = None
-        elif unit in aliases:
-            unit = aliases[unit]
-        elif name in ['power_consumption']:
+        if name in ['power_consumption']:
             unit = ENERGY_WATT_HOUR
         elif name in ['pm2_5_density']:
             unit = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        elif not unit or unit in ['none', 'null']:
+            unit = None
+        elif unit in aliases:
+            unit = aliases[unit]
         return unit
 
     @property
