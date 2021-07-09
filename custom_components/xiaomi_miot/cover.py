@@ -101,7 +101,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
             self._motor_reverse = True
         self._open_texts = [
             *str(self.custom_config('open_texts') or '').split(','),
-            'Opening', 'Opened', 'Open', 'Up',
+            'Opening', 'Opened', 'Open', 'Up', 'Rising', 'Risen', 'Rise',
         ]
         self._close_texts = [
             *str(self.custom_config('close_texts') or '').split(','),
@@ -202,7 +202,7 @@ class MiotCoverSubEntity(MiotSensorSubEntity, CoverEntity):
         if self._prop_status:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_status.full_name]
         self._prop_target_position = self._miot_service.get_property('target_position')
-        self._value_open = self._miot_property.list_first('Open', 'Up', 'All-up')
+        self._value_open = self._miot_property.list_first('Open', 'Up', 'All-up', 'Rise')
         self._value_close = self._miot_property.list_first('Close', 'Down', 'All-down')
         self._value_stop = self._miot_property.list_first('Pause', 'Stop')
         if self._value_open is not None:
