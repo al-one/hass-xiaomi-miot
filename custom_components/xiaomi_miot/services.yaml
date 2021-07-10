@@ -198,6 +198,7 @@ get_device_data:
       selector:
         text:
     time_start:
+      description: From the unix timestamp.
       example: 0
       selector:
         number:
@@ -205,6 +206,7 @@ get_device_data:
           max: 9999999999
           mode: box
     time_end:
+      description: To the unix timestamp.
       example: 0
       selector:
         number:
@@ -212,6 +214,7 @@ get_device_data:
           max: 9999999999
           mode: box
     limit:
+      description: Limit of results.
       example: 10
       selector:
         number:
@@ -219,6 +222,7 @@ get_device_data:
           max: 2000
           mode: box
     group:
+      description: Results grouping.
       example: raw
       selector:
         select:
@@ -264,10 +268,12 @@ request_xiaomi_api:
         entity:
           integration: xiaomi_miot
     api:
+      description: Xiaomi API path.
       example: "/home/device_list"
       selector:
         text:
     params:
+      description: Xiaomi API params.
       example: "{'getVirtualModel':true}"
       selector:
         object:
