@@ -9,7 +9,7 @@
   "codeowners": ["@al-one"],
   "dependencies": [
     "persistent_notification",
-    "ffmpeg",
+    "ffmpeg"
   ],
   "requirements": [
     "construct==2.10.56",
