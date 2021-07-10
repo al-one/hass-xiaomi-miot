@@ -86,7 +86,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._prev_target_temp = None
 
         self._environment = miot_service.spec.get_service('environment')
-        self._prop_temperature = miot_service.get_property('temperature', 'indoor_temperature')
+        self._prop_temperature = miot_service.get_property('indoor_temperature', 'temperature')
         self._prop_humidity = miot_service.get_property('relative_humidity', 'humidity')
 
         self._fan_control = miot_service.spec.get_service('fan_control')
@@ -107,7 +107,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             if not s:
                 continue
             if not self._prop_temperature:
-                self._prop_temperature = s.get_property('temperature', 'indoor_temperature')
+                self._prop_temperature = s.get_property('indoor_temperature', 'temperature')
             if not self._prop_humidity:
                 self._prop_humidity = s.get_property('relative_humidity', 'humidity')
 
