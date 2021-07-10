@@ -28,7 +28,7 @@ class MiotCloud(micloud.MiCloud):
             s = v.get('siid')
             p = v.get('piid')
             pms.append({'did': str(did), 'siid': s, 'piid': p})
-            rmp[f'{s}{p}'] = k
+            rmp[f'{s}-{p}'] = k
         rls = self.get_props(pms)
         if not rls:
             return None
@@ -36,7 +36,7 @@ class MiotCloud(micloud.MiCloud):
         for v in rls:
             s = v.get('siid')
             p = v.get('piid')
-            k = rmp.get(f'{s}{p}')
+            k = rmp.get(f'{s}-{p}')
             if not k:
                 continue
             v['did'] = k

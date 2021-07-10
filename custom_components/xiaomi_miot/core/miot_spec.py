@@ -17,6 +17,7 @@ class MiotSpec:
         self.description = dat.get('description') or ''
         self.services = []
         self.services_count = {}
+        self.services_properties = {}
         for s in (dat.get('services') or []):
             srv = MiotService(s, self)
             if not srv.name:
@@ -38,21 +39,28 @@ class MiotSpec:
         return [
             s
             for s in self.services
-            if (s.name in args or not args) and s.name not in excludes
+            if s.name not in excludes and (not args or s.name in args or s.desc_name in args)
         ]
 
     def get_service(self, *args):
-        for s in self.services:
-            if s.name in args:
+        for a in args:
+            for s in self.services:
+                if a not in [s.name, s.desc_name]:
+                    continue
                 return s
         return None
+
+    @staticmethod
+    def format_name(nam):
+        nam = f'{nam}'.strip()
+        nam = re.sub(r'\W+', '_', nam).lower()
+        return nam
 
     @staticmethod
     def name_by_type(typ):
         arr = f'{typ}:::'.split(':')
         nam = arr[3] or ''
-        nam = re.sub(r'\W+', '_', nam)
-        return nam
+        return MiotSpec.format_name(nam)
 
     @staticmethod
     async def async_from_model(hass, model, use_remote=False):
@@ -122,6 +130,7 @@ class MiotService:
         self.name = MiotSpec.name_by_type(self.type)
         self.unique_name = f'{self.name}-{self.iid}'
         self.description = dat.get('description') or self.name
+        self.desc_name = MiotSpec.format_name(self.description)
         self.translations = {}
         spec.services_count.setdefault(self.name, 0)
         spec.services_count[self.name] += 1
@@ -161,14 +170,16 @@ class MiotService:
         return [
             p
             for p in self.properties.values()
-            if p.name in args or p.full_name in args
+            if p.name in args or p.desc_name in args
         ]
 
     def get_property(self, *args, only_format=None):
         if only_format:
             only_format = only_format if isinstance(only_format, list) else [only_format]
-        for p in self.properties.values():
-            if p.name in args:
+        for a in args:
+            for p in self.properties.values():
+                if a not in [p.name, p.desc_name]:
+                    continue
                 if only_format and p.format not in only_format:
                     continue
                 return p
@@ -218,19 +229,25 @@ class MiotProperty:
         self.siid = service.iid
         self.type = str(dat.get('type') or '')
         self.name = MiotSpec.name_by_type(self.type)
+        self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
+        self.description = dat.get('description') or self.name
+        self.desc_name = MiotSpec.format_name(self.description)
         self.full_name = ''
         if self.name and service.name:
             if self.name == service.name:
                 self.full_name = self.name
             else:
                 self.full_name = f'{service.name}.{self.name}'
-                if len(self.full_name) >= 32:
-                    # miot did length must less than 32
-                    self.full_name = self.name
             if service.name_count > 1:
-                self.full_name = f'{service.name}-{service.iid}.{self.name}'
-        self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
-        self.description = dat.get('description') or self.name
+                self.full_name = f'{service.unique_name}.{self.name}'
+            if self.full_name in service.spec.services_properties:
+                self.full_name = f'{service.unique_name}.{self.desc_name}'
+            if self.full_name in service.spec.services_properties:
+                self.full_name = f'{service.unique_name}.{self.desc_name}-{self.iid}'
+            service.spec.services_properties[self.full_name] = {
+                'siid': self.siid,
+                'piid': self.iid,
+            }
         self.format = dat.get('format') or ''
         self.access = dat.get('access') or []
         self.unit = dat.get('unit') or ''
@@ -340,7 +357,7 @@ class MiotProperty:
             dls = [
                 des,
                 des.lower(),
-                re.sub(r'\W+', '_', des).lower(),
+                MiotSpec.format_name(des),
                 self.get_translation(des),
             ]
             for d in dls:

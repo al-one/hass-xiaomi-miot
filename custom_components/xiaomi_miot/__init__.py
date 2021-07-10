@@ -827,7 +827,7 @@ class MiotEntity(MiioEntity):
                 for k, v in self.miot_mapping.items():
                     s = v.get('siid')
                     p = v.get('piid')
-                    rmp[f'{s}{p}'] = k
+                    rmp[f'{s}-{p}'] = k
                 max_properties = self.custom_config('chunk_properties', 12)
                 try:
                     max_properties = int(max_properties)
@@ -855,7 +855,7 @@ class MiotEntity(MiioEntity):
                 continue
             s = prop.get('siid')
             p = prop.get('piid')
-            k = rmp.get(f'{s}{p}', prop.get('did'))
+            k = rmp.get(f'{s}-{p}', prop.get('did'))
             if k is None:
                 continue
             e = prop.get('code')
