@@ -28,10 +28,7 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
 )
-from .core.xiaomi_cloud import (
-    MiotCloud,
-    MiCloudException,
-)
+from .core.xiaomi_cloud import MiotCloud
 from .fan import MiotModesSubEntity
 from .switch import SwitchSubEntity
 
@@ -83,6 +80,9 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
         if miot_service.name in ['motion_sensor']:
             self._prop_state = miot_service.get_property('motion_state') or self._prop_state
+            if self._prop_state.name in ['illumination']:
+                # cgllc.motion.cgpr1
+                self._prop_state = None
             self._vars['device_class'] = DEVICE_CLASS_MOTION
 
         if miot_service.name in ['magnet_sensor']:
