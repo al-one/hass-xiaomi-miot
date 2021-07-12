@@ -51,7 +51,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
         for srv in spec.get_services('toilet', 'motion_sensor', 'magnet_sensor', 'submersion_sensor'):
-            if not srv.mapping():
+            if spec.get_service('nobody_time'):
+                # lumi.motion.agl02
+                # lumi.motion.agl04
+                pass
+            elif not srv.mapping():
                 continue
             if srv.name in ['toilet']:
                 entities.append(MiotToiletEntity(config, srv))
@@ -79,11 +83,15 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
         self._prop_state = miot_service.get_property(*pls)
 
         if miot_service.name in ['motion_sensor']:
-            self._prop_state = miot_service.get_property('motion_state') or self._prop_state
+            self._prop_state = miot_service.get_property('motion_state', 'no_motion_duration') or self._prop_state
             if self._prop_state.name in ['illumination']:
                 # cgllc.motion.cgpr1
                 self._prop_state = None
             self._vars['device_class'] = DEVICE_CLASS_MOTION
+            if self._prop_state is None:
+                srv = miot_service.spec.get_service('nobody_time')
+                if srv:
+                    self._prop_state = srv.get_property('nobody_time')
 
         if miot_service.name in ['magnet_sensor']:
             self._prop_state = miot_service.get_property('contact_state') or self._prop_state
@@ -109,10 +117,17 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
         if not self._prop_state:
             return None
         val = self._prop_state.from_dict(self._state_attrs)
-        if self._prop_state.name in ['no_motion_duration']:
-            dur = int(self.custom_config('motion_timeout') or 60)
-            if self._prop_state.value_range:
-                dur = self._prop_state.range_min() + self._prop_state.range_step()
+        if self._prop_state.name in ['no_motion_duration', 'nobody_time']:
+            try:
+                dur = int(self.custom_config('motion_timeout'))
+            except (TypeError, ValueError):
+                dur = None
+            if dur is None and self._prop_state.value_range:
+                stp = self._prop_state.range_step()
+                if stp >= 10:
+                    dur = self._prop_state.range_min() + stp
+            if dur is None:
+                dur = 60
             return val <= dur
         return val and True
 
