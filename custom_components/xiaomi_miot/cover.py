@@ -137,6 +137,14 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
                 pos = -1
             elif range_max != 100 and pos >= 0:
                 pos = pos / range_max * 100
+        if pos >= 0:
+            dev = int(self.custom_config('deviated_position', 1) or 0)
+            if pos <= dev:
+                pos = 0
+            elif pos >= 100 - dev:
+                pos = 100
+            if self._motor_reverse:
+                pos = 100 - pos
         return pos
 
     def set_cover_position(self, **kwargs):
@@ -154,10 +162,8 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         pos = self.current_cover_position
         if pos < 0:
             return None
-        pos = self.custom_config('closed_position', 1)
+        pos = float(self.custom_config('closed_position', 1) or 0)
         isc = self.current_cover_position <= pos
-        if self._motor_reverse:
-            isc = not isc
         return isc
 
     @property

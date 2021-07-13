@@ -83,8 +83,9 @@ camera.your_entity_id:
   check_lan: true      # 云端模式下检查设备在局域网是否可用
 
 cover.your_entity_id:
-  closed_position: 5  # 当实体位置值小于等于此值时为关闭状态
-  motor_reverse: true # 反转电机状态
+  closed_position: 5   # 当实体位置值小于等于此值时为关闭状态
+  deviated_position: 2 # 位置偏差值 2% -> 0%, 98% -> 100%
+  motor_reverse: true  # 反转电机状态
   open_texts: 打开,升
   close_texts: 关闭,降
 

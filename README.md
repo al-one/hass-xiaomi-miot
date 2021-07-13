@@ -83,8 +83,9 @@ camera.your_entity_id:
   check_lan: true      # Check LAN connection in cloud mode
 
 cover.your_entity_id:
-  closed_position: 5  # Change cover state to closed when position <= 5%
-  motor_reverse: true # Reverse motor state
+  closed_position: 5   # Change cover state to closed when position <= 5%
+  deviated_position: 2 # Current position deviation 2% -> 0%, 98% -> 100%
+  motor_reverse: true  # Reverse motor state
   open_texts: Open,Up
   close_texts: Close,Down
 
