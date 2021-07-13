@@ -2,6 +2,7 @@
 import logging
 import asyncio
 import socket
+import json
 import re
 from datetime import timedelta
 from functools import partial
@@ -774,6 +775,15 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_mapping(self):
+        dic = self.custom_config('miot_mapping')
+        if dic:
+            if not isinstance(dic, dict):
+                try:
+                    dic = json.loads(dic or '{}')
+                except (TypeError, ValueError):
+                    dic = None
+            if dic and isinstance(dic, dict):
+                return dic
         if self._miot_mapping:
             return self._miot_mapping
         if self.miot_device:

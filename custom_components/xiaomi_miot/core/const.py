@@ -36,6 +36,15 @@ GLOBAL_CUSTOMIZES = {
         'deerma.humidifier.jsq3': {
             'chunk_properties': 6,
         },
+        'philips.light.cbulb': {
+            'miot_mapping': {
+                'light.on': {'siid': 2, 'piid': 1},
+                'light.mode': {'siid': 2, 'piid': 2},
+                'light.brightness': {'siid': 2, 'piid': 3},
+                'light.color': {'siid': 2, 'piid': 4},
+                'light.color_temperature': {'siid': 2, 'piid': 5},
+            },
+        },
         'yeelink.light.nl1': {
             'interval_seconds': 15,
         },
