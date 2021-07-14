@@ -222,8 +222,8 @@ logger:
 ## 获取 miio token
 
 - 使用HomeAssistant服务
-  1. [![打开HomeAssistant服务工具](https://my.home-assistant.io/badges/developer_services.svg)](https://my.home-assistant.io/redirect/developer_services/)
-  2. 选择服务`xiaomi_miot.get_token`，输入设备名称关键词
+  1. 打开HomeAssistant服务工具 [![](https://my.home-assistant.io/badges/developer_services.svg)](https://my.home-assistant.io/redirect/developer_services/)
+  2. 选择服务[`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token)，输入设备名称关键词
   3. 在HA通知列表中找到token
 
 - 使用[@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)修改版的米家
