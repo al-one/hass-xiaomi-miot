@@ -14,6 +14,10 @@ from homeassistant.components.light import (
     ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
     ATTR_EFFECT,
+    COLOR_MODE_ONOFF,
+    COLOR_MODE_BRIGHTNESS,
+    COLOR_MODE_COLOR_TEMP,
+    COLOR_MODE_HS,
 )
 from homeassistant.util import color
 
@@ -81,12 +85,18 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             if not self._prop_color:
                 self._prop_color = self._srv_ambient_custom.get_property('color')
 
+        self._attr_supported_color_modes = set()
+        if self._prop_power:
+            self._attr_supported_color_modes.add(COLOR_MODE_ONOFF)
         if self._prop_brightness:
             self._supported_features |= SUPPORT_BRIGHTNESS
+            self._attr_supported_color_modes.add(COLOR_MODE_BRIGHTNESS)
         if self._prop_color_temp:
             self._supported_features |= SUPPORT_COLOR_TEMP
+            self._attr_supported_color_modes.add(COLOR_MODE_COLOR_TEMP)
         if self._prop_color:
             self._supported_features |= SUPPORT_COLOR
+            self._attr_supported_color_modes.add(COLOR_MODE_HS)
         if self._prop_mode:
             self._supported_features |= SUPPORT_EFFECT
 
@@ -97,25 +107,25 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         if not self.is_on:
             ret = self.set_property(self._prop_power.full_name, True)
 
-        if self.supported_features & SUPPORT_BRIGHTNESS and ATTR_BRIGHTNESS in kwargs:
+        if self._prop_brightness and ATTR_BRIGHTNESS in kwargs:
             brightness = kwargs[ATTR_BRIGHTNESS]
             percent_brightness = round(100 * brightness / 255)
             _LOGGER.debug('Setting light: %s brightness: %s %s%%', self.name, brightness, percent_brightness)
             ret = self.set_property(self._prop_brightness.full_name, percent_brightness)
 
-        if self.supported_features & SUPPORT_COLOR_TEMP and ATTR_COLOR_TEMP in kwargs:
+        if self._prop_color_temp and ATTR_COLOR_TEMP in kwargs:
             mired = kwargs[ATTR_COLOR_TEMP]
             color_temp = self.translate_mired(mired)
             _LOGGER.debug('Setting light: %s color temperature: %s mireds, %s ct', self.name, mired, color_temp)
             ret = self.set_property(self._prop_color_temp.full_name, color_temp)
 
-        if self.supported_features & SUPPORT_COLOR and ATTR_HS_COLOR in kwargs:
+        if self._prop_color and ATTR_HS_COLOR in kwargs:
             rgb = color.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
             num = rgb_to_int(rgb)
             _LOGGER.debug('Setting light: %s color: %s', self.name, rgb)
             ret = self.set_property(self._prop_color.full_name, num)
 
-        if self.supported_features & SUPPORT_EFFECT and ATTR_EFFECT in kwargs:
+        if self._prop_mode and ATTR_EFFECT in kwargs:
             val = self._prop_mode.list_value(kwargs[ATTR_EFFECT])
             _LOGGER.debug('Setting light: %s effect: %s(%s)', self.name, kwargs[ATTR_EFFECT], val)
             ret = self.set_property(self._prop_mode.full_name, val)
@@ -124,26 +134,49 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
 
     @property
     def brightness(self):
-        return round(255 / 100 * int(self._state_attrs.get(self._prop_brightness.full_name) or 0))
+        """Return the brightness of this light between 0..255."""
+        val = None
+        if self._prop_brightness:
+            val = self._prop_brightness.from_dict(self._state_attrs)
+        if val is None:
+            return None
+        rmx = 100
+        if self._prop_brightness.value_range:
+            rmx = self._prop_brightness.range_max()
+        return round(255 / rmx * int(val))
 
     @property
     def hs_color(self):
-        if self._prop_color:
-            num = round(self._prop_color.from_dict(self._state_attrs) or 0)
-            rgb = int_to_rgb(num)
+        """Return the hue and saturation color value [float, float]."""
+        rgb = self.rgb_color
+        if rgb is not None:
             return color.color_RGB_to_hs(*rgb)
         return None
 
     @property
+    def rgb_color(self):
+        """Return the rgb color value [int, int, int]."""
+        if self._prop_color:
+            num = round(self._prop_color.from_dict(self._state_attrs) or 0)
+            return int_to_rgb(num)
+        return None
+
+    @property
     def color_temp(self):
+        if not self._prop_color_temp:
+            return None
         return self.translate_mired(self._prop_color_temp.from_dict(self._state_attrs) or 2700)
 
     @property
     def min_mireds(self):
+        if not self._prop_color_temp:
+            return None
         return self.translate_mired(self._prop_color_temp.value_range[1] or 5700)
 
     @property
     def max_mireds(self):
+        if not self._prop_color_temp:
+            return None
         return self.translate_mired(self._prop_color_temp.value_range[0] or 2700)
 
     @staticmethod
@@ -156,11 +189,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
     @property
     def effect_list(self):
         if self._prop_mode:
-            return [
-                v.get('description')
-                for v in self._prop_mode.value_list
-                if isinstance(v, dict)
-            ]
+            return self._prop_mode.list_descriptions()
         return None
 
     @property

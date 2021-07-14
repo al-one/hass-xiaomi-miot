@@ -110,6 +110,12 @@ TRANSLATION_LANGUAGES = {
             'Natural Wind': '自然风',
         },
 
+        'light.mode': {
+            'Day': '日光',
+            'Night': '夜灯',
+            'Color': '彩光',
+        },
+
         'ptc_bath_heater.mode': {
             'Fan': '吹风',
             'Heat': '暖风',
