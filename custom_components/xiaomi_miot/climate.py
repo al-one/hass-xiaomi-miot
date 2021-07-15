@@ -219,7 +219,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     add_switches([self._subs[pnm]])
 
     def update_bind_sensor(self):
-        bss = str(self.custom_config('bind_sensor') or '').split(',')
+        bss = self.custom_config_list('bind_sensor') or []
         ext = {}
         for bse in bss:
             bse = f'{bse}'.strip()

@@ -469,6 +469,34 @@ class BaseEntity(Entity):
             cfg = {**cfg, **(self.hass.data[DOMAIN].get(eid) or {})}
         return cfg if key is None else cfg.get(key, default)
 
+    def custom_config_number(self, key=None, default=None):
+        num = default
+        val = self.custom_config(key)
+        if val is not None:
+            try:
+                num = float(f'{val}')
+            except (TypeError, ValueError):
+                pass
+        return num
+
+    def custom_config_list(self, key=None, default=None):
+        lst = self.custom_config(key, default)
+        if not isinstance(lst, list):
+            lst = f'{lst}'.split(',')
+        return lst
+
+    def custom_config_json(self, key=None, default=None):
+        dic = self.custom_config(key)
+        if dic:
+            if not isinstance(dic, dict):
+                try:
+                    dic = json.loads(dic or '{}')
+                except (TypeError, ValueError):
+                    dic = None
+            if isinstance(dic, dict):
+                return dic
+        return default
+
     def update_custom_scan_interval(self, only_custom=False):
         if not self.platform:
             return
@@ -579,6 +607,9 @@ class MiioEntity(BaseEntity):
                 self._add_entities = self.hass.data[DOMAIN][eid].get('add_entities') or {}
 
     def custom_config(self, key=None, default=None):
+        ret = super().custom_config(key, None)
+        if ret is not None:
+            return ret
         wil = re.sub(r'\.[^.]+$', '.*', self._model)
         mar = [
             self._model,
@@ -587,12 +618,10 @@ class MiioEntity(BaseEntity):
         ]
         for m in mar:
             cus = GLOBAL_CUSTOMIZES['models'].get(m) or {}
-            if cus.get(key) is not None:
+            if key in cus:
                 default = cus[key]
                 break
-        if not self.hass:
-            return default
-        return super().custom_config(key, default)
+        return default
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
@@ -775,19 +804,13 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_mapping(self):
-        dic = self.custom_config('miot_mapping')
+        dic = self.custom_config_json('miot_mapping')
         if dic:
-            if not isinstance(dic, dict):
-                try:
-                    dic = json.loads(dic or '{}')
-                except (TypeError, ValueError):
-                    dic = None
-            if dic and isinstance(dic, dict):
-                return dic
+            return dic
         if self._miot_mapping:
             return self._miot_mapping
-        if self.miot_device:
-            return self.miot_device.mapping
+        if self._device:
+            return self._device.mapping
         return None
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
@@ -838,11 +861,7 @@ class MiotEntity(MiioEntity):
                     s = v.get('siid')
                     p = v.get('piid')
                     rmp[f'{s}-{p}'] = k
-                max_properties = self.custom_config('chunk_properties', 12)
-                try:
-                    max_properties = int(max_properties)
-                except (TypeError, ValueError):
-                    max_properties = 10
+                max_properties = self.custom_config_number('chunk_properties') or 10
                 results = await self.hass.async_add_executor_job(
                     partial(self.miot_device.get_properties_for_mapping, max_properties=max_properties)
                 )
@@ -882,7 +901,7 @@ class MiotEntity(MiioEntity):
 
         if self._miot_service:
             for d in ['sensor', 'binary_sensor', 'switch', 'number', 'fan', 'cover']:
-                pls = str(self.custom_config(f'{d}_properties') or '').split(',')
+                pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
             self._update_sub_entities(
