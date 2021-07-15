@@ -858,13 +858,13 @@ class MiotEntity(MiioEntity):
                         return
             elif self.miot_device:
                 updater = 'lan'
-                for k, v in self.miot_mapping.items():
+                for k, v in self._device.mapping.items():
                     s = v.get('siid')
                     p = v.get('piid')
                     rmp[f'{s}-{p}'] = k
                 max_properties = self.custom_config_number('chunk_properties') or 10
                 results = await self.hass.async_add_executor_job(
-                    partial(self.miot_device.get_properties_for_mapping, max_properties=max_properties)
+                    partial(self._device.get_properties_for_mapping, max_properties=max_properties)
                 )
             else:
                 _LOGGER.error('Local device and miot cloud not ready %s', self.name)
