@@ -37,7 +37,7 @@ GLOBAL_CUSTOMIZES = {
             'chunk_properties': 6,
         },
         'philips.light.cbulb': {
-            'miot_mapping': {
+            'miot_local_mapping': {
                 'light.on': {'siid': 2, 'piid': 1},
                 'light.mode': {'siid': 2, 'piid': 2},
                 'light.brightness': {'siid': 2, 'piid': 3},

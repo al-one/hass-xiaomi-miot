@@ -738,13 +738,14 @@ class MiotEntity(MiioEntity):
             host = self._config.get(CONF_HOST) or ''
             token = self._config.get(CONF_TOKEN) or None
             device = None
+            mapping = self.custom_config_json('miot_local_mapping') or self.miot_mapping
             try:
                 device = MiotDevice(ip=host, token=token)
-                device.mapping = self._miot_mapping
+                device.mapping = mapping
             except TypeError as exc:
                 if f'{exc}'.find('mapping') >= 0:
                     # for python-miio <= v0.5.4
-                    device = MiotDevice(self._miot_mapping, host, token)  # noqa
+                    device = MiotDevice(mapping, host, token)  # noqa
             except ValueError as exc:
                 _LOGGER.warning('Initializing with host %s (%s) failed: %s', host, self.name, exc)
             if device:
