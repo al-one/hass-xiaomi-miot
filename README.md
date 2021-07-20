@@ -27,11 +27,11 @@ Or click (HA v2021.3.0+): [![add](https://my.home-assistant.io/badges/config_flo
 
 **You have two ways to integrate xiaomi devices:**
 
-- Add device using host/token
-  > Suitable for devices supporting miot-spec in LAN
-
 - Add devices using Mi Account
   > Suitable for miio, ble and ZigBee devices ([miot_cloud](https://github.com/al-one/hass-xiaomi-miot#configuration-xiaomi-cloud) will be enabled)
+
+- Add device using host/token
+  > Suitable for devices supporting miot-spec in LAN
 
 ### Configuration Xiaomi Cloud:
 
@@ -60,10 +60,11 @@ homeassistant:
 
 # customize.yaml
 domain.your_entity_id:
-  miot_cloud: true          # Enable miot cloud for entity (read, write, action)
-  # miot_cloud_write: true  # (Optional) Enable miot cloud (only write)
-  # miot_cloud_action: true # (Optional) Enable miot cloud (only action)
-  # miot_local: true        # Force to read and write data in LAN
+  miot_local: true        # Force to read and write data in LAN (integrate by account)
+  miot_cloud: true        # Enable miot cloud for entity (read, write, action)
+  miot_cloud_write: true  # Enable miot cloud (only write)
+  miot_cloud_action: true # Enable miot cloud (only action)
+  miio_properties: power,battery # Get miio properties to state attributes
 
 # Custom sub entities
 domain.parent_entity_id:

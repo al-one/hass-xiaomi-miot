@@ -27,11 +27,11 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | ba
 
 **目前有两种方式集成小米设备:**
 
+- Add devices using Mi Account
+  > 通过小米账号接入设备，适用于miio、ZigBee、蓝牙（默认开启`云端模式`，可通过[自定义属性](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855183156)实现局域网读写）
+
 - Add device using host/token
   > 通过设备host/token接入，适用于在局域网环境下支持miot-spec的设备
-
-- Add devices using Mi Account
-  > 通过小米账号接入设备，适用于miio、ZigBee、蓝牙（默认开启[云端模式](https://github.com/al-one/hass-xiaomi-miot#configuration-xiaomi-cloud)）
 
 ### 配置云端模式:
 
@@ -60,10 +60,11 @@ homeassistant:
 
 # customize.yaml
 domain.your_entity_id:
-  miot_cloud: true          # 为该实体开启云端模式 (read, write, action)
-  # miot_cloud_write: true  # (可选) 仅写属性使用云端模式
-  # miot_cloud_action: true # (可选) 仅action使用云端模式
-  # miot_local: true        # 使用本地模式 (通过账号接入的设备)
+  miot_local: true        # 使用本地模式 (通过账号接入的设备)
+  miot_cloud: true        # 为该实体开启云端模式 (read, write, action)
+  miot_cloud_write: true  # 仅写属性使用云端模式
+  miot_cloud_action: true # 仅action使用云端模式
+  miio_properties: power,battery # 获取miio属性到实体的属性中
 
 # 自定义子实体
 domain.parent_entity_id:
