@@ -480,7 +480,9 @@ class BaseEntity(Entity):
         return num
 
     def custom_config_list(self, key=None, default=None):
-        lst = self.custom_config(key, default)
+        lst = self.custom_config(key)
+        if lst is None:
+            return default
         if not isinstance(lst, list):
             lst = f'{lst}'.split(',')
         return lst
@@ -954,6 +956,26 @@ class MiotEntity(MiioEntity):
             attrs['sub_entities'] = list(self._subs.keys())
         self.update_attrs(attrs)
         _LOGGER.debug('Got new state from %s: %s', self.name, attrs)
+        pls = self.custom_config_list('miio_properties')
+        if pls:
+            await self.hass.async_add_executor_job(partial(self.update_miio_props, pls))
+
+    def update_miio_props(self, props):
+        if not self.miot_device:
+            return
+        try:
+            attrs = self._device.get_properties(props)
+        except DeviceException as exc:
+            _LOGGER.warning('Got miio properties for %s (%s) failed: %s', self.name, props, exc)
+            return
+        if len(props) != len(attrs):
+            self.update_attrs({
+                'miio.props': attrs,
+            })
+            return
+        attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
+        _LOGGER.debug('Got miio properties from %s: %s', self.name, attrs)
+        self.update_attrs(attrs)
 
     def get_properties(self, mapping: dict, throw=False, **kwargs):
         if not self.miot_device:
