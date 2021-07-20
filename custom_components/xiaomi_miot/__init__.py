@@ -901,7 +901,7 @@ class MiotEntity(MiioEntity):
         attrs['state_updater'] = updater
 
         if self._miot_service:
-            for d in ['sensor', 'binary_sensor', 'switch', 'number', 'fan', 'cover']:
+            for d in ['sensor', 'binary_sensor', 'switch', 'number', 'select', 'fan', 'cover']:
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
@@ -1132,6 +1132,7 @@ class MiotEntity(MiioEntity):
         add_fans = self._add_entities.get('fan')
         add_covers = self._add_entities.get('cover')
         add_numbers = self._add_entities.get('number')
+        add_selects = self._add_entities.get('select')
         for s in sls:
             if not properties:
                 fnm = s.unique_name
@@ -1193,6 +1194,10 @@ class MiotEntity(MiioEntity):
                 elif add_numbers and domain == 'number':
                     self._subs[fnm] = MiotNumberSubEntity(self, p, option=option)
                     add_numbers([self._subs[fnm]])
+                elif add_selects and domain == 'select' and (p.value_list or p.value_range):
+                    from .select import MiotSelectSubEntity
+                    self._subs[fnm] = MiotSelectSubEntity(self, p, option=option)
+                    add_selects([self._subs[fnm]])
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
                     _LOGGER.debug('Added sub entity %s: %s for %s.', domain, fnm, self.name)

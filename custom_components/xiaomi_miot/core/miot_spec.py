@@ -304,6 +304,12 @@ class MiotProperty:
         return des
 
     def list_value(self, des):
+        if des is not None and self.value_range:
+            try:
+                val = int(des)
+            except (TypeError, ValueError):
+                val = None
+            return val
         rls = []
         for v in self.value_list:
             val = v.get('value')

@@ -24,6 +24,14 @@ SUPPORTED_DOMAINS = [
     'number',
 ]
 
+try:
+    # hass 2021.7.0b0+
+    from homeassistant.components.select import DOMAIN as DOMAIN_SELECT
+    SUPPORTED_DOMAINS.append(DOMAIN_SELECT)
+except ModuleNotFoundError:
+    DOMAIN_SELECT = None
+
+
 GLOBAL_CUSTOMIZES = {
 
     'models': {
