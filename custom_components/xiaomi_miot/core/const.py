@@ -72,10 +72,10 @@ GLOBAL_CUSTOMIZES = {
             'switch_properties': 'cooker.on,auto_keep_warm',
         },
         '*.feeder.*': {
-            'number_properties': 'feeding_measure',
+            'switch_properties': 'feeding_measure',
         },
         '*.fishbowl.*': {
-            'number_properties': 'feeding_measure',
+            'switch_properties': 'feeding_measure',
         },
     },
 

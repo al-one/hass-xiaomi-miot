@@ -1066,29 +1066,32 @@ class MiotEntity(MiioEntity):
             'aiid': aiid,
             'in':   params or [],
         }
-        ret = None
+        result = None
         try:
             mca = self.miot_cloud_action
             if isinstance(mca, MiotCloud):
-                ret = mca.do_action(pms)
+                result = mca.do_action(pms)
             else:
-                ret = self.miot_device.send('action', pms)
+                result = self.miot_device.send('action', pms)
         except DeviceException as exc:
             _LOGGER.warning('Call miot action to %s (%s) failed: %s', self.name, pms, exc)
         except MiCloudException as exc:
             _LOGGER.warning('Call miot action to cloud for %s (%s) failed: %s', self.name, pms, exc)
+        ret = dict(result or {}).get('code', 1) == self._success_code
         if ret:
             self._vars['delay_update'] = 5
-            _LOGGER.debug('Call miot action to %s (%s), result: %s', self.name, pms, ret)
-        self._state_attrs['miot_action_result'] = ret
+            _LOGGER.debug('Call miot action to %s (%s), result: %s', self.name, pms, result)
+        else:
+            _LOGGER.info('Call miot action to %s (%s) failed: %s', self.name, pms, result)
+        self._state_attrs['miot_action_result'] = result
         if kwargs.get('throw'):
             persistent_notification.create(
                 self.hass,
-                f'{ret}',
+                f'{result}',
                 'Miot action result',
                 f'{DOMAIN}-debug',
             )
-            raise Warning(f'Miot action result: {ret}')
+            raise Warning(f'Miot action result: {result}')
         return ret
 
     async def async_miot_action(self, siid, aiid, params=None, did=None, **kwargs):
@@ -1116,7 +1119,6 @@ class MiotEntity(MiioEntity):
         from .fan import MiotModesSubEntity
         from .cover import MiotCoverSubEntity
         from .number import MiotNumberSubEntity
-        from .number import MiotNumberActionSubEntity
         if isinstance(services, MiotService):
             sls = [services]
         elif services == '*':
