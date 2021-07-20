@@ -27,11 +27,11 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | ba
 
 **目前有两种方式集成小米设备:**
 
-- Add devices using Mi Account
-  > 通过小米账号接入设备，适用于miio、ZigBee、蓝牙（默认开启`云端模式`，可通过[自定义属性](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855183156)实现局域网读写）
+- 账号集成 (Add devices using Mi Account)
+  > 通过小米账号接入设备，适用于miio、ZigBee、蓝牙等设备（默认开启`云端模式`，可通过[自定义属性](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855183156)实现局域网读写）
 
-- Add device using host/token
-  > 通过设备host/token接入，适用于在局域网环境下支持miot-spec的设备
+- 本地集成 (Add device using host/token)
+  > 通过host/token接入设备，适用于在局域网环境下支持miot协议的设备
 
 ### 配置云端模式:
 
