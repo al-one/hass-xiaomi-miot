@@ -237,14 +237,28 @@ class MiotCookerEntity(MiotSensorEntity):
             return
         if self._prop_state:
             add_fans = self._add_entities.get('fan')
+            add_selects = self._add_entities.get('select')
             add_switches = self._add_entities.get('switch')
             pls = self._miot_service.get_properties('cook_mode', 'target_time', 'target_temperature')
             for p in pls:
-                if not p.writeable and not self._action_start:
+                if not (p.writeable or self._action_start):
                     continue
                 if p.name in self._subs:
                     self._subs[p.name].update()
-                elif add_fans and (p.value_list or p.value_range):
+                elif not (p.value_list or p.value_range):
+                    continue
+                elif add_selects:
+                    from .select import (
+                        MiotSelectSubEntity,
+                        MiotActionSelectSubEntity,
+                    )
+                    if p.writeable:
+                        self._subs[p.name] = MiotSelectSubEntity(self, p)
+                    elif p.iid in self._action_start.ins:
+                        self._subs[p.name] = MiotActionSelectSubEntity(self, self._action_start, p)
+                    if p.name in self._subs:
+                        add_selects([self._subs[p.name]])
+                elif add_fans:
                     opt = None
                     if p.value_list:
                         opt = {
