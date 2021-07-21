@@ -58,17 +58,18 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.data.setdefault(DATA_KEY, {})
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
+    miot = config.get('miot_type')
     entities = []
-    if model.find('mrbond.airer') >= 0:
-        entity = MrBondAirerProEntity(config)
-        entities.append(entity)
-    else:
-        miot = config.get('miot_type')
-        if miot:
-            spec = await MiotSpec.async_from_type(hass, miot)
-            for srv in spec.get_services(ENTITY_DOMAIN, 'curtain', 'airer', 'window_opener'):
-                if not srv.get_property('motor_control'):
-                    continue
+    if miot:
+        spec = await MiotSpec.async_from_type(hass, miot)
+        for srv in spec.get_services(ENTITY_DOMAIN, 'curtain', 'airer', 'window_opener'):
+            if not srv.get_property('motor_control'):
+                continue
+            if not srv.get_property('current_position') and 'mrbond.airer' in model:
+                # mrbond.airer.m1s
+                # mrbond.airer.m1pro
+                entities.append(MrBondAirerProEntity(config))
+            else:
                 entities.append(MiotCoverEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
@@ -131,10 +132,23 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     def current_cover_position(self):
         pos = -1
         if self._prop_current_position:
-            pos = int(self._prop_current_position.from_dict(self._state_attrs, -1) or 0)
+            cur = int(self._prop_current_position.from_dict(self._state_attrs, -1) or 0)
+            pos = cur
             range_max = self._prop_current_position.range_max()
             if not range_max:
                 pos = -1
+                if self._prop_current_position.value_list:
+                    # mrbond.airer.m53c
+                    for v in self._prop_current_position.value_list:
+                        if cur != v.get('value'):
+                            continue
+                        des = str(v.get('description')).lower()
+                        if 'top' in des:
+                            pos = 100
+                        elif 'middle' in des:
+                            pos = 50
+                        elif 'button' in des:
+                            pos = 0
             elif range_max != 100 and pos >= 0:
                 pos = pos / range_max * 100
         if pos >= 0:
