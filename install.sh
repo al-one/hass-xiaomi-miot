@@ -1,6 +1,7 @@
 #!/bin/bash
 # wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | bash -
 # wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | ARCHIVE_TAG=v1.0.0 bash -
+# wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HUB_DOMAIN=hub.fastgit.org bash -
 # wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | DOMAIN=miio_yeelink REPO_PATH=al-one/hass-miio-yeelink bash -
 set -e
 
@@ -10,7 +11,8 @@ REPO_NAME=$(basename "$REPO_PATH")
 
 [ -z "$ARCHIVE_TAG" ] && ARCHIVE_TAG="$1"
 [ -z "$ARCHIVE_TAG" ] && ARCHIVE_TAG="master"
-ARCHIVE_URL="https://github.com/$REPO_PATH/archive/$ARCHIVE_TAG.zip"
+[ -z "$HUB_DOMAIN" ] && HUB_DOMAIN="github.com"
+ARCHIVE_URL="https://$HUB_DOMAIN/$REPO_PATH/archive/$ARCHIVE_TAG.zip"
 
 RED_COLOR='\033[0;31m'
 GREEN_COLOR='\033[0;32m'
