@@ -44,6 +44,13 @@ GLOBAL_CUSTOMIZES = {
         'deerma.humidifier.jsq3': {
             'chunk_properties': 6,
         },
+        'hyd.airer.*': {
+            'cover_position_mapping': {
+                0: 50,
+                1: 100,
+                2: 0,
+            },
+        },
         'philips.light.cbulb': {
             'miot_cloud_write': True,
             'miot_local_mapping': {

@@ -476,7 +476,7 @@ class BaseEntity(Entity):
             try:
                 num = float(f'{val}')
             except (TypeError, ValueError):
-                pass
+                num = default
         return num
 
     def custom_config_list(self, key=None, default=None):

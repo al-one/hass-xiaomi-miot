@@ -86,7 +86,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         self._prop_current_position = miot_service.get_property('current_position')
         self._prop_target_position = miot_service.get_property('target_position')
 
-        self._motor_reverse = miot_service.name in ['airer']
+        self._motor_reverse = False
         self._open_texts = []
         self._close_texts = []
         self._state_attrs.update({'entity_class': self.__class__.__name__})
@@ -132,33 +132,37 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     def current_cover_position(self):
         pos = -1
         if self._prop_current_position:
-            cur = int(self._prop_current_position.from_dict(self._state_attrs, -1) or 0)
-            pos = cur
+            cur = self._prop_current_position.from_dict(self._state_attrs)
+            if cur is None:
+                return None
             range_max = self._prop_current_position.range_max()
-            if not range_max:
-                pos = -1
-                if self._prop_current_position.value_list:
-                    # mrbond.airer.m53c
-                    for v in self._prop_current_position.value_list:
-                        if cur != v.get('value'):
-                            continue
-                        des = str(v.get('description')).lower()
-                        if 'top' in des:
-                            pos = 100
-                        elif 'middle' in des:
-                            pos = 50
-                        elif 'button' in des:
-                            pos = 0
-            elif range_max != 100 and pos >= 0:
-                pos = pos / range_max * 100
-        if pos >= 0:
-            dev = int(self.custom_config('deviated_position', 1) or 0)
-            if pos <= dev:
-                pos = 0
-            elif pos >= 100 - dev:
-                pos = 100
-            if self._motor_reverse:
-                pos = 100 - pos
+            dic = self.custom_config_json('cover_position_mapping')
+            if dic:
+                if cur in dic:
+                    pos = dic.get(cur)
+            elif self._prop_current_position.value_list:
+                # mrbond.airer.m53c
+                for v in self._prop_current_position.value_list:
+                    if cur != v.get('value'):
+                        continue
+                    des = str(v.get('description')).lower()
+                    if 'top' in des:
+                        pos = 100
+                    elif 'middle' in des:
+                        pos = 50
+                    elif 'button' in des:
+                        pos = 0
+            elif range_max != 100:
+                pos = cur / range_max * 100
+        if pos < 0:
+            return None
+        dev = int(self.custom_config('deviated_position', 1) or 0)
+        if pos <= dev:
+            pos = 0
+        elif pos >= 100 - dev:
+            pos = 100
+        if self._motor_reverse:
+            pos = 100 - pos
         return pos
 
     def set_cover_position(self, **kwargs):
@@ -196,7 +200,12 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
     def motor_control(self, open_cover=True, **kwargs):
         tls = self._open_texts if open_cover else self._close_texts
-        val = self._prop_motor_control.list_first(*tls)
+        val = self.custom_config_number('open_cover_value' if open_cover else 'close_cover_value')
+        if val is None:
+            val = self._prop_motor_control.list_first(*tls)
+        if val is None:
+            _LOGGER.error('Motor control value is invalid for %s', self.name)
+            return False
         ret = self.set_property(self._prop_motor_control.full_name, val)
         if ret and self._prop_status:
             self.update_attrs({
@@ -212,6 +221,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
     def stop_cover(self, **kwargs):
         val = self._prop_motor_control.list_first('Pause', 'Stop')
+        val = self.custom_config_number('stop_cover_value', val)
         return self.set_property(self._prop_motor_control.full_name, val)
 
 
