@@ -45,6 +45,7 @@ GLOBAL_CUSTOMIZES = {
             'chunk_properties': 6,
         },
         'hyd.airer.*': {
+            'disable_target_position': True,
             'cover_position_mapping': {
                 0: 50,
                 1: 100,
