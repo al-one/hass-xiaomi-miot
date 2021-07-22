@@ -1402,6 +1402,9 @@ class BaseSubEntity(BaseEntity):
                 for k, v in attrs.items()
                 if k in keys
             }
+        self._state_attrs.update({
+            'parent_entity_id': self._parent.entity_id,
+        })
 
     async def async_update(self):
         await self.hass.async_add_executor_job(self.update)
