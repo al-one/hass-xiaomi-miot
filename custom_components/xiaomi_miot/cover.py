@@ -177,11 +177,11 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
     @property
     def is_closed(self):
-        pos = self.current_cover_position
-        if pos < 0:
+        cur = self.current_cover_position
+        if cur is None:
             return None
-        pos = float(self.custom_config('closed_position', 1) or 0)
-        isc = self.current_cover_position <= pos
+        pos = self.custom_config_number('closed_position', 1)
+        isc = cur <= pos
         return isc
 
     @property
