@@ -582,7 +582,7 @@ class MiioEntity(BaseEntity):
         return self._state
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         ext = self.state_attributes or {}
         return {**self._state_attrs, **ext}
 
@@ -1371,7 +1371,7 @@ class BaseSubEntity(BaseEntity):
         return self._supported_features
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         return self._state_attrs
 
     @property
@@ -1395,7 +1395,7 @@ class BaseSubEntity(BaseEntity):
             self.update_custom_scan_interval(only_custom=True)
 
     def update(self):
-        attrs = self._parent.device_state_attributes or {}
+        attrs = self._parent.extra_state_attributes or {}
         self._parent_attrs = attrs
         if self._attr in attrs:
             self._available = True
