@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'battery', 'environment', 'water_purifier', 'tds_sensor',
                 'oven', 'microwave_oven', 'health_pot', 'coffee_machine',
                 'cooker', 'induction_cooker', 'pressure_cooker',
-                'router', 'video_doorbell', 'lock', 'air_fryer',
+                'router', 'video_doorbell', 'lock', 'air_fryer', 'smoke_sensor',
                 'temperature_humidity_sensor', 'printer', 'sleep_monitor', 'bed',
                 'pet_feeder', 'fridge_chamber', 'plant_monitor', 'vibration_sensor',
             ):
@@ -112,6 +112,13 @@ class MiotSensorEntity(MiotEntity):
             self._prop_state = miot_service.get_property('temperature', 'indoor_temperature') or self._prop_state
         elif miot_service.name in ['sleep_monitor']:
             self._prop_state = miot_service.get_property('sleep_state') or self._prop_state
+        elif miot_service.name in ['smoke_sensor']:
+            self._prop_state = miot_service.get_property('smoke_concentration') or self._prop_state
+
+        if self._prop_state:
+            self._attr_icon = self._prop_state.entity_icon
+            self._attr_device_class = self._prop_state.device_class
+            self._attr_unit_of_measurement = self._prop_state.unit_of_measurement
 
         self._name = f'{self._name} {self._prop_state.description}'
         self._state_attrs.update({
@@ -179,34 +186,6 @@ class MiotSensorEntity(MiotEntity):
             return f'{self._state_attrs[key]}'.lower()
         return self._prop_state.from_dict(self._state_attrs, STATE_UNKNOWN)
 
-    @property
-    def device_class(self):
-        if self._prop_state.name in ['temperature']:
-            return DEVICE_CLASS_TEMPERATURE
-        if self._prop_state.name in ['relative_humidity', 'humidity']:
-            return DEVICE_CLASS_HUMIDITY
-        if self._prop_state.name in ['illumination']:
-            return DEVICE_CLASS_ILLUMINANCE
-        if self._miot_service.name in ['illumination_sensor']:
-            return DEVICE_CLASS_ILLUMINANCE
-        if self._prop_state.name in ['battery', 'battery_level']:
-            return DEVICE_CLASS_BATTERY
-        return None
-
-    @property
-    def unit_of_measurement(self):
-        prop = self._prop_state
-        if prop:
-            if prop.unit in ['celsius', TEMP_CELSIUS]:
-                return TEMP_CELSIUS
-            if prop.unit in ['fahrenheit', TEMP_FAHRENHEIT]:
-                return TEMP_FAHRENHEIT
-            if prop.unit in ['kelvin', TEMP_KELVIN]:
-                return TEMP_KELVIN
-            if prop.unit in ['percentage', PERCENTAGE]:
-                return PERCENTAGE
-        return None
-
 
 class MiotCookerEntity(MiotSensorEntity):
     def __init__(self, config, miot_service: MiotService):
@@ -218,18 +197,11 @@ class MiotCookerEntity(MiotSensorEntity):
         self._values_on = []
         self._values_off = []
         if self._prop_state:
+            self._attr_icon = self._prop_state.entity_icon or 'mdi:chef-hat'
             self._values_on = self._prop_state.list_search('Busy', 'Running', 'Cooking', 'Delay')
             self._values_off = self._prop_state.list_search(
                 'Idle', 'Completed', 'Shutdown', 'CookFinish', 'Pause', 'Paused', 'Fault', 'Error', 'Stop', 'Off',
             )
-
-    @property
-    def icon(self):
-        if self._miot_service.name in ['oven', 'microwave_oven']:
-            return 'mdi:microwave'
-        if self._miot_service.name in ['health_pot']:
-            return 'mdi:coffee'
-        return 'mdi:chef-hat'
 
     async def async_update(self):
         await super().async_update()

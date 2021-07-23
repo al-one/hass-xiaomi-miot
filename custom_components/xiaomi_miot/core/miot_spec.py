@@ -452,6 +452,7 @@ class MiotProperty:
             'target_water_level': 'mdi:water-plus',
             'drying_level': 'mdi:tumble-dryer',
             'co2_density': 'mdi:molecule-co2',
+            'smoke_concentration': 'mdi:smoking',
         }
         if name in ['heat_level']:
             icon = 'mdi:radiator'
@@ -459,6 +460,10 @@ class MiotProperty:
                 icon = 'mdi:car-seat-heater'
         elif name in icons:
             icon = icons[name]
+        elif self.service.name in ['oven', 'microwave_oven']:
+            icon = 'mdi:microwave'
+        elif self.service.name in ['health_pot']:
+            return 'mdi:coffee'
         return icon
 
 
