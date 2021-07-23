@@ -239,7 +239,7 @@ class MiotCookerEntity(MiotSensorEntity):
                         }
                     self._subs[p.name] = MiotCookerSubEntity(self, p, self._prop_state, opt)
                     add_fans([self._subs[p.name]])
-            if not pls and self._action_cancel:
+            if self._action_start or self._action_cancel:
                 pnm = 'cook_switch'
                 if pnm in self._subs:
                     self._subs[pnm].update()
@@ -265,7 +265,7 @@ class MiotCookerEntity(MiotSensorEntity):
         if act:
             pms = []
             if on:
-                pms = str(self.custom_config('start_cook_params') or '').split(',')
+                pms = self.custom_config_list('start_cook_params') or []
             ret = self.call_action(act, pms)
             sta = vls[0] if vls else None
             if ret and sta is not None:
