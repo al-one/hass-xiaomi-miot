@@ -1,5 +1,6 @@
 """Support select entity for Xiaomi Miot."""
 import logging
+import time
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.select import (
@@ -89,20 +90,32 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
         super().__init__(parent, miot_property, option)
         self._miot_action = miot_action
         self._attr_options = miot_property.list_descriptions()
+        self._extra_actions = self._option.get('extra_actions') or {}
+        if self._extra_actions:
+            self._attr_options.extend(self._extra_actions.keys())
+
         self.update_attrs({
             'miot_action': miot_action.full_name,
         }, update_parent=False)
 
     def update(self):
         self._available = True
+        time.sleep(0.2)
         self._attr_current_option = None
 
     def select_option(self, option):
         """Change the selected option."""
+        ret = None
         val = self._miot_property.list_value(option)
         if val is None:
-            return False
-        ret = self.call_parent('call_action', self._miot_action, [val])
+            act = self._extra_actions.get(option)
+            if isinstance(act, MiotAction):
+                ret = self.call_parent('call_action', act)
+            else:
+                return False
+        if ret is None:
+            ret = self.call_parent('call_action', self._miot_action, [val])
         if ret:
             self._attr_current_option = option
+            self.async_write_ha_state()
         return ret

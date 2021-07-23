@@ -215,6 +215,7 @@ class MiotCookerEntity(MiotSensorEntity):
             for p in pls:
                 if not (p.writeable or self._action_start):
                     continue
+                opt = None
                 if p.name in self._subs:
                     self._subs[p.name].update()
                 elif not (p.value_list or p.value_range):
@@ -227,11 +228,16 @@ class MiotCookerEntity(MiotSensorEntity):
                     if p.writeable:
                         self._subs[p.name] = MiotSelectSubEntity(self, p)
                     elif p.iid in self._action_start.ins:
-                        self._subs[p.name] = MiotActionSelectSubEntity(self, self._action_start, p)
+                        if self._action_cancel:
+                            opt = {
+                                'extra_actions': {
+                                    p.get_translation('Off'): self._action_cancel,
+                                },
+                            }
+                        self._subs[p.name] = MiotActionSelectSubEntity(self, self._action_start, p, opt)
                     if p.name in self._subs:
                         add_selects([self._subs[p.name]])
                 elif add_fans:
-                    opt = None
                     if p.value_list:
                         opt = {
                             'values_on':  self._values_on,
