@@ -198,6 +198,7 @@ doamin.your_entity_id:
     - [television](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:television:0000781B)
 - [device_tracker](https://www.home-assistant.io/integrations/device_tracker)
     - [rearview-mirror](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:rearview-mirror:00007879)
+    - [watch](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:watch:00007899)
 
 
 ## 调试
