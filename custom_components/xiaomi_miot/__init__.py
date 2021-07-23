@@ -479,6 +479,12 @@ class BaseEntity(Entity):
                 num = default
         return num
 
+    def custom_config_integer(self, key=None, default=None):
+        num = self.custom_config_number(key, default)
+        if num is not None:
+            num = int(num)
+        return num
+
     def custom_config_list(self, key=None, default=None):
         lst = self.custom_config(key)
         if lst is None:
@@ -864,7 +870,7 @@ class MiotEntity(MiioEntity):
                     s = v.get('siid')
                     p = v.get('piid')
                     rmp[f'{s}-{p}'] = k
-                max_properties = self.custom_config_number('chunk_properties') or 10
+                max_properties = self.custom_config_integer('chunk_properties') or 10
                 results = await self.hass.async_add_executor_job(
                     partial(self._device.get_properties_for_mapping, max_properties=max_properties)
                 )

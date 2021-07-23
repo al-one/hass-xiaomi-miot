@@ -200,7 +200,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
     def motor_control(self, open_cover=True, **kwargs):
         tls = self._open_texts if open_cover else self._close_texts
-        val = self.custom_config_number('open_cover_value' if open_cover else 'close_cover_value')
+        val = self.custom_config_integer('open_cover_value' if open_cover else 'close_cover_value')
         if val is None:
             val = self._prop_motor_control.list_first(*tls)
         if val is None:
@@ -221,7 +221,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
     def stop_cover(self, **kwargs):
         val = self._prop_motor_control.list_first('Pause', 'Stop')
-        val = self.custom_config_number('stop_cover_value', val)
+        val = self.custom_config_integer('stop_cover_value', val)
         return self.set_property(self._prop_motor_control.full_name, val)
 
 
