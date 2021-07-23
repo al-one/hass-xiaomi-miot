@@ -60,9 +60,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             if srv.name in ['toilet']:
                 entities.append(MiotToiletEntity(config, srv))
             elif srv.name in ['motion_sensor'] and 'lumi.sensor_motion.' in model:
-                entities.append(LumiMotionEntity(config, srv))
+                entities.append(LumiBinarySensorEntity(config, srv))
             elif srv.name in ['magnet_sensor'] and 'lumi.sensor_magnet.' in model:
-                entities.append(LumiMotionEntity(config, srv))
+                entities.append(LumiBinarySensorEntity(config, srv))
+            elif srv.name in ['submersion_sensor'] and 'lumi.sensor_wleak.' in model:
+                entities.append(LumiBinarySensorEntity(config, srv))
             else:
                 entities.append(MiotBinarySensorEntity(config, srv))
     for entity in entities:
@@ -201,7 +203,7 @@ class MiotToiletEntity(MiotBinarySensorEntity):
         return 'mdi:toilet'
 
 
-class LumiMotionEntity(MiotBinarySensorEntity):
+class LumiBinarySensorEntity(MiotBinarySensorEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(config, miot_service)
         self._state_attrs.update({
