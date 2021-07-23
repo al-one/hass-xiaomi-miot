@@ -94,8 +94,11 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
-        if self._prop_target_position and not self.custom_config('disable_target_position'):
-            self._supported_features |= SUPPORT_SET_POSITION
+        if self._prop_target_position:
+            if not self.custom_config('disable_target_position'):
+                self._supported_features |= SUPPORT_SET_POSITION
+            else:
+                self._prop_target_position = None
         if self._prop_motor_control.list_first('Pause', 'Stop') is not None:
             self._supported_features |= SUPPORT_STOP
         if cv.boolean(self.custom_config('motor_reverse') or False):
@@ -165,6 +168,19 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
             pos = 100 - pos
         return pos
 
+    @property
+    def target_cover_position(self):
+        pos = None
+        if not self._prop_target_position:
+            return pos
+        pos = self._prop_target_position.from_dict(self._state_attrs)
+        if pos is None:
+            return pos
+        pos = int(pos)
+        if self._motor_reverse:
+            pos = 100 - pos
+        return pos
+
     def set_cover_position(self, **kwargs):
         pos = round(kwargs.get(ATTR_POSITION) or 0)
         srv = self._miot_service
@@ -178,11 +194,15 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     @property
     def is_closed(self):
         cur = self.current_cover_position
-        if cur is None:
-            return None
-        pos = self.custom_config_number('closed_position', 1)
-        isc = cur <= pos
-        return isc
+        if cur is not None:
+            pos = self.custom_config_number('closed_position', 1)
+            return cur <= pos
+        if self._prop_status:
+            sta = int(self._prop_status.from_dict(self._state_attrs) or -1)
+            cvs = self.custom_config_list('closed_status') or []
+            if cvs:
+                return sta in cvs or f'{sta}' in cvs
+        return None
 
     @property
     def is_closing(self):

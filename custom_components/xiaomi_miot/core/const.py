@@ -52,6 +52,13 @@ GLOBAL_CUSTOMIZES = {
                 2: 0,
             },
         },
+        'lumi.sensor_motion.*': {
+            'interval_seconds': 15,
+            'motion_timeout': 60,
+        },
+        'lumi.sensor_magnet.*': {
+            'interval_seconds': 15,
+        },
         'philips.light.cbulb': {
             'miot_cloud_write': True,
             'miot_local_mapping': {
@@ -62,18 +69,11 @@ GLOBAL_CUSTOMIZES = {
                 'light.color_temperature': {'siid': 2, 'piid': 5},
             },
         },
-        'yeelink.light.nl1': {
-            'interval_seconds': 15,
-        },
-        'lumi.sensor_motion.*': {
-            'interval_seconds': 15,
-            'motion_timeout': 60,
-        },
-        'lumi.sensor_magnet.*': {
-            'interval_seconds': 15,
-        },
         'xiaomi.tv.*': {
             'number_properties': 'speaker.volume',
+        },
+        'yeelink.light.nl1': {
+            'interval_seconds': 15,
         },
         '*.airer.*': {
             'sensor_properties': 'left_time',
