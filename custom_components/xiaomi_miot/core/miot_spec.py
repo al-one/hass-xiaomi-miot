@@ -420,22 +420,25 @@ class MiotProperty:
     def device_class(self):
         ret = None
         name = self.full_name
-        if 'temperature' in name:
-            ret = DEVICE_CLASS_TEMPERATURE
-        elif 'humidity' in name:
-            ret = DEVICE_CLASS_HUMIDITY
-        elif 'battery' in name:
-            ret = DEVICE_CLASS_BATTERY
-        elif 'illumination' in name:
-            ret = DEVICE_CLASS_ILLUMINANCE
-        elif 'voltage' in name:
-            ret = DEVICE_CLASS_VOLTAGE
-        elif 'electric_current' in name:
-            ret = DEVICE_CLASS_CURRENT
-        elif 'electric_power' in name:
-            ret = DEVICE_CLASS_POWER
-        elif 'co2' in name:
-            ret = DEVICE_CLASS_CO2
+        props = {
+            'temperature': DEVICE_CLASS_TEMPERATURE,
+            'humidity': DEVICE_CLASS_HUMIDITY,
+            'battery': DEVICE_CLASS_BATTERY,
+            'battery_level': DEVICE_CLASS_BATTERY,
+            'illumination': DEVICE_CLASS_ILLUMINANCE,
+            'voltage': DEVICE_CLASS_VOLTAGE,
+            'electric_current': DEVICE_CLASS_CURRENT,
+            'electric_power': DEVICE_CLASS_POWER,
+            'co2': DEVICE_CLASS_CO2,
+        }
+        if self.name in props:
+            ret = props[self.name]
+        else:
+            for k, v in props.items():
+                if k not in name:
+                    continue
+                ret = v
+                break
         return ret
 
     @property
