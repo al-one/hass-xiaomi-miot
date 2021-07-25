@@ -421,6 +421,7 @@ class MiotProperty:
         ret = None
         name = self.full_name
         props = {
+            'atmospheric_pressure': DEVICE_CLASS_PRESSURE,
             'temperature': DEVICE_CLASS_TEMPERATURE,
             'relative_humidity': DEVICE_CLASS_HUMIDITY,
             'humidity': DEVICE_CLASS_HUMIDITY,
