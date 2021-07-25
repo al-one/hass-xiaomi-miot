@@ -11,7 +11,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     DEVICE_CLASS_MOTION,
     DEVICE_CLASS_DOOR,
-    DEVICE_CLASS_SAFETY,
+    DEVICE_CLASS_MOISTURE,
 )
 
 from . import (
@@ -101,7 +101,7 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
         if miot_service.name in ['submersion_sensor']:
             self._prop_state = miot_service.get_property('submersion_state') or self._prop_state
-            self._vars['device_class'] = DEVICE_CLASS_SAFETY
+            self._vars['device_class'] = DEVICE_CLASS_MOISTURE
 
         self._state_attrs.update({
             'entity_class': self.__class__.__name__,
