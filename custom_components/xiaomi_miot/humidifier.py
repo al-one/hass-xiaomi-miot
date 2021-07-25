@@ -67,7 +67,11 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             self._prop_temperature = self._environment.get_property('temperature') or self._prop_temperature
             self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity') or self._prop_humidity
 
-        if self._prop_mode or self._prop_fan_level or self._prop_water_level:
+        self._humidifier_mode = None
+        self._mode_props = [self._prop_mode, self._prop_fan_level, self._prop_water_level]
+        self._mode_props = list(filter(lambda x: x, self._mode_props))
+        if self._mode_props:
+            self._humidifier_mode = self._mode_props[0]
             self._supported_features = SUPPORT_MODES
 
         self._state_attrs.update({'entity_class': self.__class__.__name__})
@@ -77,18 +81,15 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         if not self._available:
             return
         add_fans = self._add_entities.get('fan')
-        humidifier_mode = None
-        for p in [self._prop_mode, self._prop_fan_level, self._prop_water_level]:
-            if not p:
+        for p in self._mode_props:
+            pnm = p.full_name
+            if self._humidifier_mode and pnm == self._humidifier_mode.full_name:
                 continue
-            if not humidifier_mode:
-                humidifier_mode = p
-                continue
-            if p.name in self._subs:
-                self._subs[p.name].update()
+            if pnm in self._subs:
+                self._subs[pnm].update()
             elif add_fans:
-                self._subs[p.name] = MiotModesSubEntity(self, p)
-                add_fans([self._subs[p.name]])
+                self._subs[pnm] = MiotModesSubEntity(self, p)
+                add_fans([self._subs[pnm]])
 
     @property
     def device_class(self):
@@ -99,9 +100,9 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
 
     @property
     def target_humidity(self):
-        if self._prop_target_humi:
-            return int(self._prop_target_humi.from_dict(self._state_attrs, 0))
-        return None
+        if not self._prop_target_humi:
+            return None
+        return int(self._prop_target_humi.from_dict(self._state_attrs) or 0)
 
     def set_humidity(self, humidity: int):
         if not self._prop_target_humi:
@@ -123,55 +124,48 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
 
     @property
     def min_humidity(self):
-        if self._prop_target_humi:
-            return self._prop_target_humi.range_min()
-        return None
+        if not self._prop_target_humi:
+            return None
+        if self._prop_target_humi.value_list:
+            vls = self._prop_target_humi.list_value(None)
+            vls.sort()
+            return vls[0]
+        return self._prop_target_humi.range_min()
 
     @property
     def max_humidity(self):
-        if self._prop_target_humi:
-            return self._prop_target_humi.range_max()
-        return None
+        if not self._prop_target_humi:
+            return None
+        if self._prop_target_humi.value_list:
+            vls = self._prop_target_humi.list_value(None)
+            vls.sort()
+            return vls[-1]
+        return self._prop_target_humi.range_max()
 
     @property
     def mode(self):
         if not self.is_on:
             return MODE_OFF
-        if self._prop_mode:
-            val = self._prop_mode.from_dict(self._state_attrs)
-            if val is not None:
-                return self._prop_mode.list_description(val)
-        if self._prop_fan_level:
-            val = self._prop_fan_level.from_dict(self._state_attrs)
-            if val is not None:
-                return self._prop_fan_level.list_description(val)
-        if self._prop_water_level:
-            val = self._prop_water_level.from_dict(self._state_attrs)
-            if val is not None:
-                return self._prop_water_level.list_description(val)
-        return None
+        if not self._humidifier_mode:
+            return None
+        val = self._humidifier_mode.from_dict(self._state_attrs)
+        if val is None:
+            return None
+        return self._humidifier_mode.list_description(val)
 
     @property
     def available_modes(self):
         mds = [MODE_OFF]
-        if self._prop_mode:
-            mds.extend(self._prop_mode.list_description(None) or [])
-        elif self._prop_fan_level:
-            mds.extend(self._prop_fan_level.list_description(None) or [])
-        elif self._prop_water_level:
-            mds.extend(self._prop_water_level.list_description(None) or [])
+        if self._humidifier_mode:
+            mds.extend(self._humidifier_mode.list_descriptions() or [])
         return mds
 
     def set_mode(self, mode: str):
         if mode == MODE_OFF:
             return self.turn_off()
-        if self._prop_mode:
-            val = self._prop_mode.list_value(mode)
-            return self.set_property(self._prop_mode.full_name, val)
-        if self._prop_fan_level:
-            val = self._prop_fan_level.list_value(mode)
-            return self.set_property(self._prop_fan_level.full_name, val)
-        if self._prop_water_level:
-            val = self._prop_water_level.list_value(mode)
-            return self.set_property(self._prop_water_level.full_name, val)
-        return False
+        if not self._humidifier_mode:
+            return False
+        val = self._humidifier_mode.list_value(mode)
+        if val is None:
+            return False
+        return self.set_property(self._humidifier_mode.full_name, val)
