@@ -55,6 +55,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 # lumi.motion.agl02
                 # lumi.motion.agl04
                 pass
+            elif model in ['lumi.sensor_wleak.aq1']:
+                pass
             elif not srv.mapping():
                 continue
             if srv.name in ['toilet']:
