@@ -195,6 +195,7 @@ async def async_setup(hass, hass_config: dict):
         except MiCloudException as exc:
             _LOGGER.warning('Setup xiaomi cloud for user: %s failed: %s', config.get(CONF_USERNAME), exc)
 
+    await _handle_device_registry_event(hass)
     return True
 
 
@@ -413,6 +414,23 @@ async def async_setup_config_entry(hass, config_entry, async_setup_platform, asy
     for c in cls:
         await async_setup_platform(hass, c, async_add_entities)
     return cls
+
+
+async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
+    async def updated(event: hass_core.Event):
+        if event.data['action'] != 'update':
+            return
+        registry = hass.data['device_registry']
+        device = registry.async_get(event.data['device_id'])
+        if not device or not device.identifiers:
+            return
+        identifier = next(iter(device.identifiers))
+        if identifier[0] != DOMAIN:
+            return
+        if device.name_by_user in ['delete', 'remove', '删除']:
+            # remove from Hass
+            registry.async_remove_device(device.id)
+    hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, updated)
 
 
 class MiioInfo(MiioInfoBase):
