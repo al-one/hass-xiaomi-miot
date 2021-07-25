@@ -53,11 +53,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             spec = await MiotSpec.async_from_type(hass, miot)
             for srv in spec.get_services(
                 'battery', 'environment', 'water_purifier', 'tds_sensor',
+                'temperature_humidity_sensor', 'illumination_sensor', 'smoke_sensor', 'vibration_sensor',
                 'oven', 'microwave_oven', 'health_pot', 'coffee_machine',
                 'cooker', 'induction_cooker', 'pressure_cooker',
-                'router', 'video_doorbell', 'lock', 'air_fryer', 'smoke_sensor',
-                'temperature_humidity_sensor', 'printer', 'sleep_monitor', 'bed',
-                'pet_feeder', 'fridge_chamber', 'plant_monitor', 'vibration_sensor',
+                'router', 'video_doorbell', 'lock', 'air_fryer', 'printer', 'sleep_monitor', 'bed',
+                'pet_feeder', 'fridge_chamber', 'plant_monitor',
             ):
                 if srv.name in ['lock']:
                     if not srv.get_property('operation_method'):
@@ -76,6 +76,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                         continue
                 elif srv.name in ['temperature_humidity_sensor']:
                     if spec.name not in ['temperature_humidity_sensor']:
+                        continue
+                elif srv.name in ['illumination_sensor']:
+                    if spec.name not in ['illumination_sensor']:
                         continue
                 elif srv.name in ['pet_feeder']:
                     # no readable properties in mmgg.feeder.petfeeder
@@ -154,7 +157,7 @@ class MiotSensorEntity(MiotEntity):
                     'temperature', 'relative_humidity', 'humidity', 'pm2_5_density',
                     'battery_level', 'soil_ec', 'illumination', 'atmospheric_pressure',
                 ],
-                ['temperature_humidity_sensor', 'plant_monitor'],
+                ['temperature_humidity_sensor', 'illumination_sensor', 'plant_monitor'],
                 domain='sensor',
             )
             self._update_sub_entities(
