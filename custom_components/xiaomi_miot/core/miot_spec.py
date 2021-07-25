@@ -422,9 +422,10 @@ class MiotProperty:
         name = self.full_name
         props = {
             'temperature': DEVICE_CLASS_TEMPERATURE,
+            'relative_humidity': DEVICE_CLASS_HUMIDITY,
             'humidity': DEVICE_CLASS_HUMIDITY,
-            'battery': DEVICE_CLASS_BATTERY,
             'battery_level': DEVICE_CLASS_BATTERY,
+            'battery': DEVICE_CLASS_BATTERY,
             'illumination': DEVICE_CLASS_ILLUMINANCE,
             'voltage': DEVICE_CLASS_VOLTAGE,
             'electric_current': DEVICE_CLASS_CURRENT,
