@@ -21,6 +21,7 @@ SUPPORTED_DOMAINS = [
     'vacuum',
     'water_heater',
     'device_tracker',
+    'remote',
     'number',
 ]
 

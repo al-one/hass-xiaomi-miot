@@ -818,7 +818,7 @@ class MiotEntity(MiioEntity):
             return dic
         if self._miot_mapping:
             return self._miot_mapping
-        if self._device:
+        if self._device and hasattr(self._device, 'mapping'):
             return self._device.mapping
         return None
 
