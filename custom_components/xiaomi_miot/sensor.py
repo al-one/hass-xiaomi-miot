@@ -152,7 +152,7 @@ class MiotSensorEntity(MiotEntity):
             self._update_sub_entities(
                 [
                     'temperature', 'relative_humidity', 'humidity', 'pm2_5_density',
-                    'battery_level', 'soil_ec', 'illumination',
+                    'battery_level', 'soil_ec', 'illumination', 'atmospheric_pressure',
                 ],
                 ['temperature_humidity_sensor', 'plant_monitor'],
                 domain='sensor',
