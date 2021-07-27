@@ -921,7 +921,7 @@ class MiotEntity(MiioEntity):
                 if ek in self._state_attrs:
                     self._state_attrs.pop(ek, None)
             else:
-                attrs[ek] = e
+                attrs[ek] = MiotSpec.spec_error(e)
         self._available = True
         self._state = True if attrs.get('power') else False
         attrs['state_updater'] = updater
@@ -1123,11 +1123,13 @@ class MiotEntity(MiioEntity):
             _LOGGER.warning('Call miot action to %s (%s) failed: %s', self.name, pms, exc)
         except MiCloudException as exc:
             _LOGGER.warning('Call miot action to cloud for %s (%s) failed: %s', self.name, pms, exc)
-        ret = dict(result or {}).get('code', 1) == self._success_code
+        eno = dict(result or {}).get('code', 1)
+        ret = eno == self._success_code
         if ret:
             self._vars['delay_update'] = 5
             _LOGGER.debug('Call miot action to %s (%s), result: %s', self.name, pms, result)
         else:
+            self._state_attrs['miot_action_error'] = MiotSpec.spec_error(eno)
             _LOGGER.info('Call miot action to %s (%s) failed: %s', self.name, pms, result)
         self._state_attrs['miot_action_result'] = result
         if kwargs.get('throw'):
