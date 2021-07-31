@@ -382,7 +382,7 @@ async def async_setup_component_services(hass):
                 dls[did] = 1
                 cnt += 1
         if not lst:
-            lst = [f'Not Found in {cnt} devices.']
+            lst = [f'Not Found "{nam}" in {cnt} devices.']
         msg = '\n\n'.join(map(lambda vv: f'{vv}', lst))
         persistent_notification.async_create(
             hass, msg, 'Miot device', f'{DOMAIN}-debug',

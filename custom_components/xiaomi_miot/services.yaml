@@ -159,16 +159,19 @@ intelligent_speaker:
         text:
     execute:
       description: Execute text directive.
+      default: true
       example: true
       selector:
         boolean:
     silent:
       description: Silent execution.
+      default: false
       example: false
       selector:
         boolean:
     throw:
       description: Throw result.
+      default: false
       example: false
       selector:
         boolean:
@@ -185,12 +188,16 @@ get_device_data:
           integration: xiaomi_miot
     type:
       description: Data type.
+      default: prop
       example: prop
       selector:
         select:
           options:
             - prop
             - event
+            - prop_cal_day
+            - prop_cal_week
+            - prop_cal_month
     key:
       description: Data key.
       example: power
@@ -223,6 +230,7 @@ get_device_data:
           mode: box
     group:
       description: Results grouping.
+      default: raw
       example: raw
       selector:
         select:
