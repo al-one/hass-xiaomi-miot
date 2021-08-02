@@ -159,12 +159,12 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
         if now >= self._url_expiration:
             self._last_url = None
             _LOGGER.debug('Miot camera: %s stream: %s expired: %s', self.name, self._last_url, self._url_expiration)
+        result = {}
         if not self._act_start_stream:
             self.update_attrs({
                 'miot_error': 'Nonsupport start hls/rstp stream',
             })
         elif not self._last_url:
-            result = {}
             updater = 'lan'
             try:
                 vda = int(self.custom_config('video_attribute') or 0)
