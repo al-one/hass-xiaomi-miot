@@ -459,6 +459,7 @@ class MiotDevice(MiotDeviceBase):
 
 class BaseEntity(Entity):
     _config = None
+    _model = None
 
     def global_config(self, key=None, default=None):
         if not self.hass:
@@ -633,21 +634,25 @@ class MiioEntity(BaseEntity):
                 self._add_entities = self.hass.data[DOMAIN][eid].get('add_entities') or {}
 
     def custom_config(self, key=None, default=None):
-        ret = super().custom_config(key, None)
+        ret = super().custom_config(key, default)
         if ret is not None:
             return ret
-        wil = re.sub(r'\.[^.]+$', '.*', self._model)
-        mar = [
-            self._model,
-            wil,
-            re.sub(r'^[^.]+\.', '*.', wil),
-        ]
-        for m in mar:
-            cus = GLOBAL_CUSTOMIZES['models'].get(m) or {}
-            if key in cus:
-                default = cus[key]
-                break
-        return default
+        cfg = {}
+        if self._model:
+            wil = re.sub(r'\.[^.]+$', '.*', self._model)
+            mar = [
+                self._model,
+                wil,
+                re.sub(r'^[^.]+\.', '*.', wil),
+            ]
+            for m in mar:
+                cus = GLOBAL_CUSTOMIZES['models'].get(m) or {}
+                if key is not None and key not in cus:
+                    continue
+                if cus:
+                    cfg = cus
+                    break
+        return cfg if key is None else cfg.get(key, default)
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
@@ -1353,6 +1358,7 @@ class BaseSubEntity(BaseEntity):
         self._available = False
         self._parent = parent
         self._attr = attr
+        self._model = parent.device_info.get('model', '')
         self._option = dict(option or {})
         if self._option.get('unique_id'):
             self._unique_id = self._option.get('unique_id')
@@ -1410,6 +1416,28 @@ class BaseSubEntity(BaseEntity):
     def unit_of_measurement(self):
         return self._option.get('unit')
 
+    def custom_config(self, key=None, default=None):
+        ret = super().custom_config(key, default)
+        if ret is not None:
+            return ret
+        cfg = {}
+        if self._model:
+            mar = [
+                f'{self._model}:{self._attr}',
+            ]
+            if hasattr(self, '_miot_property'):
+                prop = getattr(self, '_miot_property')
+                if prop:
+                    mar.append(f'{self._model}:{prop.name}')
+            for m in mar:
+                cus = GLOBAL_CUSTOMIZES['models'].get(m) or {}
+                if key is not None and key not in cus:
+                    continue
+                if cus:
+                    cfg = cus
+                    break
+        return cfg if key is None else cfg.get(key, default)
+
     async def async_added_to_hass(self):
         if self.platform:
             self.update_custom_scan_interval(only_custom=True)
@@ -1420,6 +1448,9 @@ class BaseSubEntity(BaseEntity):
         if self._attr in attrs:
             self._available = True
             self._state = attrs.get(self._attr)
+            svd = self.custom_config_number('value_ratio') or 0
+            if svd:
+                self._state = round(float(self._state) * svd, 2)
             keys = self._option.get('keys', [])
             if isinstance(keys, list):
                 keys.append(self._attr)
@@ -1529,7 +1560,13 @@ class MiotSensorSubEntity(BaseSubEntity):
         key = f'{self._miot_property.full_name}_desc'
         if key in self._state_attrs:
             return f'{self._state_attrs[key]}'.lower()
-        return self._miot_property.from_dict(self._state_attrs, STATE_UNKNOWN)
+        val = self._miot_property.from_dict(self._state_attrs)
+        if val is not None:
+            svd = self.custom_config_number('value_ratio') or 0
+            if svd:
+                val = round(float(val) * svd, 2)
+            return val
+        return STATE_UNKNOWN
 
     def set_parent_property(self, val, prop=None):
         if prop is None:
