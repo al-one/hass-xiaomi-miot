@@ -574,6 +574,7 @@ class MiioEntity(BaseEntity):
         self._success_result = ['ok']
         self._add_entities = {}
         self._vars = {}
+        self._subs = {}
 
     @property
     def unique_id(self):
@@ -692,6 +693,17 @@ class MiioEntity(BaseEntity):
         self._state = attrs.get('power') == 'on'
         self.update_attrs(attrs)
 
+    def _update_attr_sensor_entities(self, attrs, option=None):
+        add_sensors = self._add_entities.get('sensor')
+        for a in attrs:
+            if a not in self._state_attrs:
+                continue
+            if a in self._subs and hasattr(self._subs[a], 'update'):
+                self._subs[a].update()
+            elif add_sensors:
+                self._subs[a] = BaseSubEntity(self, a, option=option)
+                add_sensors([self._subs[a]])
+
     def turn_on(self, **kwargs):
         ret = self._device.on()
         if ret:
@@ -711,6 +723,9 @@ class MiioEntity(BaseEntity):
         if update_parent and hasattr(self, '_parent'):
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
+        pls = self.custom_config_list('sensor_attributes')
+        if pls:
+            self._update_attr_sensor_entities(pls)
         return self._state_attrs
 
 
@@ -751,7 +766,6 @@ class MiotEntity(MiioEntity):
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self._state_attrs['miot_type'] = self._miot_service.spec.type
         self._success_code = 0
-        self._subs = {}
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -988,6 +1002,9 @@ class MiotEntity(MiioEntity):
         pls = self.custom_config_list('miio_properties')
         if pls:
             await self.hass.async_add_executor_job(partial(self.update_miio_props, pls))
+        cls = self.custom_config_json('sensor_miio_commands')
+        if cls:
+            await self.hass.async_add_executor_job(partial(self.update_miio_command_sensors, cls))
 
     def update_miio_props(self, props):
         if not self.miot_device:
@@ -1005,6 +1022,27 @@ class MiotEntity(MiioEntity):
         attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
         _LOGGER.debug('Got miio properties from %s: %s', self.name, attrs)
         self.update_attrs(attrs)
+
+    def update_miio_command_sensors(self, commands):
+        if not self.miot_device or not isinstance(commands, dict):
+            return
+        for cmd, cfg in commands.items():
+            if isinstance(cfg, list):
+                cfg = {'values': cfg}
+            props = cfg.get('values') or []
+            try:
+                attrs = self._device.send(cmd, cfg.get('params') or [])
+            except DeviceException as exc:
+                _LOGGER.warning('Send miio command %s(%s) to %s failed: %s', cmd, cfg, self.name, exc)
+                return
+            if len(props) != len(attrs):
+                self.update_attrs({
+                    f'miio.{cmd}': attrs,
+                })
+                return
+            attrs = dict(zip(props, attrs))
+            _LOGGER.debug('Got miio properties from %s: %s', self.name, attrs)
+            self.update_attrs(attrs)
 
     def get_properties(self, mapping: dict, throw=False, **kwargs):
         if not self.miot_device:
