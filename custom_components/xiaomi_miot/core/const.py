@@ -45,6 +45,21 @@ GLOBAL_CUSTOMIZES = {
         'chuangmi.plug.212a01:electric_power': {
             'value_ratio': 0.01,
         },
+        'chuangmi.plug.v3': {
+            'sensor_miio_commands': {
+                'get_power': {
+                    'params': [],
+                    'values': ['electric_power'],
+                },
+            },
+            'sensor_attributes': 'electric_power',
+        },
+        'chuangmi.plug.v3:miio.electric_power': {
+            'value_ratio': 0.01,
+        },
+        'chuangmi.plug.*': {
+            'sensor_properties': 'temperature',
+        },
         'deerma.humidifier.jsq3': {
             'chunk_properties': 6,
         },
