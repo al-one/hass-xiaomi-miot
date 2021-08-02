@@ -54,7 +54,7 @@ GLOBAL_CUSTOMIZES = {
             },
             'sensor_attributes': 'electric_power',
         },
-        'chuangmi.plug.v3:miio.electric_power': {
+        'chuangmi.plug.v3:electric_power': {
             'value_ratio': 0.01,
         },
         'chuangmi.plug.*': {
