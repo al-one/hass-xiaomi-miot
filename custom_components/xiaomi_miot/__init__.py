@@ -447,10 +447,13 @@ class MiioInfo(MiioInfoBase):
 
 
 class MiotDevice(MiotDeviceBase):
-    def get_properties_for_mapping(self, *, max_properties=12, mapping=None) -> list:
+    def get_properties_for_mapping(self, *, max_properties=12, did=None, mapping=None) -> list:
         if mapping is None:
             mapping = self.mapping
-        properties = [{'did': k, **v} for k, v in mapping.items()]
+        properties = [
+            {'did': k if did is None else str(did), **v}
+            for k, v in mapping.items()
+        ]
         return self.get_properties(
             properties,
             property_getter='get_properties',
@@ -907,13 +910,15 @@ class MiotEntity(MiioEntity):
         updater = 'none'
         results = []
         rmp = {}
+        mmp = self.miot_mapping
+        max_properties = 10
         try:
-            if not self.miot_mapping:
+            if not mmp:
                 pass
             elif self.miot_cloud:
                 updater = 'cloud'
                 results = await self.hass.async_add_executor_job(
-                    partial(self.miot_cloud.get_properties_for_mapping, self.miot_did, self.miot_mapping)
+                    partial(self.miot_cloud.get_properties_for_mapping, self.miot_did, mmp)
                 )
                 if self.custom_config('check_lan'):
                     if self.miot_device:
@@ -923,21 +928,21 @@ class MiotEntity(MiioEntity):
                         return
             elif self.miot_device:
                 updater = 'lan'
-                for k, v in self._device.mapping.items():
+                for k, v in mmp.items():
                     s = v.get('siid')
                     p = v.get('piid')
                     rmp[f'{s}-{p}'] = k
-                max_properties = self.custom_config_integer('chunk_properties') or 10
+                max_properties = self.custom_config_integer('chunk_properties') or max_properties
                 results = await self.hass.async_add_executor_job(
-                    partial(self._device.get_properties_for_mapping, max_properties=max_properties)
+                    partial(self._device.get_properties_for_mapping, did=self.miot_did, max_properties=max_properties)
                 )
             else:
                 _LOGGER.error('Local device and miot cloud not ready %s', self.name)
         except DeviceException as exc:
             self._available = False
             _LOGGER.error(
-                'Got MiioException while fetching the state for %s: %s, mapping: %s',
-                self.name, exc, self.miot_mapping,
+                'Got MiioException while fetching the state for %s: %s, mapping: %s, max_properties: %s',
+                self.name, exc, self.miot_mapping, max_properties,
             )
             return
         except MiCloudException as exc:
