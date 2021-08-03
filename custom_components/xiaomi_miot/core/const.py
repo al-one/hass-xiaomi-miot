@@ -78,6 +78,9 @@ GLOBAL_CUSTOMIZES = {
         'chuangmi.plug.*': {
             'sensor_properties': 'temperature',
         },
+        'cuco.plug.cp1m': {
+            'sensor_properties': 'power_consumption,voltage,electric_current',
+        },
         'deerma.humidifier.jsq3': {
             'chunk_properties': 6,
         },
