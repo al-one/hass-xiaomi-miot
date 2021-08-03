@@ -14,10 +14,6 @@ from homeassistant.components.light import (
     ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
     ATTR_EFFECT,
-    COLOR_MODE_ONOFF,
-    COLOR_MODE_BRIGHTNESS,
-    COLOR_MODE_COLOR_TEMP,
-    COLOR_MODE_HS,
 )
 from homeassistant.util import color
 
@@ -38,6 +34,20 @@ from miio.utils import (
     rgb_to_int,
     int_to_rgb,
 )
+
+try:
+    # hass 2021.4.0b0+
+    from homeassistant.components.light import (
+        COLOR_MODE_ONOFF,
+        COLOR_MODE_BRIGHTNESS,
+        COLOR_MODE_COLOR_TEMP,
+        COLOR_MODE_HS,
+    )
+except ImportError:
+    COLOR_MODE_ONOFF = 'onoff'
+    COLOR_MODE_BRIGHTNESS = 'brightness'
+    COLOR_MODE_COLOR_TEMP = 'color_temp'
+    COLOR_MODE_HS = 'hs'
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
