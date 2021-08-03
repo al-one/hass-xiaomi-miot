@@ -1312,6 +1312,10 @@ class MiotEntity(MiioEntity):
             pls = s.get_properties(*cv.ensure_list(properties))
             for p in pls:
                 fnm = p.unique_name
+                opt = {
+                    'unique_id': f'{self.unique_did}-{fnm}',
+                    **(option or {}),
+                }
                 tms = self._check_same_sub_entity(fnm, domain)
                 new = True
                 if fnm in self._subs:
@@ -1326,32 +1330,32 @@ class MiotEntity(MiioEntity):
                         act = s.get_action('pet_food_out')
                         if not act:
                             continue
-                        self._subs[fnm] = MiotSwitchActionSubEntity(self, p, act, option=option)
+                        self._subs[fnm] = MiotSwitchActionSubEntity(self, p, act, option=opt)
                         add_switches([self._subs[fnm]])
                     continue
                 elif add_switches and domain == 'switch' and p.format == 'bool' and p.writeable:
-                    self._subs[fnm] = MiotSwitchSubEntity(self, p, option=option)
+                    self._subs[fnm] = MiotSwitchSubEntity(self, p, option=opt)
                     add_switches([self._subs[fnm]])
                 elif add_binary_sensors and domain == 'binary_sensor' and p.format == 'bool':
-                    self._subs[fnm] = MiotBinarySensorSubEntity(self, p, option=option)
+                    self._subs[fnm] = MiotBinarySensorSubEntity(self, p, option=opt)
                     add_binary_sensors([self._subs[fnm]])
                 elif add_sensors and domain == 'sensor':
                     if p.full_name == self._state_attrs.get('state_property'):
                         continue
-                    self._subs[fnm] = MiotSensorSubEntity(self, p, option=option)
+                    self._subs[fnm] = MiotSensorSubEntity(self, p, option=opt)
                     add_sensors([self._subs[fnm]])
                 elif add_fans and domain == 'fan':
-                    self._subs[fnm] = MiotModesSubEntity(self, p, option=option)
+                    self._subs[fnm] = MiotModesSubEntity(self, p, option=opt)
                     add_fans([self._subs[fnm]])
                 elif add_covers and domain == 'cover':
-                    self._subs[fnm] = MiotCoverSubEntity(self, p, option=option)
+                    self._subs[fnm] = MiotCoverSubEntity(self, p, option=opt)
                     add_covers([self._subs[fnm]])
                 elif add_numbers and domain == 'number':
-                    self._subs[fnm] = MiotNumberSubEntity(self, p, option=option)
+                    self._subs[fnm] = MiotNumberSubEntity(self, p, option=opt)
                     add_numbers([self._subs[fnm]])
                 elif add_selects and domain == 'select' and (p.value_list or p.value_range):
                     from .select import MiotSelectSubEntity
-                    self._subs[fnm] = MiotSelectSubEntity(self, p, option=option)
+                    self._subs[fnm] = MiotSelectSubEntity(self, p, option=opt)
                     add_selects([self._subs[fnm]])
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
