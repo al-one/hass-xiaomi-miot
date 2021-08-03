@@ -312,6 +312,7 @@ async def async_unload_entry(hass: hass_core.HomeAssistant, config_entry: config
     )
     if unload_ok:
         hass.data[DOMAIN].pop(config_entry.entry_id, None)
+        hass.data[DOMAIN]['sub_entities'] = {}
     return unload_ok
 
 
@@ -625,9 +626,6 @@ class MiioEntity(BaseEntity):
         }
 
     async def async_added_to_hass(self):
-        if not self.hass:
-            self._add_entities = self.hass.data[DOMAIN].get('add_entities') or {}
-            return
         if self.platform:
             self.update_custom_scan_interval()
             if self.platform.config_entry:
@@ -693,15 +691,38 @@ class MiioEntity(BaseEntity):
         self.update_attrs(attrs)
 
     def _update_attr_sensor_entities(self, attrs, option=None):
-        add_sensors = self._add_entities.get('sensor')
+        domain = 'sensor'
+        add_sensors = self._add_entities.get(domain)
+        opt = {**(option or {})}
         for a in attrs:
+            p = a
+            if ':' in a:
+                p = a
+                kys = a.split(':')
+                a = kys[0]
+                opt['dict_key'] = kys[1]
             if a not in self._state_attrs:
                 continue
-            if a in self._subs and hasattr(self._subs[a], 'update'):
-                self._subs[a].update()
+            tms = self._check_same_sub_entity(p, domain)
+            if p in self._subs and hasattr(self._subs[p], 'update'):
+                self._subs[p].update()
+                self._check_same_sub_entity(p, domain, add=1)
+            elif tms > 0:
+                if tms <= 1:
+                    _LOGGER.info('Device %s sub entity %s: %s already exists.', self.name, domain, p)
+                continue
             elif add_sensors:
-                self._subs[a] = BaseSubEntity(self, a, option=option)
-                add_sensors([self._subs[a]])
+                option = {'unique_id': f'{self._unique_did}-{p}', **opt}
+                self._subs[p] = BaseSubEntity(self, a, option=option)
+                add_sensors([self._subs[p]])
+                self._check_same_sub_entity(p, domain, add=1)
+
+    def _check_same_sub_entity(self, name, domain=None, add=0):
+        uni = f'{self._unique_did}-{name}-{domain}'
+        pre = int(self.hass.data[DOMAIN]['sub_entities'].get(uni) or 0)
+        if add and pre < 999999:
+            self.hass.data[DOMAIN]['sub_entities'][uni] = pre + add
+        return pre
 
     def turn_on(self, **kwargs):
         ret = self._device.on()
@@ -998,9 +1019,18 @@ class MiotEntity(MiioEntity):
             attrs['sub_entities'] = list(self._subs.keys())
         self.update_attrs(attrs)
         _LOGGER.debug('Got new state from %s: %s', self.name, attrs)
+
+        # update miio prop/event in cloud
+        cls = self.custom_config_list('miio_cloud_records')
+        if cls:
+            await self.hass.async_add_executor_job(partial(self.update_miio_cloud_records, cls))
+
+        # update miio properties in lan
         pls = self.custom_config_list('miio_properties')
         if pls:
             await self.hass.async_add_executor_job(partial(self.update_miio_props, pls))
+
+        # update miio commands in lan
         cls = self.custom_config_json('sensor_miio_commands')
         if cls:
             await self.hass.async_add_executor_job(partial(self.update_miio_command_sensors, cls))
@@ -1041,6 +1071,34 @@ class MiotEntity(MiioEntity):
                 return
             attrs = dict(zip(props, attrs))
             _LOGGER.debug('Got miio properties from %s: %s', self.name, attrs)
+            self.update_attrs(attrs)
+
+    def update_miio_cloud_records(self, keys):
+        did = self.miot_did
+        mic = self.miot_cloud
+        if not did or not mic:
+            return
+        attrs = {}
+        for c in keys:
+            mat = re.match(r'^\s*(?:(\w+)\.?)(\w+)(?::(\d+))?\s*$', c)
+            if not mat:
+                continue
+            typ, key, lmt = mat.groups()
+            rdt = mic.get_user_device_data(did, key, typ, limit=int(lmt)) or []
+            tpl = self.custom_config(f'miio_{typ}_{key}_template')
+            if tpl:
+                tpl = cv.template(tpl)
+                tpl.hass = self.hass
+            if tpl:
+                rls = tpl.render({'result': rdt})
+            else:
+                rls = [
+                    v.get('value')
+                    for v in rdt
+                    if 'value' in v
+                ]
+            attrs[f'{typ}.{key}'] = rls
+        if attrs:
             self.update_attrs(attrs)
 
     def get_properties(self, mapping: dict, throw=False, **kwargs):
@@ -1294,13 +1352,6 @@ class MiotEntity(MiioEntity):
                     self._check_same_sub_entity(fnm, domain, add=1)
                     _LOGGER.debug('Added sub entity %s: %s for %s.', domain, fnm, self.name)
 
-    def _check_same_sub_entity(self, name, domain=None, add=0):
-        uni = f'{self._unique_did}-{name}-{domain}'
-        pre = int(self.hass.data[DOMAIN]['sub_entities'].get(uni) or 0)
-        if add and pre < 999999:
-            self.hass.data[DOMAIN]['sub_entities'][uni] = pre + add
-        return pre
-
     async def async_get_device_data(self, key, did=None, throw=False, **kwargs):
         if did is None:
             did = self.miot_did
@@ -1397,6 +1448,10 @@ class BaseSubEntity(BaseEntity):
         self._attr = attr
         self._model = parent.device_info.get('model', '')
         self._option = dict(option or {})
+        self._dict_key = self._option.get('dict_key')
+        if self._dict_key:
+            self._unique_id = f'{self._unique_id}-{self._dict_key}'
+            self._name = f'{self._name} {self._dict_key}'
         if self._option.get('unique_id'):
             self._unique_id = self._option.get('unique_id')
         if self._option.get('name'):
@@ -1459,9 +1514,11 @@ class BaseSubEntity(BaseEntity):
             return ret
         cfg = {}
         if self._model:
-            mar = [
-                f'{self._model}:{self._attr}',
-            ]
+            mar = []
+            if self._dict_key:
+                mar.append(f'{self._model}:{self._attr}:{self._dict_key}')
+            else:
+                mar.append(f'{self._model}:{self._attr}')
             if hasattr(self, '_miot_property'):
                 prop = getattr(self, '_miot_property')
                 if prop:
@@ -1477,6 +1534,8 @@ class BaseSubEntity(BaseEntity):
     async def async_added_to_hass(self):
         if self.platform:
             self.update_custom_scan_interval(only_custom=True)
+        if not self.unit_of_measurement:
+            self._option['unit'] = self.custom_config('unit_of_measurement')
 
     def update(self):
         attrs = self._parent.extra_state_attributes or {}
@@ -1484,9 +1543,11 @@ class BaseSubEntity(BaseEntity):
         if self._attr in attrs:
             self._available = True
             self._state = attrs.get(self._attr)
+            if self._dict_key and isinstance(self._state_attrs, dict):
+                self._state = self._state.get(self._dict_key)
             svd = self.custom_config_number('value_ratio') or 0
             if svd:
-                self._state = round(float(self._state) * svd, 2)
+                self._state = round(float(self._state) * svd, 3)
             keys = self._option.get('keys', [])
             if isinstance(keys, list):
                 keys.append(self._attr)
@@ -1600,7 +1661,7 @@ class MiotSensorSubEntity(BaseSubEntity):
         if val is not None:
             svd = self.custom_config_number('value_ratio') or 0
             if svd:
-                val = round(float(val) * svd, 2)
+                val = round(float(val) * svd, 3)
             return val
         return STATE_UNKNOWN
 

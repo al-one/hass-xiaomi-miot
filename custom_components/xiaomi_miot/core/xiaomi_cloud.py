@@ -61,7 +61,6 @@ class MiotCloud(micloud.MiCloud):
     def get_user_device_data(self, did, key, typ='prop', raw=False, **kwargs):
         now = int(time.time())
         params = {
-            "uid": self.user_id,
             "did": did,
             "key": key,
             "type": typ,
@@ -124,7 +123,7 @@ class MiotCloud(micloud.MiCloud):
         return False
 
     def request_miot_api(self, api, data: dict, debug=True):
-        url = self._get_api_url(self.default_server) + '/' + api
+        url = self.get_api_url(api)
         rsp = self.request(url, {
             'data': json.dumps(data, separators=(',', ':')),
         })
@@ -264,3 +263,11 @@ class MiotCloud(micloud.MiCloud):
             await store.async_save(cfg)
             return cfg
         return old
+
+    def get_api_url(self, api):
+        if api[:6] == 'https:' or api[:5] == 'http:':
+            url = api
+        else:
+            api = str(api).lstrip('/')
+            url = self._get_api_url(self.default_server) + '/' + api
+        return url

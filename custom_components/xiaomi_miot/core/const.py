@@ -46,16 +46,34 @@ GLOBAL_CUSTOMIZES = {
             'value_ratio': 0.01,
         },
         'chuangmi.plug.v3': {
+            'sensor_attributes': 'electric_power,prop_cal_day.power_cost:today,prop_cal_day.power_cost:month',
             'sensor_miio_commands': {
                 'get_power': {
                     'params': [],
                     'values': ['electric_power'],
                 },
             },
-            'sensor_attributes': 'electric_power',
+            'miio_cloud_records': 'prop_cal_day.power_cost:31',
+            'miio_prop_cal_day_power_cost_template': "{{ {"
+                                                     "'today': result.0.value.pc,"
+                                                     "'today_duration': result.0.value.pc_time,"
+                                                     "'month': result[:now().day] |"
+                                                     "sum(attribute='value.pc'),"
+                                                     "'month_duration': result[:now().day] |"
+                                                     "sum(attribute='value.pc_time'),"
+                                                     "} }}",
         },
         'chuangmi.plug.v3:electric_power': {
             'value_ratio': 0.01,
+            'unit_of_measurement': 'W',
+        },
+        'chuangmi.plug.v3:prop_cal_day.power_cost:today': {
+            'value_ratio': 0.001,
+            'unit_of_measurement': 'kWh',
+        },
+        'chuangmi.plug.v3:prop_cal_day.power_cost:month': {
+            'value_ratio': 0.001,
+            'unit_of_measurement': 'kWh',
         },
         'chuangmi.plug.*': {
             'sensor_properties': 'temperature',
