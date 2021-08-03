@@ -290,8 +290,9 @@ class MiotProperty:
                 self.full_name = f'{service.unique_name}.{self.name}'
             if self.full_name in service.spec.services_properties:
                 self.full_name = f'{service.unique_name}.{self.desc_name}'
-            if self.full_name in service.spec.services_properties:
-                self.full_name = f'{service.unique_name}.{self.desc_name}-{self.iid}'
+            if len(self.full_name) >= 32:
+                # miot did length must less than 32
+                self.full_name = f'{self.desc_name}-{self.siid}-{self.iid}'
             service.spec.services_properties[self.full_name] = {
                 'siid': self.siid,
                 'piid': self.iid,
