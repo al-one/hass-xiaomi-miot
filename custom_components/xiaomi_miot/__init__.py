@@ -651,8 +651,7 @@ class MiioEntity(BaseEntity):
                 if key is not None and key not in cus:
                     continue
                 if cus:
-                    cfg = cus
-                    break
+                    cfg = {**cus, **cfg}
         return cfg if key is None else cfg.get(key, default)
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
@@ -1472,8 +1471,7 @@ class BaseSubEntity(BaseEntity):
                 if key is not None and key not in cus:
                     continue
                 if cus:
-                    cfg = cus
-                    break
+                    cfg = {**cus, **cfg}
         return cfg if key is None else cfg.get(key, default)
 
     async def async_added_to_hass(self):
