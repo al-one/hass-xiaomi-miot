@@ -52,11 +52,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         if miot:
             spec = await MiotSpec.async_from_type(hass, miot)
             for srv in spec.get_services(
-                'battery', 'environment', 'water_purifier', 'tds_sensor',
+                'battery', 'environment', 'water_purifier', 'tds_sensor', 'switch_sensor',
                 'temperature_humidity_sensor', 'illumination_sensor', 'smoke_sensor', 'vibration_sensor',
+                'router', 'video_doorbell', 'lock', 'air_fryer', 'printer', 'sleep_monitor', 'bed',
                 'oven', 'microwave_oven', 'health_pot', 'coffee_machine',
                 'cooker', 'induction_cooker', 'pressure_cooker',
-                'router', 'video_doorbell', 'lock', 'air_fryer', 'printer', 'sleep_monitor', 'bed',
                 'pet_feeder', 'fridge_chamber', 'plant_monitor',
             ):
                 if srv.name in ['lock']:
@@ -66,7 +66,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                     if not (srv.mapping() or spec.get_service('battery')):
                         continue
                 elif srv.name in ['battery']:
-                    if spec.name not in ['video_doorbell']:
+                    if spec.name not in ['video_doorbell', 'switch_sensor']:
                         continue
                 elif srv.name in ['environment']:
                     if spec.name not in ['air_monitor']:
