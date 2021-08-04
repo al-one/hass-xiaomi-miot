@@ -132,6 +132,11 @@ class MiotSensorEntity(MiotEntity):
     async def async_update(self):
         await super().async_update()
         if self._available:
+            if self._miot_service.name in ['lock']:
+                if 'event.11' in self._state_attrs and self._prop_state.full_name not in self._state_attrs:
+                    self.update_attrs({
+                        self._prop_state.full_name: self._state_attrs.get('event.11', {}).get('method'),
+                    })
             self._prop_state.description_to_dict(self._state_attrs)
             self._update_sub_entities('on', domain='switch')
             self._update_sub_entities(

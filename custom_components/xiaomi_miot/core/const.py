@@ -130,6 +130,33 @@ GLOBAL_CUSTOMIZES = {
         '*.fishbowl.*': {
             'switch_properties': 'feeding_measure',
         },
+        '*.lock.*': {
+            'sensor_attributes': 'event.7:door_state,event.11:lock_state,event.11:key_id',
+            'miio_cloud_records': 'event.7:1,event.11:1',
+            'miio_event_7_template':  "{%- set val = (result.0.value | from_json).0 | string %}"
+                                      "{%- set evt = val[:2] | int(-1,16) %}"
+                                      "{{ {"
+                                      "'door_event': evt,"
+                                      "'door_state': ['open','close','close_timeout','knock','breaking','stuck'][evt],"
+                                      "} }}",
+            'miio_event_11_template': "{%- set val = (result.0.value | from_json).0 | string %}"
+                                      "{%- set evt = val[:2] | int(-1,16) % 16 %}"
+                                      "{%- set how = val[:2] | int(-1,16) // 16 %}"
+                                      "{%- set key = (0).from_bytes((0).to_bytes(0,'little')"
+                                      ".fromhex(val[2:10]), 'little') %}"
+                                      "{%- set els = ['outside_unlock','lock','anti_lock_on','anti_lock_off',"
+                                      "'inside_unlock','lock_inside','child_lock_on','child_lock_off'] %}"
+                                      "{%- set mls = ['bluetooth','password','biological','key','turntable',"
+                                      "'nfc','one-time password','two-step verification','coercion','homekit',"
+                                      "'manual','automatic'] %}"
+                                      "{{ {"
+                                      "'lock_event': evt,"
+                                      "'lock_state': els[evt],"
+                                      "'method_id': how,"
+                                      "'method': mls[how],"
+                                      "'key_id': key,"
+                                      "} }}",
+        },
     },
 
 }
