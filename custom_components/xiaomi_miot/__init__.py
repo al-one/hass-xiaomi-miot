@@ -1552,7 +1552,7 @@ class BaseSubEntity(BaseEntity):
         if self._attr in attrs:
             self._available = True
             self._state = attrs.get(self._attr)
-            if self._dict_key and isinstance(self._state_attrs, dict):
+            if self._dict_key and isinstance(self._state, dict):
                 self._state = self._state.get(self._dict_key)
             svd = self.custom_config_number('value_ratio') or 0
             if svd:
