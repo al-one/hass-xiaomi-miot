@@ -110,6 +110,17 @@ GLOBAL_CUSTOMIZES = {
                 'light.color_temperature': {'siid': 2, 'piid': 5},
             },
         },
+        'rockrobo.vacuum.*': {
+            'sensor_attributes': 'status:clean_area,status:clean_time',
+            'sensor_miio_commands': {
+                'get_status': ['status'],
+            },
+        },
+        'viomi.vacuum.*': {
+            'sensor_attributes': 'miio.s_area,miio.s_time',
+            'miio_properties': 'run_state,mode,err_state,battary_life,box_type,mop_type,s_time,s_area,'
+                               'suction_grade,water_grade,remember_map,has_map,is_mop,has_newmap',
+        },
         'xiaomi.tv.*': {
             'number_properties': 'speaker.volume',
         },
