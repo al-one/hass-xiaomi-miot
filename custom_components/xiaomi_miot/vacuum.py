@@ -244,12 +244,12 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
 
     def clean_spot(self, **kwargs):
         """Perform a spot clean-up."""
-        return self.send_command('app_spot')
+        return self.send_miio_command('app_spot')
 
     def locate(self, **kwargs):
         """Locate the vacuum cleaner."""
         if not self._act_locate:
-            return self.send_command('find_me', [''])
+            return self.send_miio_command('find_me', [''])
         return super().locate()
 
     def send_vacuum_command(self, command, params=None, **kwargs):
@@ -257,7 +257,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         dvc = self.miot_device
         if not dvc:
             raise NotImplementedError()
-        return self.send_command(command, params)
+        return self.send_miio_command(command, params)
 
 
 class MiotViomiVacuumEntity(MiotVacuumEntity):
@@ -268,7 +268,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
     def locate(self, **kwargs):
         """Locate the vacuum cleaner."""
         if not self._act_locate:
-            return self.send_command('set_resetpos', [1])
+            return self.send_miio_command('set_resetpos', [1])
         return super().locate()
 
     def send_vacuum_command(self, command, params=None, **kwargs):
@@ -286,7 +286,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
             return self.clean_zones(lst, rpt)
         elif command == 'app_goto_target':
             return self.clean_point(params)
-        return self.send_command(command, params)
+        return self.send_miio_command(command, params)
 
     def clean_zones(self, zones, repeats=1):
         result = []
@@ -298,10 +298,10 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
                 result.append(res)
                 i += 1
         result = [i, *result]
-        self.send_command('set_uploadmap', [1])
-        self.send_command('set_zone', result)
-        return self.send_command('set_mode', [3, 1])
+        self.send_miio_command('set_uploadmap', [1])
+        self.send_miio_command('set_zone', result)
+        return self.send_miio_command('set_mode', [3, 1])
 
     def clean_point(self, point):
-        self.send_command('set_uploadmap', [0])
-        return self.send_command('set_pointclean', [1, *point])
+        self.send_miio_command('set_uploadmap', [0])
+        return self.send_miio_command('set_pointclean', [1, *point])

@@ -20,6 +20,12 @@ send_command:
       required: true
       selector:
         object:
+    throw:
+      description: Throw result.
+      default: false
+      example: false
+      selector:
+        boolean:
 
 get_properties:
   description: Get miot properties.
@@ -39,6 +45,7 @@ get_properties:
         object:
     throw:
       description: Throw properties.
+      default: true
       example: true
       selector:
         boolean:
@@ -136,6 +143,7 @@ call_action:
         object:
     throw:
       description: Throw result.
+      default: false
       example: false
       selector:
         boolean:

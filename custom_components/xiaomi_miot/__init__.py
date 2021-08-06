@@ -69,6 +69,7 @@ SERVICE_TO_METHOD_BASE = {
             {
                 vol.Required('method'): cv.string,
                 vol.Optional('params', default=[]): cv.ensure_list,
+                vol.Optional('throw', default=False): cv.boolean,
             },
         ),
     },
@@ -665,7 +666,7 @@ class MiioEntity(BaseEntity):
             self._available = False
         return False
 
-    def send_command(self, method, params=None):
+    def send_miio_command(self, method, params=None, **kwargs):
         _LOGGER.debug('Send miio command to %s: %s(%s)', self.name, method, params)
         try:
             result = self._device.send(method, params if params is not None else [])
@@ -675,14 +676,28 @@ class MiioEntity(BaseEntity):
         ret = result == self._success_result
         if not ret:
             _LOGGER.info('Send miio command to %s failed: %s(%s), result: %s', self.name, method, params, result)
+        if kwargs.get('throw'):
+            persistent_notification.create(
+                self.hass,
+                f'{result}',
+                'Miio command result',
+                f'{DOMAIN}-debug',
+            )
         return ret
 
-    async def async_command(self, method, params=None):
-        return await self.hass.async_add_executor_job(partial(self.send_command, method, params))
+    def send_command(self, method, params=None, **kwargs):
+        return self.send_miio_command(method, params, **kwargs)
+
+    async def async_command(self, method, params=None, **kwargs):
+        return await self.hass.async_add_executor_job(
+            partial(self.send_miio_command, method, params, **kwargs)
+        )
 
     async def async_update(self):
         try:
-            attrs = await self.hass.async_add_executor_job(partial(self._device.get_properties, self._props))
+            attrs = await self.hass.async_add_executor_job(
+                partial(self._device.get_properties, self._props)
+            )
         except DeviceException as ex:
             self._available = False
             _LOGGER.error('Got exception while fetching the state for %s (%s): %s', self.name, self._props, ex)
@@ -898,10 +913,10 @@ class MiotEntity(MiioEntity):
             self._available = False
         return False
 
-    def send_command(self, method, params=None):
+    def send_miio_command(self, method, params=None, **kwargs):
         if self.miot_device:
-            return super().send_command(method, params)
-        _LOGGER.error('None local device for send command to %s', self.name)
+            return super().send_miio_command(method, params, **kwargs)
+        _LOGGER.error('None local device for send miio command %s(%s) to %s', method, params, self.name)
 
     async def async_update(self):
         if self._vars.get('delay_update'):

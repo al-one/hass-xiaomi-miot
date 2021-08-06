@@ -494,7 +494,7 @@ class MrBondAirerProEntity(MiioCoverEntity):
                 add_fans([self._subs['fan']])
 
     def set_motor(self, val):
-        ret = self.send_command('set_motor', [val])
+        ret = self.send_miio_command('set_motor', [val])
         if ret:
             self.update_attrs({'motor': val})
             self._is_opening = val == 1
@@ -515,18 +515,18 @@ class MrBondAirerProEntity(MiioCoverEntity):
         return self.set_motor(0)
 
     def set_led(self, val):
-        ret = self.send_command('set_led', [val])
+        ret = self.send_miio_command('set_led', [val])
         if ret:
             self.update_attrs({'led': val})
         return ret
 
     def set_dry(self, lvl):
         if lvl == 0:
-            ret = self.send_command('set_dryswitch', [0])
+            ret = self.send_miio_command('set_dryswitch', [0])
         elif lvl >= 4:
-            ret = self.send_command('set_dryswitch', [1])
+            ret = self.send_miio_command('set_dryswitch', [1])
         else:
-            ret = self.send_command('set_dry', [lvl])
+            ret = self.send_miio_command('set_dry', [lvl])
         if ret:
             self.update_attrs({'dry': lvl})
         return ret

@@ -421,7 +421,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
                         add_switches([self._subs[k]])
 
     def turn_on(self, **kwargs):
-        ret = self.send_command('power_all', [1])
+        ret = self.send_miio_command('power_all', [1])
         if ret:
             full = (1 << 16) - 1
             self.update_attrs({
@@ -433,7 +433,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
         return ret
 
     def turn_off(self, **kwargs):
-        ret = self.send_command('power_all', [0])
+        ret = self.send_miio_command('power_all', [0])
         if ret:
             self.update_attrs({
                 'relay_status_g1': 0,
@@ -458,13 +458,13 @@ class PwznRelaySwitchSubEntity(SwitchSubEntity):
 
     def turn_parent(self, on):
         if self._attr == 'g2Enable':
-            ret = self.call_parent('send_command', 'set_g2enable', [1 if on else 0])
+            ret = self.call_parent('send_miio_command', 'set_g2enable', [1 if on else 0])
         elif self._attr == 'codeEnable':
-            ret = self.call_parent('send_command', 'set_codeEnable', [1 if on else 0])
+            ret = self.call_parent('send_miio_command', 'set_codeEnable', [1 if on else 0])
         elif isinstance(self._parent, MiotPwznRelaySwitchEntity):
             ret = self.call_parent('turn_channel', self._switch_index, on)
         else:
-            ret = self.call_parent('send_command', 'power_on' if on else 'power_off', [self._switch_index])
+            ret = self.call_parent('send_miio_command', 'power_on' if on else 'power_off', [self._switch_index])
         if ret:
             self.update_attrs({
                 self._attr: STATE_ON if on else STATE_OFF
