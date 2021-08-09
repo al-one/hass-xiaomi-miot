@@ -125,6 +125,7 @@ doamin.your_entity_id:
     - [filter](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:filter:0000780B)
     - [fridge-chamber](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:fridge-chamber:0000781A)
     - [fridge](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:fridge:00007819)
+    - [gas-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:gas-sensor:00007837)
     - [health-pot](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:health-pot:00007860)
     - [illumination-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:illumination-sensor:0000783D)
     - [induction-cooker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:induction-cooker:0000A033)

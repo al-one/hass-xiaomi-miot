@@ -53,10 +53,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             spec = await MiotSpec.async_from_type(hass, miot)
             for srv in spec.get_services(
                 'battery', 'environment', 'water_purifier', 'tds_sensor', 'switch_sensor',
-                'temperature_humidity_sensor', 'illumination_sensor', 'smoke_sensor', 'vibration_sensor',
-                'router', 'video_doorbell', 'lock', 'air_fryer', 'printer', 'sleep_monitor', 'bed',
+                'temperature_humidity_sensor', 'illumination_sensor', 'vibration_sensor',
+                'gas_sensor', 'smoke_sensor',
+                'router', 'video_doorbell', 'lock', 'printer', 'sleep_monitor', 'bed',
                 'oven', 'microwave_oven', 'health_pot', 'coffee_machine',
-                'cooker', 'induction_cooker', 'pressure_cooker',
+                'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer',
                 'pet_feeder', 'fridge_chamber', 'plant_monitor',
             ):
                 if srv.name in ['lock']:
@@ -115,6 +116,8 @@ class MiotSensorEntity(MiotEntity):
             self._prop_state = miot_service.get_property('temperature', 'indoor_temperature') or self._prop_state
         elif miot_service.name in ['sleep_monitor']:
             self._prop_state = miot_service.get_property('sleep_state') or self._prop_state
+        elif miot_service.name in ['gas_sensor']:
+            self._prop_state = miot_service.get_property('gas_concentration') or self._prop_state
         elif miot_service.name in ['smoke_sensor']:
             self._prop_state = miot_service.get_property('smoke_concentration') or self._prop_state
 

@@ -8,6 +8,7 @@ from homeassistant.helpers.storage import Store
 
 _LOGGER = logging.getLogger(__name__)
 
+# https://iot.mi.com/new/doc/guidelines-for-access/other-platform-access/control-api#MIOT%E7%8A%B6%E6%80%81%E7%A0%81
 SPEC_ERRORS = {
     '000': 'Unknown',
     '001': 'Device does not exist',
@@ -47,6 +48,7 @@ SPEC_ERRORS = {
 }
 
 
+# https://iot.mi.com/new/doc/design/spec/xiaoai
 class MiotSpec:
     def __init__(self, dat: dict):
         self.raw = dat
@@ -169,6 +171,7 @@ class MiotSpec:
         return err
 
 
+# https://miot-spec.org/miot-spec-v2/spec/services
 class MiotService:
     def __init__(self, dat: dict, spec: MiotSpec):
         self.spec = spec
@@ -269,6 +272,7 @@ class MiotService:
         return self
 
 
+# https://miot-spec.org/miot-spec-v2/spec/properties
 class MiotProperty:
     def __init__(self, dat: dict, service: MiotService):
         self.service = service
@@ -521,6 +525,7 @@ class MiotProperty:
         return icon
 
 
+# https://miot-spec.org/miot-spec-v2/spec/actions
 class MiotAction:
     def __init__(self, dat: dict, service: MiotService):
         self.service = service
