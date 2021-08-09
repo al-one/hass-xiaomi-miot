@@ -119,9 +119,12 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
 
         if self._prop_brightness and ATTR_BRIGHTNESS in kwargs:
             brightness = kwargs[ATTR_BRIGHTNESS]
-            percent_brightness = round(100 * brightness / 255)
-            _LOGGER.debug('Setting light: %s brightness: %s %s%%', self.name, brightness, percent_brightness)
-            ret = self.set_property(self._prop_brightness.full_name, percent_brightness)
+            per = brightness / 255
+            val = per * 100
+            if self._prop_brightness.value_range:
+                val = per * self._prop_brightness.range_max()
+            _LOGGER.debug('Setting light: %s brightness: %s %s%%', self.name, brightness, per * 100)
+            ret = self.set_property(self._prop_brightness.full_name, round(val))
 
         if self._prop_color_temp and ATTR_COLOR_TEMP in kwargs:
             mired = kwargs[ATTR_COLOR_TEMP]
