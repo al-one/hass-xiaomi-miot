@@ -62,7 +62,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(ENTITY_DOMAIN):
             if not srv.get_property('status'):
                 continue
-            if 'roborock.' in model:
+            if 'roborock.' in model or 'rockrobo.' in model:
                 entities.append(MiotRoborockVacuumEntity(config, srv))
             elif 'viomi.' in model:
                 entities.append(MiotViomiVacuumEntity(config, srv))
