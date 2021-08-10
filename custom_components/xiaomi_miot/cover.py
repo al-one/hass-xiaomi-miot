@@ -135,14 +135,18 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     def current_cover_position(self):
         pos = -1
         if self._prop_current_position:
-            cur = self._prop_current_position.from_dict(self._state_attrs)
+            try:
+                cur = round(self._prop_current_position.from_dict(self._state_attrs), 2)
+            except (TypeError, ValueError):
+                cur = None
             if cur is None:
                 return None
+            pos = cur
             range_max = self._prop_current_position.range_max()
             dic = self.custom_config_json('cover_position_mapping')
             if dic:
                 if cur in dic:
-                    pos = dic.get(cur)
+                    pos = dic.get(cur, cur)
             elif self._prop_current_position.value_list:
                 # mrbond.airer.m53c
                 for v in self._prop_current_position.value_list:
