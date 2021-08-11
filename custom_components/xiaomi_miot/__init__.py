@@ -3,6 +3,7 @@ import logging
 import asyncio
 import socket
 import json
+import time
 import re
 from datetime import timedelta
 from functools import partial
@@ -1104,7 +1105,8 @@ class MiotEntity(MiioEntity):
             if not mat:
                 continue
             typ, key, lmt = mat.groups()
-            rdt = mic.get_user_device_data(did, key, typ, limit=int(lmt)) or []
+            stm = int(time.time()) - 86400 * 32
+            rdt = mic.get_user_device_data(did, key, typ, time_start=stm, limit=int(lmt)) or []
             tpl = self.custom_config(f'miio_{typ}_{key}_template')
             if tpl:
                 tpl = cv.template(tpl)

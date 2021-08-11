@@ -55,13 +55,12 @@ GLOBAL_CUSTOMIZES = {
             },
             'miio_cloud_records': 'prop_cal_day.power_cost:31',
             'miio_prop_cal_day_power_cost_template': "{%- set val = (result.0 | default({})).get('value',{}) %}"
+                                                     "{%- set day = now().day %}"
                                                      "{{ {"
                                                      "'today': val.pc,"
                                                      "'today_duration': val.pc_time,"
-                                                     "'month': result[:now().day] |"
-                                                     "sum(attribute='value.pc'),"
-                                                     "'month_duration': result[:now().day] |"
-                                                     "sum(attribute='value.pc_time'),"
+                                                     "'month': result[:day] | sum(attribute='value.pc'),"
+                                                     "'month_duration': result[:day] | sum(attribute='value.pc_time'),"
                                                      "} }}",
         },
         'chuangmi.plug.v3:electric_power': {
