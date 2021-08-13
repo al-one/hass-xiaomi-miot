@@ -1235,17 +1235,20 @@ class MiotEntity(MiioEntity):
             'in':   params or [],
         }
         result = None
+        eno = 1
         try:
             mca = self.miot_cloud_action
             if isinstance(mca, MiotCloud):
                 result = mca.do_action(pms)
             else:
                 result = self.miot_device.send('action', pms)
+            eno = dict(result or {}).get('code', eno)
         except DeviceException as exc:
             _LOGGER.warning('Call miot action to %s (%s) failed: %s', self.name, pms, exc)
         except MiCloudException as exc:
             _LOGGER.warning('Call miot action to cloud for %s (%s) failed: %s', self.name, pms, exc)
-        eno = dict(result or {}).get('code', 1)
+        except (TypeError, ValueError) as exc:
+            _LOGGER.warning('Call miot action to %s (%s) failed: %s, result: %s', self.name, pms, exc, result)
         ret = eno == self._success_code
         if ret:
             self._vars['delay_update'] = 5
