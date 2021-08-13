@@ -1563,8 +1563,12 @@ class BaseSubEntity(BaseEntity):
     async def async_added_to_hass(self):
         if self.platform:
             self.update_custom_scan_interval(only_custom=True)
+        if not self.icon:
+            self._option['icon'] = self.custom_config('icon')
         if not self.unit_of_measurement:
             self._option['unit'] = self.custom_config('unit_of_measurement')
+        if not self.device_class:
+            self._option['device_class'] = self.custom_config('device_class')
 
     def update(self):
         attrs = self._parent.extra_state_attributes or {}

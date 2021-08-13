@@ -57,22 +57,25 @@ GLOBAL_CUSTOMIZES = {
             'miio_prop_cal_day_power_cost_template': "{%- set val = (result.0 | default({})).get('value',{}) %}"
                                                      "{%- set day = now().day %}"
                                                      "{{ {"
-                                                     "'today': val.pc,"
-                                                     "'today_duration': val.pc_time,"
+                                                     "'today': val.pc | default(0),"
+                                                     "'today_duration': val.pc_time | default(0),"
                                                      "'month': result[:day] | sum(attribute='value.pc'),"
                                                      "'month_duration': result[:day] | sum(attribute='value.pc_time'),"
                                                      "} }}",
         },
         'chuangmi.plug.v3:electric_power': {
             'value_ratio': 0.01,
+            'device_class': 'power',
             'unit_of_measurement': 'W',
         },
         'chuangmi.plug.v3:prop_cal_day.power_cost:today': {
             'value_ratio': 0.001,
+            'device_class': 'energy',
             'unit_of_measurement': 'kWh',
         },
         'chuangmi.plug.v3:prop_cal_day.power_cost:month': {
             'value_ratio': 0.001,
+            'device_class': 'energy',
             'unit_of_measurement': 'kWh',
         },
         'chuangmi.plug.*': {
