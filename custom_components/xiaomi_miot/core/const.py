@@ -81,6 +81,9 @@ GLOBAL_CUSTOMIZES = {
         'chuangmi.plug.*': {
             'sensor_properties': 'temperature',
         },
+        'chunmi.health_pot.a1': {
+            'miot_local': True,
+        },
         'cuco.plug.cp1m': {
             'sensor_properties': 'power_consumption,voltage,electric_current',
         },
