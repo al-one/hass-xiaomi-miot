@@ -116,9 +116,9 @@ GLOBAL_CUSTOMIZES = {
             },
         },
         'rockrobo.vacuum.*': {
-            'sensor_attributes': 'status:clean_area,status:clean_time',
+            'sensor_attributes': 'props:clean_area,props:clean_time',
             'sensor_miio_commands': {
-                'get_status': ['status'],
+                'get_status': ['props'],
             },
         },
         'viomi.vacuum.*': {

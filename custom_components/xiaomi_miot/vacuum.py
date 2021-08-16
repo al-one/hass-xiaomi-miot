@@ -242,6 +242,19 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         super().__init__(config, miot_service)
         self._supported_features |= SUPPORT_LOCATE
 
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        props = self._state_attrs.get('props') or {}
+        adt = {
+            k: props.get(k)
+            for k in ['clean_area', 'clean_time']
+            if k in props
+        }
+        if adt:
+            self.update_attrs(adt)
+
     def clean_spot(self, **kwargs):
         """Perform a spot clean-up."""
         return self.send_miio_command('app_spot')
@@ -264,6 +277,19 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
         self._supported_features |= SUPPORT_LOCATE
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        props = self._state_attrs.get('props') or {}
+        adt = {}
+        if 'miio.s_area' in props:
+            adt['clean_area'] = props['miio.s_area']
+        if 'miio.s_time' in props:
+            adt['clean_time'] = props['miio.s_time']
+        if adt:
+            self.update_attrs(adt)
 
     def locate(self, **kwargs):
         """Locate the vacuum cleaner."""
