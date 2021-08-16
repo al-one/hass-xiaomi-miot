@@ -129,7 +129,6 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         await super().async_update()
         if not self._available:
             return
-        self._update_sub_entities(['dryer'], domain='switch')
 
     @property
     def current_cover_position(self):

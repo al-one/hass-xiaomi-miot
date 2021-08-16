@@ -134,7 +134,7 @@ GLOBAL_CUSTOMIZES = {
         },
         '*.airer.*': {
             'sensor_properties': 'left_time',
-            'switch_properties': 'dryer',
+            'switch_properties': 'dryer,uv',
             'fan_properties': 'drying_level',
         },
         '*.cooker.*': {
