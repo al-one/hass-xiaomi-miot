@@ -824,12 +824,18 @@ class MiotEntity(MiioEntity):
             device = None
             mapping = self.custom_config_json('miot_local_mapping') or self.miot_mapping
             try:
-                device = MiotDevice(ip=host, token=token)
-                device.mapping = mapping
+                device = MiotDevice(ip=host, token=token, mapping=mapping)
             except TypeError as exc:
-                if f'{exc}'.find('mapping') >= 0:
-                    # for python-miio <= v0.5.4
-                    device = MiotDevice(mapping, host, token)  # noqa
+                err = f'{exc}'
+                if 'mapping' in err:
+                    if 'unexpected keyword argument' in err:
+                        # for python-miio <= v0.5.5.1
+                        device = MiotDevice(host, token)
+                        device.mapping = mapping
+                    elif 'required positional argument' in err:
+                        # for python-miio <= v0.5.4
+                        # https://github.com/al-one/hass-xiaomi-miot/issues/44#issuecomment-815474650
+                        device = MiotDevice(mapping, host, token)  # noqa
             except ValueError as exc:
                 _LOGGER.warning('Initializing with host %s (%s) failed: %s', host, self.name, exc)
             if device:
