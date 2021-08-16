@@ -494,6 +494,14 @@ class BaseEntity(Entity):
             cfg = {**cfg, **(self.hass.data[DOMAIN].get(eid) or {})}
         return cfg if key is None else cfg.get(key, default)
 
+    def custom_config_bool(self, key=None, default=None):
+        val = self.custom_config(key, default)
+        try:
+            val = cv.boolean(val)
+        except vol.Invalid:
+            val = default
+        return val
+
     def custom_config_number(self, key=None, default=None):
         num = default
         val = self.custom_config(key)
@@ -859,7 +867,7 @@ class MiotEntity(MiioEntity):
             isc = False
         elif self._config.get('miot_cloud'):
             isc = True
-        elif self.custom_config('miot_cloud'):
+        elif self.custom_config_bool('miot_cloud'):
             isc = True
         if isc and self.hass and self.miot_did:
             return self.entry_config(CONF_XIAOMI_CLOUD)
@@ -868,7 +876,7 @@ class MiotEntity(MiioEntity):
     @property
     def miot_cloud_write(self):
         isc = False
-        if self.custom_config('miot_cloud_write'):
+        if self.custom_config_bool('miot_cloud_write'):
             isc = True
         if isc and self.hass and self.miot_did:
             return self.entry_config(CONF_XIAOMI_CLOUD)
@@ -877,7 +885,7 @@ class MiotEntity(MiioEntity):
     @property
     def miot_cloud_action(self):
         isc = False
-        if self.custom_config('miot_cloud_action'):
+        if self.custom_config_bool('miot_cloud_action'):
             isc = True
         if isc and self.hass and self.miot_did:
             return self.entry_config(CONF_XIAOMI_CLOUD)
@@ -885,7 +893,7 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_local(self):
-        if self.custom_config('miot_local'):
+        if self.custom_config_bool('miot_local'):
             return self.miot_device
         return None
 
@@ -942,7 +950,7 @@ class MiotEntity(MiioEntity):
                 results = await self.hass.async_add_executor_job(
                     partial(self.miot_cloud.get_properties_for_mapping, self.miot_did, mmp)
                 )
-                if self.custom_config('check_lan'):
+                if self.custom_config_bool('check_lan'):
                     if self.miot_device:
                         await self.hass.async_add_executor_job(self.miot_device.info)
                     else:
