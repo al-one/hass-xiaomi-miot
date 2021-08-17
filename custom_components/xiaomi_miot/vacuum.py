@@ -80,7 +80,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
         self._prop_power = miot_service.get_property('on', 'power')
         self._prop_status = miot_service.get_property('status')
-        self._prop_mode = miot_service.get_property('fan_level', 'mode')
+        self._prop_mode = miot_service.get_property('fan_level', 'speed_level', 'mode')
         self._act_start = miot_service.get_action('start_sweep')
         self._act_pause = miot_service.get_action('pause_sweeping')
         self._act_stop = miot_service.get_action('stop_sweeping')
@@ -249,11 +249,11 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         if not self._available:
             return
         props = self._state_attrs.get('props') or {}
-        adt = {
-            k: props.get(k)
-            for k in ['clean_area', 'clean_time']
-            if k in props
-        }
+        adt = {}
+        if 'clean_area' in props:
+            adt['clean_area'] = round(props['clean_area'] / 1000000, 1)
+        if 'clean_time' in props:
+            adt['clean_time'] = round(props['clean_time'] / 60, 1)
         if adt:
             self.update_attrs(adt)
 
@@ -284,7 +284,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
         await super().async_update()
         if not self._available:
             return
-        props = self._state_attrs.get('props') or {}
+        props = self._state_attrs or {}
         adt = {}
         if 'miio.s_area' in props:
             adt['clean_area'] = props['miio.s_area']
