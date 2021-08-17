@@ -1,7 +1,7 @@
 # Xiaomi Miot For HomeAssistant
 
 
-> ⚠️⚠️⚠️ auto-miot已合并至master分支，请从master分支下载最新版本，或者通过HACS更新 ⚠️⚠️⚠️
+> ⚠️⚠️⚠️ auto-miot分支已废弃，请从[master分支](https://github.com/al-one/hass-xiaomi-miot)下载最新版本，或者通过HACS更新 ⚠️⚠️⚠️
 
 
 ## Supported Devices
