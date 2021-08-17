@@ -180,9 +180,11 @@ class MiotCameraEntity(MiotToggleEntity, Camera):
                         [vda],
                     ) or {}
                     updater = 'cloud'
+                if isinstance(result, dict):
+                    _LOGGER.debug('Get miot camera stream from %s for %s: %s', updater, self.name, result)
                 else:
+                    _LOGGER.warning('Get miot camera stream error from %s for %s: %s', updater, self.name, result)
                     result = {}
-                _LOGGER.debug('Get miot camera stream from %s for %s: %s', updater, self.name, result)
             except MiCloudException as exc:
                 _LOGGER.error('Get miot camera stream from %s for %s failed: %s', updater, self.name, exc)
             odt = self._act_start_stream.out_results(result.get('out')) or {
