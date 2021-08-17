@@ -119,7 +119,16 @@ GLOBAL_CUSTOMIZES = {
             'sensor_attributes': 'props:clean_area,props:clean_time',
             'sensor_miio_commands': {
                 'get_status': ['props'],
+                'get_consumable': ['consumables'],
             },
+        },
+        'rockrobo.vacuum.*:props:clean_area': {
+            'value_ratio': 0.000001,
+            'unit_of_measurement': '㎡',
+        },
+        'rockrobo.vacuum.*:props:clean_time': {
+            'value_ratio': 0.016666,
+            'unit_of_measurement': 'min',
         },
         'viomi.vacuum.*': {
             'sensor_attributes': 'miio.s_area,miio.s_time',

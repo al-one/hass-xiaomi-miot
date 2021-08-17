@@ -473,6 +473,17 @@ class BaseEntity(Entity):
         cfg = self.hass.data[DOMAIN]['config'] or {}
         return cfg if key is None else cfg.get(key, default)
 
+    @property
+    def wildcard_models(self):
+        if not self._model:
+            return []
+        wil = re.sub(r'\.[^.]+$', '.*', self._model)
+        return [
+            self._model,
+            wil,
+            re.sub(r'^[^.]+\.', '*.', wil),
+        ]
+
     def custom_config(self, key=None, default=None):
         if not self.hass:
             return default
@@ -651,13 +662,7 @@ class MiioEntity(BaseEntity):
             return ret
         cfg = {}
         if self._model:
-            wil = re.sub(r'\.[^.]+$', '.*', self._model)
-            mar = [
-                self._model,
-                wil,
-                re.sub(r'^[^.]+\.', '*.', wil),
-            ]
-            for m in mar:
+            for m in self.wildcard_models:
                 cus = GLOBAL_CUSTOMIZES['models'].get(m) or {}
                 if key is not None and key not in cus:
                     continue
@@ -1558,10 +1563,11 @@ class BaseSubEntity(BaseEntity):
         cfg = {}
         if self._model:
             mar = []
-            if self._dict_key:
-                mar.append(f'{self._model}:{self._attr}:{self._dict_key}')
-            else:
-                mar.append(f'{self._model}:{self._attr}')
+            for mod in self.wildcard_models:
+                if self._dict_key:
+                    mar.append(f'{mod}:{self._attr}:{self._dict_key}')
+                else:
+                    mar.append(f'{mod}:{self._attr}')
             if hasattr(self, '_miot_property'):
                 prop = getattr(self, '_miot_property')
                 if prop:
