@@ -313,6 +313,7 @@ class MiotModesSubEntity(FanSubEntity):
         self._name = self.format_name_by_property(miot_property)
         self._miot_property = miot_property
         self._miot_service = miot_property.service
+        self.entity_id = miot_property.generate_entity_id(self)
         self._prop_power = self._option.get('power_property')
         if self._prop_power:
             self._option['keys'] = [self._prop_power.full_name, *(self._option.get('keys') or [])]

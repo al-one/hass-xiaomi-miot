@@ -492,6 +492,10 @@ class BaseEntity(Entity):
         cfg = self.hass.data[DATA_CUSTOMIZE].get(self.entity_id) or {}
         return cfg if key is None else cfg.get(key, default)
 
+    @property
+    def entry_config_version(self):
+        return self._config.get(CONF_CONFIG_VERSION) or 0
+
     def entry_config(self, key=None, default=None):
         if not self.hass:
             return default
@@ -606,11 +610,17 @@ class MiioEntity(BaseEntity):
         return self._unique_id
 
     @property
+    def unique_mac(self):
+        mac = self._miio_info.mac_address
+        if not mac and self.entry_config_version >= 0.2:
+            mac = self._config.get('miot_did')
+        return mac
+
+    @property
     def unique_did(self):
-        did = dr.format_mac(self._miio_info.mac_address)
+        did = dr.format_mac(self.unique_mac)
         eid = self._config.get('entry_id')
-        ver = self._config.get(CONF_CONFIG_VERSION) or 0
-        if eid and ver > 0:
+        if eid and self.entry_config_version >= 0.1:
             did = f'{did}-{eid}'
         return did
 
@@ -807,6 +817,7 @@ class MiotEntity(MiioEntity):
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         self._miot_service = miot_service if isinstance(miot_service, MiotService) else None
         if self._miot_service:
+            kwargs['miot_service'] = self._miot_service
             name = f"{name} {self._miot_service.description}"
             if not self._miot_mapping:
                 dic = miot_service.mapping() or {}
@@ -817,6 +828,7 @@ class MiotEntity(MiioEntity):
         if self._miot_service:
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self._state_attrs['miot_type'] = self._miot_service.spec.type
+            self.entity_id = self._miot_service.generate_entity_id(self)
         self._success_code = 0
 
     async def async_added_to_hass(self):
@@ -1505,6 +1517,9 @@ class BaseSubEntity(BaseEntity):
         if self._option.get('name'):
             self._name = self._option.get('name')
         self._supported_features = int(self._option.get('supported_features', 0))
+        self._extra_attrs = {
+            'parent_entity_id': parent.entity_id,
+        }
         self._state_attrs = {}
         self._parent_attrs = {}
 
@@ -1513,16 +1528,16 @@ class BaseSubEntity(BaseEntity):
         return self._unique_id
 
     @property
+    def unique_mac(self):
+        return self._parent.unique_mac
+
+    @property
     def name(self):
         return self._name
 
     def format_name_by_property(self, prop: MiotProperty):
         dnm = self._parent.device_name
-        snm = prop.service.description
-        pnm = prop.description
-        if snm == pnm:
-            pnm = ''
-        return f'{dnm} {snm} {pnm}'.strip()
+        return f'{dnm} {prop.short_desc}'.strip()
 
     @property
     def state(self):
@@ -1538,7 +1553,10 @@ class BaseSubEntity(BaseEntity):
 
     @property
     def extra_state_attributes(self):
-        return self._state_attrs
+        return {
+            **self._extra_attrs,
+            **self._state_attrs,
+        }
 
     @property
     def device_class(self):
@@ -1609,9 +1627,6 @@ class BaseSubEntity(BaseEntity):
                 for k, v in attrs.items()
                 if k in keys
             }
-        self._state_attrs.update({
-            'parent_entity_id': self._parent.entity_id,
-        })
 
     async def async_update(self):
         await self.hass.async_add_executor_job(self.update)
@@ -1687,6 +1702,7 @@ class MiotSensorSubEntity(BaseSubEntity):
         self._name = self.format_name_by_property(miot_property)
         if not self._option.get('unique_id'):
             self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
+        self.entity_id = miot_property.generate_entity_id(self)
 
         self._prop_battery = None
         for s in self._miot_service.spec.get_services('battery', self._miot_service.name):

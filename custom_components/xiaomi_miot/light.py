@@ -224,6 +224,7 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
             **parent.miot_config,
             'name': f'{parent.device_name}',
         }, miot_service, device=parent.miot_device)
+        self.entity_id = miot_service.generate_entity_id(self)
         self._prop_power = prop_power
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 

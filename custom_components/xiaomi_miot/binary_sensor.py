@@ -251,3 +251,4 @@ class MiotBinarySensorSubEntity(ToggleSubEntity, BinarySensorEntity):
         self._name = self.format_name_by_property(miot_property)
         self._miot_service = miot_property.service
         self._miot_property = miot_property
+        self.entity_id = miot_property.generate_entity_id(self)

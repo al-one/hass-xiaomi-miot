@@ -18,6 +18,7 @@ from . import (
     MiioEntity,
     MiotToggleEntity,
     ToggleSubEntity,
+    MiotSensorSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -142,12 +143,10 @@ class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
         super().update()
 
 
-class MiotSwitchSubEntity(SwitchSubEntity):
+class MiotSwitchSubEntity(MiotSensorSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property.full_name, option)
+        super().__init__(parent, miot_property, option)
         self._name = self.format_name_by_property(miot_property)
-        self._miot_service = miot_property.service
-        self._miot_property = miot_property
         self._prop_power = self._miot_service.get_property('on', 'power')
         if self._prop_power:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_power.full_name]
@@ -160,10 +159,9 @@ class MiotSwitchSubEntity(SwitchSubEntity):
                 self._state = self._state and self._prop_power.from_dict(self._state_attrs)
         return self._state
 
-    def set_parent_property(self, val, prop=None):
-        if prop is None:
-            prop = self._miot_property
-        return super().set_parent_property(val, prop.full_name)
+    @property
+    def state(self):
+        return STATE_ON if self.is_on else STATE_OFF
 
     def turn_on(self, **kwargs):
         return self.set_parent_property(True)
@@ -177,6 +175,7 @@ class MiotSwitchActionSubEntity(SwitchSubEntity):
         super().__init__(parent, miot_action.full_name, option)
         self._miot_property = miot_property
         self._miot_action = miot_action
+        self.entity_id = miot_property.generate_entity_id(self)
         self._state = False
         if miot_action.name in ['pet_food_out']:
             self._option['icon'] = 'mdi:shaker'

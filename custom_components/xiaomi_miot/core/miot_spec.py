@@ -90,6 +90,17 @@ class MiotSpec:
                 return s
         return None
 
+    def generate_entity_id(self, entity, suffix=None):
+        mod = f'{self.type}::::'.split(':')[5]
+        if not mod:
+            return None
+        mac = re.sub(r'[\W_]+', '', entity.unique_mac)
+        eid = f'{mod}_{mac[-4:]}'
+        if suffix:
+            eid = f'{eid}_{suffix}'
+        eid = re.sub(r'\W+', '_', eid).lower()
+        return f'{DOMAIN}.{eid}'
+
     @staticmethod
     def format_name(nam):
         nam = f'{nam}'.strip()
@@ -252,6 +263,9 @@ class MiotService:
                 return a
         return None
 
+    def generate_entity_id(self, entity):
+        return self.spec.generate_entity_id(entity, self.description)
+
     @property
     def entity_icon(self):
         icon = None
@@ -308,6 +322,11 @@ class MiotProperty:
         self.value_range = dat.get('value-range') or []
 
     @property
+    def short_desc(self):
+        arr = f'{self.service.description.strip()} {self.description.strip()}'.split(' ')
+        return ' '.join(dict(zip(arr, arr)).keys())
+
+    @property
     def readable(self):
         return 'read' in self.access
 
@@ -329,6 +348,11 @@ class MiotProperty:
                 continue
             dic = {**dic, **d}
         return dic
+
+    def generate_entity_id(self, entity):
+        eid = self.service.spec.generate_entity_id(entity, self.description)
+        eid = re.sub(r'_(\d(?:_|$))', r'\1', eid)  # issue#153
+        return eid
 
     def get_translation(self, des):
         dls = [
