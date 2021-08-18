@@ -1696,8 +1696,16 @@ class MiotSensorSubEntity(BaseSubEntity):
         if self._prop_battery:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_battery.full_name]
 
-        self._option['unit'] = miot_property.unit_of_measurement
-        self._option['device_class'] = miot_property.device_class
+        if 'icon' not in self._option:
+            self._option['icon'] = miot_property.entity_icon
+        if 'unit' not in self._option:
+            self._option['unit'] = miot_property.unit_of_measurement
+        if 'device_class' not in self._option:
+            self._option['device_class'] = miot_property.device_class
+        self._extra_attrs.update({
+            'service_description': miot_property.service.description,
+            'property_description': miot_property.description,
+        })
 
     def update(self):
         super().update()

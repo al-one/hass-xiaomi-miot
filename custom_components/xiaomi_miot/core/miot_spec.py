@@ -459,10 +459,14 @@ class MiotProperty:
             'mg/m3': CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
             'p/m3': CONCENTRATION_PARTS_PER_CUBIC_METER,
         }
-        if name in ['power_consumption']:
-            unit = ENERGY_WATT_HOUR
-        elif name in ['pm2_5_density']:
-            unit = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        names = {
+            'power_consumption': ENERGY_WATT_HOUR,
+            'pm2_5_density': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+            'tds_in': CONCENTRATION_PARTS_PER_MILLION,
+            'tds_out': CONCENTRATION_PARTS_PER_MILLION,
+        }
+        if name in names:
+            unit = names[name]
         elif not unit or unit in ['none', 'null']:
             unit = None
         elif unit in aliases:
@@ -511,6 +515,10 @@ class MiotProperty:
             'drying_level': 'mdi:tumble-dryer',
             'co2_density': 'mdi:molecule-co2',
             'smoke_concentration': 'mdi:smoking',
+            'tds_in': 'mdi:water',
+            'tds_out': 'mdi:water-check',
+            'filter_used_time': 'mdi:clock',
+            'filter_used_flow': 'mdi:water-percent',
         }
         if name in ['heat_level']:
             icon = 'mdi:radiator'
