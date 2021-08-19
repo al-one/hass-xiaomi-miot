@@ -145,6 +145,8 @@ SERVICE_TO_METHOD_BASE = {
             {
                 vol.Required('api'): cv.string,
                 vol.Optional('params', default={}): dict,
+                vol.Optional('method', default='POST'): cv.string,
+                vol.Optional('crypt', default=False): cv.boolean,
                 vol.Optional('throw', default=False): cv.boolean,
             },
         ),
@@ -1453,16 +1455,15 @@ class MiotEntity(MiioEntity):
             _LOGGER.warning('Miot bindkey for %s: %s', self.name, result)
         return (result or {}).get('beaconkey')
 
-    async def async_request_xiaomi_api(self, api, params=None, throw=False):
+    async def async_request_xiaomi_api(self, api, params=None, method='POST', crypt=False, throw=False):
         mic = self.miot_cloud
         if not isinstance(mic, MiotCloud):
             return None
-        result = await self.hass.async_add_executor_job(
-            partial(mic.request_miot_api, str(api).lstrip('/'), params)
-        )
+        fun = partial(mic.request_miot_api, api, data=params, method=method, crypt=crypt)
+        result = await self.hass.async_add_executor_job(fun)
         persistent_notification.async_create(
             self.hass,
-            f'{result}',
+            json.dumps(result),
             f'Xiaomi Api: {api}',
             f'{DOMAIN}-debug',
         )

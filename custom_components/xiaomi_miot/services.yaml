@@ -293,3 +293,18 @@ request_xiaomi_api:
       example: "{'getVirtualModel':true}"
       selector:
         object:
+    method:
+      description: Request method.
+      default: POST
+      example: POST
+      selector:
+        select:
+          options:
+            - POST
+            - GET
+    crypt:
+      description: Crypt data.
+      default: false
+      example: false
+      selector:
+        boolean:

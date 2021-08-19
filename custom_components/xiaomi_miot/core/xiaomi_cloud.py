@@ -1,14 +1,21 @@
 import logging
 import json
 import time
+import base64
+import hashlib
 import micloud
+import requests
 from datetime import datetime
 from functools import partial
+from urllib.parse import urlparse
 from micloud.micloudexception import MiCloudException  # noqa: F401
 
 from homeassistant.const import *
 from homeassistant.helpers.storage import Store
 from homeassistant.components import persistent_notification
+
+from micloud import miutils
+from .utils import RC4
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -122,11 +129,15 @@ class MiotCloud(micloud.MiCloud):
             _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
         return False
 
-    def request_miot_api(self, api, data: dict, debug=True):
-        url = self.get_api_url(api)
-        rsp = self.request(url, {
-            'data': json.dumps(data, separators=(',', ':')),
-        })
+    def request_miot_api(self, api, data: dict, method='POST', crypt=False, debug=True):
+        params = {
+            'data': self.json_encode(data),
+        }
+        if crypt:
+            rsp = self.request_rc4_api(api, params, method)
+        else:
+            rsp = self.request(self.get_api_url(api), params)
+        exc = None
         try:
             rdt = json.loads(rsp)
             if debug:
@@ -136,6 +147,7 @@ class MiotCloud(micloud.MiCloud):
                 )
         except (TypeError, ValueError) as exc:
             rdt = None
+        if not rdt:
             _LOGGER.warning(
                 'Request miot api: %s %s result: %s failed: %s',
                 api, data, rsp, exc,
@@ -264,6 +276,55 @@ class MiotCloud(micloud.MiCloud):
             return cfg
         return old
 
+    def request_rc4_api(self, api, params: dict, method='POST'):
+        if not self.service_token or not self.user_id:
+            raise MiCloudException("Cannot execute request. service token or userId missing. Make sure to login.")
+        self.session = requests.Session()
+        self.session.headers.update({
+            'X-XIAOMI-PROTOCAL-FLAG-CLI': 'PROTOCAL-HTTP2',
+            'MIOT-ENCRYPT-ALGORITHM': 'ENCRYPT-RC4',
+            'Accept-Encoding': 'identity',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': self.useragent,
+        })
+        self.session.cookies.update({
+            'userId': str(self.user_id),
+            'yetAnotherServiceToken': self.service_token,
+            'serviceToken': self.service_token,
+            'locale': str(self.locale),
+            'timezone': str(self.timezone),
+            'is_daylight': str(time.daylight),
+            'dst_offset': str(time.localtime().tm_isdst*60*60*1000),
+            'channel': 'MI_APP_STORE',
+        })
+        url = self.get_api_url(api)
+        try:
+            params = self.rc4_params(method, url, params)
+            signed_nonce = miutils.signed_nonce(self.ssecurity, params['_nonce'])
+            if method == 'GET':
+                response = self.session.get(url, params=params)
+            else:
+                response = self.session.post(url, data=params)
+            if response.status_code in [401, 403]:
+                # self.service_token = None
+                pass
+            rsp = response.text
+            if not ('error' in rsp or 'invalid' in rsp):
+                rsp = MiotCloud.decrypt_data(signed_nonce, rsp)
+            return rsp
+        except requests.exceptions.HTTPError as e:
+            self.service_token = None
+            _LOGGER.warning("Error while executing request to %s :%s", url, e)
+        except MiCloudException as e:
+            _LOGGER.warning("Error while decrypting response of request to %s :%s", url, e)
+
+    def get_api_by_host(self, host, api=''):
+        srv = self.default_server.lower()
+        if srv and srv != 'cn':
+            host = f'{srv}.{host}'
+        api = str(api).lstrip('/')
+        return f'https://{host}/{api}'
+
     def get_api_url(self, api):
         if api[:6] == 'https:' or api[:5] == 'http:':
             url = api
@@ -271,3 +332,40 @@ class MiotCloud(micloud.MiCloud):
             api = str(api).lstrip('/')
             url = self._get_api_url(self.default_server) + '/' + api
         return url
+
+    def rc4_params(self, method, url, params: dict):
+        nonce = miutils.gen_nonce()
+        signed_nonce = miutils.signed_nonce(self.ssecurity, nonce)
+        params['rc4_hash__'] = MiotCloud.sha1_sign(method, url, params, signed_nonce)
+        for k, v in params.items():
+            params[k] = MiotCloud.encrypt_data(signed_nonce, v)
+        params.update({
+            'signature': MiotCloud.sha1_sign(method, url, params, signed_nonce),
+            'ssecurity': self.ssecurity,
+            '_nonce': nonce,
+        })
+        return params
+
+    @staticmethod
+    def json_encode(data):
+        return json.dumps(data, separators=(',', ':'))
+
+    @staticmethod
+    def sha1_sign(method, url, dat: dict, nonce):
+        path = urlparse(url).path
+        if path[:4] == '/app/':
+            path = path[-3:]
+        arr = [str(method).upper(), path]
+        for k, v in dat.items():
+            arr.append(f'{k}={v}')
+        arr.append(nonce)
+        raw = hashlib.sha1('&'.join(arr).encode('utf-8')).digest()
+        return base64.b64encode(raw).decode()
+
+    @staticmethod
+    def encrypt_data(pwd, data):
+        return base64.b64encode(RC4(base64.b64decode(pwd)).init1024().crypt(data)).decode()
+
+    @staticmethod
+    def decrypt_data(pwd, data):
+        return RC4(base64.b64decode(pwd)).init1024().crypt(base64.b64decode(data))
