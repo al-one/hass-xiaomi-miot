@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'battery', 'environment', 'water_purifier', 'tds_sensor', 'switch_sensor',
                 'temperature_humidity_sensor', 'illumination_sensor', 'vibration_sensor',
                 'gas_sensor', 'smoke_sensor',
-                'router', 'video_doorbell', 'lock', 'printer', 'sleep_monitor', 'bed',
+                'router', 'lock', 'printer', 'sleep_monitor', 'bed',
                 'oven', 'microwave_oven', 'health_pot', 'coffee_machine',
                 'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer',
                 'pet_feeder', 'fridge_chamber', 'plant_monitor',
@@ -63,11 +63,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 if srv.name in ['lock']:
                     if not srv.get_property('operation_method'):
                         continue
-                elif srv.name in ['video_doorbell']:
-                    if not (srv.mapping() or spec.get_service('battery')):
-                        continue
                 elif srv.name in ['battery']:
-                    if spec.name not in ['video_doorbell', 'switch_sensor']:
+                    if spec.name not in ['switch_sensor']:
                         continue
                 elif srv.name in ['environment']:
                     if spec.name not in ['air_monitor']:

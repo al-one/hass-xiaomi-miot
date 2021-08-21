@@ -105,6 +105,22 @@ GLOBAL_CUSTOMIZES = {
         'lumi.sensor_magnet.*': {
             'interval_seconds': 15,
         },
+        'mxiang.cateye.*': {
+            'miio_cloud_records': 'prop.is_can_open_video:1,event.human_visit_details:1',
+            'miio_prop_is_can_open_video_template':    "{%- set val = (result.0 | default({})).get('value','[0]') %}"
+                                                       "{%- set val = (val | from_json).0 | int %}"
+                                                       "{{ {"
+                                                       "'is_can_open_video': val,"
+                                                       "'_entity_attrs': True,"
+                                                       "} }}",
+            'miio_event_human_visit_details_template': "{%- set val = (result.0 | default({})).get('value','{}') %}"
+                                                       "{%- set val = val | from_json %}"
+                                                       "{{ {"
+                                                       "'motion_video_time': val.visitTime | timestamp_local,"
+                                                       "'motion_video_latest': val,"
+                                                       "'_entity_attrs': True,"
+                                                       "} }}",
+        },
         'philips.light.cbulb': {
             'miot_cloud_write': True,
             'miot_local_mapping': {
@@ -145,6 +161,9 @@ GLOBAL_CUSTOMIZES = {
             'sensor_properties': 'left_time',
             'switch_properties': 'dryer,uv',
             'fan_properties': 'drying_level',
+        },
+        '*.cateye.*': {
+            'use_motion_stream': True,
         },
         '*.cooker.*': {
             'sensor_properties': 'temperature,left_time',

@@ -65,7 +65,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services(ENTITY_DOMAIN, 'camera_control', 'video_doorbell'):
+        svs = spec.get_services(ENTITY_DOMAIN, 'camera_control', 'video_doorbell')
+        if not svs and spec.name in ['video_doorbell'] and spec.services:
+            # loock.cateye.v02
+            srv = spec.get_service('p2p_stream') or spec.services[0]
+            entities.append(MiotCameraEntity(hass, config, srv))
+        for srv in svs:
             if not spec.get_service('camera_stream_for_google_home', 'camera_stream_for_amazon_alexa'):
                 if srv.name in ['camera_control']:
                     persistent_notification.create(
