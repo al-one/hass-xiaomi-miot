@@ -300,7 +300,7 @@ class MiotCloud(micloud.MiCloud):
         url = self.get_api_url(api)
         try:
             params = self.rc4_params(method, url, params)
-            signed_nonce = miutils.signed_nonce(self.ssecurity, params['_nonce'])
+            signed_nonce = self.signed_nonce(params['_nonce'])
             if method == 'GET':
                 response = self.session.get(url, params=params)
             else:
@@ -335,7 +335,7 @@ class MiotCloud(micloud.MiCloud):
 
     def rc4_params(self, method, url, params: dict):
         nonce = miutils.gen_nonce()
-        signed_nonce = miutils.signed_nonce(self.ssecurity, nonce)
+        signed_nonce = self.signed_nonce(nonce)
         params['rc4_hash__'] = MiotCloud.sha1_sign(method, url, params, signed_nonce)
         for k, v in params.items():
             params[k] = MiotCloud.encrypt_data(signed_nonce, v)
@@ -345,6 +345,9 @@ class MiotCloud(micloud.MiCloud):
             '_nonce': nonce,
         })
         return params
+
+    def signed_nonce(self, nonce):
+        return miutils.signed_nonce(self.ssecurity, nonce)
 
     @staticmethod
     def json_encode(data):

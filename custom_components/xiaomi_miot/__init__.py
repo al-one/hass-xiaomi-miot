@@ -1139,7 +1139,7 @@ class MiotEntity(MiioEntity):
                 continue
             typ, key, lmt = mat.groups()
             stm = int(time.time()) - 86400 * 32
-            rdt = mic.get_user_device_data(did, key, typ, time_start=stm, limit=int(lmt)) or []
+            rdt = mic.get_user_device_data(did, key, typ, time_start=stm, limit=int(lmt or 1)) or []
             tpl = self.custom_config(f'miio_{typ}_{key}_template')
             if tpl:
                 tpl = cv.template(tpl)
@@ -1152,7 +1152,10 @@ class MiotEntity(MiioEntity):
                     for v in rdt
                     if 'value' in v
                 ]
-            attrs[f'{typ}.{key}'] = rls
+            if isinstance(rls, dict) and rls.pop('_entity_attrs', False):
+                attrs.update(rls)
+            else:
+                attrs[f'{typ}.{key}'] = rls
         if attrs:
             self.update_attrs(attrs)
 
@@ -1477,7 +1480,9 @@ class MiotEntity(MiioEntity):
 class MiotToggleEntity(MiotEntity, ToggleEntity):
     def __init__(self, miot_service=None, device=None, **kwargs):
         super().__init__(miot_service, device, **kwargs)
-        self._prop_power = miot_service.bool_property('on', 'power', 'switch')
+        self._prop_power = None
+        if miot_service:
+            self._prop_power = miot_service.bool_property('on', 'power', 'switch')
 
     @property
     def is_on(self):
@@ -1553,6 +1558,10 @@ class BaseSubEntity(BaseEntity):
         return self._supported_features
 
     @property
+    def parent_attributes(self):
+        return self._parent.extra_state_attributes or {}
+
+    @property
     def extra_state_attributes(self):
         return {
             **self._extra_attrs,
@@ -1574,6 +1583,13 @@ class BaseSubEntity(BaseEntity):
     @property
     def unit_of_measurement(self):
         return self._option.get('unit')
+
+    @property
+    def miot_cloud(self):
+        mic = self._parent.miot_cloud
+        if not isinstance(mic, MiotCloud):
+            raise RuntimeError('The parent entity of %s does not have Mi Cloud.', self.name)
+        return mic
 
     def custom_config(self, key=None, default=None):
         ret = super().custom_config(key, default)
@@ -1609,8 +1625,8 @@ class BaseSubEntity(BaseEntity):
         if not self.device_class:
             self._option['device_class'] = self.custom_config('device_class')
 
-    def update(self):
-        attrs = self._parent.extra_state_attributes or {}
+    def update(self, data=None):
+        attrs = self.parent_attributes
         self._parent_attrs = attrs
         if self._attr in attrs:
             self._available = True
@@ -1628,6 +1644,8 @@ class BaseSubEntity(BaseEntity):
                 for k, v in attrs.items()
                 if k in keys
             }
+        if data:
+            self.update_attrs(data, update_parent=False)
 
     async def async_update(self):
         await self.hass.async_add_executor_job(self.update)
@@ -1637,6 +1655,8 @@ class BaseSubEntity(BaseEntity):
         if update_parent:
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
+        if self.hass:
+            self.async_write_ha_state()
         return self._state_attrs
 
     def call_parent(self, method, *args, **kwargs):
