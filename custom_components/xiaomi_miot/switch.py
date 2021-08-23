@@ -143,7 +143,7 @@ class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
         super().update()
 
 
-class MiotSwitchSubEntity(MiotSensorSubEntity):
+class MiotSwitchSubEntity(MiotSensorSubEntity, SwitchSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property, option)
         self._name = self.format_name_by_property(miot_property)
