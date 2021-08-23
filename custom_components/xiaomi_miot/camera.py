@@ -214,6 +214,23 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 break
         if self._prop_stream_address:
             self._supported_features |= SUPPORT_STREAM
+        elif self._miot_service.name in ['camera_control']:
+            if self.custom_config_bool('use_motion_stream'):
+                pass
+            elif self.custom_config_bool('sub_motion_stream'):
+                pass
+            else:
+                persistent_notification.create(
+                    self.hass,
+                    f'Your camera [**{self._model}**](https://home.miot-spec.com/spec?model={self._model}) '
+                    'does not support streaming services, but you can enable [motion event video]'
+                    '(https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604).\n'
+                    '你的摄像机不支持实时视频流服务，但是你可以[开启**看家助手**]'
+                    '(https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604)'
+                    '以查看回放视频。\n',
+                    'Xiaomi Miot Warning',
+                    f'{DATA_KEY}-warning-{self._model}',
+                )
 
     @property
     def should_poll(self):
