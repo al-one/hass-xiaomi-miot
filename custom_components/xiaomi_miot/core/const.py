@@ -98,6 +98,20 @@ GLOBAL_CUSTOMIZES = {
                 2: 0,
             },
         },
+        'lumi.acpartner.*': {
+            'sensor_attributes': 'electric_power',
+            'miio_cloud_records': 'prop.ac_power:1',
+            'miio_prop_ac_power_template': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
+                                           "{%- set val = (val | from_json).0 | round(2) %}"
+                                           "{{ {"
+                                           "'electric_power': val,"
+                                           "'_entity_attrs': True,"
+                                           "} }}",
+        },
+        'lumi.acpartner.*:electric_power': {
+            'device_class': 'power',
+            'unit_of_measurement': 'W',
+        },
         'lumi.sensor_motion.*': {
             'interval_seconds': 15,
             'motion_timeout': 60,

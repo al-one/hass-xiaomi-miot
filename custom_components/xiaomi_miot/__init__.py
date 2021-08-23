@@ -932,6 +932,12 @@ class MiotEntity(MiioEntity):
             return self._device.mapping
         return None
 
+    @property
+    def entity_id_prefix(self):
+        if not self._miot_service:
+            return None
+        return self._miot_service.spec.generate_entity_id(self)
+
     async def _try_command(self, mask_error, func, *args, **kwargs):
         result = None
         try:
@@ -1525,6 +1531,13 @@ class BaseSubEntity(BaseEntity):
             self._unique_id = self._option.get('unique_id')
         if self._option.get('name'):
             self._name = self._option.get('name')
+        if hasattr(parent, 'entity_id_prefix'):
+            eip = getattr(parent, 'entity_id_prefix')
+            if eip:
+                suf = attr
+                if self._dict_key:
+                    suf = f'{suf}_{self._dict_key}'
+                self.entity_id = f'{eip}_{suf}'
         self._supported_features = int(self._option.get('supported_features', 0))
         self._extra_attrs = {
             'parent_entity_id': parent.entity_id,
