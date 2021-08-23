@@ -286,10 +286,11 @@ request_xiaomi_api:
     api:
       description: Xiaomi API path.
       example: "/home/device_list"
+      required: true
       selector:
         text:
-    params:
-      description: Xiaomi API params.
+    data:
+      description: Xiaomi API request data.
       example: "{'getVirtualModel':true}"
       selector:
         object:

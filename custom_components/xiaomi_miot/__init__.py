@@ -144,7 +144,8 @@ SERVICE_TO_METHOD_BASE = {
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
                 vol.Required('api'): cv.string,
-                vol.Optional('params', default={}): dict,
+                vol.Optional('data', default={}): vol.Any(dict, list),
+                vol.Optional('params', default={}): vol.Any(dict, list, None),  # deprecated
                 vol.Optional('method', default='POST'): cv.string,
                 vol.Optional('crypt', default=False): cv.boolean,
                 vol.Optional('throw', default=False): cv.boolean,
@@ -1459,11 +1460,12 @@ class MiotEntity(MiioEntity):
             _LOGGER.warning('Miot bindkey for %s: %s', self.name, result)
         return (result or {}).get('beaconkey')
 
-    async def async_request_xiaomi_api(self, api, params=None, method='POST', crypt=False, throw=False):
+    async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=False, **kwargs):
         mic = self.miot_cloud
         if not isinstance(mic, MiotCloud):
             return None
-        fun = partial(mic.request_miot_api, api, data=params, method=method, crypt=crypt)
+        dat = data or kwargs.get('params')
+        fun = partial(mic.request_miot_api, api, data=dat, method=method, crypt=crypt)
         result = await self.hass.async_add_executor_job(fun)
         persistent_notification.async_create(
             self.hass,
@@ -1471,7 +1473,7 @@ class MiotEntity(MiioEntity):
             f'Xiaomi Api: {api}',
             f'{DOMAIN}-debug',
         )
-        if throw:
+        if kwargs.get('throw'):
             raise Warning(f'Xiaomi Api {api}: {result}')
         else:
             _LOGGER.debug('Xiaomi Api %s: %s', api, result)

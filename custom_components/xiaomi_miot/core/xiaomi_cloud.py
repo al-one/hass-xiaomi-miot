@@ -129,10 +129,10 @@ class MiotCloud(micloud.MiCloud):
             _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
         return False
 
-    def request_miot_api(self, api, data: dict, method='POST', crypt=False, debug=True):
-        params = {
-            'data': self.json_encode(data),
-        }
+    def request_miot_api(self, api, data, method='POST', crypt=False, debug=True):
+        params = {}
+        if data is not None:
+            params['data'] = self.json_encode(data)
         if crypt:
             rsp = self.request_rc4_api(api, params, method)
         else:
