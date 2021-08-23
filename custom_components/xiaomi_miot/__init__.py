@@ -1160,17 +1160,19 @@ class MiotEntity(MiioEntity):
             self.update_attrs(attrs)
 
     def get_properties(self, mapping: dict, throw=False, **kwargs):
-        if not self.miot_device:
-            return
+        results = []
         try:
-            results = self.miot_device.get_properties_for_mapping(mapping=mapping)
+            if self.miot_cloud:
+                results = self.miot_cloud.get_properties_for_mapping(self.miot_did, mapping)
+            elif self.miot_device:
+                results = self.miot_device.get_properties_for_mapping(mapping=mapping)
         except (ValueError, DeviceException) as exc:
-            if throw:
-                raise exc
             _LOGGER.error(
                 'Got exception while get properties from %s: %s, mapping: %s, miio: %s',
                 self.name, exc, mapping, self._miio_info.data,
             )
+            if throw:
+                raise exc
             return
         attrs = {
             prop['did']: prop['value'] if prop['code'] == 0 else None
@@ -1184,7 +1186,6 @@ class MiotEntity(MiioEntity):
                 'Miot properties',
                 f'{DOMAIN}-debug',
             )
-            raise Warning(f'Miot properties: {results}')
         return attrs
 
     async def async_get_properties(self, mapping, **kwargs):
@@ -1684,7 +1685,7 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
         self._prop_power = None
         super().__init__(parent, attr, option)
 
-    def update(self):
+    def update(self, data=None):
         super().update()
         if self._available:
             attrs = self._state_attrs
@@ -1744,7 +1745,7 @@ class MiotSensorSubEntity(BaseSubEntity):
             'property_description': miot_property.description,
         })
 
-    def update(self):
+    def update(self, data=None):
         super().update()
         if not self._available:
             return

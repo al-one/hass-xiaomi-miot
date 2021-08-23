@@ -105,6 +105,13 @@ GLOBAL_CUSTOMIZES = {
         'lumi.sensor_magnet.*': {
             'interval_seconds': 15,
         },
+        'miaomiaoce.sensor_ht.t1': {
+            'miot_mapping': {
+                'temperature-2-1': {'siid': 2, 'piid': 1},
+                'relative_humidity-2-2': {'siid': 2, 'piid': 2},
+                # 'battery.battery_level': {'siid': 3, 'piid': 1},  # -704002000
+            },
+        },
         'mxiang.cateye.*': {
             'miio_cloud_records': 'prop.is_can_open_video:1,event.human_visit_details:1',
             'miio_prop_is_can_open_video_template':    "{%- set val = (result.0 | default({})).get('value','[0]') %}"
