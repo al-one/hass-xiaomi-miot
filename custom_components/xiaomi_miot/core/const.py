@@ -98,15 +98,16 @@ GLOBAL_CUSTOMIZES = {
                 2: 0,
             },
         },
+        'lumi.acpartner.mcn02': {
+            'miio_cloud_props': 'load_power',
+        },
         'lumi.acpartner.*': {
             'sensor_attributes': 'electric_power',
-            'miio_cloud_records': 'prop.ac_power:1',
-            'miio_prop_ac_power_template': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
-                                           "{%- set val = (val | from_json).0 | round(2) %}"
-                                           "{{ {"
-                                           "'electric_power': val,"
-                                           "'_entity_attrs': True,"
-                                           "} }}",
+            'miio_cloud_props': 'ac_power',
+            'miio_cloud_props_template': "{%- set val = props.get('prop.ac_power',props.get('prop.load_power',0)) %}"
+                                         "{{ {"
+                                         "'electric_power': val | round(2),"
+                                         "} }}",
         },
         'lumi.acpartner.*:electric_power': {
             'device_class': 'power',
@@ -135,7 +136,6 @@ GLOBAL_CUSTOMIZES = {
                                          "'prop.status': sta,"
                                          "'prop.position': pos,"
                                          "'prop.update_at': (tim / 1000) | timestamp_local,"
-                                         "'_entity_attrs': True,"
                                          "} }}",
         },
         'mxiang.cateye.*': {
