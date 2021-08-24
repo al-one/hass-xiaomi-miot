@@ -1085,6 +1085,9 @@ class MiotEntity(MiioEntity):
         cls = self.custom_config_list('miio_cloud_records')
         if cls:
             await self.hass.async_add_executor_job(partial(self.update_miio_cloud_records, cls))
+        pls = self.custom_config_list('miio_cloud_props')
+        if pls:
+            await self.hass.async_add_executor_job(partial(self.update_miio_cloud_props, pls))
 
         # update miio properties in lan
         pls = self.custom_config_list('miio_properties')
@@ -1134,6 +1137,33 @@ class MiotEntity(MiioEntity):
             _LOGGER.debug('Got miio properties from %s: %s', self.name, attrs)
             self.update_attrs(attrs)
 
+    def update_miio_cloud_props(self, keys):
+        did = str(self.miot_did)
+        mic = self.miot_cloud
+        if not did or not mic:
+            return
+        kls = []
+        for k in keys:
+            if '.' not in k:
+                k = f'prop.{k}'
+            kls.append(k)
+        pms = {
+            'did': did,
+            'props': kls,
+        }
+        rdt = mic.request_miot_api('device/batchdevicedatas', [pms]) or {}
+        _LOGGER.debug('Got miio cloud props from %s: %s', self.name, rdt)
+        props = (rdt.get('result') or {}).get(did, {})
+
+        tpl = self.custom_config('miio_cloud_props_template')
+        if tpl and props:
+            tpl = cv.template(tpl)
+            tpl.hass = self.hass
+            attrs = tpl.render({'props': props})
+        else:
+            attrs = props
+        self.update_attrs(attrs)
+
     def update_miio_cloud_records(self, keys):
         did = self.miot_did
         mic = self.miot_cloud
@@ -1151,7 +1181,6 @@ class MiotEntity(MiioEntity):
             if tpl:
                 tpl = cv.template(tpl)
                 tpl.hass = self.hass
-            if tpl:
                 rls = tpl.render({'result': rdt})
             else:
                 rls = [
