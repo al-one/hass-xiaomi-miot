@@ -1337,7 +1337,6 @@ class MiotEntity(MiioEntity):
                 'Miot action result',
                 f'{DOMAIN}-debug',
             )
-            raise Warning(f'Miot action result: {result}')
         return result if ret else ret
 
     async def async_miot_action(self, siid, aiid, params=None, did=None, **kwargs):
