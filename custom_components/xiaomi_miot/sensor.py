@@ -61,7 +61,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'pet_feeder', 'fridge_chamber', 'plant_monitor',
             ):
                 if srv.name in ['lock']:
-                    if not srv.get_property('operation_method'):
+                    if not srv.get_property('operation_method', 'operation_id'):
                         continue
                 elif srv.name in ['battery']:
                     if spec.name not in ['switch_sensor']:
