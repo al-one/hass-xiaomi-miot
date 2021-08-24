@@ -843,6 +843,7 @@ class MiotEntity(MiioEntity):
         if lan and isinstance(TRANSLATION_LANGUAGES.get(lan), dict):
             dic = {**TRANSLATION_LANGUAGES[lan], **dic}
         self._miot_service.set_translations(dic)
+        self._vars['exclude_services'] = self.custom_config_list('exclude_miot_services') or []
 
     @property
     def miot_device(self):
@@ -924,13 +925,25 @@ class MiotEntity(MiioEntity):
     @property
     def miot_mapping(self):
         dic = self.custom_config_json('miot_mapping')
+        mmp = None
         if dic:
-            return dic
-        if self._miot_mapping:
-            return self._miot_mapping
-        if self._device and hasattr(self._device, 'mapping'):
-            return self._device.mapping
-        return None
+            mmp = dic
+        elif self._miot_mapping:
+            mmp = self._miot_mapping
+        elif self._device and hasattr(self._device, 'mapping'):
+            mmp = self._device.mapping
+
+        exs = self._vars.get('exclude_services') or []
+        if exs and mmp and self._miot_service:
+            sls = self._miot_service.spec.get_services(*exs)
+            sis = map(lambda x: x.iid, sls)
+            if sis:
+                mmp = {
+                    k: v
+                    for k, v in mmp.items()
+                    if v.get('siid') not in sis
+                }
+        return mmp
 
     @property
     def entity_id_prefix(self):
@@ -990,20 +1003,28 @@ class MiotEntity(MiioEntity):
                     rmp[f'{s}-{p}'] = k
                 max_properties = self.custom_config_integer('chunk_properties') or max_properties
                 results = await self.hass.async_add_executor_job(
-                    partial(self._device.get_properties_for_mapping, did=self.miot_did, max_properties=max_properties)
+                    partial(
+                        self._device.get_properties_for_mapping,
+                        max_properties=max_properties,
+                        did=self.miot_did,
+                        mapping=mmp,
+                    )
                 )
             else:
-                _LOGGER.error('Local device and miot cloud not ready %s', self.name)
+                _LOGGER.error('%s: Local device and miot cloud not ready.', self.name)
         except DeviceException as exc:
             self._available = False
             _LOGGER.error(
-                'Got MiioException while fetching the state for %s: %s, mapping: %s, max_properties: %s',
-                self.name, exc, self.miot_mapping, max_properties,
+                '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s',
+                self.name, exc, mmp, max_properties,
             )
             return
         except MiCloudException as exc:
             self._available = False
-            _LOGGER.error('Got MiCloudException while fetching the state for %s: %s', self.name, exc)
+            _LOGGER.error(
+                '%s: Got MiCloudException while fetching the state: %s, mapping: %s',
+                self.name, exc, mmp,
+            )
             return
         attrs = {}
         for prop in results or []:
@@ -1079,7 +1100,7 @@ class MiotEntity(MiioEntity):
         if self._subs:
             attrs['sub_entities'] = list(self._subs.keys())
         self.update_attrs(attrs)
-        _LOGGER.debug('Got new state from %s: %s', self.name, attrs)
+        _LOGGER.debug('%s: Got new state: %s', self.name, attrs)
 
         # update miio prop/event in cloud
         cls = self.custom_config_list('miio_cloud_records')
@@ -1105,7 +1126,7 @@ class MiotEntity(MiioEntity):
         try:
             attrs = self._device.get_properties(props)
         except DeviceException as exc:
-            _LOGGER.warning('Got miio properties for %s (%s) failed: %s', self.name, props, exc)
+            _LOGGER.warning('%s: Got miio properties %s failed: %s', self.name, props, exc)
             return
         if len(props) != len(attrs):
             self.update_attrs({
@@ -1113,7 +1134,7 @@ class MiotEntity(MiioEntity):
             })
             return
         attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
-        _LOGGER.debug('Got miio properties from %s: %s', self.name, attrs)
+        _LOGGER.debug('%s: Got miio properties: %s', self.name, attrs)
         self.update_attrs(attrs)
 
     def update_miio_command_sensors(self, commands):
@@ -1380,7 +1401,10 @@ class MiotEntity(MiioEntity):
         add_covers = self._add_entities.get('cover')
         add_numbers = self._add_entities.get('number')
         add_selects = self._add_entities.get('select')
+        exclude_services = self._vars.get('exclude_services') or []
         for s in sls:
+            if s.name in exclude_services:
+                continue
             if not properties:
                 fnm = s.unique_name
                 tms = self._check_same_sub_entity(fnm, domain)
