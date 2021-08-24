@@ -512,8 +512,22 @@ class MiotProperty:
             'voltage': DEVICE_CLASS_VOLTAGE,
             'electric_current': DEVICE_CLASS_CURRENT,
             'electric_power': DEVICE_CLASS_POWER,
-            'co2': DEVICE_CLASS_CO2,
         }
+        vls = vars()
+        if 'DEVICE_CLASS_CO2' in vls:
+            # v2021.4
+            props.update({
+                'co2_density': 'carbon_dioxide',
+                'co_density': 'carbon_monoxide',
+                'co2': 'carbon_dioxide',
+            })
+        if 'DEVICE_CLASS_PM25' in vls:
+            # v2021.9
+            props.update({
+                'pm2_5_density': 'pm25',
+                'pm25': 'pm25',
+                'pm10': 'pm10',
+            })
         if self.name in props:
             ret = props[self.name]
         else:
