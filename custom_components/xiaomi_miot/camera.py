@@ -71,17 +71,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             srv = spec.get_service('p2p_stream') or spec.services[0]
             entities.append(MiotCameraEntity(hass, config, srv))
         for srv in svs:
-            if not spec.get_service('camera_stream_for_google_home', 'camera_stream_for_amazon_alexa'):
-                if srv.name in ['camera_control']:
-                    persistent_notification.create(
-                        hass,
-                        f'Your camera [**{model}**](https://home.miot-spec.com/spec?model={model}) '
-                        'doesn\'t support streaming services.\n'
-                        f'你的摄像机不支持实时视频流服务。\n'
-                        'https://github.com/al-one/hass-xiaomi-miot/issues/60#issuecomment-819435571',
-                        'Xiaomi Miot Warning',
-                        f'{DATA_KEY}-warning-{model}',
-                    )
             entities.append(MiotCameraEntity(hass, config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
