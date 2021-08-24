@@ -126,6 +126,18 @@ GLOBAL_CUSTOMIZES = {
                 # 'battery.battery_level': {'siid': 3, 'piid': 1},  # -704002000
             },
         },
+        'midr.rv_mirror.*': {
+            'miio_cloud_props': 'Status,Position',
+            'miio_cloud_props_template': "{%- set sta = props.get('prop.Status',0) | int %}"
+                                         "{%- set pos = props.get('prop.Position','{}') | from_json %}"
+                                         "{%- set tim = pos.get('up_time_stamp',0) | int %}"
+                                         "{{ {"
+                                         "'prop.status': sta,"
+                                         "'prop.position': pos,"
+                                         "'prop.update_at': (tim / 1000) | timestamp_local,"
+                                         "'_entity_attrs': True,"
+                                         "} }}",
+        },
         'mxiang.cateye.*': {
             'miio_cloud_records': 'prop.is_can_open_video:1,event.human_visit_details:1',
             'miio_prop_is_can_open_video_template':    "{%- set val = (result.0 | default({})).get('value','[0]') %}"
