@@ -675,8 +675,12 @@ class MiioEntity(BaseEntity):
             return ret
         cfg = {}
         if self._model:
+            gcs = GLOBAL_CUSTOMIZES['models']
+            ucs = self.global_config('device_customizes') or {}
+            if ucs and isinstance(ucs, dict):
+                gcs.update(ucs)
             for m in self.wildcard_models:
-                cus = GLOBAL_CUSTOMIZES['models'].get(m) or {}
+                cus = gcs.get(m) or {}
                 if key is not None and key not in cus:
                     continue
                 if cus:
@@ -1675,8 +1679,12 @@ class BaseSubEntity(BaseEntity):
                 prop = getattr(self, '_miot_property')
                 if prop:
                     mar.append(f'{self._model}:{prop.name}')
+            gcs = GLOBAL_CUSTOMIZES['models']
+            ucs = self.global_config('device_customizes') or {}
+            if ucs and isinstance(ucs, dict):
+                gcs.update(ucs)
             for m in mar:
-                cus = GLOBAL_CUSTOMIZES['models'].get(m) or {}
+                cus = gcs.get(m) or {}
                 if key is not None and key not in cus:
                     continue
                 if cus:
