@@ -137,7 +137,6 @@ class MiotCloud(micloud.MiCloud):
             rsp = self.request_rc4_api(api, params, method)
         else:
             rsp = self.request(self.get_api_url(api), params)
-        exc = None
         try:
             rdt = json.loads(rsp)
             if debug:
@@ -145,12 +144,12 @@ class MiotCloud(micloud.MiCloud):
                     'Request miot api: %s %s result: %s',
                     api, data, rsp,
                 )
-        except (TypeError, ValueError) as exc:
+        except (TypeError, ValueError):
             rdt = None
         if not rdt:
             _LOGGER.warning(
                 'Request miot api: %s %s result: %s failed: %s',
-                api, data, rsp, exc,
+                api, data, rsp,
             )
         return rdt
 
