@@ -170,6 +170,8 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
     _motion_entity = None
     _motion_enable = None
     _is_doorbell = None
+    _use_motion_stream = False
+    _sub_motion_stream = False
 
     def __init__(self, hass: HomeAssistant, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config)
@@ -203,23 +205,14 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 break
         if self._prop_stream_address:
             self._supported_features |= SUPPORT_STREAM
+            self._sub_motion_stream = True
         elif self._miot_service.name in ['camera_control']:
             if self.custom_config_bool('use_motion_stream'):
                 pass
             elif self.custom_config_bool('sub_motion_stream'):
                 pass
             else:
-                persistent_notification.create(
-                    self.hass,
-                    f'Your camera [**{self._model}**](https://home.miot-spec.com/spec?model={self._model}) '
-                    'does not support streaming services, but you can enable [motion event video]'
-                    '(https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604).\n'
-                    '你的摄像机不支持实时视频流服务，但是你可以[开启**看家助手**]'
-                    '(https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604)'
-                    '以查看回放视频。\n',
-                    'Xiaomi Miot Warning',
-                    f'{DATA_KEY}-warning-{self._model}',
-                )
+                self._use_motion_stream = True
 
     @property
     def should_poll(self):
@@ -247,9 +240,11 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 self._subs[pnm] = MiotSwitchSubEntity(self, self._prop_power)
                 add_switches([self._subs[pnm]])
 
-        self._motion_enable = self.custom_config_bool('use_motion_stream')
+        self._motion_enable = self.custom_config_bool('use_motion_stream', self._use_motion_stream)
         add_cameras = self._add_entities.get(ENTITY_DOMAIN)
-        if not self._motion_entity and add_cameras and self.custom_config_bool('sub_motion_stream'):
+        if not self._motion_entity \
+                and add_cameras \
+                and self.custom_config_bool('sub_motion_stream', self._sub_motion_stream):
             self._motion_entity = MotionCameraEntity(self, self.hass)
             self._subs['motion_event'] = self._motion_entity
             add_cameras([self._motion_entity])
