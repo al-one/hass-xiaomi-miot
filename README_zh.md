@@ -156,6 +156,7 @@ doamin.your_entity_id:
     - [toilet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:toilet:00007877)
 - [switch](https://www.home-assistant.io/integrations/switch)
     - [fish-tank](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:fish-tank:00007894)
+    - [germicidal-lamp](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:germicidal-lamp:00007882)
     - [massager](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:massager:0000788E)
     - [mosquito-dispeller](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:mosquito-dispeller:00007886)
     - [outlet](https://miot-spec.org/miot-spec-v2/spec/device?type=urn:miot-spec-v2:device:outlet:0000A002)

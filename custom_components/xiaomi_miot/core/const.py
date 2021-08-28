@@ -239,6 +239,11 @@ GLOBAL_CUSTOMIZES = {
                                       "'key_id': key,"
                                       "} }}",
         },
+        '*.s_lamp.*': {
+            'sensor_properties': 'left_time',
+            'switch_properties': 'uv,radar_on,lighting.on',
+            'number_properties': 'target_time',
+        },
     },
 
 }
