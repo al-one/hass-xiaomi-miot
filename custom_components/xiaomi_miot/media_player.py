@@ -261,7 +261,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         self._update_sub_entities('on', domain='switch')
         self._update_sub_entities(
             ['input_control'],
-            ['television'],
+            ['television', 'projector'],
             domain='fan',
         )
 
