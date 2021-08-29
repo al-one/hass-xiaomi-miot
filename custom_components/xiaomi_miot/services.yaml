@@ -263,12 +263,12 @@ get_bindkey:
   fields:
     entity_id:
       description: ID of the entity.
-      example: "sensor.lywsd03mmc"
+      example: "sensor.lywsd03mmc_temperature"
       required: true
       selector:
         entity:
           integration: xiaomi_miot
-    name:
+    did:
       description: Xiaomi device ID.
       selector:
         text:
