@@ -1,5 +1,6 @@
 import logging
 import requests
+import platform
 import re
 
 from .const import DOMAIN
@@ -160,6 +161,8 @@ class MiotSpec:
     async def async_from_type(hass, typ):
         url = f'https://miot-spec.org/miot-spec-v2/instance?type={typ}'
         fnm = f'{DOMAIN}/{typ}.json'
+        if platform.system() == 'Windows':
+            fnm = fnm.replace(':', '_')
         store = Store(hass, 1, fnm)
         dat = await store.async_load() or {}
         if not dat.get('type'):
