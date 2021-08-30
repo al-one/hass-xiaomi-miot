@@ -58,6 +58,27 @@ xiaomi_miot:
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
 
+### 配置翻译词典:
+
+```yaml
+# configuration.yaml
+xiaomi_miot:
+  language: zh # 使用内置词典，目前仅支持`zh`
+  # https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/translation_languages.py
+  translations:
+    # 全局词典，对所有实体生效
+    idle: '空闲'
+    busy: '工作中'
+    # 指定风扇模式的词典
+    'fan.mode':
+      'Straight Wind': '直吹模式'
+      'Natural Wind': '自然风'
+    # 指定洗衣机烘干模式的词典
+    'washer.drying_level':
+      moist: '微湿'
+      extra: '特干'
+```
+
 
 ### 自定义实体
 
@@ -66,14 +87,25 @@ xiaomi_miot:
 homeassistant:
   customize: !include customize.yaml
 
+# 通过设备型号自定义
+xiaomi_miot:
+  # https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/device_customizes.py
+  device_customizes:
+    'chuangmi.plug.212a01':
+      miot_local: true
+      chunk_properties: 7
 
+
+# 通过父实体自定义
 # customize.yaml
 domain.your_entity_id:
   miot_local: true        # 使用本地模式 (通过账号接入的设备)
   miot_cloud: true        # 为该实体开启云端模式 (read, write, action)
   miot_cloud_write: true  # 仅写属性使用云端模式
   miot_cloud_action: true # 仅action使用云端模式
+  check_lan: true         # 云端模式下检查设备在局域网是否可用
   miio_properties: power,battery # 获取miio属性到实体的属性中
+  miio_cloud_props: prop.power,event.dev_online
 
 # 自定义子实体
 domain.parent_entity_id:
@@ -90,7 +122,6 @@ climate.your_entity_id:
 camera.your_entity_id:
   video_attribute: 1   # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
   keep_streaming: true # 持续更新流地址
-  check_lan: true      # 云端模式下检查设备在局域网是否可用
 
 cover.your_entity_id:
   closed_position: 5   # 当实体位置值小于等于此值时为关闭状态

@@ -39,7 +39,7 @@ Or click (HA v2021.3+): [![Add Integration](https://my.home-assistant.io/badges/
 - Add device using host/token
   > Suitable for devices supporting miot-spec in LAN
 
-### Configuration Xiaomi Cloud:
+### Config Xiaomi Cloud:
 
 > If your device (**integrate by token**) unavailable or return code -4004 or -9999 in logs, You can try this way.
 
@@ -55,6 +55,27 @@ Enabled miot cloud for device:
 
 > [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > Options > ☑️ Enable miot cloud
 
+### Config translation languages:
+
+```yaml
+# configuration.yaml
+xiaomi_miot:
+  language: zh # Using the built-in dictionary, currently only `zh` is supported
+  # https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/translation_languages.py
+  translations:
+    # Global dictionary
+    idle: '空闲'
+    busy: '工作中'
+    # Dictionary for specifying fan modes
+    'fan.mode':
+      'Straight Wind': '直吹模式'
+      'Natural Wind': '自然风'
+    # Dictionary for specifying the drying modes of the washer
+    'washer.drying_level':
+      moist: '微湿'
+      extra: '特干'
+```
+
 
 ### Customize entity
 
@@ -63,14 +84,25 @@ Enabled miot cloud for device:
 homeassistant:
   customize: !include customize.yaml
 
+# Customize via device model
+xiaomi_miot:
+  # https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/device_customizes.py
+  device_customizes:
+    'chuangmi.plug.212a01':
+      miot_local: true
+      chunk_properties: 7
 
+
+# Customize via parent entity
 # customize.yaml
 domain.your_entity_id:
   miot_local: true        # Force to read and write data in LAN (integrate by account)
   miot_cloud: true        # Enable miot cloud for entity (read, write, action)
   miot_cloud_write: true  # Enable miot cloud (only write)
   miot_cloud_action: true # Enable miot cloud (only action)
+  check_lan: true         # Check LAN connection in cloud mode
   miio_properties: power,battery # Get miio properties to state attributes
+  miio_cloud_props: prop.power,event.dev_online
 
 # Custom sub entities
 domain.parent_entity_id:
@@ -87,7 +119,6 @@ climate.your_entity_id:
 camera.your_entity_id:
   video_attribute: 1   # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
   keep_streaming: true # Continuously update stream address
-  check_lan: true      # Check LAN connection in cloud mode
 
 cover.your_entity_id:
   closed_position: 5   # Change cover state to closed when position <= 5%
