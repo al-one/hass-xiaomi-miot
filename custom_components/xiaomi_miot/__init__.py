@@ -456,7 +456,7 @@ class MiotDevice(MiotDeviceBase):
         if mapping is None:
             mapping = self.mapping
         properties = [
-            {'did': k if did is None else str(did), **v}
+            {'did': f'prop.{v["siid"]}.{v["piid"]}' if did is None else str(did), **v}
             for k, v in mapping.items()
         ]
         return self.get_properties(
