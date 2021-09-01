@@ -84,6 +84,9 @@ DEVICE_CUSTOMIZES = {
     'lumi.sensor_magnet.*': {
         'interval_seconds': 15,
     },
+    'lumi.sensor_wleak.*': {
+        'time_start_offset': -86400 * 365,
+    },
     'miaomiaoce.sensor_ht.t1': {
         'miot_mapping': {
             'temperature-2-1': {'siid': 2, 'piid': 1},

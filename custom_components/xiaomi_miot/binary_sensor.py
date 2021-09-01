@@ -119,7 +119,7 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
     @property
     def is_on(self):
         if not self._prop_state:
-            return None
+            return self._state
         val = self._prop_state.from_dict(self._state_attrs)
         if self._prop_state.name in ['no_motion_duration', 'nobody_time']:
             try:
@@ -144,7 +144,7 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
     @property
     def device_class(self):
-        return self._vars.get('device_class')
+        return self._vars.get('device_class') or super().device_class
 
 
 class MiotToiletEntity(MiotBinarySensorEntity):
@@ -219,9 +219,14 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
         mic = self.miot_cloud
         pes = dlg = None
         if isinstance(mic, MiotCloud):
-            dlg = await self.hass.async_add_executor_job(
-                partial(mic.get_last_device_data, self.miot_did, 'device_log')
-            )
+            now = int(time.time())
+            ofs = self.custom_config_integer('time_start_offset') or -86400 * 3
+            dlg = await self.hass.async_add_executor_job(partial(
+                mic.get_last_device_data,
+                self.miot_did,
+                'device_log',
+                time_start=now + ofs,
+            ))
             pes = json.loads(dlg or '[]')
         adt = {}
         typ = None
@@ -238,11 +243,17 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
             prop = self._miot_service.get_property('illumination')
             if prop:
                 adt[prop.full_name] = pes[1][1][0]
+        self._state = None
         if typ == 'event.motion' or self._miot_service.name in ['motion_sensor']:
-            adt[self._prop_state.full_name] = dif <= int(self.custom_config('motion_timeout') or 60)
+            self._state = dif <= int(self.custom_config('motion_timeout') or 60)
         elif typ in ['event.open', 'event.close']:
-            adt[self._prop_state.full_name] = typ == 'event.open'
-        self.update_attrs(adt)
+            self._state = typ == 'event.open'
+        elif typ in ['event.leak', 'event.no_leak']:
+            self._state = typ == 'event.leak'
+        if self._prop_state:
+            adt[self._prop_state.full_name] = self._state
+        if adt:
+            self.update_attrs(adt)
 
 
 class MiotBinarySensorSubEntity(ToggleSubEntity, BinarySensorEntity):
