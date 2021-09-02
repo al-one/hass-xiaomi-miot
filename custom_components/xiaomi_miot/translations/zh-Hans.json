@@ -92,5 +92,14 @@
             "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登陆失败，请在与当前网络相同的环境下登陆小米官网(mi.com)后重试",
             "none_devices": "该小米账户下没有设备"
         }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "自定义组件版本",
+            "can_reach_server": "可访问米家服务器",
+            "can_reach_spec": "可获取MIoT规格",
+            "logged_accounts": "已登录的账户数量",
+            "total_devices": "米家设备总数量"
+        }
     }
 }
