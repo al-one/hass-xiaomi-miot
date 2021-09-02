@@ -330,7 +330,10 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         elif not self._last_url:
             updater = 'lan'
             try:
-                vda = int(self.custom_config('video_attribute') or 0)
+                vav = self.custom_config_integer('video_attribute')
+                vap = self._srv_stream.get_property('video_attribute')
+                if vav is None and vap.value_list:
+                    vav = (vap.value_list.pop(0) or {}).get('value')
                 if self.miot_cloud:
                     if self._act_stop_stream:
                         self.miot_action(
@@ -340,7 +343,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                     result = self.miot_action(
                         self._srv_stream.iid,
                         self._act_start_stream.iid,
-                        [vda],
+                        [] if vav is None else [vav],
                     ) or {}
                     updater = 'cloud'
                 if isinstance(result, dict):
