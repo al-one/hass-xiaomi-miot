@@ -25,8 +25,9 @@ async def system_health_info(hass):
             v = v.get(CONF_XIAOMI_CLOUD)
         if isinstance(v, MiotCloud):
             mic = v
-            uds[mic.user_id] = await mic.async_get_devices_by_key('did') or {}
-            total_devices += len(uds[mic.user_id])
+            if mic.user_id not in uds:
+                uds[mic.user_id] = await mic.async_get_devices_by_key('did') or {}
+                total_devices += len(uds[mic.user_id])
 
     api = mic.get_api_url('') if mic else 'https://api.io.mi.com'
     api_spec = 'https://miot-spec.org/miot-spec-v2/spec/services'
