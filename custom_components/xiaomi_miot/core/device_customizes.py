@@ -212,5 +212,11 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'uv,radar_on,lighting.on',
         'number_properties': 'target_time',
     },
+    '*.walkingpad.*': {
+        'sensor_properties': 'current_distance,current_step_count,current_calorie_consumption,'
+                             'left_distance,left_time,working_time',
+        'number_properties': 'target_distance,target_time',
+        'select_properties': 'mode,speed_level',
+    },
 
 }

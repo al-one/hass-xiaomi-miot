@@ -52,11 +52,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         if miot:
             spec = await MiotSpec.async_from_type(hass, miot)
             for srv in spec.get_services(
-                'battery', 'environment', 'water_purifier', 'tds_sensor', 'switch_sensor',
-                'temperature_humidity_sensor', 'illumination_sensor', 'vibration_sensor',
-                'gas_sensor', 'smoke_sensor',
-                'router', 'lock', 'printer', 'sleep_monitor', 'bed',
-                'oven', 'microwave_oven', 'health_pot', 'coffee_machine',
+                'battery', 'environment', 'tds_sensor', 'switch_sensor', 'vibration_sensor',
+                'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor',
+                'router', 'lock', 'printer', 'sleep_monitor', 'bed', 'walking_pad',
+                'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'water_purifier',
                 'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer',
                 'pet_feeder', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp',
             ):
