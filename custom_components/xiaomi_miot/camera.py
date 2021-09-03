@@ -1,6 +1,5 @@
 """Support for Xiaomi cameras."""
 import logging
-import asyncio
 import json
 import time
 import locale
@@ -22,8 +21,7 @@ from homeassistant.components.camera import (
     STATE_RECORDING,
     STATE_STREAMING,
 )
-from homeassistant.components.ffmpeg import DATA_FFMPEG
-from homeassistant.components import persistent_notification
+from homeassistant.components.ffmpeg import async_get_image, DATA_FFMPEG
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from haffmpeg.camera import CameraMjpeg
@@ -104,19 +102,17 @@ class BaseCameraEntity(Camera):
     async def image_source(self, **kwargs):
         raise NotImplementedError()
 
-    async def async_camera_image(self):
+    async def async_camera_image(self, width=None, height=None):
         url = await self.image_source()
         if url:
             if '-i ' not in str(url):
                 url = f'-i "{url}"'
-            ffmpeg = ImageFrame(self._manager.binary)
-            self._last_image = await asyncio.shield(
-                ffmpeg.get_image(
-                    f'{self._ffmpeg_options or ""} {url}'.strip(),
-                    output_format=IMAGE_JPEG,
-                    extra_cmd=self._extra_arguments,
-                    timeout=30,
-                )
+            self._last_image = await async_get_image(
+                self.hass,
+                f'{self._ffmpeg_options or ""} {url}'.strip(),
+                extra_cmd=self._extra_arguments,
+                width=width,
+                height=height,
             )
         return self._last_image
 
@@ -311,11 +307,12 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return await self.hass.async_add_executor_job(partial(fun, **kwargs))
 
     async def image_source(self, **kwargs):
-        fun = self.stream_source
         if self._motion_enable:
-            fun = self.get_motion_image_address
             kwargs['crypto'] = True
-        return await self.hass.async_add_executor_job(partial(fun, **kwargs))
+            return await self.hass.async_add_executor_job(
+                partial(self.get_motion_image_address, **kwargs)
+            )
+        return await self.stream_source()
 
     def get_stream_address(self, **kwargs):
         now = time.time()
