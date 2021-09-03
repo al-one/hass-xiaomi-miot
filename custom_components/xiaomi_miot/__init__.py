@@ -670,10 +670,13 @@ class MiioEntity(BaseEntity):
                 self._add_entities = self.hass.data[DOMAIN][eid].get('add_entities') or {}
 
     def custom_config(self, key=None, default=None):
-        ret = super().custom_config(key, default)
-        if ret is not None:
-            return ret
-        cfg = {}
+        ret = super().custom_config(key)
+        if key is not None:
+            if ret is not None:
+                return ret
+            cfg = {}
+        else:
+            cfg = ret or {}
         if self._model:
             gcs = GLOBAL_CUSTOMIZES['models']
             ucs = self.global_config('device_customizes') or {}
