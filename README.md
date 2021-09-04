@@ -160,6 +160,7 @@ doamin.your_entity_id:
     - [health-pot](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:health-pot:00007860)
     - [illumination-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:illumination-sensor:0000783D)
     - [induction-cooker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:induction-cooker:0000A033)
+    - [juicer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:juicer:0000785F)
     - [lock](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:lock:00007855)
     - [microwave-oven](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:microwave-oven:00007843)
     - [oven](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:oven:00007862)

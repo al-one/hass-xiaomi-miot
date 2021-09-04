@@ -56,7 +56,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor',
                 'router', 'lock', 'printer', 'sleep_monitor', 'bed', 'walking_pad',
                 'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'water_purifier',
-                'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer',
+                'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer',
                 'pet_feeder', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp',
             ):
                 if srv.name in ['lock']:
