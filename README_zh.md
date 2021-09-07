@@ -137,7 +137,7 @@ doamin.your_entity_id:
 
 **推荐**[使用界面自定义实体](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-864678774):
 
-> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 🖌 自定义 > 🔍 选择实体 > 选择要覆盖的属性 > 添加Other属性
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🖌 自定义](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-864678774) > 🔍 选择实体 > 选择要覆盖的属性 > 添加Other属性
 
 
 ## [支持的设备](https://github.com/al-one/hass-xiaomi-miot/issues/12)
