@@ -101,8 +101,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
                 self._prop_target_position = None
         if self._prop_motor_control.list_first('Pause', 'Stop') is not None:
             self._supported_features |= SUPPORT_STOP
-        if cv.boolean(self.custom_config('motor_reverse') or False):
-            self._motor_reverse = True
+        self._motor_reverse = self.custom_config_bool('motor_reverse', False)
         self._open_texts = [
             *str(self.custom_config('open_texts') or '').split(','),
             'Opening', 'Opened', 'Open', 'Up', 'Rising', 'Risen', 'Rise',
@@ -412,10 +411,24 @@ class MrBondAirerProEntity(MiioCoverEntity):
 
         self._device = MiioDevice(host, token)
         super().__init__(name, device=self._device, config=config)
+        self._motor_reverse = False
         self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_STOP
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._props = ['dry', 'led', 'motor', 'drytime', 'airer_location']
+        self._vars.update({
+            'motor_open': 1,
+            'motor_close': 2,
+        })
         self._subs = {}
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self._motor_reverse = self.custom_config_bool('motor_reverse', False)
+        if self._motor_reverse:
+            self._vars.update({
+                'motor_open': 2,
+                'motor_close': 1,
+            })
 
     def get_single_prop(self, prop):
         rls = self._device.get_properties([prop]) or [None]
@@ -500,8 +513,8 @@ class MrBondAirerProEntity(MiioCoverEntity):
         ret = self.send_miio_command('set_motor', [val])
         if ret:
             self.update_attrs({'motor': val})
-            self._is_opening = val == 1
-            self._is_closing = val == 2
+            self._is_opening = val == self._vars['motor_open']
+            self._is_closing = val == self._vars['motor_close']
             if self._is_opening:
                 self._position = 100
             if self._is_closing:
@@ -509,10 +522,10 @@ class MrBondAirerProEntity(MiioCoverEntity):
         return ret
 
     def open_cover(self, **kwargs):
-        return self.set_motor(1)
+        return self.set_motor(self._vars['motor_open'])
 
     def close_cover(self, **kwargs):
-        return self.set_motor(2)
+        return self.set_motor(self._vars['motor_close'])
 
     def stop_cover(self, **kwargs):
         return self.set_motor(0)
@@ -561,7 +574,7 @@ class MrBondAirerProDryEntity(FanSubEntity):
         super().__init__(parent, attr, option)
         self._supported_features = SUPPORT_PRESET_MODE or SUPPORT_SET_SPEED
 
-    def update(self):
+    def update(self, data=None):
         super().update()
         if self._available:
             attrs = self._state_attrs
