@@ -99,7 +99,7 @@ SERVICE_TO_METHOD_BASE = {
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
                 vol.Required('mapping'): dict,
-                vol.Optional('throw', default=False): cv.boolean,
+                vol.Optional('throw', default=True): cv.boolean,
             },
         ),
     },
@@ -1223,7 +1223,7 @@ class MiotEntity(MiioEntity):
         if attrs:
             self.update_attrs(attrs)
 
-    def get_properties(self, mapping: dict, throw=False, **kwargs):
+    def get_properties(self, mapping: dict, throw=True, **kwargs):
         results = []
         try:
             if self.miot_cloud:

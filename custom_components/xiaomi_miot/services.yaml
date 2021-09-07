@@ -167,7 +167,7 @@ intelligent_speaker:
         text:
     execute:
       description: Execute text directive.
-      default: true
+      default: false
       example: true
       selector:
         boolean:
