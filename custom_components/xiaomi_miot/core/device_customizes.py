@@ -77,6 +77,12 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'power',
         'unit_of_measurement': 'W',
     },
+    'lumi.ctrl_neutral1.*': {
+        'cloud_delay_update': 10,
+    },
+    'lumi.ctrl_neutral2.*': {
+        'cloud_delay_update': 10,
+    },
     'lumi.sensor_motion.*': {
         'interval_seconds': 15,
         'motion_timeout': 60,
@@ -86,6 +92,9 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.sensor_wleak.*': {
         'time_start_offset': -86400 * 365,
+    },
+    'lumi.switch.*': {
+        'cloud_delay_update': 10,
     },
     'miaomiaoce.sensor_ht.t1': {
         'miot_mapping': {

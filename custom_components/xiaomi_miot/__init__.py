@@ -1298,10 +1298,12 @@ class MiotEntity(MiioEntity):
             'value': value,
         }
         ret = None
+        dly = 1
         try:
             mcw = self.miot_cloud_write
             if isinstance(mcw, MiotCloud):
                 results = mcw.set_props([pms])
+                dly = self.custom_config_integer('cloud_delay_update', 5)
             else:
                 results = self.miot_device.send('set_properties', [pms])
             for ret in (results or []):
@@ -1311,7 +1313,7 @@ class MiotEntity(MiioEntity):
         except MiCloudException as exc:
             _LOGGER.warning('Set miot property to cloud for %s (%s) failed: %s', self.name, pms, exc)
         if ret:
-            self._vars['delay_update'] = 5
+            self._vars['delay_update'] = dly
             _LOGGER.debug('Set miot property to %s (%s), result: %s', self.name, pms, ret)
         return ret
 
@@ -1336,11 +1338,13 @@ class MiotEntity(MiioEntity):
             'in':   params or [],
         }
         result = None
+        dly = 1
         eno = 1
         try:
             mca = self.miot_cloud_action
             if isinstance(mca, MiotCloud):
                 result = mca.do_action(pms)
+                dly = self.custom_config_integer('cloud_delay_update', 5)
             else:
                 result = self.miot_device.send('action', pms)
             eno = dict(result or {}).get('code', eno)
@@ -1352,7 +1356,7 @@ class MiotEntity(MiioEntity):
             _LOGGER.warning('Call miot action to %s (%s) failed: %s, result: %s', self.name, pms, exc, result)
         ret = eno == self._success_code
         if ret:
-            self._vars['delay_update'] = 5
+            self._vars['delay_update'] = dly
             _LOGGER.debug('Call miot action to %s (%s), result: %s', self.name, pms, result)
         else:
             self._state_attrs['miot_action_error'] = MiotSpec.spec_error(eno)
