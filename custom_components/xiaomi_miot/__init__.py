@@ -91,6 +91,7 @@ SERVICE_TO_METHOD_BASE = {
                 vol.Required('siid'): int,
                 vol.Required('piid'): int,
                 vol.Required('value'): cv.match_all,
+                vol.Optional('throw', default=False): cv.boolean,
             },
         ),
     },
@@ -1288,7 +1289,7 @@ class MiotEntity(MiioEntity):
             return False
         return await self.hass.async_add_executor_job(partial(self.set_property, *args, **kwargs))
 
-    def set_miot_property(self, siid, piid, value, did=None):
+    def set_miot_property(self, siid, piid, value, did=None, **kwargs):
         if did is None:
             did = self.miot_did or f'property-{siid}-{piid}'
         pms = {
@@ -1314,11 +1315,23 @@ class MiotEntity(MiioEntity):
             _LOGGER.warning('Set miot property to cloud for %s (%s) failed: %s', self.name, pms, exc)
         if ret:
             self._vars['delay_update'] = dly
-            _LOGGER.debug('Set miot property to %s (%s), result: %s', self.name, pms, ret)
+            if dict(ret).get('code'):
+                _LOGGER.warning('Set miot property to %s (%s) failed, result: %s', self.name, pms, ret)
+            else:
+                _LOGGER.debug('Set miot property to %s (%s), result: %s', self.name, pms, ret)
+        if kwargs.get('throw'):
+            persistent_notification.create(
+                self.hass,
+                f'{ret}',
+                'Set miot property result',
+                f'{DOMAIN}-debug',
+            )
         return ret
 
-    async def async_set_miot_property(self, siid, piid, value, did=None):
-        return await self.hass.async_add_executor_job(partial(self.set_miot_property, siid, piid, value, did))
+    async def async_set_miot_property(self, siid, piid, value, did=None, **kwargs):
+        return await self.hass.async_add_executor_job(
+            partial(self.set_miot_property, siid, piid, value, did, **kwargs)
+        )
 
     def call_action(self, action: MiotAction, params=None, did=None, **kwargs):
         aiid = action.iid
