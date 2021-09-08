@@ -1,6 +1,7 @@
 import logging
 import requests
 import platform
+import time
 import re
 
 from .const import DOMAIN
@@ -123,28 +124,42 @@ class MiotSpec:
     async def async_get_model_type(hass, model, use_remote=False):
         if not model:
             return None
-        url = 'https://miot-spec.org/miot-spec-v2/instances?status=released'
+        url = 'https://miot-spec.org/miot-spec-v2/instances?status=all'
         fnm = f'{DOMAIN}/instances.json'
         store = Store(hass, 1, fnm)
+        now = int(time.time())
+        dat = {}
         if not use_remote:
             dat = await store.async_load() or {}
-        else:
+            ptm = dat.pop('_updated_time', 0)
+            if dat and now - ptm > 86400 * 7:
+                dat = {}
+        if not dat:
             try:
                 res = await hass.async_add_executor_job(requests.get, url)
                 dat = res.json() or {}
             except ValueError:
                 dat = {}
             if dat:
-                sdt = {}
+                sdt = {
+                    '_updated_time': now,
+                }
                 for v in (dat.get('instances') or []):
                     m = v.get('model')
-                    o = sdt.get(m)
-                    if o and v.get('version') < o.get('version'):
-                        continue
+                    o = sdt.get(m) or {}
+                    if o:
+                        if o.get('status') == 'released' and v.get('status') != o.get('status'):
+                            continue
+                        if v.get('version') < o.get('version'):
+                            continue
                     v.pop('model', None)
                     sdt[m] = v
                 await store.async_save(sdt)
                 dat = sdt
+                _LOGGER.info(
+                    'Renew miot spec instances: %s, count: %s, model: %s',
+                    fnm, len(sdt) - 1, model,
+                )
         typ = None
         if 'instances' in dat:
             for v in (dat.get('instances') or []):
@@ -153,8 +168,6 @@ class MiotSpec:
                     break
         elif model in dat:
             typ = dat[model].get('type')
-        if typ is None and not use_remote:
-            return await MiotSpec.async_get_model_type(hass, model, True)
         return typ
 
     @staticmethod

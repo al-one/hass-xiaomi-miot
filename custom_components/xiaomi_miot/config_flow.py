@@ -66,6 +66,8 @@ async def check_miio_device(hass, user_input, errors):
             user_input[CONF_MODEL] = model
         user_input['miio_info'] = dict(info.raw or {})
         miot_type = await MiotSpec.async_get_model_type(hass, model)
+        if not miot_type:
+            miot_type = await MiotSpec.async_get_model_type(hass, model, use_remote=True)
         user_input['miot_type'] = miot_type
         user_input['unique_did'] = format_mac(info.mac_address)
         if miot_type and device:
@@ -102,6 +104,8 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
     except MiCloudException as exc:
         errors['base'] = 'cannot_login'
         _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', user_input.get(CONF_USERNAME), exc)
+    if renew_devices:
+        await MiotSpec.async_get_model_type(hass, 'xiaomi.miot.auto', use_remote=True)
     if not errors:
         user_input['devices'] = dvs
     return user_input
@@ -323,10 +327,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_cloud(self, user_input=None):
         errors = {}
-        prev_input = {**self.config_entry.data, **self.config_entry.options}
+        prev_input = {
+            **self.config_entry.data,
+            **self.config_entry.options,
+        }
         if isinstance(user_input, dict):
-            user_input = {**self.config_entry.data, **self.config_entry.options, **user_input}
-            renew = user_input.get('renew_devices') and True
+            user_input = {
+                **self.config_entry.data,
+                **self.config_entry.options,
+                **user_input,
+            }
+            renew = not not user_input.pop('renew_devices', False)
             await check_xiaomi_account(self.hass, user_input, errors, renew_devices=renew)
             if not errors:
                 user_input['filter_models'] = prev_input.get('filter_models') and True
