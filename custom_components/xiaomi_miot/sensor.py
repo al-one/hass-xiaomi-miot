@@ -55,8 +55,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'battery', 'environment', 'tds_sensor', 'switch_sensor', 'vibration_sensor',
                 'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor',
                 'router', 'lock', 'printer', 'sleep_monitor', 'bed', 'walking_pad',
-                'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'water_purifier',
-                'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer',
+                'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
+                'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer', 'water_purifier',
                 'pet_feeder', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp',
             ):
                 if srv.name in ['lock']:
@@ -217,10 +217,16 @@ class MiotCookerEntity(MiotSensorEntity):
         if not self._available:
             return
         if self._prop_state:
+            self._update_sub_entities(
+                ['target_temperature'],
+                domain='number',
+            )
             add_fans = self._add_entities.get('fan')
             add_selects = self._add_entities.get('select')
             add_switches = self._add_entities.get('switch')
-            pls = self._miot_service.get_properties('cook_mode', 'target_time', 'target_temperature')
+            pls = self._miot_service.get_properties(
+                'mode', 'cook_mode', 'heat_level', 'target_time', 'target_temperature',
+            )
             for p in pls:
                 if not (p.writeable or self._action_start):
                     continue

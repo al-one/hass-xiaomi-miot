@@ -114,7 +114,8 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
             else:
                 return False
         if ret is None:
-            ret = self.call_parent('call_action', self._miot_action, [val])
+            pms = [val] if self._miot_action.ins else []
+            ret = self.call_parent('call_action', self._miot_action, pms)
         if ret:
             self._attr_current_option = option
             self.async_write_ha_state()

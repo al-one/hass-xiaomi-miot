@@ -166,6 +166,7 @@ doamin.your_entity_id:
     - [juicer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:juicer:0000785F)
     - [lock](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:lock:00007855)
     - [microwave-oven](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:microwave-oven:00007843)
+    - [multifunction-cooking-pot](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:multifunction-cooking-pot:000078A2)
     - [oven](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:oven:00007862)
     - [pet-feeder](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:pet-feeder:00007847)
     - [plant-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:plant-monitor:0000784B)
