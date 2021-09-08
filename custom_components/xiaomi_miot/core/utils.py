@@ -1,3 +1,7 @@
+import time
+import requests
+from functools import partial
+
 
 class RC4:
     _idx = 0
@@ -39,3 +43,21 @@ class RC4:
     def init1024(self):
         self.crypt(bytes(1024))
         return self
+
+
+def analytics_track_event(event, action, label, value=0, node_id=''):
+    pms = {
+        'id': '1280294351',
+        'ei': '|'.join([event, action, label, f'{value}', node_id]),
+        'p': 'https://miot-spec.com',
+        't': 'Home Assistant',
+        'rnd': int(time.time() / 2.67),
+    }
+    url = 'https://ei.cnzz.com/stat.htm'
+    return requests.get(url, params=pms)
+
+
+async def async_analytics_track_event(self, *args, **kwargs):
+    return await self.hass.async_add_executor_job(
+        partial(self.analytics_track_event, *args, **kwargs)
+    )

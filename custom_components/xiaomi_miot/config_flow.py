@@ -25,6 +25,7 @@ from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
 )
+from .core.utils import async_analytics_track_event
 
 _LOGGER = logging.getLogger(__name__)
 DEFAULT_INTERVAL = 30
@@ -50,6 +51,7 @@ async def check_miio_device(hass, user_input, errors):
         device = MiioDevice(host, token)
         info = await hass.async_add_executor_job(device.info)
     except DeviceException:
+        device = None
         info = None
         errors['base'] = 'cannot_connect'
     _LOGGER.debug('Xiaomi Miot config flow: %s', {
@@ -57,13 +59,32 @@ async def check_miio_device(hass, user_input, errors):
         'miio_info': info,
         'errors': errors,
     })
+    model = ''
     if info is not None:
         if not user_input.get(CONF_MODEL):
-            user_input[CONF_MODEL] = str(info.model or '')
+            model = str(info.model or '')
+            user_input[CONF_MODEL] = model
         user_input['miio_info'] = dict(info.raw or {})
-        miot_type = await MiotSpec.async_get_model_type(hass, user_input.get(CONF_MODEL))
+        miot_type = await MiotSpec.async_get_model_type(hass, model)
         user_input['miot_type'] = miot_type
         user_input['unique_did'] = format_mac(info.mac_address)
+        if miot_type and device:
+            try:
+                pms = [
+                    {'did': 'miot', 'siid': 2, 'piid': 1},
+                    {'did': 'miot', 'siid': 2, 'piid': 2},
+                    {'did': 'miot', 'siid': 3, 'piid': 1},
+                ]
+                results = device.get_properties(pms, property_getter='get_properties') or []
+                for prop in results:
+                    if not isinstance(prop, dict):
+                        continue
+                    if prop.get('code') == 0:
+                        # Collect supported models in LAN
+                        await async_analytics_track_event('miot', 'local', model)
+                        break
+            except DeviceException:
+                pass
     return user_input
 
 
