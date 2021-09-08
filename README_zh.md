@@ -196,6 +196,7 @@ doamin.your_entity_id:
     - [pet-drinking-fountain](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:pet-drinking-fountain:00007850)
     - [physical-controls-locked](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:physical-controls-locked:00007807)
     - [switch](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:switch:0000780C)
+    - [towel-rack](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:towel-rack:0000785D)
     - [washer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:washer:00007834)
 - [light](https://www.home-assistant.io/integrations/light)
     - [indicator-light](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:indicator-light:00007803)
