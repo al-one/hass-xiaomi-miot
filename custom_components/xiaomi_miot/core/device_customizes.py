@@ -125,7 +125,8 @@ DEVICE_CUSTOMIZES = {
         'miio_event_human_visit_details_template': "{%- set val = (result.0 | default({})).get('value','{}') %}"
                                                    "{%- set val = val | from_json %}"
                                                    "{{ {"
-                                                   "'motion_video_time': val.visitTime | timestamp_local,"
+                                                   "'motion_video_time': val.get('visitTime',0) | timestamp_local,"
+                                                   "'motion_video_type': val.get('action'),"
                                                    "'motion_video_latest': val,"
                                                    "'_entity_attrs': True,"
                                                    "} }}",

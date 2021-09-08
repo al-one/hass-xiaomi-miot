@@ -277,6 +277,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 tim = fst.pop('createTime', 0) / 1000
                 adt = {
                     'motion_video_time': f'{datetime.fromtimestamp(tim)}',
+                    'motion_video_type': fst.get('eventType'),
                     'motion_video_latest': fst,
                 }
             else:
