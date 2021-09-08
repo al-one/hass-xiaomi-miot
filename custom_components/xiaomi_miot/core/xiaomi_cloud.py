@@ -146,9 +146,10 @@ class MiotCloud(micloud.MiCloud):
                 )
         except (TypeError, ValueError):
             rdt = None
-        if not rdt:
-            _LOGGER.warning(
-                'Request miot api: %s %s result: %s failed: %s',
+        if not rdt or rdt.get('code'):
+            fun = _LOGGER.info if rdt else _LOGGER.warning
+            fun(
+                'Request miot api: %s %s failed, result: %s',
                 api, data, rsp,
             )
         return rdt
@@ -308,14 +309,18 @@ class MiotCloud(micloud.MiCloud):
                 # self.service_token = None
                 pass
             rsp = response.text
-            if not ('error' in rsp or 'invalid' in rsp):
-                rsp = MiotCloud.decrypt_data(signed_nonce, rsp)
+            if not rsp or 'error' in rsp or 'invalid' in rsp:
+                _LOGGER.warning("Error while executing request to %s :%s", url, rsp)
+            elif 'message' not in rsp:
+                try:
+                    rsp = MiotCloud.decrypt_data(signed_nonce, rsp)
+                except ValueError:
+                    _LOGGER.warning("Error while decrypting response of request to %s :%s", url, rsp)
             return rsp
-        except requests.exceptions.HTTPError as e:
-            self.service_token = None
-            _LOGGER.warning("Error while executing request to %s :%s", url, e)
-        except MiCloudException as e:
-            _LOGGER.warning("Error while decrypting response of request to %s :%s", url, e)
+        except requests.exceptions.HTTPError as exc:
+            _LOGGER.warning("Error while executing request to %s :%s", url, exc)
+        except MiCloudException as exc:
+            _LOGGER.warning("Error while decrypting response of request to %s :%s", url, exc)
 
     def get_api_by_host(self, host, api=''):
         srv = self.default_server.lower()
