@@ -180,6 +180,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'temperature,left_time',
         'switch_properties': 'cooker.on,auto_keep_warm',
     },
+    '*.door.*': {},
     '*.feeder.*': {
         'switch_properties': 'feeding_measure',
     },
@@ -230,3 +231,7 @@ DEVICE_CUSTOMIZES = {
     },
 
 }
+
+DEVICE_CUSTOMIZES.update({
+    '*.door.*': DEVICE_CUSTOMIZES.get('*.lock.*') or {},
+})
