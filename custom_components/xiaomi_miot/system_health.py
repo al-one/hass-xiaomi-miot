@@ -39,7 +39,9 @@ async def system_health_info(hass):
     data = {
         'component_version': manifest.get('version', 'unknown'),
         'can_reach_server': system_health.async_check_can_reach_url(hass, api),
-        'can_reach_spec': system_health.async_check_can_reach_url(hass, api_spec),
+        'can_reach_spec': system_health.async_check_can_reach_url(
+            hass, api_spec, 'https://home.miot-spec.com',
+        ),
         'logged_accounts': len(uds),
         'total_devices': total_devices,
     }

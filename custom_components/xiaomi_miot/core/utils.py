@@ -57,7 +57,7 @@ def analytics_track_event(event, action, label, value=0, node_id=''):
     return requests.get(url, params=pms)
 
 
-async def async_analytics_track_event(self, *args, **kwargs):
-    return await self.hass.async_add_executor_job(
-        partial(self.analytics_track_event, *args, **kwargs)
+async def async_analytics_track_event(hass, *args, **kwargs):
+    return await hass.async_add_executor_job(
+        partial(analytics_track_event, *args, **kwargs)
     )
