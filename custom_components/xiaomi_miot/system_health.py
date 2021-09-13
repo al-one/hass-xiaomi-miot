@@ -19,7 +19,7 @@ async def system_health_info(hass):
     """Get info for the info page."""
     mic = None
     uds = {}
-    total_devices = 0
+    all_devices = {}
     for v in hass.data[DOMAIN].values():
         if isinstance(v, dict):
             v = v.get(CONF_XIAOMI_CLOUD)
@@ -27,7 +27,7 @@ async def system_health_info(hass):
             mic = v
             if mic.user_id not in uds:
                 uds[mic.user_id] = await mic.async_get_devices_by_key('did') or {}
-                total_devices += len(uds[mic.user_id])
+                all_devices.update(uds[mic.user_id])
 
     api = mic.get_api_url('') if mic else 'https://api.io.mi.com'
     api_spec = 'https://miot-spec.org/miot-spec-v2/spec/services'
@@ -40,10 +40,10 @@ async def system_health_info(hass):
         'component_version': manifest.get('version', 'unknown'),
         'can_reach_server': system_health.async_check_can_reach_url(hass, api),
         'can_reach_spec': system_health.async_check_can_reach_url(
-            hass, api_spec, 'https://home.miot-spec.com',
+            hass, api_spec, 'https://home.miot-spec.com/?cant-reach',
         ),
         'logged_accounts': len(uds),
-        'total_devices': total_devices,
+        'total_devices': len(all_devices),
     }
 
     return data
