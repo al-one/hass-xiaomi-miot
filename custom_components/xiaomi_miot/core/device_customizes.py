@@ -6,9 +6,6 @@ DEVICE_CUSTOMIZES = {
     'chuangmi.plug.212a01': {
         'chunk_properties': 7,
     },
-    'chuangmi.plug.212a01:electric_power': {
-        'value_ratio': 0.01,
-    },
     'chuangmi.plug.v3': {
         'sensor_attributes': 'electric_power,prop_cal_day.power_cost:today,prop_cal_day.power_cost:month',
         'sensor_miio_commands': {
@@ -27,26 +24,26 @@ DEVICE_CUSTOMIZES = {
                                                  "'month_duration': result[:day] | sum(attribute='value.pc_time'),"
                                                  "} }}",
     },
-    'chuangmi.plug.v3:electric_power': {
+    'chuangmi.plug.*': {
+        'sensor_properties': 'temperature',
+    },
+    'chuangmi.plug.*:electric_power': {
         'value_ratio': 0.01,
         'state_class': 'measurement',
         'device_class': 'power',
         'unit_of_measurement': 'W',
     },
-    'chuangmi.plug.v3:prop_cal_day.power_cost:today': {
+    'chuangmi.plug.*:prop_cal_day.power_cost:today': {
         'value_ratio': 0.001,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
-    'chuangmi.plug.v3:prop_cal_day.power_cost:month': {
+    'chuangmi.plug.*:prop_cal_day.power_cost:month': {
         'value_ratio': 0.001,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
-    },
-    'chuangmi.plug.*': {
-        'sensor_properties': 'temperature',
     },
     'chunmi.health_pot.a1': {
         'miot_local': True,
