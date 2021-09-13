@@ -57,7 +57,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class MiotRemoteEntity(MiotEntity, RemoteEntity):
     def __init__(self, config, miot_spec: MiotSpec):
         self._miot_spec = miot_spec
-        super().__init__(miot_service=None, config=config)
+        super().__init__(miot_service=None, config=config, logger=_LOGGER)
         host = config.get(CONF_HOST)
         token = config.get(CONF_TOKEN)
         self._device = ChuangmiIr(host, token)
@@ -75,9 +75,9 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
             for cmd in command:
                 try:
                     ret = self._device.play(cmd)
-                    _LOGGER.debug('Send IR command to %s result: %s, command: %s %s', self.name, ret, cmd, kwargs)
+                    self.logger.debug('%s: Send IR command %s(%s) result: %s', self.name, cmd, kwargs, ret)
                 except DeviceException as exc:
-                    _LOGGER.error('Send IR command to %s failed: %s, command: %s %s', self.name, exc, cmd, kwargs)
+                    self.logger.error('%s: Send IR command %s(%s) failed: %s', self.name, cmd, kwargs, exc)
                 time.sleep(delays)
 
     async def async_send_command(self, command, **kwargs):

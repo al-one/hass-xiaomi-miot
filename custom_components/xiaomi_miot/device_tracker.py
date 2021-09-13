@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotTrackerEntity(MiotEntity, TrackerEntity):
     def __init__(self, config, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     async def async_update(self):

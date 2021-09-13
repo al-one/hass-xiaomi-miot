@@ -96,7 +96,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotSensorEntity(MiotEntity):
     def __init__(self, config, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
 
         first_property = None
         if len(miot_service.properties) > 0:
@@ -303,10 +303,10 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
         name = config[CONF_NAME]
         host = config[CONF_HOST]
         token = config[CONF_TOKEN]
-        _LOGGER.info('Initializing with host %s (token %s...)', host, token[:5])
+        _LOGGER.info('%s: Initializing with host %s (token %s...)', name, host, token[:5])
 
         self._device = WaterPurifierYunmi(host, token)
-        super().__init__(name, self._device)
+        super().__init__(name, self._device, logger=_LOGGER)
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._subs = {
             'tds_in':  {'keys': ['tds_warn_thd'], 'unit': CONCENTRATION_PARTS_PER_MILLION, 'icon': 'mdi:water'},

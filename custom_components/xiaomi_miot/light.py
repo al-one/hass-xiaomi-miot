@@ -82,6 +82,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotLightEntity(MiotToggleEntity, LightEntity):
     def __init__(self, config: dict, miot_service: MiotService, **kwargs):
+        kwargs.setdefault('logger', _LOGGER)
         super().__init__(miot_service, config=config, **kwargs)
 
         self._prop_power = miot_service.get_property('on')

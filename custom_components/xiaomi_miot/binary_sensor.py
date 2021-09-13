@@ -77,6 +77,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
     def __init__(self, config, miot_service: MiotService, **kwargs):
+        kwargs.setdefault('logger', _LOGGER)
         super().__init__(miot_service, config=config, **kwargs)
 
         pls = []

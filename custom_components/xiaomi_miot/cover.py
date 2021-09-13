@@ -6,7 +6,6 @@ from functools import partial
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.core import callback
-from homeassistant.helpers import config_validation as cv
 from homeassistant.components.cover import (
     DOMAIN as ENTITY_DOMAIN,
     CoverEntity,
@@ -79,7 +78,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotCoverEntity(MiotEntity, CoverEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
 
         self._prop_status = miot_service.get_property('status')
         self._prop_motor_control = miot_service.get_property('motor_control')
@@ -341,6 +340,7 @@ class MiotCoverSubEntity(MiotSensorSubEntity, CoverEntity):
 
 class MiioCoverEntity(MiioEntity, CoverEntity):
     def __init__(self, name, device, **kwargs):
+        kwargs.setdefault('logger', _LOGGER)
         super().__init__(name, device, **kwargs)
         self._device_class = None
         self._position = None

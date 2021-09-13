@@ -169,7 +169,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
     _sub_motion_stream = False
 
     def __init__(self, hass: HomeAssistant, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
         BaseCameraEntity.__init__(self, hass)
         if self._prop_power:
             self._supported_features |= SUPPORT_ON_OFF

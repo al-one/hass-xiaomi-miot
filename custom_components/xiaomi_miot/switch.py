@@ -70,7 +70,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     @property
@@ -269,7 +269,7 @@ class MiotCookerSwitchSubEntity(SwitchSubEntity):
 
 class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
         self._prop_status = miot_service.get_property('all_status')
         self._prop_power = self._prop_status
         self._state_attrs.update({'entity_class': self.__class__.__name__})
@@ -357,7 +357,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
 
         self._config = config
         self._device = MiioDevice(host, token)
-        super().__init__(name, self._device)
+        super().__init__(name, self._device, logger=_LOGGER)
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._success_result = [0]
 

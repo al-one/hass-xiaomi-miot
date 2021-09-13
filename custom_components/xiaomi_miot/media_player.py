@@ -245,7 +245,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
 
 class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
         BaseMediaPlayerEntity.__init__(self, miot_service)
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
