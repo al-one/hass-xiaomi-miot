@@ -110,6 +110,10 @@ class MiotSpec:
         return nam
 
     @staticmethod
+    def format_desc_name(des, nam):
+        return MiotSpec.format_name(nam if re.match(r'[^x00-xff]', des) else des)
+
+    @staticmethod
     def name_by_type(typ):
         arr = f'{typ}:::'.split(':')
         nam = arr[3] or ''
@@ -208,7 +212,7 @@ class MiotService:
         self.name = MiotSpec.name_by_type(self.type)
         self.unique_name = f'{self.name}-{self.iid}'
         self.description = dat.get('description') or self.name
-        self.desc_name = MiotSpec.format_name(self.description)
+        self.desc_name = MiotSpec.format_desc_name(self.description, self.name)
         self.translations = {}
         spec.services_count.setdefault(self.name, 0)
         spec.services_count[self.name] += 1
@@ -313,7 +317,7 @@ class MiotProperty:
         self.name = MiotSpec.name_by_type(self.type)
         self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
         self.description = dat.get('description') or self.name
-        self.desc_name = MiotSpec.format_name(self.description)
+        self.desc_name = MiotSpec.format_desc_name(self.description, self.name)
         self.format = dat.get('format') or ''
         self.access = dat.get('access') or []
         self.unit = dat.get('unit') or ''
