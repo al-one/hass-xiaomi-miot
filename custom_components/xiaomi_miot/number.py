@@ -12,7 +12,6 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
-    MiotSensorSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -22,6 +21,7 @@ from .core.miot_spec import (
     MiotProperty,
     MiotAction,
 )
+from .sensor import MiotSensorSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'

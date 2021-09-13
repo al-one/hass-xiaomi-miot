@@ -29,16 +29,19 @@ DEVICE_CUSTOMIZES = {
     },
     'chuangmi.plug.v3:electric_power': {
         'value_ratio': 0.01,
+        'state_class': 'measurement',
         'device_class': 'power',
         'unit_of_measurement': 'W',
     },
     'chuangmi.plug.v3:prop_cal_day.power_cost:today': {
         'value_ratio': 0.001,
+        'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
     'chuangmi.plug.v3:prop_cal_day.power_cost:month': {
         'value_ratio': 0.001,
+        'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
@@ -74,6 +77,7 @@ DEVICE_CUSTOMIZES = {
                                      "} }}",
     },
     'lumi.acpartner.*:electric_power': {
+        'state_class': 'measurement',
         'device_class': 'power',
         'unit_of_measurement': 'W',
     },

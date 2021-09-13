@@ -25,7 +25,6 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiioEntity,
     MiotEntity,
-    MiotSensorSubEntity,
     MiioDevice,
     DeviceException,
     async_setup_config_entry,
@@ -36,6 +35,7 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
 )
+from .sensor import MiotSensorSubEntity
 from .light import LightSubEntity
 from .fan import (
     FanSubEntity,

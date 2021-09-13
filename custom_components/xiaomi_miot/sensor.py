@@ -25,9 +25,8 @@ from . import (
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+    MiotProperty,
 )
-from .switch import MiotCookerSwitchSubEntity
-from .fan import MiotCookerSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -94,7 +93,22 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotSensorEntity(MiotEntity):
+try:
+    # hass 2021.4.0b0+
+    from homeassistant.components.sensor import SensorEntity
+except ImportError:
+    class SensorEntity(Entity):
+        """Base class for sensor entities."""
+
+try:
+    # hass 2021.6.0b0+
+    from homeassistant.components.sensor import STATE_CLASSES
+except ImportError:
+    STATE_CLASSES = []
+
+
+class MiotSensorEntity(MiotEntity, SensorEntity):
+
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 
@@ -123,10 +137,17 @@ class MiotSensorEntity(MiotEntity):
             self._attr_unit_of_measurement = self._prop_state.unit_of_measurement
 
         self._name = f'{self._name} {self._prop_state.description}'
+        self._attr_state_class = None
         self._state_attrs.update({
             'entity_class': self.__class__.__name__,
             'state_property': self._prop_state.full_name if self._prop_state else None,
         })
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        cls = self.custom_config('state_class')
+        if cls in STATE_CLASSES:
+            self._attr_state_class = cls
 
     async def async_update(self):
         await super().async_update()
@@ -258,6 +279,7 @@ class MiotCookerEntity(MiotSensorEntity):
                             'values_on':  self._values_on,
                             'values_off': self._values_off,
                         }
+                    from .fan import MiotCookerSubEntity
                     self._subs[p.name] = MiotCookerSubEntity(self, p, self._prop_state, opt)
                     add_fans([self._subs[p.name]])
             if self._action_start or self._action_cancel:
@@ -265,6 +287,7 @@ class MiotCookerEntity(MiotSensorEntity):
                 if pnm in self._subs:
                     self._subs[pnm].update()
                 elif add_switches:
+                    from .switch import MiotCookerSwitchSubEntity
                     self._subs[pnm] = MiotCookerSwitchSubEntity(self, self._prop_state)
                     add_switches([self._subs[pnm]])
 
@@ -295,6 +318,78 @@ class MiotCookerEntity(MiotSensorEntity):
                 })
         else:
             _LOGGER.warning('Miot device %s has no turn_action: %s', self.name, on)
+        return ret
+
+
+class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
+    def __init__(self, parent, attr, option=None):
+        self._attr_state_class = None
+        super().__init__(parent, attr, option)
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if not self._attr_state_class:
+            self._attr_state_class = self.custom_config('state_class')
+        if self._attr_state_class not in STATE_CLASSES:
+            self._attr_state_class = None
+
+
+class MiotSensorSubEntity(BaseSensorSubEntity):
+    def __init__(self, parent, miot_property: MiotProperty, option=None):
+        self._miot_service = miot_property.service
+        self._miot_property = miot_property
+        super().__init__(parent, miot_property.full_name, option)
+        self._name = self.format_name_by_property(miot_property)
+        if not self._option.get('unique_id'):
+            self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
+        self.entity_id = miot_property.generate_entity_id(self)
+
+        self._prop_battery = None
+        for s in self._miot_service.spec.get_services('battery', self._miot_service.name):
+            p = s.get_property('battery_level')
+            if p:
+                self._prop_battery = p
+        if self._prop_battery:
+            self._option['keys'] = [*(self._option.get('keys') or []), self._prop_battery.full_name]
+
+        if 'icon' not in self._option:
+            self._option['icon'] = miot_property.entity_icon
+        if 'unit' not in self._option:
+            self._option['unit'] = miot_property.unit_of_measurement
+        if 'device_class' not in self._option:
+            self._option['device_class'] = miot_property.device_class
+        self._extra_attrs.update({
+            'service_description': miot_property.service.description,
+            'property_description': miot_property.description,
+        })
+
+    def update(self, data=None):
+        super().update()
+        if not self._available:
+            return
+        self._miot_property.description_to_dict(self._state_attrs)
+
+    @property
+    def state(self):
+        key = f'{self._miot_property.full_name}_desc'
+        if key in self._state_attrs:
+            return f'{self._state_attrs[key]}'.lower()
+        val = self._miot_property.from_dict(self._state_attrs)
+        if val is not None:
+            svd = self.custom_config_number('value_ratio') or 0
+            if svd:
+                val = round(float(val) * svd, 3)
+            return val
+        return STATE_UNKNOWN
+
+    def set_parent_property(self, val, prop=None):
+        if prop is None:
+            prop = self._miot_property
+        ret = self.call_parent('set_miot_property', prop.service.iid, prop.iid, val)
+        if ret and prop.readable:
+            self.update_attrs({
+                prop.full_name: val,
+            })
         return ret
 
 

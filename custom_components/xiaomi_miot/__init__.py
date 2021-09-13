@@ -766,8 +766,9 @@ class MiioEntity(BaseEntity):
                     self.logger.info('%s: Device sub entity %s: %s already exists.', self.name, domain, p)
                 continue
             elif add_sensors:
+                from .sensor import BaseSensorSubEntity
                 option = {'unique_id': f'{self._unique_did}-{p}', **opt}
-                self._subs[p] = BaseSubEntity(self, a, option=option)
+                self._subs[p] = BaseSensorSubEntity(self, a, option=option)
                 add_sensors([self._subs[p]])
                 self._check_same_sub_entity(p, domain, add=1)
 
@@ -1396,6 +1397,7 @@ class MiotEntity(MiioEntity):
         return ret
 
     def _update_sub_entities(self, properties, services=None, domain=None, option=None):
+        from .sensor import MiotSensorSubEntity
         from .binary_sensor import MiotBinarySensorSubEntity
         from .switch import MiotSwitchSubEntity
         from .switch import MiotSwitchActionSubEntity
@@ -1608,6 +1610,7 @@ class BaseSubEntity(BaseEntity):
                 if self._dict_key:
                     suf = f'{suf}_{self._dict_key}'
                 self.entity_id = f'{eip}_{suf}'
+        self._attr_state_class = self._option.get('state_class')
         self._supported_features = int(self._option.get('supported_features', 0))
         self._extra_attrs = {
             'parent_entity_id': parent.entity_id,
@@ -1678,10 +1681,13 @@ class BaseSubEntity(BaseEntity):
         return mic
 
     def custom_config(self, key=None, default=None):
-        ret = super().custom_config(key, default)
-        if ret is not None:
-            return ret
-        cfg = {}
+        ret = super().custom_config(key)
+        if key is not None:
+            if ret is not None:
+                return ret
+            cfg = {}
+        else:
+            cfg = ret or {}
         if self._model:
             mar = []
             for mod in self.wildcard_models:
@@ -1803,62 +1809,3 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
                 self._state = False
             return ret
         return self.call_parent('turn_off', **kwargs)
-
-
-class MiotSensorSubEntity(BaseSubEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None):
-        self._miot_service = miot_property.service
-        self._miot_property = miot_property
-        super().__init__(parent, miot_property.full_name, option)
-        self._name = self.format_name_by_property(miot_property)
-        if not self._option.get('unique_id'):
-            self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
-        self.entity_id = miot_property.generate_entity_id(self)
-
-        self._prop_battery = None
-        for s in self._miot_service.spec.get_services('battery', self._miot_service.name):
-            p = s.get_property('battery_level')
-            if p:
-                self._prop_battery = p
-        if self._prop_battery:
-            self._option['keys'] = [*(self._option.get('keys') or []), self._prop_battery.full_name]
-
-        if 'icon' not in self._option:
-            self._option['icon'] = miot_property.entity_icon
-        if 'unit' not in self._option:
-            self._option['unit'] = miot_property.unit_of_measurement
-        if 'device_class' not in self._option:
-            self._option['device_class'] = miot_property.device_class
-        self._extra_attrs.update({
-            'service_description': miot_property.service.description,
-            'property_description': miot_property.description,
-        })
-
-    def update(self, data=None):
-        super().update()
-        if not self._available:
-            return
-        self._miot_property.description_to_dict(self._state_attrs)
-
-    @property
-    def state(self):
-        key = f'{self._miot_property.full_name}_desc'
-        if key in self._state_attrs:
-            return f'{self._state_attrs[key]}'.lower()
-        val = self._miot_property.from_dict(self._state_attrs)
-        if val is not None:
-            svd = self.custom_config_number('value_ratio') or 0
-            if svd:
-                val = round(float(val) * svd, 3)
-            return val
-        return STATE_UNKNOWN
-
-    def set_parent_property(self, val, prop=None):
-        if prop is None:
-            prop = self._miot_property
-        ret = self.call_parent('set_miot_property', prop.service.iid, prop.iid, val)
-        if ret and prop.readable:
-            self.update_attrs({
-                prop.full_name: val,
-            })
-        return ret

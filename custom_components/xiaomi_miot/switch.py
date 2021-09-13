@@ -18,7 +18,6 @@ from . import (
     MiioEntity,
     MiotToggleEntity,
     ToggleSubEntity,
-    MiotSensorSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -28,6 +27,7 @@ from .core.miot_spec import (
     MiotProperty,
     MiotAction,
 )
+from .sensor import MiotSensorSubEntity
 from .fan import MiotWasherSubEntity
 
 _LOGGER = logging.getLogger(__name__)
