@@ -25,7 +25,6 @@ from homeassistant.components.ffmpeg import async_get_image, DATA_FFMPEG
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from haffmpeg.camera import CameraMjpeg
-from haffmpeg.tools import IMAGE_JPEG, ImageFrame
 
 from . import (
     DOMAIN,
@@ -87,7 +86,7 @@ class BaseCameraEntity(Camera):
         super().__init__()
         self._manager = hass.data.get(DATA_FFMPEG)
         # http://ffmpeg.org/ffmpeg-all.html
-        self._ffmpeg_options = '-protocol_whitelist file,http,https,rtp,udp,tcp,tls,crypto,pipe'
+        self._ffmpeg_options = ''
         self._segment_iv_hex = urandom(16).hex()
         self._segment_iv_b64 = base64.b64encode(bytes.fromhex(self._segment_iv_hex)).decode()
 
@@ -215,7 +214,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return True
 
     @property
-    def state(self):
+    def state(self):  # noqa
         if self.is_recording:
             return STATE_RECORDING
         if self.is_streaming:
@@ -330,7 +329,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             try:
                 vav = self.custom_config_integer('video_attribute')
                 vap = self._srv_stream.get_property('video_attribute')
-                if vav is None and vap.value_list:
+                if vav is None and vap and vap.value_list:
                     vav = (vap.value_list.pop(0) or {}).get('value')
                 if self.miot_cloud:
                     if self._act_stop_stream:
@@ -377,10 +376,10 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return self._last_url
 
     def async_check_stream_address(self, url):
-        if not url:
+        if not url or self.custom_config_bool('disable_check_stream'):
             return False
         res = requests.head(url)
-        if res.status_code >= 300:
+        if res.status_code > 200:
             self.update_attrs({
                 'stream_http_status':  res.status_code,
                 'stream_http_reason':  res.reason,
