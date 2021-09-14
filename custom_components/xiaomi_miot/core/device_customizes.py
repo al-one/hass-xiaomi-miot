@@ -33,6 +33,12 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'power',
         'unit_of_measurement': 'W',
     },
+    'chuangmi.plug.*:power_consumption': {
+        'value_ratio': 0.001,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
     'chuangmi.plug.*:prop_cal_day.power_cost:today': {
         'value_ratio': 0.001,
         'state_class': 'total_increasing',

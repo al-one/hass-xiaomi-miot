@@ -1700,10 +1700,10 @@ class BaseSubEntity(BaseEntity):
                     mar.append(f'{mod}:{self._attr}:{self._dict_key}')
                 else:
                     mar.append(f'{mod}:{self._attr}')
-            if hasattr(self, '_miot_property'):
-                prop = getattr(self, '_miot_property')
-                if prop:
-                    mar.append(f'{self._model}:{prop.name}')
+                if hasattr(self, '_miot_property'):
+                    prop = getattr(self, '_miot_property')
+                    if prop:
+                        mar.append(f'{mod}:{prop.name}')
             gcs = GLOBAL_CUSTOMIZES['models']
             ucs = self.global_config('device_customizes') or {}
             if ucs and isinstance(ucs, dict):
@@ -1719,10 +1719,8 @@ class BaseSubEntity(BaseEntity):
     async def async_added_to_hass(self):
         if self.platform:
             self.update_custom_scan_interval(only_custom=True)
-        if not self.icon:
-            self._option['icon'] = self.custom_config('icon')
-        if not self.unit_of_measurement:
-            self._option['unit'] = self.custom_config('unit_of_measurement')
+        self._option['icon'] = self.custom_config('icon', self.icon)
+        self._option['unit'] = self.custom_config('unit_of_measurement', self.unit_of_measurement)
         if not self.device_class:
             self._option['device_class'] = self.custom_config('device_class')
 
