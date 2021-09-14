@@ -1036,6 +1036,11 @@ class MiotEntity(MiioEntity):
                 self.name, exc, mmp,
             )
             return
+        if not isinstance(results, list):
+            self.logger.warning(
+                '%s: Got invalid miot result while fetching the state: %s, mapping: %s',
+                self.name, results, mmp,
+            )
         attrs = {}
         for prop in results or []:
             if not isinstance(prop, dict):
