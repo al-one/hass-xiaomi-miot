@@ -234,8 +234,6 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
             adt['trigger_time'] = int(pes[0] or 0)
             adt['trigger_at'] = f'{datetime.fromtimestamp(adt["trigger_time"])}'
             dif = time.time() - adt['trigger_time']
-        else:
-            _LOGGER.warning('Get miio data for %s failed: %s', self.name, dlg)
         if typ == 'prop.illumination':
             prop = self._miot_service.get_property('illumination')
             if prop:
@@ -247,8 +245,12 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
             self._state = typ == 'event.open'
         elif typ in ['event.leak', 'event.no_leak']:
             self._state = typ == 'event.leak'
-        if self._prop_state:
-            adt[self._prop_state.full_name] = self._state
+        elif self._prop_state and self._prop_state.full_name in self._state_attrs:
+            _LOGGER.info('Get miio data for %s failed: %s', self.name, dlg)
+        else:
+            _LOGGER.warning('Get miio data for %s failed: %s', self.name, dlg)
+            if self._prop_state:
+                adt[self._prop_state.full_name] = self._state
         if adt:
             self.update_attrs(adt)
 
