@@ -38,6 +38,7 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
     MiotAction,
+    MiotResults,
 )
 from .core.xiaomi_cloud import (
     MiotCloud,
@@ -1276,7 +1277,7 @@ class MiotEntity(MiioEntity):
         except (DeviceException, MiCloudException) as exc:
             self.logger.error('%s: Set miot property %s(%s) failed: %s', self.name, field, value, exc)
             return False
-        ret = dict(result or {}).get('code', 1) == self._success_code
+        ret = result.is_success if result else False
         if ret:
             if field in self._state_attrs:
                 self.update_attrs({
@@ -1295,7 +1296,7 @@ class MiotEntity(MiioEntity):
 
     def set_miot_property(self, siid, piid, value, did=None, **kwargs):
         if did is None:
-            did = self.miot_did or f'property-{siid}-{piid}'
+            did = self.miot_did or f'prop.{siid}.{piid}'
         pms = {
             'did':  str(did),
             'siid': siid,
@@ -1311,20 +1312,26 @@ class MiotEntity(MiioEntity):
                 dly = self.custom_config_integer('cloud_delay_update', 5)
             else:
                 results = self.miot_device.send('set_properties', [pms])
-            for ret in (results or []):
-                break
+            ret = MiotResults(results).first
         except (DeviceException, MiCloudException) as exc:
             self.logger.warning('%s: Set miot property %s failed: %s', self.name, pms, exc)
         if ret:
             self._vars['delay_update'] = dly
-            if dict(ret).get('code'):
+            if not ret.is_success:
                 self.logger.warning('%s: Set miot property %s failed, result: %s', self.name, pms, ret)
             else:
                 self.logger.debug('%s: Set miot property %s, result: %s', self.name, pms, ret)
+                if not self._miot_service:
+                    pass
+                elif not (srv := self._miot_service.spec.services.get(siid)):
+                    pass
+                elif prop := srv.properties.get(piid):
+                    self._state_attrs[prop.full_name] = value
+                    self.async_write_ha_state()
         if kwargs.get('throw'):
             persistent_notification.create(
                 self.hass,
-                f'{ret}',
+                f'{ret.result}',
                 'Set miot property result',
                 f'{DOMAIN}-debug',
             )
@@ -1413,7 +1420,7 @@ class MiotEntity(MiioEntity):
         if isinstance(services, MiotService):
             sls = [services]
         elif services == '*':
-            sls = self._miot_service.spec.services
+            sls = list(self._miot_service.spec.services.values())
         elif services:
             sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
         else:
@@ -1573,7 +1580,7 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
     @property
     def is_on(self):
         if self._prop_power:
-            return self._state_attrs.get(self._prop_power.full_name) and True
+            return not not self._state_attrs.get(self._prop_power.full_name)
         return None
 
     def turn_on(self, **kwargs):

@@ -57,14 +57,14 @@ class MiotSpec:
         self.type = str(dat.get('type') or '')
         self.name = self.name_by_type(self.type)
         self.description = dat.get('description') or ''
-        self.services = []
+        self.services = {}
         self.services_count = {}
         self.services_properties = {}
         for s in (dat.get('services') or []):
             srv = MiotService(s, self)
             if not srv.name:
                 continue
-            self.services.append(srv)
+            self.services[srv.iid] = srv
 
     def services_mapping(self, *args, **kwargs):
         dat = None
@@ -80,16 +80,21 @@ class MiotSpec:
         excludes.append('device_information')
         return [
             s
-            for s in self.services
+            for s in self.services.values()
             if s.name not in excludes and (not args or s.name in args or s.desc_name in args)
         ]
 
     def get_service(self, *args):
         for a in args:
-            for s in self.services:
+            for s in self.services.values():
                 if a not in [s.name, s.desc_name]:
                     continue
                 return s
+        return None
+
+    def first_service(self):
+        for s in self.services.values():
+            return s
         return None
 
     def generate_entity_id(self, entity, suffix=None):
@@ -638,3 +643,47 @@ class MiotAction:
         if len(kls) == len(out):
             return dict(zip(kls, out))
         return None
+
+
+class MiotResults:
+    def __init__(self, results):
+        self._results = results
+        self.results = []
+        for v in results or []:
+            if not isinstance(v, dict):
+                continue
+            r = MiotResult(v)
+            self.results.append(r)
+
+    @property
+    def is_empty(self):
+        return len(self.results) < 1
+
+    @property
+    def first(self):
+        if self.is_empty:
+            return None
+        return self.results[0]
+
+    def __str__(self):
+        return f'{self._results}'
+
+
+class MiotResult:
+    def __init__(self, result: dict):
+        self.result = result
+        self.code = result.get('code')
+        self.value = result.get('value')
+        self.did = result.get('did')
+        self.siid = result.get('siid')
+        self.piid = result.get('piid')
+
+    def get(self, key, default=None):
+        return self.result.get(key, default)
+
+    @property
+    def is_success(self):
+        return self.code == 0
+
+    def __str__(self):
+        return f'{self.result}'

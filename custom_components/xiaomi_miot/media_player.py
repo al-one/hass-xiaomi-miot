@@ -86,7 +86,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
             self._prop_mute = self._speaker.get_property('mute') or self._prop_mute
         self._act_turn_on = None
         self._act_turn_off = None
-        for srv in miot_service.spec.services:
+        for srv in miot_service.spec.services.values():
             act = srv.get_action('turn_on')
             if act and not self._act_turn_on:
                 self._act_turn_on = act
