@@ -22,24 +22,28 @@
                 "data": {
                     "username": "小米ID / 邮箱",
                     "password": "小米密码",
-                    "server_country": "小米服务器"
+                    "server_country": "小米服务器",
+                    "filter_models": "通过型号/WiFi筛选设备"
                 }
             },
             "cloud_filter": {
-                "description": "筛选设备",
+                "title": "筛选设备",
+                "description": "你可以通过筛选只集成想要的设备。在排除模式中，如果不勾选列表任何中的任何选项，则相当于包含所有选项。",
                 "data": {
+                    "filter_model": "筛选设备型号",
+                    "model_list": "设备型号列表",
                     "filter_ssid": "筛选 WiFi SSID",
                     "ssid_list": "WiFi SSID 列表",
                     "filter_bssid": "筛选 WiFi BSSID",
                     "bssid_list": "WiFi BSSID 列表",
-                    "filter_model": "筛选设备型号",
-                    "model_list": "设备型号列表"
+                    "filter_did": "筛选设备",
+                    "did_list": "设备列表"
                 }
             }
         },
         "error": {
             "cannot_connect": "连接设备失败",
-            "cannot_login": "小米账户登录失败",
+            "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登陆失败，请在与当前网络相同的环境下登陆小米官网(mi.com)后重试",
             "none_devices": "该小米账户下没有设备"
         },
         "abort": {
@@ -69,21 +73,33 @@
                 }
             },
             "cloud_filter": {
-                "description": "筛选设备",
+                "title": "筛选设备",
+                "description": "你可以通过筛选只集成想要的设备。在排除模式中，如果不勾选列表任何中的任何选项，则相当于包含所有选项。",
                 "data": {
+                    "filter_model": "筛选设备型号",
+                    "model_list": "设备型号列表",
                     "filter_ssid": "筛选 WiFi SSID",
                     "ssid_list": "WiFi SSID 列表",
                     "filter_bssid": "筛选 WiFi BSSID",
                     "bssid_list": "WiFi BSSID 列表",
-                    "filter_model": "筛选设备型号",
-                    "model_list": "设备型号列表"
+                    "filter_did": "筛选设备",
+                    "did_list": "设备列表"
                 }
             }
         },
         "error": {
             "cannot_connect": "连接设备失败",
-            "cannot_login": "小米账户登录失败",
+            "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登陆失败，请在与当前网络相同的环境下登陆小米官网(mi.com)后重试",
             "none_devices": "该小米账户下没有设备"
+        }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "自定义组件版本",
+            "can_reach_server": "可访问米家服务器",
+            "can_reach_spec": "可获取MIoT规格",
+            "logged_accounts": "已登录的账户数量",
+            "total_devices": "米家设备总数量"
         }
     }
 }

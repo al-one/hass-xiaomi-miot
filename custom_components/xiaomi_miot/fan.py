@@ -12,10 +12,6 @@ from homeassistant.components.fan import (
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
 )
-from homeassistant.util.percentage import (
-    ordered_list_item_to_percentage,
-    percentage_to_ordered_list_item,
-)
 
 from . import (
     DOMAIN,
@@ -38,8 +34,19 @@ DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 try:
     # hass 2021.3.0b0+
     from homeassistant.components.fan import SUPPORT_PRESET_MODE
+    from homeassistant.util.percentage import (
+        ordered_list_item_to_percentage,
+        percentage_to_ordered_list_item,
+    )
 except ImportError:
     SUPPORT_PRESET_MODE = None
+
+    def ordered_list_item_to_percentage(ordered_list, item):
+        raise NotImplementedError()
+
+    def percentage_to_ordered_list_item(ordered_list, percentage):
+        raise NotImplementedError()
+
 
 SERVICE_TO_METHOD = {}
 
@@ -52,23 +59,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.data.setdefault(DATA_KEY, {})
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     model = str(config.get(CONF_MODEL) or '')
+    miot = config.get('miot_type')
     entities = []
-    if model.find('mrbond.airer') >= 0:
-        pass
-    else:
-        miot = config.get('miot_type')
-        if miot:
-            spec = await MiotSpec.async_from_type(hass, miot)
-            for srv in spec.get_services(ENTITY_DOMAIN, 'ceiling_fan', 'hood', 'airer'):
-                if srv.name in ['airer'] and not srv.get_property('dryer'):
-                    continue
-                elif not srv.get_property('on'):
-                    continue
-                cfg = {
-                    **config,
-                    'name': f"{config.get('name')} {srv.description}"
-                }
-                entities.append(MiotFanEntity(cfg, srv))
+    if miot:
+        spec = await MiotSpec.async_from_type(hass, miot)
+        for srv in spec.get_services(ENTITY_DOMAIN, 'ceiling_fan', 'hood'):
+            if not srv.bool_property('on'):
+                continue
+            entities.append(MiotFanEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
@@ -77,7 +75,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotFanEntity(MiotToggleEntity, FanEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
 
         self._prop_power = miot_service.get_property('on', 'dryer')
         self._prop_speed = miot_service.get_property('fan_level', 'drying_level')
@@ -122,12 +120,26 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
                 percentage = ordered_list_item_to_percentage(self.speed_list, speed)
             if percentage:
                 ret = self.set_property(self._prop_percentage.full_name, percentage)
+            elif percentage is not None:
+                _LOGGER.warning('Set fan speed percentage to %s failed: %s', self.name, {
+                    'speed': speed,
+                    'percentage': percentage,
+                })
         elif self._prop_speed:
             if not speed and percentage:
                 speed = percentage_to_ordered_list_item(self.speed_list, percentage)
             val = self._prop_speed.list_first(speed) if speed else None
+            if val is None and self._prop_speed.value_range:
+                if speed is not None:
+                    val = int(speed)
             if val is not None:
                 ret = self.set_property(self._prop_speed.full_name, val)
+            elif speed is not None:
+                _LOGGER.warning('Set fan speed level to %s failed: %s', self.name, {
+                    'speed': speed,
+                    'percentage': percentage,
+                    'value':  val,
+                })
         if preset_mode and self._prop_mode:
             val = self._prop_mode.list_first(preset_mode)
             if val is not None:
@@ -166,9 +178,11 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
     def percentage(self):
         """Return the current speed as a percentage."""
         if self._prop_percentage:
-            return self._prop_percentage.from_dict(self._state_attrs)
+            val = self._prop_percentage.from_dict(self._state_attrs)
+            if val is not None:
+                return val
         try:
-            return super().percentage
+            return self.speed_to_percentage(str(self.speed))
         except ValueError:
             return None
 
@@ -299,6 +313,7 @@ class MiotModesSubEntity(FanSubEntity):
         self._name = self.format_name_by_property(miot_property)
         self._miot_property = miot_property
         self._miot_service = miot_property.service
+        self.entity_id = miot_property.generate_entity_id(self)
         self._prop_power = self._option.get('power_property')
         if self._prop_power:
             self._option['keys'] = [self._prop_power.full_name, *(self._option.get('keys') or [])]
@@ -309,17 +324,11 @@ class MiotModesSubEntity(FanSubEntity):
 
     @property
     def icon(self):
-        if self._miot_property.name in ['heat_level']:
-            if self._miot_property.service.name in ['seat']:
-                return 'mdi:car-seat-heater'
-            return 'mdi:radiator'
-        if self._miot_property.name in ['washing_strength']:
-            return 'mdi:waves'
-        if self._miot_property.name in ['nozzle_position']:
-            return 'mdi:spray'
-        if self._miot_property.name in ['mode']:
-            return 'mdi:menu'
-        return super().icon
+        return self._miot_property.entity_icon or super().icon
+
+    def update(self):
+        super().update()
+        self._miot_property.description_to_dict(self._state_attrs)
 
     @property
     def is_on(self):
@@ -468,15 +477,7 @@ class MiotWasherSubEntity(MiotModesSubEntity):
 
     @property
     def icon(self):
-        if self._miot_property.name in ['spin_speed']:
-            return 'mdi:speedometer'
-        if self._miot_property.name in ['target_temperature']:
-            return 'mdi:coolant-temperature'
-        if self._miot_property.name in ['target_water_level']:
-            return 'mdi:water-plus'
-        if self._miot_property.name in ['drying_level']:
-            return 'mdi:tumble-dryer'
-        return super().icon
+        return self._miot_property.entity_icon or super().icon
 
     @property
     def is_on(self):

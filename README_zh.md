@@ -1,3 +1,9 @@
+[![version](https://img.shields.io/github/manifest-json/v/al-one/hass-xiaomi-miot?filename=custom_components%2Fxiaomi_miot%2Fmanifest.json)](https://github.com/al-one/hass-xiaomi-miot/releases/latest)
+[![releases](https://img.shields.io/github/downloads/al-one/hass-xiaomi-miot/total)](https://github.com/al-one/hass-xiaomi-miot/releases)
+[![stars](https://img.shields.io/github/stars/al-one/hass-xiaomi-miot)](https://github.com/al-one/hass-xiaomi-miot/stargazers)
+[![issues](https://img.shields.io/github/issues/al-one/hass-xiaomi-miot)](https://github.com/al-one/hass-xiaomi-miot/issues)
+[![HACS](https://img.shields.io/badge/HACS-Default-orange.svg)](https://hacs.xyz)
+
 # Xiaomi Miot For HomeAssistant
 
 [English](https://github.com/al-one/hass-xiaomi-miot/blob/master/README.md) | 简体中文
@@ -12,11 +18,11 @@
 > 下载并复制`custom_components/xiaomi_miot`文件夹到HA根目录下的`custom_components`文件夹
 
 ```shell
-cd ~/.homeassistant/ # 进入你的HA根目录
-wget https://github.com/al-one/hass-xiaomi-miot/archive/master.zip
-unzip master.zip
-cp -rf hass-xiaomi-miot-master/custom_components/xiaomi_miot ./custom_components/
-rm -rf hass-xiaomi-miot-master master.zip
+# 执行下面的命令可以自动安装
+wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | bash -
+
+# 如果遇到下载缓慢或下载失败可以执行下面的命令
+wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HUB_DOMAIN=hub.fastgit.org bash -
 ```
 
 > 或者通过[HACS](https://hacs.xyz)搜索`Xiaomi Miot Auto`安装
@@ -26,15 +32,15 @@ rm -rf hass-xiaomi-miot-master master.zip
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > [➕ 添加集成](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 搜索 `Xiaomi Miot Auto`
 
-或者点击(HA v2021.3.0+): [![add](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
+或者点击(HA v2021.3+): [![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
 **目前有两种方式集成小米设备:**
 
-- Add device using host/token
-  > 通过设备host/token接入，适用于在局域网环境下支持miot-spec的设备
+- 账号集成 (Add devices using Mi Account)
+  > 通过小米账号接入设备，适用于miio、ZigBee、蓝牙等设备（默认开启`云端模式`，可通过[自定义属性](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855183156)实现局域网读写）
 
-- Add devices using Mi Account
-  > 通过小米账号接入设备，适用于miio、ZigBee、蓝牙（默认开启[云端模式](https://github.com/al-one/hass-xiaomi-miot#configuration-xiaomi-cloud)）
+- 本地集成 (Add device using host/token)
+  > 通过host/token接入设备，适用于在局域网环境下支持miot协议的设备
 
 ### 配置云端模式:
 
@@ -48,9 +54,30 @@ xiaomi_miot:
   # server_country: cn # 小米云服务器位置: cn(默认), de, i2, ru, sg, us
 ```
 
-为设备开启云端模式：
+为Token集成的设备开启云端模式：
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
+
+### 配置翻译词典:
+
+```yaml
+# configuration.yaml
+xiaomi_miot:
+  language: zh # 使用内置词典，目前仅支持`zh`
+  # https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/translation_languages.py
+  translations:
+    # 全局词典，对所有实体生效
+    idle: '空闲'
+    busy: '工作中'
+    # 指定风扇模式的词典
+    'fan.mode':
+      'Straight Wind': '直吹模式'
+      'Natural Wind': '自然风'
+    # 指定洗衣机烘干模式的词典
+    'washer.drying_level':
+      moist: '微湿'
+      extra: '特干'
+```
 
 
 ### 自定义实体
@@ -60,12 +87,34 @@ xiaomi_miot:
 homeassistant:
   customize: !include customize.yaml
 
+# 通过设备型号自定义
+xiaomi_miot:
+  # https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/device_customizes.py
+  device_customizes:
+    'chuangmi.plug.212a01':
+      miot_local: true
+      chunk_properties: 7
 
+
+# 通过父实体自定义
 # customize.yaml
 domain.your_entity_id:
-  miot_cloud: true          # 为该实体开启云端模式 (read, write, action)
-  # miot_cloud_write: true  # (可选) 仅写属性使用云端模式
-  # miot_cloud_action: true # (可选) 仅action使用云端模式
+  miot_local: true        # 使用本地模式 (通过账号接入的设备)
+  miot_cloud: true        # 为该实体开启云端模式 (read, write, action)
+  miot_cloud_write: true  # 仅写属性使用云端模式
+  miot_cloud_action: true # 仅action使用云端模式
+  check_lan: true         # 云端模式下检查设备在局域网是否可用
+  miio_properties: power,battery # 获取miio属性到实体的属性中
+  miio_cloud_props: prop.power,event.dev_online
+
+# 自定义子实体
+domain.parent_entity_id:
+  sensor_properties: temperature,humidity,illumination # Miot属性
+  binary_sensor_properties: is_volume_muted,any_boolen_property
+  switch_properties: on,power
+  number_properties: volume
+  fan_properties: mode,fan_level
+  cover_properties: motor_control
 
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # 绑定传感器实体
@@ -73,19 +122,22 @@ climate.your_entity_id:
 camera.your_entity_id:
   video_attribute: 1   # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
   keep_streaming: true # 持续更新流地址
-  check_lan: true      # 云端模式下检查设备在局域网是否可用
 
 cover.your_entity_id:
-  closed_position: 5 # 当实体位置值小于等于此值时为关闭状态
+  closed_position: 5   # 当实体位置值小于等于此值时为关闭状态
+  deviated_position: 2 # 位置偏差值 2% -> 0%, 98% -> 100%
+  motor_reverse: true  # 反转电机状态
+  open_texts: 打开,升
+  close_texts: 关闭,降
 
 doamin.your_entity_id:
   interval_seconds: 30 # 每次更新状态间隔秒数(需要重载集成配置)
   chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)
 ```
 
-**推荐**[使用界面自定义实体](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui):
+**推荐**[使用界面自定义实体](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-864678774):
 
-> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 🖌 自定义 > 🔍 选择实体 > 选择要覆盖的属性 > 添加Other属性
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🖌 自定义](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-864678774) > 🔍 选择实体 > 选择要覆盖的属性 > 添加Other属性
 
 
 ## [支持的设备](https://github.com/al-one/hass-xiaomi-miot/issues/12)
@@ -96,6 +148,7 @@ doamin.your_entity_id:
 
 - [sensor](https://www.home-assistant.io/integrations/sensor)
     - [air-fryer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:air-fryer:00007897)
+    - [air-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:air-monitor:0000A008)
     - [battery](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:battery:00007805)
     - [bed](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:bed:0000785C)
     - [coffee-machine](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:coffee-machine:00007873)
@@ -103,34 +156,47 @@ doamin.your_entity_id:
     - [door](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:door:00007856)
     - [doorbell](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:doorbell:00007857)
     - [environment](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:environment:0000780A)
-    - [pet-feeder](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:pet-feeder:00007847)
     - [filter](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:filter:0000780B)
+    - [fridge-chamber](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:fridge-chamber:0000781A)
+    - [fridge](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:fridge:00007819)
+    - [gas-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:gas-sensor:00007837)
     - [health-pot](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:health-pot:00007860)
     - [illumination-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:illumination-sensor:0000783D)
     - [induction-cooker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:induction-cooker:0000A033)
+    - [juicer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:juicer:0000785F)
+    - [lock](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:lock:00007855)
     - [microwave-oven](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:microwave-oven:00007843)
+    - [multifunction-cooking-pot](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:multifunction-cooking-pot:000078A2)
     - [oven](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:oven:00007862)
+    - [pet-feeder](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:pet-feeder:00007847)
+    - [plant-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:plant-monitor:0000784B)
     - [power-consumption](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:power-consumption:0000780E)
     - [pressure-cooker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:pressure-cooker:0000A04B)
     - [printer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:printer:0000786F)
     - [router](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:router:00007864)
     - [sleep-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:sleep-monitor:00007885)
+    - [smoke-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:smoke-sensor:00007838)
+    - [switch-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:switch-sensor:00007828)
     - [tds-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:tds-sensor:0000780D)
     - [temperature-humidity-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:temperature-humidity-sensor:00007814)
-    - [video-doorbell](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:video-doorbell:00007863)
+    - [vibration-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:vibration-sensor:0000786A)
+    - [walking-pad](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:walking-pad:00007842)
     - [water-purifier](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:water-purifier:00007821)
 - [binary_sensor](https://www.home-assistant.io/integrations/binary_sensor)
     - [magnet-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:magnet-sensor:00007827)
     - [motion-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:motion-sensor:00007825)
+    - [submersion-sensor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:submersion-sensor:00007839)
     - [toilet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:toilet:00007877)
-- [air_quality](https://www.home-assistant.io/integrations/air_quality)
-    - [air-monitor](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:air-monitor:0000A008)
 - [switch](https://www.home-assistant.io/integrations/switch)
+    - [fish-tank](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:fish-tank:00007894)
+    - [germicidal-lamp](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:germicidal-lamp:00007882)
     - [massager](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:massager:0000788E)
-    - [outlet](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:switch:0000780C)
+    - [mosquito-dispeller](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:mosquito-dispeller:00007886)
+    - [outlet](https://miot-spec.org/miot-spec-v2/spec/device?type=urn:miot-spec-v2:device:outlet:0000A002)
     - [pet-drinking-fountain](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:pet-drinking-fountain:00007850)
     - [physical-controls-locked](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:physical-controls-locked:00007807)
     - [switch](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:switch:0000780C)
+    - [towel-rack](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:towel-rack:0000785D)
     - [washer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:washer:00007834)
 - [light](https://www.home-assistant.io/integrations/light)
     - [indicator-light](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:indicator-light:00007803)
@@ -150,12 +216,13 @@ doamin.your_entity_id:
     - [heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:device:heater:0000A01A)
     - [light-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:light-bath-heater:0000783A)
     - [ptc-bath-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:ptc-bath-heater:0000783B)
+    - [thermostat](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:thermostat:0000784A)
     - [water-dispenser](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:water-dispenser:00007891)
 - [water_heater](https://www.home-assistant.io/integrations/water_heater)
     - [kettle](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:kettle:00007813)
     - [water-heater](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:water-heater:0000783E)
 - [vacuum](https://www.home-assistant.io/integrations/vacuum)
-    - [vacuum](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:vacuum:00007810) (不支持定点/划区清扫)
+    - [vacuum](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:vacuum:00007810)
 - [cover](https://www.home-assistant.io/integrations/cover)
     - [airer](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:airer:00007817)
     - [backrest-control](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:backrest-control:0000782A)
@@ -169,13 +236,18 @@ doamin.your_entity_id:
     - [camera-control](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:camera-control:0000782F)
     - [camera-stream-for-google-home](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:camera-stream-for-google-home:00007831)
     - [camera-stream-for-amazon-alexa](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:camera-stream-for-amazon-alexa:00007830)
+    - [video-doorbell](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:video-doorbell:00007863)
 - [media_player](https://www.home-assistant.io/integrations/media_player)
     - [play-control](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:play-control:0000781D)
     - [speaker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:speaker:0000781C)
     - [intelligent-speaker](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:intelligent-speaker:0000789B)
     - [television](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:television:0000781B)
+- [remote](https://www.home-assistant.io/integrations/remote)
+    - [remote-control](https://miot-spec.org/miot-spec-v2/spec/device?type=urn:miot-spec-v2:device:remote-control:0000A021)
+    - [ir-remote-control](https://miot-spec.org/miot-spec-v2/spec/device?type=urn:miot-spec-v2:device:ir-remote-control:0000A025)
 - [device_tracker](https://www.home-assistant.io/integrations/device_tracker)
     - [rearview-mirror](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:rearview-mirror:00007879)
+    - [watch](https://miot-spec.org/miot-spec-v2/spec/service?type=urn:miot-spec-v2:service:watch:00007899)
 
 
 ## 调试
@@ -187,7 +259,12 @@ doamin.your_entity_id:
 ### [获取调试日志](https://www.home-assistant.io/integrations/logger)
 
 ```yaml
-# configuration.yaml
+# 使用HA服务 (无需重启)
+service: logger.set_level
+data:
+  custom_components.xiaomi_miot: debug
+
+# 或者修改 configuration.yaml (需重启)
 logger:
   default: warning
   logs:
@@ -198,6 +275,11 @@ logger:
 
 
 ## 获取 miio token
+
+- 使用HomeAssistant服务
+  1. 打开HomeAssistant服务工具 [![](https://my.home-assistant.io/badges/developer_services.svg)](https://my.home-assistant.io/redirect/developer_services/)
+  2. 选择服务[`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token)，输入设备名称关键词
+  3. 在HA通知列表中找到token
 
 - 使用[@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)修改版的米家
   1. 下载APK [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html)

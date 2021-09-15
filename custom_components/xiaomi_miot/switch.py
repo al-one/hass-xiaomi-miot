@@ -1,5 +1,6 @@
 """Support for Xiaomi switches."""
 import logging
+import time
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.switch import (
@@ -24,7 +25,9 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
     MiotProperty,
+    MiotAction,
 )
+from .sensor import MiotSensorSubEntity
 from .fan import MiotWasherSubEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -53,15 +56,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 entities.append(MiotPwznRelaySwitchEntity(config, srv))
         else:
             for srv in spec.get_services(
-                ENTITY_DOMAIN, 'outlet', 'washer', 'pet_drinking_fountain', 'massager',
+                ENTITY_DOMAIN, 'outlet', 'washer', 'massager', 'towel_rack',
+                'fish_tank', 'pet_drinking_fountain', 'mosquito_dispeller',
             ):
                 if not srv.get_property('on'):
                     continue
-                cfg = {
-                    **config,
-                    'name': f"{config.get('name')} {srv.description}"
-                }
-                entities.append(MiotSwitchEntity(cfg, srv))
+                entities.append(MiotSwitchEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
@@ -70,7 +70,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     @property
@@ -82,11 +82,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
 
     @property
     def icon(self):
-        if self._miot_service.name in ['washer']:
-            return 'mdi:washing-machine'
-        if self._miot_service.name in ['pet_drinking_fountain']:
-            return 'mdi:fountain'
-        return super().icon
+        return self._miot_service.entity_icon or super().icon
 
     async def async_update(self):
         await super().async_update()
@@ -119,16 +115,25 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
                     add_switches([self._subs[pnm]])
         else:
             self._update_sub_entities(
+                ['water_pump', 'automatic_feeding', 'heating'],
+                domain='switch',
+            )
+            self._update_sub_entities(
+                ['pump_flux', 'target_feeding_measure', 'target_temperature', 'stream', 'speed'],
+                [self._miot_service.name, 'ambient_light_custom'],
+                domain='number',
+            )
+            self._update_sub_entities(
                 ['heat_level'],
                 ['massager'],
                 domain='fan',
                 option={
                     'power_property': self._miot_service.get_property('heating'),
-                }
+                },
             )
             self._update_sub_entities(
                 ['mode', 'massage_strength', 'massage_part', 'massage_manipulation'],
-                ['pet_drinking_fountain', 'massager'],
+                ['fish_tank', 'pet_drinking_fountain', 'massager'],
                 domain='fan',
             )
 
@@ -138,15 +143,14 @@ class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
         super().update()
 
 
-class MiotSwitchSubEntity(SwitchSubEntity):
+class MiotSwitchSubEntity(MiotSensorSubEntity, SwitchSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property.full_name, option)
+        super().__init__(parent, miot_property, option)
         self._name = self.format_name_by_property(miot_property)
-        self._miot_service = miot_property.service
-        self._miot_property = miot_property
         self._prop_power = self._miot_service.get_property('on', 'power')
         if self._prop_power:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_power.full_name]
+            self._option['icon'] = self._prop_power.entity_icon or self._option.get('icon')
 
     @property
     def is_on(self):
@@ -155,16 +159,57 @@ class MiotSwitchSubEntity(SwitchSubEntity):
                 self._state = self._state and self._prop_power.from_dict(self._state_attrs)
         return self._state
 
-    def set_parent_property(self, val, prop=None):
-        if prop is None:
-            prop = self._miot_property
-        return super().set_parent_property(val, prop.full_name)
+    @property
+    def state(self):
+        return STATE_ON if self.is_on else STATE_OFF
 
     def turn_on(self, **kwargs):
         return self.set_parent_property(True)
 
     def turn_off(self, **kwargs):
         return self.set_parent_property(False)
+
+
+class MiotSwitchActionSubEntity(SwitchSubEntity):
+    def __init__(self, parent, miot_property: MiotProperty, miot_action: MiotAction, option=None):
+        super().__init__(parent, miot_action.full_name, option)
+        self._miot_property = miot_property
+        self._miot_action = miot_action
+        self.entity_id = miot_property.generate_entity_id(self)
+        self._state = False
+        if miot_action.name in ['pet_food_out']:
+            self._option['icon'] = 'mdi:shaker'
+        self.update_attrs({
+            'miot_action': miot_action.full_name,
+        }, update_parent=False)
+
+    def update(self):
+        self._available = True
+        time.sleep(0.5)
+        self._state = False
+
+    @property
+    def is_on(self):
+        """Return True if entity is on."""
+        return self._state
+
+    def turn_on(self, **kwargs):
+        """Turn the entity on."""
+        val = None
+        if self._miot_property.value_range:
+            val = int(self._miot_property.range_min() or 0)
+        elif self._miot_property.value_list:
+            val = self._miot_property.value_list[0].get('value')
+        ret = self.call_parent('call_action', self._miot_action, None if val is None else [val])
+        if ret:
+            self._state = True
+            self.async_write_ha_state()
+        return ret
+
+    def turn_off(self, **kwargs):
+        """Turn the entity off."""
+        self._state = False
+        return True
 
 
 class MiotWasherActionSubEntity(SwitchSubEntity):
@@ -224,7 +269,7 @@ class MiotCookerSwitchSubEntity(SwitchSubEntity):
 
 class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
         self._prop_status = miot_service.get_property('all_status')
         self._prop_power = self._prop_status
         self._state_attrs.update({'entity_class': self.__class__.__name__})
@@ -312,7 +357,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
 
         self._config = config
         self._device = MiioDevice(host, token)
-        super().__init__(name, self._device)
+        super().__init__(name, self._device, logger=_LOGGER)
         self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._success_result = [0]
 
@@ -375,7 +420,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
                         add_switches([self._subs[k]])
 
     def turn_on(self, **kwargs):
-        ret = self.send_command('power_all', [1])
+        ret = self.send_miio_command('power_all', [1])
         if ret:
             full = (1 << 16) - 1
             self.update_attrs({
@@ -387,7 +432,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
         return ret
 
     def turn_off(self, **kwargs):
-        ret = self.send_command('power_all', [0])
+        ret = self.send_miio_command('power_all', [0])
         if ret:
             self.update_attrs({
                 'relay_status_g1': 0,
@@ -412,13 +457,13 @@ class PwznRelaySwitchSubEntity(SwitchSubEntity):
 
     def turn_parent(self, on):
         if self._attr == 'g2Enable':
-            ret = self.call_parent('send_command', 'set_g2enable', [1 if on else 0])
+            ret = self.call_parent('send_miio_command', 'set_g2enable', [1 if on else 0])
         elif self._attr == 'codeEnable':
-            ret = self.call_parent('send_command', 'set_codeEnable', [1 if on else 0])
+            ret = self.call_parent('send_miio_command', 'set_codeEnable', [1 if on else 0])
         elif isinstance(self._parent, MiotPwznRelaySwitchEntity):
             ret = self.call_parent('turn_channel', self._switch_index, on)
         else:
-            ret = self.call_parent('send_command', 'power_on' if on else 'power_off', [self._switch_index])
+            ret = self.call_parent('send_miio_command', 'power_on' if on else 'power_off', [self._switch_index])
         if ret:
             self.update_attrs({
                 self._attr: STATE_ON if on else STATE_OFF

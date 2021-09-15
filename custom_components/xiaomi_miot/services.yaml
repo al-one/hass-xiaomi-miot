@@ -20,6 +20,12 @@ send_command:
       required: true
       selector:
         object:
+    throw:
+      description: Throw result.
+      default: false
+      example: false
+      selector:
+        boolean:
 
 get_properties:
   description: Get miot properties.
@@ -39,6 +45,7 @@ get_properties:
         object:
     throw:
       description: Throw properties.
+      default: true
       example: true
       selector:
         boolean:
@@ -136,6 +143,7 @@ call_action:
         object:
     throw:
       description: Throw result.
+      default: false
       example: false
       selector:
         boolean:
@@ -159,16 +167,19 @@ intelligent_speaker:
         text:
     execute:
       description: Execute text directive.
+      default: false
       example: true
       selector:
         boolean:
     silent:
       description: Silent execution.
+      default: false
       example: false
       selector:
         boolean:
     throw:
       description: Throw result.
+      default: false
       example: false
       selector:
         boolean:
@@ -185,12 +196,16 @@ get_device_data:
           integration: xiaomi_miot
     type:
       description: Data type.
+      default: prop
       example: prop
       selector:
         select:
           options:
             - prop
             - event
+            - prop_cal_day
+            - prop_cal_week
+            - prop_cal_month
     key:
       description: Data key.
       example: power
@@ -198,6 +213,7 @@ get_device_data:
       selector:
         text:
     time_start:
+      description: From the unix timestamp.
       example: 0
       selector:
         number:
@@ -205,6 +221,7 @@ get_device_data:
           max: 9999999999
           mode: box
     time_end:
+      description: To the unix timestamp.
       example: 0
       selector:
         number:
@@ -212,6 +229,7 @@ get_device_data:
           max: 9999999999
           mode: box
     limit:
+      description: Limit of results.
       example: 10
       selector:
         number:
@@ -219,6 +237,8 @@ get_device_data:
           max: 2000
           mode: box
     group:
+      description: Results grouping.
+      default: raw
       example: raw
       selector:
         select:
@@ -228,43 +248,30 @@ get_device_data:
             - day
             - week
             - month
-    throw:
-      description: Throw result.
-      example: true
-      selector:
-        boolean:
 
 get_token:
   description: Get xiaomi device token.
   fields:
-    entity_id:
-      description: ID of the entity.
-      example: "climate.xiaomi_mc5_374e"
+    name:
+      description: Keyword of device name.
       required: true
       selector:
-        entity:
-          integration: xiaomi_miot
-    throw:
-      description: Throw result.
-      example: true
-      selector:
-        boolean:
+        text:
 
 get_bindkey:
   description: Get bindkey for ble device from cloud.
   fields:
     entity_id:
       description: ID of the entity.
-      example: "sensor.lywsd03mmc"
+      example: "sensor.lywsd03mmc_temperature"
       required: true
       selector:
         entity:
           integration: xiaomi_miot
-    throw:
-      description: Throw result.
-      example: true
+    did:
+      description: Xiaomi device ID.
       selector:
-        boolean:
+        text:
 
 request_xiaomi_api:
   description: Request xiaomi cloud api.
@@ -277,15 +284,28 @@ request_xiaomi_api:
         entity:
           integration: xiaomi_miot
     api:
+      description: Xiaomi API path.
       example: "/home/device_list"
+      required: true
       selector:
         text:
-    params:
+    data:
+      description: Xiaomi API request data.
       example: "{'getVirtualModel':true}"
       selector:
         object:
-    throw:
-      description: Throw result.
-      example: true
+    method:
+      description: Request method.
+      default: POST
+      example: POST
+      selector:
+        select:
+          options:
+            - POST
+            - GET
+    crypt:
+      description: Crypt data.
+      default: false
+      example: false
       selector:
         boolean:

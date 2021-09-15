@@ -43,14 +43,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services('rearview_mirror'):
+        for srv in spec.get_services('watch', 'rearview_mirror'):
             if not srv.get_property('latitude', 'longitude'):
                 continue
-            cfg = {
-                **config,
-                'name': f"{config.get('name')} {srv.description}"
-            }
-            entities.append(MiotTrackerEntity(cfg, srv))
+            entities.append(MiotTrackerEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
@@ -59,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotTrackerEntity(MiotEntity, TrackerEntity):
     def __init__(self, config, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     async def async_update(self):

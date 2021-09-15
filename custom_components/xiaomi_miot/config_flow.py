@@ -25,10 +25,14 @@ from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
 )
+from .core.utils import async_analytics_track_event
 
 _LOGGER = logging.getLogger(__name__)
 DEFAULT_INTERVAL = 30
-ENTRY_VERSION = 0.1
+
+# 0.1 support multiple integration to add the same device
+# 0.2 new entity id format (model_mac[-4:]_suffix)
+ENTRY_VERSION = 0.2
 
 CLOUD_SERVERS = {
     'cn': 'China',
@@ -47,6 +51,7 @@ async def check_miio_device(hass, user_input, errors):
         device = MiioDevice(host, token)
         info = await hass.async_add_executor_job(device.info)
     except DeviceException:
+        device = None
         info = None
         errors['base'] = 'cannot_connect'
     _LOGGER.debug('Xiaomi Miot config flow: %s', {
@@ -54,13 +59,34 @@ async def check_miio_device(hass, user_input, errors):
         'miio_info': info,
         'errors': errors,
     })
+    model = ''
     if info is not None:
         if not user_input.get(CONF_MODEL):
-            user_input[CONF_MODEL] = str(info.model or '')
+            model = str(info.model or '')
+            user_input[CONF_MODEL] = model
         user_input['miio_info'] = dict(info.raw or {})
-        miot_type = await MiotSpec.async_get_model_type(hass, user_input.get(CONF_MODEL))
+        miot_type = await MiotSpec.async_get_model_type(hass, model)
+        if not miot_type:
+            miot_type = await MiotSpec.async_get_model_type(hass, model, use_remote=True)
         user_input['miot_type'] = miot_type
         user_input['unique_did'] = format_mac(info.mac_address)
+        if miot_type and device:
+            try:
+                pms = [
+                    {'did': 'miot', 'siid': 2, 'piid': 1},
+                    {'did': 'miot', 'siid': 2, 'piid': 2},
+                    {'did': 'miot', 'siid': 3, 'piid': 1},
+                ]
+                results = device.get_properties(pms, property_getter='get_properties') or []
+                for prop in results:
+                    if not isinstance(prop, dict):
+                        continue
+                    if prop.get('code') == 0:
+                        # Collect supported models in LAN
+                        await async_analytics_track_event(hass, 'miot', 'local', model, results=results)
+                        break
+            except DeviceException:
+                pass
     return user_input
 
 
@@ -69,18 +95,23 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
     try:
         mic = await MiotCloud.from_token(hass, user_input)
         if not mic:
+            raise MiCloudException('Login error')
+        if not await mic.async_check_auth(False):
             raise MiCloudException('Login failed')
+        await mic.async_stored_auth(mic.user_id, save=True)
         user_input['xiaomi_cloud'] = mic
         dvs = await mic.async_get_devices(renew=renew_devices) or []
     except MiCloudException as exc:
         errors['base'] = 'cannot_login'
         _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', user_input.get(CONF_USERNAME), exc)
+    if renew_devices:
+        await MiotSpec.async_get_model_type(hass, 'xiaomi.miot.auto', use_remote=True)
     if not errors:
         user_input['devices'] = dvs
     return user_input
 
 
-async def get_cloud_filter_schema(hass, user_input, errors, schema=None):
+async def get_cloud_filter_schema(hass, user_input, errors, schema=None, via_did=False):
     if not schema:
         schema = vol.Schema({})
     dvs = user_input.get('devices') or []
@@ -89,7 +120,7 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None):
     else:
         grp = {}
         vls = {}
-        fls = ['model', 'ssid', 'bssid']
+        fls = ['did'] if via_did else ['model', 'ssid', 'bssid']
         for d in dvs:
             for f in fls:
                 v = d.get(f)
@@ -100,9 +131,19 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None):
                 vls.setdefault(f, {})
                 des = '<empty>' if v == '' else v
                 vls[f][v] = f'{des} ({grp[v]})'
+                if f in ['did']:
+                    dip = d.get('localip')
+                    if not dip or d.get('pid') not in ['0', '8', '', None]:
+                        dip = d.get('model')
+                    vls[f][v] = f'{d.get("name")} ({dip})'
+                if f in ['model']:
+                    dnm = f'{d.get("name")}'
+                    if grp[v] > 1:
+                        dnm += f' * {grp[v]}'
+                    vls[f][v] = f'{des} ({dnm})'
         ies = {
-            'include': 'Include (包含)',
             'exclude': 'Exclude (排除)',
+            'include': 'Include (包含)',
         }
         for f in fls:
             if not vls.get(f):
@@ -111,9 +152,8 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None):
             fl = f'{f}_list'
             lst = vls.get(f, {})
             lst = dict(sorted(lst.items()))
-            fkd = 'include' if f in ['model'] else 'exclude'
             schema = schema.extend({
-                vol.Optional(fk, default=user_input.get(fk, fkd)): vol.In(ies),
+                vol.Optional(fk, default=user_input.get(fk, 'exclude')): vol.In(ies),
                 vol.Optional(fl, default=user_input.get(fl, [])): cv.multi_select(lst),
             })
         hass.data[DOMAIN]['prev_input'] = user_input
@@ -137,9 +177,9 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id='user',
             data_schema=vol.Schema({
-                vol.Required('action', default=user_input.get('action', 'token')): vol.In({
-                    'token': 'Add device using host/token',
-                    'cloud': 'Add devices using Mi Account',
+                vol.Required('action', default=user_input.get('action', 'cloud')): vol.In({
+                    'cloud': 'Add devices using Mi Account (账号集成)',
+                    'token': 'Add device using host/token (局域网集成)',
                 }),
             }),
             errors=errors,
@@ -180,8 +220,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             user_input = {}
         else:
-            await self.async_set_unique_id(f'{user_input[CONF_USERNAME]}-{user_input[CONF_SERVER_COUNTRY]}')
-            self._abort_if_unique_id_configured()
             await check_xiaomi_account(self.hass, user_input, errors)
             if not errors:
                 return await self.async_step_cloud_filter(user_input)
@@ -192,6 +230,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
                 vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
                     vol.In(CLOUD_SERVERS),
+                vol.Optional('filter_models', default=user_input.get('filter_models', False)): bool,
             }),
             errors=errors,
         )
@@ -202,7 +241,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             user_input = {}
         if 'devices' in user_input:
-            schema = await get_cloud_filter_schema(self.hass, user_input, errors, schema)
+            via_did = not user_input.get('filter_models')
+            schema = await get_cloud_filter_schema(self.hass, user_input, errors, schema, via_did=via_did)
         elif 'prev_input' in self.hass.data[DOMAIN]:
             prev_input = self.hass.data[DOMAIN].pop('prev_input', None) or {}
             cfg = prev_input['xiaomi_cloud'].to_config() or {}
@@ -287,14 +327,25 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_cloud(self, user_input=None):
         errors = {}
+        prev_input = {
+            **self.config_entry.data,
+            **self.config_entry.options,
+        }
         if isinstance(user_input, dict):
-            user_input = {**self.config_entry.data, **self.config_entry.options, **user_input}
-            renew = user_input.get('renew_devices') and True
+            user_input = {
+                **self.config_entry.data,
+                **self.config_entry.options,
+                **user_input,
+            }
+            renew = not not user_input.pop('renew_devices', False)
             await check_xiaomi_account(self.hass, user_input, errors, renew_devices=renew)
             if not errors:
+                user_input['filter_models'] = prev_input.get('filter_models') and True
+                if prev_input.get('filter_model'):
+                    user_input['filter_models'] = True
                 return await self.async_step_cloud_filter(user_input)
         else:
-            user_input = {**self.config_entry.data, **self.config_entry.options}
+            user_input = prev_input
         return self.async_show_form(
             step_id='cloud',
             data_schema=vol.Schema({
@@ -314,7 +365,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             user_input = {}
         if 'devices' in user_input:
             user_input = {**self.config_entry.data, **self.config_entry.options, **user_input}
-            schema = await get_cloud_filter_schema(self.hass, user_input, errors, schema)
+            via_did = not user_input.get('filter_models')
+            schema = await get_cloud_filter_schema(self.hass, user_input, errors, schema, via_did=via_did)
         elif 'prev_input' in self.hass.data[DOMAIN]:
             prev_input = self.hass.data[DOMAIN].pop('prev_input', None) or {}
             cfg = prev_input['xiaomi_cloud'].to_config() or {}

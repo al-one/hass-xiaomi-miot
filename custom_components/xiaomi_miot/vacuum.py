@@ -1,6 +1,7 @@
 """Support for Xiaomi vacuums."""
 import logging
 from datetime import timedelta
+from functools import partial
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.vacuum import (  # noqa: F401
@@ -61,11 +62,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(ENTITY_DOMAIN):
             if not srv.get_property('status'):
                 continue
-            cfg = {
-                **config,
-                'name': f"{config.get('name')} {srv.description}"
-            }
-            entities.append(MiotVacuumEntity(cfg, srv))
+            if 'roborock.' in model or 'rockrobo.' in model:
+                entities.append(MiotRoborockVacuumEntity(config, srv))
+            elif 'viomi.' in model:
+                entities.append(MiotViomiVacuumEntity(config, srv))
+            else:
+                entities.append(MiotVacuumEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
@@ -74,11 +76,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
 
         self._prop_power = miot_service.get_property('on', 'power')
         self._prop_status = miot_service.get_property('status')
-        self._prop_mode = miot_service.get_property('fan_level', 'mode')
+        self._prop_mode = miot_service.get_property('fan_level', 'speed_level', 'mode')
         self._act_start = miot_service.get_action('start_sweep')
         self._act_pause = miot_service.get_action('pause_sweeping')
         self._act_stop = miot_service.get_action('stop_sweeping')
@@ -140,7 +142,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 'Working', 'Busy',
             ):
                 return STATE_CLEANING
-            elif val in self._prop_status.list_search('Idle', 'Sleep', 'Charging'):
+            elif val in self._prop_status.list_search('Idle', 'Sleep', 'Charging', 'Fullcharge'):
                 return STATE_DOCKED
             elif val in self._prop_status.list_search('Go Charging'):
                 return STATE_RETURNING
@@ -148,6 +150,8 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 return STATE_PAUSED
             elif val in self._prop_status.list_search('Error'):
                 return STATE_ERROR
+            else:
+                return self._prop_status.list_description(val)
         return None
 
     @property
@@ -202,6 +206,10 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     def fan_speed(self):
         if self._prop_mode:
             val = self._prop_mode.from_dict(self._state_attrs)
+            try:
+                val = int(val)
+            except (TypeError, ValueError):
+                val = None
             if val is not None:
                 return self._prop_mode.list_description(val)
         return None
@@ -217,3 +225,111 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             val = self._prop_mode.list_value(fan_speed)
             return self.set_property(self._prop_mode.full_name, val)
         return False
+
+    def send_vacuum_command(self, command, params=None, **kwargs):
+        """Send a command to a vacuum cleaner."""
+        raise NotImplementedError()
+
+    async def async_send_command(self, command, params=None, **kwargs):
+        """Send a command to a vacuum cleaner.
+        This method must be run in the event loop.
+        """
+        await self.hass.async_add_executor_job(
+            partial(self.send_vacuum_command, command, params=params, **kwargs)
+        )
+
+
+class MiotRoborockVacuumEntity(MiotVacuumEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(config, miot_service)
+        self._supported_features |= SUPPORT_LOCATE
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        props = self._state_attrs.get('props') or {}
+        adt = {}
+        if 'clean_area' in props:
+            adt['clean_area'] = round(props['clean_area'] / 1000000, 1)
+        if 'clean_time' in props:
+            adt['clean_time'] = round(props['clean_time'] / 60, 1)
+        if adt:
+            self.update_attrs(adt)
+
+    def clean_spot(self, **kwargs):
+        """Perform a spot clean-up."""
+        return self.send_miio_command('app_spot')
+
+    def locate(self, **kwargs):
+        """Locate the vacuum cleaner."""
+        if not self._act_locate:
+            return self.send_miio_command('find_me', [''])
+        return super().locate()
+
+    def send_vacuum_command(self, command, params=None, **kwargs):
+        """Send a command to a vacuum cleaner."""
+        dvc = self.miot_device
+        if not dvc:
+            raise NotImplementedError()
+        return self.send_miio_command(command, params)
+
+
+class MiotViomiVacuumEntity(MiotVacuumEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(config, miot_service)
+        self._supported_features |= SUPPORT_LOCATE
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        props = self._state_attrs or {}
+        adt = {}
+        if 'miio.s_area' in props:
+            adt['clean_area'] = props['miio.s_area']
+        if 'miio.s_time' in props:
+            adt['clean_time'] = props['miio.s_time']
+        if adt:
+            self.update_attrs(adt)
+
+    def locate(self, **kwargs):
+        """Locate the vacuum cleaner."""
+        if not self._act_locate:
+            return self.send_miio_command('set_resetpos', [1])
+        return super().locate()
+
+    def send_vacuum_command(self, command, params=None, **kwargs):
+        """Send a command to a vacuum cleaner."""
+        dvc = self.miot_device
+        if not dvc:
+            raise NotImplementedError()
+        _LOGGER.debug('Send command to %s: %s %s', self.name, command, params)
+        if command == 'app_zoned_clean':
+            rpt = 1
+            lst = []
+            for z in params or []:
+                rpt = z.pop(-1)
+                lst.append(z)
+            return self.clean_zones(lst, rpt)
+        elif command == 'app_goto_target':
+            return self.clean_point(params)
+        return self.send_miio_command(command, params)
+
+    def clean_zones(self, zones, repeats=1):
+        result = []
+        i = 0
+        for z in zones:
+            x1, y2, x2, y1 = z
+            res = '_'.join(str(x) for x in [i, 0, x1, y1, x1, y2, x2, y2, x2, y1])
+            for _ in range(repeats):
+                result.append(res)
+                i += 1
+        result = [i, *result]
+        self.send_miio_command('set_uploadmap', [1])
+        self.send_miio_command('set_zone', result)
+        return self.send_miio_command('set_mode', [3, 1])
+
+    def clean_point(self, point):
+        self.send_miio_command('set_uploadmap', [0])
+        return self.send_miio_command('set_pointclean', [1, *point])

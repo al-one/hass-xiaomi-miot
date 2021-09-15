@@ -38,14 +38,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services('air_monitor'):
+        for srv in spec.get_services('_deprecated_'):
             if not srv.get_property('pm2_5_density', 'co2_density'):
                 continue
-            cfg = {
-                **config,
-                'name': f"{config.get('name')} {srv.description}"
-            }
-            entities.append(MiotAirQualityEntity(cfg, srv))
+            entities.append(MiotAirQualityEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)

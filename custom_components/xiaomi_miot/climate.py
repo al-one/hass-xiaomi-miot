@@ -55,15 +55,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
             'heater', 'ptc_bath_heater', 'light_bath_heater',
             'air_purifier', 'air_fresh', 'electric_blanket',
-            'water_dispenser', 'dishwasher',
+            'water_dispenser', 'dishwasher', 'thermostat',
         ):
             if not srv.get_property('on', 'mode', 'target_temperature'):
                 continue
-            cfg = {
-                **config,
-                'name': f"{config.get('name')} {srv.description}"
-            }
-            entities.append(MiotClimateEntity(cfg, srv))
+            entities.append(MiotClimateEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
@@ -79,7 +75,7 @@ class SwingModes(Enum):
 
 class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
     def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config)
+        super().__init__(miot_service, config=config, logger=_LOGGER)
 
         self._prop_power = miot_service.bool_property('on')
         self._prop_mode = miot_service.get_property('mode')
@@ -90,7 +86,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         self._prev_target_temp = None
 
         self._environment = miot_service.spec.get_service('environment')
-        self._prop_temperature = miot_service.get_property('temperature', 'indoor_temperature')
+        self._prop_temperature = miot_service.get_property('indoor_temperature', 'temperature')
         self._prop_humidity = miot_service.get_property('relative_humidity', 'humidity')
 
         self._fan_control = miot_service.spec.get_service('fan_control')
@@ -111,7 +107,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             if not s:
                 continue
             if not self._prop_temperature:
-                self._prop_temperature = s.get_property('temperature', 'indoor_temperature')
+                self._prop_temperature = s.get_property('indoor_temperature', 'temperature')
             if not self._prop_humidity:
                 self._prop_humidity = s.get_property('relative_humidity', 'humidity')
 
@@ -143,6 +139,9 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             HVAC_MODE_FAN_ONLY: {'list': ['Fan']},
         }
         self._preset_modes = {}
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
         if self._prop_mode:
             mvs = []
             dls = []
@@ -160,7 +159,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 fst = fst or v
                 val = v.get('value')
                 if val not in mvs:
-                    self._preset_modes[val] = v.get('description')
+                    des = self._prop_mode.get_translation(v.get('description'))
+                    self._preset_modes[val] = des
             if fst and len(self._hvac_modes) <= 1:
                 self._hvac_modes[HVAC_MODE_AUTO] = {
                     'list':  [fst.get('description')],
@@ -218,9 +218,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
                     add_switches([self._subs[pnm]])
 
-
     def update_bind_sensor(self):
-        bss = str(self.custom_config('bind_sensor') or '').split(',')
+        bss = self.custom_config_list('bind_sensor') or []
         ext = {}
         for bse in bss:
             bse = f'{bse}'.strip()
@@ -383,8 +382,8 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             return HVAC_MODE_OFF
         if self._preset_modes and self._prop_mode:
             acm = self._prop_mode.from_dict(self._state_attrs)
-            acm = -1 if acm is None else int(acm or 0)
-            return self._preset_modes.get(acm, HVAC_MODE_OFF)
+            acm = -1 if acm is None else acm
+            return self._preset_modes.get(acm)
         return None
 
     @property
@@ -567,9 +566,9 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             hor = False
         swm = {}
         if self._prop_vertical_swing:
-            swm[self._prop_vertical_swing.name] = ver
+            swm[self._prop_vertical_swing.full_name] = ver
         if self._prop_horizontal_swing:
-            swm[self._prop_horizontal_swing.name] = hor
+            swm[self._prop_horizontal_swing.full_name] = hor
         for mk, mv in swm.items():
             old = self._state_attrs.get(mk, None)
             if old is None or mv is None:
