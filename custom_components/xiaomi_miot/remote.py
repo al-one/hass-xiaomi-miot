@@ -45,8 +45,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        if spec.name in ['ir_remote_control']:
-            if 'chuangmi.' in model:
+        if spec.name in ['remote_control', 'ir_remote_control']:
+            if 'chuangmi.remote.' in model:
                 entities.append(MiotRemoteEntity(config, spec))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
