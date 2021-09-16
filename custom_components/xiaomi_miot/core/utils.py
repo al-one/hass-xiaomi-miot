@@ -47,7 +47,7 @@ class RC4:
 
 
 def analytics_track_event(event, action, label, value=0, results=None):
-    pag = 'https://miot-spec.com'
+    pag = f'https://miot-spec.com/s/{label}'
     if results:
         pag = f"{pag}?results={results}"
     pms = {
