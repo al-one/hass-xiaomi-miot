@@ -23,6 +23,7 @@
                     "username": "Xiaomi Account ID / Email",
                     "password": "Password",
                     "server_country": "Server location of MiCloud",
+                    "conn_mode": "Connection mode for device",
                     "filter_models": "Filter devices via model/WiFi"
                 }
             },
@@ -69,6 +70,7 @@
                     "username": "Xiaomi Account ID / Email",
                     "password": "Password",
                     "server_country": "Server location of MiCloud",
+                    "conn_mode": "Connection mode for device",
                     "renew_devices": "Force renew devices"
                 }
             },

@@ -8,24 +8,26 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import format_mac
 import homeassistant.helpers.config_validation as cv
 
-from miio import (
-    Device as MiioDevice,
-    DeviceException,
-)
-
 from . import (
     DOMAIN,
     CONF_MODEL,
+    CONF_CONN_MODE,
     CONF_SERVER_COUNTRY,
     CONF_CONFIG_VERSION,
     DEFAULT_NAME,
+    DEFAULT_CONN_MODE,
 )
+from .core.utils import async_analytics_track_event
 from .core.miot_spec import MiotSpec
 from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
 )
-from .core.utils import async_analytics_track_event
+
+from miio import (
+    Device as MiioDevice,
+    DeviceException,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DEFAULT_INTERVAL = 30
@@ -41,6 +43,12 @@ CLOUD_SERVERS = {
     'ru': 'Russia',
     'sg': 'Singapore',
     'us': 'United States',
+}
+
+CONN_MODES = {
+    'auto': 'Automatic (自动模式)',
+    'local': 'Local (本地模式)',
+    'cloud': 'Cloud (云端模式)',
 }
 
 
@@ -230,6 +238,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
                 vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
                     vol.In(CLOUD_SERVERS),
+                vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, 'auto')):
+                    vol.In(CONN_MODES),
                 vol.Optional('filter_models', default=user_input.get('filter_models', False)): bool,
             }),
             errors=errors,
@@ -246,8 +256,12 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         elif 'prev_input' in self.hass.data[DOMAIN]:
             prev_input = self.hass.data[DOMAIN].pop('prev_input', None) or {}
             cfg = prev_input['xiaomi_cloud'].to_config() or {}
-            cfg.update(user_input or {})
+            cfg.update({
+                CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
+                **(user_input or {}),
+            })
             cfg[CONF_CONFIG_VERSION] = ENTRY_VERSION
+            _LOGGER.debug('Setup xiaomi cloud: %s', {**cfg, CONF_PASSWORD: '*', 'service_token': '*'})
             return self.async_create_entry(
                 title=f"MiCloud: {cfg.get('user_id')}",
                 data=cfg,
@@ -353,6 +367,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
                 vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
                     vol.In(CLOUD_SERVERS),
+                vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, DEFAULT_CONN_MODE)):
+                    vol.In(CONN_MODES),
                 vol.Optional('renew_devices', default=user_input.get('renew_devices', False)): bool,
             }),
             errors=errors,
@@ -370,10 +386,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         elif 'prev_input' in self.hass.data[DOMAIN]:
             prev_input = self.hass.data[DOMAIN].pop('prev_input', None) or {}
             cfg = prev_input['xiaomi_cloud'].to_config() or {}
-            cfg.update(user_input or {})
+            cfg.update({
+                CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
+                **(user_input or {}),
+            })
             self.hass.config_entries.async_update_entry(
                 self.config_entry, data={**self.config_entry.data, **cfg}
             )
+            _LOGGER.debug('Setup xiaomi cloud: %s', {**cfg, CONF_PASSWORD: '*', 'service_token': '*'})
             return self.async_create_entry(title='', data={})
         else:
             errors['base'] = 'unknown'

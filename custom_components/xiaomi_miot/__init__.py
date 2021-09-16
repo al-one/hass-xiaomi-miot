@@ -287,10 +287,13 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             'miot_did': d.get('did') or '',
             'miot_type': urn,
             'miio_info': mif,
-            'miot_cloud': True,
+            CONF_CONN_MODE: entry.get(CONF_CONN_MODE, DEFAULT_CONN_MODE),
+            'miot_cloud': entry.get(CONF_CONN_MODE, DEFAULT_CONN_MODE) == DEFAULT_CONN_MODE,
             'entry_id': entry_id,
             CONF_CONFIG_VERSION: entry.get(CONF_CONFIG_VERSION) or 0,
         }
+        if cfg[CONF_CONN_MODE] == 'auto' and model in MIOT_LOCAL_MODELS:
+            cfg['miot_cloud'] = False
         config['configs'].append(cfg)
         _LOGGER.debug('Xiaomi cloud device: %s', {**cfg, CONF_TOKEN: '****'})
     hass.data[DOMAIN][entry_id] = config
