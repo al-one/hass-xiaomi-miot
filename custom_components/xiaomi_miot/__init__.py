@@ -288,7 +288,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             'miot_type': urn,
             'miio_info': mif,
             CONF_CONN_MODE: entry.get(CONF_CONN_MODE, DEFAULT_CONN_MODE),
-            'miot_cloud': entry.get(CONF_CONN_MODE, DEFAULT_CONN_MODE) == DEFAULT_CONN_MODE,
+            'miot_cloud': entry.get(CONF_CONN_MODE, DEFAULT_CONN_MODE) != 'local',
             'entry_id': entry_id,
             CONF_CONFIG_VERSION: entry.get(CONF_CONFIG_VERSION) or 0,
         }
