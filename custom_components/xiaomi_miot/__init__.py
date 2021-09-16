@@ -1208,12 +1208,18 @@ class MiotEntity(MiioEntity):
             return
         attrs = {}
         for c in keys:
-            mat = re.match(r'^\s*(?:(\w+)\.?)(\w+)(?::(\d+))?\s*$', c)
+            mat = re.match(r'^\s*(?:(\w+)\.?)(\w+)(?::(\d+))?(?::(\w+))?\s*$', c)
             if not mat:
                 continue
-            typ, key, lmt = mat.groups()
+            typ, key, lmt, gby = mat.groups()
             stm = int(time.time()) - 86400 * 32
-            rdt = mic.get_user_device_data(did, key, typ, time_start=stm, limit=int(lmt or 1)) or []
+            kws = {
+                'time_start': stm,
+                'limit': int(lmt or 1),
+            }
+            if gby:
+                kws['group'] = gby
+            rdt = mic.get_user_device_data(did, key, typ, **kws) or []
             tpl = self.custom_config(f'miio_{typ}_{key}_template')
             if tpl:
                 tpl = cv.template(tpl)

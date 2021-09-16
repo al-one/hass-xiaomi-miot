@@ -206,6 +206,7 @@ get_device_data:
             - prop_cal_day
             - prop_cal_week
             - prop_cal_month
+            - store
     key:
       description: Data key.
       example: power

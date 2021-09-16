@@ -178,6 +178,46 @@ DEVICE_CUSTOMIZES = {
     'yeelink.light.nl1': {
         'interval_seconds': 15,
     },
+    'zimi.powerstrip.v2': {
+        'sensor_attributes': 'electric_power,store.powerCost:today,store.powerCost:month',
+        'sensor_miio_commands': {
+            'get_prop': {
+                'params': ['power_consume_rate'],
+                'values': ['electric_power'],
+            },
+        },
+        'miio_cloud_records': 'store.powerCost:31:day',
+        'miio_store_powerCost_template': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
+                                         "{%- set day = now().day %}"
+                                         "{%- set vls = (val | from_json)[0-day:] %}"
+                                         "{%- set dat = namespace(today=0,month=0) %}"
+                                         "{%- for v in vls %}"
+                                         "{%-   set v = (v | string).split(',') %}"
+                                         "{%-   if v[0] | default(0) | int(0) > 86400 %}"
+                                         "{%-     set dat.today = v[1] | default(0) | round(3) %}"
+                                         "{%-     set dat.month = dat.month + dat.today %}"
+                                         "{%-   endif %}"
+                                         "{%- endfor %}"
+                                         "{{ {"
+                                         "'today': dat.today,"
+                                         "'month': dat.month | round(3),"
+                                         "} }}",
+    },
+    'zimi.powerstrip.*:electric_power': {
+        'state_class': 'measurement',
+        'device_class': 'power',
+        'unit_of_measurement': 'W',
+    },
+    'zimi.powerstrip.*:store.powerCost:today': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'zimi.powerstrip.*:store.powerCost:month': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
 
     '*.airer.*': {
         'sensor_properties': 'left_time',
