@@ -361,7 +361,7 @@ class MiotCloud(micloud.MiCloud):
     def sha1_sign(method, url, dat: dict, nonce):
         path = urlparse(url).path
         if path[:4] == '/app/':
-            path = path[-3:]
+            path = path[4:]
         arr = [str(method).upper(), path]
         for k, v in dat.items():
             arr.append(f'{k}={v}')
