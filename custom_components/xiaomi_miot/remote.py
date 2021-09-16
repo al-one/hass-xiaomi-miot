@@ -26,6 +26,10 @@ from . import (
 from .core.miot_spec import (
     MiotSpec,
 )
+from .core.xiaomi_cloud import (
+    MiotCloud,
+    MiCloudException,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -64,6 +68,31 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         self._attr_should_poll = False
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        did = self.miot_did
+        mic = self.miot_cloud
+        irs = []
+        if did and isinstance(mic, MiotCloud):
+            dls = await mic.async_get_devices() or []
+            for d in dls:
+                if did != d.get('parent_id'):
+                    continue
+                ird = d.get('did')
+                rdt = await self.hass.async_add_executor_job(
+                    partial(mic.request_miot_api, 'v2/irdevice/controller/keys', {'did': ird})
+                ) or {}
+                kys = (rdt.get('result') or {}).get('keys', {})
+                if not kys:
+                    self.logger.info('%s: IR device %s(%s) have no keys: %s', self.name, ird, d.get('name'), rdt)
+                irs.append({
+                    'did': ird,
+                    'name': d.get('name'),
+                    'keys': kys,
+                })
+        if irs:
+            self._state_attrs['ir_devices'] = irs
+
     def is_on(self):
         return True
 
@@ -71,14 +100,38 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         """Send commands to a device."""
         repeat = kwargs.get(remote.ATTR_NUM_REPEATS, remote.DEFAULT_NUM_REPEATS)
         delays = kwargs.get(remote.ATTR_DELAY_SECS, remote.DEFAULT_DELAY_SECS)
+        did = kwargs.get(remote.ATTR_DEVICE)
         for _ in range(repeat):
             for cmd in command:
                 try:
-                    ret = self._device.play(cmd)
-                    self.logger.debug('%s: Send IR command %s(%s) result: %s', self.name, cmd, kwargs, ret)
-                except DeviceException as exc:
+                    if f'{cmd}'[:4] == 'key:':
+                        ret = self.send_cloud_command(did, cmd)
+                    else:
+                        ret = self._device.play(cmd)
+                    self.logger.info('%s: Send IR command %s(%s) result: %s', self.name, cmd, kwargs, ret)
+                except (DeviceException, MiCloudException) as exc:
                     self.logger.error('%s: Send IR command %s(%s) failed: %s', self.name, cmd, kwargs, exc)
                 time.sleep(delays)
+
+    def send_cloud_command(self, did, command):
+        key = f'{command}'
+        if key[:4] == 'key:':
+            key = key[4:]
+        try:
+            key = int(key)
+        except (TypeError, ValueError):
+            key = None
+        if not did or not key:
+            self.logger.warning('%s: IR command %s to %s invalid for cloud.', self.name, command, did)
+            return False
+        mic = self.miot_cloud
+        if not mic:
+            return False
+        res = mic.request_miot_api('v2/irdevice/controller/key/click', {
+            'did': did,
+            'key_id': key,
+        }) or {}
+        return res
 
     async def async_send_command(self, command, **kwargs):
         """Send commands to a device."""
