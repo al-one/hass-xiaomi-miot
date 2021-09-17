@@ -46,10 +46,15 @@ class RC4:
         return self
 
 
-def analytics_track_event(event, action, label, value=0, results=None):
+def analytics_track_event(event, action, label, value=0, **kwargs):
     pag = f'https://miot-spec.com/s/{label}'
-    if results:
-        pag = f"{pag}?results={results}"
+    if kwargs:
+        pms = '&'.join([
+            f'{k}={v}'
+            for k, v in kwargs.items()
+            if v not in [None, '']
+        ])
+        pag = f"{pag}?{pms}"
     pms = {
         'id': '1280294351',
         'lg': f'{locale.getdefaultlocale()[0]}'.lower().replace('-', '_'),

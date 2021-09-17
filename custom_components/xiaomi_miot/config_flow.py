@@ -91,7 +91,11 @@ async def check_miio_device(hass, user_input, errors):
                         continue
                     if prop.get('code') == 0:
                         # Collect supported models in LAN
-                        await async_analytics_track_event(hass, 'miot', 'local', model, results=results)
+                        await async_analytics_track_event(
+                            hass, 'miot', 'local', model,
+                            firmware=info.firmware_version,
+                            results=results,
+                        )
                         break
             except DeviceException:
                 pass
