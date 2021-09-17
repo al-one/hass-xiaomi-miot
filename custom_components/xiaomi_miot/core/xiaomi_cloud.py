@@ -68,12 +68,12 @@ class MiotCloud(micloud.MiCloud):
     def get_user_device_data(self, did, key, typ='prop', raw=False, **kwargs):
         now = int(time.time())
         params = {
-            "did": did,
-            "key": key,
-            "type": typ,
-            "time_start": now - 86400 * 7,
-            "time_end": now + 60,
-            "limit": 5,
+            'did': did,
+            'key': key,
+            'type': typ,
+            'time_start': now - 86400 * 7,
+            'time_end': now + 60,
+            'limit': 5,
             **kwargs,
         }
         rdt = self.request_miot_api('user/get_user_device_data', params) or {}
@@ -278,7 +278,7 @@ class MiotCloud(micloud.MiCloud):
 
     def request_rc4_api(self, api, params: dict, method='POST'):
         if not self.service_token or not self.user_id:
-            raise MiCloudException("Cannot execute request. service token or userId missing. Make sure to login.")
+            raise MiCloudException('Cannot execute request. service token or userId missing. Make sure to login.')
         self.session = requests.Session()
         self.session.headers.update({
             'X-XIAOMI-PROTOCAL-FLAG-CLI': 'PROTOCAL-HTTP2',
@@ -310,17 +310,17 @@ class MiotCloud(micloud.MiCloud):
                 pass
             rsp = response.text
             if not rsp or 'error' in rsp or 'invalid' in rsp:
-                _LOGGER.warning("Error while executing request to %s :%s", url, rsp)
+                _LOGGER.warning('Error while executing request to %s :%s', url, rsp)
             elif 'message' not in rsp:
                 try:
                     rsp = MiotCloud.decrypt_data(signed_nonce, rsp)
                 except ValueError:
-                    _LOGGER.warning("Error while decrypting response of request to %s :%s", url, rsp)
+                    _LOGGER.warning('Error while decrypting response of request to %s :%s', url, rsp)
             return rsp
         except requests.exceptions.HTTPError as exc:
-            _LOGGER.warning("Error while executing request to %s :%s", url, exc)
+            _LOGGER.warning('Error while executing request to %s :%s', url, exc)
         except MiCloudException as exc:
-            _LOGGER.warning("Error while decrypting response of request to %s :%s", url, exc)
+            _LOGGER.warning('Error while decrypting response of request to %s :%s', url, exc)
 
     def get_api_by_host(self, host, api=''):
         srv = self.default_server.lower()

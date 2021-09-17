@@ -52,7 +52,7 @@ def analytics_track_event(event, action, label, value=0, results=None):
         pag = f"{pag}?results={results}"
     pms = {
         'id': '1280294351',
-        'lg': f'{locale.getdefaultlocale()[0]}',
+        'lg': f'{locale.getdefaultlocale()[0]}'.lower().replace('-', '_'),
         'ei': '|'.join([event, action, label, f'{value}', '']),
         'p': pag,
         't': 'Home Assistant',
