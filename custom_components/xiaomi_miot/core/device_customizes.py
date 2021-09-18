@@ -90,6 +90,9 @@ DEVICE_CUSTOMIZES = {
     'lumi.ctrl_neutral2.*': {
         'cloud_delay_update': 10,
     },
+    'lumi.motion.bmgl01': {
+        'use_ble_object': True,
+    },
     'lumi.motion.*': {
         'interval_seconds': 15,
         'motion_timeout': 60,
