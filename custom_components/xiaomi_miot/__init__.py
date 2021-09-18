@@ -1568,7 +1568,7 @@ class MiotEntity(MiioEntity):
         result = await self.hass.async_add_executor_job(fun)
         persistent_notification.async_create(
             self.hass,
-            json.dumps(result),
+            f'{result}',
             f'Xiaomi Api: {api}',
             f'{DOMAIN}-debug',
         )
