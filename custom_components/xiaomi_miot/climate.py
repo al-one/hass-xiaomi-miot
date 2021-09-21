@@ -468,6 +468,9 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 val = self.min_temp
             if val > self.max_temp:
                 val = self.max_temp
+            stp = self.target_temperature_step
+            if stp is not None and stp >= 1:
+                val = int(round(val / stp) * stp)
             ret = self.set_property(self._prop_target_temp.full_name, val)
             if ret:
                 self._prev_target_temp = val

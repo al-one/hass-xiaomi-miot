@@ -71,6 +71,9 @@ DEVICE_CUSTOMIZES = {
     'lumi.acpartner.mcn02': {
         'miio_cloud_props': 'load_power',
     },
+    'lumi.acpartner.mcn04': {
+        'chunk_properties': 7,
+    },
     'lumi.acpartner.*': {
         'sensor_attributes': 'electric_power',
         'miio_cloud_props': 'ac_power',
