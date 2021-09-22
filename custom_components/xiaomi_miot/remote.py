@@ -50,8 +50,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
         if spec.name in ['remote_control', 'ir_remote_control']:
-            if 'chuangmi.remote.' in model:
+            if 'chuangmi.remote.' in model or 'chuangmi.ir.' in model:
                 entities.append(MiotRemoteEntity(config, spec))
+        elif model in [
+            'xiaomi.wifispeaker.l05c',
+            'xiaomi.wifispeaker.lx5a',
+            'xiaomi.wifispeaker.lx06',
+        ]:
+            entities.append(MiotRemoteEntity(config, spec))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
