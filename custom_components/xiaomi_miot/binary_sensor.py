@@ -350,8 +350,8 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
             _LOGGER.info('Get miio data for %s failed: %s', self.name, dlg)
         else:
             _LOGGER.warning('Get miio data for %s failed: %s', self.name, dlg)
-            if self._prop_state:
-                adt[self._prop_state.full_name] = self._state
+        if self._prop_state and self._state is not None:
+            adt[self._prop_state.full_name] = self._state
         if adt:
             self.update_attrs(adt)
 
