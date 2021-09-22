@@ -646,8 +646,9 @@ class MiotAction:
 
 
 class MiotResults:
-    def __init__(self, results):
+    def __init__(self, results, mapping=None):
         self._results = results
+        self.mapping = mapping or {}
         self.results = []
         for v in results or []:
             if not isinstance(v, dict):
@@ -660,10 +661,39 @@ class MiotResults:
         return len(self.results) < 1
 
     @property
+    def is_valid(self):
+        return not self.is_empty if self._results else isinstance(self._results, list)
+
+    @property
     def first(self):
         if self.is_empty:
             return None
         return self.results[0]
+
+    def to_attributes(self, attrs=None):
+        rmp = {}
+        for k, v in self.mapping.items():
+            s = v.get('siid')
+            p = v.get('piid')
+            rmp[f'prop.{s}.{p}'] = k
+        if attrs is None:
+            attrs = {}
+        adt = {}
+        for prop in self.results:
+            s = prop.siid
+            p = prop.piid
+            k = rmp.get(f'prop.{s}.{p}', prop.did)
+            if k is None:
+                continue
+            e = prop.code
+            ek = f'{k}.error'
+            if e == 0:
+                adt[k] = prop.value
+                if ek in attrs:
+                    attrs.pop(ek, None)
+            else:
+                adt[ek] = prop.spec_error
+        return adt
 
     def __str__(self):
         return f'{self._results}'
@@ -684,6 +714,10 @@ class MiotResult:
     @property
     def is_success(self):
         return self.code == 0
+
+    @property
+    def spec_error(self):
+        return MiotSpec.spec_error(self.code)
 
     def __str__(self):
         return f'{self.result}'

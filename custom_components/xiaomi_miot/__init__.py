@@ -993,10 +993,8 @@ class MiotEntity(MiioEntity):
         if self._vars.get('delay_update'):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
-        self._available = True
         updater = 'none'
         results = []
-        rmp = {}
         mmp = self.miot_mapping
         max_properties = 10
         try:
@@ -1015,10 +1013,6 @@ class MiotEntity(MiioEntity):
                         return
             elif self.miot_device:
                 updater = 'lan'
-                for k, v in mmp.items():
-                    s = v.get('siid')
-                    p = v.get('piid')
-                    rmp[f'{s}-{p}'] = k
                 max_properties = self.custom_config_integer('chunk_properties') or max_properties
                 results = await self.hass.async_add_executor_job(
                     partial(
@@ -1036,19 +1030,15 @@ class MiotEntity(MiioEntity):
                 '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s',
                 self.name, exc, mmp, max_properties,
             )
-            return
         except MiCloudException as exc:
             self._available = False
             self.logger.error(
                 '%s: Got MiCloudException while fetching the state: %s, mapping: %s',
                 self.name, exc, mmp,
             )
-            return
-        if not isinstance(results, list):
+        results = MiotResults(results or [], mmp)
+        if not results.is_valid:
             self._available = False
-        elif results and not isinstance(results[0], dict):
-            self._available = False
-        if not self._available:
             if self._vars.get('track_miot_error') and updater == 'lan':
                 await async_analytics_track_event(
                     self.hass, 'miot', 'error', self._model,
@@ -1056,31 +1046,16 @@ class MiotEntity(MiioEntity):
                     results=results,
                 )
                 self._vars.pop('track_miot_error', None)
-            self.logger.warning(
-                '%s: Got invalid miot result while fetching the state: %s, mapping: %s',
-                self.name, results, mmp,
-            )
+            if results.is_empty:
+                self.logger.warning(
+                    '%s: Got invalid miot result while fetching the state: %s, mapping: %s',
+                    self.name, results, mmp,
+                )
             return False
-        attrs = {}
-        for prop in results or []:
-            if not isinstance(prop, dict):
-                continue
-            s = prop.get('siid')
-            p = prop.get('piid')
-            k = rmp.get(f'{s}-{p}', prop.get('did'))
-            if k is None:
-                continue
-            e = prop.get('code')
-            ek = f'{k}.error'
-            if e == 0:
-                attrs[k] = prop.get('value')
-                if ek in self._state_attrs:
-                    self._state_attrs.pop(ek, None)
-            else:
-                attrs[ek] = MiotSpec.spec_error(e)
-        self._available = True
-        self._state = True if attrs.get('power') else False
+        attrs = results.to_attributes(self._state_attrs)
         attrs['state_updater'] = updater
+        self._available = True
+        self._state = True if self._state_attrs.get('power') else False
 
         if self._miot_service:
             for d in ['sensor', 'binary_sensor', 'switch', 'number', 'select', 'fan', 'cover']:
