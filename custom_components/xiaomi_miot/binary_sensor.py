@@ -192,11 +192,15 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
             ise = 'event.' in k
             evt = json.loads(v) if ise else {'value': [v]}
             tim = float(evt.get('timestamp') or 0)
-            val = None
+            val = vlk = None
             if vls := evt.get('value'):
                 val = vls[0]
             if val:
-                val = int.from_bytes(bytes.fromhex(vls[0] or ''), 'little')
+                try:
+                    val = int.from_bytes(bytes.fromhex(val), 'little')
+                except (TypeError, ValueError):
+                    val = None
+                    self.logger.warning('%s: BLE object data invalid: %s (%s)', self.name, k, vls)
             if ise and not tim:
                 continue
 
@@ -209,29 +213,32 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
                 dif = time.time() - adt['trigger_time']
                 sta = dif <= (self.custom_config_integer('motion_timeout') or 60)
                 if prop := self._miot_service.get_property('illumination'):
-                    adt[prop.full_name] = val
+                    vlk = prop.full_name
                 else:
-                    adt['illumination'] = val
+                    vlk = 'illumination'
 
             # https://iot.mi.com/new/doc/embedded-development/ble/object-definition#%E5%85%89%E7%85%A7%E5%BA%A6%E5%B1%9E%E6%80%A7
             elif k == 'prop.4103':
-                adt['illumination'] = val
+                vlk = 'illumination'
 
             # https://iot.mi.com/new/doc/embedded-development/ble/object-definition#%E6%97%A0%E4%BA%BA%E7%A7%BB%E5%8A%A8%E5%B1%9E%E6%80%A7
             elif k == 'prop.4119':
                 if prop := self._miot_service.get_property('no_motion_duration'):
-                    adt[prop.full_name] = val
+                    vlk = prop.full_name
                 else:
-                    adt['no_motion_duration'] = val
+                    vlk = 'no_motion_duration'
 
             # https://iot.mi.com/new/doc/embedded-development/ble/object-definition#%E5%85%89%E7%85%A7%E5%BC%BA%E5%BC%B1%E5%B1%9E%E6%80%A7
             elif k == 'prop.4120':
-                adt['illumination_level'] = 'strong' if val else 'weak'
+                vlk = 'illumination_level'
+                val = 'strong' if val else 'weak'
 
             # https://iot.mi.com/new/doc/embedded-development/ble/object-definition#%E9%97%A8%E7%A3%81%E5%B1%9E%E6%80%A7
             elif k == 'prop.4121':
                 sta = val != 2
 
+            if vlk is not None and val is not None:
+                adt[vlk] = val
         if sta is not None:
             self._state = sta
         if adt:
