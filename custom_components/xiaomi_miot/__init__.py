@@ -33,6 +33,7 @@ from miio.device import DeviceInfo as MiioInfoBase
 from miio.miot_device import MiotDevice as MiotDeviceBase
 
 from .core.const import *
+from .core.utils import async_analytics_track_event
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -846,6 +847,8 @@ class MiotEntity(MiioEntity):
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self._state_attrs['miot_type'] = self._miot_service.spec.type
             self.entity_id = self._miot_service.generate_entity_id(self)
+        if self._model in MIOT_LOCAL_MODELS:
+            self._vars['track_miot_error'] = True
         self._success_code = 0
 
     async def async_added_to_hass(self):
@@ -990,6 +993,7 @@ class MiotEntity(MiioEntity):
         if self._vars.get('delay_update'):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
+        self._available = True
         updater = 'none'
         results = []
         rmp = {}
@@ -1041,10 +1045,22 @@ class MiotEntity(MiioEntity):
             )
             return
         if not isinstance(results, list):
+            self._available = False
+        elif results and not isinstance(results[0], dict):
+            self._available = False
+        if not self._available:
+            if self._vars.get('track_miot_error') and updater == 'lan':
+                await async_analytics_track_event(
+                    self.hass, 'miot', 'error', self._model,
+                    firmware=self.device_info.get('sw_version'),
+                    results=results,
+                )
+                self._vars.pop('track_miot_error', None)
             self.logger.warning(
                 '%s: Got invalid miot result while fetching the state: %s, mapping: %s',
                 self.name, results, mmp,
             )
+            return False
         attrs = {}
         for prop in results or []:
             if not isinstance(prop, dict):
