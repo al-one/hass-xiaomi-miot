@@ -10,7 +10,7 @@
 
 [MIoT-Spec](https://iot.mi.com/new/doc/design/spec/overall) 是小米IoT平台根据硬件产品的联网方式、产品功能的特点、用户使用场景的特征和用户对硬件产品使用体验的要求，设计的描述硬件产品功能定义的标准规范。
 
-本插件利用了MIoT-Spec的规范，可将小米设备自动接入[HomeAssistant](https://www.home-assistant.io)，目前已支持大部分小米MIoT设备。且该插件支持HA后台界面集成，无需配置yaml即可轻松将小米设备接入HA。
+本插件利用了**miot**协议的规范，可将小米设备自动接入[HomeAssistant](https://www.home-assistant.io)，目前已支持大部分小米米家智能设备。且该插件支持HA后台界面集成，无需配置yaml即可轻松将小米设备接入HA。
 
 
 ## 安装
@@ -36,9 +36,9 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HU
 
 ### 账号集成 (Add devices using Mi Account):
 自v0.4.4版本开始，插件新增支持账号集成时选择连接设备的模式：
-- **自动模式**：插件定期更新支持[本地miot协议的设备](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/miot_local_devices.py)，并自动将用户筛选的设备中符合条件的型号使用本地连接（推荐）
-- **本地模式**：集成配置所筛选的所有设备都将使用本地连接，如勾选了不支持本地miot协议的设备将不可用
-- **云端模式**：集成配置所筛选的所有设备都将使用云端连接，建议旧版miio、蓝牙、ZigBee设备使用
+- **自动模式**：插件定期更新[支持本地miot协议的设备](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/miot_local_devices.py)，并自动将用户筛选的设备中符合条件的型号使用本地连接（推荐）
+- **本地模式**：集成配置所筛选的设备都将使用本地连接，如勾选了不支持本地miot协议的设备将不可用
+- **云端模式**：集成配置所筛选的设备都将使用云端连接，建议旧版miio、蓝牙、ZigBee设备使用
 
 ### 本地集成 (Add device using host/token):
 通过host/token接入设备，适用于在局域网环境下支持miot协议的设备
