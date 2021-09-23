@@ -34,13 +34,13 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HU
 
 或者点击: [![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
-### 账号集成 (Add devices using Mi Account)
+### 账号集成 (Add devices using Mi Account):
 自v0.4.4版本开始，插件新增支持账号集成时选择连接设备的模式：
-**自动模式**：插件定期更新支持[本地miot协议的设备](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/miot_local_devices.py)，并自动将用户筛选的设备中符合条件的型号使用本地连接（推荐）
-**本地模式**：集成配置所筛选的所有设备都将使用本地连接，如勾选了不支持本地miot协议的设备将不可用
-**云端模式**：集成配置所筛选的所有设备都将使用云端连接，建议旧版miio、蓝牙、ZigBee设备使用
+- **自动模式**：插件定期更新支持[本地miot协议的设备](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/miot_local_devices.py)，并自动将用户筛选的设备中符合条件的型号使用本地连接（推荐）
+- **本地模式**：集成配置所筛选的所有设备都将使用本地连接，如勾选了不支持本地miot协议的设备将不可用
+- **云端模式**：集成配置所筛选的所有设备都将使用云端连接，建议旧版miio、蓝牙、ZigBee设备使用
 
-### 本地集成 (Add device using host/token)
+### 本地集成 (Add device using host/token):
 通过host/token接入设备，适用于在局域网环境下支持miot协议的设备
 
 ### 配置云端模式:

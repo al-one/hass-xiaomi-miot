@@ -31,13 +31,13 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | ba
 
 Or click: [![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
-### Add devices using Mi Account
+### Add devices using Mi Account:
 Starting from the v0.4.4 version, the component has added support for selecting the connection device mode when account integration:
-**Automatic**: The component will regularly update [the devices that support miot protocol in LAN](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/miot_local_devices.py), and automatically use the local connection for the supported devices (recommended)
-**Local**: All devices filtered by the integrated configuration will use local connection. If you check the devices that do not support miot in LAN, they will be unavailable
-**Cloud**: All devices filtered by the integrated configuration will use cloud connection. It is recommended that miio, BLE, ZigBee devices use this mode
+- **Automatic**: The component will regularly update [the devices that support miot protocol in LAN](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/miot_local_devices.py), and automatically use the local connection for the supported devices (recommended)
+- **Local**: All devices filtered by the integrated configuration will use local connection. If you check the devices that do not support miot in LAN, they will be unavailable
+- **Cloud**: All devices filtered by the integrated configuration will use cloud connection. It is recommended that miio, BLE, ZigBee devices use this mode
 
-### Add device using host/token
+### Add device using host/token:
 Suitable for devices supporting miot-spec in LAN
 
 ### Config Xiaomi Cloud:
