@@ -839,7 +839,7 @@ class MiotEntity(MiioEntity):
             name = f"{name} {self._miot_service.description}"
             if not self._miot_mapping:
                 dic = miot_service.mapping() or {}
-                self._miot_mapping = miot_service.spec.services_mapping() or {}
+                self._miot_mapping = miot_service.spec.services_mapping(excludes=[self._miot_service.name]) or {}
                 self._miot_mapping = {**dic, **self._miot_mapping, **dic}
         super().__init__(name, device, **kwargs)
         self.logger.info('%s: Initializing miot device with mapping: %s', name, self._miot_mapping)

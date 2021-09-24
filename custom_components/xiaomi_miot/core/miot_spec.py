@@ -338,6 +338,8 @@ class MiotProperty:
                 self.full_name = f'{service.unique_name}.{self.name}'
             if self.full_name in service.spec.services_properties:
                 self.full_name = f'{service.unique_name}.{self.desc_name}'
+            if self.full_name in service.spec.services_properties:
+                self.full_name = self.unique_name
             if not (self.readable or self.writeable):
                 self.full_name = self.name
             elif len(self.full_name) >= 32:
