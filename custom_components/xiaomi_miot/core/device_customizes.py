@@ -184,6 +184,12 @@ DEVICE_CUSTOMIZES = {
     'yeelink.light.nl1': {
         'interval_seconds': 15,
     },
+    'zimi.plug.*:electric_power': {
+        'value_ratio': 0.01,
+        'state_class': 'measurement',
+        'device_class': 'power',
+        'unit_of_measurement': 'W',
+    },
     'zimi.powerstrip.v2': {
         'sensor_attributes': 'electric_power,store.powerCost:today,store.powerCost:month',
         'sensor_miio_commands': {
