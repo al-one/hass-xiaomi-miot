@@ -149,6 +149,10 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 class BleBinarySensorEntity(MiotBinarySensorEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(config, miot_service)
+        self._prop_illumination = miot_service.get_property('illumination')
+        if not self._prop_illumination:
+            if srv := miot_service.spec.get_service('illumination_sensor'):
+                self._prop_illumination = srv.get_property('illumination')
         self._state_attrs.update({
             'entity_class': self.__class__.__name__,
         })
@@ -212,14 +216,15 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
                 })
                 dif = time.time() - adt['trigger_time']
                 sta = dif <= (self.custom_config_integer('motion_timeout') or 60)
-                if prop := self._miot_service.get_property('illumination'):
-                    vlk = prop.full_name
-                else:
-                    vlk = 'illumination'
+                vlk = 'illumination'
+                if self._prop_illumination and self._prop_illumination.value_range:
+                    vlk = self._prop_illumination.full_name
 
             # https://iot.mi.com/new/doc/embedded-development/ble/object-definition#%E5%85%89%E7%85%A7%E5%BA%A6%E5%B1%9E%E6%80%A7
             elif k == 'prop.4103':
                 vlk = 'illumination'
+                if self._prop_illumination and self._prop_illumination.value_range:
+                    vlk = self._prop_illumination.full_name
 
             # https://iot.mi.com/new/doc/embedded-development/ble/object-definition#%E6%97%A0%E4%BA%BA%E7%A7%BB%E5%8A%A8%E5%B1%9E%E6%80%A7
             elif k == 'prop.4119':
@@ -232,6 +237,10 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
             elif k == 'prop.4120':
                 vlk = 'illumination_level'
                 val = 'strong' if val else 'weak'
+                if self._prop_illumination and self._prop_illumination.value_list:
+                    vid = self._prop_illumination.list_value(val)
+                    if vid is not None:
+                        adt[self._prop_illumination.full_name] = vid
 
             # https://iot.mi.com/new/doc/embedded-development/ble/object-definition#%E9%97%A8%E7%A3%81%E5%B1%9E%E6%80%A7
             elif k == 'prop.4121':

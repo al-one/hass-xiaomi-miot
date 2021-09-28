@@ -4,7 +4,7 @@ import platform
 import time
 import re
 
-from .const import DOMAIN
+from .const import DOMAIN, TRANSLATION_LANGUAGES
 from homeassistant.const import *
 from homeassistant.helpers.storage import Store
 
@@ -50,13 +50,77 @@ SPEC_ERRORS = {
 }
 
 
-# https://iot.mi.com/new/doc/design/spec/xiaoai
-class MiotSpec:
+class MiotSpecInstance:
     def __init__(self, dat: dict):
         self.raw = dat
+        self.iid = int(dat.get('iid') or 0)
         self.type = str(dat.get('type') or '')
         self.name = self.name_by_type(self.type)
         self.description = dat.get('description') or ''
+
+    @staticmethod
+    def format_name(nam):
+        nam = f'{nam}'.strip()
+        nam = re.sub(r'\W+', '_', nam).lower()
+        return nam
+
+    @staticmethod
+    def format_desc_name(des, nam):
+        return MiotSpecInstance.format_name(nam if re.match(r'[^x00-xff]', des) else des)
+
+    @staticmethod
+    def name_by_type(typ):
+        arr = f'{typ}:::'.split(':')
+        nam = arr[3] or ''
+        return MiotSpecInstance.format_name(nam)
+
+    @property
+    def translation_keys(self):
+        return ['_globals']
+
+    @property
+    def translations(self):
+        dic = TRANSLATION_LANGUAGES
+        kls = self.translation_keys
+        for k in kls:
+            d = dic.get(k)
+            if not isinstance(d, dict):
+                continue
+            dic = {**dic, **d}
+        return dic
+
+    def get_translation(self, des):
+        dls = [
+            des.lower(),
+            des,
+        ]
+        tls = self.translations
+        for d in dls:
+            if d not in tls:
+                continue
+            ret = tls[d]
+            if isinstance(ret, dict):
+                if d not in ret:
+                    continue
+                ret = ret[d]
+            return ret
+        return des
+
+    @staticmethod
+    def spec_error(errno):
+        err = f'{errno}'
+        cod = err
+        if err[:3] == '-70':
+            cod = err[-3:]
+        if cod in SPEC_ERRORS:
+            err += f' {SPEC_ERRORS.get(cod)}'
+        return err
+
+
+# https://iot.mi.com/new/doc/design/spec/xiaoai
+class MiotSpec(MiotSpecInstance):
+    def __init__(self, dat: dict):
+        super().__init__(dat)
         self.services = {}
         self.services_count = {}
         self.services_properties = {}
@@ -107,22 +171,6 @@ class MiotSpec:
             eid = f'{eid}_{suffix}'
         eid = re.sub(r'\W+', '_', eid).lower()
         return f'{DOMAIN}.{eid}'
-
-    @staticmethod
-    def format_name(nam):
-        nam = f'{nam}'.strip()
-        nam = re.sub(r'\W+', '_', nam).lower()
-        return nam
-
-    @staticmethod
-    def format_desc_name(des, nam):
-        return MiotSpec.format_name(nam if re.match(r'[^x00-xff]', des) else des)
-
-    @staticmethod
-    def name_by_type(typ):
-        arr = f'{typ}:::'.split(':')
-        nam = arr[3] or ''
-        return MiotSpec.format_name(nam)
 
     @staticmethod
     async def async_from_model(hass, model, use_remote=False):
@@ -196,29 +244,15 @@ class MiotSpec:
                 dat = {}
         return MiotSpec(dat)
 
-    @staticmethod
-    def spec_error(errno):
-        err = f'{errno}'
-        cod = err
-        if err[:3] == '-70':
-            cod = err[-3:]
-        if cod in SPEC_ERRORS:
-            err += f' {SPEC_ERRORS.get(cod)}'
-        return err
-
 
 # https://miot-spec.org/miot-spec-v2/spec/services
-class MiotService:
+class MiotService(MiotSpecInstance):
     def __init__(self, dat: dict, spec: MiotSpec):
         self.spec = spec
-        self.raw = dat
-        self.iid = int(dat.get('iid') or 0)
-        self.type = str(dat.get('type') or '')
-        self.name = MiotSpec.name_by_type(self.type)
+        super().__init__(dat)
         self.unique_name = f'{self.name}-{self.iid}'
-        self.description = dat.get('description') or self.name
-        self.desc_name = MiotSpec.format_desc_name(self.description, self.name)
-        self.translations = {}
+        self.desc_name = self.format_desc_name(self.description, self.name)
+        self.friendly_desc = self.get_translation(self.description)
         spec.services_count.setdefault(self.name, 0)
         spec.services_count[self.name] += 1
         self.properties = {}
@@ -292,6 +326,10 @@ class MiotService:
         return self.spec.generate_entity_id(entity, self.description)
 
     @property
+    def translation_keys(self):
+        return ['_globals', self.name]
+
+    @property
     def entity_icon(self):
         icon = None
         name = self.name
@@ -303,26 +341,16 @@ class MiotService:
             icon = 'mdi:fountain'
         return icon
 
-    def set_translations(self, dic: dict, merge=False):
-        if merge:
-            self.translations.update(dic)
-        else:
-            self.translations = dic
-        return self
-
 
 # https://miot-spec.org/miot-spec-v2/spec/properties
-class MiotProperty:
+class MiotProperty(MiotSpecInstance):
     def __init__(self, dat: dict, service: MiotService):
         self.service = service
-        self.raw = dat
-        self.iid = int(dat.get('iid') or 0)
         self.siid = service.iid
-        self.type = str(dat.get('type') or '')
-        self.name = MiotSpec.name_by_type(self.type)
+        super().__init__(dat)
         self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
-        self.description = dat.get('description') or self.name
-        self.desc_name = MiotSpec.format_desc_name(self.description, self.name)
+        self.desc_name = self.format_desc_name(self.description, self.name)
+        self.friendly_desc = self.short_desc
         self.format = dat.get('format') or ''
         self.access = dat.get('access') or []
         self.unit = dat.get('unit') or ''
@@ -352,7 +380,18 @@ class MiotProperty:
 
     @property
     def short_desc(self):
-        arr = f'{self.service.description.strip()} {self.description.strip()}'.split(' ')
+        sde = self.service.description.strip()
+        pde = self.description.strip()
+        des = pde
+        if sde != pde:
+            des = f'{sde} {pde}'.strip()
+        ret = self.get_translation(des)
+        if ret != des:
+            return ret
+        ret = self.get_translation(pde)
+        if ret != pde:
+            return f'{sde} {ret}'.strip()
+        arr = des.split(' ')
         return ' '.join(dict(zip(arr, arr)).keys())
 
     @property
@@ -363,37 +402,19 @@ class MiotProperty:
     def writeable(self):
         return 'write' in self.access
 
-    @property
-    def translations(self):
-        dic = self.service.translations
-        kls = [
-            self.service.name,
-            self.name,
-            f'{self.service.name}.{self.name}',
-        ]
-        for k in kls:
-            d = dic.get(k)
-            if not isinstance(d, dict):
-                continue
-            dic = {**dic, **d}
-        return dic
-
     def generate_entity_id(self, entity):
         eid = self.service.spec.generate_entity_id(entity, self.description)
         eid = re.sub(r'_(\d(?:_|$))', r'\1', eid)  # issue#153
         return eid
 
-    def get_translation(self, des):
-        dls = [
-            des,
-            des.lower(),
+    @property
+    def translation_keys(self):
+        return [
+            '_globals',
+            self.service.name,
+            self.name,
+            f'{self.service.name}.{self.name}',
         ]
-        tls = self.translations
-        for d in dls:
-            if d not in tls:
-                continue
-            return tls[d]
-        return des
 
     def from_dict(self, dat: dict, default=None):
         return dat.get(self.full_name, default)
@@ -469,7 +490,7 @@ class MiotProperty:
             dls = [
                 des,
                 des.lower(),
-                MiotSpec.format_name(des),
+                self.format_name(des),
                 self.get_translation(des),
             ]
             for d in dls:
@@ -601,16 +622,12 @@ class MiotProperty:
 
 
 # https://miot-spec.org/miot-spec-v2/spec/actions
-class MiotAction:
+class MiotAction(MiotSpecInstance):
     def __init__(self, dat: dict, service: MiotService):
         self.service = service
-        self.raw = dat
-        self.iid = int(dat.get('iid') or 0)
         self.siid = service.iid
-        self.type = str(dat.get('type') or '')
-        self.name = MiotSpec.name_by_type(self.type)
+        super().__init__(dat)
         self.full_name = f'{service.name}.{self.name}'
-        self.description = dat.get('description') or self.name
         self.ins = dat.get('in') or []
         self.out = dat.get('out') or []
 

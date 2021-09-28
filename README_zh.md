@@ -69,11 +69,11 @@ xiaomi_miot:
     idle: '空闲'
     busy: '工作中'
     # 指定风扇模式的词典
-    'fan.mode':
-      'Straight Wind': '直吹模式'
-      'Natural Wind': '自然风'
+    fan.mode:
+      'straight wind': '直吹模式'
+      'natural wind': '自然风'
     # 指定洗衣机烘干模式的词典
-    'washer.drying_level':
+    washer.drying_level:
       moist: '微湿'
       extra: '特干'
 ```

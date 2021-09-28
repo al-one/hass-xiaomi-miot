@@ -186,6 +186,11 @@ async def async_setup(hass, hass_config: dict):
     await async_setup_component_services(hass)
     bind_services_to_entries(hass, SERVICE_TO_METHOD_BASE)
 
+    if lang := config.get('language'):
+        dic = TRANSLATION_LANGUAGES.get(lang)
+        if isinstance(dic, dict):
+            TRANSLATION_LANGUAGES.update(dic)
+
     if config.get(CONF_USERNAME) and config.get(CONF_PASSWORD):
         try:
             mic = MiotCloud(
@@ -836,7 +841,7 @@ class MiotEntity(MiioEntity):
         self._miot_service = miot_service if isinstance(miot_service, MiotService) else None
         if self._miot_service:
             kwargs['miot_service'] = self._miot_service
-            name = f"{name} {self._miot_service.description}"
+            name = f"{name} {self._miot_service.friendly_desc}"
             if not self._miot_mapping:
                 dic = miot_service.mapping() or {}
                 self._miot_mapping = miot_service.spec.services_mapping(excludes=[self._miot_service.name]) or {}
@@ -855,11 +860,6 @@ class MiotEntity(MiioEntity):
         await super().async_added_to_hass()
         if not self._miot_service:
             return
-        dic = self.global_config('translations') or {}
-        lan = self.global_config('language')
-        if lan and isinstance(TRANSLATION_LANGUAGES.get(lan), dict):
-            dic = {**TRANSLATION_LANGUAGES[lan], **dic}
-        self._miot_service.set_translations(dic)
         self._vars['exclude_services'] = self.custom_config_list('exclude_miot_services') or []
 
     @property
@@ -1644,7 +1644,7 @@ class BaseSubEntity(BaseEntity):
 
     def format_name_by_property(self, prop: MiotProperty):
         dnm = self._parent.device_name
-        return f'{dnm} {prop.short_desc}'.strip()
+        return f'{dnm} {prop.friendly_desc}'.strip()
 
     @property
     def state(self):

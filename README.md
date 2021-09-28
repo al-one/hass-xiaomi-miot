@@ -66,11 +66,11 @@ xiaomi_miot:
     idle: '空闲'
     busy: '工作中'
     # Dictionary for specifying fan modes
-    'fan.mode':
-      'Straight Wind': '直吹模式'
-      'Natural Wind': '自然风'
+    fan.mode:
+      'straight wind': '直吹模式'
+      'natural wind': '自然风'
     # Dictionary for specifying the drying modes of the washer
-    'washer.drying_level':
+    washer.drying_level:
       moist: '微湿'
       extra: '特干'
 ```

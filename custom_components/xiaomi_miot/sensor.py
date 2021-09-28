@@ -136,7 +136,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             self._attr_device_class = self._prop_state.device_class
             self._attr_unit_of_measurement = self._prop_state.unit_of_measurement
 
-        self._name = f'{self._name} {self._prop_state.description}'
+        self._name = f'{self.device_name} {self._prop_state.friendly_desc}'
         self._attr_state_class = None
         self._state_attrs.update({
             'entity_class': self.__class__.__name__,
