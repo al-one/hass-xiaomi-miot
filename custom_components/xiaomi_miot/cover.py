@@ -26,6 +26,7 @@ from . import (
     MiioEntity,
     MiotEntity,
     MiioDevice,
+    MiotPropertySubEntity,
     DeviceException,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -35,7 +36,6 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
 )
-from .sensor import MiotSensorSubEntity
 from .light import LightSubEntity
 from .fan import (
     FanSubEntity,
@@ -246,7 +246,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         return self.set_property(self._prop_motor_control.full_name, val)
 
 
-class MiotCoverSubEntity(MiotSensorSubEntity, CoverEntity):
+class MiotCoverSubEntity(MiotPropertySubEntity, CoverEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property, option)
         self._prop_status = self._option.get('status_property')
@@ -556,8 +556,8 @@ class MrBondAirerProLightEntity(LightSubEntity):
     def __init__(self, parent: MrBondAirerProEntity, attr='led', option=None):
         super().__init__(parent, attr, option)
 
-    def update(self):
-        super().update()
+    def update(self, data=None):
+        super().update(data)
         if self._available:
             attrs = self._state_attrs
             self._state = int(attrs.get(self._attr, 0)) >= 1

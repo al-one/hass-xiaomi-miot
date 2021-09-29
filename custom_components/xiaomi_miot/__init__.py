@@ -1785,13 +1785,45 @@ class BaseSubEntity(BaseEntity):
         return ret
 
 
+class MiotPropertySubEntity(BaseSubEntity):
+    def __init__(self, parent, miot_property: MiotProperty, option=None):
+        self._miot_service = miot_property.service
+        self._miot_property = miot_property
+        super().__init__(parent, miot_property.full_name, option)
+        self._name = self.format_name_by_property(miot_property)
+        if not self._option.get('unique_id'):
+            self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
+        self.entity_id = miot_property.generate_entity_id(self)
+
+        if 'icon' not in self._option:
+            self._option['icon'] = miot_property.entity_icon
+        if 'unit' not in self._option:
+            self._option['unit'] = miot_property.unit_of_measurement
+        if 'device_class' not in self._option:
+            self._option['device_class'] = miot_property.device_class
+        self._extra_attrs.update({
+            'service_description': miot_property.service.description,
+            'property_description': miot_property.description,
+        })
+
+    def set_parent_property(self, val, prop=None):
+        if prop is None:
+            prop = self._miot_property
+        ret = self.call_parent('set_miot_property', prop.service.iid, prop.iid, val)
+        if ret and prop.readable:
+            self.update_attrs({
+                prop.full_name: val,
+            })
+        return ret
+
+
 class ToggleSubEntity(BaseSubEntity, ToggleEntity):
     def __init__(self, parent, attr='power', option=None):
         self._prop_power = None
         super().__init__(parent, attr, option)
 
     def update(self, data=None):
-        super().update()
+        super().update(data)
         if self._available:
             attrs = self._state_attrs
             self._state = cv.boolean(attrs.get(self._attr) or False)

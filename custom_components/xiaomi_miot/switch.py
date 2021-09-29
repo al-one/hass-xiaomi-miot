@@ -17,6 +17,7 @@ from . import (
     MiioDevice,
     MiioEntity,
     MiotToggleEntity,
+    MiotPropertySubEntity,
     ToggleSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -27,7 +28,6 @@ from .core.miot_spec import (
     MiotProperty,
     MiotAction,
 )
-from .sensor import MiotSensorSubEntity
 from .fan import MiotWasherSubEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -139,11 +139,11 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
 
 
 class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
-    def update(self):
-        super().update()
+    def update(self, data=None):
+        super().update(data)
 
 
-class MiotSwitchSubEntity(MiotSensorSubEntity, SwitchSubEntity):
+class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property, option)
         self._name = self.format_name_by_property(miot_property)
@@ -170,12 +170,11 @@ class MiotSwitchSubEntity(MiotSensorSubEntity, SwitchSubEntity):
         return self.set_parent_property(False)
 
 
-class MiotSwitchActionSubEntity(SwitchSubEntity):
+class MiotSwitchActionSubEntity(SwitchSubEntity, MiotPropertySubEntity):
     def __init__(self, parent, miot_property: MiotProperty, miot_action: MiotAction, option=None):
         super().__init__(parent, miot_action.full_name, option)
-        self._miot_property = miot_property
+        MiotPropertySubEntity.__init__(self, parent, miot_property, option)
         self._miot_action = miot_action
-        self.entity_id = miot_property.generate_entity_id(self)
         self._state = False
         if miot_action.name in ['pet_food_out']:
             self._option['icon'] = 'mdi:shaker'
@@ -183,7 +182,7 @@ class MiotSwitchActionSubEntity(SwitchSubEntity):
             'miot_action': miot_action.full_name,
         }, update_parent=False)
 
-    def update(self):
+    def update(self, data=None):
         self._available = True
         time.sleep(0.5)
         self._state = False
@@ -221,8 +220,8 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
         self._values_on = miot_property.list_search('Busy', 'Delay')
         self._values_off = miot_property.list_search('Off', 'Idle', 'Pause', 'Paused', 'Completed', 'Fault')
 
-    def update(self):
-        super().update()
+    def update(self, data=None):
+        super().update(data)
         if self._available:
             self._miot_property.description_to_dict(self._state_attrs)
             sta = self._state_attrs.get(self._attr)

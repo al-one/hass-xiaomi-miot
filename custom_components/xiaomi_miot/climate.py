@@ -624,8 +624,8 @@ class ClimateModeSubEntity(MiotModesSubEntity):
         if self.speed_list:
             self._supported_features |= SUPPORT_PRESET_MODE_FAN or SUPPORT_SET_SPEED_FAN
 
-    def update(self):
-        super().update()
+    def update(self, data=None):
+        super().update(data)
         if self._available:
             attrs = self._state_attrs
             if self._value_on is not None:

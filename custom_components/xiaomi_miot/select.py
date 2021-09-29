@@ -13,6 +13,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
+    MiotPropertySubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -22,7 +23,6 @@ from .core.miot_spec import (
     MiotProperty,
     MiotAction,
 )
-from .sensor import MiotSensorSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -62,13 +62,13 @@ class MiotSelectEntity(MiotEntity, SelectEntity):
         raise NotImplementedError()
 
 
-class MiotSelectSubEntity(MiotSensorSubEntity, SelectEntity):
+class MiotSelectSubEntity(MiotPropertySubEntity, SelectEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property, option)
         self._attr_options = miot_property.list_descriptions()
 
-    def update(self):
-        super().update()
+    def update(self, data=None):
+        super().update(data)
         if not self._available:
             return
         val = self._miot_property.from_dict(self._state_attrs)
@@ -89,6 +89,7 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
     def __init__(self, parent, miot_action: MiotAction, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property, option)
         self._miot_action = miot_action
+        self._attr_current_option = None
         self._attr_options = miot_property.list_descriptions()
         self._extra_actions = self._option.get('extra_actions') or {}
         if self._extra_actions:
@@ -98,7 +99,7 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
             'miot_action': miot_action.full_name,
         }, update_parent=False)
 
-    def update(self):
+    def update(self, data=None):
         self._available = True
         time.sleep(0.2)
         self._attr_current_option = None

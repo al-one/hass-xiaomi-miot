@@ -12,6 +12,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
+    MiotPropertySubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -21,7 +22,6 @@ from .core.miot_spec import (
     MiotProperty,
     MiotAction,
 )
-from .sensor import MiotSensorSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -66,7 +66,7 @@ class MiotNumberEntity(MiotEntity, NumberEntity):
         raise NotImplementedError()
 
 
-class MiotNumberSubEntity(MiotSensorSubEntity, NumberEntity):
+class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property, option)
 
@@ -109,7 +109,7 @@ class MiotNumberActionSubEntity(MiotNumberSubEntity):
             'miot_action': miot_action.full_name,
         }, update_parent=False)
 
-    def update(self):
+    def update(self, data=None):
         self._available = True
         self._value = 0
 

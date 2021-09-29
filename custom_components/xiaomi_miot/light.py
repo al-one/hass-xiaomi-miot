@@ -229,8 +229,8 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
         self._prop_power = prop_power
         self._state_attrs.update({'entity_class': self.__class__.__name__})
 
-    def update(self):
-        super().update()
+    def update(self, data=None):
+        super().update(data)
         if not self._available:
             return
 
@@ -242,8 +242,8 @@ class LightSubEntity(ToggleSubEntity, LightEntity):
     _brightness = None
     _color_temp = None
 
-    def update(self):
-        super().update()
+    def update(self, data=None):
+        super().update(data)
         if self._available:
             attrs = self._state_attrs
             self._brightness = attrs.get('brightness', 0)

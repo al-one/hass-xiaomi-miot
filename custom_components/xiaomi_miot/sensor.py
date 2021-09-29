@@ -18,6 +18,7 @@ from . import (
     MiioEntity,
     MiotEntity,
     BaseSubEntity,
+    MiotPropertySubEntity,
     DeviceException,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -334,15 +335,10 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
             self._attr_state_class = None
 
 
-class MiotSensorSubEntity(BaseSensorSubEntity):
+class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        self._miot_service = miot_property.service
-        self._miot_property = miot_property
-        super().__init__(parent, miot_property.full_name, option)
-        self._name = self.format_name_by_property(miot_property)
-        if not self._option.get('unique_id'):
-            self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
-        self.entity_id = miot_property.generate_entity_id(self)
+        self._attr_state_class = None
+        super().__init__(parent, miot_property, option)
 
         self._prop_battery = None
         for s in self._miot_service.spec.get_services('battery', self._miot_service.name):
@@ -352,19 +348,11 @@ class MiotSensorSubEntity(BaseSensorSubEntity):
         if self._prop_battery:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_battery.full_name]
 
-        if 'icon' not in self._option:
-            self._option['icon'] = miot_property.entity_icon
-        if 'unit' not in self._option:
-            self._option['unit'] = miot_property.unit_of_measurement
-        if 'device_class' not in self._option:
-            self._option['device_class'] = miot_property.device_class
-        self._extra_attrs.update({
-            'service_description': miot_property.service.description,
-            'property_description': miot_property.description,
-        })
+    async def async_added_to_hass(self):
+        await BaseSensorSubEntity.async_added_to_hass(self)
 
     def update(self, data=None):
-        super().update()
+        super().update(data)
         if not self._available:
             return
         self._miot_property.description_to_dict(self._state_attrs)
@@ -381,16 +369,6 @@ class MiotSensorSubEntity(BaseSensorSubEntity):
                 val = round(float(val) * svd, 3)
             return val
         return STATE_UNKNOWN
-
-    def set_parent_property(self, val, prop=None):
-        if prop is None:
-            prop = self._miot_property
-        ret = self.call_parent('set_miot_property', prop.service.iid, prop.iid, val)
-        if ret and prop.readable:
-            self.update_attrs({
-                prop.full_name: val,
-            })
-        return ret
 
 
 class WaterPurifierYunmiEntity(MiioEntity, Entity):

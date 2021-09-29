@@ -19,6 +19,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotToggleEntity,
+    MiotPropertySubEntity,
     ToggleSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -365,10 +366,7 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
             self.update_attrs(adt)
 
 
-class MiotBinarySensorSubEntity(ToggleSubEntity, BinarySensorEntity):
+class MiotBinarySensorSubEntity(MiotPropertySubEntity, ToggleSubEntity, BinarySensorEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property.full_name, option)
-        self._name = self.format_name_by_property(miot_property)
-        self._miot_service = miot_property.service
-        self._miot_property = miot_property
-        self.entity_id = miot_property.generate_entity_id(self)
+        ToggleSubEntity.__init__(self, parent, miot_property.full_name, option)
+        super().__init__(parent, miot_property, option)
