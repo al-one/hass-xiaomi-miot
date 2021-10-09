@@ -1628,6 +1628,7 @@ class BaseSubEntity(BaseEntity):
         self._attr_state_class = self._option.get('state_class')
         self._supported_features = int(self._option.get('supported_features', 0))
         self._extra_attrs = {
+            'entity_class': self.__class__.__name__,
             'parent_entity_id': parent.entity_id,
         }
         self._state_attrs = {}
@@ -1793,7 +1794,9 @@ class MiotPropertySubEntity(BaseSubEntity):
         self._miot_service = miot_property.service
         self._miot_property = miot_property
         super().__init__(parent, miot_property.full_name, option)
-        self._name = self.format_name_by_property(miot_property)
+
+        if not self._option.get('name'):
+            self._name = self.format_name_by_property(miot_property)
         if not self._option.get('unique_id'):
             self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
         self.entity_id = miot_property.generate_entity_id(self)
