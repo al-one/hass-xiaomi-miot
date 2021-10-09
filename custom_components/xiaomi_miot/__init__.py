@@ -190,6 +190,9 @@ async def async_setup(hass, hass_config: dict):
         dic = TRANSLATION_LANGUAGES.get(lang)
         if isinstance(dic, dict):
             TRANSLATION_LANGUAGES.update(dic)
+    if dic := config.get('translations') or {}:
+        if isinstance(dic, dict):
+            TRANSLATION_LANGUAGES.update(dic)
 
     if config.get(CONF_USERNAME) and config.get(CONF_PASSWORD):
         try:
