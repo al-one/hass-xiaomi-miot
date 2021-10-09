@@ -184,6 +184,19 @@ DEVICE_CUSTOMIZES = {
     'yeelink.light.nl1': {
         'interval_seconds': 15,
     },
+    'yeelink.switch.sw1': {
+        'miot_local_mapping': {
+            'switch1.on':          {'siid': 2, 'piid': 1},
+            'switch1.default':     {'siid': 2, 'piid': 2},
+            'switch1.off_delay':   {'siid': 2, 'piid': 3},
+            'switch2.on':          {'siid': 3, 'piid': 1},
+            'switch2.default':     {'siid': 3, 'piid': 2},
+            'switch2.off_delay':   {'siid': 3, 'piid': 3},
+            'extension.interlock': {'siid': 4, 'piid': 1},
+            'extension.flash':     {'siid': 4, 'piid': 2},
+            'extension.rc_list':   {'siid': 4, 'piid': 3},
+        },
+    },
     'zimi.plug.*:electric_power': {
         'value_ratio': 0.01,
         'state_class': 'measurement',

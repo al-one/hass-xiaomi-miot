@@ -871,7 +871,11 @@ class MiotEntity(MiioEntity):
             host = self._config.get(CONF_HOST) or ''
             token = self._config.get(CONF_TOKEN) or None
             device = None
-            mapping = self.custom_config_json('miot_local_mapping') or self.miot_mapping
+            mapping = self.custom_config_json('miot_local_mapping')
+            if not mapping:
+                mapping = self.miot_mapping
+            elif self._miot_service:
+                self._miot_service.spec.set_custom_mapping(mapping)
             try:
                 device = MiotDevice(ip=host, token=token, mapping=mapping)
             except TypeError as exc:
@@ -944,10 +948,11 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_mapping(self):
-        dic = self.custom_config_json('miot_mapping')
         mmp = None
-        if dic:
+        if dic := self.custom_config_json('miot_mapping'):
             mmp = dic
+            if self._miot_service:
+                self._miot_service.spec.set_custom_mapping(mmp)
         elif self._miot_mapping:
             mmp = self._miot_mapping
         elif self._device and hasattr(self._device, 'mapping'):

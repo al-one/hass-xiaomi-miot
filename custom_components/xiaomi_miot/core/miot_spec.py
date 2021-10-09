@@ -124,6 +124,8 @@ class MiotSpec(MiotSpecInstance):
         self.services = {}
         self.services_count = {}
         self.services_properties = {}
+        self.custom_mapping = None
+        self.custom_mapping_names = {}
         for s in (dat.get('services') or []):
             srv = MiotService(s, self)
             if not srv.name:
@@ -132,12 +134,30 @@ class MiotSpec(MiotSpecInstance):
 
     def services_mapping(self, *args, **kwargs):
         dat = None
-        for s in self.get_services(*args, **kwargs):
+        sls = self.get_services(*args, **kwargs)
+        if self.custom_mapping:
+            sis = map(lambda x: x.iid, sls)
+            dat = {
+                k: v
+                for k, v in self.custom_mapping.items()
+                if v.get('siid') in sis
+            }
+            return dat
+        for s in sls:
             if dat is None:
                 dat = {}
             nxt = s.mapping() or {}
             dat = {**nxt, **dat}
         return dat
+
+    def set_custom_mapping(self, mapping: dict):
+        self.custom_mapping = mapping
+        self.custom_mapping_names = {}
+        for k, v in mapping.items():
+            p = self.unique_prop(v, valid=True)
+            if not p:
+                continue
+            self.custom_mapping_names[p] = k
 
     def get_services(self, *args, **kwargs):
         excludes = kwargs.get('excludes', [])
@@ -244,6 +264,25 @@ class MiotSpec(MiotSpecInstance):
                 dat = {}
         return MiotSpec(dat)
 
+    @staticmethod
+    def unique_prop(siid, piid=None, aiid=None, eiid=None, valid=False):
+        if isinstance(siid, dict):
+            piid = piid or siid.get('piid')
+            aiid = aiid or siid.get('aiid')
+            eiid = eiid or siid.get('eiid')
+            siid = siid or siid.get('siid')
+        typ = 'prop'
+        iid = piid
+        if aiid:
+            typ = 'action'
+            iid = aiid
+        if eiid:
+            typ = 'event'
+            iid = eiid
+        if valid and not iid:
+            return None
+        return f'{typ}.{siid}.{iid}'
+
 
 # https://miot-spec.org/miot-spec-v2/spec/services
 class MiotService(MiotSpecInstance):
@@ -322,6 +361,9 @@ class MiotService(MiotSpecInstance):
                 return a
         return None
 
+    def unique_prop(self, **kwargs):
+        return self.spec.unique_prop(self.iid, **kwargs)
+
     def generate_entity_id(self, entity):
         return self.spec.generate_entity_id(entity, self.description)
 
@@ -349,6 +391,7 @@ class MiotProperty(MiotSpecInstance):
         self.siid = service.iid
         super().__init__(dat)
         self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
+        self.unique_prop = self.service.unique_prop(piid=self.iid)
         self.desc_name = self.format_desc_name(self.description, self.name)
         self.friendly_desc = self.short_desc
         self.format = dat.get('format') or ''
@@ -373,6 +416,8 @@ class MiotProperty(MiotSpecInstance):
             elif len(self.full_name) >= 32:
                 # miot did length must less than 32
                 self.full_name = f'{self.desc_name}-{self.siid}-{self.iid}'
+            if pnm := service.spec.custom_mapping_names.get(self.unique_prop):
+                self.full_name = pnm
             service.spec.services_properties[self.full_name] = {
                 'siid': self.siid,
                 'piid': self.iid,
@@ -627,6 +672,7 @@ class MiotAction(MiotSpecInstance):
         self.service = service
         self.siid = service.iid
         super().__init__(dat)
+        self.unique_prop = self.service.unique_prop(aiid=self.iid)
         self.full_name = f'{service.name}.{self.name}'
         self.ins = dat.get('in') or []
         self.out = dat.get('out') or []
