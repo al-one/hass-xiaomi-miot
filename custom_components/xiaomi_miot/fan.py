@@ -308,10 +308,10 @@ class FanSubEntity(ToggleSubEntity, FanEntity):
         self.call_parent('oscillate', oscillating)
 
 
-class MiotModesSubEntity(FanSubEntity, MiotPropertySubEntity):
+class MiotModesSubEntity(MiotPropertySubEntity, FanSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property.full_name, option)
-        MiotPropertySubEntity.__init__(self, parent, miot_property, option)
+        FanSubEntity.__init__(self, parent, miot_property.full_name, option)
+        super().__init__(parent, miot_property, option)
         self._prop_power = self._option.get('power_property')
         if self._prop_power:
             self._option['keys'] = [self._prop_power.full_name, *(self._option.get('keys') or [])]
