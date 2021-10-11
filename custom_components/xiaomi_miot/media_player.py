@@ -229,6 +229,15 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
     def play_media(self, media_type, media_id, **kwargs):
         return False
 
+    @property
+    def source(self):
+        """Name of the current input source."""
+        if self._prop_input:
+            val = self._prop_input.from_dict(self._state_attrs)
+            if val is not None:
+                return self._prop_input.list_description(val)
+        return None
+
     def select_source(self, source):
         val = self._prop_input.list_value(source)
         if val is not None:
