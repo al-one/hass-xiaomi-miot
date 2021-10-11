@@ -140,7 +140,6 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         self._name = f'{self.device_name} {self._prop_state.friendly_desc}'
         self._attr_state_class = None
         self._state_attrs.update({
-            'entity_class': self.__class__.__name__,
             'state_property': self._prop_state.full_name if self._prop_state else None,
         })
 
@@ -380,7 +379,6 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
 
         self._device = WaterPurifierYunmi(host, token)
         super().__init__(name, self._device, logger=_LOGGER)
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._subs = {
             'tds_in':  {'keys': ['tds_warn_thd'], 'unit': CONCENTRATION_PARTS_PER_MILLION, 'icon': 'mdi:water'},
             'tds_out': {'keys': ['tds_warn_thd'], 'unit': CONCENTRATION_PARTS_PER_MILLION, 'icon': 'mdi:water-check'},

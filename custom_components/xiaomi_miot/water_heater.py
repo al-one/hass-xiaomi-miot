@@ -73,8 +73,6 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         if self._prop_modes:
             self._supported_features |= SUPPORT_OPERATION_MODE
 
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
-
     async def async_update(self):
         await super().async_update()
         if not self._available:

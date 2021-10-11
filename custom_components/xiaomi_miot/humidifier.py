@@ -74,8 +74,6 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             self._humidifier_mode = self._mode_props[0]
             self._supported_features = SUPPORT_MODES
 
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
-
     async def async_update(self):
         await super().async_update()
         if not self._available:

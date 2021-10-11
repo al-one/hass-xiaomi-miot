@@ -52,7 +52,6 @@ class MiotAirQualityEntity(MiotToggleEntity, AirQualityEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config)
         self._environment = miot_service.spec.get_service('environment') or self._miot_service
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     def get_property_value(self, *args):
         prop = self._environment.get_property(*args)

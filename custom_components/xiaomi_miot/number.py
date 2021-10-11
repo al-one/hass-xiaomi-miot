@@ -54,7 +54,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class MiotNumberEntity(MiotEntity, NumberEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     @property
     def value(self):

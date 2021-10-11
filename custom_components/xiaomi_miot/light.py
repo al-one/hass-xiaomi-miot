@@ -111,8 +111,6 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         if self._prop_mode:
             self._supported_features |= SUPPORT_EFFECT
 
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
-
     def turn_on(self, **kwargs):
         ret = False
         if not self.is_on:
@@ -227,7 +225,6 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
         }, miot_service, device=parent.miot_device)
         self.entity_id = miot_service.generate_entity_id(self)
         self._prop_power = prop_power
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     def update(self, data=None):
         super().update(data)

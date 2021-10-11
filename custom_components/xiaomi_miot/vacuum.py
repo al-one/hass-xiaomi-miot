@@ -120,8 +120,6 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         if self._act_locate:
             self._supported_features |= SUPPORT_LOCATE
 
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
-
     @property
     def status(self):
         if self._prop_status:

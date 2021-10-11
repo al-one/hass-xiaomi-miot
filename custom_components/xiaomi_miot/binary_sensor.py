@@ -107,7 +107,6 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
             self._vars['device_class'] = DEVICE_CLASS_MOISTURE
 
         self._state_attrs.update({
-            'entity_class': self.__class__.__name__,
             'state_property': self._prop_state.full_name if self._prop_state else None,
         })
 
@@ -154,9 +153,6 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
         if not self._prop_illumination:
             if srv := miot_service.spec.get_service('illumination_sensor'):
                 self._prop_illumination = srv.get_property('illumination')
-        self._state_attrs.update({
-            'entity_class': self.__class__.__name__,
-        })
 
         # https://iot.mi.com/new/doc/embedded-development/ble/object-definition
         self._props = [
@@ -268,7 +264,6 @@ class MiotToiletEntity(MiotBinarySensorEntity):
                 'mode', self._prop_state.name if self._prop_state else 'status',
             )
         self._state_attrs.update({
-            'entity_class': self.__class__.__name__,
             'state_property': self._prop_state.full_name if self._prop_state else None,
         })
 
@@ -316,9 +311,6 @@ class MiotToiletEntity(MiotBinarySensorEntity):
 class LumiBinarySensorEntity(MiotBinarySensorEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(config, miot_service)
-        self._state_attrs.update({
-            'entity_class': self.__class__.__name__,
-        })
 
     async def async_update(self):
         await super().async_update()

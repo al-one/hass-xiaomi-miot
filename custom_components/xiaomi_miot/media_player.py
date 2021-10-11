@@ -256,7 +256,6 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         BaseMediaPlayerEntity.__init__(self, miot_service)
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
         self._intelligent_speaker = miot_service.spec.get_service('intelligent_speaker')
         self._message_router = miot_service.spec.get_service('message_router')
@@ -319,4 +318,3 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
 class MiotDoorbellEntity(MiotMediaPlayerEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
-        self._state_attrs.update({'entity_class': self.__class__.__name__})

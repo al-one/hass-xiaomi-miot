@@ -110,8 +110,6 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         if self._prop_mode and SUPPORT_PRESET_MODE:
             self._supported_features |= SUPPORT_PRESET_MODE
 
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
-
     def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         ret = False
         if not self.is_on:

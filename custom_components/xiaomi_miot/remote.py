@@ -72,7 +72,6 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         token = config.get(CONF_TOKEN)
         self._device = ChuangmiIr(host, token)
         self._attr_should_poll = False
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()

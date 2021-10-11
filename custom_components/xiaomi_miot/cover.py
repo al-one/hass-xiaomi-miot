@@ -88,7 +88,6 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         self._motor_reverse = False
         self._open_texts = []
         self._close_texts = []
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -413,7 +412,6 @@ class MrBondAirerProEntity(MiioCoverEntity):
         super().__init__(name, device=self._device, config=config)
         self._motor_reverse = False
         self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_STOP
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._props = ['dry', 'led', 'motor', 'drytime', 'airer_location']
         self._vars.update({
             'motor_open': 1,

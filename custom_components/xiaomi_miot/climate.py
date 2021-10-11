@@ -126,7 +126,6 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         if self._prop_heater and miot_service.name in ['air_conditioner', 'air_condition_outlet']:
             self._supported_features |= SUPPORT_AUX_HEAT
 
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
         self._power_modes = ['blow', 'heating', 'ventilation']
         if miot_service.get_property('heat_level'):
             self._power_modes.append('heater')

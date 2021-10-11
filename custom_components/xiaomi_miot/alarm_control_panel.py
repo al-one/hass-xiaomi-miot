@@ -64,7 +64,6 @@ class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
                 self._supported_features |= SUPPORT_ALARM_ARM_NIGHT
             if self._is_mgl03:
                 self._supported_features |= SUPPORT_ALARM_TRIGGER
-        self._state_attrs.update({'entity_class': self.__class__.__name__})
 
     @property
     def state(self):
