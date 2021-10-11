@@ -29,6 +29,7 @@ SUPPORTED_DOMAINS = [
     'device_tracker',
     'remote',
     'number',
+    'alarm_control_panel',
 ]
 
 try:
