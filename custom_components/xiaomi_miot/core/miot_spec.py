@@ -136,7 +136,7 @@ class MiotSpec(MiotSpecInstance):
         dat = None
         sls = self.get_services(*args, **kwargs)
         if self.custom_mapping:
-            sis = map(lambda x: x.iid, sls)
+            sis = list(map(lambda x: x.iid, sls))
             dat = {
                 k: v
                 for k, v in self.custom_mapping.items()
@@ -154,10 +154,17 @@ class MiotSpec(MiotSpecInstance):
         self.custom_mapping = mapping
         self.custom_mapping_names = {}
         for k, v in mapping.items():
-            p = self.unique_prop(v, valid=True)
-            if not p:
+            u = self.unique_prop(v, valid=True)
+            if not u:
                 continue
-            self.custom_mapping_names[p] = k
+            self.custom_mapping_names[u] = k
+        for s in self.services.values():
+            for p in s.properties.values():
+                u = self.unique_prop(s.iid, p.iid)
+                n = self.custom_mapping_names.get(u)
+                if not n:
+                    continue
+                p.full_name = n
 
     def get_services(self, *args, **kwargs):
         excludes = kwargs.get('excludes', [])
@@ -270,7 +277,7 @@ class MiotSpec(MiotSpecInstance):
             piid = piid or siid.get('piid')
             aiid = aiid or siid.get('aiid')
             eiid = eiid or siid.get('eiid')
-            siid = siid or siid.get('siid')
+            siid = siid.get('siid')
         typ = 'prop'
         iid = piid
         if aiid:
@@ -416,8 +423,6 @@ class MiotProperty(MiotSpecInstance):
             elif len(self.full_name) >= 32:
                 # miot did length must less than 32
                 self.full_name = f'{self.desc_name}-{self.siid}-{self.iid}'
-            if pnm := service.spec.custom_mapping_names.get(self.unique_prop):
-                self.full_name = pnm
             service.spec.services_properties[self.full_name] = {
                 'siid': self.siid,
                 'piid': self.iid,

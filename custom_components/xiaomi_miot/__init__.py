@@ -840,29 +840,34 @@ class MiotEntity(MiioEntity):
     def __init__(self, miot_service=None, device=None, **kwargs):
         self._config = dict(kwargs.get('config') or {})
         name = kwargs.get(CONF_NAME) or self._config.get(CONF_NAME) or ''
-        self._miot_mapping = dict(kwargs.get('mapping') or {})
         self._miot_service = miot_service if isinstance(miot_service, MiotService) else None
         if self._miot_service:
+            name = f'{name} {self._miot_service.friendly_desc}'
             kwargs['miot_service'] = self._miot_service
-            name = f"{name} {self._miot_service.friendly_desc}"
+        super().__init__(name, device, **kwargs)
+
+        self._miot_mapping = dict(kwargs.get('mapping') or {})
+        if self._miot_service:
+            if custom := DEVICE_CUSTOMIZES.get(self._model, {}).get('miot_mapping'):
+                miot_service.spec.set_custom_mapping(custom)
             if not self._miot_mapping:
                 dic = miot_service.mapping() or {}
                 self._miot_mapping = miot_service.spec.services_mapping(excludes=[self._miot_service.name]) or {}
                 self._miot_mapping = {**dic, **self._miot_mapping, **dic}
-        super().__init__(name, device, **kwargs)
-        self.logger.info('%s: Initializing miot device with mapping: %s', name, self._miot_mapping)
-        if self._miot_service:
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self._state_attrs['miot_type'] = self._miot_service.spec.type
             self.entity_id = self._miot_service.generate_entity_id(self)
         if self._model in MIOT_LOCAL_MODELS:
             self._vars['track_miot_error'] = True
         self._success_code = 0
+        self.logger.info('%s: Initializing miot device with mapping: %s', name, self._miot_mapping)
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         if not self._miot_service:
             return
+        if dic := self.custom_config_json('miot_mapping'):
+            self._miot_service.spec.set_custom_mapping(dic)
         self._vars['exclude_services'] = self.custom_config_list('exclude_miot_services') or []
 
     @property
@@ -876,6 +881,7 @@ class MiotEntity(MiioEntity):
                 mapping = self.miot_mapping
             elif self._miot_service:
                 self._miot_service.spec.set_custom_mapping(mapping)
+                self._vars['has_local_mapping'] = True
             try:
                 device = MiotDevice(ip=host, token=token, mapping=mapping)
             except TypeError as exc:
@@ -949,11 +955,7 @@ class MiotEntity(MiioEntity):
     @property
     def miot_mapping(self):
         mmp = None
-        if dic := self.custom_config_json('miot_mapping'):
-            mmp = dic
-            if self._miot_service:
-                self._miot_service.spec.set_custom_mapping(mmp)
-        elif self._miot_mapping:
+        if self._miot_mapping:
             mmp = self._miot_mapping
         elif self._device and hasattr(self._device, 'mapping'):
             mmp = self._device.mapping
@@ -1021,6 +1023,8 @@ class MiotEntity(MiioEntity):
                         return
             elif self.miot_device:
                 updater = 'lan'
+                if self._vars.get('has_local_mapping'):
+                    mmp = self._device.mapping
                 max_properties = self.custom_config_integer('chunk_properties') or max_properties
                 results = await self.hass.async_add_executor_job(
                     partial(

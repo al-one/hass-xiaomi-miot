@@ -185,7 +185,7 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 15,
     },
     'yeelink.switch.sw1': {
-        'miot_local_mapping': {
+        'miot_mapping': {
             'switch1.on':          {'siid': 2, 'piid': 1},
             'switch1.default':     {'siid': 2, 'piid': 2},
             'switch1.off_delay':   {'siid': 2, 'piid': 3},
