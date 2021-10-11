@@ -170,10 +170,10 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         return self.set_parent_property(False)
 
 
-class MiotSwitchActionSubEntity(SwitchSubEntity, MiotPropertySubEntity):
+class MiotSwitchActionSubEntity(MiotPropertySubEntity, SwitchSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, miot_action: MiotAction, option=None):
-        super().__init__(parent, miot_action.full_name, option)
-        MiotPropertySubEntity.__init__(self, parent, miot_property, option)
+        SwitchSubEntity.__init__(self, parent, miot_action.full_name, option)
+        super().__init__(parent, miot_property, option)
         self._miot_action = miot_action
         self._state = False
         if miot_action.name in ['pet_food_out']:
