@@ -1278,26 +1278,32 @@ class MiotEntity(MiioEntity):
             partial(self.get_properties, mapping, **kwargs)
         )
 
-    def set_property(self, field, value):
-        try:
-            ext = self.miot_mapping.get(field) or {}
-            if ext:
-                result = self.set_miot_property(ext['siid'], ext['piid'], value)
-            else:
-                self.logger.warning('%s: Set miot property %s(%s) failed: property not found', self.name, field, value)
+    def set_property(self, prop, value):
+        if isinstance(prop, MiotProperty):
+            siid = prop.siid
+            piid = prop.iid
+            prop = prop.full_name
+        else:
+            ext = self.miot_mapping.get(prop) or {}
+            if not ext:
+                self.logger.warning('%s: Set miot property %s(%s) failed: property not found', self.name, prop, value)
                 return False
+            siid = ext['siid']
+            piid = ext['piid']
+        try:
+            result = self.set_miot_property(siid, piid, value)
         except (DeviceException, MiCloudException) as exc:
-            self.logger.error('%s: Set miot property %s(%s) failed: %s', self.name, field, value, exc)
+            self.logger.error('%s: Set miot property %s(%s) failed: %s', self.name, prop, value, exc)
             return False
         ret = result.is_success if result else False
         if ret:
-            if field in self._state_attrs:
+            if prop in self._state_attrs:
                 self.update_attrs({
-                    field: value,
+                    prop: value,
                 }, update_parent=False)
-            self.logger.debug('%s: Set miot property %s(%s), result: %s', self.name, field, value, result)
+            self.logger.debug('%s: Set miot property %s(%s), result: %s', self.name, prop, value, result)
         else:
-            self.logger.info('%s: Set miot property %s(%s) failed, result: %s', self.name, field, value, result)
+            self.logger.info('%s: Set miot property %s(%s) failed, result: %s', self.name, prop, value, result)
         return ret
 
     async def async_set_property(self, *args, **kwargs):
@@ -1597,12 +1603,12 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
 
     def turn_on(self, **kwargs):
         if self._prop_power:
-            return self.set_property(self._prop_power.full_name, True)
+            return self.set_property(self._prop_power, True)
         return False
 
     def turn_off(self, **kwargs):
         if self._prop_power:
-            return self.set_property(self._prop_power.full_name, False)
+            return self.set_property(self._prop_power, False)
         act = self._miot_service.get_action('stop_working', 'power_off')
         if act:
             return self.miot_action(self._miot_service.iid, act.iid)

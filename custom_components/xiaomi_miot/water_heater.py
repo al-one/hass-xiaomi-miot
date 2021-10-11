@@ -128,7 +128,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         """Set new target operation mode."""
         for p in self._prop_modes:
             val = p.list_value(mode)
-            return self.set_property(p.full_name, val)
+            return self.set_property(p, val)
         raise NotImplementedError()
 
     @property
@@ -163,7 +163,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                 val = math.ceil(val)
             else:
                 val = int(val)
-            ret = self.set_property(self._prop_target_temp.full_name, val)
+            ret = self.set_property(self._prop_target_temp, val)
             if ret:
                 self._prev_target_temp = val
             return ret

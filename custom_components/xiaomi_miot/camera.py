@@ -526,12 +526,12 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
 
     def enable_motion_detection(self):
         if self._prop_motion_tracking:
-            return self.set_property(self._prop_motion_tracking.full_name, True)
+            return self.set_property(self._prop_motion_tracking, True)
         return False
 
     def disable_motion_detection(self):
         if self._prop_motion_tracking:
-            return self.set_property(self._prop_motion_tracking.full_name, False)
+            return self.set_property(self._prop_motion_tracking, False)
         return False
 
 

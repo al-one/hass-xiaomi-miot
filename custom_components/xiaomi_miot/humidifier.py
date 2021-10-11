@@ -120,7 +120,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
                     num = n
         if num is None:
             return False
-        return self._device.set_property(self._prop_target_humi.full_name, num)
+        return self.set_property(self._prop_target_humi, num)
 
     @property
     def min_humidity(self):
@@ -168,4 +168,4 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         val = self._humidifier_mode.list_value(mode)
         if val is None:
             return False
-        return self.set_property(self._humidifier_mode.full_name, val)
+        return self.set_property(self._humidifier_mode, val)

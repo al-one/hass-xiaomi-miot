@@ -227,7 +227,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         if val is None:
             _LOGGER.error('Motor control value is invalid for %s', self.name)
             return False
-        ret = self.set_property(self._prop_motor_control.full_name, val)
+        ret = self.set_property(self._prop_motor_control, val)
         if ret and self._prop_status:
             self.update_attrs({
                 self._prop_status.full_name: self._prop_status.list_first(*tls)
@@ -243,7 +243,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     def stop_cover(self, **kwargs):
         val = self._prop_motor_control.list_first('Pause', 'Stop')
         val = self.custom_config_integer('stop_cover_value', val)
-        return self.set_property(self._prop_motor_control.full_name, val)
+        return self.set_property(self._prop_motor_control, val)
 
 
 class MiotCoverSubEntity(MiotPropertySubEntity, CoverEntity):

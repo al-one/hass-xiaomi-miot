@@ -115,12 +115,12 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
     def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         ret = False
         if not self.is_on:
-            ret = self.set_property(self._prop_power.full_name, True)
+            ret = self.set_property(self._prop_power, True)
         if self._prop_percentage:
             if not percentage and speed:
                 percentage = ordered_list_item_to_percentage(self.speed_list, speed)
             if percentage:
-                ret = self.set_property(self._prop_percentage.full_name, percentage)
+                ret = self.set_property(self._prop_percentage, percentage)
             elif percentage is not None:
                 _LOGGER.warning('Set fan speed percentage to %s failed: %s', self.name, {
                     'speed': speed,
@@ -134,7 +134,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
                 if speed is not None:
                     val = int(speed)
             if val is not None:
-                ret = self.set_property(self._prop_speed.full_name, val)
+                ret = self.set_property(self._prop_speed, val)
             elif speed is not None:
                 _LOGGER.warning('Set fan speed level to %s failed: %s', self.name, {
                     'speed': speed,
@@ -144,7 +144,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         if preset_mode and self._prop_mode:
             val = self._prop_mode.list_first(preset_mode)
             if val is not None:
-                ret = self.set_property(self._prop_mode.full_name, val)
+                ret = self.set_property(self._prop_mode, val)
         return ret
 
     @property
@@ -253,14 +253,14 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
                 if n > num:
                     num = n
         _LOGGER.debug('Setting direction to %s: %s(%s)', self.name, direction, num)
-        return self.set_property(self._prop_direction.full_name, num)
+        return self.set_property(self._prop_direction, num)
 
     @property
     def oscillating(self):
         return self._state_attrs.get(self._prop_oscillate.full_name) and True
 
     def oscillate(self, oscillating: bool):
-        return self.set_property(self._prop_oscillate.full_name, oscillating)
+        return self.set_property(self._prop_oscillate, oscillating)
 
 
 class FanSubEntity(ToggleSubEntity, FanEntity):

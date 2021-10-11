@@ -162,7 +162,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
     def turn_on(self, **kwargs):
         if self._prop_power:
-            self.set_property(self._prop_power.full_name, True)
+            self.set_property(self._prop_power, True)
         return self.start()
 
     def turn_off(self, **kwargs):
@@ -223,7 +223,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     def set_fan_speed(self, fan_speed, **kwargs):
         if self._prop_mode:
             val = self._prop_mode.list_value(fan_speed)
-            return self.set_property(self._prop_mode.full_name, val)
+            return self.set_property(self._prop_mode, val)
         return False
 
     def send_vacuum_command(self, command, params=None, **kwargs):
