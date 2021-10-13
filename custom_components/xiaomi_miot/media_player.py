@@ -340,6 +340,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         self._mitv_api = f'http://{host}:6095/'
         self._api_key = '881fd5a8c94b4945b46527b07eca2431'
         self._hmac_key = '2840d5f0d078472dbc5fb78e39da123e'
+        self._state_attrs['6095_state'] = True
         self._keycodes = [
             'power',
             'home',
@@ -422,6 +423,13 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
 
         self._state_attrs.update(adt)
 
+    @property
+    def state(self):
+        sta = super().state
+        if not self._state_attrs.get('6095_state') and self.conn_mode != 'cloud':
+            sta = STATE_OFF
+        return sta
+
     def play_media(self, media_type, media_id, **kwargs):
         """Play a piece of media."""
         tim = str(int(time.time() * 1000))
@@ -468,10 +476,12 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         try:
             req = requests.get(f'{self._mitv_api}{path}', **kwargs)
             rdt = json.loads(req.content or '{}') or {}
+            self._state_attrs['6095_state'] = True
             if 'success' not in rdt.get('msg', ''):
                 self.logger.warning('%s: Request mitv api error: %s', self.name, req.text)
         except requests.exceptions.RequestException as exc:
             rdt = {}
+            self._state_attrs['6095_state'] = False
             self.logger.warning('%s: Request mitv api error: %s', self.name, exc)
         return rdt.get('data') or {}
 

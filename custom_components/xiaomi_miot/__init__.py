@@ -233,6 +233,7 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
             config['miot_type'] = await MiotSpec.async_get_model_type(hass, model)
         config['miio_info'] = info
         config['config_entry'] = config_entry
+        config[CONF_CONN_MODE] = 'local'
         hass.data[DOMAIN][entry_id] = config
         _LOGGER.debug('Xiaomi Miot setup config entry: %s', {
             'entry_id': entry_id,
@@ -288,6 +289,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             'model':  model,
             'token':  d.get(CONF_TOKEN),
         }
+        conn = entry.get(CONF_CONN_MODE, DEFAULT_CONN_MODE)
         cfg = {
             CONF_NAME: d.get(CONF_NAME) or DEFAULT_NAME,
             CONF_HOST: d.get('localip') or '',
@@ -296,12 +298,12 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             'miot_did': d.get('did') or '',
             'miot_type': urn,
             'miio_info': mif,
-            CONF_CONN_MODE: entry.get(CONF_CONN_MODE, DEFAULT_CONN_MODE),
-            'miot_cloud': entry.get(CONF_CONN_MODE, DEFAULT_CONN_MODE) != 'local',
+            CONF_CONN_MODE: conn,
+            'miot_cloud': conn != 'local',
             'entry_id': entry_id,
             CONF_CONFIG_VERSION: entry.get(CONF_CONFIG_VERSION) or 0,
         }
-        if cfg[CONF_CONN_MODE] == 'auto' and model in MIOT_LOCAL_MODELS:
+        if conn == 'auto' and model in MIOT_LOCAL_MODELS:
             cfg['miot_cloud'] = False
         config['configs'].append(cfg)
         _LOGGER.debug('Xiaomi cloud device: %s', {**cfg, CONF_TOKEN: '****'})
@@ -508,6 +510,10 @@ class BaseEntity(Entity):
             return default
         cfg = self.hass.data[DATA_CUSTOMIZE].get(self.entity_id) or {}
         return cfg if key is None else cfg.get(key, default)
+
+    @property
+    def conn_mode(self):
+        return self._config.get(CONF_CONN_MODE)
 
     @property
     def entry_config_version(self):
