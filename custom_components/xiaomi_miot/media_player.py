@@ -1,8 +1,14 @@
 """Support for Xiaomi WiFi speakers."""
 import logging
+import requests
+import hashlib
+import hmac
+import time
+import json
 import voluptuous as vol
 from datetime import timedelta
 from functools import partial
+from urllib.parse import urlencode, urlparse, parse_qsl
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.media_player import (
@@ -32,7 +38,7 @@ from .core.miot_spec import (
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
-SCAN_INTERVAL = timedelta(seconds=60)
+SCAN_INTERVAL = timedelta(seconds=30)
 
 SERVICE_TO_METHOD = {
     'intelligent_speaker': {
@@ -64,7 +70,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services('play_control', 'doorbell'):
             if not srv.mapping() and not srv.get_action('play'):
                 continue
-            if srv.name in ['doorbell']:
+            if spec.get_service('television', 'projector'):
+                entities.append(MitvMediaPlayerEntity(config, srv))
+            elif srv.name in ['doorbell']:
                 entities.append(MiotDoorbellEntity(config, srv))
             else:
                 entities.append(MiotMediaPlayerEntity(config, srv))
@@ -276,6 +284,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         if not self._available:
             return
         self._update_sub_entities('on', domain='switch')
+        # deprecated
         self._update_sub_entities(
             ['input_control'],
             ['television', 'projector'],
@@ -321,6 +330,126 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
     async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         return await self.hass.async_add_executor_job(
             partial(self.intelligent_speaker, text, execute, silent, **kwargs)
+        )
+
+
+class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(config, miot_service)
+        host = self._config.get(CONF_HOST) or ''
+        self._mitv_api = f'http://{host}:6095/'
+        self._api_key = '881fd5a8c94b4945b46527b07eca2431'
+        self._hmac_key = '2840d5f0d078472dbc5fb78e39da123e'
+        self._supported_features |= SUPPORT_PLAY_MEDIA
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        adt = {}
+
+        pms = self.with_opaque({
+            'action': 'capturescreen',
+            'compressrate': 100,
+        })
+        rdt = await self.async_request_mitv_api('controller', params=pms)
+        if 'url' in rdt:
+            url = rdt.get('url', '')
+            pms = urlparse(url).query
+            url = f'{url}'.replace(pms, '')
+            pms = dict(parse_qsl(pms))
+            pms = self.with_opaque(pms, token=rdt.get('token'))
+            self._attr_media_image_url = url + urlencode(pms)
+            self._attr_app_id = rdt.get('pkg')
+            self._attr_app_name = rdt.get('label')
+            adt.update({
+                'capture': self._attr_media_image_url,
+                'capture_token': rdt.get('token'),
+                'app_current': f'{self._attr_app_name} - {self._attr_app_id}',
+                'app_page': rdt.get('clz'),
+            })
+
+        pms = {
+            'action': 'getinstalledapp',
+            'count': 999,
+            'changeIcon': 1,
+        }
+        rdt = await self.async_request_mitv_api('controller', params=pms)
+        if lst := rdt.get('AppInfo', []):
+            ias = {
+                a.get('PackageName'): a.get('AppName')
+                for a in lst
+            }
+            adt['installed_apps'] = ias
+            if ias:
+                add_selects = self._add_entities.get('select')
+                als = [
+                    f'{v} - {k}'
+                    for k, v in ias.items()
+                ]
+                sub = 'apps'
+                if sub in self._subs:
+                    self._subs[sub].update_options(als)
+                    self._subs[sub].update()
+                elif add_selects:
+                    from .select import SelectSubEntity
+                    self._subs[sub] = SelectSubEntity(self, 'app_current', option={
+                        'options': als,
+                        'select_option': self.start_app,
+                    })
+                    add_selects([self._subs[sub]])
+
+        self._state_attrs.update(adt)
+
+    def play_media(self, media_type, media_id, **kwargs):
+        """Play a piece of media."""
+        tim = str(int(time.time() * 1000))
+        pms = {
+            'action': 'play',
+            'type': media_type,
+            'url': media_id,
+            'apikey': self._api_key,
+            'ts': tim,
+            'sign': hashlib.md5(f'mitvsignsalt{media_id}{self._api_key}{tim[-5:]}'.encode()).hexdigest(),
+        }
+        rdt = self.request_mitv_api('controller', params=pms)
+        self.logger.debug('%s: Play media: %s', self.name, [pms, rdt])
+        return not not rdt
+
+    def start_app(self, app):
+        pkg = f'{app}'.split(' - ').pop(-1).strip()
+        pms = {
+            'action': 'startapp',
+            'type': 'packagename',
+            'packagename': pkg,
+        }
+        return self.request_mitv_api('controller', params=pms)
+
+    def with_opaque(self, pms: dict, token=None):
+        if token is None:
+            token = self._api_key
+        pms.update({
+            'timestamp': int(time.time() * 1000),
+            'token': token,
+        })
+        pms['opaque'] = hmac.new(self._hmac_key.encode(), urlencode(pms).encode(), hashlib.sha1).hexdigest()
+        pms.pop('token', None)
+        return pms
+
+    def request_mitv_api(self, path, **kwargs):
+        try:
+            req = requests.get(f'{self._mitv_api}{path}', **kwargs)
+            rdt = json.loads(req.content or '{}') or {}
+            if 'success' not in rdt.get('msg', ''):
+                self.logger.warning('%s: Request mitv api error: %s', self.name, req.text)
+        except requests.exceptions.RequestException as exc:
+            rdt = {}
+            self.logger.warning('%s: Request mitv api error: %s', self.name, exc)
+        return rdt.get('data') or {}
+
+    async def async_request_mitv_api(self, path, **kwargs):
+        return await self.hass.async_add_executor_job(
+            partial(self.request_mitv_api, path, **kwargs)
         )
 
 

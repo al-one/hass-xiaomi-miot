@@ -13,6 +13,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
+    BaseSubEntity,
     MiotPropertySubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -120,3 +121,27 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
             self._attr_current_option = option
             self.async_write_ha_state()
         return ret
+
+
+class SelectSubEntity(BaseSubEntity, SelectEntity):
+    def __init__(self, parent, attr, option=None):
+        super().__init__(parent, attr, option)
+        self._available = True
+        self._attr_current_option = None
+        self._attr_options = self._option.get('options') or []
+        self._select_option = self._option.get('select_option')
+
+    def update(self, data=None):
+        super().update(data)
+        self._attr_current_option = self._state
+
+    def select_option(self, option):
+        """Change the selected option."""
+        if self._select_option:
+            if ret := self._select_option(option):
+                self._attr_current_option = option
+            return ret
+        raise NotImplementedError()
+
+    def update_options(self, options: list):
+        self._attr_options = options
