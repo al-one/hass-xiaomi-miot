@@ -340,7 +340,30 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         self._mitv_api = f'http://{host}:6095/'
         self._api_key = '881fd5a8c94b4945b46527b07eca2431'
         self._hmac_key = '2840d5f0d078472dbc5fb78e39da123e'
+        self._keycodes = [
+            'power',
+            'home',
+            'enter',
+            'back',
+            'up',
+            'down',
+            'left',
+            'right',
+            'volumeup',
+            'volumedown',
+        ]
         self._supported_features |= SUPPORT_PLAY_MEDIA
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if add_selects := self._add_entities.get('select'):
+            from .select import SelectSubEntity
+            sub = 'keycodes'
+            self._subs[sub] = SelectSubEntity(self, sub, option={
+                'options': self._keycodes,
+                'select_option': self.press_key,
+            })
+            add_selects([self._subs[sub]])
 
     async def async_update(self):
         await super().async_update()
@@ -380,24 +403,22 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 a.get('PackageName'): a.get('AppName')
                 for a in lst
             }
-            adt['installed_apps'] = ias
-            if ias:
-                add_selects = self._add_entities.get('select')
-                als = [
-                    f'{v} - {k}'
-                    for k, v in ias.items()
-                ]
-                sub = 'apps'
-                if sub in self._subs:
-                    self._subs[sub].update_options(als)
-                    self._subs[sub].update()
-                elif add_selects:
-                    from .select import SelectSubEntity
-                    self._subs[sub] = SelectSubEntity(self, 'app_current', option={
-                        'options': als,
-                        'select_option': self.start_app,
-                    })
-                    add_selects([self._subs[sub]])
+            als = [
+                f'{v} - {k}'
+                for k, v in ias.items()
+            ]
+            add_selects = self._add_entities.get('select')
+            sub = 'apps'
+            if sub in self._subs:
+                self._subs[sub].update_options(als)
+                self._subs[sub].update()
+            elif add_selects:
+                from .select import SelectSubEntity
+                self._subs[sub] = SelectSubEntity(self, 'app_current', option={
+                    'options': als,
+                    'select_option': self.start_app,
+                })
+                add_selects([self._subs[sub]])
 
         self._state_attrs.update(adt)
 
@@ -422,6 +443,13 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             'action': 'startapp',
             'type': 'packagename',
             'packagename': pkg,
+        }
+        return self.request_mitv_api('controller', params=pms)
+
+    def press_key(self, key):
+        pms = {
+            'action': 'keyevent',
+            'keycode': key,
         }
         return self.request_mitv_api('controller', params=pms)
 
