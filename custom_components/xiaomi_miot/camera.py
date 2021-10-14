@@ -94,10 +94,6 @@ class BaseCameraEntity(Camera):
     def brand(self):
         return self.device_info.get('manufacturer')
 
-    @property
-    def miot_cloud(self):
-        return MiotCloud(self.hass, '', '')
-
     async def image_source(self, **kwargs):
         raise NotImplementedError()
 
@@ -250,8 +246,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             adt = {
                 'motion_video_updated': 1,
             }
-        else:
-            mic = self.miot_cloud
+        elif mic := self.xiaomi_cloud:
             api = mic.get_api_by_host('business.smartcamera.api.io.mi.com', 'common/app/get/eventlist')
             rqd = {
                 'did': self.miot_did,
@@ -414,7 +409,10 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         }
 
     def get_motion_stream_address(self, **kwargs):
-        mic = self.miot_cloud
+        mic = self.xiaomi_cloud
+        if not mic:
+            _LOGGER.info('%s: camera does not have cloud.', self.name)
+            return None
         mvd = self._state_attrs.get('motion_video_latest') or {}
         fid = mvd.get('fileId')
         if not fid:
@@ -435,7 +433,10 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return url
 
     def get_motion_video_address(self, **kwargs):
-        mic = self.miot_cloud
+        mic = self.xiaomi_cloud
+        if not mic:
+            _LOGGER.info('%s: camera does not have cloud.', self.name)
+            return None
         mvd = self._state_attrs.get('motion_video_latest') or {}
         fid = mvd.get('fileId')
         vid = mvd.get('videoStoreId')
@@ -464,7 +465,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 except (TypeError, ValueError):
                     pass
         if kwargs.get('crypto'):
-            key = base64.b64decode(self.miot_cloud.ssecurity).hex()
+            key = base64.b64decode(mic.ssecurity).hex()
             url = f'-decryption_key {key} -decryption_iv {self._segment_iv_hex} -i "crypto+{url}"'
         return url
 
@@ -493,7 +494,10 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return mp4
 
     def get_motion_image_address(self, **kwargs):
-        mic = self.miot_cloud
+        mic = self.xiaomi_cloud
+        if not mic:
+            _LOGGER.info('%s: camera does not have cloud.', self.name)
+            return None
         mvd = self._state_attrs.get('motion_video_latest') or {}
         fid = mvd.get('fileId')
         iid = mvd.get('imgStoreId')
@@ -513,7 +517,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         _LOGGER.debug('%s: Got image url: %s', self.name, url)
 
         if kwargs.get('crypto'):
-            key = base64.b64decode(self.miot_cloud.ssecurity).hex()
+            key = base64.b64decode(mic.ssecurity).hex()
             url = f'-decryption_key {key} -decryption_iv {self._segment_iv_hex} -i "crypto+{url}"'
         return url
 

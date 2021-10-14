@@ -918,6 +918,12 @@ class MiotEntity(MiioEntity):
         return did
 
     @property
+    def xiaomi_cloud(self):
+        if self.hass:
+            return self.entry_config(CONF_XIAOMI_CLOUD)
+        return None
+
+    @property
     def miot_cloud(self):
         isc = False
         if self.miot_local:
@@ -926,8 +932,8 @@ class MiotEntity(MiioEntity):
             isc = True
         elif self.custom_config_bool('miot_cloud'):
             isc = True
-        if isc and self.hass and self.miot_did:
-            return self.entry_config(CONF_XIAOMI_CLOUD)
+        if isc and self.miot_did:
+            return self.xiaomi_cloud
         return None
 
     @property
@@ -1016,10 +1022,10 @@ class MiotEntity(MiioEntity):
         try:
             if not mmp:
                 pass
-            elif self.miot_cloud:
+            elif mic := self.miot_cloud:
                 updater = 'cloud'
                 results = await self.hass.async_add_executor_job(
-                    partial(self.miot_cloud.get_properties_for_mapping, self.miot_did, mmp)
+                    partial(mic.get_properties_for_mapping, self.miot_did, mmp)
                 )
                 if self.custom_config_bool('check_lan'):
                     if self.miot_device:
