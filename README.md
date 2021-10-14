@@ -144,7 +144,7 @@ doamin.your_entity_id:
 - [fan](https://home.miot-spec.com/s/fan) / [ceiling-fan](https://home.miot-spec.com/s/ven_fan)
 - [bath-heater](https://home.miot-spec.com/s/bhf_light) / [heater](https://home.miot-spec.com/s/heater)
 - [camera](https://home.miot-spec.com/s/camera) / [video-doorbell](https://home.miot-spec.com/s/cateye) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604)
-- [television](https://home.miot-spec.com/s/tv)
+- [television](https://home.miot-spec.com/s/tv) / [projector](https://home.miot-spec.com/s/projector) / [tv-box](https://home.miot-spec.com/s/tvbox)
 - [intelligent-speaker](https://home.miot-spec.com/s/wifispeaker) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-885989099)
 - [ir-remote-control](https://home.miot-spec.com/s/chuangmi.remote) [❓️](https://github.com/al-one/hass-xiaomi-miot/commit/fbcc8063783e53b9480574536a034d338634f4e8#commitcomment-56563663)
 - [lock](https://home.miot-spec.com/s/look) / [door](https://home.miot-spec.com/s/door)

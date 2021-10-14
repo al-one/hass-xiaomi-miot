@@ -70,7 +70,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services('play_control', 'doorbell'):
             if not srv.mapping() and not srv.get_action('play'):
                 continue
-            if spec.get_service('television', 'projector'):
+            if spec.get_service('television', 'projector', 'tv_box'):
                 entities.append(MitvMediaPlayerEntity(config, srv))
             elif srv.name in ['doorbell']:
                 entities.append(MiotDoorbellEntity(config, srv))
@@ -429,6 +429,10 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         if not self._state_attrs.get('6095_state') and self.conn_mode != 'cloud':
             sta = STATE_OFF
         return sta
+
+    @property
+    def device_class(self):
+        return DEVICE_CLASS_TV
 
     def play_media(self, media_type, media_id, **kwargs):
         """Play a piece of media."""
