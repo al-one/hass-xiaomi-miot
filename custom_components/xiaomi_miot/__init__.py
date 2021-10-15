@@ -1290,32 +1290,32 @@ class MiotEntity(MiioEntity):
             partial(self.get_properties, mapping, **kwargs)
         )
 
-    def set_property(self, prop, value):
-        if isinstance(prop, MiotProperty):
-            siid = prop.siid
-            piid = prop.iid
-            prop = prop.full_name
+    def set_property(self, field, value):
+        if isinstance(field, MiotProperty):
+            siid = field.siid
+            piid = field.iid
+            field = field.full_name
         else:
-            ext = self.miot_mapping.get(prop) or {}
+            ext = self.miot_mapping.get(field) or {}
             if not ext:
-                self.logger.warning('%s: Set miot property %s(%s) failed: property not found', self.name, prop, value)
+                self.logger.warning('%s: Set miot property %s(%s) failed: property not found', self.name, field, value)
                 return False
             siid = ext['siid']
             piid = ext['piid']
         try:
             result = self.set_miot_property(siid, piid, value)
         except (DeviceException, MiCloudException) as exc:
-            self.logger.error('%s: Set miot property %s(%s) failed: %s', self.name, prop, value, exc)
+            self.logger.error('%s: Set miot property %s(%s) failed: %s', self.name, field, value, exc)
             return False
         ret = result.is_success if result else False
         if ret:
-            if prop in self._state_attrs:
+            if field in self._state_attrs:
                 self.update_attrs({
-                    prop: value,
+                    field: value,
                 }, update_parent=False)
-            self.logger.debug('%s: Set miot property %s(%s), result: %s', self.name, prop, value, result)
+            self.logger.debug('%s: Set miot property %s(%s), result: %s', self.name, field, value, result)
         else:
-            self.logger.info('%s: Set miot property %s(%s) failed, result: %s', self.name, prop, value, result)
+            self.logger.info('%s: Set miot property %s(%s) failed, result: %s', self.name, field, value, result)
         return ret
 
     async def async_set_property(self, *args, **kwargs):
