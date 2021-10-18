@@ -249,6 +249,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'dryer,uv',
         'fan_properties': 'drying_level',
     },
+    '*.camera.*': {
+        'miot_cloud_action': True,
+    },
     '*.cateye.*': {
         'use_motion_stream': True,
     },

@@ -33,7 +33,7 @@ MIOT_LOCAL_MODELS = [
     'dreame.vacuum.p2041',
     'dreame.vacuum.p2157',
     'ijai.vacuum.v2',
-    # 'isa.camera.hlc7',
+    'isa.camera.hlc7',
     'julun.switch.jlsw01',
     'kejia.airer.mznpro',
     'leishi.light.eps118',

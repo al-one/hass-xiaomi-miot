@@ -325,7 +325,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 vap = self._srv_stream.get_property('video_attribute')
                 if vav is None and vap and vap.value_list:
                     vav = (vap.value_list.pop(0) or {}).get('value')
-                if self.miot_cloud:
+                if self.xiaomi_cloud:
                     if self._act_stop_stream:
                         self.miot_action(
                             self._srv_stream.iid,
