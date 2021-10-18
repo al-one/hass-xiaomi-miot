@@ -14,7 +14,7 @@ MIOT_LOCAL_MODELS = [
     'chuangmi.plug.212a01',
     'chunmi.health_pot.a1',
     'cubee.airrtc.th123e',
-    'cubee.airrtc.th123w',
+    # 'cubee.airrtc.th123w',  # issues/213
     'cuco.plug.cp2',
     'cuco.plug.cp2a',
     'cuco.plug.cp3a',
