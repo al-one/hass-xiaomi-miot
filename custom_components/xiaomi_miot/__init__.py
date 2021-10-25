@@ -1427,15 +1427,19 @@ class MiotEntity(MiioEntity):
         )
 
     def turn_on(self, **kwargs):
-        ret = self.set_property('power', True)
-        if ret:
-            self._state = True
+        ret = False
+        if hasattr(self, '_prop_power'):
+            ret = self.set_property(self._prop_power, True)
+            if ret:
+                self._state = True
         return ret
 
     def turn_off(self, **kwargs):
-        ret = self.set_property('power', False)
-        if ret:
-            self._state = False
+        ret = False
+        if hasattr(self, '_prop_power'):
+            ret = self.set_property(self._prop_power, False)
+            if ret:
+                self._state = False
         return ret
 
     def _update_sub_entities(self, properties, services=None, domain=None, option=None):
