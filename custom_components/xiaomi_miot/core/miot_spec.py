@@ -7,6 +7,7 @@ import re
 from .const import DOMAIN, TRANSLATION_LANGUAGES
 from homeassistant.const import *
 from homeassistant.helpers.storage import Store
+from homeassistant.components.sensor import   STATE_CLASS_MEASUREMENT, STATE_CLASS_TOTAL_INCREASING
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -596,7 +597,18 @@ class MiotProperty(MiotSpecInstance):
         elif unit in aliases:
             unit = aliases[unit]
         return unit
-
+    @property
+    def state_class(self):
+        names = {
+            'tds_in': STATE_CLASS_MEASUREMENT,
+            'tds_out': STATE_CLASS_MEASUREMENT,
+            'filter_used_flow': STATE_CLASS_TOTAL_INCREASING,
+            'filter_used_flow': STATE_CLASS_TOTAL_INCREASING,
+        }
+        if self.name in names:
+            return names[self.name]
+        else:
+            return None
     @property
     def device_class(self):
         ret = None
