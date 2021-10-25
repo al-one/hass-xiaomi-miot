@@ -1649,7 +1649,11 @@ class BaseSubEntity(BaseEntity):
             self._unique_id = self._option.get('unique_id')
         if self._option.get('name'):
             self._name = self._option.get('name')
-        if hasattr(parent, 'entity_id_prefix'):
+        if self._option.get('entity_id'):
+            self.entity_id = self._option.get('entity_id')
+            if '.' not in self.entity_id:
+                self.entity_id = f'{DOMAIN}.{self.entity_id}'
+        elif hasattr(parent, 'entity_id_prefix'):
             eip = getattr(parent, 'entity_id_prefix')
             if eip:
                 suf = attr

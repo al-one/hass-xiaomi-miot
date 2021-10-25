@@ -139,7 +139,11 @@ class SelectSubEntity(BaseSubEntity, SelectEntity):
     def select_option(self, option):
         """Change the selected option."""
         if self._select_option:
-            if ret := self._select_option(option):
+            kws = {
+                'attr': self._attr,
+                'option': self._option,
+            }
+            if ret := self._select_option(option, **kws):
                 self._attr_current_option = option
             return ret
         raise NotImplementedError()

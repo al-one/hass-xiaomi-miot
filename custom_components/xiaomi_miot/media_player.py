@@ -458,7 +458,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         }
         return self.request_mitv_api('controller', params=pms)
 
-    def press_key(self, key):
+    def press_key(self, key, **kwargs):
         pms = {
             'action': 'keyevent',
             'keycode': key,

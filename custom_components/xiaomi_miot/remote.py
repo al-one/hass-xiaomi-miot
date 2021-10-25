@@ -88,13 +88,27 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                     partial(mic.request_miot_api, 'v2/irdevice/controller/keys', {'did': ird})
                 ) or {}
                 kys = (rdt.get('result') or {}).get('keys', {})
-                if not kys:
-                    self.logger.info('%s: IR device %s(%s) have no keys: %s', self.name, ird, d.get('name'), rdt)
                 irs.append({
                     'did': ird,
                     'name': d.get('name'),
                     'keys': kys,
                 })
+                add_selects = self._add_entities.get('select')
+                if not kys:
+                    self.logger.info('%s: IR device %s(%s) have no keys: %s', self.name, ird, d.get('name'), rdt)
+                elif add_selects and ird not in self._subs:
+                    from .select import SelectSubEntity
+                    ols = [
+                        k.get('display_name') or k.get('name')
+                        for k in kys
+                    ]
+                    self._subs[ird] = SelectSubEntity(self, ird, option={
+                        'name': d.get('name'),
+                        'entity_id': f'remote_{ird}'.replace('.', '_'),
+                        'options': ols,
+                        'select_option': self.press_ir_key,
+                    })
+                    add_selects([self._subs[ird]])
         if irs:
             self._state_attrs['ir_devices'] = irs
 
@@ -136,6 +150,8 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
             'did': did,
             'key_id': key,
         }) or {}
+        if res.get('code'):
+            self.logger.warning('%s: Send IR command %s(%s) failed: %s', self.name, command, did, res)
         return res
 
     async def async_send_command(self, command, **kwargs):
@@ -151,3 +167,17 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
     def delete_command(self, **kwargs):
         """Delete commands from the database."""
         raise NotImplementedError()
+
+    def press_ir_key(self, select, **kwargs):
+        key = None
+        did = kwargs.get('attr')
+        for d in self._state_attrs.get('ir_devices', []):
+            if did and did != d.get('did'):
+                continue
+            for k in d.get('keys', []):
+                if select not in [k.get('display_name'), k.get('name')]:
+                    continue
+                key = k.get('id')
+        if key:
+            return self.send_cloud_command(did, key)
+        return False
