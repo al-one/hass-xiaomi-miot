@@ -10,7 +10,8 @@ MIOT_LOCAL_MODELS = [
     '090615.curtain.ptx82',
     '090615.curtain.sidt82',
     'ateai.mosq.dakuo',
-    'babai.curtain.190812',
+    # 'babai.curtain.190812',  # mode/current_position return -4004
+    # 'babai.curtain.bb82mj',  # mode/current_position return -4004
     'babai.switch.th01a',
     'cgllc.airm.cgdn1',
     'chuangmi.plug.212a01',
