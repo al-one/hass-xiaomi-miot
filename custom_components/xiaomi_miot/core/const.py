@@ -33,11 +33,23 @@ SUPPORTED_DOMAINS = [
 ]
 
 try:
+    # hass 2021.6.0b0+
+    from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
+except ModuleNotFoundError:
+    STATE_CLASS_MEASUREMENT = None
+
+try:
     # hass 2021.7.0b0+
     from homeassistant.components.select import DOMAIN as DOMAIN_SELECT
     SUPPORTED_DOMAINS.append(DOMAIN_SELECT)
 except ModuleNotFoundError:
     DOMAIN_SELECT = None
+
+try:
+    # hass 2021.9.0b0+
+    from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
+except ModuleNotFoundError:
+    STATE_CLASS_TOTAL_INCREASING = None
 
 
 GLOBAL_CUSTOMIZES = {
