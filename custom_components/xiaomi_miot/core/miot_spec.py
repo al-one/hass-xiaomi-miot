@@ -4,10 +4,14 @@ import platform
 import time
 import re
 
-from .const import DOMAIN, TRANSLATION_LANGUAGES
+from .const import (
+    DOMAIN,
+    TRANSLATION_LANGUAGES,
+    STATE_CLASS_MEASUREMENT,
+    STATE_CLASS_TOTAL_INCREASING,
+)
 from homeassistant.const import *
 from homeassistant.helpers.storage import Store
-from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT, STATE_CLASS_TOTAL_INCREASING
 
 _LOGGER = logging.getLogger(__name__)
 
