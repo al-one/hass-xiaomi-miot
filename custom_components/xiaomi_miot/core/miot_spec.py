@@ -604,7 +604,6 @@ class MiotProperty(MiotSpecInstance):
             'tds_in': STATE_CLASS_MEASUREMENT,
             'tds_out': STATE_CLASS_MEASUREMENT,
             'filter_used_flow': STATE_CLASS_TOTAL_INCREASING,
-            'filter_used_flow': STATE_CLASS_TOTAL_INCREASING,
         }
         if self.name in names:
             return names[self.name]
