@@ -1196,7 +1196,7 @@ class MiotEntity(MiioEntity):
 
     def update_miio_cloud_props(self, keys):
         did = str(self.miot_did)
-        mic = self.miot_cloud
+        mic = self.xiaomi_cloud
         if not did or not mic:
             return
         kls = []
@@ -1224,7 +1224,7 @@ class MiotEntity(MiioEntity):
 
     def update_miio_cloud_records(self, keys):
         did = self.miot_did
-        mic = self.miot_cloud
+        mic = self.xiaomi_cloud
         if not did or not mic:
             return
         attrs = {}
@@ -1262,7 +1262,7 @@ class MiotEntity(MiioEntity):
 
     def update_micloud_statistics(self, lst):
         did = self.miot_did
-        mic = self.miot_cloud
+        mic = self.xiaomi_cloud
         if not did or not mic:
             return
         now = int(time.time())
