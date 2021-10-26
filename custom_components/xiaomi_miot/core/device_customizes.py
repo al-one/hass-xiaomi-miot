@@ -5,6 +5,17 @@ DEVICE_CUSTOMIZES = {
     },
     'chuangmi.plug.212a01': {
         'chunk_properties': 7,
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'micloud_statistics': [
+            {
+                'type': 'stat_day_v3',
+                'key': 'prop.5.1',
+                'day': 32,
+                'limit': 31,
+                'attribute': None,
+                'template': 'micloud_statistics_power_cost',
+            },
+        ],
     },
     'chuangmi.plug.v3': {
         'sensor_attributes': 'electric_power,prop_cal_day.power_cost:today,prop_cal_day.power_cost:month',
@@ -15,14 +26,7 @@ DEVICE_CUSTOMIZES = {
             },
         },
         'miio_cloud_records': 'prop_cal_day.power_cost:31',
-        'miio_prop_cal_day_power_cost_template': "{%- set val = (result.0 | default({})).get('value',{}) %}"
-                                                 "{%- set day = now().day %}"
-                                                 "{{ {"
-                                                 "'today': val.pc | default(0),"
-                                                 "'today_duration': val.pc_time | default(0),"
-                                                 "'month': result[:day] | sum(attribute='value.pc'),"
-                                                 "'month_duration': result[:day] | sum(attribute='value.pc_time'),"
-                                                 "} }}",
+        'miio_prop_cal_day_power_cost_template': 'chuangmi_plug_v3_power_cost',
     },
     'chuangmi.plug.*': {
         'sensor_properties': 'temperature',
@@ -35,6 +39,18 @@ DEVICE_CUSTOMIZES = {
     },
     'chuangmi.plug.*:power_consumption': {
         'value_ratio': 0.001,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'chuangmi.plug.*:power_cost_today': {
+        'value_ratio': 0.0001,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'chuangmi.plug.*:power_cost_month': {
+        'value_ratio': 0.0001,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
@@ -122,31 +138,12 @@ DEVICE_CUSTOMIZES = {
     },
     'midr.rv_mirror.*': {
         'miio_cloud_props': 'Status,Position',
-        'miio_cloud_props_template': "{%- set sta = props.get('prop.Status',0) | int %}"
-                                     "{%- set pos = props.get('prop.Position','{}') | from_json %}"
-                                     "{%- set tim = pos.get('up_time_stamp',0) | int %}"
-                                     "{{ {"
-                                     "'prop.status': sta,"
-                                     "'prop.position': pos,"
-                                     "'prop.update_at': (tim / 1000) | timestamp_local,"
-                                     "} }}",
+        'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
     },
     'mxiang.cateye.*': {
         'miio_cloud_records': 'prop.is_can_open_video:1,event.human_visit_details:1',
-        'miio_prop_is_can_open_video_template':    "{%- set val = (result.0 | default({})).get('value','[0]') %}"
-                                                   "{%- set val = (val | from_json).0 | int %}"
-                                                   "{{ {"
-                                                   "'is_can_open_video': val,"
-                                                   "'_entity_attrs': True,"
-                                                   "} }}",
-        'miio_event_human_visit_details_template': "{%- set val = (result.0 | default({})).get('value','{}') %}"
-                                                   "{%- set val = val | from_json %}"
-                                                   "{{ {"
-                                                   "'motion_video_time': val.get('visitTime',0) | timestamp_local,"
-                                                   "'motion_video_type': val.get('action'),"
-                                                   "'motion_video_latest': val,"
-                                                   "'_entity_attrs': True,"
-                                                   "} }}",
+        'miio_prop_is_can_open_video_template': 'mxiang_cateye_is_can_open_video',
+        'miio_event_human_visit_details_template': 'mxiang_cateye_human_visit_details',
     },
     'philips.light.cbulb': {
         'miot_cloud_write': True,
@@ -206,20 +203,7 @@ DEVICE_CUSTOMIZES = {
                 'day': 32,
                 'limit': 31,
                 'attribute': None,
-                'template': "{%- set day = now().day %}"
-                            "{%- set dat = namespace(today=0,month=0) %}"
-                            "{%- for d in (result or [])[0:day] %}"
-                            "{%-   set t = d.time | default(0) | int(0) %}"
-                            "{%-   if t > 86400 %}"
-                            "{%-     set v = (d.value | default('[]') | string | from_json) or [] %}"
-                            "{%-     set dat.today = (v[0] | default(0)) / 100 %}"
-                            "{%-     set dat.month = dat.month + dat.today %}"
-                            "{%-   endif %}"
-                            "{%- endfor %}"
-                            "{{ {"
-                            "'power_cost_today': dat.today | round(3),"
-                            "'power_cost_month': dat.month | round(3),"
-                            "} }}",
+                'template': 'micloud_statistics_power_cost',
             },
         ],
     },

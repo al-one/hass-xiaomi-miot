@@ -45,6 +45,7 @@ from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
 )
+from .core.templates import CUSTOM_TEMPLATES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1213,6 +1214,7 @@ class MiotEntity(MiioEntity):
 
         tpl = self.custom_config('miio_cloud_props_template')
         if tpl and props:
+            tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
             tpl = cv.template(tpl)
             tpl.hass = self.hass
             attrs = tpl.render({'props': props})
@@ -1241,6 +1243,7 @@ class MiotEntity(MiioEntity):
             rdt = mic.get_user_device_data(did, key, typ, **kws) or []
             tpl = self.custom_config(f'miio_{typ}_{key}_template')
             if tpl:
+                tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                 tpl = cv.template(tpl)
                 tpl.hass = self.hass
                 rls = tpl.render({'result': rdt})
@@ -1280,6 +1283,7 @@ class MiotEntity(MiioEntity):
             self.logger.debug('%s: Got micloud statistics: %s', self.name, rdt)
             tpl = c.get('template')
             if tpl:
+                tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                 tpl = cv.template(tpl)
                 tpl.hass = self.hass
                 rls = tpl.render(rdt)
