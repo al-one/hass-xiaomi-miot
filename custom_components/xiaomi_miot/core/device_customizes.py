@@ -91,17 +91,36 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 7,
     },
     'lumi.acpartner.*': {
-        'sensor_attributes': 'electric_power',
+        'sensor_attributes': 'electric_power,power_cost_today,power_cost_month',
         'miio_cloud_props': 'ac_power',
-        'miio_cloud_props_template': "{%- set val = props.get('prop.ac_power',props.get('prop.load_power',0)) %}"
-                                     "{{ {"
-                                     "'electric_power': val | round(2),"
-                                     "} }}",
+        'miio_cloud_props_template': 'lumi_acpartner_electric_power',
+        'micloud_statistics': [
+            {
+                'type': 'stat_day',
+                'key': 'powerCost',
+                'day': 32,
+                'limit': 31,
+                'attribute': None,
+                'template': 'micloud_statistics_power_cost',
+            },
+        ],
     },
     'lumi.acpartner.*:electric_power': {
         'state_class': 'measurement',
         'device_class': 'power',
         'unit_of_measurement': 'W',
+    },
+    'lumi.acpartner.*:power_cost_today': {
+        'value_ratio': 0.1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'lumi.acpartner.*:power_cost_month': {
+        'value_ratio': 0.1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
     },
     'lumi.ctrl_neutral1.*': {
         'cloud_delay_update': 10,
