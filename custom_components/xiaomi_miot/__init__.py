@@ -1660,7 +1660,6 @@ class BaseSubEntity(BaseEntity):
                 if self._dict_key:
                     suf = f'{suf}_{self._dict_key}'
                 self.entity_id = f'{eip}_{suf}'
-        self._attr_state_class = self._option.get('state_class')
         self._supported_features = int(self._option.get('supported_features', 0))
         self._extra_attrs = {
             'entity_class': self.__class__.__name__,
