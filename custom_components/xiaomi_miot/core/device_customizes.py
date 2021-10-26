@@ -197,11 +197,47 @@ DEVICE_CUSTOMIZES = {
             'extension.rc_list':   {'siid': 4, 'piid': 3},
         },
     },
+    'zimi.plug.zncz01': {
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'micloud_statistics': [
+            {
+                'type': 'stat_day_v3',
+                'key': '3.2',
+                'day': 32,
+                'limit': 31,
+                'attribute': None,
+                'template': "{%- set day = now().day %}"
+                            "{%- set dat = namespace(today=0,month=0) %}"
+                            "{%- for d in (result or [])[0:day] %}"
+                            "{%-   set t = d.time | default(0) | int(0) %}"
+                            "{%-   if t > 86400 %}"
+                            "{%-     set v = (d.value | default('[]') | string | from_json) or [] %}"
+                            "{%-     set dat.today = (v[0] | default(0)) / 100 %}"
+                            "{%-     set dat.month = dat.month + dat.today %}"
+                            "{%-   endif %}"
+                            "{%- endfor %}"
+                            "{{ {"
+                            "'power_cost_today': dat.today | round(3),"
+                            "'power_cost_month': dat.month | round(3),"
+                            "} }}",
+            },
+        ],
+    },
     'zimi.plug.*:electric_power': {
         'value_ratio': 0.01,
         'state_class': 'measurement',
         'device_class': 'power',
         'unit_of_measurement': 'W',
+    },
+    'zimi.plug.*:power_cost_today': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'zimi.plug.*:power_cost_month': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
     },
     'zimi.powerstrip.v2': {
         'sensor_attributes': 'electric_power,store.powerCost:today,store.powerCost:month',

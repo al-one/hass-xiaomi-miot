@@ -1137,21 +1137,22 @@ class MiotEntity(MiioEntity):
         self.logger.debug('%s: Got new state: %s', self.name, attrs)
 
         # update miio prop/event in cloud
-        cls = self.custom_config_list('miio_cloud_records')
-        if cls:
+        if cls := self.custom_config_list('miio_cloud_records'):
             await self.hass.async_add_executor_job(partial(self.update_miio_cloud_records, cls))
-        pls = self.custom_config_list('miio_cloud_props')
-        if pls:
+
+        if pls := self.custom_config_list('miio_cloud_props'):
             await self.hass.async_add_executor_job(partial(self.update_miio_cloud_props, pls))
 
+        # update micloud statistics in cloud
+        if cls := self.custom_config_list('micloud_statistics'):
+            await self.hass.async_add_executor_job(partial(self.update_micloud_statistics, cls))
+
         # update miio properties in lan
-        pls = self.custom_config_list('miio_properties')
-        if pls:
+        if pls := self.custom_config_list('miio_properties'):
             await self.hass.async_add_executor_job(partial(self.update_miio_props, pls))
 
         # update miio commands in lan
-        cls = self.custom_config_json('sensor_miio_commands')
-        if cls:
+        if cls := self.custom_config_json('sensor_miio_commands'):
             await self.hass.async_add_executor_job(partial(self.update_miio_command_sensors, cls))
 
     def update_miio_props(self, props):
@@ -1253,6 +1254,45 @@ class MiotEntity(MiioEntity):
                 attrs.update(rls)
             else:
                 attrs[f'{typ}.{key}'] = rls
+        if attrs:
+            self.update_attrs(attrs)
+
+    def update_micloud_statistics(self, lst):
+        did = self.miot_did
+        mic = self.miot_cloud
+        if not did or not mic:
+            return
+        now = int(time.time())
+        attrs = {}
+        for c in lst:
+            if not c.get('key'):
+                continue
+            day = c.get('day') or 7
+            pms = {
+                'did': did,
+                'key': c.get('key'),
+                'data_type': c.get('type', 'stat_day_v3'),
+                'time_start': now - 86400 * day,
+                'time_end': now + 60,
+                'limit': int(c.get('limit') or 1),
+            }
+            rdt = mic.request_miot_api('v2/user/statistics', pms) or {}
+            self.logger.debug('%s: Got micloud statistics: %s', self.name, rdt)
+            tpl = c.get('template')
+            if tpl:
+                tpl = cv.template(tpl)
+                tpl.hass = self.hass
+                rls = tpl.render(rdt)
+            else:
+                rls = [
+                    v.get('value')
+                    for v in rdt
+                    if 'value' in v
+                ]
+            if anm := c.get('attribute'):
+                attrs[anm] = rls
+            elif isinstance(rls, dict):
+                attrs.update(rls)
         if attrs:
             self.update_attrs(attrs)
 
