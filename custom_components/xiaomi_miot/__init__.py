@@ -1017,16 +1017,16 @@ class MiotEntity(MiioEntity):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
         updater = 'none'
-        results = []
-        mmp = self.miot_mapping
+        results = None
+        mapping = self.miot_mapping
         max_properties = 10
         try:
-            if not mmp:
-                pass
+            if not mapping:
+                results = []
             elif mic := self.miot_cloud:
                 updater = 'cloud'
                 results = await self.hass.async_add_executor_job(
-                    partial(mic.get_properties_for_mapping, self.miot_did, mmp)
+                    partial(mic.get_properties_for_mapping, self.miot_did, mapping)
                 )
                 if self.custom_config_bool('check_lan'):
                     if self.miot_device:
@@ -1037,14 +1037,14 @@ class MiotEntity(MiioEntity):
             elif self.miot_device:
                 updater = 'lan'
                 if self._vars.get('has_local_mapping'):
-                    mmp = self._device.mapping
+                    mapping = self._device.mapping
                 max_properties = self.custom_config_integer('chunk_properties') or max_properties
                 results = await self.hass.async_add_executor_job(
                     partial(
                         self._device.get_properties_for_mapping,
                         max_properties=max_properties,
                         did=self.miot_did,
-                        mapping=mmp,
+                        mapping=mapping,
                     )
                 )
             else:
@@ -1053,16 +1053,16 @@ class MiotEntity(MiioEntity):
             self._available = False
             self.logger.error(
                 '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s',
-                self.name, exc, mmp, max_properties,
+                self.name, exc, mapping, max_properties,
             )
         except MiCloudException as exc:
             self._available = False
             self.logger.error(
                 '%s: Got MiCloudException while fetching the state: %s, mapping: %s',
-                self.name, exc, mmp,
+                self.name, exc, mapping,
             )
-        results = MiotResults(results or [], mmp)
-        if not results.is_valid:
+        result = MiotResults(results, mapping)
+        if not result.is_valid:
             self._available = False
             if self._vars.get('track_miot_error') and updater == 'lan':
                 await async_analytics_track_event(
@@ -1071,13 +1071,13 @@ class MiotEntity(MiioEntity):
                     results=results,
                 )
                 self._vars.pop('track_miot_error', None)
-            if results.is_empty:
+            if result.is_empty and results:
                 self.logger.warning(
                     '%s: Got invalid miot result while fetching the state: %s, mapping: %s',
-                    self.name, results, mmp,
+                    self.name, results, mapping,
                 )
             return False
-        attrs = results.to_attributes(self._state_attrs)
+        attrs = result.to_attributes(self._state_attrs)
         attrs['state_updater'] = updater
         self._available = True
         self._state = True if self._state_attrs.get('power') else False
