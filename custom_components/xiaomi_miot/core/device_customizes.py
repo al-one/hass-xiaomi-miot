@@ -195,6 +195,10 @@ DEVICE_CUSTOMIZES = {
         'miio_properties': 'run_state,mode,err_state,battary_life,box_type,mop_type,s_time,s_area,'
                            'suction_grade,water_grade,remember_map,has_map,is_mop,has_newmap',
     },
+    'viomi.waterheater.e1': {
+        'miio_properties': 'washStatus,velocity,waterTemp,targetTemp,errStatus,'
+                           'hotWater,needClean,modeType,appointStart,appointEnd',
+    },
     'xiaomi.tv.*': {
         'number_properties': 'speaker.volume',
     },

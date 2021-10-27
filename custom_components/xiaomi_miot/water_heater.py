@@ -132,8 +132,11 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     @property
     def current_temperature(self):
         """Return the current temperature."""
+        if 'miio.waterTemp' in self._state_attrs:
+            # viomi.waterheater.e1
+            return round(self._state_attrs.get('miio.waterTemp') or 0)
         if self._prop_temperature:
-            return int(self._prop_temperature.from_dict(self._state_attrs) or 0)
+            return round(self._prop_temperature.from_dict(self._state_attrs) or 0, 2)
         return None
 
     @property
@@ -171,9 +174,12 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     def target_temperature(self):
         """Return the temperature we try to reach."""
         if self._prop_target_temp:
-            val = int(self._prop_target_temp.from_dict(self._state_attrs) or 0)
+            val = round(self._prop_target_temp.from_dict(self._state_attrs) or 0, 2)
             if val:
                 self._prev_target_temp = val
+            elif 'miio.targetTemp' in self._state_attrs:
+                # viomi.waterheater.e1
+                val = round(self._state_attrs.get('miio.targetTemp') or 0)
             elif self._prev_target_temp:
                 val = self._prev_target_temp
             return val
