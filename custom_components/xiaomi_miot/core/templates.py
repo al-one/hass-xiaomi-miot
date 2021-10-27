@@ -41,12 +41,10 @@ CUSTOM_TEMPLATES = {
                                   "'prop.position': pos,"
                                   "'prop.update_at': (tim / 1000) | timestamp_local,"
                                   "} }}",
-    'mxiang_cateye_is_can_open_video': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
-                                       "{%- set val = (val | from_json).0 | int %}"
-                                       "{{ {"
-                                       "'is_can_open_video': val,"
-                                       "'_entity_attrs': True,"
-                                       "} }}",
+    'mxiang_cateye_cloud_props': "{{ {"
+                                 "'battery_level':     props.get('prop.battery_level','0')     | from_json | int,"
+                                 "'is_can_open_video': props.get('prop.is_can_open_video','0') | from_json | int,"
+                                 "} }}",
     'mxiang_cateye_human_visit_details': "{%- set val = (result.0 | default({})).get('value','{}') %}"
                                          "{%- set val = val | from_json %}"
                                          "{{ {"

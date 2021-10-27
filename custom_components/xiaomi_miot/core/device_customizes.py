@@ -160,8 +160,9 @@ DEVICE_CUSTOMIZES = {
         'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
     },
     'mxiang.cateye.*': {
-        'miio_cloud_records': 'prop.is_can_open_video:1,event.human_visit_details:1',
-        'miio_prop_is_can_open_video_template': 'mxiang_cateye_is_can_open_video',
+        'miio_cloud_props': 'battery_level,is_can_open_video',
+        'miio_cloud_records': 'event.human_visit_details:1',
+        'miio_cloud_props_template': 'mxiang_cateye_cloud_props',
         'miio_event_human_visit_details_template': 'mxiang_cateye_human_visit_details',
     },
     'philips.light.cbulb': {
