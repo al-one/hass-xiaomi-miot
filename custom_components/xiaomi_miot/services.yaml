@@ -3,7 +3,7 @@ send_command:
   fields:
     entity_id:
       description: ID of the entity.
-      example: "light.yeelight_living_e92c"
+      example: light.yeelight_living_e92c
       required: true
       selector:
         entity:
@@ -32,7 +32,7 @@ get_properties:
   fields:
     entity_id:
       description: ID of the entity.
-      example: "climate.xiaomi_mc5_374e"
+      example: climate.xiaomi_mc5_374e
       required: true
       selector:
         entity:
@@ -55,14 +55,14 @@ set_property:
   fields:
     entity_id:
       description: ID of the entity.
-      example: "climate.xiaomi_mc5_374e"
+      example: climate.xiaomi_mc5_374e
       required: true
       selector:
         entity:
           integration: xiaomi_miot
     field:
       description: Field of property.
-      example: "air_conditioner.on"
+      example: air_conditioner.on
       required: true
       selector:
         text:
@@ -78,7 +78,7 @@ set_miot_property:
   fields:
     entity_id:
       description: ID of the entity.
-      example: "climate.xiaomi_mc5_374e"
+      example: climate.xiaomi_mc5_374e
       required: true
       selector:
         entity:
@@ -113,7 +113,7 @@ call_action:
   fields:
     entity_id:
       description: ID of the entity.
-      example: "media_player.xiaoai_x08c"
+      example: media_player.xiaoai_x08c
       required: true
       selector:
         entity:
@@ -153,7 +153,7 @@ intelligent_speaker:
   fields:
     entity_id:
       description: ID of the entity.
-      example: "media_player.xiaoai_x08c"
+      example: media_player.xiaoai_x08c
       required: true
       selector:
         entity:
@@ -189,7 +189,7 @@ get_device_data:
   fields:
     entity_id:
       description: ID of the entity.
-      example: "sensor.xiaomi_lock"
+      example: sensor.xiaomi_lock
       required: true
       selector:
         entity:
@@ -254,7 +254,7 @@ get_token:
   description: Get xiaomi device token.
   fields:
     name:
-      description: Keyword of device name.
+      description: Keyword of device name in Mihome / IP / Model.
       required: true
       selector:
         text:
@@ -264,7 +264,7 @@ get_bindkey:
   fields:
     entity_id:
       description: ID of the entity.
-      example: "sensor.lywsd03mmc_temperature"
+      example: sensor.lywsd03mmc_temperature
       required: true
       selector:
         entity:
@@ -279,14 +279,14 @@ request_xiaomi_api:
   fields:
     entity_id:
       description: ID of the entity.
-      example: "sensor.xiaomi_device"
+      example: sensor.xiaomi_device
       required: true
       selector:
         entity:
           integration: xiaomi_miot
     api:
       description: Xiaomi API path.
-      example: "/home/device_list"
+      example: /home/device_list
       required: true
       selector:
         text:

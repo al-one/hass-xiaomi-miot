@@ -379,6 +379,7 @@ async def async_setup_component_services(hass):
 
     async def async_get_token(call):
         nam = call.data.get('name')
+        kwd = f'{nam}'.strip().lower()
         cls = []
         for k, v in hass.data[DOMAIN].items():
             if isinstance(v, dict):
@@ -391,16 +392,21 @@ async def async_setup_component_services(hass):
         for cld in cls:
             dvs = await cld.async_get_devices() or []
             for d in dvs:
-                did = d.get('did')
+                if not isinstance(d, dict):
+                    continue
+                did = d.get('did') or ''
                 if dls.get(did):
                     continue
-                if isinstance(d, dict) and nam in d.get('name'):
+                dnm = f"{d.get('name') or ''}"
+                dip = d.get('localip') or ''
+                dmd = d.get('model') or ''
+                if kwd in dnm.lower() or kwd == dip or kwd in dmd:
                     lst.append({
                         'did': did,
-                        CONF_NAME: d.get('name'),
-                        CONF_HOST: d.get('localip'),
+                        CONF_NAME: dnm,
+                        CONF_HOST: dip,
+                        CONF_MODEL: dmd,
                         CONF_TOKEN: d.get('token'),
-                        CONF_MODEL: d.get('model'),
                     })
                 dls[did] = 1
                 cnt += 1
