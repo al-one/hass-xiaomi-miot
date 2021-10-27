@@ -63,6 +63,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 continue
             if srv.name in ['toilet']:
                 entities.append(MiotToiletEntity(config, srv))
+            elif srv.name in ['seat'] and spec.name in ['toilet']:
+                # tinymu.toiletlid.v1
+                entities.append(MiotToiletEntity(config, srv))
             elif 'blt.' in did:
                 entities.append(BleBinarySensorEntity(config, srv))
             elif 'lumi.' in model:
@@ -280,6 +283,12 @@ class MiotToiletEntity(MiotBinarySensorEntity):
             prop = seat.get_property('heat_level')
             if prop:
                 pls.append(prop)
+            else:
+                self._update_sub_entities(
+                    ['heating', 'deodorization'],
+                    [seat.name],
+                    domain='switch',
+                )
         for p in pls:
             if not p.value_list and not p.value_range:
                 continue

@@ -5,6 +5,17 @@ DEVICE_CUSTOMIZES = {
     },
     'chuangmi.plug.212a01': {
         'chunk_properties': 7,
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'micloud_statistics': [
+            {
+                'type': 'stat_day_v3',
+                'key': 'prop.5.1',
+                'day': 32,
+                'limit': 31,
+                'attribute': None,
+                'template': 'micloud_statistics_power_cost',
+            },
+        ],
     },
     'chuangmi.plug.v3': {
         'sensor_attributes': 'electric_power,prop_cal_day.power_cost:today,prop_cal_day.power_cost:month',
@@ -15,14 +26,7 @@ DEVICE_CUSTOMIZES = {
             },
         },
         'miio_cloud_records': 'prop_cal_day.power_cost:31',
-        'miio_prop_cal_day_power_cost_template': "{%- set val = (result.0 | default({})).get('value',{}) %}"
-                                                 "{%- set day = now().day %}"
-                                                 "{{ {"
-                                                 "'today': val.pc | default(0),"
-                                                 "'today_duration': val.pc_time | default(0),"
-                                                 "'month': result[:day] | sum(attribute='value.pc'),"
-                                                 "'month_duration': result[:day] | sum(attribute='value.pc_time'),"
-                                                 "} }}",
+        'miio_prop_cal_day_power_cost_template': 'chuangmi_plug_v3_power_cost',
     },
     'chuangmi.plug.*': {
         'sensor_properties': 'temperature',
@@ -35,6 +39,18 @@ DEVICE_CUSTOMIZES = {
     },
     'chuangmi.plug.*:power_consumption': {
         'value_ratio': 0.001,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'chuangmi.plug.*:power_cost_today': {
+        'value_ratio': 0.0001,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'chuangmi.plug.*:power_cost_month': {
+        'value_ratio': 0.0001,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
@@ -75,17 +91,36 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 7,
     },
     'lumi.acpartner.*': {
-        'sensor_attributes': 'electric_power',
+        'sensor_attributes': 'electric_power,power_cost_today,power_cost_month',
         'miio_cloud_props': 'ac_power',
-        'miio_cloud_props_template': "{%- set val = props.get('prop.ac_power',props.get('prop.load_power',0)) %}"
-                                     "{{ {"
-                                     "'electric_power': val | round(2),"
-                                     "} }}",
+        'miio_cloud_props_template': 'lumi_acpartner_electric_power',
+        'micloud_statistics': [
+            {
+                'type': 'stat_day',
+                'key': 'powerCost',
+                'day': 32,
+                'limit': 31,
+                'attribute': None,
+                'template': 'micloud_statistics_power_cost',
+            },
+        ],
     },
     'lumi.acpartner.*:electric_power': {
         'state_class': 'measurement',
         'device_class': 'power',
         'unit_of_measurement': 'W',
+    },
+    'lumi.acpartner.*:power_cost_today': {
+        'value_ratio': 0.1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'lumi.acpartner.*:power_cost_month': {
+        'value_ratio': 0.1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
     },
     'lumi.ctrl_neutral1.*': {
         'cloud_delay_update': 10,
@@ -122,31 +157,13 @@ DEVICE_CUSTOMIZES = {
     },
     'midr.rv_mirror.*': {
         'miio_cloud_props': 'Status,Position',
-        'miio_cloud_props_template': "{%- set sta = props.get('prop.Status',0) | int %}"
-                                     "{%- set pos = props.get('prop.Position','{}') | from_json %}"
-                                     "{%- set tim = pos.get('up_time_stamp',0) | int %}"
-                                     "{{ {"
-                                     "'prop.status': sta,"
-                                     "'prop.position': pos,"
-                                     "'prop.update_at': (tim / 1000) | timestamp_local,"
-                                     "} }}",
+        'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
     },
     'mxiang.cateye.*': {
-        'miio_cloud_records': 'prop.is_can_open_video:1,event.human_visit_details:1',
-        'miio_prop_is_can_open_video_template':    "{%- set val = (result.0 | default({})).get('value','[0]') %}"
-                                                   "{%- set val = (val | from_json).0 | int %}"
-                                                   "{{ {"
-                                                   "'is_can_open_video': val,"
-                                                   "'_entity_attrs': True,"
-                                                   "} }}",
-        'miio_event_human_visit_details_template': "{%- set val = (result.0 | default({})).get('value','{}') %}"
-                                                   "{%- set val = val | from_json %}"
-                                                   "{{ {"
-                                                   "'motion_video_time': val.get('visitTime',0) | timestamp_local,"
-                                                   "'motion_video_type': val.get('action'),"
-                                                   "'motion_video_latest': val,"
-                                                   "'_entity_attrs': True,"
-                                                   "} }}",
+        'miio_cloud_props': 'battery_level,is_can_open_video',
+        'miio_cloud_records': 'event.human_visit_details:1',
+        'miio_cloud_props_template': 'mxiang_cateye_cloud_props',
+        'miio_event_human_visit_details_template': 'mxiang_cateye_human_visit_details',
     },
     'philips.light.cbulb': {
         'miot_cloud_write': True,
@@ -197,11 +214,34 @@ DEVICE_CUSTOMIZES = {
             'extension.rc_list':   {'siid': 4, 'piid': 3},
         },
     },
+    'zimi.plug.zncz01': {
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'micloud_statistics': [
+            {
+                'type': 'stat_day_v3',
+                'key': '3.2',
+                'day': 32,
+                'limit': 31,
+                'attribute': None,
+                'template': 'micloud_statistics_power_cost',
+            },
+        ],
+    },
     'zimi.plug.*:electric_power': {
         'value_ratio': 0.01,
         'state_class': 'measurement',
         'device_class': 'power',
         'unit_of_measurement': 'W',
+    },
+    'zimi.plug.*:power_cost_today': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'zimi.plug.*:power_cost_month': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
     },
     'zimi.powerstrip.v2': {
         'sensor_attributes': 'electric_power,store.powerCost:today,store.powerCost:month',
