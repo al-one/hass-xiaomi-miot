@@ -1710,7 +1710,6 @@ class BaseSubEntity(BaseEntity):
                 if self._dict_key:
                     suf = f'{suf}_{self._dict_key}'
                 self.entity_id = f'{eip}_{suf}'
-        self._attr_state_class = self._option.get('state_class')
         self._supported_features = int(self._option.get('supported_features', 0))
         self._extra_attrs = {
             'entity_class': self.__class__.__name__,
@@ -1773,7 +1772,11 @@ class BaseSubEntity(BaseEntity):
     @property
     def unit_of_measurement(self):
         return self._option.get('unit')
-
+        
+    @property
+    def state_class(self):
+        return self._option.get('state_class')
+        
     @property
     def miot_cloud(self):
         mic = self._parent.miot_cloud
@@ -1885,7 +1888,8 @@ class MiotPropertySubEntity(BaseSubEntity):
         if not self._option.get('unique_id'):
             self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
         self.entity_id = miot_property.generate_entity_id(self)
-
+        if 'state_class' not in self._option:
+            self._option['state_class'] = miot_property.state_class
         if 'icon' not in self._option:
             self._option['icon'] = miot_property.entity_icon
         if 'unit' not in self._option:
