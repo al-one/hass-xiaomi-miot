@@ -393,33 +393,34 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 'app_page': rdt.get('clz'),
             })
 
-        pms = {
-            'action': 'getinstalledapp',
-            'count': 999,
-            'changeIcon': 1,
-        }
-        rdt = await self.async_request_mitv_api('controller', params=pms)
-        if lst := rdt.get('AppInfo', []):
-            ias = {
-                a.get('PackageName'): a.get('AppName')
-                for a in lst
+        if self._state_attrs.get('6095_state'):
+            pms = {
+                'action': 'getinstalledapp',
+                'count': 999,
+                'changeIcon': 1,
             }
-            als = [
-                f'{v} - {k}'
-                for k, v in ias.items()
-            ]
-            add_selects = self._add_entities.get('select')
-            sub = 'apps'
-            if sub in self._subs:
-                self._subs[sub].update_options(als)
-                self._subs[sub].update()
-            elif add_selects:
-                from .select import SelectSubEntity
-                self._subs[sub] = SelectSubEntity(self, 'app_current', option={
-                    'options': als,
-                    'select_option': self.start_app,
-                })
-                add_selects([self._subs[sub]])
+            rdt = await self.async_request_mitv_api('controller', params=pms)
+            if lst := rdt.get('AppInfo', []):
+                ias = {
+                    a.get('PackageName'): a.get('AppName')
+                    for a in lst
+                }
+                als = [
+                    f'{v} - {k}'
+                    for k, v in ias.items()
+                ]
+                add_selects = self._add_entities.get('select')
+                sub = 'apps'
+                if sub in self._subs:
+                    self._subs[sub].update_options(als)
+                    self._subs[sub].update()
+                elif add_selects:
+                    from .select import SelectSubEntity
+                    self._subs[sub] = SelectSubEntity(self, 'app_current', option={
+                        'options': als,
+                        'select_option': self.start_app,
+                    })
+                    add_selects([self._subs[sub]])
 
         self._state_attrs.update(adt)
 
@@ -485,8 +486,9 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 self.logger.warning('%s: Request mitv api error: %s', self.name, req.text)
         except requests.exceptions.RequestException as exc:
             rdt = {}
+            if self._state_attrs.get('6095_state'):
+                self.logger.warning('%s: Request mitv api error: %s', self.name, exc)
             self._state_attrs['6095_state'] = False
-            self.logger.warning('%s: Request mitv api error: %s', self.name, exc)
         return rdt.get('data') or {}
 
     async def async_request_mitv_api(self, path, **kwargs):
