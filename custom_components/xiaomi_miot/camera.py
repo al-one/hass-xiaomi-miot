@@ -240,13 +240,42 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             add_cameras([self._motion_entity])
 
         adt = None
+        lag = locale.getdefaultlocale()[0]
+        stm = int(time.time() - 86400 * 7) * 1000
+        etm = int(time.time() * 1000 + 999)
         if not self._motion_enable and not self._motion_entity:
             pass
         elif 'motion_video_latest' in self._state_attrs:
             adt = {
                 'motion_video_updated': 1,
             }
-        elif mic := self.xiaomi_cloud:
+        elif not (mic := self.xiaomi_cloud):
+            pass
+        elif self.custom_config_bool('use_alarm_playlist'):
+            api = mic.get_api_by_host('business.smartcamera.api.io.mi.com', 'miot/camera/app/v1/alarm/playlist/limit')
+            rqd = {
+                'did': self.miot_did,
+                'region': str(mic.default_server).upper(),
+                'language': lag,
+                'beginTime': stm,
+                'endTime': etm,
+                'limit': 2,
+            }
+            rdt = await self.hass.async_add_executor_job(
+                partial(mic.request_miot_api, api, rqd, method='GET', crypt=True)
+            ) or {}
+            rls = rdt.get('data', {}).get('playUnits') or []
+            if rls:
+                fst = rls[0] or {}
+                tim = fst.pop('createTime', 0) / 1000
+                adt = {
+                    'motion_video_time': f'{datetime.fromtimestamp(tim)}',
+                    'motion_video_type': ','.join(fst.get('tags') or []),
+                    'motion_video_latest': fst,
+                }
+            else:
+                _LOGGER.warning('%s: camera alarm playlist is empty. %s', self.name, rdt)
+        else:
             api = mic.get_api_by_host('business.smartcamera.api.io.mi.com', 'common/app/get/eventlist')
             rqd = {
                 'did': self.miot_did,
@@ -256,9 +285,9 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 'needMerge': True,
                 'sortType': 'DESC',
                 'region': str(mic.default_server).upper(),
-                'language': locale.getdefaultlocale()[0],
-                'beginTime': int(time.time() - 86400 * 7) * 1000,
-                'endTime': int(time.time() * 1000 + 999),
+                'language': lag,
+                'beginTime': stm,
+                'endTime': etm,
                 'limit': 2,
             }
             rdt = await self.hass.async_add_executor_job(

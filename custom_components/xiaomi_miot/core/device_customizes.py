@@ -3,6 +3,9 @@ DEVICE_CUSTOMIZES = {
     'cgllc.airm.cgdn1': {
         'chunk_properties': 9,
     },
+    'chuangmi.camera.v6': {
+        'use_alarm_playlist': True,
+    },
     'chuangmi.plug.212a01': {
         'chunk_properties': 7,
         'sensor_attributes': 'power_cost_today,power_cost_month',
