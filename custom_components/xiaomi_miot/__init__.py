@@ -688,6 +688,7 @@ class MiioEntity(BaseEntity):
             'model': self._model,
             'manufacturer': (self._model or 'Xiaomi').split('.', 1)[0],
             'sw_version': self._miio_info.firmware_version,
+            'configuration_url': f'https://home.miot-spec.com/s/{self._model}',
         }
 
     async def async_added_to_hass(self):
