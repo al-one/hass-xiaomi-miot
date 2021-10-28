@@ -712,10 +712,13 @@ class MiotAction(MiotSpecInstance):
     def in_params(self, params: list):
         pms = []
         for pid in self.ins:
-            pms.append({
-                'piid': pid,
-                'value': params.pop(0),
-            })
+            val = params.pop(0)
+            if not (isinstance(val, dict) and 'piid' in val):
+                val = {
+                    'piid': pid,
+                    'value': val,
+                }
+            pms.append(val)
         return pms
 
     def out_results(self, out=None):

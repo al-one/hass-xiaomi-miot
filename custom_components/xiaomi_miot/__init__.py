@@ -1427,8 +1427,7 @@ class MiotEntity(MiioEntity):
         aiid = action.iid
         siid = action.service.iid
         pms = params or []
-        if not self.miot_cloud_action:
-            pms = action.in_params(params or [])
+        kwargs['action'] = action
         return self.miot_action(siid, aiid, pms, did, **kwargs)
 
     def miot_action(self, siid, aiid, params=None, did=None, **kwargs):
@@ -1440,15 +1439,19 @@ class MiotEntity(MiioEntity):
             'aiid': aiid,
             'in':   params or [],
         }
-        result = None
         dly = 1
         eno = 1
+        result = None
+        action = kwargs.get('action')
+        if not action and self._miot_service:
+            action = self._miot_service.spec.services.get(siid, {}).actions.get(aiid)
         try:
             mca = self.miot_cloud_action
             if isinstance(mca, MiotCloud):
                 result = mca.do_action(pms)
                 dly = self.custom_config_integer('cloud_delay_update', 5)
             else:
+                pms = action.in_params(params or [])
                 result = self.miot_device.send('action', pms)
             eno = dict(result or {}).get('code', eno)
         except (DeviceException, MiCloudException) as exc:
