@@ -235,7 +235,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             user_input = {}
         else:
-            await check_xiaomi_account(self.hass, user_input, errors)
+            await check_xiaomi_account(self.hass, user_input, errors, renew_devices=True)
             if not errors:
                 return await self.async_step_cloud_filter(user_input)
         return self.async_show_form(
