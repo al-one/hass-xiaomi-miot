@@ -1025,6 +1025,7 @@ class MiotEntity(MiioEntity):
             self._vars.pop('delay_update', 0)
         updater = 'none'
         results = None
+        errors = None
         mapping = self.miot_mapping
         max_properties = 10
         try:
@@ -1058,12 +1059,14 @@ class MiotEntity(MiioEntity):
                 self.logger.error('%s: Local device and miot cloud not ready.', self.name)
         except DeviceException as exc:
             self._available = False
+            errors = f'{exc}'
             self.logger.error(
                 '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s',
                 self.name, exc, mapping, max_properties,
             )
         except MiCloudException as exc:
             self._available = False
+            errors = f'{exc}'
             self.logger.error(
                 '%s: Got MiCloudException while fetching the state: %s, mapping: %s',
                 self.name, exc, mapping,
@@ -1071,11 +1074,13 @@ class MiotEntity(MiioEntity):
         result = MiotResults(results, mapping)
         if not result.is_valid:
             self._available = False
-            if self._vars.get('track_miot_error') and updater == 'lan':
+            if 'Unable to discover the device' in errors:
+                pass
+            elif self._vars.get('track_miot_error') and updater == 'lan':
                 await async_analytics_track_event(
                     self.hass, 'miot', 'error', self._model,
                     firmware=self.device_info.get('sw_version'),
-                    results=results,
+                    results=results or errors,
                 )
                 self._vars.pop('track_miot_error', None)
             if result.is_empty and results:
