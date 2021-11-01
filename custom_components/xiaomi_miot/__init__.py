@@ -1074,7 +1074,7 @@ class MiotEntity(MiioEntity):
         result = MiotResults(results, mapping)
         if not result.is_valid:
             self._available = False
-            if 'Unable to discover the device' in errors:
+            if errors and 'Unable to discover the device' in errors:
                 pass
             elif self._vars.get('track_miot_error') and updater == 'lan':
                 await async_analytics_track_event(
