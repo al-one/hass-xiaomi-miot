@@ -203,9 +203,10 @@ logger:
   2. Select [`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token), Enter the keyword of device name
   3. Find the token from the HA notifications
 - Use MiHome mod by [@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)
-  1. Down apk from [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html)
-  2. Create folder `/sdcard/vevs/logs/` ⚠️
-  3. Find the token from `vevs/logs/misc/devices.txt`
+  1. Down apk from [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html) and install
+  2. Start Mihome APP > Profile > Experimental features
+  3. Check on `Write custom log files` and `Enable app's debug mode`
+  4. Find the token from `vevs/logs/misc/devices.txt` after restart app
 - [Xiaomi Cloud Tokens Extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor)
   1. Download and run [token_extractor.exe](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor/blob/master/token_extractor.exe) for Windows or install [for Python](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor#other-platforms)
   2. Enter username, password and your server region

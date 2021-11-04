@@ -213,6 +213,7 @@ logger:
   3. 在HA通知列表中找到token
 
 - 使用[@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)修改版的米家
-  1. 下载APK [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html)
-  2. 创建目录`/sdcard/vevs/logs/` ⚠️
-  3. 在`vevs/logs/misc/devices.txt`文件中找到token
+  1. 下载APK [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html) 并安装
+  2. 打开米家APP > 我的 > 实验室功能
+  3. 打开`Write custom log files`和`Enable app's debug mode`
+  4. 重启APP后在`vevs/logs/misc/devices.txt`文件中找到token
