@@ -44,6 +44,7 @@ from .core.miot_spec import (
 from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
+    MiCloudAccessDenied,
 )
 from .core.templates import CUSTOM_TEMPLATES
 
@@ -209,7 +210,7 @@ async def async_setup(hass, hass_config: dict):
             hass.data[DOMAIN]['devices_by_mac'] = await mic.async_get_devices_by_key('mac') or {}
             cnt = len(hass.data[DOMAIN]['devices_by_mac'])
             _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', config.get(CONF_USERNAME), cnt)
-        except MiCloudException as exc:
+        except (MiCloudException, MiCloudAccessDenied) as exc:
             _LOGGER.warning('Setup xiaomi cloud for user: %s failed: %s', config.get(CONF_USERNAME), exc)
 
     await _handle_device_registry_event(hass)
@@ -265,7 +266,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         await mic.async_check_auth(notify=True)
         config[CONF_XIAOMI_CLOUD] = mic
         config['devices_by_mac'] = await mic.async_get_devices_by_key('mac', filters=entry) or {}
-    except MiCloudException as exc:
+    except (MiCloudException, MiCloudAccessDenied) as exc:
         _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', entry.get(CONF_USERNAME), exc)
         return False
     if not config.get('devices_by_mac'):

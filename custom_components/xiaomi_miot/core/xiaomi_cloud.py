@@ -8,14 +8,21 @@ import requests
 from datetime import datetime
 from functools import partial
 from urllib.parse import urlparse
-from micloud.micloudexception import MiCloudException  # noqa: F401
 
 from homeassistant.const import *
 from homeassistant.helpers.storage import Store
 from homeassistant.components import persistent_notification
 
-from micloud import miutils
 from .utils import RC4
+from micloud import miutils
+from micloud.micloudexception import MiCloudException
+
+try:
+    from micloud.micloudexception import MiCloudAccessDenied
+except (ModuleNotFoundError, ImportError):
+    class MiCloudAccessDenied(MiCloudException):
+        """ micloud==0.4 """
+
 
 _LOGGER = logging.getLogger(__name__)
 
