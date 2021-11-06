@@ -1158,7 +1158,18 @@ class MiotEntity(MiioEntity):
             await self.hass.async_add_executor_job(partial(self.update_miio_cloud_props, pls))
 
         # update micloud statistics in cloud
-        if cls := self.custom_config_list('micloud_statistics'):
+        cls = self.custom_config_list('micloud_statistics') or []
+        if key := self.custom_config('stat_power_cost_key'):
+            dic = {
+                'type': self.custom_config('stat_power_cost_type', 'stat_day_v3'),
+                'key': key,
+                'day': 32,
+                'limit': 31,
+                'attribute': None,
+                'template': 'micloud_statistics_power_cost',
+            }
+            cls = [*cls, dic]
+        if cls:
             await self.hass.async_add_executor_job(partial(self.update_micloud_statistics, cls))
 
         # update miio properties in lan

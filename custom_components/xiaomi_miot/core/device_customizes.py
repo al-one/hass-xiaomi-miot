@@ -9,16 +9,7 @@ DEVICE_CUSTOMIZES = {
     'chuangmi.plug.212a01': {
         'chunk_properties': 7,
         'sensor_attributes': 'power_cost_today,power_cost_month',
-        'micloud_statistics': [
-            {
-                'type': 'stat_day_v3',
-                'key': 'prop.5.1',
-                'day': 32,
-                'limit': 31,
-                'attribute': None,
-                'template': 'micloud_statistics_power_cost',
-            },
-        ],
+        'stat_power_cost_key': 'prop.5.1',
     },
     'chuangmi.plug.v3': {
         'sensor_attributes': 'electric_power,prop_cal_day.power_cost:today,prop_cal_day.power_cost:month',
@@ -74,7 +65,34 @@ DEVICE_CUSTOMIZES = {
         'miot_local': True,
     },
     'cuco.plug.cp1m': {
-        'sensor_properties': 'power_consumption,voltage,electric_current',
+        'sensor_properties': 'voltage,electric_current,power_cost_today,power_cost_month',
+        'stat_power_cost_key': '2.2',
+    },
+    'cuco.plug.cp2': {
+        'sensor_attributes': 'voltage,electric_current,power_cost_today,power_cost_month',
+        'stat_power_cost_key': '2.2',
+    },
+    'cuco.plug.cp4': {
+        'sensor_attributes': 'voltage,electric_current,power_cost_today,power_cost_month',
+        'stat_power_cost_key': '2.2',
+    },
+    'cuco.plug.cp4am': {
+        'sensor_attributes': 'voltage,electric_current,power_cost_today,power_cost_month',
+        'stat_power_cost_key': '2.2',
+    },
+    'cuco.plug.cp4m': {
+        'sensor_attributes': 'voltage,electric_current,power_cost_today,power_cost_month',
+        'stat_power_cost_key': '2.2',
+    },
+    'cuco.plug.*:power_cost_today': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'cuco.plug.*:power_cost_month': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
     },
     'deerma.humidifier.jsq3': {
         'chunk_properties': 6,
@@ -97,16 +115,8 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'electric_power,power_cost_today,power_cost_month',
         'miio_cloud_props': 'ac_power',
         'miio_cloud_props_template': 'lumi_acpartner_electric_power',
-        'micloud_statistics': [
-            {
-                'type': 'stat_day',
-                'key': 'powerCost',
-                'day': 32,
-                'limit': 31,
-                'attribute': None,
-                'template': 'micloud_statistics_power_cost',
-            },
-        ],
+        'stat_power_cost_type': 'stat_day',
+        'stat_power_cost_key': 'powerCost',
     },
     'lumi.acpartner.*:electric_power': {
         'state_class': 'measurement',
@@ -223,16 +233,7 @@ DEVICE_CUSTOMIZES = {
     },
     'zimi.plug.zncz01': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
-        'micloud_statistics': [
-            {
-                'type': 'stat_day_v3',
-                'key': '3.2',
-                'day': 32,
-                'limit': 31,
-                'attribute': None,
-                'template': 'micloud_statistics_power_cost',
-            },
-        ],
+        'stat_power_cost_key': '3.2',
     },
     'zimi.plug.*:electric_power': {
         'value_ratio': 0.01,
