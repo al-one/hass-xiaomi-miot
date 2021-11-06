@@ -164,9 +164,14 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None, via_did
             fl = f'{f}_list'
             lst = vls.get(f, {})
             lst = dict(sorted(lst.items()))
+            ols = [
+                v
+                for v in user_input.get(fl, [])
+                if v in lst
+            ]
             schema = schema.extend({
-                vol.Optional(fk, default=user_input.get(fk, 'exclude')): vol.In(ies),
-                vol.Optional(fl, default=user_input.get(fl, [])): cv.multi_select(lst),
+                vol.Required(fk, default=user_input.get(fk, 'exclude')): vol.In(ies),
+                vol.Optional(fl, default=ols): cv.multi_select(lst),
             })
         hass.data[DOMAIN]['prev_input'] = user_input
     return schema
