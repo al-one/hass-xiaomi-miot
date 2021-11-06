@@ -62,9 +62,9 @@ class MiotSelectEntity(MiotEntity, SelectEntity):
         raise NotImplementedError()
 
 
-class MiotSelectSubEntity(MiotPropertySubEntity, SelectEntity):
+class MiotSelectSubEntity(SelectEntity, MiotPropertySubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property, option)
+        MiotPropertySubEntity.__init__(self, parent, miot_property, option)
         self._attr_options = miot_property.list_descriptions()
 
     def update(self, data=None):
@@ -75,12 +75,14 @@ class MiotSelectSubEntity(MiotPropertySubEntity, SelectEntity):
         if val is None:
             self._attr_current_option = None
         else:
-            self._attr_current_option = self._miot_property.list_description(val)
+            self._attr_current_option = str(self._miot_property.list_description(val))
 
     def select_option(self, option):
         """Change the selected option."""
         val = self._miot_property.list_value(option)
         if val is not None:
+            if bfs := self._option.get('before_select'):
+                bfs(self._miot_property, option)
             return self.set_parent_property(val)
         return False
 
@@ -123,9 +125,9 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
         return ret
 
 
-class SelectSubEntity(BaseSubEntity, SelectEntity):
+class SelectSubEntity(SelectEntity, BaseSubEntity):
     def __init__(self, parent, attr, option=None):
-        super().__init__(parent, attr, option)
+        BaseSubEntity.__init__(self, parent, attr, option)
         self._available = True
         self._attr_current_option = None
         self._attr_options = self._option.get('options') or []

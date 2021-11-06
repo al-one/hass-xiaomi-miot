@@ -1603,10 +1603,10 @@ class MiotEntity(MiioEntity):
                 elif add_covers and domain == 'cover':
                     self._subs[fnm] = MiotCoverSubEntity(self, p, option=opt)
                     add_covers([self._subs[fnm]])
-                elif add_numbers and domain == 'number':
+                elif add_numbers and domain in ['number', 'number_select'] and p.value_range:
                     self._subs[fnm] = MiotNumberSubEntity(self, p, option=opt)
                     add_numbers([self._subs[fnm]])
-                elif add_selects and domain == 'select' and (p.value_list or p.value_range):
+                elif add_selects and domain in ['select', 'number_select'] and (p.value_list or p.value_range):
                     from .select import MiotSelectSubEntity
                     self._subs[fnm] = MiotSelectSubEntity(self, p, option=opt)
                     add_selects([self._subs[fnm]])

@@ -472,10 +472,6 @@ class MiotCookerSubEntity(MiotModesSubEntity):
 class MiotWasherSubEntity(MiotModesSubEntity):
 
     @property
-    def icon(self):
-        return self._miot_property.entity_icon or super().icon
-
-    @property
     def is_on(self):
         if not self._parent.is_on:
             return False

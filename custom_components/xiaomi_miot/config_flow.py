@@ -34,7 +34,8 @@ DEFAULT_INTERVAL = 30
 
 # 0.1 support multiple integration to add the same device
 # 0.2 new entity id format (model_mac[-4:]_suffix)
-ENTRY_VERSION = 0.2
+# 0.3 washer modes via select
+ENTRY_VERSION = 0.3
 
 CLOUD_SERVERS = {
     'cn': 'China',

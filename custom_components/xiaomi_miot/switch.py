@@ -28,7 +28,6 @@ from .core.miot_spec import (
     MiotProperty,
     MiotAction,
 )
-from .fan import MiotWasherSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -89,6 +88,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
             return
         if self._miot_service.name in ['washer']:
             add_fans = self._add_entities.get('fan')
+            add_selects = self._add_entities.get('select')
             pls = self._miot_service.get_properties(
                 'mode', 'spin_speed', 'rinsh_times',
                 'target_temperature', 'target_water_level',
@@ -99,7 +99,15 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
                     continue
                 if p.name in self._subs:
                     self._subs[p.name].update()
+                elif add_selects and self.entry_config_version >= 0.3:
+                    from .select import MiotSelectSubEntity
+                    opt = {
+                        'before_select': self.before_select_modes,
+                    }
+                    self._subs[p.name] = MiotSelectSubEntity(self, p, option=opt)
+                    add_selects([self._subs[p.name]])
                 elif add_fans:
+                    from .fan import MiotWasherSubEntity
                     self._subs[p.name] = MiotWasherSubEntity(self, p)
                     add_fans([self._subs[p.name]])
 
@@ -133,8 +141,11 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
             self._update_sub_entities(
                 ['mode', 'massage_strength', 'massage_part', 'massage_manipulation'],
                 ['fish_tank', 'pet_drinking_fountain', 'massager'],
-                domain='fan',
+                domain='number_select' if self.entry_config_version >= 0.3 else 'fan',
             )
+
+    def before_select_modes(self, prop, option, **kwargs):
+        return True if self.is_on else self.turn_on()
 
 
 class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
