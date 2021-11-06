@@ -235,6 +235,7 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
 
             # https://iot.mi.com/new/doc/embedded-development/ble/object-definition#%E5%85%89%E7%85%A7%E5%BC%BA%E5%BC%B1%E5%B1%9E%E6%80%A7
             elif k == 'prop.4120':
+                adt['light_strong'] = not not val
                 vlk = 'illumination_level'
                 val = 'strong' if val else 'weak'
                 if self._prop_illumination and self._prop_illumination.value_list:

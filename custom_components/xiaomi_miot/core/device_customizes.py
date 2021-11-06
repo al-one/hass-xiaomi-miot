@@ -167,6 +167,8 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.motion.bmgl01': {
         'use_ble_object': True,
+        'sensor_attributes': 'trigger_at',
+        'binary_sensor_attributes': 'light_strong',
     },
     'lumi.motion.*': {
         'interval_seconds': 15,
@@ -284,21 +286,7 @@ DEVICE_CUSTOMIZES = {
             },
         },
         'miio_cloud_records': 'store.powerCost:31:day',
-        'miio_store_powerCost_template': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
-                                         "{%- set day = now().day %}"
-                                         "{%- set vls = (val | from_json)[0-day:] %}"
-                                         "{%- set dat = namespace(today=0,month=0) %}"
-                                         "{%- for v in vls %}"
-                                         "{%-   set v = (v | string).split(',') %}"
-                                         "{%-   if v[0] | default(0) | int(0) > 86400 %}"
-                                         "{%-     set dat.today = v[1] | default(0) | round(3) %}"
-                                         "{%-     set dat.month = dat.month + dat.today %}"
-                                         "{%-   endif %}"
-                                         "{%- endfor %}"
-                                         "{{ {"
-                                         "'today': dat.today,"
-                                         "'month': dat.month | round(3),"
-                                         "} }}",
+        'miio_store_powerCost_template': 'zimi_powerstrip_v2_power_cost',
     },
     'zimi.powerstrip.*:electric_power': {
         'state_class': 'measurement',
@@ -341,36 +329,17 @@ DEVICE_CUSTOMIZES = {
     '*.lock.*': {
         'sensor_attributes': 'event.7:door_state,event.11:lock_state,event.11:key_id',
         'miio_cloud_records': 'event.7:1,event.11:1',
-        'miio_event_7_template':  "{%- set val = (result.0 | default({})).get('value','[-1]') %}"
-                                  "{%- set val = (val | from_json).0 | string %}"
-                                  "{%- set evt = val[:2] | int(-1,16) %}"
-                                  "{%- set els = ['open','close','close_timeout',"
-                                  "'knock','breaking','stuck','unknown'] %}"
-                                  "{{ {"
-                                  "'door_event': evt,"
-                                  "'door_state': els[evt] | default('unknown'),"
-                                  "} }}",
-        'miio_event_11_template': "{%- set val = (result.0 | default({})).get('value','[-1]') %}"
-                                  "{%- set val = (val | from_json).0 | string %}"
-                                  "{%- set evt = val[:2] | int(-1,16) % 16 %}"
-                                  "{%- set how = val[:2] | int(-1,16) // 16 %}"
-                                  "{%- set key = (0).from_bytes((0).to_bytes(0,'little')"
-                                  ".fromhex(val[2:10]), 'little') %}"
-                                  "{%- set els = ['outside_unlock','lock','anti_lock_on','anti_lock_off',"
-                                  "'inside_unlock','lock_inside','child_lock_on','child_lock_off','unknown'] %}"
-                                  "{%- set mls = ['bluetooth','password','biological','key','turntable',"
-                                  "'nfc','one-time password','two-step verification','coercion','homekit',"
-                                  "'manual','automatic','unknown'] %}"
-                                  "{{ {"
-                                  "'lock_event': evt,"
-                                  "'lock_state': els[evt] | default('unknown'),"
-                                  "'method_id': how,"
-                                  "'method': mls[how] | default('unknown'),"
-                                  "'key_id': key,"
-                                  "} }}",
+        'miio_event_7_template': 'lock_event_7_template',
+        'miio_event_11_template': 'lock_event_11_template',
     },
     '*.microwave.*': {
         'sensor_properties': 'left_time,heat_level,cook_time',
+    },
+    '*.motion.*:light_strong': {
+        'device_class': 'light',
+    },
+    '*.motion.*:trigger_at': {
+        'device_class': 'timestamp',
     },
     '*.oven.*': {
         'sensor_properties': 'temperature,left_time,cook_time,working_time',

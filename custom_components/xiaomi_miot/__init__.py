@@ -772,8 +772,7 @@ class MiioEntity(BaseEntity):
         self._state = attrs.get('power') == 'on'
         self.update_attrs(attrs)
 
-    def _update_attr_sensor_entities(self, attrs, option=None):
-        domain = 'sensor'
+    def _update_attr_sensor_entities(self, attrs, domain='sensor', option=None):
         add_sensors = self._add_entities.get(domain)
         opt = {**(option or {})}
         for a in attrs:
@@ -793,10 +792,17 @@ class MiioEntity(BaseEntity):
                 if tms <= 1:
                     self.logger.info('%s: Device sub entity %s: %s already exists.', self.name, domain, p)
                 continue
-            elif add_sensors:
+            elif not add_sensors:
+                pass
+            elif domain == 'sensor':
                 from .sensor import BaseSensorSubEntity
                 option = {'unique_id': f'{self._unique_did}-{p}', **opt}
                 self._subs[p] = BaseSensorSubEntity(self, a, option=option)
+                add_sensors([self._subs[p]])
+                self._check_same_sub_entity(p, domain, add=1)
+            elif domain == 'binary_sensor':
+                option = {'unique_id': f'{self._unique_did}-{p}', **opt}
+                self._subs[p] = ToggleSubEntity(self, a, option=option)
                 add_sensors([self._subs[p]])
                 self._check_same_sub_entity(p, domain, add=1)
 
@@ -826,9 +832,10 @@ class MiioEntity(BaseEntity):
         if update_parent and hasattr(self, '_parent'):
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
-        pls = self.custom_config_list('sensor_attributes')
-        if pls:
-            self._update_attr_sensor_entities(pls)
+        if pls := self.custom_config_list('sensor_attributes'):
+            self._update_attr_sensor_entities(pls, domain='sensor')
+        if pls := self.custom_config_list('binary_sensor_attributes'):
+            self._update_attr_sensor_entities(pls, domain='binary_sensor')
         return self._state_attrs
 
 
