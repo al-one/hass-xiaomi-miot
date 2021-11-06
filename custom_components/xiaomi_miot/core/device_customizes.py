@@ -344,6 +344,14 @@ DEVICE_CUSTOMIZES = {
                                   "'key_id': key,"
                                   "} }}",
     },
+    '*.microwave.*': {
+        'sensor_properties': 'left_time,heat_level,cook_time',
+    },
+    '*.oven.*': {
+        'sensor_properties': 'temperature,left_time,cook_time,working_time',
+        'number_properties': 'target_temperature',
+        'switch_properties': 'oven.on',
+    },
     '*.s_lamp.*': {
         'sensor_properties': 'left_time',
         'switch_properties': 'uv,radar_on,lighting.on',
