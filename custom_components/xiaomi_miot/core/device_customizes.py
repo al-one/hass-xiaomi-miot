@@ -65,34 +65,58 @@ DEVICE_CUSTOMIZES = {
         'miot_local': True,
     },
     'cuco.plug.cp1m': {
-        'sensor_properties': 'voltage,electric_current,power_cost_today,power_cost_month',
+        'sensor_properties': 'power,voltage,electric_current',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
     'cuco.plug.cp2': {
-        'sensor_attributes': 'voltage,electric_current,power_cost_today,power_cost_month',
+        'sensor_properties': 'power,voltage,electric_current',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
     'cuco.plug.cp4': {
-        'sensor_attributes': 'voltage,electric_current,power_cost_today,power_cost_month',
+        'sensor_properties': 'voltage,electric_current',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
     'cuco.plug.cp4am': {
-        'sensor_attributes': 'voltage,electric_current,power_cost_today,power_cost_month',
+        'sensor_properties': 'voltage,electric_current',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
     'cuco.plug.cp4m': {
-        'sensor_attributes': 'voltage,electric_current,power_cost_today,power_cost_month',
+        'sensor_properties': 'voltage,electric_current',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
+    'cuco.plug.*:electric_current': {
+        'state_class': 'measurement',
+        'device_class': 'current',
+        'unit_of_measurement': 'mA',
+    },
+    'cuco.plug.*:power': {
+        'value_ratio': 0.1,
+        'state_class': 'measurement',
+        'device_class': 'power',
+        'unit_of_measurement': 'W',
+    },
     'cuco.plug.*:power_cost_today': {
+        'value_ratio': 0.1,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
     'cuco.plug.*:power_cost_month': {
+        'value_ratio': 0.1,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
+    },
+    'cuco.plug.*:voltage': {
+        'value_ratio': 0.1,
+        'state_class': 'measurement',
+        'device_class': 'voltage',
+        'unit_of_measurement': 'V',
     },
     'deerma.humidifier.jsq3': {
         'chunk_properties': 6,
