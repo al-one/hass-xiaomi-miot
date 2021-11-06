@@ -323,13 +323,16 @@ class MiotCookerEntity(MiotSensorEntity):
 
 class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
     def __init__(self, parent, attr, option=None):
-        self._attr_state_class = None
         super().__init__(parent, attr, option)
+        self._attr_state_class = self._option.get('state_class')
+
+    @property
+    def state_class(self):
+        return self._attr_state_class
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        if not self._attr_state_class:
-            self._attr_state_class = self.custom_config('state_class')
+        self._attr_state_class = self.custom_config('state_class', self._attr_state_class)
         if self._attr_state_class not in STATE_CLASSES:
             self._attr_state_class = None
 
@@ -349,6 +352,8 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
 
     async def async_added_to_hass(self):
         await BaseSensorSubEntity.async_added_to_hass(self)
+        if not self._attr_state_class:
+            self._attr_state_class = self._miot_property.state_class
 
     def update(self, data=None):
         super().update(data)
