@@ -450,7 +450,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         self.logger.debug('%s: Play media: %s', self.name, [pms, rdt])
         return not not rdt
 
-    def start_app(self, app):
+    def start_app(self, app, **kwargs):
         pkg = f'{app}'.split(' - ').pop(-1).strip()
         pms = {
             'action': 'startapp',
