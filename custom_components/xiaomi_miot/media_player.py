@@ -336,8 +336,8 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
 class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
-        host = self._config.get(CONF_HOST) or ''
-        self._mitv_api = f'http://{host}:6095/'
+        self._host = self._config.get(CONF_HOST) or ''
+        self._mitv_api = f'http://{self._host}:6095/'
         self._api_key = '881fd5a8c94b4945b46527b07eca2431'
         self._hmac_key = '2840d5f0d078472dbc5fb78e39da123e'
         self._state_attrs['6095_state'] = True
@@ -380,7 +380,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         if 'url' in rdt:
             url = rdt.get('url', '')
             pms = urlparse(url).query
-            url = f'{url}'.replace(pms, '')
+            url = f'{url}'.replace(pms, '').replace('//null:', f'//{self._host}:')
             pms = dict(parse_qsl(pms))
             pms = self.with_opaque(pms, token=rdt.get('token'))
             self._attr_media_image_url = url + urlencode(pms)
