@@ -1054,7 +1054,22 @@ class MiotEntity(MiioEntity):
                 updater = 'lan'
                 if self._vars.get('has_local_mapping'):
                     mapping = self._device.mapping
-                max_properties = self.custom_config_integer('chunk_properties') or max_properties
+                max_properties = self.custom_config_integer('chunk_properties')
+                if not max_properties:
+                    idx = len(mapping)
+                    if idx >= 10:
+                        idx -= 10
+                    chunks = [
+                        # 10,11,12,13,14,15,16,17,18,19
+                        10, 6, 6, 7, 7, 8, 8, 9, 9, 10,
+                        # 20,21,22,23,24,25,26,27,28,29
+                        10, 7, 8, 8, 8, 9, 9, 9, 10, 10,
+                        # 30,31,32,33,34,35,36,37,38,39
+                        10, 8, 8, 7, 7, 7, 9, 9, 10, 10,
+                        # 40,41,42,43,44,45,46,47,48,49
+                        10, 9, 9, 9, 9, 9, 10, 10, 10, 10,
+                    ]
+                    max_properties = 10 if idx >= len(chunks) else chunks[idx]
                 results = await self.hass.async_add_executor_job(
                     partial(
                         self._device.get_properties_for_mapping,
@@ -1069,8 +1084,8 @@ class MiotEntity(MiioEntity):
             self._available = False
             errors = f'{exc}'
             self.logger.error(
-                '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s',
-                self.name, exc, mapping, max_properties,
+                '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',
+                self.name, exc, mapping, max_properties, len(mapping)
             )
         except MiCloudException as exc:
             self._available = False
