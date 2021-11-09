@@ -214,6 +214,21 @@ DEVICE_CUSTOMIZES = {
             'light.color_temperature': {'siid': 2, 'piid': 5},
         },
     },
+    'roborock.vacuum.*': {
+        'sensor_attributes': 'props:clean_area,props:clean_time',
+        'sensor_miio_commands': {
+            'get_status': ['props'],
+            'get_consumable': ['consumables'],
+        },
+    },
+    'roborock.vacuum.*:props:clean_area': {
+        'value_ratio': 0.000001,
+        'unit_of_measurement': '㎡',
+    },
+    'roborock.vacuum.*:props:clean_time': {
+        'value_ratio': 0.016666,
+        'unit_of_measurement': 'min',
+    },
     'rockrobo.vacuum.*': {
         'sensor_attributes': 'props:clean_area,props:clean_time',
         'sensor_miio_commands': {

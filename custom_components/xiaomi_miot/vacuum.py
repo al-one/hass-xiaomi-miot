@@ -246,7 +246,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         await super().async_update()
         if not self._available:
             return
-        props = self._state_attrs.get('props') or {}
+        props = self.miio_props
         adt = {}
         if 'clean_area' in props:
             adt['clean_area'] = round(props['clean_area'] / 1000000, 1)
@@ -254,6 +254,41 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
             adt['clean_time'] = round(props['clean_time'] / 60, 1)
         if adt:
             self.update_attrs(adt)
+
+    @property
+    def miio_props(self):
+        return self._state_attrs.get('props') or {}
+
+    @property
+    def state(self):
+        sta = super().state
+        if sta is not None:
+            return sta
+        states = {
+            1: STATE_CLEANING,  # Starting
+            2: 'Charger disconnected',
+            3: STATE_DOCKED,    # Idle
+            4: STATE_CLEANING,  # Remote control active
+            5: STATE_CLEANING,
+            6: STATE_RETURNING,
+            7: 'Manual mode',
+            8: STATE_DOCKED,  # Charging
+            9: STATE_ERROR,   # Charging problem
+            10: STATE_PAUSED,
+            11: STATE_CLEANING,  # Spot cleaning
+            12: STATE_ERROR,
+            13: 'Shutting down',
+            14: STATE_DOCKED,     # Updating
+            15: STATE_RETURNING,  # Docking
+            16: STATE_CLEANING,   # Going to target
+            17: STATE_CLEANING,   # Zoned cleaning
+            18: STATE_CLEANING,   # Segment cleaning
+            100: STATE_DOCKED,    # Charging complete
+            101: 'Device offline',
+        }
+        sta = self.miio_props.get('state')
+        sta = states.get(sta, sta)
+        return sta
 
     def clean_spot(self, **kwargs):
         """Perform a spot clean-up."""
