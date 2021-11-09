@@ -159,6 +159,32 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
+    'lumi.aircondition.acn05': {
+        'sensor_attributes': 'power_cost_today',
+        'stat_power_cost_key': '12.1',
+    },
+    'lumi.aircondition.*:electric_power': {
+        'state_class': 'measurement',
+        'device_class': 'power',
+        'unit_of_measurement': 'W',
+    },
+    'lumi.aircondition.*:power_consumption': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'lumi.aircondition.*:power_cost_today': {
+        'value_ratio': 100,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'lumi.aircondition.*:power_cost_month': {
+        'value_ratio': 100,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
     'lumi.ctrl_neutral1.*': {
         'cloud_delay_update': 10,
     },
