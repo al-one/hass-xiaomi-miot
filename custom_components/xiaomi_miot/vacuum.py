@@ -290,6 +290,13 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         sta = states.get(sta, sta)
         return sta
 
+    @property
+    def battery_level(self):
+        val = super().battery_level
+        if val is not None:
+            return val
+        return self.miio_props.get('battery')
+
     def clean_spot(self, **kwargs):
         """Perform a spot clean-up."""
         return self.send_miio_command('app_spot')
