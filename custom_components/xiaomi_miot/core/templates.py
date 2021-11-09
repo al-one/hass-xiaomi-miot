@@ -49,7 +49,7 @@ CUSTOM_TEMPLATES = {
                                      "{%-   set t = d.time | default(0) | int(0) %}"
                                      "{%-   if t >= stm %}"
                                      "{%-     set v = (d.value | default('[]') | string | from_json) or [] %}"
-                                     "{%-     set n = (v[0] | default(0)) / 100 %}"
+                                     "{%-     set n = v[0] | default(0) %}"
                                      "{%-     if t >= tod %}"
                                      "{%-       set dat.today = n %}"
                                      "{%-     endif %}"

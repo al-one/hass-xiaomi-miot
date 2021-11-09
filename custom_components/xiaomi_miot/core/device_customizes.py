@@ -38,13 +38,13 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'kWh',
     },
     'chuangmi.plug.*:power_cost_today': {
-        'value_ratio': 0.0001,
+        'value_ratio': 0.000001,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
     'chuangmi.plug.*:power_cost_month': {
-        'value_ratio': 0.0001,
+        'value_ratio': 0.000001,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
@@ -101,13 +101,13 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'W',
     },
     'cuco.plug.*:power_cost_today': {
-        'value_ratio': 0.1,
+        'value_ratio': 0.001,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
     'cuco.plug.*:power_cost_month': {
-        'value_ratio': 0.1,
+        'value_ratio': 0.001,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
@@ -148,13 +148,13 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'W',
     },
     'lumi.acpartner.*:power_cost_today': {
-        'value_ratio': 0.1,
+        'value_ratio': 0.001,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
     'lumi.acpartner.*:power_cost_month': {
-        'value_ratio': 0.1,
+        'value_ratio': 0.001,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
@@ -174,13 +174,11 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'kWh',
     },
     'lumi.aircondition.*:power_cost_today': {
-        'value_ratio': 100,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
     'lumi.aircondition.*:power_cost_month': {
-        'value_ratio': 100,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
@@ -309,11 +307,13 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'W',
     },
     'zimi.plug.*:power_cost_today': {
+        'value_ratio': 0.01,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
     'zimi.plug.*:power_cost_month': {
+        'value_ratio': 0.01,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
