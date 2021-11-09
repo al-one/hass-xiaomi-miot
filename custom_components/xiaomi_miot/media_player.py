@@ -147,7 +147,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
         if self._prop_state:
             sta = self._prop_state.from_dict(self._state_attrs)
             if sta is not None:
-                if sta == self._prop_state.list_value('Playing'):
+                if sta in self._prop_state.list_search('Playing', 'Play'):
                     return STATE_PLAYING
                 if sta == self._prop_state.list_value('Pause'):
                     return STATE_PAUSED
