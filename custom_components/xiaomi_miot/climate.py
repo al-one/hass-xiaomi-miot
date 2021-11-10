@@ -160,6 +160,10 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 if val not in mvs:
                     des = self._prop_mode.get_translation(v.get('description'))
                     self._preset_modes[val] = des
+            if self._prop_mode.value_range:
+                for val in self._prop_mode.list_descriptions():
+                    des = self._prop_mode.get_translation(val)
+                    self._preset_modes[val] = des
             if fst and len(self._hvac_modes) <= 1:
                 self._hvac_modes[HVAC_MODE_AUTO] = {
                     'list':  [fst.get('description')],
@@ -264,7 +268,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 return off != self._prop_mode.from_dict(self._state_attrs)
         power = self._state_attrs.get('power')
         if power is not None:
-            return power and True
+            return not not power
         return None
 
     def turn_on(self, **kwargs):
@@ -370,7 +374,17 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             return False
         val = self._hvac_modes.get(mode, {}).get('value')
         if val is None:
-            val = self._prop_mode.list_first(mode)
+            if self._prop_mode.value_list:
+                val = self._prop_mode.list_first(mode)
+            elif self._prop_mode.value_range:
+                for k, v in self._preset_modes.items():
+                    if v != mode:
+                        continue
+                    try:
+                        val = int(k)
+                        break
+                    except (TypeError, ValueError):
+                        val = None
         if val is None:
             return False
         return self.set_property(self._prop_mode, val)

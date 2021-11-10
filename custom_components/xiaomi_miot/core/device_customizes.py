@@ -268,6 +268,9 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.016666,
         'unit_of_measurement': 'min',
     },
+    'suittc.airrtc.wk168': {
+        'switch_properties': 'on',
+    },
     'viomi.vacuum.*': {
         'sensor_attributes': 'miio.s_area,miio.s_time',
         'miio_properties': 'run_state,mode,err_state,battary_life,box_type,mop_type,s_time,s_area,'
