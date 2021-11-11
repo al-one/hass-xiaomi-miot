@@ -1490,7 +1490,7 @@ class MiotEntity(MiioEntity):
                 result = mca.do_action(pms)
                 dly = self.custom_config_integer('cloud_delay_update', 5)
             else:
-                pms = action.in_params(params or [])
+                pms['in'] = action.in_params(params or [])
                 result = self.miot_device.send('action', pms)
             eno = dict(result or {}).get('code', eno)
         except (DeviceException, MiCloudException) as exc:
