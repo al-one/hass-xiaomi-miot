@@ -109,6 +109,7 @@ domain.parent_entity_id:
   binary_sensor_properties: is_volume_muted,any_boolen_property
   switch_properties: on,power
   number_properties: volume
+  select_properties: mode
   fan_properties: mode,fan_level
   cover_properties: motor_control
 
