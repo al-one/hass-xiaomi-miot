@@ -344,6 +344,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         self._keycodes = [
             'power',
             'home',
+            'menu',
             'enter',
             'back',
             'up',
