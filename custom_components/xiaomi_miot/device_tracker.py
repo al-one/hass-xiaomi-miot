@@ -43,7 +43,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services('watch', 'rearview_mirror'):
+        for srv in spec.get_services('watch', 'rearview_mirror', 'head_up_display'):
             if not srv.get_property('latitude', 'longitude'):
                 continue
             entities.append(MiotTrackerEntity(config, srv))
