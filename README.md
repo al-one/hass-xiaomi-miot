@@ -12,6 +12,8 @@ English | [简体中文](https://github.com/al-one/hass-xiaomi-miot/blob/master/
 
 This component uses the **miot** protocol to automatically integrate Xiaomi devices into [HomeAssistant](https://www.home-assistant.io), and currently supports most Xiaomi IoT devices. And it supports HA Web UI, and you can easily integrate Xiaomi devices into HA without configuring yaml.
 
+![hass-xiaomi-miot-configs](https://user-images.githubusercontent.com/4549099/142151697-5188ea2d-0aad-4778-8b60-b949bcc410bb.png)
+
 
 ## Installing
 
