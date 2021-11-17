@@ -276,7 +276,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             cfg[CONF_CONFIG_VERSION] = ENTRY_VERSION
             _LOGGER.debug('Setup xiaomi cloud: %s', {**cfg, CONF_PASSWORD: '*', 'service_token': '*'})
             return self.async_create_entry(
-                title=f"MiCloud: {cfg.get('user_id')}",
+                title=f"Xiaomi: {cfg.get('user_id')}",
                 data=cfg,
             )
         else:
