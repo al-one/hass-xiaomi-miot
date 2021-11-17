@@ -121,9 +121,10 @@ camera.your_entity_id:
   keep_streaming: true # Continuously update stream address
 
 cover.your_entity_id:
-  closed_position: 5   # Change cover state to closed when position <= 5%
-  deviated_position: 2 # Current position deviation 2% -> 0%, 98% -> 100%
-  motor_reverse: true  # Reverse motor state
+  closed_position: 5     # Change cover state to closed when position <= 5%
+  deviated_position: 2   # Current position deviation 2% -> 0%, 98% -> 100%
+  motor_reverse: true    # Reverse motor state (Requires reload config entry)
+  position_reverse: true # Reverse motor position (Requires reload config entry)
   open_texts: Open,Up
   close_texts: Close,Down
 

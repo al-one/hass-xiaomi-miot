@@ -86,6 +86,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         self._prop_target_position = miot_service.get_property('target_position')
 
         self._motor_reverse = False
+        self._position_reverse = False
         self._open_texts = []
         self._close_texts = []
 
@@ -100,6 +101,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         if self._prop_motor_control.list_first('Pause', 'Stop') is not None:
             self._supported_features |= SUPPORT_STOP
         self._motor_reverse = self.custom_config_bool('motor_reverse', False)
+        self._position_reverse = self.custom_config_bool('position_reverse', self._motor_reverse)
         self._open_texts = [
             *str(self.custom_config('open_texts') or '').split(','),
             'Opening', 'Opened', 'Open', 'Up', 'Rising', 'Risen', 'Rise',
@@ -109,9 +111,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
             'Closing', 'Closed', 'Close', 'Down',
         ]
         if self._motor_reverse:
-            ols = self._open_texts
-            self._open_texts = self._close_texts
-            self._close_texts = ols
+            self._open_texts, self._close_texts = self._close_texts, self._open_texts
 
     @property
     def device_class(self):
@@ -126,6 +126,10 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         await super().async_update()
         if not self._available:
             return
+        if prop_reverse := self._miot_service.get_property('motor_reverse'):
+            if prop_reverse.from_dict(self._state_attrs):
+                # galime.curtain.gp72
+                self._position_reverse = True
 
     @property
     def current_cover_position(self):
@@ -159,12 +163,12 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
                 pos = cur / range_max * 100
         if pos < 0:
             return None
-        dev = int(self.custom_config('deviated_position', 1) or 0)
+        dev = int(self.custom_config_integer('deviated_position', 1) or 0)
         if pos <= dev:
             pos = 0
         elif pos >= 100 - dev:
             pos = 100
-        if self._motor_reverse:
+        if self._position_reverse:
             pos = 100 - pos
         return pos
 
@@ -177,7 +181,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         if pos is None:
             return pos
         pos = int(pos)
-        if self._motor_reverse:
+        if self._position_reverse:
             pos = 100 - pos
         return pos
 

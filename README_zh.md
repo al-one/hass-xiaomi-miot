@@ -131,14 +131,15 @@ camera.your_entity_id:
   keep_streaming: true # 持续更新流地址
 
 cover.your_entity_id:
-  closed_position: 5   # 当实体位置值小于等于此值时为关闭状态
-  deviated_position: 2 # 位置偏差值 2% -> 0%, 98% -> 100%
-  motor_reverse: true  # 反转电机状态
+  closed_position: 5     # 当实体位置值小于等于此值时为关闭状态
+  deviated_position: 2   # 位置偏差值 2% -> 0%, 98% -> 100%
+  motor_reverse: true    # 反转电机状态(需重载集成配置)
+  position_reverse: true # 反转电机进程(需重载集成配置)
   open_texts: 打开,升
   close_texts: 关闭,降
 
 doamin.your_entity_id:
-  interval_seconds: 30 # 每次更新状态间隔秒数(需要重载集成配置)
+  interval_seconds: 30 # 每次更新状态间隔秒数(需重载集成配置)
   chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)
 ```
 
