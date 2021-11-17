@@ -14,6 +14,7 @@
 
 
 ## 安装
+<a name="installing"></a>
 
 > 下载并复制`custom_components/xiaomi_miot`文件夹到HA根目录下的`custom_components`文件夹
 
@@ -29,21 +30,25 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HU
 
 
 ## 配置
+<a name="config"></a>
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > [➕ 添加集成](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 搜索 `Xiaomi Miot Auto`
 
 或者点击: [![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
 ### 账号集成 (Add devices using Mi Account):
+<a name="add-devices-using-mi-account"></a>
 自v0.4.4版本开始，插件新增支持账号集成时选择连接设备的模式：
 - **自动模式**：插件定期更新[支持本地miot协议的设备](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/miot_local_devices.py)，并自动将用户筛选的设备中符合条件的型号使用本地连接（推荐）
 - **本地模式**：集成配置所筛选的设备都将使用本地连接，如勾选了不支持本地miot协议的设备将不可用
 - **云端模式**：集成配置所筛选的设备都将使用云端连接，建议旧版miio、蓝牙、ZigBee设备使用
 
 ### 本地集成 (Add device using host/token):
+<a name="add-device-using-hosttoken"></a>
 通过host/token接入设备，适用于在局域网环境下支持miot协议的设备
 
 ### 配置云端模式:
+<a name="config-xiaomi-cloud"></a>
 
 > 为**通过token集成的设备**开启云端模式
 
@@ -58,6 +63,7 @@ xiaomi_miot:
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
 
 ### 配置翻译词典:
+<a name="config-translation-languages"></a>
 
 ```yaml
 # configuration.yaml
@@ -80,6 +86,7 @@ xiaomi_miot:
 
 
 ### 自定义实体
+<a name="customize-entity"></a>
 
 ```yaml
 # configuration.yaml
@@ -141,6 +148,7 @@ doamin.your_entity_id:
 
 
 ## [支持的设备](https://github.com/al-one/hass-xiaomi-miot/issues/12)
+<a name="supported-devices"></a>
 
 - [插座](https://home.miot-spec.com/s/plug) / [开关](https://home.miot-spec.com/s/switch)
 - [智能灯](https://home.miot-spec.com/s/light)
@@ -183,6 +191,7 @@ doamin.your_entity_id:
 
 
 ## 调试
+<a name="debug"></a>
 
 ### 获取实体状态属性
 
@@ -207,6 +216,7 @@ logger:
 
 
 ## 获取 miio token
+<a name="obtain-miio-token"></a>
 
 - 使用HomeAssistant服务
   1. 打开HomeAssistant服务工具 [![](https://my.home-assistant.io/badges/developer_services.svg)](https://my.home-assistant.io/redirect/developer_services/)
