@@ -180,6 +180,86 @@ doamin.your_entity_id:
 - [printer](https://home.miot-spec.com/s/printer)
 
 
+## Services
+
+### [`xiaomi_miot.set_property`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.set_property)
+```yaml
+service: xiaomi_miot.set_property
+data:
+  entity_id: camera.isa_hlc7_xxxx
+  field: camera_control.on
+  value: true
+```
+
+### [`xiaomi_miot.set_miot_property`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.set_miot_property)
+```yaml
+service: xiaomi_miot.set_miot_property
+data:
+  entity_id: camera.isa_hlc7_xxxx
+  siid: 2
+  piid: 1
+  value: true
+```
+
+### [`xiaomi_miot.get_properties`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_properties)
+```yaml
+service: xiaomi_miot.get_properties
+data:
+  entity_id: camera.isa_hlc7_1ab7
+  mapping:
+    power:
+      siid: 2
+      piid: 1
+    night:
+      siid: 2
+      piid: 3
+  throw: true # throw result to HA notifications
+```
+
+### [`xiaomi_miot.call_action`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.call_action)
+```yaml
+service: xiaomi_miot.call_action
+data:
+  entity_id: vacuum.dreame_p2259_entity_id
+  siid: 4 # vacuum-extend
+  aiid: 1 # start-clean
+  params:
+    - 18 # piid: 1 - work-mode
+    - '{"selects":[[7,1,0,2,1]]}' # piid: 10 - clean-extend-data
+  throw: true # throw result to HA notifications
+```
+
+### [`xiaomi_miot.send_command`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.send_command)
+```yaml
+service: xiaomi_miot.send_command
+data:
+  entity_id: switch.your_entity_id
+  method: set_power
+  params:
+    - on
+  throw: true # throw result to HA notifications
+```
+
+### [`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token)
+```yaml
+service: xiaomi_miot.get_token
+data:
+  name: Light # Keyword of device name in Mihome / IP / Model.
+```
+
+### [`xiaomi_miot.intelligent_speaker`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.intelligent_speaker)
+```yaml
+service: xiaomi_miot.intelligent_speaker
+data:
+  entity_id: media_player.xiaomi_lx04_xxxx
+  text: Turn on the light
+  execute: true # Execute text directive.
+  silent: true  # Silent execution.
+```
+
+> [More services](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/services.yaml)
+
+
 ## Debug
 
 ### Get Entity State Attributes
