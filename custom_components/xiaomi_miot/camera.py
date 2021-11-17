@@ -261,9 +261,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 'endTime': etm,
                 'limit': 2,
             }
-            rdt = await self.hass.async_add_executor_job(
-                partial(mic.request_miot_api, api, rqd, method='GET', crypt=True)
-            ) or {}
+            rdt = await mic.async_request_api(api, rqd, method='GET', crypt=True) or {}
             rls = rdt.get('data', {}).get('playUnits') or []
             if rls:
                 fst = rls[0] or {}
@@ -290,9 +288,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 'endTime': etm,
                 'limit': 2,
             }
-            rdt = await self.hass.async_add_executor_job(
-                partial(mic.request_miot_api, api, rqd, method='GET', crypt=True)
-            ) or {}
+            rdt = await mic.async_request_api(api, rqd, method='GET', crypt=True) or {}
             rls = rdt.get('data', {}).get('thirdPartPlayUnits') or []
             if rls:
                 fst = rls[0] or {}

@@ -84,9 +84,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                 if did != d.get('parent_id'):
                     continue
                 ird = d.get('did')
-                rdt = await self.hass.async_add_executor_job(
-                    partial(mic.request_miot_api, 'v2/irdevice/controller/keys', {'did': ird})
-                ) or {}
+                rdt = await mic.async_request_api('v2/irdevice/controller/keys', {'did': ird}) or {}
                 kys = (rdt.get('result') or {}).get('keys', {})
                 irs.append({
                     'did': ird,

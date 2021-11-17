@@ -136,6 +136,11 @@ class MiotCloud(micloud.MiCloud):
             _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
         return False
 
+    async def async_request_api(self, *args, **kwargs):
+        return await self.hass.async_add_executor_job(
+            partial(self.request_miot_api, *args, **kwargs)
+        )
+
     def request_miot_api(self, api, data, method='POST', crypt=False, debug=True):
         params = {}
         if data is not None:

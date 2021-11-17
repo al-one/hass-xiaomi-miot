@@ -1662,9 +1662,7 @@ class MiotEntity(MiioEntity):
         if not isinstance(mic, MiotCloud):
             return None
         dat = {'did': did or self.miot_did, 'pdid': 1}
-        result = await self.hass.async_add_executor_job(
-            partial(mic.request_miot_api, 'v2/device/blt_get_beaconkey', dat)
-        )
+        result = await mic.async_request_api('v2/device/blt_get_beaconkey', dat)
         persistent_notification.async_create(
             self.hass,
             f'{result}',
@@ -1682,8 +1680,7 @@ class MiotEntity(MiioEntity):
         if not isinstance(mic, MiotCloud):
             return None
         dat = data or kwargs.get('params')
-        fun = partial(mic.request_miot_api, api, data=dat, method=method, crypt=crypt)
-        result = await self.hass.async_add_executor_job(fun)
+        result = await mic.async_request_api(api, data=dat, method=method, crypt=crypt)
         persistent_notification.async_create(
             self.hass,
             f'{result}',
