@@ -13,8 +13,8 @@
 本插件利用了**miot**协议的规范，可将小米设备自动接入[HomeAssistant](https://www.home-assistant.io)，目前已支持大部分小米米家智能设备。且该插件支持HA后台界面集成，无需配置yaml即可轻松将小米设备接入HA。
 
 
-## 安装
 <a name="installing"></a>
+## 安装
 
 > 下载并复制`custom_components/xiaomi_miot`文件夹到HA根目录下的`custom_components`文件夹
 
@@ -29,26 +29,26 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HU
 > 或者通过[HACS](https://hacs.xyz)搜索`Xiaomi Miot Auto`安装
 
 
-## 配置
 <a name="config"></a>
+## 配置
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > [➕ 添加集成](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 搜索 `Xiaomi Miot Auto`
 
 或者点击: [![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
-### 账号集成 (Add devices using Mi Account):
 <a name="add-devices-using-mi-account"></a>
+### 账号集成 (Add devices using Mi Account):
 自v0.4.4版本开始，插件新增支持账号集成时选择连接设备的模式：
 - **自动模式**：插件定期更新[支持本地miot协议的设备](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/miot_local_devices.py)，并自动将用户筛选的设备中符合条件的型号使用本地连接（推荐）
 - **本地模式**：集成配置所筛选的设备都将使用本地连接，如勾选了不支持本地miot协议的设备将不可用
 - **云端模式**：集成配置所筛选的设备都将使用云端连接，建议旧版miio、蓝牙、ZigBee设备使用
 
-### 本地集成 (Add device using host/token):
 <a name="add-device-using-hosttoken"></a>
+### 本地集成 (Add device using host/token):
 通过host/token接入设备，适用于在局域网环境下支持miot协议的设备
 
-### 配置云端模式:
 <a name="config-xiaomi-cloud"></a>
+### 配置云端模式:
 
 > 为**通过token集成的设备**开启云端模式
 
@@ -62,8 +62,8 @@ xiaomi_miot:
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
 
-### 配置翻译词典:
 <a name="config-translation-languages"></a>
+### 配置翻译词典:
 
 ```yaml
 # configuration.yaml
@@ -85,8 +85,8 @@ xiaomi_miot:
 ```
 
 
-### 自定义实体
 <a name="customize-entity"></a>
+### 自定义实体
 
 ```yaml
 # configuration.yaml
@@ -147,8 +147,8 @@ doamin.your_entity_id:
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🖌 自定义](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-864678774) > 🔍 选择实体 > 选择要覆盖的属性 > 添加Other属性
 
 
-## [支持的设备](https://github.com/al-one/hass-xiaomi-miot/issues/12)
 <a name="supported-devices"></a>
+## [支持的设备](https://github.com/al-one/hass-xiaomi-miot/issues/12)
 
 - [插座](https://home.miot-spec.com/s/plug) / [开关](https://home.miot-spec.com/s/switch)
 - [智能灯](https://home.miot-spec.com/s/light)
@@ -190,8 +190,8 @@ doamin.your_entity_id:
 - [打印机](https://home.miot-spec.com/s/printer)
 
 
-## 调试
 <a name="debug"></a>
+## 调试
 
 ### 获取实体状态属性
 
@@ -215,8 +215,8 @@ logger:
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [✍️ 日志](https://my.home-assistant.io/redirect/logs)
 
 
-## 获取 miio token
 <a name="obtain-miio-token"></a>
+## 获取 miio token
 
 - 使用HomeAssistant服务
   1. 打开HomeAssistant服务工具 [![](https://my.home-assistant.io/badges/developer_services.svg)](https://my.home-assistant.io/redirect/developer_services/)
