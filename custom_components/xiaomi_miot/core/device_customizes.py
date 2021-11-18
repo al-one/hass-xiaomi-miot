@@ -357,6 +357,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'dryer,uv',
         'fan_properties': 'drying_level',
     },
+    '*.airpurifier.*': {
+        'switch_properties': 'air_purifier.on',
+    },
     '*.camera.*': {
         'miot_cloud_action': True,
     },
