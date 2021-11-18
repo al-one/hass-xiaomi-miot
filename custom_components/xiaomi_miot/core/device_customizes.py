@@ -371,11 +371,17 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'cooker.on,auto_keep_warm',
     },
     '*.door.*': {},
+    '*.fan.*': {
+        'number_properties': 'off_delay_time',
+    },
     '*.feeder.*': {
         'switch_properties': 'feeding_measure',
     },
     '*.fishbowl.*': {
         'switch_properties': 'feeding_measure',
+    },
+    '*.light.*': {
+        'number_properties': 'off_delay_time',
     },
     '*.lock.*': {
         'sensor_attributes': 'event.7:door_state,event.11:lock_state,event.11:key_id',
