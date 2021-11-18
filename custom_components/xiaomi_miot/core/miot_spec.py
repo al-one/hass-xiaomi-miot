@@ -712,7 +712,10 @@ class MiotAction(MiotSpecInstance):
     def in_params(self, params: list):
         pms = []
         for pid in self.ins:
-            val = params.pop(0)
+            try:
+                val = params.pop(0)
+            except IndexError:
+                break
             if not (isinstance(val, dict) and 'piid' in val):
                 val = {
                     'piid': pid,
