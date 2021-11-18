@@ -1608,7 +1608,7 @@ class MiotEntity(MiioEntity):
                         self._subs[fnm] = MiotSwitchActionSubEntity(self, p, act, option=opt)
                         add_switches([self._subs[fnm]])
                     continue
-                elif add_switches and domain == 'switch' and p.format == 'bool' and p.writeable:
+                elif add_switches and domain == 'switch' and p.format in ['bool', 'uint8'] and p.writeable:
                     self._subs[fnm] = MiotSwitchSubEntity(self, p, option=opt)
                     add_switches([self._subs[fnm]])
                 elif add_binary_sensors and domain == 'binary_sensor' and p.format == 'bool':

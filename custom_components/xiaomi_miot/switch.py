@@ -167,6 +167,10 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         if self._miot_service.name in ['air_conditioner']:
             if self._prop_power:
                 self._state = self._state and self._prop_power.from_dict(self._state_attrs)
+        if self._miot_property.value_list:
+            val = self._miot_property.from_dict(self._state_attrs)
+            if val is not None:
+                self._state = val in self._miot_property.list_search('On', '开')
         return self._state
 
     @property
@@ -174,10 +178,20 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         return STATE_ON if self.is_on else STATE_OFF
 
     def turn_on(self, **kwargs):
-        return self.set_parent_property(True)
+        val = True
+        if self._miot_property.value_list:
+            ret = self._miot_property.list_first('On', '开')
+            if ret is not None:
+                val = ret
+        return self.set_parent_property(val)
 
     def turn_off(self, **kwargs):
-        return self.set_parent_property(False)
+        val = False
+        if self._miot_property.value_list:
+            ret = self._miot_property.list_first('Off', '关')
+            if ret is not None:
+                val = ret
+        return self.set_parent_property(val)
 
 
 class MiotSwitchActionSubEntity(MiotPropertySubEntity, SwitchSubEntity):

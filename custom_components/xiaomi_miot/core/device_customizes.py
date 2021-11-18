@@ -373,6 +373,7 @@ DEVICE_CUSTOMIZES = {
     '*.door.*': {},
     '*.fan.*': {
         'number_properties': 'off_delay_time',
+        'switch_properties': 'fan_init_power_opt',
     },
     '*.feeder.*': {
         'switch_properties': 'feeding_measure',
@@ -382,6 +383,7 @@ DEVICE_CUSTOMIZES = {
     },
     '*.light.*': {
         'number_properties': 'off_delay_time',
+        'switch_properties': 'init_power_opt,fan_init_power_opt',
     },
     '*.lock.*': {
         'sensor_attributes': 'event.7:door_state,event.11:lock_state,event.11:key_id',
