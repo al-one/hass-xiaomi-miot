@@ -1161,11 +1161,17 @@ class MiotEntity(MiioEntity):
                 'physical_controls_locked',
                 ['physical_controls_locked', self._miot_service.name],
                 domain='switch',
+                option={
+                    'entity_category': ENTITY_CATEGORY_CONFIG,
+                },
             )
             self._update_sub_entities(
                 None,
                 ['indicator_light', 'night_light', 'ambient_light', 'plant_light'],
                 domain='light',
+                option={
+                    'entity_category': ENTITY_CATEGORY_CONFIG,
+                },
             )
         if self._subs:
             attrs['sub_entities'] = list(self._subs.keys())
@@ -1751,6 +1757,7 @@ class BaseSubEntity(BaseEntity):
                     suf = f'{suf}_{self._dict_key}'
                 self.entity_id = f'{eip}_{suf}'
         self._supported_features = int(self._option.get('supported_features', 0))
+        self._attr_entity_category = self._option.get('entity_category')
         self._extra_attrs = {
             'entity_class': self.__class__.__name__,
             'parent_entity_id': parent.entity_id,
@@ -1856,6 +1863,7 @@ class BaseSubEntity(BaseEntity):
             self.update_custom_scan_interval(only_custom=True)
         self._option['icon'] = self.custom_config('icon', self.icon)
         self._option['unit'] = self.custom_config('unit_of_measurement', self.unit_of_measurement)
+        self._attr_entity_category = self.custom_config('entity_category', self.entity_category)
         if not self.device_class:
             self._option['device_class'] = self.custom_config('device_class')
 
@@ -1930,6 +1938,8 @@ class MiotPropertySubEntity(BaseSubEntity):
             self._option['unit'] = miot_property.unit_of_measurement
         if 'device_class' not in self._option:
             self._option['device_class'] = miot_property.device_class
+        if self._attr_entity_category is None:
+            self._attr_entity_category = miot_property.entity_category
         self._extra_attrs.update({
             'service_description': miot_property.service.description,
             'property_description': miot_property.description,

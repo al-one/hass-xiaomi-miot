@@ -4,14 +4,17 @@ import platform
 import time
 import re
 
+from homeassistant.const import *
+from homeassistant.helpers.storage import Store
+
 from .const import (
     DOMAIN,
     TRANSLATION_LANGUAGES,
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
+    ENTITY_CATEGORY_CONFIG,
+    ENTITY_CATEGORY_DIAGNOSTIC,
 )
-from homeassistant.const import *
-from homeassistant.helpers.storage import Store
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -685,6 +688,20 @@ class MiotProperty(MiotSpecInstance):
         elif self.service.name in ['health_pot']:
             return 'mdi:coffee'
         return icon
+
+    @property
+    def entity_category(self):
+        cate = None
+        name = self.name
+        names = {
+            'battery_level': ENTITY_CATEGORY_DIAGNOSTIC,
+            'fan_init_power_opt': ENTITY_CATEGORY_CONFIG,
+            'init_power_opt': ENTITY_CATEGORY_CONFIG,
+            'off_delay_time': ENTITY_CATEGORY_CONFIG,
+        }
+        if name in names:
+            cate = names[name]
+        return cate
 
 
 # https://miot-spec.org/miot-spec-v2/spec/actions

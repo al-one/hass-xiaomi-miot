@@ -51,6 +51,13 @@ try:
 except (ModuleNotFoundError, ImportError):
     STATE_CLASS_TOTAL_INCREASING = None
 
+try:
+    # hass 2021.11.0b0+
+    from homeassistant.const import ENTITY_CATEGORY_CONFIG, ENTITY_CATEGORY_DIAGNOSTIC
+except (ModuleNotFoundError, ImportError):
+    ENTITY_CATEGORY_CONFIG = None
+    ENTITY_CATEGORY_DIAGNOSTIC = None
+
 
 GLOBAL_CUSTOMIZES = {
     'models': DEVICE_CUSTOMIZES,
