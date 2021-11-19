@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 entities.append(MiotPwznRelaySwitchEntity(config, srv))
         else:
             for srv in spec.get_services(
-                ENTITY_DOMAIN, 'outlet', 'washer', 'massager', 'towel_rack',
+                ENTITY_DOMAIN, 'outlet', 'massager', 'towel_rack',
                 'fish_tank', 'pet_drinking_fountain', 'mosquito_dispeller',
             ):
                 if model in ['viomi.washer.u2']:
@@ -73,6 +73,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
+        self._attr_icon = self._miot_service.entity_icon
 
     @property
     def device_class(self):
@@ -81,74 +82,32 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
             return DEVICE_CLASS_OUTLET
         return DEVICE_CLASS_SWITCH
 
-    @property
-    def icon(self):
-        return self._miot_service.entity_icon or super().icon
-
     async def async_update(self):
         await super().async_update()
         if not self._available:
             return
-        if self._miot_service.name in ['washer']:
-            add_fans = self._add_entities.get('fan')
-            add_selects = self._add_entities.get('select')
-            pls = self._miot_service.get_properties(
-                'mode', 'spin_speed', 'rinsh_times',
-                'target_temperature', 'target_water_level',
-                'drying_level', 'drying_time',
-            )
-            for p in pls:
-                if not p.value_list and not p.value_range:
-                    continue
-                if p.name in self._subs:
-                    self._subs[p.name].update()
-                elif add_selects and self.entry_config_version >= 0.3:
-                    from .select import MiotSelectSubEntity
-                    opt = {
-                        'before_select': self.before_select_modes,
-                    }
-                    self._subs[p.name] = MiotSelectSubEntity(self, p, option=opt)
-                    add_selects([self._subs[p.name]])
-                elif add_fans:
-                    from .fan import MiotWasherSubEntity
-                    self._subs[p.name] = MiotWasherSubEntity(self, p)
-                    add_fans([self._subs[p.name]])
-
-            add_switches = self._add_entities.get(ENTITY_DOMAIN)
-            if self._miot_service.get_action('start_wash', 'pause'):
-                pnm = 'action'
-                prop = self._miot_service.get_property('status')
-                if pnm in self._subs:
-                    self._subs[pnm].update()
-                elif add_switches and prop:
-                    self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
-                    add_switches([self._subs[pnm]])
-        else:
-            self._update_sub_entities(
-                ['water_pump', 'automatic_feeding', 'heating'],
-                domain='switch',
-            )
-            self._update_sub_entities(
-                ['pump_flux', 'target_feeding_measure', 'target_temperature', 'stream', 'speed'],
-                [self._miot_service.name, 'ambient_light_custom'],
-                domain='number',
-            )
-            self._update_sub_entities(
-                ['heat_level'],
-                ['massager'],
-                domain='fan',
-                option={
-                    'power_property': self._miot_service.get_property('heating'),
-                },
-            )
-            self._update_sub_entities(
-                ['mode', 'massage_strength', 'massage_part', 'massage_manipulation'],
-                ['fish_tank', 'pet_drinking_fountain', 'massager'],
-                domain='number_select' if self.entry_config_version >= 0.3 else 'fan',
-            )
-
-    def before_select_modes(self, prop, option, **kwargs):
-        return True if self.is_on else self.turn_on()
+        self._update_sub_entities(
+            ['water_pump', 'automatic_feeding', 'heating'],
+            domain='switch',
+        )
+        self._update_sub_entities(
+            ['pump_flux', 'target_feeding_measure', 'target_temperature', 'stream', 'speed'],
+            [self._miot_service.name, 'ambient_light_custom'],
+            domain='number',
+        )
+        self._update_sub_entities(
+            ['heat_level'],
+            ['massager'],
+            domain='fan',
+            option={
+                'power_property': self._miot_service.get_property('heating'),
+            },
+        )
+        self._update_sub_entities(
+            ['mode', 'massage_strength', 'massage_part', 'massage_manipulation'],
+            ['fish_tank', 'pet_drinking_fountain', 'massager'],
+            domain='number_select' if self.entry_config_version >= 0.3 else 'fan',
+        )
 
 
 class SwitchSubEntity(ToggleSubEntity, SwitchEntity):

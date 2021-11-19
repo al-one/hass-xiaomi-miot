@@ -54,7 +54,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             for srv in spec.get_services(
                 'battery', 'environment', 'tds_sensor', 'switch_sensor', 'vibration_sensor',
                 'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor',
-                'router', 'lock', 'printer', 'sleep_monitor', 'bed', 'walking_pad',
+                'router', 'lock', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad',
                 'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
                 'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer', 'water_purifier',
                 'pet_feeder', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp',
@@ -138,6 +138,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             self._attr_unit_of_measurement = self._prop_state.unit_of_measurement
 
         self._name = f'{self.device_name} {self._prop_state.friendly_desc}'
+        self._attr_icon = self._miot_service.entity_icon
         self._attr_state_class = None
         self._state_attrs.update({
             'state_property': self._prop_state.full_name if self._prop_state else None,
@@ -151,70 +152,117 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
 
     async def async_update(self):
         await super().async_update()
-        if self._available:
-            if self._miot_service.name in ['lock']:
-                if 'event.11' in self._state_attrs and self._prop_state.full_name not in self._state_attrs:
-                    edt = self._state_attrs.get('event.11', {})
-                    if isinstance(edt, dict):
-                        self.update_attrs({
-                            self._prop_state.full_name: edt.get('method'),
-                        })
-            self._prop_state.description_to_dict(self._state_attrs)
-            self._update_sub_entities('on', domain='switch')
-            self._update_sub_entities(
-                ['status', 'operation_id', 'abnormal_condition', 'current_time'],
-                ['lock', 'door'],
-                domain='sensor',
+        if not self._available:
+            return
+        if self._miot_service.name in ['lock']:
+            if 'event.11' in self._state_attrs and self._prop_state.full_name not in self._state_attrs:
+                edt = self._state_attrs.get('event.11', {})
+                if isinstance(edt, dict):
+                    self.update_attrs({
+                        self._prop_state.full_name: edt.get('method'),
+                    })
+        self._prop_state.description_to_dict(self._state_attrs)
+
+        if self._miot_service.name in ['washer']:
+            add_fans = self._add_entities.get('fan')
+            add_selects = self._add_entities.get('select')
+            pls = self._miot_service.get_properties(
+                'mode', 'spin_speed', 'rinsh_times',
+                'target_temperature', 'target_water_level',
+                'drying_level', 'drying_time',
             )
-            self._update_sub_entities(
-                [
-                    'download_speed', 'upload_speed', 'connected_device_number', 'network_connection_type',
-                    'ip_address', 'online_time', 'wifi_ssid', 'wifi_bandwidth',
-                ],
-                ['router', 'wifi', 'guest_wifi'],
-                domain='sensor',
-            )
-            self._update_sub_entities(
-                ['on'],
-                ['router', 'wifi', 'guest_wifi', 'fridge_chamber'],
-                domain='switch',
-            )
-            self._update_sub_entities(
-                [
-                    'temperature', 'relative_humidity', 'humidity', 'pm2_5_density',
-                    'battery_level', 'soil_ec', 'illumination', 'atmospheric_pressure',
-                ],
-                ['temperature_humidity_sensor', 'illumination_sensor', 'plant_monitor'],
-                domain='sensor',
-            )
-            self._update_sub_entities(
-                [
-                    'mode', 'mode_time', 'hardness', 'start_pause', 'leg_pillow', 'rl_control',
-                    'heat_level', 'heat_time', 'heat_zone', 'intensity_mode', 'massage_strength',
-                ],
-                [
-                    'bed', 'backrest_control', 'leg_rest_control', 'massage_mattress',
-                    'fridge',
-                ],
-                domain='fan',
-            )
-            self._update_sub_entities(
-                ['motor_control', 'backrest_angle', 'leg_rest_angle'],
-                ['bed', 'backrest_control', 'leg_rest_control'],
-                domain='cover',
-            )
-            self._update_sub_entities(
-                ['target_temperature'],
-                ['fridge_chamber'],
-                domain='number',
-            )
+            for p in pls:
+                if not p.value_list and not p.value_range:
+                    continue
+                if p.name in self._subs:
+                    self._subs[p.name].update()
+                elif add_selects and self.entry_config_version >= 0.3:
+                    from .select import MiotSelectSubEntity
+                    opt = {
+                        'before_select': self.before_select_modes,
+                    }
+                    self._subs[p.name] = MiotSelectSubEntity(self, p, option=opt)
+                    add_selects([self._subs[p.name]])
+                elif add_fans:
+                    from .fan import MiotWasherSubEntity
+                    self._subs[p.name] = MiotWasherSubEntity(self, p)
+                    add_fans([self._subs[p.name]])
+            add_switches = self._add_entities.get('switch')
+            if self._miot_service.get_action('start_wash', 'pause'):
+                pnm = 'action'
+                prop = self._miot_service.get_property('status')
+                if pnm in self._subs:
+                    self._subs[pnm].update()
+                elif add_switches and prop:
+                    from .switch import MiotWasherActionSubEntity
+                    self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
+                    add_switches([self._subs[pnm]])
+
+        self._update_sub_entities(
+            ['status', 'operation_id', 'abnormal_condition', 'current_time'],
+            ['lock', 'door'],
+            domain='sensor',
+        )
+        self._update_sub_entities(
+            [
+                'download_speed', 'upload_speed', 'connected_device_number', 'network_connection_type',
+                'ip_address', 'online_time', 'wifi_ssid', 'wifi_bandwidth',
+            ],
+            ['router', 'wifi', 'guest_wifi'],
+            domain='sensor',
+        )
+        self._update_sub_entities(
+            ['on'],
+            [self._miot_service.name, 'router', 'wifi', 'guest_wifi', 'fridge_chamber'],
+            domain='switch',
+        )
+        self._update_sub_entities(
+            [
+                'temperature', 'relative_humidity', 'humidity', 'pm2_5_density',
+                'battery_level', 'soil_ec', 'illumination', 'atmospheric_pressure',
+            ],
+            ['temperature_humidity_sensor', 'illumination_sensor', 'plant_monitor'],
+            domain='sensor',
+        )
+        self._update_sub_entities(
+            [
+                'mode', 'mode_time', 'hardness', 'start_pause', 'leg_pillow', 'rl_control',
+                'heat_level', 'heat_time', 'heat_zone', 'intensity_mode', 'massage_strength',
+            ],
+            [
+                'bed', 'backrest_control', 'leg_rest_control', 'massage_mattress',
+                'fridge',
+            ],
+            domain='fan',
+        )
+        self._update_sub_entities(
+            ['motor_control', 'backrest_angle', 'leg_rest_angle'],
+            ['bed', 'backrest_control', 'leg_rest_control'],
+            domain='cover',
+        )
+        self._update_sub_entities(
+            ['target_temperature'],
+            ['fridge_chamber'],
+            domain='number',
+        )
 
     @property
     def state(self):
+        return self.native_value
+
+    @property
+    def native_value(self):
         key = f'{self._prop_state.full_name}_desc'
         if key in self._state_attrs:
             return f'{self._state_attrs[key]}'.lower()
         return self._prop_state.from_dict(self._state_attrs, STATE_UNKNOWN)
+
+    def before_select_modes(self, prop, option, **kwargs):
+        if prop := self._miot_service.get_property('on'):
+            ion = prop.from_dict(self._state_attrs)
+            if not ion:
+                return self.set_property(prop, True)
+        return False
 
 
 class MiotCookerEntity(MiotSensorEntity):
