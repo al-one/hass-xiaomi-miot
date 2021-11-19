@@ -58,7 +58,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 ENTITY_DOMAIN, 'outlet', 'washer', 'massager', 'towel_rack',
                 'fish_tank', 'pet_drinking_fountain', 'mosquito_dispeller',
             ):
-                if not srv.get_property('on'):
+                if model in ['viomi.washer.u2']:
+                    # issues/251
+                    pass
+                elif not srv.get_property('on'):
                     continue
                 entities.append(MiotSwitchEntity(config, srv))
     for entity in entities:
