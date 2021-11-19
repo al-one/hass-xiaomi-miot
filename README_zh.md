@@ -143,6 +143,9 @@ cover.your_entity_id:
   open_texts: 打开,升
   close_texts: 关闭,降
 
+media_player.mitv_entity_id:
+  bind_xiaoai: media_player.xiaoai_entity_id # 绑定小爱音箱以打开电视
+
 doamin.your_entity_id:
   interval_seconds: 30 # 每次更新状态间隔秒数(需重载集成配置)
   chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)

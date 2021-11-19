@@ -432,6 +432,21 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             sta = STATE_OFF
         return sta
 
+    def turn_on(self):
+        if eid := self.custom_config('bind_xiaoai'):
+            nam = self.device_info.get('name')
+            if not nam:
+                sta = self.hass.states.get(self.entity_id)
+                nam = sta.attributes.get(ATTR_FRIENDLY_NAME)
+            if nam and self.hass.states.get(eid):
+                self.hass.services.call(DOMAIN, 'intelligent_speaker', {
+                    'entity_id': eid,
+                    'text': f'打开{nam}',
+                    'execute': True,
+                    'silent': False,
+                })
+        return super().turn_on()
+
     @property
     def device_class(self):
         return DEVICE_CLASS_TV
