@@ -125,6 +125,9 @@ domain.parent_entity_id:
   fan_properties: mode,fan_level
   cover_properties: motor_control
 
+light.your_entity_id:
+  color_temp_reverse: false # 反转色温(需重载集成配置)
+
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # 绑定传感器实体
 

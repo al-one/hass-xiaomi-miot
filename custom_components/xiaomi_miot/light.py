@@ -105,11 +105,21 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         if self._prop_color_temp:
             self._supported_features |= SUPPORT_COLOR_TEMP
             self._attr_supported_color_modes.add(COLOR_MODE_COLOR_TEMP)
+            self._vars['color_temp_min'] = self._prop_color_temp.range_min() or 3000
+            self._vars['color_temp_max'] = self._prop_color_temp.range_max() or 5700
+            self._attr_min_mireds = self.translate_mired(self._vars['color_temp_max'])
+            self._attr_max_mireds = self.translate_mired(self._vars['color_temp_min'])
+            self._vars['color_temp_sum'] = self._vars['color_temp_min'] + self._vars['color_temp_max']
+            self._vars['mireds_sum'] = self._attr_min_mireds + self._attr_max_mireds
         if self._prop_color:
             self._supported_features |= SUPPORT_COLOR
             self._attr_supported_color_modes.add(COLOR_MODE_HS)
         if self._prop_mode:
             self._supported_features |= SUPPORT_EFFECT
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self._vars['color_temp_reverse'] = self.custom_config_bool('color_temp_reverse')
 
     def turn_on(self, **kwargs):
         ret = False
@@ -128,6 +138,8 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         if self._prop_color_temp and ATTR_COLOR_TEMP in kwargs:
             mired = kwargs[ATTR_COLOR_TEMP]
             color_temp = self.translate_mired(mired)
+            if self._vars.get('color_temp_reverse'):
+                color_temp = self._vars.get('color_temp_sum') - color_temp
             _LOGGER.debug('Setting light: %s color temperature: %s mireds, %s ct', self.name, mired, color_temp)
             ret = self.set_property(self._prop_color_temp, color_temp)
 
@@ -177,19 +189,10 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
     def color_temp(self):
         if not self._prop_color_temp:
             return None
-        return self.translate_mired(self._prop_color_temp.from_dict(self._state_attrs) or 2700)
-
-    @property
-    def min_mireds(self):
-        if not self._prop_color_temp:
-            return None
-        return self.translate_mired(self._prop_color_temp.value_range[1] or 5700)
-
-    @property
-    def max_mireds(self):
-        if not self._prop_color_temp:
-            return None
-        return self.translate_mired(self._prop_color_temp.value_range[0] or 2700)
+        num = self._prop_color_temp.from_dict(self._state_attrs) or 3000
+        if self._vars.get('color_temp_reverse'):
+            num = self._vars.get('color_temp_sum') - num
+        return self.translate_mired(num)
 
     @staticmethod
     def translate_mired(num):

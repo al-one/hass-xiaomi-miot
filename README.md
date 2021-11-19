@@ -115,6 +115,9 @@ domain.parent_entity_id:
   fan_properties: mode,fan_level
   cover_properties: motor_control
 
+light.your_entity_id:
+  color_temp_reverse: false # Reverse color temperature (Requires reload config entry)
+
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
 
