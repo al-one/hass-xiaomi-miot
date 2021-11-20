@@ -87,7 +87,7 @@ MIOT_LOCAL_MODELS = [
     'nnleaf.light.strips',
     'nwt.derh.312en',
     'opple.light.tabcw',
-    'philips.light.bulb',
+    # 'philips.light.bulb',  # issues/254
     'philips.light.cbulb',
     'philips.light.dlight',
     'qushui.bed.003',
