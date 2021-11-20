@@ -306,7 +306,7 @@ class MiotService(MiotSpecInstance):
         super().__init__(dat)
         self.unique_name = f'{self.name}-{self.iid}'
         self.desc_name = self.format_desc_name(self.description, self.name)
-        self.friendly_desc = self.get_translation(self.description)
+        self.friendly_desc = self.get_translation(self.description or self.name)
         spec.services_count.setdefault(self.name, 0)
         spec.services_count[self.name] += 1
         self.properties = {}

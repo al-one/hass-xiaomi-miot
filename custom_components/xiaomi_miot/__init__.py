@@ -864,7 +864,7 @@ class MiotEntity(MiioEntity):
         name = kwargs.get(CONF_NAME) or self._config.get(CONF_NAME) or ''
         self._miot_service = miot_service if isinstance(miot_service, MiotService) else None
         if self._miot_service:
-            name = f'{name} {self._miot_service.friendly_desc}'
+            name = f'{name} {self._miot_service.friendly_desc}'.strip()
             kwargs['miot_service'] = self._miot_service
         super().__init__(name, device, **kwargs)
 
