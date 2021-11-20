@@ -89,6 +89,11 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
+    'cuco.plug.cp5pro': {
+        'sensor_properties': 'voltage,electric_current',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '10.1',
+    },
     'cuco.plug.*:electric_current': {
         'state_class': 'measurement',
         'device_class': 'current',
