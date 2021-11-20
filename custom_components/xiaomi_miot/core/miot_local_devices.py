@@ -27,7 +27,7 @@ MIOT_LOCAL_MODELS = [
     # 'cubee.airrtc.th123w',  # issues/213
     'cuco.light.sl4',
     'cuco.plug.co1',
-    'cuco.plug.cp2',
+    # 'cuco.plug.cp2',  # issues/232
     'cuco.plug.cp2a',
     'cuco.plug.cp3a',
     'cuco.plug.sp5',
