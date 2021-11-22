@@ -75,17 +75,17 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '2.2',
     },
     'cuco.plug.cp4': {
-        'sensor_properties': 'voltage,electric_current',
+        'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
     'cuco.plug.cp4am': {
-        'sensor_properties': 'voltage,electric_current',
+        'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
     'cuco.plug.cp4m': {
-        'sensor_properties': 'voltage,electric_current',
+        'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
@@ -93,6 +93,16 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '10.1',
+    },
+    'cuco.plug.cp5pro:power_cost_today': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'cuco.plug.cp5pro:power_cost_month': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
     },
     'cuco.plug.*:electric_current': {
         'state_class': 'measurement',
