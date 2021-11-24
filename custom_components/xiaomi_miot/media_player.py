@@ -435,6 +435,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
     def turn_on(self):
         if eid := self.custom_config('bind_xiaoai'):
             nam = self.device_info.get('name')
+            nam = self.custom_config('television_name', nam)
             if not nam:
                 sta = self.hass.states.get(self.entity_id)
                 nam = sta.attributes.get(ATTR_FRIENDLY_NAME)
@@ -443,7 +444,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                     'entity_id': eid,
                     'text': f'打开{nam}',
                     'execute': True,
-                    'silent': False,
+                    'silent': self.custom_config_bool('xiaoai_silent', True),
                 })
         return super().turn_on()
 
