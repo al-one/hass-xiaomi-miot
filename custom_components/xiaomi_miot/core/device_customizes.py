@@ -427,6 +427,14 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'uv,radar_on,lighting.on',
         'number_properties': 'target_time',
     },
+    '*.sensor_smoke.*': {
+        'binary_sensor_attributes': 'smoke_status',
+        'miio_cloud_props': '4117',
+        'miio_cloud_props_template': 'ble_sensor_smoke',
+    },
+    '*.sensor_smoke.*:smoke_status': {
+        'device_class': 'smoke',
+    },
     '*.walkingpad.*': {
         'sensor_properties': 'current_distance,current_step_count,current_calorie_consumption,'
                              'left_distance,left_time,working_time',

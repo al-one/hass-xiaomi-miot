@@ -1,4 +1,8 @@
 CUSTOM_TEMPLATES = {
+    'ble_sensor_smoke': "{%- set val = props.get('prop.4117','00') | int(0,16) %}"
+                        "{{ {"
+                        "'smoke_status': val == 1,"
+                        "} }}",
     'chuangmi_plug_v3_power_cost': "{%- set val = (result.0 | default({})).get('value',{}) %}"
                                    "{%- set day = now().day %}"
                                    "{{ {"

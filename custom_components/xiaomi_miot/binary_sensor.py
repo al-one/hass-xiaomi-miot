@@ -159,12 +159,14 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
 
         # https://iot.mi.com/new/doc/embedded-development/ble/object-definition
         self._props = [
-            'event.15',   # 0x000F
-            'prop.4103',  # 0x1007
-            'prop.4119',  # 0x1017
-            'prop.4123',  # 0x101B
-            'prop.4120',  # 0x1018
-            'prop.4121',  # 0x1019
+            'event.15',   # 0x000F motion&illumination
+            'prop.4103',  # 0x1007 lux
+            'prop.4106',  # 0x100A battery
+            'prop.4117',  # 0x1015 smoke
+            'prop.4119',  # 0x1017 no_motion_duration
+            'prop.4123',  # 0x101B no_motion_timeout
+            'prop.4120',  # 0x1018 illumination_level
+            'prop.4121',  # 0x1019 magnet
         ]
 
     async def async_update(self):
