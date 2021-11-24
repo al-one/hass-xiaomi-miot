@@ -1863,7 +1863,8 @@ class BaseSubEntity(BaseEntity):
             self.update_custom_scan_interval(only_custom=True)
         self._option['icon'] = self.custom_config('icon', self.icon)
         self._option['unit'] = self.custom_config('unit_of_measurement', self.unit_of_measurement)
-        self._attr_entity_category = self.custom_config('entity_category', self.entity_category)
+        if hasattr(self, 'entity_category'):
+            self._attr_entity_category = self.custom_config('entity_category', self.entity_category)
         if not self.device_class:
             self._option['device_class'] = self.custom_config('device_class')
 
