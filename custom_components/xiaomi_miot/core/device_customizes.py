@@ -95,11 +95,13 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '10.1',
     },
     'cuco.plug.cp5pro:power_cost_today': {
+        'value_ratio': 1,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
     'cuco.plug.cp5pro:power_cost_month': {
+        'value_ratio': 1,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
