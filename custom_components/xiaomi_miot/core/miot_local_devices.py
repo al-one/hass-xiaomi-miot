@@ -129,7 +129,7 @@ MIOT_LOCAL_MODELS = [
     'yeelink.light.ceil26',
     'yeelink.light.ceilb',
     'yeelink.light.ceilc',
-    'yeelink.light.color5',
+    # 'yeelink.light.color5',  # -9999
     'yeelink.light.colorc',
     'yeelink.light.fancl1',
     'yeelink.light.fancl2',
