@@ -13,7 +13,7 @@ DEVICE_CUSTOMIZES = {
     },
     'chuangmi.plug.v3': {
         'sensor_attributes': 'electric_power,prop_cal_day.power_cost:today,prop_cal_day.power_cost:month',
-        'sensor_miio_commands': {
+        'miio_commands': {
             'get_power': {
                 'params': [],
                 'values': ['electric_power'],
@@ -257,7 +257,7 @@ DEVICE_CUSTOMIZES = {
     },
     'roborock.vacuum.*': {
         'sensor_attributes': 'props:clean_area,props:clean_time',
-        'sensor_miio_commands': {
+        'miio_commands': {
             'get_status': ['props'],
             'get_consumable': ['consumables'],
         },
@@ -272,7 +272,7 @@ DEVICE_CUSTOMIZES = {
     },
     'rockrobo.vacuum.*': {
         'sensor_attributes': 'props:clean_area,props:clean_time',
-        'sensor_miio_commands': {
+        'miio_commands': {
             'get_status': ['props'],
             'get_consumable': ['consumables'],
         },
@@ -344,7 +344,7 @@ DEVICE_CUSTOMIZES = {
     },
     'zimi.powerstrip.v2': {
         'sensor_attributes': 'electric_power,store.powerCost:today,store.powerCost:month',
-        'sensor_miio_commands': {
+        'miio_commands': {
             'get_prop': {
                 'params': ['power_consume_rate'],
                 'values': ['electric_power'],
