@@ -403,10 +403,13 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'init_power_opt,fan_init_power_opt',
     },
     '*.lock.*': {
-        'sensor_attributes': 'event.7:door_state,event.11:lock_state,event.11:key_id',
-        'miio_cloud_records': 'event.7:1,event.11:1',
-        'miio_event_7_template': 'lock_event_7_template',
-        'miio_event_11_template': 'lock_event_11_template',
+        'sensor_attributes': 'door_state,lock_action,lock_key_id,timestamp',
+        'binary_sensor_attributes': 'armed_state',
+        'miio_cloud_props': 'event.6,event.7,event.8,event.11',
+        'miio_cloud_props_template': 'ble_lock_events',
+    },
+    '*.lock.*:timestamp': {
+        'device_class': 'timestamp',
     },
     '*.microwave.*': {
         'sensor_properties': 'left_time,heat_level,cook_time',

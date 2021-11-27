@@ -154,9 +154,12 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         await super().async_update()
         if not self._available:
             return
-        if self._miot_service.name in ['lock']:
-            if 'event.11' in self._state_attrs and self._prop_state.full_name not in self._state_attrs:
-                edt = self._state_attrs.get('event.11', {})
+        if self._miot_service.name in ['lock'] and self._prop_state.full_name not in self._state_attrs:
+            if how := self._state_attrs.get('lock_method'):
+                self.update_attrs({
+                    self._prop_state.full_name: how,
+                })
+            elif edt := self._state_attrs.get('event.11', {}):
                 if isinstance(edt, dict):
                     self.update_attrs({
                         self._prop_state.full_name: edt.get('method'),
@@ -198,11 +201,6 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
                     self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
                     add_switches([self._subs[pnm]])
 
-        self._update_sub_entities(
-            ['status', 'operation_id', 'abnormal_condition', 'current_time'],
-            ['lock', 'door'],
-            domain='sensor',
-        )
         self._update_sub_entities(
             [
                 'download_speed', 'upload_speed', 'connected_device_number', 'network_connection_type',
