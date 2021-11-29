@@ -436,7 +436,8 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'current_distance,current_step_count,current_calorie_consumption,'
                              'left_distance,left_time,working_time',
         'number_properties': 'target_distance,target_time',
-        'select_properties': 'mode,speed_level',
+        'select_properties': 'mode',
+        'number_select_properties': 'speed_level',
     },
 
 }

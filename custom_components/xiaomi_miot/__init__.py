@@ -1118,7 +1118,10 @@ class MiotEntity(MiioEntity):
         self._state = True if self._state_attrs.get('power') else False
 
         if self._miot_service:
-            for d in ['sensor', 'binary_sensor', 'switch', 'number', 'select', 'fan', 'cover']:
+            for d in [
+                'sensor', 'binary_sensor', 'switch', 'number',
+                'select', 'fan', 'cover', 'number_select',
+            ]:
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
