@@ -79,6 +79,16 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
             return DEVICE_CLASS_OUTLET
         return DEVICE_CLASS_SWITCH
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if act := self._miot_service.get_action('pet_food_out'):
+            prop = self._miot_service.get_property('feeding_measure')
+            add_switches = self._add_entities.get('switch')
+            if prop and add_switches:
+                fnm = prop.unique_name
+                self._subs[fnm] = MiotSwitchActionSubEntity(self, prop, act)
+                add_switches([self._subs[fnm]])
+
     async def async_update(self):
         await super().async_update()
         if not self._available:
@@ -166,8 +176,6 @@ class MiotSwitchActionSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         }, update_parent=False)
 
     def update(self, data=None):
-        self._available = True
-        time.sleep(0.5)
         self._state = False
 
     @property
@@ -186,6 +194,8 @@ class MiotSwitchActionSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         if ret:
             self._state = True
             self.async_write_ha_state()
+            time.sleep(0.5)
+            self._state = False
         return ret
 
     def turn_off(self, **kwargs):

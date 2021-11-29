@@ -392,12 +392,6 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'off_delay_time',
         'switch_properties': 'fan_init_power_opt',
     },
-    '*.feeder.*': {
-        'switch_properties': 'feeding_measure',
-    },
-    '*.fishbowl.*': {
-        'switch_properties': 'feeding_measure',
-    },
     '*.light.*': {
         'number_properties': 'off_delay_time',
         'switch_properties': 'init_power_opt,fan_init_power_opt',

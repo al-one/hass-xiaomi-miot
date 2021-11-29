@@ -150,6 +150,15 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         if cls in STATE_CLASSES:
             self._attr_state_class = cls
 
+        if act := self._miot_service.get_action('pet_food_out'):
+            prop = self._miot_service.get_property('feeding_measure')
+            add_switches = self._add_entities.get('switch')
+            if prop and add_switches:
+                from .switch import MiotSwitchActionSubEntity
+                fnm = prop.unique_name
+                self._subs[fnm] = MiotSwitchActionSubEntity(self, prop, act)
+                add_switches([self._subs[fnm]])
+
     async def async_update(self):
         await super().async_update()
         if not self._available:
