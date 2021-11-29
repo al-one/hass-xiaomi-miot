@@ -1551,7 +1551,6 @@ class MiotEntity(MiioEntity):
         from .sensor import MiotSensorSubEntity
         from .binary_sensor import MiotBinarySensorSubEntity
         from .switch import MiotSwitchSubEntity
-        from .switch import MiotSwitchActionSubEntity
         from .light import MiotLightSubEntity
         from .fan import MiotModesSubEntity
         from .cover import MiotCoverSubEntity

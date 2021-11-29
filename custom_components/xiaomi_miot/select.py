@@ -106,7 +106,11 @@ class MiotSelectSubEntity(SelectEntity, MiotPropertySubEntity):
         if val is None:
             self._attr_current_option = None
         else:
-            self._attr_current_option = str(self._miot_property.list_description(val))
+            des = self._miot_property.list_description(val)
+            stp = self._miot_property.range_step()
+            if stp and stp % 1 > 0:
+                des = float(des)
+            self._attr_current_option = str(des)
 
     def select_option(self, option):
         """Change the selected option."""
