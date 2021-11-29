@@ -376,6 +376,20 @@ class MiotService(MiotSpecInstance):
                 return a
         return None
 
+    def search_action(self, *args, **kwargs):
+        for v in self.actions.values():
+            dls = [
+                v.name,
+                v.description,
+                self.desc_name,
+                self.friendly_desc,
+            ]
+            for d in dls:
+                if d not in args:
+                    continue
+                return v
+        return None
+
     def unique_prop(self, **kwargs):
         return self.spec.unique_prop(self.iid, **kwargs)
 
@@ -712,6 +726,7 @@ class MiotAction(MiotSpecInstance):
         super().__init__(dat)
         self.unique_prop = self.service.unique_prop(aiid=self.iid)
         self.full_name = f'{service.name}.{self.name}'
+        self.friendly_desc = self.get_translation(self.description or self.name)
         self.ins = dat.get('in') or []
         self.out = dat.get('out') or []
 
@@ -752,6 +767,13 @@ class MiotAction(MiotSpecInstance):
         if len(kls) == len(out):
             return dict(zip(kls, out))
         return None
+
+    @property
+    def translation_keys(self):
+        return [
+            '_globals',
+            self.service.name,
+        ]
 
 
 class MiotResults:

@@ -43,10 +43,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     miot = config.get('miot_type')
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services('none_service'):
-            if not srv.get_property('none_property'):
+        for srv in spec.get_services('ir_aircondition_control'):
+            if not srv.actions:
                 continue
-            entities.append(MiotSelectEntity(config, srv))
+            entities.append(MiotActionsEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
@@ -56,10 +56,41 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class MiotSelectEntity(MiotEntity, SelectEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
+        self._attr_current_option = None
 
     def select_option(self, option):
         """Change the selected option."""
         raise NotImplementedError()
+
+
+class MiotActionsEntity(MiotSelectEntity):
+    def __init__(self, config, miot_service: MiotService):
+        super().__init__(config, miot_service)
+        als = []
+        for a in miot_service.actions.values():
+            anm = a.friendly_desc or a.name
+            als.append(anm)
+        self._attr_options = als
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if p := self._miot_service.get_property('ir_mode'):
+            self._state_attrs[p.full_name] = None
+            self._update_sub_entities([p.name], domain='select', whatever=True)
+        if p := self._miot_service.get_property('ir_temperature'):
+            self._state_attrs[p.full_name] = None
+            self._update_sub_entities([p.name], domain='number', whatever=True)
+
+    def select_option(self, option):
+        """Change the selected option."""
+        ret = False
+        act = self._miot_service.search_action(option)
+        if act:
+            if ret := self.call_action(act):
+                self._attr_current_option = option
+                self.async_write_ha_state()
+                self._attr_current_option = None
+        return ret
 
 
 class MiotSelectSubEntity(SelectEntity, MiotPropertySubEntity):

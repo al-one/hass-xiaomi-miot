@@ -76,6 +76,23 @@ TRANSLATION_LANGUAGES = {
             'color': '彩光',
         },
 
+        'ir_aircondition_control': {
+            'turn on': '打开',
+            'turn off': '关闭',
+            'fan speed down': '风速-',
+            'fan speed up': '风速+',
+            'temperature down': '温度-',
+            'temperature up': '温度+',
+        },
+
+        'ir_aircondition_control.ir_mode': {
+            'auto': '自动',
+            'cool': '制冷',
+            'dry': '除湿',
+            'fan': '风扇',
+            'heat': '制热',
+        },
+
         'ptc_bath_heater.mode': {
             'fan': '吹风',
             'heat': '暖风',
