@@ -505,7 +505,10 @@ class MiotProperty(MiotSpecInstance):
     def list_value(self, des):
         if des is not None and self.value_range:
             try:
-                val = int(des)
+                if self.range_step() % 1 > 0:
+                    val = float(des)
+                else:
+                    val = int(des)
             except (TypeError, ValueError):
                 val = None
             return val
