@@ -209,6 +209,9 @@ DEVICE_CUSTOMIZES = {
     'lumi.ctrl_neutral2.*': {
         'cloud_delay_update': 10,
     },
+    'lumi.magnet.acn001': {
+        'reverse_state': True,
+    },
     'lumi.motion.bmgl01': {
         'use_ble_object': True,
         'sensor_attributes': 'trigger_at',
