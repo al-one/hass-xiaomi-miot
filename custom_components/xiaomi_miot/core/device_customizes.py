@@ -3,6 +3,9 @@ DEVICE_CUSTOMIZES = {
     'cgllc.airm.cgdn1': {
         'chunk_properties': 9,
     },
+    'cgllc.magnet.hodor': {
+        'reverse_state': True,
+    },
     'chuangmi.camera.v6': {
         'use_alarm_playlist': True,
     },
@@ -404,9 +407,6 @@ DEVICE_CUSTOMIZES = {
                              'left_distance,left_time,working_time',
         'number_properties': 'target_distance,target_time',
         'select_properties': 'mode,speed_level',
-    },
-    'cgllc.magnet.hodor': {
-        'reverse_state': True,
     },
 
 }
