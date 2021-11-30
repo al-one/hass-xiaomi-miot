@@ -405,6 +405,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_distance,target_time',
         'select_properties': 'mode,speed_level',
     },
+    'cgllc.magnet.hodor': {
+        'reverse_state': True,
+    },
 
 }
 

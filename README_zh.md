@@ -133,6 +133,7 @@ cover.your_entity_id:
 doamin.your_entity_id:
   interval_seconds: 30 # 每次更新状态间隔秒数(需要重载集成配置)
   chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)
+  reverse_state: true  # 反转开关状态（仅作用于Binary Sensor）
 ```
 
 **推荐**[使用界面自定义实体](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-864678774):
