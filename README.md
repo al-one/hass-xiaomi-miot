@@ -139,6 +139,7 @@ media_player.mitv_entity_id:
 doamin.your_entity_id:
   interval_seconds: 30 # Seconds between each update state (Requires reload config entry)
   chunk_properties: 10 # Chunk miot properties on update state (LAN)
+  reverse_state: true  # Reverse the On/Off state of a binary sensor
 ```
 
 **Recommended** [Customization Using The UI](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui):
