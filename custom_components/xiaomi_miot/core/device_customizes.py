@@ -149,6 +149,9 @@ DEVICE_CUSTOMIZES = {
             2: 0,
         },
     },
+    'isa.magnet.dw2hl': {
+        'reverse_state': True,
+    },
     'lumi.acpartner.mcn02': {
         'miio_cloud_props': 'load_power',
     },
