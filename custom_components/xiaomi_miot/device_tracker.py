@@ -54,8 +54,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class MiotTrackerEntity(MiotEntity, TrackerEntity):
+    _disable_location_name = False
+
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self._disable_location_name = self.custom_config_bool('disable_location_name')
 
     async def async_update(self):
         await super().async_update()
@@ -98,6 +104,8 @@ class MiotTrackerEntity(MiotEntity, TrackerEntity):
     @property
     def location_name(self):
         """Return a location name for the current location of the device."""
+        if self._disable_location_name:
+            return None
         prop = self._miot_service.get_property('current_address')
         if prop:
             return prop.from_dict(self._state_attrs)
