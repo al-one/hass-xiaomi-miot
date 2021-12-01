@@ -1,6 +1,7 @@
 import logging
 import requests
 import platform
+import random
 import time
 import re
 
@@ -230,7 +231,7 @@ class MiotSpec(MiotSpecInstance):
             try:
                 res = await hass.async_add_executor_job(requests.get, url)
                 dat = res.json() or {}
-            except ValueError:
+            except (TypeError, ValueError):
                 dat = {}
             if dat:
                 sdt = {
@@ -270,13 +271,23 @@ class MiotSpec(MiotSpecInstance):
             fnm = fnm.replace(':', '_')
         store = Store(hass, 1, fnm)
         dat = await store.async_load() or {}
+        ptm = dat.pop('_updated_time', 0)
+        now = int(time.time())
+        day = 2
+        if dat.get('services'):
+            day = random.randint(30, 50)
+        if dat and now - ptm > 86400 * day:
+            dat = {}
         if not dat.get('type'):
             try:
                 res = await hass.async_add_executor_job(requests.get, url)
                 dat = res.json() or {}
-                await store.async_save(dat)
-            except ValueError:
-                dat = {}
+            except (TypeError, ValueError):
+                dat = {
+                    'type': typ or 'unknown',
+                }
+            dat['_updated_time'] = now
+            await store.async_save(dat)
         return MiotSpec(dat)
 
     @staticmethod
