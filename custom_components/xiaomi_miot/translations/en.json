@@ -29,7 +29,7 @@
             },
             "cloud_filter": {
                 "title": "Filter cloud devices",
-                "description": "You can include or exclude devices to integrate only the devices you want. In the exclude mode, if you do not check any option in the list, it is equivalent to including all options.",
+                "description": "You can include or exclude devices to integrate only the devices you want. In the exclude mode, if you do not check any option in the list, it is equivalent to including all options.\n{tip}",
                 "data": {
                     "filter_model": "Filter Device Model",
                     "model_list": "Device Model List",
@@ -76,7 +76,7 @@
             },
             "cloud_filter": {
                 "title": "Filter cloud devices",
-                "description": "You can include or exclude devices to integrate only the devices you want. In the exclude mode, if you do not check any option in the list, it is equivalent to including all options.",
+                "description": "You can include or exclude devices to integrate only the devices you want. In the exclude mode, if you do not check any option in the list, it is equivalent to including all options.\n{tip}",
                 "data": {
                     "filter_model": "Filter Device Model",
                     "model_list": "Device Model List",
