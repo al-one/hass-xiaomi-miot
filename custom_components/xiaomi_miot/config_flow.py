@@ -183,12 +183,12 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None, via_did
         url = 'https://github.com/al-one/hass-xiaomi-miot/blob/master/' \
               'custom_components/xiaomi_miot/core/miot_local_devices.py'
         if user_input.get(CONF_SERVER_COUNTRY) == 'cn':
-            tip = '⚠️ 在本地模式下，所有勾选的设备都将通过本地miot协议连接，如果勾选了不支持本地miot协议的设备，其实体会不可用，' \
-                  f'建议只勾选[支持本地miot的设备]({url})。'
+            tip = '⚠️ 在本地模式下，所有包含的设备都将通过本地miot协议连接，如果包含了不支持本地miot协议的设备，其实体会不可用，' \
+                  f'建议只选择[支持本地miot的设备]({url})。'
         else:
-            tip = '⚠️ In the local mode, all checked devices will be connected via the local miot protocol.' \
-                  'If the devices that does not support the local miot protocol are checked,' \
-                  'they will be unavailable. It is recommended to check only ' \
+            tip = '⚠️ In the local mode, all included devices will be connected via the local miot protocol.' \
+                  'If the devices that does not support the local miot protocol are included,' \
+                  'they will be unavailable. It is recommended to include only ' \
                   f'[the devices that supports the local miot protocol]({url}).'
     hass.data[DOMAIN]['placeholders'] = {'tip': tip}
     return schema
