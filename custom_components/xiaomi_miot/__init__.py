@@ -627,8 +627,6 @@ class MiioEntity(BaseEntity):
             CONF_MODEL: self._model,
             'lan_ip': self._miio_info.network_interface.get('localIp'),
             'mac_address': self._miio_info.mac_address,
-            'firmware_version': self._miio_info.firmware_version,
-            'hardware_version': self._miio_info.hardware_version,
             'entity_class': self.__class__.__name__,
         }
         self._supported_features = 0
@@ -684,12 +682,15 @@ class MiioEntity(BaseEntity):
 
     @property
     def device_info(self):
+        swv = self._miio_info.firmware_version
+        if self._miio_info.hardware_version:
+            swv = f'{swv}@{self._miio_info.hardware_version}'
         return {
             'identifiers': {(DOMAIN, self._unique_did)},
             'name': self.device_name,
             'model': self._model,
             'manufacturer': (self._model or 'Xiaomi').split('.', 1)[0],
-            'sw_version': self._miio_info.firmware_version,
+            'sw_version': swv,
             'configuration_url': f'https://home.miot-spec.com/s/{self._model}',
         }
 
