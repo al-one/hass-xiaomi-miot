@@ -620,6 +620,8 @@ class MiotProperty(MiotSpecInstance):
             'p/m3': CONCENTRATION_PARTS_PER_CUBIC_METER,
         }
         names = {
+            'current_step_count': 'steps',
+            'heart_rate': 'bpm',
             'power_consumption': ENERGY_WATT_HOUR,
             'pm2_5_density': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
             'tds_in': CONCENTRATION_PARTS_PER_MILLION,
@@ -690,20 +692,22 @@ class MiotProperty(MiotSpecInstance):
         icon = None
         name = self.name
         icons = {
-            'on': 'mdi:power',
+            'co2_density': 'mdi:molecule-co2',
+            'current_step_count': 'mdi:walk',
+            'drying_level': 'mdi:tumble-dryer',
+            'filter_used_flow': 'mdi:water-percent',
+            'filter_used_time': 'mdi:clock',
+            'heart_rate': 'mdi:heart-pulse',
             'mode': 'mdi:menu',
-            'washing_strength': 'mdi:waves',
             'nozzle_position': 'mdi:spray',
+            'on': 'mdi:power',
+            'smoke_concentration': 'mdi:smoking',
             'spin_speed': 'mdi:speedometer',
             'target_temperature': 'mdi:coolant-temperature',
             'target_water_level': 'mdi:water-plus',
-            'drying_level': 'mdi:tumble-dryer',
-            'co2_density': 'mdi:molecule-co2',
-            'smoke_concentration': 'mdi:smoking',
             'tds_in': 'mdi:water',
             'tds_out': 'mdi:water-check',
-            'filter_used_time': 'mdi:clock',
-            'filter_used_flow': 'mdi:water-percent',
+            'washing_strength': 'mdi:waves',
         }
         if name in ['heat_level']:
             icon = 'mdi:radiator'

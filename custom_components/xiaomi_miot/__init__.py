@@ -282,11 +282,12 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         if not urn:
             _LOGGER.info('Xiaomi device: %s has no urn', [d.get('name'), model])
             continue
+        ext = d.get('extra') or {}
         mif = {
             'ap':     {'ssid': d.get('ssid'), 'bssid': d.get('bssid'), 'rssi': d.get('rssi')},
             'netif':  {'localIp': d.get('localip'), 'gw': '', 'mask': ''},
-            'fw_ver': d.get('extra', {}).get('fw_version', ''),
-            'hw_ver': d.get('extra', {}).get('hw_version', ''),
+            'fw_ver': ext.get('fw_version', ''),
+            'hw_ver': ext.get('hw_version', ''),
             'mac':    d.get('mac'),
             'model':  model,
             'token':  d.get(CONF_TOKEN),

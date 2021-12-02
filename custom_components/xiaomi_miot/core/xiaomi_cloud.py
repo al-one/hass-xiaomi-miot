@@ -180,7 +180,9 @@ class MiotCloud(micloud.MiCloud):
     def get_device_list(self):
         rdt = self.request_miot_api('home/device_list', {
             'getVirtualModel': True,
-            'getHuamiDevices': 0,
+            'getHuamiDevices': 1,
+            'get_split_device': False,
+            'support_smart_home': True,
         }, debug=False) or {}
         if rdt and 'result' in rdt:
             return rdt['result']['list']

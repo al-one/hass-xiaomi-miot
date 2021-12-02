@@ -141,6 +141,9 @@ DEVICE_CUSTOMIZES = {
     'deerma.humidifier.jsq3': {
         'chunk_properties': 6,
     },
+    'hmpace.bracelet.*': {
+        'sensor_properties': 'current_step_count,current_distance',
+    },
     'hyd.airer.*': {
         'disable_target_position': True,
         'cover_position_mapping': {
@@ -312,6 +315,9 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.tv.*': {
         'number_properties': 'speaker.volume',
+    },
+    'xiaomi.watch.*': {
+        'sensor_properties': 'current_step_count,current_distance',
     },
     'yeelink.light.nl1': {
         'interval_seconds': 15,

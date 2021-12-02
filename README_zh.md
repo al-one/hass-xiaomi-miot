@@ -191,7 +191,7 @@ doamin.your_entity_id:
 - 🐱 [宠物喂食器](https://home.miot-spec.com/s/feeder) / ⛲ [宠物饮水机](https://home.miot-spec.com/s/pet_waterer) / 🐟 [鱼缸](https://home.miot-spec.com/s/fishbowl)
 - 🦟 [驱蚊器](https://home.miot-spec.com/s/mosq) / [消毒/灭菌灯](https://home.miot-spec.com/s/s_lamp)
 - 🚘 [智能后视镜](https://home.miot-spec.com/s/rv_mirror) / [抬头显示HUD](https://home.miot-spec.com/s/hud)
-- ⌚️ [智能/儿童手表](https://home.miot-spec.com/s/watch)
+- ⌚️ [智能/儿童手表](https://home.miot-spec.com/s/watch) / [手环](https://home.miot-spec.com/s/bracelet)
 - 🚶 [人体传感器](https://home.miot-spec.com/s/motion) / 🧲 [门窗传感器](https://home.miot-spec.com/s/magnet) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-909031222)
 - 📳 [动静贴](https://home.miot-spec.com/s/vibration)
 - 🌐 [路由器](https://home.miot-spec.com/s/router) / 🖨 [打印机](https://home.miot-spec.com/s/printer)

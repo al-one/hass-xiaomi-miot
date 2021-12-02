@@ -57,7 +57,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 'router', 'lock', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad',
                 'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
                 'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer', 'water_purifier',
-                'pet_feeder', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp',
+                'pet_feeder', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp', 'vital_signs',
             ):
                 if srv.name in ['lock']:
                     if not srv.get_property('operation_method', 'operation_id'):
@@ -132,14 +132,15 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         elif miot_service.name in ['smoke_sensor']:
             self._prop_state = miot_service.get_property('smoke_concentration') or self._prop_state
 
+        self._name = f'{self.device_name} {self._prop_state.friendly_desc}'
+        self._attr_icon = self._miot_service.entity_icon
+        self._attr_state_class = None
+
         if self._prop_state:
             self._attr_icon = self._prop_state.entity_icon
             self._attr_device_class = self._prop_state.device_class
             self._attr_unit_of_measurement = self._prop_state.unit_of_measurement
 
-        self._name = f'{self.device_name} {self._prop_state.friendly_desc}'
-        self._attr_icon = self._miot_service.entity_icon
-        self._attr_state_class = None
         self._state_attrs.update({
             'state_property': self._prop_state.full_name if self._prop_state else None,
         })

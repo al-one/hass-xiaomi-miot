@@ -180,7 +180,7 @@ doamin.your_entity_id:
 - 🐱 [pet-feeder](https://home.miot-spec.com/s/feeder) / ⛲ [pet-drinking-fountain](https://home.miot-spec.com/s/pet_waterer) / 🐟 [fish-tank](https://home.miot-spec.com/s/fishbowl)
 - 🦟 [mosquito-dispeller](https://home.miot-spec.com/s/mosq) / [germicidal-lamp](https://home.miot-spec.com/s/s_lamp)
 - 🚘 [rearview-mirror](https://home.miot-spec.com/s/rv_mirror) / [head-up-display](https://home.miot-spec.com/s/hud)
-- ⌚️ [watch](https://home.miot-spec.com/s/watch)
+- ⌚️ [watch](https://home.miot-spec.com/s/watch) / [bracelet](https://home.miot-spec.com/s/bracelet)
 - 🚶 [motion-sensor](https://home.miot-spec.com/s/motion) / 🧲 [magnet-sensor](https://home.miot-spec.com/s/magnet) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-909031222)
 - 📳 [vibration-sensor](https://home.miot-spec.com/s/vibration)
 - 🌐 [router](https://home.miot-spec.com/s/router) / 🖨 [printer](https://home.miot-spec.com/s/printer)
