@@ -695,6 +695,7 @@ class MiioEntity(BaseEntity):
             'model': self._model,
             'manufacturer': (self._model or 'Xiaomi').split('.', 1)[0],
             'sw_version': swv,
+            'suggested_area': self._config.get('room_name'),
             'configuration_url': f'https://home.miot-spec.com/s/{self._model}',
         }
 
