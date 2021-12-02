@@ -240,6 +240,17 @@ DEVICE_CUSTOMIZES = {
     'lumi.switch.*': {
         'cloud_delay_update': 10,
     },
+    'mmgg.feeder.petfeeder': {
+        'sensor_attributes': 'feed_today',
+        'miio_commands': {
+            'getprops': [
+                'food_status', 'feed_plan', 'door_result', 'feed_today', 'clean_days', 'outlet_status',
+                'dryer_days', 'weight_level', 'wifi_led', 'key_lock', 'country_code',
+            ],
+            # 'getfeedplan1': [],
+            # 'getfeedplan2': [],
+        },
+    },
     'miaomiaoce.sensor_ht.t1': {
         'miot_mapping': {
             'temperature-2-1': {'siid': 2, 'piid': 1},
