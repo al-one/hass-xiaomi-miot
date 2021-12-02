@@ -276,9 +276,9 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', entry.get(CONF_USERNAME), cnt)
     for mac, d in config['devices_by_mac'].items():
         model = d.get(CONF_MODEL)
-        if not model:
-            continue
-        urn = await MiotSpec.async_get_model_type(hass, model)
+        urn = None
+        if model:
+            urn = await MiotSpec.async_get_model_type(hass, model)
         if not urn:
             _LOGGER.info('Xiaomi device: %s has no urn', [d.get('name'), model])
             continue
@@ -303,6 +303,8 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             'miio_info': mif,
             CONF_CONN_MODE: conn,
             'miot_cloud': conn != 'local',
+            'home_name': d.get('home_name') or '',
+            'room_name': d.get('room_name') or '',
             'entry_id': entry_id,
             CONF_CONFIG_VERSION: entry.get(CONF_CONFIG_VERSION) or 0,
         }
@@ -629,6 +631,8 @@ class MiioEntity(BaseEntity):
             'mac_address': self._miio_info.mac_address,
             'entity_class': self.__class__.__name__,
         }
+        if hnm := self._config.get('home_name'):
+            self._state_attrs['home_room'] = f"{hnm} {self._config.get('room_name')}"
         self._supported_features = 0
         self._props = ['power']
         self._success_result = ['ok']
