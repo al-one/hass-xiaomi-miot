@@ -250,6 +250,9 @@ DEVICE_CUSTOMIZES = {
             # 'getfeedplan1': [],
             # 'getfeedplan2': [],
         },
+        'miot_local_mapping': {
+            'feeding.measure': {'siid': 2, 'piid': 1},
+        },
     },
     'miaomiaoce.sensor_ht.t1': {
         'miot_mapping': {
