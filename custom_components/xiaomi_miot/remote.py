@@ -160,7 +160,13 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
 
     def learn_command(self, **kwargs):
         """Learn a command from a device."""
-        raise NotImplementedError()
+        try:
+            key = int(kwargs.get(remote.ATTR_DEVICE))
+            return self._device.learn(key)
+        except (TypeError, ValueError, DeviceException) as exc:
+            self.logger.warning('%s: Learn command failed: %s, the device ID is used to store command '
+                                'and must between 1 and 1000000.', self.name, exc)
+        return False
 
     def delete_command(self, **kwargs):
         """Delete commands from the database."""
