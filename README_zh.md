@@ -275,9 +275,9 @@ data:
   silent: true  # Silent execution.
 ```
 
-#### [`xiaomi_miot.xiaoai_weakup`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.xiaoai_weakup)
+#### [`xiaomi_miot.xiaoai_wakeup`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.xiaoai_wakeup)
 ```yaml
-service: xiaomi_miot.xiaoai_weakup
+service: xiaomi_miot.xiaoai_wakeup
 data:
   entity_id: media_player.xiaoai_lx04_xxxx
 ```

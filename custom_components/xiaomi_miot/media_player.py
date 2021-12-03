@@ -52,8 +52,8 @@ SERVICE_TO_METHOD = {
             },
         ),
     },
-    'xiaoai_weakup': {
-        'method': 'async_xiaoai_weakup',
+    'xiaoai_wakeup': {
+        'method': 'async_xiaoai_wakeup',
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
                 vol.Optional('text', default=None): cv.string,
@@ -341,7 +341,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             partial(self.intelligent_speaker, text, execute, silent, **kwargs)
         )
 
-    def xiaoai_weakup(self, text=None, **kwargs):
+    def xiaoai_wakeup(self, text=None, **kwargs):
         if srv := self._intelligent_speaker:
             if act := srv.get_action('wake_up'):
                 pms = [text or ''] if act.ins else []
@@ -352,9 +352,9 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             _LOGGER.error('%s does not have service: %s', self.name, 'intelligent_speaker')
         return False
 
-    async def async_xiaoai_weakup(self, text=None, **kwargs):
+    async def async_xiaoai_wakeup(self, text=None, **kwargs):
         return await self.hass.async_add_executor_job(
-            partial(self.xiaoai_weakup, text, **kwargs)
+            partial(self.xiaoai_wakeup, text, **kwargs)
         )
 
 
