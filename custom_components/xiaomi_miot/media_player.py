@@ -52,6 +52,15 @@ SERVICE_TO_METHOD = {
             },
         ),
     },
+    'xiaoai_weakup': {
+        'method': 'async_xiaoai_weakup',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+            {
+                vol.Optional('text', default=None): cv.string,
+                vol.Optional('throw', default=False): cv.boolean,
+            },
+        ),
+    },
 }
 
 
@@ -318,19 +327,36 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                     pms.append(sil)
                 return self.miot_action(srv.iid, act.iid, pms, **kwargs)
             else:
-                _LOGGER.warning('%s have no action: %s', self.name, anm)
+                _LOGGER.warning('%s does not have action: %s', self.name, anm)
         elif self._message_router:
             act = self._message_router.get_action('post')
             if act and execute:
                 return self.call_action(act, [text], **kwargs)
         else:
-            _LOGGER.error('%s have no service: %s', self.name, 'intelligent_speaker/message_router')
+            _LOGGER.error('%s does not have service: %s', self.name, 'intelligent_speaker/message_router')
         return False
 
     async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         return await self.hass.async_add_executor_job(
             partial(self.intelligent_speaker, text, execute, silent, **kwargs)
         )
+
+    def xiaoai_weakup(self, text=None, **kwargs):
+        if srv := self._intelligent_speaker:
+            if act := srv.get_action('wake_up'):
+                pms = [text or ''] if act.ins else []
+                return self.miot_action(srv.iid, act.iid, pms, **kwargs)
+            else:
+                _LOGGER.warning('%s does not have action: %s', self.name, 'wake_up')
+        else:
+            _LOGGER.error('%s does not have service: %s', self.name, 'intelligent_speaker')
+        return False
+
+    async def async_xiaoai_weakup(self, text=None, **kwargs):
+        return await self.hass.async_add_executor_job(
+            partial(self.xiaoai_weakup, text, **kwargs)
+        )
+
 
 
 class MitvMediaPlayerEntity(MiotMediaPlayerEntity):

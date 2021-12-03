@@ -161,7 +161,7 @@ intelligent_speaker:
           domain: media_player
     text:
       description: Text content.
-      example: "Turn on light"
+      example: Turn on light
       required: true
       selector:
         text:
@@ -177,6 +177,29 @@ intelligent_speaker:
       example: false
       selector:
         boolean:
+    throw:
+      description: Throw result.
+      default: false
+      example: false
+      selector:
+        boolean:
+
+xiaoai_weakup:
+  description: Weak up the xiaoai speaker.
+  fields:
+    entity_id:
+      description: ID of the xiaoai entity.
+      example: media_player.xiaoai_x08c
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
+          domain: media_player
+    text:
+      description: Text content for weak up.
+      example: Livingroom light
+      selector:
+        text:
     throw:
       description: Throw result.
       default: false

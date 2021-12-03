@@ -269,10 +269,17 @@ data:
 ```yaml
 service: xiaomi_miot.intelligent_speaker
 data:
-  entity_id: media_player.xiaomi_lx04_xxxx
+  entity_id: media_player.xiaoai_lx04_xxxx
   text: Turn on the light
   execute: true # Execute text directive.
   silent: true  # Silent execution.
+```
+
+#### [`xiaomi_miot.xiaoai_weakup`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.xiaoai_weakup)
+```yaml
+service: xiaomi_miot.xiaoai_weakup
+data:
+  entity_id: media_player.xiaoai_lx04_xxxx
 ```
 
 > 查看[更多服务](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/services.yaml)
