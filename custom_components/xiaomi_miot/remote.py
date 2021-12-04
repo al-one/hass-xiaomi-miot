@@ -22,6 +22,7 @@ from . import (
     MiotEntity,
     async_setup_config_entry,
     bind_services_to_entries,
+    TRANSLATION_LANGUAGES,
 )
 from .core.miot_spec import (
     MiotSpec,
@@ -96,10 +97,18 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                     self.logger.info('%s: IR device %s(%s) have no keys: %s', self.name, ird, d.get('name'), rdt)
                 elif add_selects and ird not in self._subs:
                     from .select import SelectSubEntity
-                    ols = [
-                        k.get('display_name') or k.get('name')
-                        for k in kys
-                    ]
+                    dic = {
+                        **TRANSLATION_LANGUAGES,
+                        **(TRANSLATION_LANGUAGES.get('_globals', {})),
+                        **(TRANSLATION_LANGUAGES.get('ir_devices', {})),
+                    }
+                    ols = []
+                    for k in kys:
+                        nam = k.get('display_name') or k.get('name')
+                        if not nam:
+                            continue
+                        nam = dic.get(nam, nam)
+                        ols.append(nam)
                     self._subs[ird] = SelectSubEntity(self, ird, option={
                         'name': d.get('name'),
                         'entity_id': f'remote_{ird}'.replace('.', '_'),
