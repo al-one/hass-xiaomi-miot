@@ -73,6 +73,11 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         token = config.get(CONF_TOKEN)
         self._device = ChuangmiIr(host, token)
         self._attr_should_poll = False
+        self._translations = {
+            **TRANSLATION_LANGUAGES,
+            **(TRANSLATION_LANGUAGES.get('_globals', {})),
+            **(TRANSLATION_LANGUAGES.get('ir_devices', {})),
+        }
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -97,17 +102,12 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                     self.logger.info('%s: IR device %s(%s) have no keys: %s', self.name, ird, d.get('name'), rdt)
                 elif add_selects and ird not in self._subs:
                     from .select import SelectSubEntity
-                    dic = {
-                        **TRANSLATION_LANGUAGES,
-                        **(TRANSLATION_LANGUAGES.get('_globals', {})),
-                        **(TRANSLATION_LANGUAGES.get('ir_devices', {})),
-                    }
                     ols = []
                     for k in kys:
                         nam = k.get('display_name') or k.get('name')
                         if not nam:
                             continue
-                        nam = dic.get(nam, nam)
+                        nam = self._translations.get(nam, nam)
                         ols.append(nam)
                     self._subs[ird] = SelectSubEntity(self, ird, option={
                         'name': d.get('name'),
@@ -188,7 +188,11 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
             if did and did != d.get('did'):
                 continue
             for k in d.get('keys', []):
-                if select not in [k.get('display_name'), k.get('name')]:
+                if select not in [
+                    k.get('display_name'),
+                    k.get('name'),
+                    self._translations.get(k.get('display_name') or k.get('name')),
+                ]:
                     continue
                 key = k.get('id')
         if key:
