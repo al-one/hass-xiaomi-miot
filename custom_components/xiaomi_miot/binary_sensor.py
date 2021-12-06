@@ -103,6 +103,9 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
         if miot_service.name in ['magnet_sensor']:
             self._prop_state = miot_service.get_property('contact_state') or self._prop_state
+            if self._prop_state and self._prop_state.name in ['contact_state']:
+                # https://github.com/al-one/hass-xiaomi-miot/issues/270
+                self._vars['reverse_state'] = True
             self._vars['device_class'] = DEVICE_CLASS_DOOR
 
         if miot_service.name in ['submersion_sensor']:
@@ -112,6 +115,11 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
         self._state_attrs.update({
             'state_property': self._prop_state.full_name if self._prop_state else None,
         })
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if self.custom_config_bool('reverse_state'):
+            self._vars['reverse_state'] = True
 
     async def async_update(self):
         await super().async_update()
@@ -126,8 +134,8 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
         val = self._prop_state.from_dict(self._state_attrs)
         if val is None:
             return self._state
-        if self.custom_config_bool('reverse_state'):
-            return not val;
+        if self._vars.get('reverse_state'):
+            return not val
         if self._prop_state.name in ['no_motion_duration', 'nobody_time']:
             dur = self.custom_config_integer('motion_timeout')
             if dur is None and self._prop_state.value_range:
