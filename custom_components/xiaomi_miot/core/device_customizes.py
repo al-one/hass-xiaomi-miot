@@ -421,6 +421,10 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'off_delay_time',
         'switch_properties': 'fan_init_power_opt',
     },
+    '*.heater.*': {
+        'switch_properties': 'heater.on',
+        'number_properties': 'countdown_time',
+    },
     '*.light.*': {
         'number_properties': 'off_delay_time',
         'switch_properties': 'init_power_opt,fan_init_power_opt',

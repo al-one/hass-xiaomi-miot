@@ -727,6 +727,7 @@ class MiotProperty(MiotSpecInstance):
         name = self.name
         names = {
             'battery_level': ENTITY_CATEGORY_DIAGNOSTIC,
+            'countdown_time': ENTITY_CATEGORY_CONFIG,
             'fan_init_power_opt': ENTITY_CATEGORY_CONFIG,
             'init_power_opt': ENTITY_CATEGORY_CONFIG,
             'off_delay_time': ENTITY_CATEGORY_CONFIG,
