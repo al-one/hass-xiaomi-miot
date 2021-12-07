@@ -24,7 +24,7 @@ MIOT_LOCAL_MODELS = [
     'chunmi.ihcooker.v2',
     'chunmi.waterpuri.600j6',
     'chunmi.waterpuri.800f3',
-    'cubee.airrtc.th123e',
+    # 'cubee.airrtc.th123e',  # issues/282
     # 'cubee.airrtc.th123w',  # issues/213
     'cuco.light.sl4',
     'cuco.plug.co1',
