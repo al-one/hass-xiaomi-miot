@@ -3,9 +3,6 @@ DEVICE_CUSTOMIZES = {
     'cgllc.airm.cgdn1': {
         'chunk_properties': 9,
     },
-    'cgllc.magnet.hodor': {
-        'reverse_state': True,
-    },
     'chuangmi.camera.v6': {
         'use_alarm_playlist': True,
     },
@@ -152,9 +149,6 @@ DEVICE_CUSTOMIZES = {
             2: 0,
         },
     },
-    'isa.magnet.dw2hl': {
-        'reverse_state': True,
-    },
     'lumi.acpartner.mcn02': {
         'miio_cloud_props': 'load_power',
     },
@@ -214,9 +208,6 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.ctrl_neutral2.*': {
         'cloud_delay_update': 10,
-    },
-    'lumi.magnet.acn001': {
-        'reverse_state': True,
     },
     'lumi.motion.bmgl01': {
         'use_ble_object': True,
