@@ -116,6 +116,7 @@ SERVICE_TO_METHOD_BASE = {
                 vol.Required('aiid'): int,
                 vol.Optional('did'): cv.string,
                 vol.Optional('params', default=[]): cv.ensure_list,
+                vol.Optional('force_params', default=False): cv.boolean,
                 vol.Optional('throw', default=False): cv.boolean,
             },
         ),
@@ -1512,7 +1513,8 @@ class MiotEntity(MiioEntity):
                 result = mca.do_action(pms)
                 dly = self.custom_config_integer('cloud_delay_update', 5)
             else:
-                pms['in'] = action.in_params(params or [])
+                if not kwargs.get('force_params'):
+                    pms['in'] = action.in_params(params or [])
                 result = self.miot_device.send('action', pms)
             eno = dict(result or {}).get('code', eno)
         except (DeviceException, MiCloudException) as exc:
