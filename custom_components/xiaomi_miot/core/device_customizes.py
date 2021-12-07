@@ -403,6 +403,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'dryer,uv',
         'fan_properties': 'drying_level',
     },
+    '*.airrtc.*': {
+        'switch_properties': 'air_conditioner.on',
+    },
     '*.airpurifier.*': {
         'switch_properties': 'air_purifier.on',
     },
