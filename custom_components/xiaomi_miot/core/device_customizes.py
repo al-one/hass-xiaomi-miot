@@ -272,6 +272,12 @@ DEVICE_CUSTOMIZES = {
             'light.color_temperature': {'siid': 2, 'piid': 5},
         },
     },
+    'pwzn.light.apple': {
+        'light_services': 'light_ct',
+        'switch_properties': 'enable',
+        'select_properties': 'mode,rgb_order',
+        'number_properties': 'numleds,pixel_per_step,fade_delay,step_delay,stair_travel_time',
+    },
     'roborock.vacuum.*': {
         'sensor_attributes': 'props:clean_area,props:clean_time',
         'miio_commands': {

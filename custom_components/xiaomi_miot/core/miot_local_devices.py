@@ -95,6 +95,7 @@ MIOT_LOCAL_MODELS = [
     # 'philips.light.bulb',  # issues/254
     'philips.light.cbulb',
     'philips.light.dlight',
+    'pwzn.light.apple',
     'qushui.bed.003',
     'roidmi.vacuum.v60',
     'skyrc.feeder.fed',

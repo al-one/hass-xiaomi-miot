@@ -1133,6 +1133,10 @@ class MiotEntity(MiioEntity):
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
+            for d in ['light']:
+                pls = self.custom_config_list(f'{d}_services') or []
+                if pls:
+                    self._update_sub_entities(None, pls, domain=d)
             self._update_sub_entities(
                 [
                     'temperature', 'indoor_temperature', 'relative_humidity', 'humidity',
