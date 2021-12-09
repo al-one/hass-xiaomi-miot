@@ -356,7 +356,7 @@ class MiotService(MiotSpecInstance):
         return [
             p
             for p in self.properties.values()
-            if p.name in args or p.desc_name in args
+            if p.name in args or p.full_name in args or p.desc_name in args
         ]
 
     def get_property(self, *args, only_format=None):
