@@ -170,7 +170,7 @@ doamin.your_entity_id:
 - 🍹 [juicer](https://home.miot-spec.com/s/juicer)
 - ♨️ [water-heater](https://home.miot-spec.com/s/waterheater) / [hood](https://home.miot-spec.com/s/hood) / [dishwasher](https://home.miot-spec.com/s/dishwasher)
 - 🪟 [curtain](https://home.miot-spec.com/s/curtain) / [window-opener](https://home.miot-spec.com/s/wopener) / [airer](https://home.miot-spec.com/s/airer)
-- 🧹 [vacuum](https://home.miot-spec.com/s/vacuum)
+- 🧹 [vacuum](https://home.miot-spec.com/s/vacuum) / [mopping-machine](https://home.miot-spec.com/s/.mop)
 - 💦 [humidifier](https://home.miot-spec.com/s/humidifier) / [dehumidifier](https://home.miot-spec.com/s/derh)
 - 🍃 [air-monitor](https://home.miot-spec.com/s/airmonitor) / 🪴 [plant-monitor](https://home.miot-spec.com/s/plantmonitor)
 - 🛏 [bed](https://home.miot-spec.com/s/bed) / [blanket](https://home.miot-spec.com/s/blanket) / 😴 [sleep-monitor](https://home.miot-spec.com/s/lunar)
