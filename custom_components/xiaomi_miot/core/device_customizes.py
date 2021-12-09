@@ -138,6 +138,9 @@ DEVICE_CUSTOMIZES = {
     'deerma.humidifier.jsq3': {
         'chunk_properties': 6,
     },
+    'fawad.airrtc.*': {
+        'exclude_miot_services': 'thermostat_vrf',
+    },
     'hmpace.bracelet.*': {
         'sensor_properties': 'current_step_count,current_distance',
     },
