@@ -899,6 +899,8 @@ class MiotEntity(MiioEntity):
         if dic := self.custom_config_json('miot_mapping'):
             self._miot_service.spec.set_custom_mapping(dic)
         self._vars['exclude_services'] = self.custom_config_list('exclude_miot_services') or []
+        if ems := self._vars.get('exclude_services'):
+            self._state_attrs['exclude_miot_services'] = ems
 
     @property
     def miot_device(self):
@@ -999,7 +1001,7 @@ class MiotEntity(MiioEntity):
         exs = self._vars.get('exclude_services') or []
         if exs and mmp and self._miot_service:
             sls = self._miot_service.spec.get_services(*exs)
-            sis = map(lambda x: x.iid, sls)
+            sis = list(map(lambda x: x.iid, sls))
             if sis:
                 mmp = {
                     k: v
