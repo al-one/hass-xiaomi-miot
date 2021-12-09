@@ -399,6 +399,7 @@ DEVICE_CUSTOMIZES = {
     },
 
     '*.airer.*': {
+        'position_reverse': True,
         'sensor_properties': 'left_time',
         'switch_properties': 'dryer,uv',
         'fan_properties': 'drying_level',

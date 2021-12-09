@@ -103,11 +103,11 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         self._motor_reverse = self.custom_config_bool('motor_reverse', False)
         self._position_reverse = self.custom_config_bool('position_reverse', self._motor_reverse)
         self._open_texts = [
-            *str(self.custom_config('open_texts') or '').split(','),
+            *(self.custom_config_list('open_texts') or []),
             'Opening', 'Opened', 'Open', 'Up', 'Rising', 'Risen', 'Rise',
         ]
         self._close_texts = [
-            *str(self.custom_config('close_texts') or '').split(','),
+            *(self.custom_config_list('close_texts') or []),
             'Closing', 'Closed', 'Close', 'Down',
         ]
         if self._motor_reverse:
