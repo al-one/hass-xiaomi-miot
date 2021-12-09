@@ -68,16 +68,21 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity') or self._prop_humidity
 
         self._humidifier_mode = None
-        self._mode_props = [self._prop_mode, self._prop_fan_level, self._prop_water_level]
+        self._mode_props = [self._prop_mode, self._prop_fan_level]
         self._mode_props = list(filter(lambda x: x, self._mode_props))
         if self._mode_props:
-            self._humidifier_mode = self._mode_props[0]
+            self._humidifier_mode = self._mode_props.pop(0)
             self._supported_features = SUPPORT_MODES
 
     async def async_update(self):
         await super().async_update()
         if not self._available:
             return
+        if self._prop_water_level:
+            self._update_sub_entities(
+                [self._prop_water_level.name],
+                domain='number_select',
+            )
         add_fans = self._add_entities.get('fan')
         for p in self._mode_props:
             pnm = p.full_name
