@@ -1229,7 +1229,7 @@ class MiotEntity(MiioEntity):
             if cls:
                 _LOGGER.warning('Custom attribute `sensor_miio_commands` is deprecated, please use `miio_commands`.')
         if cls:
-            await self.hass.async_add_executor_job(partial(self.update_miio_command_sensors, cls))
+            await self.hass.async_add_executor_job(partial(self.update_miio_commands, cls))
 
     def update_miio_props(self, props):
         if not self.miot_device:
@@ -1248,18 +1248,24 @@ class MiotEntity(MiioEntity):
         self.logger.debug('%s: Got miio properties: %s', self.name, attrs)
         self.update_attrs(attrs)
 
-    def update_miio_command_sensors(self, commands):
-        if not self.miot_device or not isinstance(commands, dict):
+    def update_miio_commands(self, commands):
+        if not self.miot_device:
             return
-        for cmd, cfg in commands.items():
-            if isinstance(cfg, list):
-                cfg = {'values': cfg}
-            props = cfg.get('values') or []
+        if isinstance(commands, dict):
+            commands = [
+                {'method': cmd, **(cfg if isinstance(cfg, dict) else {'values': cfg})}
+                for cmd, cfg in commands.items()
+            ]
+        elif not isinstance(commands, list):
+            commands = []
+        for cfg in commands:
+            cmd = cfg.get('method')
             try:
                 attrs = self._device.send(cmd, cfg.get('params') or [])
             except DeviceException as exc:
                 self.logger.warning('%s: Send miio command %s(%s) failed: %s', self.name, cmd, cfg, exc)
                 return
+            props = cfg.get('values') or []
             if len(props) != len(attrs):
                 attrs = {
                     f'miio.{cmd}': attrs,
