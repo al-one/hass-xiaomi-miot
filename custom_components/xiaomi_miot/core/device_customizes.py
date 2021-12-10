@@ -226,6 +226,7 @@ DEVICE_CUSTOMIZES = {
         'motion_timeout': 60,
     },
     'lumi.sensor_magnet.*': {
+        'reverse_state': False,
         'interval_seconds': 15,
     },
     'lumi.sensor_wleak.*': {

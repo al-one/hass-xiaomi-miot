@@ -118,8 +118,9 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        if self.custom_config_bool('reverse_state'):
-            self._vars['reverse_state'] = True
+        rev = self.custom_config_bool('reverse_state', None)
+        if rev is not None:
+            self._vars['reverse_state'] = rev
 
     async def async_update(self):
         await super().async_update()
@@ -129,23 +130,23 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
     @property
     def is_on(self):
-        if not self._prop_state:
-            return self._state
-        val = self._prop_state.from_dict(self._state_attrs)
-        if val is None:
-            return self._state
+        ret = self._state
+        if self._prop_state:
+            val = self._prop_state.from_dict(self._state_attrs)
+            if self._prop_state.name in ['no_motion_duration', 'nobody_time']:
+                dur = self.custom_config_integer('motion_timeout')
+                if dur is None and self._prop_state.value_range:
+                    stp = self._prop_state.range_step()
+                    if stp >= 10:
+                        dur = self._prop_state.range_min() + stp
+                if dur is None:
+                    dur = 60
+                ret = val <= dur
+            elif val is not None:
+                ret = val
         if self._vars.get('reverse_state'):
-            return not val
-        if self._prop_state.name in ['no_motion_duration', 'nobody_time']:
-            dur = self.custom_config_integer('motion_timeout')
-            if dur is None and self._prop_state.value_range:
-                stp = self._prop_state.range_step()
-                if stp >= 10:
-                    dur = self._prop_state.range_min() + stp
-            if dur is None:
-                dur = 60
-            return val <= dur
-        return val and True
+            ret = not ret
+        return ret
 
     @property
     def state(self):
