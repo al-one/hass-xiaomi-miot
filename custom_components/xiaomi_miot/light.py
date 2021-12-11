@@ -218,10 +218,22 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
 
 class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
     def __init__(self, parent, miot_service: MiotService, option=None):
+        parent_power = None
         prop_power = miot_service.get_property('on')
-        ToggleSubEntity.__init__(self, parent, prop_power.full_name, {
+        if prop_power:
+            attr = prop_power.full_name
+        else:
+            attr = miot_service.desc_name
+            for s in miot_service.spec.services.values():
+                if p := s.get_property('on'):
+                    parent_power = p
+                    break
+        keys = list((miot_service.mapping() or {}).keys())
+        if parent_power:
+            keys.append(parent_power.full_name)
+        ToggleSubEntity.__init__(self, parent, attr, {
             **(option or {}),
-            'keys': list((miot_service.mapping() or {}).keys()),
+            'keys': keys,
         })
         MiotLightEntity.__init__(self, {
             **parent.miot_config,
@@ -229,6 +241,9 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
         }, miot_service, device=parent.miot_device)
         self.entity_id = miot_service.generate_entity_id(self)
         self._prop_power = prop_power
+        if parent_power:
+            self._prop_power = parent_power
+            self._available = True
 
     def update(self, data=None):
         super().update(data)

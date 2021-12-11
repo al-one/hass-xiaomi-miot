@@ -94,15 +94,6 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
         if not self._available:
             return
         self._update_sub_entities(
-            ['water_pump', 'automatic_feeding', 'heating'],
-            domain='switch',
-        )
-        self._update_sub_entities(
-            ['pump_flux', 'target_feeding_measure', 'target_temperature', 'stream', 'speed'],
-            [self._miot_service.name, 'ambient_light_custom'],
-            domain='number',
-        )
-        self._update_sub_entities(
             ['heat_level'],
             ['massager'],
             domain='fan',
@@ -112,7 +103,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
         )
         self._update_sub_entities(
             ['mode', 'massage_strength', 'massage_part', 'massage_manipulation'],
-            ['fish_tank', 'pet_drinking_fountain', 'massager'],
+            ['massager'],
             domain='number_select' if self.entry_config_version >= 0.3 else 'fan',
         )
 

@@ -69,7 +69,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                     if spec.name not in ['air_monitor']:
                         continue
                 elif srv.name in ['tds_sensor']:
-                    if spec.get_service('water_purifier'):
+                    if spec.get_service('water_purifier', 'fish_tank'):
                         continue
                 elif srv.name in ['temperature_humidity_sensor']:
                     if spec.name not in ['temperature_humidity_sensor']:

@@ -141,6 +141,9 @@ DEVICE_CUSTOMIZES = {
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
     },
+    'hfjh.fishbowl.v1': {
+        'light_services': 'light',
+    },
     'hmpace.bracelet.*': {
         'sensor_properties': 'current_step_count,current_distance',
     },
@@ -425,6 +428,12 @@ DEVICE_CUSTOMIZES = {
     '*.fan.*': {
         'number_properties': 'off_delay_time',
         'switch_properties': 'fan_init_power_opt',
+    },
+    '*.fishbowl.*': {
+        'sensor_properties': 'temperature',
+        'switch_properties': 'water_pump,automatic_feeding,heating',
+        'number_properties': 'target_temperature,pump_flux,target_feeding_measure,'
+                             'ambient_light_custom.stream,ambient_light_custom.speed',
     },
     '*.heater.*': {
         'switch_properties': 'heater.on',

@@ -850,7 +850,7 @@ class MiioEntity(BaseEntity):
 class MiotEntityInterface:
     _miot_service = None
     _model = ''
-    _state_attrs = {}
+    _state_attrs: dict
     _supported_features = 0
 
     def set_property(self, *args, **kwargs):
@@ -1611,7 +1611,7 @@ class MiotEntity(MiioEntity):
                     if tms <= 1:
                         self.logger.info('%s: Device sub entity %s: %s already exists.', self.name, domain, fnm)
                 elif add_lights and domain == 'light':
-                    pon = s.get_property('on')
+                    pon = s.get_property('on', 'color', 'brightness')
                     if pon and pon.full_name in self._state_attrs:
                         self._subs[fnm] = MiotLightSubEntity(self, s)
                         add_lights([self._subs[fnm]])
@@ -1902,14 +1902,14 @@ class BaseSubEntity(BaseEntity):
             svd = self.custom_config_number('value_ratio') or 0
             if svd:
                 self._state = round(float(self._state) * svd, 3)
-            keys = self._option.get('keys', [])
-            if isinstance(keys, list):
-                keys.append(self._attr)
-            self._state_attrs = {}.update(attrs) if keys is True else {
-                k: v
-                for k, v in attrs.items()
-                if k in keys
-            }
+        keys = self._option.get('keys', [])
+        if isinstance(keys, list) and self._attr not in keys:
+            keys.append(self._attr)
+        self._state_attrs = {}.update(attrs) if keys is True else {
+            k: v
+            for k, v in attrs.items()
+            if k in keys
+        }
         if data:
             self.update_attrs(data, update_parent=False)
 
