@@ -141,6 +141,10 @@ DEVICE_CUSTOMIZES = {
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
     },
+    'galime.curtain.*': {
+        'auto_position_reverse': True,
+        'select_properties': 'speed_control',
+    },
     'hfjh.fishbowl.v1': {
         'light_services': 'light',
     },

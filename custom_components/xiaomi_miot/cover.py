@@ -128,8 +128,8 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
             return
         if prop_reverse := self._miot_service.get_property('motor_reverse'):
             if prop_reverse.from_dict(self._state_attrs):
-                # galime.curtain.gp72
-                self._position_reverse = True
+                if self.custom_config_bool('auto_position_reverse'):
+                    self._position_reverse = True
 
     @property
     def current_cover_position(self):
