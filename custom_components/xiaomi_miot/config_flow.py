@@ -5,6 +5,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import *
 from homeassistant.core import callback
+from homeassistant.components import persistent_notification
 from homeassistant.helpers.device_registry import format_mac
 import homeassistant.helpers.config_validation as cv
 
@@ -18,10 +19,12 @@ from . import (
     DEFAULT_CONN_MODE,
 )
 from .core.utils import async_analytics_track_event
+from .core.const import CLOUD_SERVERS
 from .core.miot_spec import MiotSpec
 from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
+    MiCloudAccessDenied,
 )
 
 from miio import (
@@ -36,15 +39,6 @@ DEFAULT_INTERVAL = 30
 # 0.2 new entity id format (model_mac[-4:]_suffix)
 # 0.3 washer modes via select
 ENTRY_VERSION = 0.3
-
-CLOUD_SERVERS = {
-    'cn': 'China',
-    'de': 'Europe',
-    'i2': 'India',
-    'ru': 'Russia',
-    'sg': 'Singapore',
-    'us': 'United States',
-}
 
 CONN_MODES = {
     'auto': 'Automatic (自动模式)',
@@ -105,18 +99,26 @@ async def check_miio_device(hass, user_input, errors):
 
 async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
     dvs = []
+    mic = await MiotCloud.from_token(hass, user_input, login=False)
     try:
-        mic = await MiotCloud.from_token(hass, user_input)
-        if not mic:
-            raise MiCloudException('Login error')
+        await mic.async_login()
         if not await mic.async_check_auth(False):
             raise MiCloudException('Login failed')
         await mic.async_stored_auth(mic.user_id, save=True)
         user_input['xiaomi_cloud'] = mic
         dvs = await mic.async_get_devices(renew=renew_devices) or []
-    except MiCloudException as exc:
+    except (MiCloudException, MiCloudAccessDenied) as exc:
+        if isinstance(exc, MiCloudAccessDenied):
+            if url := mic.attrs.pop('notificationUrl'):
+                persistent_notification.create(
+                    hass,
+                    f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!',
+                    f'本次登陆小米账号需要安全验证，[点击这里]({url})继续！',
+                    f'Login to Xiaomi: {mic.username}',
+                    f'{DOMAIN}-login',
+                )
         errors['base'] = 'cannot_login'
-        _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', user_input.get(CONF_USERNAME), exc)
+        _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', mic.username, exc)
     if renew_devices:
         await MiotSpec.async_get_model_type(hass, 'xiaomi.miot.auto', use_remote=True)
     if not errors:

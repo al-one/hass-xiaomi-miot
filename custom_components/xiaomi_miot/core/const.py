@@ -32,6 +32,15 @@ SUPPORTED_DOMAINS = [
     'alarm_control_panel',
 ]
 
+CLOUD_SERVERS = {
+    'cn': 'China',
+    'de': 'Europe',
+    'i2': 'India',
+    'ru': 'Russia',
+    'sg': 'Singapore',
+    'us': 'United States',
+}
+
 try:
     # hass 2021.6.0b0+
     from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT

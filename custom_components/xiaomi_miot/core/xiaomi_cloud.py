@@ -23,7 +23,6 @@ except (ModuleNotFoundError, ImportError):
     class MiCloudAccessDenied(MiCloudException):
         """ micloud==0.4 """
 
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -32,6 +31,7 @@ class MiotCloud(micloud.MiCloud):
         super().__init__(username, password)
         self.hass = hass
         self.default_server = country or 'cn'
+        self.attrs = {}
 
     def get_properties_for_mapping(self, did, mapping: dict):
         pms = []
@@ -111,7 +111,6 @@ class MiotCloud(micloud.MiCloud):
         if eno != 3:
             return True
         # auth err
-        self.user_id = None
         self.service_token = None
         self.ssecurity = None
         if await self.async_login():
@@ -121,19 +120,19 @@ class MiotCloud(micloud.MiCloud):
         if notify:
             persistent_notification.create(
                 self.hass,
-                f'Xiaomi cloud: {self.user_id} auth failed, '
+                f'Xiaomi account: {self.user_id} auth failed, '
                 'Please update option for this integration to refresh token.\n'
                 f'小米账号：{self.user_id} 登陆失效，请重新保存集成选项以更新登陆信息。',
                 'Xiaomi Miot Warning',
                 nid,
             )
             _LOGGER.error(
-                'Xiaomi cloud: %s auth failed, Please update option for this integration to refresh token.\n%s',
+                'Xiaomi account: %s auth failed, Please update option for this integration to refresh token.\n%s',
                 self.user_id,
                 rdt,
             )
         else:
-            _LOGGER.warning('Retry login xiaomi cloud failed: %s', self.username)
+            _LOGGER.warning('Retry login xiaomi account failed: %s', self.username)
         return False
 
     async def async_request_api(self, *args, **kwargs):
@@ -283,7 +282,51 @@ class MiotCloud(micloud.MiCloud):
         return False
 
     async def async_login(self):
-        return await self.hass.async_add_executor_job(self.login)
+        return await self.hass.async_add_executor_job(self._login_request)
+
+    def _login_request(self):
+        self._init_session()
+        sign = self._login_step1()
+        if not sign.startswith('http'):
+            location = self._login_step2(sign)
+        else:
+            location = sign  # we already have login location
+        response3 = self._login_step3(location)
+        if response3.status_code == 403:
+            raise MiCloudAccessDenied('Access denied. Did you set the correct username/password ?')
+        elif response3.status_code == 200:
+            _LOGGER.debug('Your xiaomi service token: %s', self.service_token)
+            return True
+        else:
+            _LOGGER.warning(
+                'Xiaomi login request returned status %s, reason: %s, content: %s',
+                response3.status_code, response3.reason, response3.text,
+            )
+            raise MiCloudException(f'Login to xiaomi error: {response3.text} ({response3.status_code})')
+
+    def _login_step2(self, sign):
+        url = "https://account.xiaomi.com/pass/serviceLoginAuth2"
+        post_data = {
+            'sid': "xiaomiio",
+            'hash': hashlib.md5(self.password.encode()).hexdigest().upper(),
+            'callback': "https://sts.api.io.mi.com/sts",
+            'qs': '%3Fsid%3Dxiaomiio%26_json%3Dtrue',
+            'user': self.username,
+            '_json': 'true'
+        }
+        if sign:
+            post_data['_sign'] = sign
+        response = self.session.post(url, data=post_data)
+        response_json = json.loads(response.text.replace('&&&START&&&', ''))
+        location = response_json.get('location')
+        if not location:
+            self.attrs['notificationUrl'] = response_json.get('notificationUrl')
+            raise MiCloudAccessDenied(f'Login to xiaomi error: {response.text}')
+        self.user_id = str(response_json.get('userId'))
+        self.ssecurity = response_json.get('ssecurity')
+        self.cuser_id = response_json.get('cUserId')
+        self.pass_token = response_json.get('passToken')
+        return location
 
     def to_config(self):
         return {
@@ -296,19 +339,20 @@ class MiotCloud(micloud.MiCloud):
         }
 
     @staticmethod
-    async def from_token(hass, config: dict):
+    async def from_token(hass, config: dict, login=True):
         mic = MiotCloud(
             hass,
             config.get(CONF_USERNAME),
             config.get(CONF_PASSWORD),
             config.get('server_country'),
         )
-        mic.user_id = config.get('user_id')
+        mic.user_id = str(config.get('user_id') or '')
         sdt = await mic.async_stored_auth(mic.user_id, save=False)
         config.update(sdt)
         mic.service_token = config.get('service_token')
         mic.ssecurity = config.get('ssecurity')
-        await mic.async_login()
+        if login:
+            await mic.async_login()
         return mic
 
     async def async_stored_auth(self, uid=None, save=False):
@@ -346,7 +390,7 @@ class MiotCloud(micloud.MiCloud):
             'locale': str(self.locale),
             'timezone': str(self.timezone),
             'is_daylight': str(time.daylight),
-            'dst_offset': str(time.localtime().tm_isdst*60*60*1000),
+            'dst_offset': str(time.localtime().tm_isdst * 60 * 60 * 1000),
             'channel': 'MI_APP_STORE',
         })
         url = self.get_api_url(api)
