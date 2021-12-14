@@ -387,8 +387,8 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                     self._schedule_stream_refresh()
             odt['expire_at'] = f'{datetime.fromtimestamp(self._url_expiration)}'
             self.update_attrs(odt)
-        self.is_streaming = self._last_url and True
-        if self.is_streaming:
+        self._attr_is_streaming = self._last_url and True
+        if self._attr_is_streaming:
             self.update_attrs({
                 'miot_error': None,
             })
