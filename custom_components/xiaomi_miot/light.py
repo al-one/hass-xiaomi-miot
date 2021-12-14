@@ -253,6 +253,9 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
     async def async_update(self):
         await self.hass.async_add_executor_job(partial(self.update))
 
+    def set_property(self, field, value):
+        return self.set_parent_property(value, field)
+
 
 class LightSubEntity(ToggleSubEntity, LightEntity):
     _brightness = None
