@@ -579,12 +579,12 @@ class BaseEntity(Entity):
     def custom_config_json(self, key=None, default=None):
         dic = self.custom_config(key)
         if dic:
-            if not isinstance(dic, dict):
+            if not isinstance(dic, (dict, list)):
                 try:
                     dic = json.loads(dic or '{}')
                 except (TypeError, ValueError):
                     dic = None
-            if isinstance(dic, dict):
+            if isinstance(dic, (dict, list)):
                 return dic
         return default
 
@@ -1260,12 +1260,13 @@ class MiotEntity(MiioEntity):
             commands = []
         for cfg in commands:
             cmd = cfg.get('method')
+            pms = cfg.get('params') or []
             try:
-                attrs = self._device.send(cmd, cfg.get('params') or [])
+                attrs = self._device.send(cmd, pms)
             except DeviceException as exc:
                 self.logger.warning('%s: Send miio command %s(%s) failed: %s', self.name, cmd, cfg, exc)
-                return
-            props = cfg.get('values') or []
+                continue
+            props = cfg.get('values', pms) or []
             if len(props) != len(attrs):
                 attrs = {
                     f'miio.{cmd}': attrs,
