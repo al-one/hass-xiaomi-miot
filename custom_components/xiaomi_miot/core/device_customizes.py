@@ -342,6 +342,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'current_step_count,current_distance',
     },
     'yeelink.light.nl1': {
+        'use_ble_object': True,
         'interval_seconds': 15,
     },
     'yeelink.switch.sw1': {
