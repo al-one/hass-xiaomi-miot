@@ -74,6 +74,9 @@ class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
         await super().async_update()
         if not self._available:
             return
+        self.update_state()
+
+    def update_state(self):
         if self._prop_mode:
             val = self._prop_mode.from_dict(self._state_attrs)
             des = self._prop_mode.list_description(val) if val is not None else None
@@ -91,12 +94,16 @@ class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
             val = self._state_attrs.get('arming.alarm')
             if val:
                 self._attr_state = STATE_ALARM_TRIGGERED
+        return self._attr_state
 
     def set_arm_mode(self, mode):
+        ret = False
         val = self._prop_mode.list_value(mode)
         if val is not None:
-            return self.set_property(self._prop_mode, val)
-        return False
+            ret = self.set_property(self._prop_mode, val)
+        if ret:
+            self.update_state()
+        return ret
 
     def alarm_disarm(self, code=None):
         """Send disarm command."""
