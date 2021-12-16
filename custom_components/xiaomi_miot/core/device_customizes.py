@@ -419,6 +419,11 @@ DEVICE_CUSTOMIZES = {
     '*.airpurifier.*': {
         'switch_properties': 'air_purifier.on',
     },
+    '*.toothbrush.*': {
+        'miio_cloud_props': 'event.16',
+        'miio_cloud_props_template': 'ble_toothbrush_events',
+        'sensor_attributes': 'event,score,timestamp',
+    },
     '*.camera.*': {
         'miot_cloud_action': True,
     },
