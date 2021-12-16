@@ -31,6 +31,7 @@ class MiotCloud(micloud.MiCloud):
         super().__init__(username, password)
         self.hass = hass
         self.default_server = country or 'cn'
+        self.http_timeout = 10
         self.attrs = {}
 
     def get_properties_for_mapping(self, did, mapping: dict):
@@ -372,18 +373,17 @@ class MiotCloud(micloud.MiCloud):
             return cfg
         return old
 
-    def request_rc4_api(self, api, params: dict, method='POST'):
+    def api_session(self):
         if not self.service_token or not self.user_id:
             raise MiCloudException('Cannot execute request. service token or userId missing. Make sure to login.')
-        self.session = requests.Session()
-        self.session.headers.update({
+
+        session = requests.Session()
+        session.headers.update({
             'X-XIAOMI-PROTOCAL-FLAG-CLI': 'PROTOCAL-HTTP2',
-            'MIOT-ENCRYPT-ALGORITHM': 'ENCRYPT-RC4',
-            'Accept-Encoding': 'identity',
             'Content-Type': 'application/x-www-form-urlencoded',
             'User-Agent': self.useragent,
         })
-        self.session.cookies.update({
+        session.cookies.update({
             'userId': str(self.user_id),
             'yetAnotherServiceToken': self.service_token,
             'serviceToken': self.service_token,
@@ -391,19 +391,42 @@ class MiotCloud(micloud.MiCloud):
             'timezone': str(self.timezone),
             'is_daylight': str(time.daylight),
             'dst_offset': str(time.localtime().tm_isdst * 60 * 60 * 1000),
-            'channel': 'MI_APP_STORE',
+            'channel': 'MI_APP_STORE'
+        })
+        return session
+
+    def request(self, url, params):
+        self.session = self.api_session()
+        try:
+            nonce = miutils.gen_nonce()
+            signed_nonce = miutils.signed_nonce(self.ssecurity, nonce)
+            signature = miutils.gen_signature(url.replace('/app/', '/'), signed_nonce, nonce, params)
+            post_data = {
+                'signature': signature,
+                '_nonce': nonce,
+                'data': params['data'],
+            }
+            response = self.session.post(url, data=post_data, timeout=self.http_timeout)
+            return response.text
+        except requests.exceptions.HTTPError as exc:
+            _LOGGER.error('Error while executing request to %s: %s', url, exc)
+        except MiCloudException as exc:
+            _LOGGER.error('Error while decrypting response of request to %s: %s', url, exc)
+
+    def request_rc4_api(self, api, params: dict, method='POST'):
+        self.session = self.api_session()
+        self.session.headers.update({
+            'MIOT-ENCRYPT-ALGORITHM': 'ENCRYPT-RC4',
+            'Accept-Encoding': 'identity',
         })
         url = self.get_api_url(api)
         try:
             params = self.rc4_params(method, url, params)
             signed_nonce = self.signed_nonce(params['_nonce'])
             if method == 'GET':
-                response = self.session.get(url, params=params)
+                response = self.session.get(url, params=params, timeout=self.http_timeout)
             else:
-                response = self.session.post(url, data=params)
-            if response.status_code in [401, 403]:
-                # self.service_token = None
-                pass
+                response = self.session.post(url, data=params, timeout=self.http_timeout)
             rsp = response.text
             if not rsp or 'error' in rsp or 'invalid' in rsp:
                 _LOGGER.warning('Error while executing request to %s :%s', url, rsp)
