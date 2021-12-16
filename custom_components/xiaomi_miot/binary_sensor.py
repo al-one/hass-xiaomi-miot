@@ -184,7 +184,7 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
         await super().async_update()
         if not self._available:
             return
-        if self.custom_config_bool('use_ble_object'):
+        if self.custom_config_bool('use_ble_object', True):
             await self.async_update_ble_data()
 
     async def async_update_ble_data(self):
