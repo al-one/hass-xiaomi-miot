@@ -183,7 +183,10 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
     @property
     def volume_level(self):
         if self._prop_volume:
-            return round(self._prop_volume.from_dict(self._state_attrs) or 0) / 100
+            try:
+                return round(self._prop_volume.from_dict(self._state_attrs) or 0) / 100
+            except (TypeError, ValueError):
+                pass
         return None
 
     def set_volume_level(self, volume):
