@@ -112,7 +112,7 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
             if url := mic.attrs.pop('notificationUrl'):
                 persistent_notification.create(
                     hass,
-                    f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!',
+                    f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!\n'
                     f'本次登陆小米账号需要安全验证，[点击这里]({url})继续！',
                     f'Login to Xiaomi: {mic.username}',
                     f'{DOMAIN}-login',
