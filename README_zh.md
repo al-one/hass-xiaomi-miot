@@ -88,7 +88,7 @@ xiaomi_miot:
 
 
 <a name="customize-entity"></a>
-### 自定义实体
+### [自定义实体](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-864678774)
 
 ```yaml
 # configuration.yaml
@@ -151,10 +151,6 @@ doamin.your_entity_id:
   chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)
   reverse_state: true  # 反转开关状态（仅作用于Binary Sensor）
 ```
-
-**推荐**[使用界面自定义实体](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-864678774):
-
-> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🖌 自定义](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-864678774) > 🔍 选择实体 > 选择要覆盖的属性 > 添加Other属性
 
 
 <a name="supported-devices"></a>

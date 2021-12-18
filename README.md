@@ -78,7 +78,7 @@ xiaomi_miot:
 ```
 
 
-### Customize entity
+### [Customize entity](https://www.home-assistant.io/docs/configuration/customizing-devices/#customizing-entities)
 
 ```yaml
 # configuration.yaml
@@ -141,10 +141,6 @@ doamin.your_entity_id:
   chunk_properties: 10 # Chunk miot properties on update state (LAN)
   reverse_state: true  # Reverse the On/Off state of a binary sensor
 ```
-
-**Recommended** [Customization Using The UI](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui):
-
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [🖌 Customize](https://www.home-assistant.io/docs/configuration/customizing-devices/#customization-using-the-ui) > 🔍 Select Entity > Add Other Attribute
 
 
 ## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)
