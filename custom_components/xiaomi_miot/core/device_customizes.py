@@ -494,6 +494,12 @@ DEVICE_CUSTOMIZES = {
     '*.sensor_smoke.*:smoke_status': {
         'device_class': 'smoke',
     },
+    '*.steriliser.*': {
+        'sensor_properties': 'left_time,working_time',
+        'switch_properties': 'on,engaged',
+        'select_properties': 'mode',
+        'number_properties': 'target_time',
+    },
     '*.walkingpad.*': {
         'sensor_properties': 'current_distance,current_step_count,current_calorie_consumption,'
                              'left_distance,left_time,working_time',
