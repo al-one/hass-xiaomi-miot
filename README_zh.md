@@ -178,7 +178,7 @@ doamin.your_entity_id:
 - 🍲 [电磁炉](https://home.miot-spec.com/s/ihcooker) / [烤箱](https://home.miot-spec.com/s/oven) / [微波炉](https://home.miot-spec.com/s/microwave)
 - 🍗 [空气炸锅](https://home.miot-spec.com/s/fryer) / [多功能锅](https://home.miot-spec.com/s/mfcp)
 - 🍵 [养生壶](https://home.miot-spec.com/s/health_pot) / ☕️ [咖啡机](https://home.miot-spec.com/s/coffee)
-- 🍹 [破壁机](https://home.miot-spec.com/s/juicer) / [搅拌机](https://home.miot-spec.com/s/juicer)
+- 🍹 [破壁机](https://home.miot-spec.com/s/juicer) / [搅拌机](https://home.miot-spec.com/s/juicer) / [果蔬清洗机](https://home.miot-spec.com/s/f_washer)
 - ♨️ [热水器](https://home.miot-spec.com/s/waterheater) / [油烟机](https://home.miot-spec.com/s/hood) / [洗碗机](https://home.miot-spec.com/s/dishwasher)
 - 🪟 [窗帘电机](https://home.miot-spec.com/s/curtain) / [开窗器](https://home.miot-spec.com/s/wopener) / [晾衣机](https://home.miot-spec.com/s/airer)
 - 🧹 [扫地/扫拖机器人](https://home.miot-spec.com/s/vacuum) / [擦地机](https://home.miot-spec.com/s/.mop)

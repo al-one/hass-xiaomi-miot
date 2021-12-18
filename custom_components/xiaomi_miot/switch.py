@@ -130,7 +130,7 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         if self._miot_property.value_list:
             val = self._miot_property.from_dict(self._state_attrs)
             if val is not None:
-                self._state = val in self._miot_property.list_search('On', '开')
+                self._state = val in self._miot_property.list_search('On', 'Open', '开')
         return self._state
 
     @property
@@ -140,7 +140,7 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
     def turn_on(self, **kwargs):
         val = True
         if self._miot_property.value_list:
-            ret = self._miot_property.list_first('On', '开')
+            ret = self._miot_property.list_first('On', 'Open', '开')
             if ret is not None:
                 val = ret
         return self.set_parent_property(val)
@@ -148,7 +148,7 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
     def turn_off(self, **kwargs):
         val = False
         if self._miot_property.value_list:
-            ret = self._miot_property.list_first('Off', '关')
+            ret = self._miot_property.list_first('Off', 'Close', 'Closed', '关')
             if ret is not None:
                 val = ret
         return self.set_parent_property(val)

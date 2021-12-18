@@ -167,7 +167,7 @@ doamin.your_entity_id:
 - 🍲 [induction-cooker](https://home.miot-spec.com/s/ihcooker) / [oven](https://home.miot-spec.com/s/oven) / [microwave](https://home.miot-spec.com/s/microwave)
 - 🍗 [air-fryer](https://home.miot-spec.com/s/fryer) / [multifunction-cooking-pot](https://home.miot-spec.com/s/mfcp)
 - 🍵 [health-pot](https://home.miot-spec.com/s/health_pot) / ☕️ [coffee-machine](https://home.miot-spec.com/s/coffee)
-- 🍹 [juicer](https://home.miot-spec.com/s/juicer)
+- 🍹 [juicer](https://home.miot-spec.com/s/juicer) / [fruit-vegetable-purifier](https://home.miot-spec.com/s/f_washer)
 - ♨️ [water-heater](https://home.miot-spec.com/s/waterheater) / [hood](https://home.miot-spec.com/s/hood) / [dishwasher](https://home.miot-spec.com/s/dishwasher)
 - 🪟 [curtain](https://home.miot-spec.com/s/curtain) / [window-opener](https://home.miot-spec.com/s/wopener) / [airer](https://home.miot-spec.com/s/airer)
 - 🧹 [vacuum](https://home.miot-spec.com/s/vacuum) / [mopping-machine](https://home.miot-spec.com/s/.mop)

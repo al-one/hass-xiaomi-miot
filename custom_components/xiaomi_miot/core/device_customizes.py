@@ -435,6 +435,11 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'cooker.on,auto_keep_warm',
     },
     '*.door.*': {},
+    '*.f_washer.*': {
+        'sensor_properties': 'left_time,water',
+        'switch_properties': 'on',
+        'number_select_properties': 'wash_mode,wash_time,target_water_level,water_level',
+    },
     '*.fan.*': {
         'number_properties': 'off_delay_time',
         'switch_properties': 'fan_init_power_opt',
