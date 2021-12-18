@@ -133,7 +133,9 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
         ret = self._state
         if self._prop_state:
             val = self._prop_state.from_dict(self._state_attrs)
-            if self._prop_state.name in ['no_motion_duration', 'nobody_time']:
+            if val is None:
+                pass
+            elif self._prop_state.name in ['no_motion_duration', 'nobody_time']:
                 dur = self.custom_config_integer('motion_timeout')
                 if dur is None and self._prop_state.value_range:
                     stp = self._prop_state.range_step()
@@ -142,7 +144,7 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
                 if dur is None:
                     dur = 60
                 ret = val <= dur
-            elif val is not None:
+            else:
                 ret = val
         if self._vars.get('reverse_state'):
             ret = not ret
