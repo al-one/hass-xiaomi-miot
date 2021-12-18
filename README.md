@@ -177,7 +177,7 @@ doamin.your_entity_id:
 - 🛏 [bed](https://home.miot-spec.com/s/bed) / [blanket](https://home.miot-spec.com/s/blanket) / 😴 [sleep-monitor](https://home.miot-spec.com/s/lunar)
 - 💆 [massager](https://home.miot-spec.com/s/massage) / [magic-touch](https://home.miot-spec.com/s/magic_touch)
 - 🏃 [walking-pad](https://home.miot-spec.com/s/walkingpad)
-- 🚽 [toilet](https://home.miot-spec.com/s/toilet) /️ [towel-rack](https://home.miot-spec.com/s/.tow)
+- 🚽 [toilet](https://home.miot-spec.com/s/toilet) /️ [towel-rack](https://home.miot-spec.com/s/.tow) /️ 🪥 [toothbrush](https://home.miot-spec.com/s/toothbrush)
 - 🐱 [pet-feeder](https://home.miot-spec.com/s/feeder) / ⛲ [pet-drinking-fountain](https://home.miot-spec.com/s/pet_waterer) / 🐟 [fish-tank](https://home.miot-spec.com/s/fishbowl)
 - 🦟 [mosquito-dispeller](https://home.miot-spec.com/s/mosq) / [germicidal-lamp](https://home.miot-spec.com/s/s_lamp)
 - 🚘 [rearview-mirror](https://home.miot-spec.com/s/rv_mirror) / [head-up-display](https://home.miot-spec.com/s/hud)
