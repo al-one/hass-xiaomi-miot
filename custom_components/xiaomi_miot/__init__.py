@@ -1130,7 +1130,7 @@ class MiotEntity(MiioEntity):
         if self._miot_service:
             for d in [
                 'sensor', 'binary_sensor', 'switch', 'number',
-                'select', 'fan', 'cover', 'number_select',
+                'select', 'fan', 'cover', 'button', 'number_select',
             ]:
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
@@ -1595,6 +1595,7 @@ class MiotEntity(MiioEntity):
         add_covers = self._add_entities.get('cover')
         add_numbers = self._add_entities.get('number')
         add_selects = self._add_entities.get('select')
+        add_buttons = self._add_entities.get('button')
         exclude_services = self._vars.get('exclude_services') or []
         for s in sls:
             if s.name in exclude_services:
@@ -1635,6 +1636,22 @@ class MiotEntity(MiioEntity):
                 elif tms > 0:
                     if tms <= 1:
                         self.logger.info('%s: Device sub entity %s: %s already exists.', self.name, domain, fnm)
+                elif add_buttons and domain == 'button' and p.value_list:
+                    from .button import MiotButtonSubEntity
+                    nls = []
+                    f = fnm
+                    for pv in p.value_list:
+                        vk = pv.get('value')
+                        f = f'{fnm}-{vk}'
+                        if f in self._subs:
+                            new = False
+                            continue
+                        self._subs[f] = MiotButtonSubEntity(self, p, vk, option=opt)
+                        nls.append(self._subs[f])
+                    if nls:
+                        add_buttons(nls)
+                        new = True
+                        fnm = f
                 elif p.full_name not in self._state_attrs and not kwargs.get('whatever'):
                     continue
                 elif add_switches and domain == 'switch' and p.format in ['bool', 'uint8'] and p.writeable:

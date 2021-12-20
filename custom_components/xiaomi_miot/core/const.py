@@ -73,6 +73,13 @@ except (ModuleNotFoundError, ImportError):
     ENTITY_CATEGORY_CONFIG = None
     ENTITY_CATEGORY_DIAGNOSTIC = None
 
+try:
+    # hass 2021.12
+    from homeassistant.components.button import DOMAIN as DOMAIN_BUTTON
+    SUPPORTED_DOMAINS.append(DOMAIN_BUTTON)
+except (ModuleNotFoundError, ImportError):
+    DOMAIN_BUTTON = None
+
 
 GLOBAL_CUSTOMIZES = {
     'models': DEVICE_CUSTOMIZES,
