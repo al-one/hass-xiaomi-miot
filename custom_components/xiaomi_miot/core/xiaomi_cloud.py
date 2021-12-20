@@ -141,14 +141,14 @@ class MiotCloud(micloud.MiCloud):
             partial(self.request_miot_api, *args, **kwargs)
         )
 
-    def request_miot_api(self, api, data, method='POST', crypt=False, debug=True):
+    def request_miot_api(self, api, data, method='POST', crypt=False, debug=True, **kwargs):
         params = {}
         if data is not None:
             params['data'] = self.json_encode(data)
         if crypt:
-            rsp = self.request_rc4_api(api, params, method)
+            rsp = self.request_rc4_api(api, params, method, **kwargs)
         else:
-            rsp = self.request(self.get_api_url(api), params)
+            rsp = self.request(self.get_api_url(api), params, **kwargs)
         try:
             rdt = json.loads(rsp)
             if debug:
@@ -183,7 +183,7 @@ class MiotCloud(micloud.MiCloud):
             'getHuamiDevices': 1,
             'get_split_device': False,
             'support_smart_home': True,
-        }, debug=False) or {}
+        }, debug=False, timeout=60) or {}
         if rdt and 'result' in rdt:
             return rdt['result']['list']
         _LOGGER.warning('Got xiaomi cloud devices for %s failed: %s', self.username, rdt)
@@ -192,7 +192,7 @@ class MiotCloud(micloud.MiCloud):
     def get_home_devices(self):
         rdt = self.request_miot_api('homeroom/gethome', {
             'fetch_share_dev': True,
-        }, debug=False) or {}
+        }, debug=False, timeout=60) or {}
         rdt = rdt.get('result') or {}
         rdt.setdefault('devices', {})
         for h in rdt.get('homelist', []):
@@ -395,8 +395,9 @@ class MiotCloud(micloud.MiCloud):
         })
         return session
 
-    def request(self, url, params):
+    def request(self, url, params, **kwargs):
         self.session = self.api_session()
+        timeout = kwargs.get('timeout', self.http_timeout)
         try:
             nonce = miutils.gen_nonce()
             signed_nonce = miutils.signed_nonce(self.ssecurity, nonce)
@@ -406,27 +407,28 @@ class MiotCloud(micloud.MiCloud):
                 '_nonce': nonce,
                 'data': params['data'],
             }
-            response = self.session.post(url, data=post_data, timeout=self.http_timeout)
+            response = self.session.post(url, data=post_data, timeout=timeout)
             return response.text
         except requests.exceptions.HTTPError as exc:
             _LOGGER.error('Error while executing request to %s: %s', url, exc)
         except MiCloudException as exc:
             _LOGGER.error('Error while decrypting response of request to %s: %s', url, exc)
 
-    def request_rc4_api(self, api, params: dict, method='POST'):
+    def request_rc4_api(self, api, params: dict, method='POST', **kwargs):
         self.session = self.api_session()
         self.session.headers.update({
             'MIOT-ENCRYPT-ALGORITHM': 'ENCRYPT-RC4',
             'Accept-Encoding': 'identity',
         })
         url = self.get_api_url(api)
+        timeout = kwargs.get('timeout', self.http_timeout)
         try:
             params = self.rc4_params(method, url, params)
             signed_nonce = self.signed_nonce(params['_nonce'])
             if method == 'GET':
-                response = self.session.get(url, params=params, timeout=self.http_timeout)
+                response = self.session.get(url, params=params, timeout=timeout)
             else:
-                response = self.session.post(url, data=params, timeout=self.http_timeout)
+                response = self.session.post(url, data=params, timeout=timeout)
             rsp = response.text
             if not rsp or 'error' in rsp or 'invalid' in rsp:
                 _LOGGER.warning('Error while executing request to %s :%s', url, rsp)
