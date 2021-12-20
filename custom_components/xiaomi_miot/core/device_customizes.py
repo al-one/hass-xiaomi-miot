@@ -434,6 +434,12 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'temperature,left_time',
         'switch_properties': 'cooker.on,auto_keep_warm',
     },
+    '*.desk.*': {
+        'button_properties': 'motor_control,reset',
+        'switch_properties': 'on',
+        'select_properties': 'mode,desk_control',
+        'number_properties': 'altitude,target_height,stand_height,sit_height,target_position',
+    },
     '*.door.*': {},
     '*.f_washer.*': {
         'sensor_properties': 'left_time,water',
