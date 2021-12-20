@@ -1579,7 +1579,6 @@ class MiotEntity(MiioEntity):
         from .light import MiotLightSubEntity
         from .fan import MiotModesSubEntity
         from .cover import MiotCoverSubEntity
-        from .number import MiotNumberSubEntity
         if isinstance(services, MiotService):
             sls = [services]
         elif services == '*':
@@ -1656,6 +1655,7 @@ class MiotEntity(MiioEntity):
                     self._subs[fnm] = MiotCoverSubEntity(self, p, option=opt)
                     add_covers([self._subs[fnm]])
                 elif add_numbers and domain in ['number', 'number_select'] and p.value_range:
+                    from .number import MiotNumberSubEntity
                     self._subs[fnm] = MiotNumberSubEntity(self, p, option=opt)
                     add_numbers([self._subs[fnm]])
                 elif add_selects and domain in ['select', 'number_select'] and (p.value_list or p.value_range):

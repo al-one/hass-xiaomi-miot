@@ -28,7 +28,6 @@ SUPPORTED_DOMAINS = [
     'water_heater',
     'device_tracker',
     'remote',
-    'number',
     'alarm_control_panel',
 ]
 
@@ -42,26 +41,33 @@ CLOUD_SERVERS = {
 }
 
 try:
-    # hass 2021.6.0b0+
+    # hass 2020.12.2
+    from homeassistant.components.number import DOMAIN as DOMAIN_NUMBER
+    SUPPORTED_DOMAINS.append(DOMAIN_NUMBER)
+except (ModuleNotFoundError, ImportError):
+    DOMAIN_NUMBER = None
+
+try:
+    # hass 2021.6
     from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
 except (ModuleNotFoundError, ImportError):
     STATE_CLASS_MEASUREMENT = None
 
 try:
-    # hass 2021.7.0b0+
+    # hass 2021.7
     from homeassistant.components.select import DOMAIN as DOMAIN_SELECT
     SUPPORTED_DOMAINS.append(DOMAIN_SELECT)
 except (ModuleNotFoundError, ImportError):
     DOMAIN_SELECT = None
 
 try:
-    # hass 2021.9.0b0+
+    # hass 2021.9
     from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
 except (ModuleNotFoundError, ImportError):
     STATE_CLASS_TOTAL_INCREASING = None
 
 try:
-    # hass 2021.11.0b0+
+    # hass 2021.11
     from homeassistant.const import ENTITY_CATEGORY_CONFIG, ENTITY_CATEGORY_DIAGNOSTIC
 except (ModuleNotFoundError, ImportError):
     ENTITY_CATEGORY_CONFIG = None
