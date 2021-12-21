@@ -133,7 +133,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             if self._prop_brightness.value_range:
                 val = per * self._prop_brightness.range_max()
             _LOGGER.debug('Setting light: %s brightness: %s %s%%', self.name, brightness, per * 100)
-            ret = self.set_property(self._prop_brightness, round(val))
+            ret = self.set_property(self._prop_brightness, int(val))
 
         if self._prop_color_temp and ATTR_COLOR_TEMP in kwargs:
             mired = kwargs[ATTR_COLOR_TEMP]
@@ -181,7 +181,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
     def rgb_color(self):
         """Return the rgb color value [int, int, int]."""
         if self._prop_color:
-            num = round(self._prop_color.from_dict(self._state_attrs) or 0)
+            num = int(self._prop_color.from_dict(self._state_attrs) or 0)
             return int_to_rgb(num)
         return None
 
