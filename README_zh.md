@@ -152,6 +152,19 @@ doamin.your_entity_id:
   reverse_state: true  # 反转开关状态（仅作用于Binary Sensor）
 ```
 
+<a name="filter-entity-attributes"></a>
+### 过滤实体属性
+
+> 过多的实体属性会导致你的HA数据库变得很庞大，如果某些实体属性对你没有用处，你可以配置`exclude_state_attributes`来忽略它们
+
+```yaml
+xiaomi_miot:
+  exclude_state_attributes:
+    - miot_type
+    - stream_address
+    - motion_video_latest
+```
+
 
 <a name="supported-devices"></a>
 ## [支持的设备](https://github.com/al-one/hass-xiaomi-miot/issues/12)

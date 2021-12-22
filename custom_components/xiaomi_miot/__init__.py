@@ -603,6 +603,16 @@ class BaseEntity(Entity):
             self.platform.scan_interval = tim
             _LOGGER.debug('%s: Update custom scan interval: %s', self.name, tim)
 
+    def filter_state_attributes(self, dat: dict):
+        if exl := self.global_config('exclude_state_attributes'):
+            exl = cv.ensure_list(exl)
+            dat = {
+                k: v
+                for k, v in dat.items()
+                if k not in exl
+            }
+        return dat
+
 
 class MiioEntity(BaseEntity):
     def __init__(self, name, device, **kwargs):
@@ -673,9 +683,14 @@ class MiioEntity(BaseEntity):
         return self._state
 
     @property
+    def state_attrs(self):
+        return self._state_attrs
+
+    @property
     def extra_state_attributes(self):
         ext = self.state_attributes or {}
-        return {**self._state_attrs, **ext}
+        esa = {**self._state_attrs, **ext}
+        return self.filter_state_attributes(esa)
 
     @property
     def supported_features(self):
@@ -1836,14 +1851,15 @@ class BaseSubEntity(BaseEntity):
 
     @property
     def parent_attributes(self):
-        return self._parent.extra_state_attributes or {}
+        return self._parent.state_attrs or {}
 
     @property
     def extra_state_attributes(self):
-        return {
+        esa = {
             **self._extra_attrs,
             **self._state_attrs,
         }
+        return self.filter_state_attributes(esa)
 
     @property
     def device_class(self):

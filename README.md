@@ -142,6 +142,18 @@ doamin.your_entity_id:
   reverse_state: true  # Reverse the On/Off state of a binary sensor
 ```
 
+### Filter entity attributes
+
+> Too many entity attributes will make your HA's database very large. If some entity attributes are useless to you, you can configure `exclude_state_attributes` to ignore them.
+
+```yaml
+xiaomi_miot:
+  exclude_state_attributes:
+    - miot_type
+    - stream_address
+    - motion_video_latest
+```
+
 
 ## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)
 
