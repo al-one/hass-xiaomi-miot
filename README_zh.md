@@ -158,6 +158,7 @@ doamin.your_entity_id:
 > 过多的实体属性会导致你的HA数据库变得很庞大，如果某些实体属性对你没有用处，你可以配置`exclude_state_attributes`来忽略它们
 
 ```yaml
+# configuration.yaml
 xiaomi_miot:
   exclude_state_attributes:
     - miot_type
