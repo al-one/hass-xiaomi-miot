@@ -92,6 +92,16 @@ CUSTOM_TEMPLATES = {
                                      "{{ {"
                                      "'electric_power': val | round(2),"
                                      "} }}",
+    'lumi_acpartner_miio_status': "{%- set model = results[0] | default('') %}"
+                                  "{%- set state = results[1] | default('') %}"
+                                  "{{ {"
+                                  "'power': state[2:3] | int(0) == 1,"
+                                  "'mode': [3,1,0,2,4][state[3:4] | int(2)],"
+                                  "'fan_level': [3,0,1,2][state[4:5] | int(3)],"
+                                  "'vertical_swing': state[5:6] in ['0','C'],"
+                                  "'target_temperature': state[6:8] | int(0,16),"
+                                  "'load_power': results[2] | default(0) | float | round(2),"
+                                  "} }}",
     'micloud_statistics_power_cost': "{%- set dat = namespace(today=0,month=0) %}"
                                      "{%- set tim = now() %}"
                                      "{%- set stm = tim - timedelta(minutes=tim.minute,seconds=tim.second) %}"
@@ -134,6 +144,15 @@ CUSTOM_TEMPLATES = {
                                          "'motion_video_latest': val,"
                                          "'_entity_attrs': True,"
                                          "} }}",
+    'yeelink_bhf_light_v2_fan_levels': "{%- set val = ('00000' ~ value)[-5:] %}"
+                                       "{%- set mds = {"
+                                       "'drying_cloth': val[0],"
+                                       "'coolwind': val[1],"
+                                       "'drying': val[2],"
+                                       "'venting': val[3],"
+                                       "'warmwind': val[4],"
+                                       "} %}"
+                                       "{{ [1,2,3,3][mds[props.bh_mode] | default(0) | int(0)] | default(1) }}",
     'zimi_powerstrip_v2_power_cost': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
                                      "{%- set day = now().day %}"
                                      "{%- set vls = (val | from_json)[0-day:] %}"
