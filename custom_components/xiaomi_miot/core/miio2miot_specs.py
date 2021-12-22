@@ -162,30 +162,16 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.5': {'prop': 'color_mode'},
         },
     },
-    'yeelink.light.ceiling18': {
+    'yeelink.light.ceiling1': {
         'miio_props': ['nl_br'],
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'format': 'onoff'},
             'prop.2.2': {'prop': 'bright'},
-            'prop.2.3': {'prop': 'ct'},
-            'prop.2.4': {'prop': 'color_mode'},
+            'prop.2.3': {'prop': 'color_mode'},
+            'prop.2.4': {'prop': 'ct'},
         },
     },
-    'yeelink.light.ceiling19': 'yeelink.light.ceiling18',
-    'yeelink.light.ceiling20': 'yeelink.light.ceiling18',
-    'yeelink.light.ceiling21': {
-        'miio_props': ['nl_br'],
-        'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright'},
-            'prop.2.3': {'prop': 'ct'},
-            'prop.2.4': {'prop': 'color_mode'},
-            'prop.2.5': {'prop': 'smart_switch'},  # set_ps ['cfg_smart_switch', '1']
-        },
-    },
-    'yeelink.light.ceiling22': 'yeelink.light.ceiling21',
-    'yeelink.light.ceiling23': 'yeelink.light.ceiling21',
-    'yeelink.light.panel1': {
+    'yeelink.light.ceiling2': {
         'miio_props': ['nl_br'],
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'format': 'onoff'},
@@ -193,6 +179,62 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.3': {'prop': 'color_mode'},
         },
     },
+    'yeelink.light.ceiling3': 'yeelink.light.ceiling1',
+    'yeelink.light.ceiling4': 'yeelink.light.ceiling1',
+    'yeelink.light.ceiling5': {
+        'miio_props': ['nl_br'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright'},
+            'prop.2.3': {'prop': 'color_mode'},
+            'prop.2.4': {'prop': 'ct'},
+            'prop.2.5': {'prop': 'smart_switch'},  # set_ps ['cfg_smart_switch', '1']
+        },
+    },
+    'yeelink.light.ceiling6': {
+        'miio_props': ['nl_br'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright'},
+            'prop.2.3': {'prop': 'ct'},
+            'prop.2.4': {'prop': 'color_mode'},
+        },
+    },
+    'yeelink.light.ceiling7': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling8': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling9': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling10': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling11': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling12': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling13': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling14': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling15': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling16': {
+        'miio_props': ['nl_br'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright'},
+            'prop.2.3': {'prop': 'ct'},
+        },
+    },
+    'yeelink.light.ceiling17': 'yeelink.light.ceiling16',
+    'yeelink.light.ceiling18': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling19': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling20': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling21': {
+        'miio_props': ['nl_br'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright'},
+            'prop.2.3': {'prop': 'ct'},
+            'prop.2.4': {'prop': 'color_mode'},
+            'prop.2.5': {'prop': 'smart_switch'},
+        },
+    },
+    'yeelink.light.ceiling22': 'yeelink.light.ceiling21',
+    'yeelink.light.ceiling23': 'yeelink.light.ceiling21',
+    'yeelink.light.ceiling24': 'yeelink.light.ceiling16',
+    'yeelink.light.panel1': 'yeelink.light.ceiling2',
 
     'zimi.powerstrip.v2': {
         'miio_props': ['current', 'mode', 'power_price'],
