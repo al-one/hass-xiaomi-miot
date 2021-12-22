@@ -64,8 +64,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entities = []
     if miot:
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services(ENTITY_DOMAIN, 'ceiling_fan', 'hood'):
+        for srv in spec.get_services(ENTITY_DOMAIN, 'ceiling_fan', 'air_fresh', 'hood'):
             if not srv.bool_property('on'):
+                continue
+            elif srv.name in ['air_fresh'] and spec.name not in ['air_fresh']:
                 continue
             entities.append(MiotFanEntity(config, srv))
     for entity in entities:
@@ -75,8 +77,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class MiotFanEntity(MiotToggleEntity, FanEntity):
-    def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config, logger=_LOGGER)
+    def __init__(self, config: dict, miot_service: MiotService, **kwargs):
+        kwargs.setdefault('logger', _LOGGER)
+        super().__init__(miot_service, config=config, **kwargs)
 
         self._prop_power = miot_service.get_property('on', 'dryer')
         self._prop_speed = miot_service.get_property('fan_level', 'drying_level')
@@ -259,6 +262,50 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
     def oscillate(self, oscillating: bool):
         return self.set_property(self._prop_oscillate, oscillating)
+
+
+class MiotFanSubEntity(MiotFanEntity, ToggleSubEntity):
+    def __init__(self, parent, miot_service: MiotService, option=None):
+        parent_power = None
+        prop_power = miot_service.get_property('on')
+        if prop_power:
+            attr = prop_power.full_name
+        else:
+            attr = miot_service.desc_name
+            for s in miot_service.spec.services.values():
+                if p := s.get_property('on'):
+                    parent_power = p
+                    break
+        keys = list((miot_service.mapping() or {}).keys())
+        if parent_power:
+            keys.append(parent_power.full_name)
+        self._fan_control = miot_service.spec.get_service('fan_control')
+        if self._fan_control:
+            keys.extend(list((self._fan_control.mapping() or {}).keys()))
+        ToggleSubEntity.__init__(self, parent, attr, {
+            **(option or {}),
+            'keys': keys,
+        })
+        MiotFanEntity.__init__(self, {
+            **parent.miot_config,
+            'name': f'{parent.device_name}',
+        }, miot_service, device=parent.miot_device)
+        self.entity_id = miot_service.generate_entity_id(self)
+        self._prop_power = prop_power
+        if parent_power:
+            self._prop_power = parent_power
+            self._available = True
+
+    def update(self, data=None):
+        super().update(data)
+        if not self._available:
+            return
+
+    async def async_update(self):
+        await self.hass.async_add_executor_job(self.update)
+
+    def set_property(self, field, value):
+        return self.set_parent_property(value, field)
 
 
 class FanSubEntity(ToggleSubEntity, FanEntity):

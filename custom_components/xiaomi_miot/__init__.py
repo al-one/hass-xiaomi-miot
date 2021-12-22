@@ -913,8 +913,10 @@ class MiotEntity(MiioEntity):
             return
         if dic := self.custom_config_json('miot_mapping'):
             self._miot_service.spec.set_custom_mapping(dic)
-        self._vars['exclude_services'] = self.custom_config_list('exclude_miot_services') or []
-        if ems := self._vars.get('exclude_services'):
+        ems = self.custom_config_list('exclude_miot_services') or []
+        ems.extend(self._vars.get('exclude_services') or [])
+        if ems:
+            self._vars['exclude_services'] = ems
             self._state_attrs['exclude_miot_services'] = ems
 
     @property
@@ -1150,7 +1152,7 @@ class MiotEntity(MiioEntity):
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
-            for d in ['light']:
+            for d in ['light', 'fan']:
                 pls = self.custom_config_list(f'{d}_services') or []
                 if pls:
                     self._update_sub_entities(None, pls, domain=d)
@@ -1592,7 +1594,7 @@ class MiotEntity(MiioEntity):
         from .binary_sensor import MiotBinarySensorSubEntity
         from .switch import MiotSwitchSubEntity
         from .light import MiotLightSubEntity
-        from .fan import MiotModesSubEntity
+        from .fan import (MiotFanSubEntity, MiotModesSubEntity)
         from .cover import MiotCoverSubEntity
         if isinstance(services, MiotService):
             sls = [services]
@@ -1631,6 +1633,11 @@ class MiotEntity(MiioEntity):
                     if pon and pon.full_name in self._state_attrs:
                         self._subs[fnm] = MiotLightSubEntity(self, s)
                         add_lights([self._subs[fnm]])
+                elif add_fans and domain == 'fan':
+                    pon = s.get_property('on', 'mode', 'fan_level')
+                    if pon and pon.full_name in self._state_attrs:
+                        self._subs[fnm] = MiotFanSubEntity(self, s)
+                        add_fans([self._subs[fnm]], update_before_add=True)
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
                     self.logger.debug('%s: Added sub entity %s: %s', self.name, domain, fnm)

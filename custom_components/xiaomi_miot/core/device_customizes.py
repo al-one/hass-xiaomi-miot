@@ -407,6 +407,9 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'kWh',
     },
 
+    '*.aircondition.*': {
+        'fan_services': 'air_fresh',
+    },
     '*.airer.*': {
         'position_reverse': True,
         'sensor_properties': 'left_time',

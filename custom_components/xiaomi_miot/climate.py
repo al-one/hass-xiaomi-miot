@@ -115,6 +115,10 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             if not self._prop_fan_level:
                 self._prop_fan_level = miot_service.get_property('heat_level', 'water_level')
 
+        if miot_service.name in ['air_fresh']:
+            self._name = f'{self._name} Deprecated'
+            self._vars['exclude_services'] = ['air_conditioner', 'enhance', 'indicator_light', 'alarm']
+
         if self._prop_target_temp:
             self._supported_features |= SUPPORT_TARGET_TEMPERATURE
         if self._prop_target_humi:
@@ -171,6 +175,13 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 }
         if self._preset_modes:
             self._supported_features |= SUPPORT_PRESET_MODE
+
+        if self._miot_service.name in ['air_fresh']:
+            self.logger.warning(
+                '%s has been deprecated and will be removed in a future version. Please use %s.',
+                self.entity_id,
+                self.entity_id.replace('climate.', 'fan.'),
+            )
 
     async def async_update(self):
         await super().async_update()
