@@ -159,7 +159,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
                 from .switch import MiotSwitchActionSubEntity
                 fnm = prop.unique_name
                 self._subs[fnm] = MiotSwitchActionSubEntity(self, prop, act)
-                add_switches([self._subs[fnm]])
+                add_switches([self._subs[fnm]], update_before_add=True)
 
     async def async_update(self):
         await super().async_update()
@@ -196,11 +196,11 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
                         'before_select': self.before_select_modes,
                     }
                     self._subs[p.name] = MiotSelectSubEntity(self, p, option=opt)
-                    add_selects([self._subs[p.name]])
+                    add_selects([self._subs[p.name]], update_before_add=True)
                 elif add_fans:
                     from .fan import MiotWasherSubEntity
                     self._subs[p.name] = MiotWasherSubEntity(self, p)
-                    add_fans([self._subs[p.name]])
+                    add_fans([self._subs[p.name]], update_before_add=True)
             add_switches = self._add_entities.get('switch')
             if self._miot_service.get_action('start_wash', 'pause'):
                 pnm = 'action'
@@ -210,7 +210,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
                 elif add_switches and prop:
                     from .switch import MiotWasherActionSubEntity
                     self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
-                    add_switches([self._subs[pnm]])
+                    add_switches([self._subs[pnm]], update_before_add=True)
 
         self._update_sub_entities(
             [
@@ -329,7 +329,7 @@ class MiotCookerEntity(MiotSensorEntity):
                             }
                         self._subs[p.name] = MiotActionSelectSubEntity(self, self._action_start, p, opt)
                     if p.name in self._subs:
-                        add_selects([self._subs[p.name]])
+                        add_selects([self._subs[p.name]], update_before_add=True)
                 elif add_fans:
                     if p.value_list:
                         opt = {
@@ -338,7 +338,7 @@ class MiotCookerEntity(MiotSensorEntity):
                         }
                     from .fan import MiotCookerSubEntity
                     self._subs[p.name] = MiotCookerSubEntity(self, p, self._prop_state, opt)
-                    add_fans([self._subs[p.name]])
+                    add_fans([self._subs[p.name]], update_before_add=True)
             if self._action_start or self._action_cancel:
                 pnm = 'cook_switch'
                 if pnm in self._subs:
@@ -346,7 +346,7 @@ class MiotCookerEntity(MiotSensorEntity):
                 elif add_switches:
                     from .switch import MiotCookerSwitchSubEntity
                     self._subs[pnm] = MiotCookerSwitchSubEntity(self, self._prop_state)
-                    add_switches([self._subs[pnm]])
+                    add_switches([self._subs[pnm]], update_before_add=True)
 
     @property
     def is_on(self):
@@ -499,7 +499,7 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
                 v['entity'].update()
             elif add_entities:
                 v['entity'] = WaterPurifierYunmiSubEntity(self, k, v)
-                add_entities([v['entity']])
+                add_entities([v['entity']], update_before_add=True)
 
 
 class WaterPurifierYunmiSubEntity(BaseSubEntity):

@@ -317,7 +317,7 @@ class MiotToiletEntity(MiotBinarySensorEntity):
                         'power_property': p.service.bool_property('heating'),
                     }
                 self._subs[p.name] = MiotModesSubEntity(self, p, opt)
-                add_fans([self._subs[p.name]])
+                add_fans([self._subs[p.name]], update_before_add=True)
 
         add_switches = self._add_entities.get('switch')
         if self._prop_power:
@@ -326,7 +326,7 @@ class MiotToiletEntity(MiotBinarySensorEntity):
                 self._subs[pnm].update()
             elif add_switches:
                 self._subs[pnm] = SwitchSubEntity(self, pnm)
-                add_switches([self._subs[pnm]])
+                add_switches([self._subs[pnm]], update_before_add=True)
 
     @property
     def icon(self):

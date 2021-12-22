@@ -92,7 +92,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
                 self._subs[pnm].update()
             elif add_fans:
                 self._subs[pnm] = MiotModesSubEntity(self, p)
-                add_fans([self._subs[pnm]])
+                add_fans([self._subs[pnm]], update_before_add=True)
 
     @property
     def device_class(self):

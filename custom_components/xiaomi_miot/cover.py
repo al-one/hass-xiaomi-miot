@@ -502,14 +502,14 @@ class MrBondAirerProEntity(MiioCoverEntity):
                 self._subs['light'].update()
             elif add_lights and 'led' in attrs:
                 self._subs['light'] = MrBondAirerProLightEntity(self)
-                add_lights([self._subs['light']])
+                add_lights([self._subs['light']], update_before_add=True)
 
             add_fans = self._add_entities.get('fan')
             if 'fan' in self._subs:
                 self._subs['fan'].update()
             elif add_fans and 'dry' in attrs:
                 self._subs['fan'] = MrBondAirerProDryEntity(self, option={'keys': ['drytime']})
-                add_fans([self._subs['fan']])
+                add_fans([self._subs['fan']], update_before_add=True)
 
     def set_motor(self, val):
         ret = self.send_miio_command('set_motor', [val])

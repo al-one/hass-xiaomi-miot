@@ -87,7 +87,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
             if prop and add_switches:
                 fnm = prop.unique_name
                 self._subs[fnm] = MiotSwitchActionSubEntity(self, prop, act)
-                add_switches([self._subs[fnm]])
+                add_switches([self._subs[fnm]], update_before_add=True)
 
     async def async_update(self):
         await super().async_update()
@@ -286,7 +286,7 @@ class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
                     'attr': k,
                     'index': idx,
                 })
-                add_switches([self._subs[k]])
+                add_switches([self._subs[k]], update_before_add=True)
 
     def relay_ctrl(self, select, ctrl):
         act = self._miot_service.get_action('relay_ctrl')
@@ -383,7 +383,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
                             'attr': k,
                             'index': idx,
                         })
-                        add_switches([self._subs[k]])
+                        add_switches([self._subs[k]], update_before_add=True)
                     b <<= 1
                     idx += 1
 
@@ -398,7 +398,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
                         self._subs[k] = PwznRelaySwitchSubEntity(self, 0, 0, {
                             'attr': k,
                         })
-                        add_switches([self._subs[k]])
+                        add_switches([self._subs[k]], update_before_add=True)
 
     def turn_on(self, **kwargs):
         ret = self.send_miio_command('power_all', [1])

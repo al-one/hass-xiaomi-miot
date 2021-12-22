@@ -194,7 +194,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     self._subs[m].update()
                 elif add_fans and p:
                     self._subs[m] = ClimateModeSubEntity(self, p)
-                    add_fans([self._subs[m]])
+                    add_fans([self._subs[m]], update_before_add=True)
             off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
             for val, des in self._preset_modes.items():
                 if des in self._subs:
@@ -207,7 +207,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                         'value_off':  off,
                         'prop_speed': self._prop_fan_level,
                     })
-                    add_fans([self._subs[des]])
+                    add_fans([self._subs[des]], update_before_add=True)
 
             add_switches = self._add_entities.get('switch')
             for p in self._miot_service.properties.values():
@@ -222,7 +222,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     self._subs[pnm].update()
                 elif add_switches and pnm not in [self._prop_heater.full_name if self._prop_heater else None]:
                     self._subs[pnm] = MiotSwitchSubEntity(self, p)
-                    add_switches([self._subs[pnm]])
+                    add_switches([self._subs[pnm]], update_before_add=True)
             if self._miot_service.get_action('start_wash'):
                 pnm = 'action_wash'
                 prop = self._miot_service.get_property('status')
@@ -230,7 +230,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     self._subs[pnm].update()
                 elif add_switches and prop:
                     self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
-                    add_switches([self._subs[pnm]])
+                    add_switches([self._subs[pnm]], update_before_add=True)
 
     def update_bind_sensor(self):
         bss = self.custom_config_list('bind_sensor') or []

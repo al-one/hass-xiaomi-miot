@@ -73,7 +73,7 @@ class MiotTrackerEntity(MiotEntity, TrackerEntity):
                 self._subs[p.full_name].update()
             elif add_binary_sensors and p.format == 'bool':
                 self._subs[p.full_name] = MiotBinarySensorSubEntity(self, p)
-                add_binary_sensors([self._subs[p.full_name]])
+                add_binary_sensors([self._subs[p.full_name]], update_before_add=True)
 
     @property
     def should_poll(self):

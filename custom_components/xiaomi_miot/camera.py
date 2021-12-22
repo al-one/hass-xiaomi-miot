@@ -228,7 +228,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 self._subs[pnm].update()
             elif add_switches:
                 self._subs[pnm] = MiotSwitchSubEntity(self, self._prop_power)
-                add_switches([self._subs[pnm]])
+                add_switches([self._subs[pnm]], update_before_add=True)
 
         self._motion_enable = self.custom_config_bool('use_motion_stream', self._use_motion_stream)
         add_cameras = self._add_entities.get(ENTITY_DOMAIN)
@@ -237,7 +237,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 and self.custom_config_bool('sub_motion_stream', self._sub_motion_stream):
             self._motion_entity = MotionCameraEntity(self, self.hass)
             self._subs['motion_event'] = self._motion_entity
-            add_cameras([self._motion_entity])
+            add_cameras([self._motion_entity], update_before_add=True)
 
         adt = None
         lag = locale.getdefaultlocale()[0]

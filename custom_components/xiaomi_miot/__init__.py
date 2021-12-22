@@ -821,12 +821,12 @@ class MiioEntity(BaseEntity):
                 from .sensor import BaseSensorSubEntity
                 option = {'unique_id': f'{self._unique_did}-{p}', **opt}
                 self._subs[p] = BaseSensorSubEntity(self, a, option=option)
-                add_sensors([self._subs[p]])
+                add_sensors([self._subs[p]], update_before_add=True)
                 self._check_same_sub_entity(p, domain, add=1)
             elif domain == 'binary_sensor':
                 option = {'unique_id': f'{self._unique_did}-{p}', **opt}
                 self._subs[p] = ToggleSubEntity(self, a, option=option)
-                add_sensors([self._subs[p]])
+                add_sensors([self._subs[p]], update_before_add=True)
                 self._check_same_sub_entity(p, domain, add=1)
 
     def _check_same_sub_entity(self, name, domain=None, add=0):
@@ -1632,7 +1632,7 @@ class MiotEntity(MiioEntity):
                     pon = s.get_property('on', 'color', 'brightness')
                     if pon and pon.full_name in self._state_attrs:
                         self._subs[fnm] = MiotLightSubEntity(self, s)
-                        add_lights([self._subs[fnm]])
+                        add_lights([self._subs[fnm]], update_before_add=True)
                 elif add_fans and domain == 'fan':
                     pon = s.get_property('on', 'mode', 'fan_level')
                     if pon and pon.full_name in self._state_attrs:
@@ -1671,36 +1671,36 @@ class MiotEntity(MiioEntity):
                         self._subs[f] = MiotButtonSubEntity(self, p, vk, option=opt)
                         nls.append(self._subs[f])
                     if nls:
-                        add_buttons(nls)
+                        add_buttons(nls, update_before_add=True)
                         new = True
                         fnm = f
                 elif p.full_name not in self._state_attrs and not kwargs.get('whatever'):
                     continue
                 elif add_switches and domain == 'switch' and p.format in ['bool', 'uint8'] and p.writeable:
                     self._subs[fnm] = MiotSwitchSubEntity(self, p, option=opt)
-                    add_switches([self._subs[fnm]])
+                    add_switches([self._subs[fnm]], update_before_add=True)
                 elif add_binary_sensors and domain == 'binary_sensor' and p.format == 'bool':
                     self._subs[fnm] = MiotBinarySensorSubEntity(self, p, option=opt)
-                    add_binary_sensors([self._subs[fnm]])
+                    add_binary_sensors([self._subs[fnm]], update_before_add=True)
                 elif add_sensors and domain == 'sensor':
                     if p.full_name == self._state_attrs.get('state_property'):
                         continue
                     self._subs[fnm] = MiotSensorSubEntity(self, p, option=opt)
-                    add_sensors([self._subs[fnm]])
+                    add_sensors([self._subs[fnm]], update_before_add=True)
                 elif add_fans and domain == 'fan':
                     self._subs[fnm] = MiotModesSubEntity(self, p, option=opt)
-                    add_fans([self._subs[fnm]])
+                    add_fans([self._subs[fnm]], update_before_add=True)
                 elif add_covers and domain == 'cover':
                     self._subs[fnm] = MiotCoverSubEntity(self, p, option=opt)
-                    add_covers([self._subs[fnm]])
+                    add_covers([self._subs[fnm]], update_before_add=True)
                 elif add_numbers and domain in ['number', 'number_select'] and p.value_range:
                     from .number import MiotNumberSubEntity
                     self._subs[fnm] = MiotNumberSubEntity(self, p, option=opt)
-                    add_numbers([self._subs[fnm]])
+                    add_numbers([self._subs[fnm]], update_before_add=True)
                 elif add_selects and domain in ['select', 'number_select'] and (p.value_list or p.value_range):
                     from .select import MiotSelectSubEntity
                     self._subs[fnm] = MiotSelectSubEntity(self, p, option=opt)
-                    add_selects([self._subs[fnm]])
+                    add_selects([self._subs[fnm]], update_before_add=True)
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
                     self.logger.debug('%s: Added sub entity %s: %s', self.name, domain, fnm)
