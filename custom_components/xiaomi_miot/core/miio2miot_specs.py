@@ -142,16 +142,6 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.1': {'prop': 'fan_speed_idx', 'template': 'yeelink_bhf_light_v2_fan_levels'},
         },
     },
-    'yeelink.ven_fan.vf1': {
-        'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
-            'prop.2.2': {'prop': 'gears', 'dict': {
-                0: 1,  # Low
-                1: 2,  # High
-            }, 'default': 1},
-            'prop.2.3': {'prop': 'swing_action', 'template': "{{ value in ['swing'] }}"},
-        },
-    },
     'yeelink.light.color1': {
         'miio_props': ['nl_br'],
         'miio_specs': {
@@ -251,6 +241,35 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.ceiling23': 'yeelink.light.ceiling21',
     'yeelink.light.ceiling24': 'yeelink.light.ceiling16',
     'yeelink.light.panel1': 'yeelink.light.ceiling2',
+    'yeelink.ven_fan.vf1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'bh_mode', 'template': "{{ value in ['coolwind'] }}"},
+            'prop.2.2': {'prop': 'gears', 'dict': {
+                0: 1,  # Low
+                1: 2,  # High
+            }, 'default': 1},
+            'prop.2.3': {'prop': 'swing_action', 'template': "{{ value in ['swing'] }}"},
+        },
+    },
+    'yeelink.ven_fan.vf3': {
+        'extend_model': 'yeelink.ven_fan.vf5',
+        'miio_specs': {
+            'prop.2.3': {'prop': 'swing_action', 'template': "{{ value in ['swing'] }}"},
+        },
+    },
+    'yeelink.ven_fan.vf5': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'bh_mode', 'template': "{{ value in ['coolwind'] }}"},
+            'prop.2.2': {'prop': 'gears', 'dict': {
+                0: 1,  # Low
+                1: 2,  # High
+            }, 'default': 1},
+            'prop.2.4': {'prop': 'delayoff'},
+            'prop.3.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.3.2': {'prop': 'light_mode'},
+            'prop.3.3': {'prop': 'bright'},
+        },
+    },
 
     'zimi.powerstrip.v2': {
         'miio_props': ['current', 'mode', 'power_price'],

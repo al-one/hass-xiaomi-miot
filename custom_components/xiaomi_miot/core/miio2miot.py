@@ -15,7 +15,9 @@ class Miio2MiotHelper:
         self.hass = hass
         if ext := config.get('extend_model'):
             if m2m := Miio2MiotHelper.from_model(hass, ext, miot_spec):
-                config = {**m2m.config, **config}
+                sps = m2m.config.get('miio_specs', {})
+                sps.update(config.get('miio_specs', {}))
+                config = {**m2m.config, **config, 'miio_specs': sps}
         self.config = config
         self.miot_spec = miot_spec
         self.specs = config.get('miio_specs', {})
