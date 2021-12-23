@@ -276,6 +276,24 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.ceiling23': 'yeelink.light.ceiling21',
     'yeelink.light.ceiling24': 'yeelink.light.ceiling16',
     'yeelink.light.panel1': 'yeelink.light.ceiling2',
+    'yeelink.light.strip1': 'yeelink.light.color1',
+    'yeelink.light.strip2': {
+        'miio_props': ['nl_br'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright'},
+            'prop.2.3': {'prop': 'rgb'},
+        },
+    },
+    'yeelink.light.strip4': 'yeelink.light.ceiling16',
+    'yeelink.light.strip6': 'yeelink.light.strip2',
+    'yeelink.light.strip8': 'yeelink.light.strip2',
+    'yeelink.light.stripa': {
+        'extend_model': 'yeelink.light.strip2',
+        'miio_specs': {
+            'prop.2.4': {'prop': 'ct'},
+        },
+    },
     'yeelink.ven_fan.vf1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'bh_mode', 'template': "{{ value in ['coolwind'] }}"},
