@@ -162,6 +162,22 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.5': {'prop': 'color_mode'},
         },
     },
+    'yeelink.light.color2': {
+        'miio_props': ['nl_br'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright'},
+            'prop.2.3': {'prop': 'ct'},
+            'prop.2.4': {'prop': 'rgb'},
+            'prop.2.5': {'prop': 'color_mode'},
+        },
+    },
+    'yeelink.light.color3': 'yeelink.light.color2',
+    'yeelink.light.color4': 'yeelink.light.color2',
+    'yeelink.light.color5': 'yeelink.light.color2',
+    'yeelink.light.color6': 'yeelink.light.color2',
+    'yeelink.light.color7': 'yeelink.light.color2',
+    'yeelink.light.color8': 'yeelink.light.color2',
     'yeelink.light.ceiling1': {
         'miio_props': ['nl_br'],
         'miio_specs': {
