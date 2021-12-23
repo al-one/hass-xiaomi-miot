@@ -49,6 +49,22 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'isa.camera.hlc6': {
+        # ["light","motion_record","flip","watermark","sdcard_status","power","night_mode","rect","max_client"]
+        # ["on"   ,"on"           ,"off" ,"on"       ,0              ,"on"   ,"0"         ,"on"  ,0]
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'format': 'onoff'},  # restart_device []
+            'prop.2.2': {'prop': 'flip', 'template': "{{ 0 value in ['off'] else 180 }}"},
+            'prop.2.3': {'prop': 'night_mode'},
+            'prop.2.4': {'prop': 'watermark', 'format': 'onoff'},
+            'prop.2.5': {'prop': 'motion_record', 'dict': {
+                'stop': 1,
+                'off':  2,
+                'on':   3,
+            }, 'default': 1},
+        },
+    },
+
     'lumi.acpartner.v1': {
         'without_props': True,
         'miio_commands': [
