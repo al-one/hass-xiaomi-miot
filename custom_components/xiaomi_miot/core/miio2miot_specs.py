@@ -106,6 +106,21 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'skyrc.pet_waterer.fre1': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'values': ['wifi_led', 'filter', 'on', 'pump', 'var5', 'interval', 'power'],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power'},
+            'prop.3.1': {'prop': 'wifi_led'},
+            'prop.4.1': {'prop': 'filter'},
+        },
+    },
+
     'viomi.vacuum.v7': {
         'miio_specs': {
             'prop.2.1': {'prop': 'suction_grade', 'dict': {
