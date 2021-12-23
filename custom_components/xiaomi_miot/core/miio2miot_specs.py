@@ -187,6 +187,25 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.1': {'prop': 'fan_speed_idx', 'template': 'yeelink_bhf_light_v2_fan_levels'},
         },
     },
+    'yeelink.light.bslamp1': {
+        'extend_model': 'yeelink.light.color1',
+        'miio_specs': {
+            'prop.2.6': {'prop': 'sat'},
+        },
+    },
+    'yeelink.light.bslamp2': {
+        'extend_model': 'yeelink.light.color2',
+        'miio_specs': {
+            'prop.2.6': {'prop': 'sat'},
+        },
+    },
+    'yeelink.light.bslamp3': {
+        'extend_model': 'yeelink.light.color2',
+        'miio_specs': {
+            'prop.2.4': {'prop': 'color_mode'},
+            'prop.2.5': {'prop': 'rgb'},
+        },
+    },
     'yeelink.light.color1': {
         'extend_model': 'yeelink.light.color2',
         'miio_specs': {
