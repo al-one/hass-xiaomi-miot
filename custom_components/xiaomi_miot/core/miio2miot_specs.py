@@ -54,7 +54,7 @@ MIIO_TO_MIOT_SPECS = {
         # ["on"   ,"on"           ,"off" ,"on"       ,0              ,"on"   ,"0"         ,"on"  ,0]
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'format': 'onoff'},  # restart_device []
-            'prop.2.2': {'prop': 'flip', 'template': "{{ 0 value in ['off'] else 180 }}"},
+            'prop.2.2': {'prop': 'flip', 'template': "{{ 0 if value in ['off'] else 180 }}"},
             'prop.2.3': {'prop': 'night_mode'},
             'prop.2.4': {'prop': 'watermark', 'format': 'onoff'},
             'prop.2.5': {'prop': 'motion_record', 'dict': {
@@ -83,6 +83,20 @@ MIIO_TO_MIOT_SPECS = {
     },
     'lumi.acpartner.v2': 'lumi.acpartner.v1',
     'lumi.acpartner.v3': 'lumi.acpartner.v1',
+
+    'mijia.camera.v3': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'flip', 'template': "{{ 0 if value in ['off'] else 180 }}"},
+            'prop.2.3': {'prop': 'night_mode'},
+            'prop.2.5': {'prop': 'band_nearby'},
+            'prop.2.7': {'prop': 'watermark', 'format': 'onoff'},
+            'prop.2.8': {'prop': 'motion_record', 'dict': {
+                'off': 1,
+                'on': 2,
+            }, 'default': 1},
+        },
+    },
 
     'rockrobo.vacuum.v1': {
         'without_props': True,
