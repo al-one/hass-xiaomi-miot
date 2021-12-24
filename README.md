@@ -167,7 +167,7 @@ xiaomi_miot:
 - 📺 [television](https://home.miot-spec.com/s/tv) / 📽️ [projector](https://home.miot-spec.com/s/projector) / [tv-box](https://home.miot-spec.com/s/tvbox)
 - 🗣️ [intelligent-speaker](https://home.miot-spec.com/s/wifispeaker) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-885989099)
 - 🎮️ [ir-remote-control](https://home.miot-spec.com/s/chuangmi.remote) [❓️](https://github.com/al-one/hass-xiaomi-miot/commit/fbcc8063783e53b9480574536a034d338634f4e8#commitcomment-56563663)
-- 🔐 [lock](https://home.miot-spec.com/s/look) / 🚪 [door](https://home.miot-spec.com/s/door)
+- 🔐 [lock](https://home.miot-spec.com/s/lock) / 🚪 [door](https://home.miot-spec.com/s/door)
 - 👕 [washer](https://home.miot-spec.com/s/washer) / [fridge](https://home.miot-spec.com/s/fridge)
 - 🚰 [water-purifier](https://home.miot-spec.com/s/waterpuri) / [kettle](https://home.miot-spec.com/s/kettle)
 - ♻️ [air-purifier](https://home.miot-spec.com/s/airpurifier) / [air-fresh](https://home.miot-spec.com/s/airfresh)
