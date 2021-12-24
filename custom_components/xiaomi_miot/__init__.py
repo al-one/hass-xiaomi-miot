@@ -1078,7 +1078,7 @@ class MiotEntity(MiioEntity):
         try:
             if not mapping:
                 results = []
-            elif self._miio2miot and self.miot_device:
+            elif self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud'):
                 updater = 'lan'
                 results = await self._miio2miot.async_get_miot_props(self.miot_device, mapping)
             elif mic := self.miot_cloud:
@@ -1493,9 +1493,14 @@ class MiotEntity(MiioEntity):
         }
         ret = None
         dly = 1
+        m2m = self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud_write')
+        mcw = self.miot_cloud_write
         try:
-            mcw = self.miot_cloud_write
-            if isinstance(mcw, MiotCloud):
+            if m2m and self._miio2miot.has_setter(siid, piid):
+                results = [
+                    self._miio2miot.set_property(self.miot_device, siid, piid, value),
+                ]
+            elif isinstance(mcw, MiotCloud):
                 results = mcw.set_props([pms])
                 dly = self.custom_config_integer('cloud_delay_update', 5)
             else:

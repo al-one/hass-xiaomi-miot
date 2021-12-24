@@ -26,6 +26,7 @@ class Miio2MiotHelper:
             if p := v.get('prop'):
                 self.miio_props.append(p)
         self.miio_props.extend(config.get('miio_props', []))
+        self.miio_props = list(dict(zip(self.miio_props, self.miio_props)).keys())
         self.miio_props_values = {}
 
     @staticmethod
@@ -43,7 +44,11 @@ class Miio2MiotHelper:
     def get_miio_props(self, device):
         dic = {}
         if not self.config.get('without_props'):
-            vls = device.get_properties(self.miio_props)
+            try:
+                num = int(self.config.get('chunk_properties'))
+            except (TypeError, ValueError):
+                num = None
+            vls = device.get_properties(self.miio_props, max_properties=num)
             dic.update(dict(zip(self.miio_props, vls)))
         if cls := self.config.get('miio_commands'):
             for c in cls:
@@ -87,14 +92,14 @@ class Miio2MiotHelper:
                         if fmt and hasattr(mph, fmt):
                             val = getattr(mph, fmt)(val)
 
-                        elif d := c.get('dict', {}):
-                            val = d.get(val, c.get('default', val))
-
                         elif tpl := c.get('template', {}):
                             tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                             tpl = cv.template(tpl)
                             tpl.hass = self.hass
                             val = tpl.render({'value': val, 'props': dic})
+
+                        elif d := c.get('dict', {}):
+                            val = d.get(val, c.get('default', val))
 
                         elif prop.value_list or prop.value_range:
                             val = int(val)
@@ -119,6 +124,49 @@ class Miio2MiotHelper:
                     'value': val,
                 })
         return rls
+
+    def has_setter(self, siid, piid):
+        key = MiotSpec.unique_prop(siid=siid, piid=piid)
+        ret = self.specs.get(key, {}).get('setter')
+        return ret
+
+    def set_property(self, device, siid, piid, value):
+        key = MiotSpec.unique_prop(siid=siid, piid=piid)
+        cfg = self.specs.get(key, {})
+        setter = cfg.get('setter')
+        if setter is True:
+            setter = None
+            if prop := cfg.get('prop'):
+                setter = f'set_{prop}'
+        if not setter:
+            _LOGGER.warning('Set miio prop via miot failed: %s', [device.ip, key, setter, cfg])
+            return None
+        pms = [value]
+        prop = self.miot_spec.specs.get(key)
+        if prop and isinstance(prop, MiotProperty):
+            mph = MiioPropertyHelper(prop, reverse=True)
+            fmt = cfg.get('format')
+            if fmt and hasattr(mph, fmt):
+                pms = getattr(mph, fmt)(value)
+            elif tpl := cfg.get('set_template'):
+                tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
+                tpl = cv.template(tpl)
+                tpl.hass = self.hass
+                pms = tpl.render({'value': value, 'props': self.miio_props_values}) or []
+            elif d := cfg.get('dict', {}):
+                for dk, dv in d.items():
+                    if dv == value:
+                        pms = [dk]
+                        break
+        pms = cv.ensure_list(pms)
+        _LOGGER.info('Set miio prop via miot: %s', [device.ip, key, setter, pms])
+        ret = device.send(setter, pms) or ['']
+        return {
+            'code': 0 if ret == ['ok'] else 1,
+            'siid': siid,
+            'piid': piid,
+            'result': ret,
+        }
 
 
 class MiioPropertyHelper:

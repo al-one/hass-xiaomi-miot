@@ -2,7 +2,7 @@ MIIO_TO_MIOT_SPECS = {
 
     'chuangmi.plug.m1': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'temperature'},
             'prop.3.1': {'prop': 'wifi_led'},
         },
@@ -53,7 +53,7 @@ MIIO_TO_MIOT_SPECS = {
         # ["light","motion_record","flip","watermark","sdcard_status","power","night_mode","rect","max_client"]
         # ["on"   ,"on"           ,"off" ,"on"       ,0              ,"on"   ,"0"         ,"on"  ,0]
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},  # restart_device []
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},  # restart_device []
             'prop.2.2': {'prop': 'flip', 'template': "{{ 0 if value in ['off'] else 180 }}"},
             'prop.2.3': {'prop': 'night_mode'},
             'prop.2.4': {'prop': 'watermark', 'format': 'onoff'},
@@ -86,7 +86,7 @@ MIIO_TO_MIOT_SPECS = {
 
     'mijia.camera.v3': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'flip', 'template': "{{ 0 if value in ['off'] else 180 }}"},
             'prop.2.3': {'prop': 'night_mode'},
             'prop.2.5': {'prop': 'band_nearby'},
@@ -141,13 +141,13 @@ MIIO_TO_MIOT_SPECS = {
         'miio_commands': [
             {
                 'method': 'get_prop',
-                'values': ['wifi_led', 'filter', 'on', 'pump', 'var5', 'interval', 'power'],
+                'values': ['bright_value', 'filter', 'on', 'pump', 'var5', 'water_type', 'power'],
             },
         ],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power'},
-            'prop.3.1': {'prop': 'wifi_led'},
-            'prop.4.1': {'prop': 'filter'},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'set_template': "{{ [1 if value else 0] }}"},
+            'prop.3.1': {'prop': 'bright_value', 'setter': True, 'set_template': "{{ [1 if value else 0] }}"},
+            'prop.4.1': {'prop': 'filter'},  # set_filter_alarm [0]
         },
     },
 
@@ -175,8 +175,8 @@ MIIO_TO_MIOT_SPECS = {
 
     'yeelink.bhf_light.v2': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright'},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
             'prop.3.1': {'prop': 'bh_mode', 'dict': {
                 'bh_off':   1,  # stop_bath_heater
                 'warmwind': 2,
@@ -203,23 +203,22 @@ MIIO_TO_MIOT_SPECS = {
         'extend_model': 'yeelink.light.color2',
         'miio_specs': {
             'prop.2.4': {'prop': 'color_mode'},
-            'prop.2.5': {'prop': 'rgb'},
+            'prop.2.5': {'prop': 'rgb', 'setter': True},
         },
     },
     'yeelink.light.color1': {
         'extend_model': 'yeelink.light.color2',
         'miio_specs': {
-            'prop.2.3': {'prop': 'rgb'},
-            'prop.2.4': {'prop': 'ct'},
+            'prop.2.3': {'prop': 'rgb', 'setter': True},
+            'prop.2.4': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
         },
     },
     'yeelink.light.color2': {
-        'miio_props': ['nl_br'],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright'},
-            'prop.2.3': {'prop': 'ct'},
-            'prop.2.4': {'prop': 'rgb'},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
+            'prop.2.4': {'prop': 'rgb', 'setter': True},
             'prop.2.5': {'prop': 'color_mode'},
         },
     },
@@ -232,18 +231,19 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.ceiling1': {
         'extend_model': 'yeelink.light.ceiling2',
         'miio_specs': {
-            'prop.2.4': {'prop': 'ct'},
+            'prop.2.4': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
         },
     },
     'yeelink.light.ceiling2': {
-        'miio_props': ['nl_br'],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright'},
-            'prop.2.3': {'prop': 'light_mode', 'dict': {
-                'daylight':   1,
-                'nightlight': 2,
-            }, 'default': 1},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {
+                'prop': 'nl_br',
+                'setter': 'set_ps',
+                'template': '{{ 2 if value|int else 1 }}',
+                'set_template': "{{ ['nightlight','on' if value == 2 else 'off'] }}",
+            },
         },
     },
     'yeelink.light.ceiling3': 'yeelink.light.ceiling1',
@@ -255,15 +255,16 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.ceiling6': {
-        'miio_props': ['nl_br'],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright'},
-            'prop.2.3': {'prop': 'ct'},
-            'prop.2.4': {'prop': 'light_mode', 'dict': {
-                'daylight':   1,
-                'nightlight': 2,
-            }, 'default': 1},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
+            'prop.2.4': {
+                'prop': 'nl_br',
+                'setter': 'set_ps',
+                'template': '{{ 2 if value|int else 1 }}',
+                'set_template': "{{ ['nightlight','on' if value == 2 else 'off'] }}",
+            },
         },
     },
     'yeelink.light.ceiling7': 'yeelink.light.ceiling6',
@@ -278,7 +279,7 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.ceiling16': {
         'extend_model': 'yeelink.light.ceiling2',
         'miio_specs': {
-            'prop.2.3': {'prop': 'ct'},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
         },
     },
     'yeelink.light.ceiling17': 'yeelink.light.ceiling16',
@@ -297,19 +298,18 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.lamp2': 'yeelink.light.ceiling16',
     'yeelink.light.lamp3': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright'},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
         },
     },
     'yeelink.light.lamp5': 'yeelink.light.lamp3',
     'yeelink.light.panel1': 'yeelink.light.ceiling2',
     'yeelink.light.strip1': 'yeelink.light.color1',
     'yeelink.light.strip2': {
-        'miio_props': ['nl_br'],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright'},
-            'prop.2.3': {'prop': 'rgb'},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'rgb', 'setter': True},
         },
     },
     'yeelink.light.strip4': 'yeelink.light.ceiling16',
@@ -318,43 +318,68 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.stripa': {
         'extend_model': 'yeelink.light.strip2',
         'miio_specs': {
-            'prop.2.4': {'prop': 'ct'},
+            'prop.2.4': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
         },
     },
     'yeelink.ven_fan.vf1': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'bh_mode', 'template': "{{ value in ['coolwind'] }}"},
-            'prop.2.2': {'prop': 'gears', 'dict': {
+            'prop.2.1': {
+                'prop': 'bh_mode',
+                'setter': True,
+                'template': "{{ value in ['coolwind'] }}",
+                'set_template': "{{ ['coolwind' if value else 'bh_off'] }}",
+            },
+            'prop.2.2': {'prop': 'gears', 'setter': 'set_gears_idx', 'dict': {
                 0: 1,  # Low
                 1: 2,  # High
             }, 'default': 1},
-            'prop.2.3': {'prop': 'swing_action', 'template': "{{ value in ['swing'] }}"},
+            'prop.2.3': {
+                'prop': 'swing_action',
+                'setter': 'set_swing',
+                'template': "{{ value in ['swing'] }}",
+                'set_template': "{{ ['swing' if value else 'stop'] }}",
+            },
         },
     },
     'yeelink.ven_fan.vf3': {
         'extend_model': 'yeelink.ven_fan.vf5',
         'miio_specs': {
-            'prop.2.3': {'prop': 'swing_action', 'template': "{{ value in ['swing'] }}"},
+            'prop.2.3': {
+                'prop': 'swing_action',
+                'setter': 'set_swing',
+                'template': "{{ value in ['swing'] }}",
+                'set_template': "{{ ['swing' if value else 'stop'] }}",
+            },
         },
     },
     'yeelink.ven_fan.vf5': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'bh_mode', 'template': "{{ value in ['coolwind'] }}"},
-            'prop.2.2': {'prop': 'gears', 'dict': {
+            'prop.2.1': {
+                'prop': 'bh_mode',
+                'setter': True,
+                'template': "{{ value in ['coolwind'] }}",
+                'set_template': "{{ ['coolwind' if value else 'bh_off'] }}",
+            },
+            'prop.2.2': {'prop': 'gears', 'setter': 'set_gears_idx', 'dict': {
                 0: 1,  # Low
                 1: 2,  # High
             }, 'default': 1},
             'prop.2.4': {'prop': 'delayoff'},
-            'prop.3.1': {'prop': 'power', 'format': 'onoff'},
-            'prop.3.2': {'prop': 'light_mode'},
-            'prop.3.3': {'prop': 'bright'},
+            'prop.3.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.3.2': {
+                'prop': 'nl_br',
+                'setter': 'set_ps',
+                'template': '{{ 2 if value|int else 1 }}',
+                'set_template': "{{ ['nightlight','on' if value == 2 else 'off'] }}",
+            },
+            'prop.3.3': {'prop': 'bright', 'setter': True},
         },
     },
 
     'zimi.powerstrip.v2': {
         'miio_props': ['current', 'mode', 'power_price'],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'format': 'onoff'},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'temperature'},
             'prop.3.1': {'prop': 'power_consume_rate'},
             'prop.4.1': {'prop': 'wifi_led'},
