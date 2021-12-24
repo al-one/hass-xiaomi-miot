@@ -224,10 +224,6 @@ MIIO_TO_MIOT_SPECS = {
     },
     'yeelink.light.color3': 'yeelink.light.color2',
     'yeelink.light.color4': 'yeelink.light.color2',
-    'yeelink.light.color5': 'yeelink.light.color2',
-    'yeelink.light.color6': 'yeelink.light.color2',
-    'yeelink.light.color7': 'yeelink.light.color2',
-    'yeelink.light.color8': 'yeelink.light.color2',
     'yeelink.light.ceiling1': {
         'extend_model': 'yeelink.light.ceiling2',
         'miio_specs': {
@@ -303,6 +299,9 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.lamp5': 'yeelink.light.lamp3',
+    'yeelink.light.lamp7': 'yeelink.light.ceiling16',
+    'yeelink.light.lamp9': 'yeelink.light.ceiling6',
+    'yeelink.light.lamp10': 'yeelink.light.bslamp3',
     'yeelink.light.panel1': 'yeelink.light.ceiling2',
     'yeelink.light.strip1': 'yeelink.light.color1',
     'yeelink.light.strip2': {
@@ -315,12 +314,6 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.strip4': 'yeelink.light.ceiling16',
     'yeelink.light.strip6': 'yeelink.light.strip2',
     'yeelink.light.strip8': 'yeelink.light.strip2',
-    'yeelink.light.stripa': {
-        'extend_model': 'yeelink.light.strip2',
-        'miio_specs': {
-            'prop.2.4': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
-        },
-    },
     'yeelink.ven_fan.vf1': {
         'miio_specs': {
             'prop.2.1': {
