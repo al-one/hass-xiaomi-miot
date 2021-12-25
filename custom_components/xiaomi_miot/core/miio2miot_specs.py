@@ -104,9 +104,9 @@ MIIO_TO_MIOT_SPECS = {
         ],
         'miio_specs': {
             'prop.2.1': {'prop': 'motor', 'setter': 'toggle_device', 'dict': {
-                0: 'up',
-                1: 'down',
-                2: 'stop',
+                'up':   0,
+                'down': 1,
+                'stop': 2,
             }},
             'prop.2.2': {'prop': 'level', 'setter': True},
             'prop.2.3': {'prop': 'airer_state', 'dict': {
