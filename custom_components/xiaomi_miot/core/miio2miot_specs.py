@@ -218,6 +218,22 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'viomi.fridge.p1': {
+        # ["Mode","RCSetTemp","FCSetTemp","RCSet","Error","IndoorTemp","SmartCool","SmartFreeze"]
+        # ["none",8          ,-15        ,"on"   ,0      ,10          ,"off"      ,"off"]
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {'prop': 'mode', 'setter': 'setMode', 'dict': {
+                'holiday': 1,
+                'none':    2,
+            }, 'default': 2},
+            'prop.3.1': {'prop': 'RCSetTemp'},
+            'prop.3.2': {'prop': 'RCSetTemp', 'setter': 'setRCSetTemp'},
+            'prop.4.1': {'prop': 'FCSetTemp'},
+            'prop.4.2': {'prop': 'FCSetTemp', 'setter': 'setFCSetTemp'},
+            'prop.3.3': {'prop': 'RCSet', 'setter': 'setRCSet', 'format': 'onoff'},
+        },
+    },
     'viomi.vacuum.v7': {
         'miio_specs': {
             'prop.2.1': {'prop': 'suction_grade', 'dict': {
