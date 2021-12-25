@@ -98,6 +98,32 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'opple.light.fanlight': {
+        # ["LightPower","Brightness","ColorTemperature","Scenes","FanPower","Speed",
+        # "SmartBtn","SmartVal","Gear","Temperature","Circular","CountdownTime","CountdownAct"]
+        # [true       ,100          ,3000              ,"GUEST" ,false     ,42     ,
+        # false     ,26        ,"NONE",15           ,false     ,0              ,false]
+        'miio_specs': {
+            'prop.2.1': {'prop': 'LightPower', 'setter': 'SetLightPower'},
+            'prop.2.2': {'prop': 'Scenes', 'setter': 'SetScenes', 'dict': {
+                'GUEST': 1,
+                'TV':    2,
+                'PLAY':  3,
+                'NIGHT': 4,
+            }, 'default': 1},
+            'prop.2.3': {'prop': 'Brightness', 'setter': 'SetBrightness'},
+            'prop.2.4': {'prop': 'ColorTemperature', 'setter': 'SetColorTemperature'},
+            'prop.3.1': {'prop': 'FanPower', 'setter': 'SetFanPower'},
+            'prop.3.2': {'prop': 'Speed', 'setter': 'SetSpeed'},
+            'prop.3.3': {'prop': 'Gear', 'setter': 'SetGear', 'dict': {
+                'NONE': 1,
+                'LOW':  2,
+                'MID':  3,
+                'HIGH': 4,
+            }, 'default': 1},
+        },
+    },
+
     'rockrobo.vacuum.v1': {
         'without_props': True,
         'miio_commands': [
