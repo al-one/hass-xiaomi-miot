@@ -83,6 +83,47 @@ MIIO_TO_MIOT_SPECS = {
     },
     'lumi.acpartner.v2': 'lumi.acpartner.v1',
     'lumi.acpartner.v3': 'lumi.acpartner.v1',
+    'lumi.airer.acn01': {
+        # ["lumi.0","light","airer_state","en_night_tip_light","level",
+        # "limit_configured","limit_locked","run_time","dry_remaining_time","dry_status"]
+        # [         "off"  ,"stop"       ,1                   ,0      ,
+        # 1                 ,0             ,27        ,0                   ,"off"]
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_device_prop',
+                'params': [
+                    'lumi.0', 'light', 'airer_state', 'en_night_tip_light', 'level', 'limit_configured',
+                    'limit_locked', 'run_time', 'dry_remaining_time', 'dry_status',
+                ],
+                'values': [
+                    'light', 'airer_state', 'en_night_tip_light', 'level', 'limit_configured',
+                    'limit_locked', 'run_time', 'dry_remaining_time', 'dry_status',
+                ],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'motor', 'setter': 'toggle_device', 'dict': {
+                0: 'up',
+                1: 'down',
+                2: 'stop',
+            }},
+            'prop.2.2': {'prop': 'level', 'setter': True},
+            'prop.2.3': {'prop': 'airer_state', 'dict': {
+                'down': 1,
+                'up':   2,
+                'stop': 3,
+            }, 'default': 3},
+            'prop.2.4': {
+                'prop': 'dry_status',
+                'format': 'onoff',
+                'setter': 'control_device',
+                'set_template': '{{ ["start_hotdry",90] if value else ["stop_hotdry",0] }}',
+            },
+            'prop.2.5': {'prop': 'dry_remaining_time'},
+            'prop.3.1': {'prop': 'light', 'setter': 'toggle_light', 'format': 'onoff'},
+        },
+    },
 
     'mijia.camera.v3': {
         'miio_specs': {

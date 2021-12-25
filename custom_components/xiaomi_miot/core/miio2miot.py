@@ -146,13 +146,13 @@ class Miio2MiotHelper:
         if prop and isinstance(prop, MiotProperty):
             mph = MiioPropertyHelper(prop, reverse=True)
             fmt = cfg.get('format')
-            if fmt and hasattr(mph, fmt):
-                pms = getattr(mph, fmt)(value)
-            elif tpl := cfg.get('set_template'):
+            if tpl := cfg.get('set_template'):
                 tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                 tpl = cv.template(tpl)
                 tpl.hass = self.hass
                 pms = tpl.render({'value': value, 'props': self.miio_props_values}) or []
+            elif fmt and hasattr(mph, fmt):
+                pms = getattr(mph, fmt)(value)
             elif d := cfg.get('dict', {}):
                 for dk, dv in d.items():
                     if dv == value:
