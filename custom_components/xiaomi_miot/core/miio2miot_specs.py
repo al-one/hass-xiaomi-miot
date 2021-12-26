@@ -143,7 +143,7 @@ MIIO_TO_MIOT_SPECS = {
         # ["state","process","cycle","time_remain","child_lock","lock","dry_set","dirty_type"]
         # ["off","option:load,prewash,wash,rinse,spin;processing:invalid","dailywash","0069","off","unlock","none","none"]
         'miio_specs': {
-			'prop.2.1': {
+            'prop.2.1': {
                 'prop': 'state',
                 'format': 'onoff',
                 'setter': 'set_power',
@@ -155,8 +155,8 @@ MIIO_TO_MIOT_SPECS = {
                 'run':  3,
                 'delay':   4,
                 'pause': 5,
-				'fault': 6,
-				'eoc': 7,
+                'fault': 6,
+                'eoc': 7,
             }},
             'prop.2.3': {'prop': 'cycle','setter': True, 'dict': {
                 'dailywash':   1,  # mode
@@ -523,5 +523,5 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {'prop': 'power_consume_rate'},
             'prop.4.1': {'prop': 'wifi_led'},
         },
-    }
+    },
 }
