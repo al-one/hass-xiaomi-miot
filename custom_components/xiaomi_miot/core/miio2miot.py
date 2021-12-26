@@ -89,14 +89,14 @@ class Miio2MiotHelper:
                     mph = MiioPropertyHelper(prop)
                     fmt = c.get('format')
                     try:
-                        if fmt and hasattr(mph, fmt):
-                            val = getattr(mph, fmt)(val)
-
-                        elif tpl := c.get('template', {}):
+                        if tpl := c.get('template', {}):
                             tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                             tpl = cv.template(tpl)
                             tpl.hass = self.hass
                             val = tpl.render({'value': val, 'props': dic})
+                    
+                        elif fmt and hasattr(mph, fmt):
+                            val = getattr(mph, fmt)(val)
 
                         elif d := c.get('dict', {}):
                             val = d.get(val, c.get('default', val))
