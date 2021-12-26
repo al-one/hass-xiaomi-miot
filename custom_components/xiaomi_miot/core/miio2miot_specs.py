@@ -325,7 +325,7 @@ MIIO_TO_MIOT_SPECS = {
         # ["none",8          ,-15        ,"on"   ,0      ,10          ,"off"      ,"off"]
         'chunk_properties': 1,
         'miio_specs': {
-            'prop.2.1': {'prop': 'mode', 'setter': 'setMode', 'dict': {
+            'prop.2.1': {'prop': 'Mode', 'setter': 'setMode', 'dict': {
                 'holiday': 1,
                 'none':    2,
             }, 'default': 2},
