@@ -138,6 +138,71 @@ MIIO_TO_MIOT_SPECS = {
             }, 'default': 1},
         },
     },
+    
+    'minij.washer.v5': {
+        # ["state","process","cycle","time_remain","child_lock","lock","dry_set","dirty_type"]
+        # ["off","option:load,prewash,wash,rinse,spin;processing:invalid","dailywash","0069","off","unlock","none","none"]
+        'miio_specs': {
+            'prop.2.1': {
+                'prop': 'state',
+                'format': 'onoff',
+                'setter': 'set_power',
+                'template': '{{ value != "off" }}',
+            },
+            'prop.2.2': {'prop': 'state', 'setter': True,  'dict': {
+                'off':   1,  # run status
+                'standby':   2,
+                'run':   3,
+                'delay':   4,
+                'pause':   5,
+                'fault':   6,
+                'eoc':   7,
+            }},
+            'prop.2.3': {'prop': 'cycle', 'setter': True, 'dict': {
+                'dailywash':   1,  # mode
+                'quick':   2,
+                'delicate':   3,
+                'down':   4,
+                'heavy':   5,
+                'userdefine':   6,
+                'rinse':   7,
+                'spin':   8,
+                'cotton':   9,
+                'synthetic':   10,
+                'shirt':   11,
+                'boiling':   12,
+                'wool':   13,
+                'drumclean':   14,
+                'babycare':   15,
+                'intensive':   16,
+                'jacket':   17,
+                'washdry':   18,
+                'underwear':   19,
+                'dry':   20,
+                'dryairwash':   21,
+                'washdryquick':   22,
+            }, 'default': 1},
+            'prop.2.4': {'prop': 'time_remain', 'setter': True},
+            'prop.2.5': {'prop': 'speed', 'setter': True, 'set_template': '{{ value ~ "rpm" }}', 'template': '{{ value | regex_replace("rpm","") | int }}'},
+            'prop.2.6': {'prop': 'temp','setter': True, 'set_template': '{{ [value | string if value else "cool"] }}', 'template': '{{ value | int(0) }}'},
+            'prop.2.7': {'prop': 'water_level', 'setter': True, 'dict': {
+                'high':   1,  # water_level status
+                'middle':   2,
+                'low':   3,
+            }, 'default': 3},
+            'prop.2.8': {'prop': 'rinse_time', 'setter': True, 'set_template': '{{ [value | string] }}', 'template': '{{ value | int }}'},
+            'prop.2.9': {'prop': 'dry_set', 'setter': True, 'dict':{
+                'moist':   1, #dry level status
+                'normal':   2,
+                'extra':   3,
+                'none':   4,
+            }, 'default': 4},
+            'prop.3.1': {'prop': 'child_lock', 'setter': True},
+            'prop.4.1': {'prop': 'volume', 'setter': True},
+        },
+    },
+    
+    'minij.washer.v14': 'minij.washer.v5',
 
     'opple.light.fanlight': {
         # ["LightPower","Brightness","ColorTemperature","Scenes","FanPower","Speed",
@@ -166,6 +231,13 @@ MIIO_TO_MIOT_SPECS = {
     },
 
     'rockrobo.vacuum.v1': {
+        'extend_model': 'roborock.vacuum.t6',
+        'miio_specs': {
+            'prop.3.2': {'prop': 'charging', 'template': '{{ 1 if props.state in [8] else 2 }}'},
+        },
+    },
+
+    'roborock.vacuum.t6': {
         'without_props': True,
         'miio_commands': [
             {
@@ -199,7 +271,6 @@ MIIO_TO_MIOT_SPECS = {
             }, 'default': 1},
             'prop.2.2': {'prop': 'fan_power'},
             'prop.3.1': {'prop': 'battery'},
-            'prop.3.2': {'prop': 'charging', 'template': '{{ 1 if props.state in [8] else 2 }}'},
         },
     },
 
@@ -223,7 +294,7 @@ MIIO_TO_MIOT_SPECS = {
         # ["none",8          ,-15        ,"on"   ,0      ,10          ,"off"      ,"off"]
         'chunk_properties': 1,
         'miio_specs': {
-            'prop.2.1': {'prop': 'mode', 'setter': 'setMode', 'dict': {
+            'prop.2.1': {'prop': 'Mode', 'setter': 'setMode', 'dict': {
                 'holiday': 1,
                 'none':    2,
             }, 'default': 2},
