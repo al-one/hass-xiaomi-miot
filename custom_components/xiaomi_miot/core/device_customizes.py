@@ -1,5 +1,9 @@
 DEVICE_CUSTOMIZES = {
 
+    'careli.fryer.*': {
+        'button_actions': 'start_cook,pause,cancel_cooking',
+        'exclude_miot_services': 'custom',
+    },
     'cgllc.airm.cgdn1': {
         'chunk_properties': 9,
     },
