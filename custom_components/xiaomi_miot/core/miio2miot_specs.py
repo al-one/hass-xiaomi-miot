@@ -23,6 +23,27 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'chunmi.microwave.n23l01': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': ['all'],
+                'values': [
+                    'status', 'phase', 'menuid', 'tCook', 'tLeft', 'tPre', 'tPause', 'fire', 'cookPhase',
+                    'pauseTimeout', 'eCode', 'version', 'customDetails', 'v13', 'orderTime', 'cookCount', 'number',
+                    # [12   , 0      , "000002", 0      , 0      , 0     ,  0      , 6     , 0,
+                    # "00"        , "00"   , "0009"   , "0000000000000", 0    , 0          , 0          , 0]
+                ],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'status'},
+            'prop.2.2': {'prop': 'tLeft'},
+            'action.2.1': {'setter': 'pause_cooking', 'set_template': '{{ ["050201"] }}'},
+        },
+    },
+
     'hfjh.fishbowl.v1': {
         # ["Equipment_Status","feed_num","feed_switch","feed_time","feed_time_week","heater_switch",
         # "led_board_brightness","led_board_color","led_board_model","led_board_speed","led_board_stream",
