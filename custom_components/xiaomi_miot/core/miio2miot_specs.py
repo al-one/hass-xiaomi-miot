@@ -553,4 +553,16 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.1': {'prop': 'wifi_led'},
         },
     },
+    
+    'zhimi.airmonitor.v1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'aqi'},
+            'prop.3.1': {'prop': 'battery'},
+            'prop.3.2': {'prop': 'usb_state', 'dict': {
+                "on": 1,  # Charging
+                "off": 2,  # Not Charging
+            }, 'default': 2},
+            'prop.4.1': {'prop': 'time_state', 'setter': True, 'format': 'onoff'},
+        },
+    },
 }
