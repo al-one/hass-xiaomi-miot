@@ -385,11 +385,11 @@ MIIO_TO_MIOT_SPECS = {
                 },
                 'default': 5,
                 'template': '{{ '
-                            '3 if "fastdefog" in value else'
-                            '4 if "fastwarm" in value else'
-                            '1 if "drying" in value else'
-                            '2 if "defog" in value else'
-                            '6 if "warmwind" in value else'
+                            '3 if "fastdefog" in value else '
+                            '4 if "fastwarm" in value else '
+                            '1 if "drying" in value else '
+                            '2 if "defog" in value else '
+                            '6 if "warmwind" in value else '
                             '5 }}',
             },
             'prop.3.2': {
@@ -399,12 +399,12 @@ MIIO_TO_MIOT_SPECS = {
             },
             'prop.3.3': {
                 'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "coolwind" in value] }}',
+                'template': '{{ "coolwind" in value }}',
                 'set_template': '{{ ["coolwind" if value else "windoff"] }}',
             },
             'prop.3.4': {
                 'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "venting" in value] }}',
+                'template': '{{ "venting" in value }}',
                 'set_template': '{{ ["venting" if value else "ventingoff"] }}',
             },
             'prop.3.5': {'prop': 'aim_temp', 'setter': 'set_temp'},
