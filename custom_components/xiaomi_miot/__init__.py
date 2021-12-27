@@ -1152,6 +1152,10 @@ class MiotEntity(MiioEntity):
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
+            for d in ['button']:
+                als = self.custom_config_list(f'{d}_actions') or []
+                if als:
+                    self._update_sub_entities(None, '*', domain=d, actions=als)
             for d in ['light', 'fan']:
                 pls = self.custom_config_list(f'{d}_services') or []
                 if pls:
@@ -1590,6 +1594,7 @@ class MiotEntity(MiioEntity):
         return ret
 
     def _update_sub_entities(self, properties, services=None, domain=None, option=None, **kwargs):
+        actions = kwargs.get('actions', [])
         from .sensor import MiotSensorSubEntity
         from .binary_sensor import MiotBinarySensorSubEntity
         from .switch import MiotSwitchSubEntity
@@ -1617,7 +1622,7 @@ class MiotEntity(MiioEntity):
         for s in sls:
             if s.name in exclude_services:
                 continue
-            if not properties:
+            if not properties and not actions:
                 fnm = s.unique_name
                 tms = self._check_same_sub_entity(fnm, domain)
                 new = True
@@ -1642,7 +1647,11 @@ class MiotEntity(MiioEntity):
                     self._check_same_sub_entity(fnm, domain, add=1)
                     self.logger.debug('%s: Added sub entity %s: %s', self.name, domain, fnm)
                 continue
-            pls = s.get_properties(*cv.ensure_list(properties))
+            pls = []
+            if properties:
+                pls.extend(s.get_properties(*cv.ensure_list(properties)))
+            if actions:
+                pls.extend(s.get_actions(*cv.ensure_list(actions)))
             for p in pls:
                 fnm = p.unique_name
                 opt = {
@@ -1658,6 +1667,11 @@ class MiotEntity(MiioEntity):
                 elif tms > 0:
                     if tms <= 1:
                         self.logger.info('%s: Device sub entity %s: %s already exists.', self.name, domain, fnm)
+                elif isinstance(p, MiotAction):
+                    if add_buttons and domain == 'button':
+                        from .button import MiotButtonActionSubEntity
+                        self._subs[fnm] = MiotButtonActionSubEntity(self, p, option=opt)
+                        add_buttons([self._subs[fnm]], update_before_add=True)
                 elif add_buttons and domain == 'button' and p.value_list:
                     from .button import MiotButtonSubEntity
                     nls = []

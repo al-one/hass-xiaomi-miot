@@ -197,7 +197,7 @@ xiaomi_miot:
 - 🍃 [空气检测仪](https://home.miot-spec.com/s/airmonitor) / 🪴 [植物监测仪](https://home.miot-spec.com/s/plantmonitor)
 - 🛏 [电动床](https://home.miot-spec.com/s/bed) / [电热毯/水暖床垫](https://home.miot-spec.com/s/blanket) / 😴 [睡眠监测仪](https://home.miot-spec.com/s/lunar)
 - 💆 [按摩椅](https://home.miot-spec.com/s/massage) / [按摩仪](https://home.miot-spec.com/s/magic_touch)
-- 🏃 [走步机](https://home.miot-spec.com/s/walkingpad) / [升降桌](https://home.miot-spec.com/s/desk)
+- 🏃 [走步机](https://home.miot-spec.com/s/walkingpad) / [跑步机](https://home.miot-spec.com/s/treadmill) / [升降桌](https://home.miot-spec.com/s/desk)
 - 🚽 [马桶(盖)](https://home.miot-spec.com/s/toilet) /️ [毛巾架](https://home.miot-spec.com/s/.tow) /️ 🪥 [牙刷](https://home.miot-spec.com/s/toothbrush)
 - 🐱 [宠物喂食器](https://home.miot-spec.com/s/feeder) / ⛲ [宠物饮水机](https://home.miot-spec.com/s/pet_waterer) / 🐟 [鱼缸](https://home.miot-spec.com/s/fishbowl)
 - 🦟 [驱蚊器](https://home.miot-spec.com/s/mosq) / [消毒/灭菌灯](https://home.miot-spec.com/s/s_lamp)

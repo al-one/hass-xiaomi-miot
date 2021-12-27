@@ -509,6 +509,14 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
         'number_properties': 'target_time',
     },
+    '*.treadmill.*': {
+        'button_actions': 'start_work,pause,stop_working',
+        'sensor_properties': 'current_distance,current_step_count,current_calorie_consumption,'
+                             'left_distance,left_time,working_time',
+        'number_properties': 'target_distance,target_time',
+        'select_properties': 'mode',
+        'number_select_properties': 'speed_level',
+    },
     '*.walkingpad.*': {
         'sensor_properties': 'current_distance,current_step_count,current_calorie_consumption,'
                              'left_distance,left_time,working_time',

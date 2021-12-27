@@ -185,7 +185,7 @@ xiaomi_miot:
 - 🍃 [air-monitor](https://home.miot-spec.com/s/airmonitor) / 🪴 [plant-monitor](https://home.miot-spec.com/s/plantmonitor)
 - 🛏 [bed](https://home.miot-spec.com/s/bed) / [blanket](https://home.miot-spec.com/s/blanket) / 😴 [sleep-monitor](https://home.miot-spec.com/s/lunar)
 - 💆 [massager](https://home.miot-spec.com/s/massage) / [magic-touch](https://home.miot-spec.com/s/magic_touch)
-- 🏃 [walking-pad](https://home.miot-spec.com/s/walkingpad) / [table](https://home.miot-spec.com/s/desk)
+- 🏃 [walking-pad](https://home.miot-spec.com/s/walkingpad) / [treadmill](https://home.miot-spec.com/s/treadmill) / [table](https://home.miot-spec.com/s/desk)
 - 🚽 [toilet](https://home.miot-spec.com/s/toilet) /️ [towel-rack](https://home.miot-spec.com/s/.tow) /️ 🪥 [toothbrush](https://home.miot-spec.com/s/toothbrush)
 - 🐱 [pet-feeder](https://home.miot-spec.com/s/feeder) / ⛲ [pet-drinking-fountain](https://home.miot-spec.com/s/pet_waterer) / 🐟 [fish-tank](https://home.miot-spec.com/s/fishbowl)
 - 🦟 [mosquito-dispeller](https://home.miot-spec.com/s/mosq) / [germicidal-lamp](https://home.miot-spec.com/s/s_lamp)

@@ -378,7 +378,7 @@ class MiotService(MiotSpecInstance):
         return [
             a
             for a in self.actions.values()
-            if a.name in args
+            if a.name in args or a.full_name in args
         ]
 
     def get_action(self, *args):
@@ -743,6 +743,7 @@ class MiotAction(MiotSpecInstance):
         self.service = service
         self.siid = service.iid
         super().__init__(dat)
+        self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
         self.unique_prop = self.service.unique_prop(aiid=self.iid)
         self.full_name = f'{service.name}.{self.name}'
         self.friendly_desc = self.get_translation(self.description or self.name)
