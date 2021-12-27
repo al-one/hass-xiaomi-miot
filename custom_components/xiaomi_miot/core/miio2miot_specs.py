@@ -477,6 +477,13 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.lamp7': 'yeelink.light.ceiling16',
     'yeelink.light.lamp9': 'yeelink.light.ceiling6',
     'yeelink.light.lamp10': 'yeelink.light.bslamp3',
+    'yeelink.light.mono1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.3.1': {'prop': 'color_mode', 'setter': True},
+        },
+    },
     'yeelink.light.panel1': 'yeelink.light.ceiling2',
     'yeelink.light.strip1': 'yeelink.light.color1',
     'yeelink.light.strip2': {
@@ -544,16 +551,6 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
-    'zimi.powerstrip.v2': {
-        'miio_props': ['current', 'mode', 'power_price'],
-        'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'temperature'},
-            'prop.3.1': {'prop': 'power_consume_rate'},
-            'prop.4.1': {'prop': 'wifi_led'},
-        },
-    },
-    
     'zhimi.airmonitor.v1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'aqi'},
@@ -563,6 +560,16 @@ MIIO_TO_MIOT_SPECS = {
                 "off": 2,  # Not Charging
             }, 'default': 2},
             'prop.4.1': {'prop': 'time_state', 'setter': True, 'format': 'onoff'},
+        },
+    },
+    
+    'zimi.powerstrip.v2': {
+        'miio_props': ['current', 'mode', 'power_price'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'temperature'},
+            'prop.3.1': {'prop': 'power_consume_rate'},
+            'prop.4.1': {'prop': 'wifi_led'},
         },
     },
 }
