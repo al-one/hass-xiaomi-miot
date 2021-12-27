@@ -351,7 +351,7 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.bhf_light.v2': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.2': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
             'prop.3.1': {'prop': 'bh_mode', 'dict': {
                 'bh_off':   1,  # stop_bath_heater
                 'warmwind': 2,
@@ -360,6 +360,55 @@ MIIO_TO_MIOT_SPECS = {
                 'coolwind': 5,
             }, 'default': 1},
             'prop.4.1': {'prop': 'fan_speed_idx', 'template': 'yeelink_bhf_light_v2_fan_levels'},
+        },
+    },
+    'yeelink.bhf_light.v5': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {
+                'prop': 'nl_br',
+                'setter': 'set_ps',
+                'template': '{{ 2 if value|int else 1 }}',
+                'set_template': "{{ ['nightlight','on' if value == 2 else 'off'] }}",
+            },
+            'prop.2.3': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.3.1': {
+                'prop': 'bh_mode',
+                'setter': True,
+                'dict': {
+                    'drying':    1,
+                    'defog':     2,
+                    'fastdefog': 3,
+                    'fastwarm':  4,
+                    'bh_off':    5,
+                    'warmwind':  6,
+                },
+                'default': 5,
+                'template': '{{ '
+                            '3 if "fastdefog" in value else'
+                            '4 if "fastwarm" in value else'
+                            '1 if "drying" in value else'
+                            '2 if "defog" in value else'
+                            '6 if "warmwind" in value else'
+                            '5 }}',
+            },
+            'prop.3.2': {
+                'prop': 'bh_mode', 'setter': True,
+                'template': '{{ "warm" in value }}',
+                'set_template': '{{ ["warmwind" if value else "windoff"] }}',
+            },
+            'prop.3.3': {
+                'prop': 'bh_mode', 'setter': True,
+                'template': '{{ "coolwind" in value] }}',
+                'set_template': '{{ ["coolwind" if value else "windoff"] }}',
+            },
+            'prop.3.4': {
+                'prop': 'bh_mode', 'setter': True,
+                'template': '{{ "venting" in value] }}',
+                'set_template': '{{ ["venting" if value else "ventingoff"] }}',
+            },
+            'prop.3.5': {'prop': 'aim_temp', 'setter': 'set_temp'},
+            'prop.3.6': {'prop': 'temperature'},
         },
     },
     'yeelink.light.bslamp1': {
