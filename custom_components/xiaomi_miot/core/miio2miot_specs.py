@@ -84,6 +84,29 @@ MIIO_TO_MIOT_SPECS = {
                 'on':   3,
             }, 'default': 1},
         },
+    }, 
+       
+    'lumi.acpartner.mcn02': {
+        # ['power', 'mode', 'tar_temp', 'fan_level', 'ver_swing', 'load_power']
+        # ['on',    'dry',   16,        'small_fan', 'off',        84.0]
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':   0,  # run mode
+                'cool':   1,
+                'dry':   2,
+                'heat':   3,
+                'wind':   4,
+            }},
+            'prop.2.3': {'prop': 'tar_temp', 'setter': True},
+            'prop.3.1': {'prop': 'fan_level', 'setter': True, 'dict': {
+                'auto_fan':   0,  # fan-level
+                'small_fan':   1,
+                'medium_fan':   2,
+                'large_fan':   3,
+            }},
+            'prop.3.2': {'prop': 'ver_swing', 'setter': True, 'format': 'onoff'},
+        },
     },
 
     'lumi.acpartner.v1': {
