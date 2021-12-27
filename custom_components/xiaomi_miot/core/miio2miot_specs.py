@@ -231,39 +231,8 @@ MIIO_TO_MIOT_SPECS = {
     },
 
     'rockrobo.vacuum.v1': {
-        'without_props': True,
-        'miio_commands': [
-            {
-                'method': 'get_status',
-                'template': '{{ results.0 | default({}) }}',
-            },
-            {
-                'method': 'get_consumable',
-                'template': '{{ results.0 | default({}) }}',
-            },
-        ],
+        'extend_model': 'roborock.vacuum.t6',
         'miio_specs': {
-            'prop.2.1': {'prop': 'state', 'dict': {
-                1: 2,  # Starting
-                2: 7,  # Charger disconnected
-                3: 1,  # Idle
-                4: 6,  # Remote control active
-                5: 2,  # Cleaning
-                6: 5,  # Returning home
-                7: 6,  # Manual mode
-                8: 3,  # Charging
-                9: 7,  # Charging problem
-                10: 4,  # Paused
-                11: 2,  # Spot cleaning
-                12: 7,  # Error
-                13: 7,  # Shutting down
-                15: 1,  # Docking
-                16: 6,  # Going to target
-                17: 2,  # Zoned cleaning
-                18: 2,  # Segment cleaning
-            }, 'default': 1},
-            'prop.2.2': {'prop': 'fan_power'},
-            'prop.3.1': {'prop': 'battery'},
             'prop.3.2': {'prop': 'charging', 'template': '{{ 1 if props.state in [8] else 2 }}'},
         },
     },
