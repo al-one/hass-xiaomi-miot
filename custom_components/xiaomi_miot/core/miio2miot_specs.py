@@ -389,10 +389,8 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {
-                'prop': 'active_mode',
-                'setter': 'set_power',
-                'template': '{{ 2 if value|int else 1 }}',
-                'set_template': '{{ ["on","smooth",500,5 if value == 2 else 1] }}',
+                'prop': 'light_mode',
+                'template': '{{ 2 if value == "nightlight" else 1 }}',
             },
             'prop.2.3': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
             'prop.3.1': {
