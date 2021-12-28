@@ -1332,7 +1332,7 @@ class MiotEntity(MiioEntity):
             return
         attrs = {}
         for c in keys:
-            mat = re.match(r'^\s*(?:(\w+)\.?)(\w+)(?::(\d+))?(?::(\w+))?\s*$', c)
+            mat = re.match(r'^\s*(?:(\w+)\.?)([\w.]+)(?::(\d+))?(?::(\w+))?\s*$', c)
             if not mat:
                 continue
             typ, key, lmt, gby = mat.groups()
