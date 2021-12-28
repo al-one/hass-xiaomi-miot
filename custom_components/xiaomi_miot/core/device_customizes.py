@@ -362,6 +362,9 @@ DEVICE_CUSTOMIZES = {
             'extension.rc_list':   {'siid': 4, 'piid': 3},
         },
     },
+    'zhimi.airpurifier.*': {
+        'exclude_miot_services': 'motor_speed,rfid,others',
+    },
     'zimi.plug.zncz01': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '3.2',
