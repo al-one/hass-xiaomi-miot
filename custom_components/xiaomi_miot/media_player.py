@@ -361,7 +361,6 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         )
 
 
-
 class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
@@ -396,34 +395,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             })
             add_selects([self._subs[sub]], update_before_add=True)
 
-    async def async_update(self):
-        await super().async_update()
-        if not self._available:
-            return
-        adt = {}
-
-        pms = self.with_opaque({
-            'action': 'capturescreen',
-            'compressrate': 100,
-        })
-        rdt = await self.async_request_mitv_api('controller', params=pms)
-        if 'url' in rdt:
-            url = rdt.get('url', '')
-            pms = urlparse(url).query
-            url = f'{url}'.replace(pms, '').replace('//null:', f'//{self._host}:')
-            pms = dict(parse_qsl(pms))
-            pms = self.with_opaque(pms, token=rdt.get('token'))
-            self._attr_media_image_url = url + urlencode(pms)
-            self._attr_app_id = rdt.get('pkg')
-            self._attr_app_name = rdt.get('label')
-            adt.update({
-                'capture': self._attr_media_image_url,
-                'capture_token': rdt.get('token'),
-                'app_current': f'{self._attr_app_name} - {self._attr_app_id}',
-                'app_page': rdt.get('clz'),
-            })
-
-        if self._state_attrs.get('6095_state'):
+        if self._state_attrs.get('6095_state', True):
             pms = {
                 'action': 'getinstalledapp',
                 'count': 999,
@@ -452,6 +424,31 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                     })
                     add_selects([self._subs[sub]], update_before_add=True)
 
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        adt = {}
+        pms = self.with_opaque({
+            'action': 'capturescreen',
+            'compressrate': 100,
+        })
+        rdt = await self.async_request_mitv_api('controller', params=pms)
+        if 'url' in rdt:
+            url = rdt.get('url', '')
+            pms = urlparse(url).query
+            url = f'{url}'.replace(pms, '').replace('//null:', f'//{self._host}:')
+            pms = dict(parse_qsl(pms))
+            pms = self.with_opaque(pms, token=rdt.get('token'))
+            self._attr_media_image_url = url + urlencode(pms)
+            self._attr_app_id = rdt.get('pkg')
+            self._attr_app_name = rdt.get('label')
+            adt.update({
+                'capture': self._attr_media_image_url,
+                'capture_token': rdt.get('token'),
+                'app_current': f'{self._attr_app_name} - {self._attr_app_id}',
+                'app_page': rdt.get('clz'),
+            })
         self._state_attrs.update(adt)
 
     @property
@@ -533,7 +530,8 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         except requests.exceptions.RequestException as exc:
             rdt = {}
             if self._state_attrs.get('6095_state'):
-                self.logger.warning('%s: Request mitv api error: %s', self.name, exc)
+                log = self.logger.info if 'NewConnectionError' in f'{exc}' else self.logger.warning
+                log('%s: Request mitv api error: %s', self.name, exc)
             self._state_attrs['6095_state'] = False
         return rdt.get('data') or {}
 
