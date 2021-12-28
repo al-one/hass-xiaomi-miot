@@ -146,7 +146,7 @@ cover.your_entity_id:
 media_player.mitv_entity_id:
   bind_xiaoai: media_player.xiaoai_entity_id # 绑定小爱音箱以打开电视
 
-doamin.your_entity_id:
+domain.your_entity_id_xxxx:
   interval_seconds: 30 # 每次更新状态间隔秒数(需重载集成配置)
   chunk_properties: 10 # 单次查询设备属性的最大个数(LAN)
   reverse_state: true  # 反转开关状态（仅作用于Binary Sensor）

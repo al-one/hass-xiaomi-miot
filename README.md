@@ -136,7 +136,7 @@ cover.your_entity_id:
 media_player.mitv_entity_id:
   bind_xiaoai: media_player.xiaoai_entity_id # Bind xiaoai speaker for turn on TV
 
-doamin.your_entity_id:
+domain.your_entity_id_xxxx:
   interval_seconds: 30 # Seconds between each update state (Requires reload config entry)
   chunk_properties: 10 # Chunk miot properties on update state (LAN)
   reverse_state: true  # Reverse the On/Off state of a binary sensor
