@@ -534,6 +534,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
         'number_select_properties': 'speed_level',
     },
+    '*.waterheater.*': {
+        'switch_properties': 'water_heater.on',
+    },
 
 }
 
