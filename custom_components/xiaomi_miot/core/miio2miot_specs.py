@@ -97,14 +97,14 @@ MIIO_TO_MIOT_SPECS = {
                 'dry':   2,
                 'heat':   3,
                 'wind':   4,
-            }},
+            }, 'default': 0},
             'prop.2.3': {'prop': 'tar_temp', 'setter': True},
             'prop.3.1': {'prop': 'fan_level', 'setter': True, 'dict': {
                 'auto_fan':   0,  # fan-level
                 'small_fan':   1,
                 'medium_fan':   2,
                 'large_fan':   3,
-            }},
+            }, 'default': 0},
             'prop.3.2': {'prop': 'ver_swing', 'setter': True, 'format': 'onoff'},
         },
     },
