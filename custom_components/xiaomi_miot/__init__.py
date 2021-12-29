@@ -22,6 +22,7 @@ from homeassistant.helpers.entity import (
 )
 from homeassistant.components import persistent_notification
 from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.helpers.reload import async_integration_yaml_config
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
 
@@ -178,7 +179,7 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_setup(hass, hass_config: dict):
     hass.data.setdefault(DOMAIN, {})
     config = hass_config.get(DOMAIN) or {}
-    hass.data[DOMAIN]['config'] = config
+    await async_reload_integration_config(hass, config)
     hass.data[DOMAIN].setdefault('configs', {})
     hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('add_entities', {})
@@ -188,14 +189,6 @@ async def async_setup(hass, hass_config: dict):
     await component.async_setup(config)
     await async_setup_component_services(hass)
     bind_services_to_entries(hass, SERVICE_TO_METHOD_BASE)
-
-    if lang := config.get('language'):
-        dic = TRANSLATION_LANGUAGES.get(lang)
-        if isinstance(dic, dict):
-            TRANSLATION_LANGUAGES.update(dic)
-    if dic := config.get('translations') or {}:
-        if isinstance(dic, dict):
-            TRANSLATION_LANGUAGES.update(dic)
 
     if config.get(CONF_USERNAME) and config.get(CONF_PASSWORD):
         try:
@@ -380,6 +373,18 @@ def bind_services_to_entries(hass, services):
         hass.services.async_register(DOMAIN, srv, async_service_handler, schema=schema)
 
 
+async def async_reload_integration_config(hass, config):
+    hass.data[DOMAIN]['config'] = config
+    if lang := config.get('language'):
+        dic = TRANSLATION_LANGUAGES.get(lang)
+        if isinstance(dic, dict):
+            TRANSLATION_LANGUAGES.update(dic)
+    if dic := config.get('translations') or {}:
+        if isinstance(dic, dict):
+            TRANSLATION_LANGUAGES.update(dic)
+    return config
+
+
 async def async_setup_component_services(hass):
 
     async def async_get_token(call):
@@ -429,6 +434,24 @@ async def async_setup_component_services(hass):
         {
             vol.Required('name', default=''): cv.string,
         }),
+    )
+
+    async def _handle_reload_config(service):
+        config = await async_integration_yaml_config(hass, DOMAIN)
+        if not config or DOMAIN not in config:
+            return
+        await async_reload_integration_config(hass, config.get(DOMAIN) or {})
+        current_entries = hass.config_entries.async_entries(DOMAIN)
+        reload_tasks = [
+            hass.config_entries.async_reload(entry.entry_id)
+            for entry in current_entries
+        ]
+        await asyncio.gather(*reload_tasks)
+
+    hass.helpers.service.async_register_admin_service(
+        DOMAIN,
+        SERVICE_RELOAD,
+        _handle_reload_config,
     )
 
 
