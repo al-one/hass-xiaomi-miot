@@ -371,6 +371,16 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'xjx.toilet.relax': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'seating'},
+            'prop.2.2': {'prop': 'status_bubbleshield', 'setter': 'set_bubble', 'set_template': '{{ value|int }}'},
+            'prop.3.1': {'prop': 'status_seatheat', 'setter': 'work_seatheat', 'set_template': '{{ value|int }}'},
+            'prop.3.2': {'prop': 'seat_temp', 'setter': 'set_seat_temp'},
+            'prop.4.1': {'prop': 'status_led', 'setter': 'work_night_led', 'set_template': '{{ value|int }}'},
+        },
+    },
+
     'yeelink.bhf_light.v2': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
