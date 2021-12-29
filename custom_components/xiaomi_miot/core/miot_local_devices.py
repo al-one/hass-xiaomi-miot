@@ -33,7 +33,7 @@ MIOT_LOCAL_MODELS = [
     'cuco.plug.co1',
     'cuco.plug.cp1',   # chunk_properties: 1
     'cuco.plug.cp1m',  # chunk_properties: 1
-    # 'cuco.plug.cp2',  # issues/252
+    'cuco.plug.cp2',   # exclude_miot_services: indicator_light
     'cuco.plug.cp2a',
     'cuco.plug.cp3a',
     'cuco.plug.cp5pro',
