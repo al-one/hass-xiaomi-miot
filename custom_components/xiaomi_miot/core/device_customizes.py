@@ -68,7 +68,11 @@ DEVICE_CUSTOMIZES = {
     'chunmi.health_pot.a1': {
         'miot_local': True,
     },
+    'cuco.plug.cp1': {
+        'chunk_properties': 1,
+    },
     'cuco.plug.cp1m': {
+        'chunk_properties': 1,
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
@@ -109,6 +113,9 @@ DEVICE_CUSTOMIZES = {
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
+    },
+    'cuco.plug.sp5': {
+        'exclude_miot_services': 'custome,physical_controls_locked',
     },
     'cuco.plug.*:electric_current': {
         'state_class': 'measurement',
