@@ -115,7 +115,7 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'kWh',
     },
     'cuco.plug.sp5': {
-        'exclude_miot_services': 'custome,physical_controls_locked',
+        'exclude_miot_services': 'custome,physical_controls_locked,indicator_light',
     },
     'cuco.plug.*:electric_current': {
         'state_class': 'measurement',
