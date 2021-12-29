@@ -116,7 +116,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                         'options': ols,
                         'select_option': self.press_ir_key,
                     })
-                    add_selects([self._subs[ird]], update_before_add=True)
+                    add_selects([self._subs[ird]], update_before_add=False)
         if irs:
             self._state_attrs['ir_devices'] = irs
 

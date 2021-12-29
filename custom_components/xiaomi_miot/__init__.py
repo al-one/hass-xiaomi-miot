@@ -844,12 +844,12 @@ class MiioEntity(BaseEntity):
                 from .sensor import BaseSensorSubEntity
                 option = {'unique_id': f'{self._unique_did}-{p}', **opt}
                 self._subs[p] = BaseSensorSubEntity(self, a, option=option)
-                add_sensors([self._subs[p]], update_before_add=True)
+                add_sensors([self._subs[p]], update_before_add=False)
                 self._check_same_sub_entity(p, domain, add=1)
             elif domain == 'binary_sensor':
                 option = {'unique_id': f'{self._unique_did}-{p}', **opt}
                 self._subs[p] = ToggleSubEntity(self, a, option=option)
-                add_sensors([self._subs[p]], update_before_add=True)
+                add_sensors([self._subs[p]], update_before_add=False)
                 self._check_same_sub_entity(p, domain, add=1)
 
     def _check_same_sub_entity(self, name, domain=None, add=0):

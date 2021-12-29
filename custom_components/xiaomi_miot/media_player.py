@@ -393,7 +393,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 'options': self._keycodes,
                 'select_option': self.press_key,
             })
-            add_selects([self._subs[sub]], update_before_add=True)
+            add_selects([self._subs[sub]], update_before_add=False)
 
         if self._state_attrs.get('6095_state', True):
             pms = {
@@ -422,7 +422,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                         'options': als,
                         'select_option': self.start_app,
                     })
-                    add_selects([self._subs[sub]], update_before_add=True)
+                    add_selects([self._subs[sub]], update_before_add=False)
 
     async def async_update(self):
         await super().async_update()
