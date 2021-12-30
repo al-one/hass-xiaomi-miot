@@ -362,6 +362,9 @@ DEVICE_CUSTOMIZES = {
         'use_ble_object': True,
         'interval_seconds': 15,
     },
+    'yeelink.light.stripa': {
+        'chunk_properties': 2,
+    },
     'yeelink.switch.sw1': {
         'miot_mapping': {
             'switch1.on':          {'siid': 2, 'piid': 1},
