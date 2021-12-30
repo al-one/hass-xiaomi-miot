@@ -13,6 +13,7 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
     MiotPropertySubEntity,
+    BaseSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -20,6 +21,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
     MiotProperty,
+    MiotAction,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -84,3 +86,25 @@ class MiotButtonSubEntity(MiotPropertySubEntity, ButtonEntity):
     def press(self):
         """Press the button."""
         return self.set_parent_property(self._miot_property_value)
+
+
+class MiotButtonActionSubEntity(BaseSubEntity, ButtonEntity):
+    def __init__(self, parent, miot_action: MiotAction, option=None):
+        self._miot_action = miot_action
+        super().__init__(parent, miot_action.full_name, option)
+        self._name = f'{parent.device_name} {miot_action.friendly_desc}'.strip()
+        self._unique_id = f'{parent.unique_did}-{miot_action.unique_name}'
+        self.entity_id = miot_action.service.spec.generate_entity_id(self, miot_action.name)
+        self._extra_attrs.update({
+            'service_description': miot_action.service.description,
+            'action_description': miot_action.description,
+        })
+        self._available = True
+
+    def update(self, data=None):
+        if data:
+            self.update_attrs(data, update_parent=False)
+
+    def press(self):
+        """Press the button."""
+        return self.call_parent('call_action', self._miot_action)

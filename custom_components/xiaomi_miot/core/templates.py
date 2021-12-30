@@ -90,7 +90,7 @@ CUSTOM_TEMPLATES = {
                               "} }}",
     'lumi_acpartner_electric_power': "{%- set val = props.get('prop.ac_power',props.get('prop.load_power',0)) %}"
                                      "{{ {"
-                                     "'electric_power': val | round(2),"
+                                     "'electric_power': val | default(0,true) | round(2),"
                                      "} }}",
     'lumi_acpartner_miio_status': "{%- set model = results[0] | default('') %}"
                                   "{%- set state = results[1] | default('') %}"

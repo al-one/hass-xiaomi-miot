@@ -1,5 +1,9 @@
 DEVICE_CUSTOMIZES = {
 
+    'careli.fryer.*': {
+        'button_actions': 'start_cook,pause,cancel_cooking',
+        'exclude_miot_services': 'custom',
+    },
     'cgllc.airm.cgdn1': {
         'chunk_properties': 9,
     },
@@ -64,12 +68,21 @@ DEVICE_CUSTOMIZES = {
     'chunmi.health_pot.a1': {
         'miot_local': True,
     },
+    'cuco.plug.co1': {
+        'exclude_miot_services': 'setting,cycle',
+    },
+    'cuco.plug.cp1': {
+        'chunk_properties': 1,
+    },
     'cuco.plug.cp1m': {
+        'chunk_properties': 1,
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
     'cuco.plug.cp2': {
+        'chunk_properties': 1,
+        'exclude_miot_services': 'indicator_light',
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
@@ -106,6 +119,9 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
+    'cuco.plug.sp5': {
+        'exclude_miot_services': 'custome,physical_controls_locked,indicator_light',
+    },
     'cuco.plug.*:electric_current': {
         'state_class': 'measurement',
         'device_class': 'current',
@@ -135,8 +151,12 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'voltage',
         'unit_of_measurement': 'V',
     },
-    'deerma.humidifier.jsq3': {
+    'deerma.humidifier.*': {
         'chunk_properties': 6,
+        'exclude_miot_services': 'custom',
+    },
+    'dreame.vacuum.*': {
+        'exclude_miot_services': 'annoy,remote,time',
     },
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
@@ -159,15 +179,12 @@ DEVICE_CUSTOMIZES = {
             2: 0,
         },
     },
-    'lumi.acpartner.mcn02': {
-        'miio_cloud_props': 'load_power',
-    },
     'lumi.acpartner.mcn04': {
         'chunk_properties': 7,
     },
     'lumi.acpartner.*': {
         'sensor_attributes': 'electric_power,power_cost_today,power_cost_month',
-        'miio_cloud_props': 'ac_power',
+        'miio_cloud_props': 'ac_power,load_power',
         'miio_cloud_props_template': 'lumi_acpartner_electric_power',
         'stat_power_cost_type': 'stat_day',
         'stat_power_cost_key': 'powerCost',
@@ -335,15 +352,24 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'key_one,key_two,key_three,key_four,key_five,key_six,key_seven,key_eight,key_nine,'
                              'key_ten,key_eleven,key_twelve,key_thirteen,key_fourteen,key_fifteen,key_sixteen',
     },
+    'xiaomi.aircondition.mt6': {
+        'exclude_miot_services': 'iot_linkage,machine_state',
+    },
     'xiaomi.tv.*': {
         'number_properties': 'speaker.volume',
     },
     'xiaomi.watch.*': {
         'sensor_properties': 'current_step_count,current_distance',
     },
+    'yeelink.bhf_light.v6': {
+        'chunk_properties': 3,
+    },
     'yeelink.light.nl1': {
         'use_ble_object': True,
         'interval_seconds': 15,
+    },
+    'yeelink.light.stripa': {
+        'chunk_properties': 2,
     },
     'yeelink.switch.sw1': {
         'miot_mapping': {
@@ -357,6 +383,9 @@ DEVICE_CUSTOMIZES = {
             'extension.flash':     {'siid': 4, 'piid': 2},
             'extension.rc_list':   {'siid': 4, 'piid': 3},
         },
+    },
+    'zhimi.airpurifier.*': {
+        'exclude_miot_services': 'motor_speed,rfid,others',
     },
     'zimi.plug.zncz01': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
@@ -509,12 +538,23 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
         'number_properties': 'target_time',
     },
+    '*.treadmill.*': {
+        'button_actions': 'start_work,pause,stop_working',
+        'sensor_properties': 'current_distance,current_step_count,current_calorie_consumption,'
+                             'left_distance,left_time,working_time',
+        'number_properties': 'target_distance,target_time',
+        'select_properties': 'mode',
+        'number_select_properties': 'speed_level',
+    },
     '*.walkingpad.*': {
         'sensor_properties': 'current_distance,current_step_count,current_calorie_consumption,'
                              'left_distance,left_time,working_time',
         'number_properties': 'target_distance,target_time',
         'select_properties': 'mode',
         'number_select_properties': 'speed_level',
+    },
+    '*.waterheater.*': {
+        'switch_properties': 'water_heater.on',
     },
 
 }

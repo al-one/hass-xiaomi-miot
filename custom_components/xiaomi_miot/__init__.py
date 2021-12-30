@@ -22,6 +22,7 @@ from homeassistant.helpers.entity import (
 )
 from homeassistant.components import persistent_notification
 from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.helpers.reload import async_integration_yaml_config
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
 
@@ -179,7 +180,7 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_setup(hass, hass_config: dict):
     hass.data.setdefault(DOMAIN, {})
     config = hass_config.get(DOMAIN) or {}
-    hass.data[DOMAIN]['config'] = config
+    await async_reload_integration_config(hass, config)
     hass.data[DOMAIN].setdefault('configs', {})
     hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('add_entities', {})
@@ -189,14 +190,6 @@ async def async_setup(hass, hass_config: dict):
     await component.async_setup(config)
     await async_setup_component_services(hass)
     bind_services_to_entries(hass, SERVICE_TO_METHOD_BASE)
-
-    if lang := config.get('language'):
-        dic = TRANSLATION_LANGUAGES.get(lang)
-        if isinstance(dic, dict):
-            TRANSLATION_LANGUAGES.update(dic)
-    if dic := config.get('translations') or {}:
-        if isinstance(dic, dict):
-            TRANSLATION_LANGUAGES.update(dic)
 
     if config.get(CONF_USERNAME) and config.get(CONF_PASSWORD):
         try:
@@ -381,6 +374,18 @@ def bind_services_to_entries(hass, services):
         hass.services.async_register(DOMAIN, srv, async_service_handler, schema=schema)
 
 
+async def async_reload_integration_config(hass, config):
+    hass.data[DOMAIN]['config'] = config
+    if lang := config.get('language'):
+        dic = TRANSLATION_LANGUAGES.get(lang)
+        if isinstance(dic, dict):
+            TRANSLATION_LANGUAGES.update(dic)
+    if dic := config.get('translations') or {}:
+        if isinstance(dic, dict):
+            TRANSLATION_LANGUAGES.update(dic)
+    return config
+
+
 async def async_setup_component_services(hass):
 
     async def async_get_token(call):
@@ -430,6 +435,24 @@ async def async_setup_component_services(hass):
         {
             vol.Required('name', default=''): cv.string,
         }),
+    )
+
+    async def _handle_reload_config(service):
+        config = await async_integration_yaml_config(hass, DOMAIN)
+        if not config or DOMAIN not in config:
+            return
+        await async_reload_integration_config(hass, config.get(DOMAIN) or {})
+        current_entries = hass.config_entries.async_entries(DOMAIN)
+        reload_tasks = [
+            hass.config_entries.async_reload(entry.entry_id)
+            for entry in current_entries
+        ]
+        await asyncio.gather(*reload_tasks)
+
+    hass.helpers.service.async_register_admin_service(
+        DOMAIN,
+        SERVICE_RELOAD,
+        _handle_reload_config,
     )
 
 
@@ -830,12 +853,12 @@ class MiioEntity(BaseEntity):
                 from .sensor import BaseSensorSubEntity
                 option = {'unique_id': f'{self._unique_did}-{p}', **opt}
                 self._subs[p] = BaseSensorSubEntity(self, a, option=option)
-                add_sensors([self._subs[p]], update_before_add=True)
+                add_sensors([self._subs[p]], update_before_add=False)
                 self._check_same_sub_entity(p, domain, add=1)
             elif domain == 'binary_sensor':
                 option = {'unique_id': f'{self._unique_did}-{p}', **opt}
                 self._subs[p] = ToggleSubEntity(self, a, option=option)
-                add_sensors([self._subs[p]], update_before_add=True)
+                add_sensors([self._subs[p]], update_before_add=False)
                 self._check_same_sub_entity(p, domain, add=1)
 
     def _check_same_sub_entity(self, name, domain=None, add=0):
@@ -1167,6 +1190,10 @@ class MiotEntity(MiioEntity):
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
+            for d in ['button']:
+                als = self.custom_config_list(f'{d}_actions') or []
+                if als:
+                    self._update_sub_entities(None, '*', domain=d, actions=als)
             for d in ['light', 'fan']:
                 pls = self.custom_config_list(f'{d}_services') or []
                 if pls:
@@ -1343,7 +1370,7 @@ class MiotEntity(MiioEntity):
             return
         attrs = {}
         for c in keys:
-            mat = re.match(r'^\s*(?:(\w+)\.?)(\w+)(?::(\d+))?(?::(\w+))?\s*$', c)
+            mat = re.match(r'^\s*(?:(\w+)\.?)([\w.]+)(?::(\d+))?(?::(\w+))?\s*$', c)
             if not mat:
                 continue
             typ, key, lmt, gby = mat.groups()
@@ -1610,6 +1637,7 @@ class MiotEntity(MiioEntity):
         return ret
 
     def _update_sub_entities(self, properties, services=None, domain=None, option=None, **kwargs):
+        actions = kwargs.get('actions', [])
         from .sensor import MiotSensorSubEntity
         from .binary_sensor import MiotBinarySensorSubEntity
         from .switch import MiotSwitchSubEntity
@@ -1637,7 +1665,7 @@ class MiotEntity(MiioEntity):
         for s in sls:
             if s.name in exclude_services:
                 continue
-            if not properties:
+            if not properties and not actions:
                 fnm = s.unique_name
                 tms = self._check_same_sub_entity(fnm, domain)
                 new = True
@@ -1662,7 +1690,11 @@ class MiotEntity(MiioEntity):
                     self._check_same_sub_entity(fnm, domain, add=1)
                     self.logger.debug('%s: Added sub entity %s: %s', self.name, domain, fnm)
                 continue
-            pls = s.get_properties(*cv.ensure_list(properties))
+            pls = []
+            if properties:
+                pls.extend(s.get_properties(*cv.ensure_list(properties)))
+            if actions:
+                pls.extend(s.get_actions(*cv.ensure_list(actions)))
             for p in pls:
                 fnm = p.unique_name
                 opt = {
@@ -1678,6 +1710,11 @@ class MiotEntity(MiioEntity):
                 elif tms > 0:
                     if tms <= 1:
                         self.logger.info('%s: Device sub entity %s: %s already exists.', self.name, domain, fnm)
+                elif isinstance(p, MiotAction):
+                    if add_buttons and domain == 'button':
+                        from .button import MiotButtonActionSubEntity
+                        self._subs[fnm] = MiotButtonActionSubEntity(self, p, option=opt)
+                        add_buttons([self._subs[fnm]], update_before_add=True)
                 elif add_buttons and domain == 'button' and p.value_list:
                     from .button import MiotButtonSubEntity
                     nls = []
