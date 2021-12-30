@@ -355,6 +355,9 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.watch.*': {
         'sensor_properties': 'current_step_count,current_distance',
     },
+    'yeelink.bhf_light.v6': {
+        'chunk_properties': 3,
+    },
     'yeelink.light.nl1': {
         'use_ble_object': True,
         'interval_seconds': 15,
