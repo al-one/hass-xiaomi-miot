@@ -68,6 +68,9 @@ DEVICE_CUSTOMIZES = {
     'chunmi.health_pot.a1': {
         'miot_local': True,
     },
+    'cuco.plug.co1': {
+        'exclude_miot_services': 'setting,cycle',
+    },
     'cuco.plug.cp1': {
         'chunk_properties': 1,
     },
