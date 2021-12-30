@@ -107,7 +107,7 @@ MIOT_LOCAL_MODELS = [
     'nwt.derh.312en',
     'opple.light.tabcw',
     # 'philips.light.bulb',  # issues/254
-    'philips.light.cbulb',
+    # 'philips.light.cbulb',  # mii2miot
     'philips.light.dlight',
     'philips.light.strip2',
     'pwzn.light.apple',
