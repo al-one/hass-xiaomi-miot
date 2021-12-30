@@ -370,6 +370,21 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {'prop': 'battary_life'},
         },
     },
+    'viomi.waterheater.e1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'targetTemp', 'setter': 'set_temp', 'set_template': '{{ value|int }}'},
+            'prop.2.2': {'prop': 'waterTemp'},
+            'prop.2.3': {'prop': 'washStatus'},
+            'prop.2.4': {
+                'prop': 'washStatus',
+                'setter': 'set_power',
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ value|int }}',
+            },
+            'prop.2.5': {'prop': None},  # water-level
+            'prop.2.6': {'prop': 'modeType', 'setter': 'set_mode'},
+        },
+    },
 
     'xjx.toilet.relax': {
         'miio_specs': {
