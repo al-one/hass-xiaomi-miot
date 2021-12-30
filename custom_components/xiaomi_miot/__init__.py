@@ -47,6 +47,7 @@ from .core.xiaomi_cloud import (
     MiCloudException,
     MiCloudAccessDenied,
 )
+from .core.miio2miot import Miio2MiotHelper
 from .core.templates import CUSTOM_TEMPLATES
 
 _LOGGER = logging.getLogger(__name__)
@@ -551,6 +552,14 @@ class BaseEntity(Entity):
         return self._config.get(CONF_CONN_MODE)
 
     @property
+    def local_only(self):
+        return self.conn_mode == 'local'
+
+    @property
+    def cloud_only(self):
+        return self.conn_mode == 'cloud'
+
+    @property
     def entry_config_version(self):
         return self._config.get(CONF_CONFIG_VERSION) or 0
 
@@ -914,6 +923,7 @@ class MiotEntity(MiioEntity):
             kwargs['miot_service'] = self._miot_service
         super().__init__(name, device, **kwargs)
 
+        self._miio2miot = None
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         if self._miot_service:
             if custom := DEVICE_CUSTOMIZES.get(self._model, {}).get('miot_mapping'):
@@ -934,6 +944,8 @@ class MiotEntity(MiioEntity):
         await super().async_added_to_hass()
         if not self._miot_service:
             return
+        if not self.cloud_only:
+            self._miio2miot = Miio2MiotHelper.from_model(self.hass, self._model, self._miot_service.spec)
         if dic := self.custom_config_json('miot_mapping'):
             self._miot_service.spec.set_custom_mapping(dic)
         ems = self.custom_config_list('exclude_miot_services') or []
@@ -1089,6 +1101,9 @@ class MiotEntity(MiioEntity):
         try:
             if not mapping:
                 results = []
+            elif self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud'):
+                updater = 'lan'
+                results = await self._miio2miot.async_get_miot_props(self.miot_device, mapping)
             elif mic := self.miot_cloud:
                 updater = 'cloud'
                 results = await self.hass.async_add_executor_job(
@@ -1505,9 +1520,14 @@ class MiotEntity(MiioEntity):
         }
         ret = None
         dly = 1
+        m2m = self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud_write')
+        mcw = self.miot_cloud_write
         try:
-            mcw = self.miot_cloud_write
-            if isinstance(mcw, MiotCloud):
+            if m2m and self._miio2miot.has_setter(siid, piid):
+                results = [
+                    self._miio2miot.set_property(self.miot_device, siid, piid, value),
+                ]
+            elif isinstance(mcw, MiotCloud):
                 results = mcw.set_props([pms])
                 dly = self.custom_config_integer('cloud_delay_update', 5)
             else:

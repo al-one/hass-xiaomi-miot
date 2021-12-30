@@ -133,6 +133,7 @@ class MiotSpec(MiotSpecInstance):
         self.services = {}
         self.services_count = {}
         self.services_properties = {}
+        self.specs = {}
         self.custom_mapping = None
         self.custom_mapping_names = {}
         for s in (dat.get('services') or []):
@@ -326,12 +327,14 @@ class MiotService(MiotSpecInstance):
             if not prop.name:
                 continue
             self.properties[prop.iid] = prop
+            self.spec.specs[prop.unique_prop] = prop
         self.actions = {}
         for a in (dat.get('actions') or []):
             act = MiotAction(a, self)
             if not act.name:
                 continue
             self.actions[act.iid] = act
+            self.spec.specs[act.unique_prop] = act
 
     @property
     def name_count(self):
