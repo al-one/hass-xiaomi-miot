@@ -1097,13 +1097,16 @@ class MiotEntity(MiioEntity):
         results = None
         errors = None
         mapping = self.miot_mapping
+        local_mapping = mapping
+        if self._vars.get('has_local_mapping'):
+            local_mapping = self._device.mapping
         max_properties = 10
         try:
-            if not mapping:
+            if not (mapping or local_mapping):
                 results = []
             elif self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud'):
                 updater = 'lan'
-                results = await self._miio2miot.async_get_miot_props(self.miot_device, mapping)
+                results = await self._miio2miot.async_get_miot_props(self.miot_device, local_mapping)
             elif mic := self.miot_cloud:
                 updater = 'cloud'
                 results = await self.hass.async_add_executor_job(
@@ -1117,11 +1120,9 @@ class MiotEntity(MiioEntity):
                         return
             elif self.miot_device:
                 updater = 'lan'
-                if self._vars.get('has_local_mapping'):
-                    mapping = self._device.mapping
                 max_properties = self.custom_config_integer('chunk_properties')
                 if not max_properties:
-                    idx = len(mapping)
+                    idx = len(local_mapping)
                     if idx >= 10:
                         idx -= 10
                     chunks = [
@@ -1140,7 +1141,7 @@ class MiotEntity(MiioEntity):
                         self._device.get_properties_for_mapping,
                         max_properties=max_properties,
                         did=self.miot_did,
-                        mapping=mapping,
+                        mapping=local_mapping,
                     )
                 )
             else:
