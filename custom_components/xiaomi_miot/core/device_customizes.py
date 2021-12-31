@@ -82,10 +82,16 @@ DEVICE_CUSTOMIZES = {
     },
     'cuco.plug.cp2': {
         'chunk_properties': 1,
-        'exclude_miot_services': 'indicator_light',
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
+        'miot_mapping': {
+            'switch.on': {'siid': 2, 'piid': 1},
+            'switch.electric_current': {'siid': 2, 'piid': 4},
+            'switch.countdown_time': {'siid': 2, 'piid': 5},
+            'switch.power': {'siid': 3, 'piid': 2},
+            'indicator_light.on': {'siid': 3, 'piid': 1},
+        },
     },
     'cuco.plug.cp4': {
         'sensor_properties': 'power,voltage,electric_current',
