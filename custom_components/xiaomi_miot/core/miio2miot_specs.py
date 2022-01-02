@@ -404,7 +404,13 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'xjx.toilet.pro': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'seating'},
+        },
+    },
     'xjx.toilet.relax': {
+        'extend_model': 'xjx.toilet.pro',
         'miio_specs': {
             'prop.2.1': {'prop': 'seating'},
             'prop.2.2': {'prop': 'status_bubbleshield', 'setter': 'set_bubble', 'set_template': '{{ value|int }}'},
