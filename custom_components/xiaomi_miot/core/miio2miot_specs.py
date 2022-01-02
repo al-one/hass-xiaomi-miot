@@ -274,6 +274,24 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'philips.light.bulb': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
+            'prop.2.4': {'prop': 'cct', 'setter': True},
+        },
+    },
+
+    'philips.light.cbulb': {
+        'extend_model': 'philips.light.bulb',
+        'miio_specs': {
+            'prop.2.3': {'prop': 'cid', 'setter': True},
+            'prop.2.5': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
+            'prop.2.6': {'prop': 'cid', 'template': '{{ 2 if val == 360 else 1 }}'},
+        },
+    },
+
     'rockrobo.vacuum.v1': {
         'extend_model': 'roborock.vacuum.t6',
         'miio_specs': {
