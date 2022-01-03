@@ -329,7 +329,7 @@ request_xiaomi_api:
             - GET
     crypt:
       description: Crypt data.
-      default: false
-      example: false
+      default: true
+      example: true
       selector:
         boolean:

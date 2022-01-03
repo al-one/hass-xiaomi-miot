@@ -154,7 +154,7 @@ SERVICE_TO_METHOD_BASE = {
                 vol.Optional('data', default={}): vol.Any(dict, list),
                 vol.Optional('params', default={}): vol.Any(dict, list, None),  # deprecated
                 vol.Optional('method', default='POST'): cv.string,
-                vol.Optional('crypt', default=False): cv.boolean,
+                vol.Optional('crypt', default=True): cv.boolean,
                 vol.Optional('throw', default=False): cv.boolean,
             },
         ),
@@ -1781,7 +1781,7 @@ class MiotEntity(MiioEntity):
             _LOGGER.warning('%s: Xiaomi device bindkey/beaconkey: %s', self.name, result)
         return (result or {}).get('beaconkey')
 
-    async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=False, **kwargs):
+    async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=True, **kwargs):
         mic = self.miot_cloud
         if not isinstance(mic, MiotCloud):
             return None
