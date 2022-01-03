@@ -32,6 +32,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
+    MIOT_LOCAL_MODELS,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -62,7 +63,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(ENTITY_DOMAIN, 'mopping_machine'):
             if not srv.get_property('status'):
                 continue
-            if 'roborock.' in model or 'rockrobo.' in model:
+            if model in MIOT_LOCAL_MODELS:
+                entities.append(MiotVacuumEntity(config, srv))
+            elif 'roborock.' in model or 'rockrobo.' in model:
                 entities.append(MiotRoborockVacuumEntity(config, srv))
             elif 'viomi.' in model:
                 entities.append(MiotViomiVacuumEntity(config, srv))
