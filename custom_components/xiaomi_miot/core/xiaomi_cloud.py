@@ -141,7 +141,7 @@ class MiotCloud(micloud.MiCloud):
             partial(self.request_miot_api, *args, **kwargs)
         )
 
-    def request_miot_api(self, api, data, method='POST', crypt=False, debug=True, **kwargs):
+    def request_miot_api(self, api, data, method='POST', crypt=True, debug=True, **kwargs):
         params = {}
         if data is not None:
             params['data'] = self.json_encode(data)
@@ -481,7 +481,7 @@ class MiotCloud(micloud.MiCloud):
     @staticmethod
     def sha1_sign(method, url, dat: dict, nonce):
         path = urlparse(url).path
-        if path[:4] == '/app/':
+        if path[:5] == '/app/':
             path = path[4:]
         arr = [str(method).upper(), path]
         for k, v in dat.items():
