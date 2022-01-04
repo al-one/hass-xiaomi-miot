@@ -296,7 +296,6 @@ class MiotCloud(micloud.MiCloud):
         if response3.status_code == 403:
             raise MiCloudAccessDenied('Access denied. Did you set the correct username/password ?')
         elif response3.status_code == 200:
-            _LOGGER.debug('Your xiaomi service token: %s', self.service_token)
             return True
         else:
             _LOGGER.warning(
