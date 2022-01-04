@@ -925,16 +925,13 @@ class MiotEntity(MiioEntity):
 
         self._miio2miot = None
         self._miot_mapping = dict(kwargs.get('mapping') or {})
+        self._vars['has_special_mapping'] = not not self._miot_mapping
         if self._miot_service:
-            if custom := DEVICE_CUSTOMIZES.get(self._model, {}).get('miot_mapping'):
-                miot_service.spec.set_custom_mapping(custom)
             if not self._miot_mapping:
-                dic = miot_service.mapping() or {}
-                self._miot_mapping = miot_service.spec.services_mapping(excludes=[self._miot_service.name]) or {}
-                self._miot_mapping = {**dic, **self._miot_mapping, **dic}
+                self._miot_mapping = miot_service.mapping() or {}
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
-            self._state_attrs['miot_type'] = self._miot_service.spec.type
             self.entity_id = self._miot_service.generate_entity_id(self)
+            self._state_attrs['miot_type'] = self._miot_service.spec.type
         if self._model in MIOT_LOCAL_MODELS:
             self._vars['track_miot_error'] = True
         self._success_code = 0
@@ -953,6 +950,11 @@ class MiotEntity(MiioEntity):
         if ems:
             self._vars['exclude_services'] = ems
             self._state_attrs['exclude_miot_services'] = ems
+        if not self._vars.get('has_special_mapping'):
+            dic = self._miot_service.mapping() or {}
+            ems.append(self._miot_service.name)
+            self._miot_mapping = self._miot_service.spec.services_mapping(excludes=ems) or {}
+            self._miot_mapping = {**dic, **self._miot_mapping, **dic}
 
     @property
     def miot_device(self):
@@ -1048,7 +1050,7 @@ class MiotEntity(MiioEntity):
         if self._miot_mapping:
             mmp = self._miot_mapping
         elif self._device and hasattr(self._device, 'mapping'):
-            mmp = self._device.mapping
+            mmp = self._device.mapping or {}
 
         exs = self._vars.get('exclude_services') or []
         if exs and mmp and self._miot_service:
