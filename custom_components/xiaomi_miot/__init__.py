@@ -935,12 +935,13 @@ class MiotEntity(MiioEntity):
         if self._model in MIOT_LOCAL_MODELS:
             self._vars['track_miot_error'] = True
         self._success_code = 0
-        self.logger.info('%s: Initializing miot device with mapping: %s', name, self._miot_mapping)
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         if not self._miot_service:
             return
+        if ext := self.custom_config_list('extend_miot_specs'):
+            self._miot_service.spec.extend_specs(services=ext)
         if not self.cloud_only:
             self._miio2miot = Miio2MiotHelper.from_model(self.hass, self._model, self._miot_service.spec)
         if dic := self.custom_config_json('miot_mapping'):
@@ -955,6 +956,7 @@ class MiotEntity(MiioEntity):
             ems.append(self._miot_service.name)
             self._miot_mapping = self._miot_service.spec.services_mapping(excludes=ems) or {}
             self._miot_mapping = {**dic, **self._miot_mapping, **dic}
+        self.logger.info('%s: Initializing miot device with mapping: %s', self.name, self._miot_mapping)
 
     @property
     def miot_device(self):

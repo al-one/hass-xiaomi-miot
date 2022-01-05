@@ -367,6 +367,35 @@ DEVICE_CUSTOMIZES = {
     'yeelink.bhf_light.v6': {
         'chunk_properties': 3,
     },
+    'yeelink.light.color1': {
+        'extend_miot_specs': [
+            {
+                'iid': 2,
+                'properties': [
+                    {
+                        'iid': 101,
+                        'type': 'urn:miot-spec-v2:property:nl_br',
+                        'format': 'uint8',
+                        'access': ['read', 'write'],
+                        'unit': 'percentage',
+                        'value-range': [1, 100, 1],
+                    },
+                ],
+            },
+            {
+                'iid': 200,
+                'type': 'urn:miot-spec-v2:service:extend',
+                'properties': [
+                    {
+                        'iid': 201,
+                        'type': 'urn:miot-spec-v2:property:delayoff',
+                        'format': 'string',
+                        'access': ['read', 'write'],
+                    },
+                ],
+            },
+        ],
+    },
     'yeelink.light.nl1': {
         'use_ble_object': True,
         'interval_seconds': 15,

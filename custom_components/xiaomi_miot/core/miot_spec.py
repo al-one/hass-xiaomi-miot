@@ -136,11 +136,18 @@ class MiotSpec(MiotSpecInstance):
         self.specs = {}
         self.custom_mapping = None
         self.custom_mapping_names = {}
-        for s in (dat.get('services') or []):
+        self.extend_specs(services=dat.get('services') or [])
+
+    def extend_specs(self, services: list):
+        for s in (services or []):
             srv = MiotService(s, self)
-            if not srv.name:
-                continue
-            self.services[srv.iid] = srv
+            if srv.iid in self.services:
+                self.services[srv.iid].extend_specs(
+                    properties=s.get('properties') or [],
+                    actions=s.get('actions') or [],
+                )
+            elif srv.name:
+                self.services[srv.iid] = srv
 
     def services_mapping(self, *args, **kwargs):
         dat = None
@@ -322,14 +329,17 @@ class MiotService(MiotSpecInstance):
         spec.services_count.setdefault(self.name, 0)
         spec.services_count[self.name] += 1
         self.properties = {}
-        for p in (dat.get('properties') or []):
+        self.actions = {}
+        self.extend_specs(properties=dat.get('properties') or [], actions=dat.get('actions') or [])
+
+    def extend_specs(self, properties: list, actions: list):
+        for p in properties:
             prop = MiotProperty(p, self)
             if not prop.name:
                 continue
             self.properties[prop.iid] = prop
             self.spec.specs[prop.unique_prop] = prop
-        self.actions = {}
-        for a in (dat.get('actions') or []):
+        for a in actions:
             act = MiotAction(a, self)
             if not act.name:
                 continue
