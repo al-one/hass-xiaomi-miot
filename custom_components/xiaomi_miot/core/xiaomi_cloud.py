@@ -75,6 +75,7 @@ class MiotCloud(micloud.MiCloud):
 
     def get_user_device_data(self, did, key, typ='prop', raw=False, **kwargs):
         now = int(time.time())
+        timeout = kwargs.pop('timeout', self.http_timeout)
         params = {
             'did': did,
             'key': key,
@@ -84,7 +85,7 @@ class MiotCloud(micloud.MiCloud):
             'limit': 5,
             **kwargs,
         }
-        rdt = self.request_miot_api('user/get_user_device_data', params) or {}
+        rdt = self.request_miot_api('user/get_user_device_data', params, timeout=timeout) or {}
         return rdt if raw else rdt.get('result')
 
     def get_last_device_data(self, did, key, typ='prop', **kwargs):
@@ -105,7 +106,7 @@ class MiotCloud(micloud.MiCloud):
 
     async def async_check_auth(self, notify=False):
         rdt = await self.hass.async_add_executor_job(
-            partial(self.get_user_device_data, '1', 'check_auth', raw=True)
+            partial(self.get_user_device_data, '1', 'check_auth', raw=True, timeout=30)
         ) or {}
         nid = f'xiaomi-miot-auth-warning-{self.user_id}'
         eno = rdt.get('code', 0)
