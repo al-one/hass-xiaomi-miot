@@ -244,11 +244,16 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
         self._supported_features |= SUPPORT_LOCATE
+        self._miio_commands = {
+            'get_status': ['props'],
+            'get_consumable': ['consumables'],
+        }
 
     async def async_update(self):
         await super().async_update()
         if not self._available:
             return
+        await self.hass.async_add_executor_job(partial(self.update_miio_commands, self._miio_commands))
         props = self.miio_props
         adt = {}
         if 'clean_area' in props:
@@ -322,11 +327,16 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
         self._supported_features |= SUPPORT_LOCATE
+        self._miio_props = [
+            'run_state', 'mode', 'err_state', 'battary_life', 'box_type', 'mop_type', 's_time', 's_area',
+            'suction_grade', 'water_grade', 'remember_map', 'has_map', 'is_mop', 'has_newmap',
+        ]
 
     async def async_update(self):
         await super().async_update()
         if not self._available:
             return
+        await self.hass.async_add_executor_job(partial(self.update_miio_props, self._miio_props))
         props = self._state_attrs or {}
         adt = {}
         if 'miio.s_area' in props:

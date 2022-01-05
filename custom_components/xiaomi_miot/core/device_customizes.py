@@ -314,10 +314,6 @@ DEVICE_CUSTOMIZES = {
     },
     'roborock.vacuum.*': {
         'sensor_attributes': 'props:clean_area,props:clean_time',
-        'miio_commands': {
-            'get_status': ['props'],
-            'get_consumable': ['consumables'],
-        },
     },
     'roborock.vacuum.*:props:clean_area': {
         'value_ratio': 0.000001,
@@ -347,8 +343,6 @@ DEVICE_CUSTOMIZES = {
     },
     'viomi.vacuum.*': {
         'sensor_attributes': 'miio.s_area,miio.s_time',
-        'miio_properties': 'run_state,mode,err_state,battary_life,box_type,mop_type,s_time,s_area,'
-                           'suction_grade,water_grade,remember_map,has_map,is_mop,has_newmap',
     },
     'viomi.waterheater.e1': {
         'miio_properties': 'washStatus,velocity,waterTemp,targetTemp,errStatus,'
