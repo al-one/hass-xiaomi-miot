@@ -592,6 +592,12 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.2': {'prop': 'bright', 'setter': True},
         },
     },
+    'yeelink.light.lamp4': {
+        'extend_model': 'yeelink.light.ceiling6',
+        'miio_specs': {
+            'prop.2.4': {'prop': None},
+        },
+    },
     'yeelink.light.lamp5': 'yeelink.light.lamp3',
     'yeelink.light.lamp7': 'yeelink.light.ceiling16',
     'yeelink.light.lamp9': 'yeelink.light.ceiling6',
