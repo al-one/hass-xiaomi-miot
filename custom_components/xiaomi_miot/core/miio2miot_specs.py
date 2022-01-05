@@ -282,7 +282,6 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.4': {'prop': 'cct', 'setter': True},
         },
     },
-
     'philips.light.cbulb': {
         'extend_model': 'philips.light.bulb',
         'miio_specs': {
@@ -348,6 +347,17 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {'prop': 'power', 'setter': True, 'set_template': "{{ [1 if value else 0] }}"},
             'prop.3.1': {'prop': 'bright_value', 'setter': True, 'set_template': "{{ [1 if value else 0] }}"},
             'prop.4.1': {'prop': 'filter'},  # set_filter_alarm [0]
+        },
+    },
+
+    'tinymu.toiletlid.v1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'filter_use_time'},
+            'prop.2.2': {'prop': 'filter_use_flux'},
+            'prop.3.1': {'prop': None, 'setter': 'seat_heat', 'format': 'onoff'},
+            'prop.3.2': {'prop': None, 'setter': 'deodorant', 'format': 'onoff'},
+            'prop.3.101': {'prop': 'work_state', 'template': '{{ (value | int(1) - 1) // 16 }}'},
+            'prop.3.102': {'prop': 'work_state', 'template': '{{ value != 1 }}'},
         },
     },
 

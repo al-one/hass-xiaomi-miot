@@ -341,6 +341,34 @@ DEVICE_CUSTOMIZES = {
     'suittc.airrtc.wk168': {
         'switch_properties': 'on',
     },
+    'tinymu.toiletlid.v1': {
+        'extend_miot_specs': [
+            {
+                'iid': 3,
+                'properties': [
+                    {
+                        'iid': 101,
+                        'type': 'urn:miot-spec-v2:property:status',
+                        'format': 'uint8',
+                        'access': ['read'],
+                        'value-list': [
+                            {'value': 0, 'description': 'idle'},
+                            {'value': 1, 'description': 'occupied'},
+                            {'value': 2, 'description': 'rear_cleanse'},
+                            {'value': 3, 'description': 'front_cleanse'},
+                            {'value': 6, 'description': 'nozzle_clean'},
+                        ],
+                    },
+                    {
+                        'iid': 102,
+                        'type': 'urn:miot-spec-v2:property:seating-state',
+                        'format': 'bool',
+                        'access': ['read'],
+                    },
+                ],
+            },
+        ],
+    },
     'viomi.vacuum.*': {
         'sensor_attributes': 'miio.s_area,miio.s_time',
     },
