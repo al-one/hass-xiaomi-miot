@@ -1,3 +1,4 @@
+import time
 import logging
 import voluptuous as vol
 from functools import partial
@@ -52,6 +53,8 @@ class Miio2MiotHelper:
             dic.update(dict(zip(self.miio_props, vls)))
         if cls := self.config.get('miio_commands'):
             for c in cls:
+                if dly := c.get('delay', 0):
+                    time.sleep(dly)
                 vls = device.send(c['method'], c.get('params', []))
                 if tpl := c.get('template'):
                     tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
