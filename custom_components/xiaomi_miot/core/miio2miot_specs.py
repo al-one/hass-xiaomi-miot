@@ -369,8 +369,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.2': {'prop': 'filter_use_flux'},
             'prop.3.1': {'prop': None, 'setter': 'seat_heat', 'format': 'onoff'},
             'prop.3.2': {'prop': None, 'setter': 'deodorant', 'format': 'onoff'},
-            'prop.3.101': {'prop': 'work_state', 'template': '{{ (value | int(1) - 1) // 16 }}'},
-            'prop.3.102': {'prop': 'work_state', 'template': '{{ value | int(0) != 1 }}'},
+            'prop.3.101': {'prop': 'work_state', 'template': '{{ (value|int(1) - 1) // 16 }}'},
+            'prop.3.102': {'prop': 'work_state', 'template': '{{ value|int(0) not in [1,97] }}'},
             'prop.3.103': {
                 'prop': 'ambient_light',
                 'setter': 'set_aled_v_of_uid',
