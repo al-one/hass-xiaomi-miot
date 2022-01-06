@@ -73,6 +73,7 @@ DEVICE_CUSTOMIZES = {
     },
     'cuco.plug.cp1': {
         'chunk_properties': 1,
+        'exclude_miot_services': 'indicator_light',
     },
     'cuco.plug.cp1m': {
         'chunk_properties': 1,
