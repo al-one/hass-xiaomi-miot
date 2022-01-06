@@ -351,13 +351,32 @@ MIIO_TO_MIOT_SPECS = {
     },
 
     'tinymu.toiletlid.v1': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': ['work_state', 'filter_use_time', 'filter_use_flux'],
+                'values': ['work_state', 'filter_use_time', 'filter_use_flux'],
+            },
+            {
+                'method': 'get_aled_v_of_uid',
+                'params': [''],
+                'values': ['ambient_light'],
+            },
+        ],
         'miio_specs': {
             'prop.2.1': {'prop': 'filter_use_time'},
             'prop.2.2': {'prop': 'filter_use_flux'},
             'prop.3.1': {'prop': None, 'setter': 'seat_heat', 'format': 'onoff'},
             'prop.3.2': {'prop': None, 'setter': 'deodorant', 'format': 'onoff'},
             'prop.3.101': {'prop': 'work_state', 'template': '{{ (value | int(1) - 1) // 16 }}'},
-            'prop.3.102': {'prop': 'work_state', 'template': '{{ value != 1 }}'},
+            'prop.3.102': {'prop': 'work_state', 'template': '{{ value | int(0) != 1 }}'},
+            'prop.3.103': {
+                'prop': 'ambient_light',
+                'setter': 'set_aled_v_of_uid',
+                'template': '{{ value | int }}',
+                'set_template': '{{ ["", value | string] }}',
+            },
         },
     },
 
