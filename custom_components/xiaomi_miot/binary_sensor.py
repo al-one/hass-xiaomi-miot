@@ -63,7 +63,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 continue
             if srv.name in ['toilet']:
                 entities.append(MiotToiletEntity(config, srv))
-            elif srv.name in ['seat'] and spec.name in ['toilet']:
+            elif srv.name in ['seat'] and spec.name in ['toilet'] and not spec.get_service('toilet'):
                 # tinymu.toiletlid.v1
                 entities.append(MiotToiletEntity(config, srv))
             elif 'blt.' in did:
@@ -272,12 +272,12 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
 
 class MiotToiletEntity(MiotBinarySensorEntity):
     def __init__(self, config, miot_service: MiotService):
-        mapping = None
-        model = f'{config.get(CONF_MODEL)}'
-        if model.find('xjx.toilet.') >= 0:
-            mapping = miot_service.spec.services_mapping('toilet', 'seat')
-        super().__init__(config, miot_service, mapping=mapping)
-        self._prop_state = miot_service.get_property('seating_state')
+        super().__init__(config, miot_service)
+        self._prop_state = None
+        for s in miot_service.spec.get_services('toilet', 'seat'):
+            if p := s.get_property('seating_state'):
+                self._prop_state = p
+                break
         if not self._prop_state:
             self._prop_state = miot_service.get_property(
                 'mode', self._prop_state.name if self._prop_state else 'status',
