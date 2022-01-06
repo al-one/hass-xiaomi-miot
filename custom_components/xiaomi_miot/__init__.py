@@ -2086,7 +2086,12 @@ class MiotPropertySubEntity(BaseSubEntity):
 class ToggleSubEntity(BaseSubEntity, ToggleEntity):
     def __init__(self, parent, attr='power', option=None):
         self._prop_power = None
+        self._reverse_state = None
         super().__init__(parent, attr, option)
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self._reverse_state = self.custom_config_bool('reverse_state', None)
 
     def update(self, data=None):
         super().update(data)
@@ -2100,6 +2105,8 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
 
     @property
     def is_on(self):
+        if self._reverse_state:
+            return not self._state
         return self._state
 
     def turn_on(self, **kwargs):
