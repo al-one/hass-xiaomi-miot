@@ -29,7 +29,7 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | ba
 
 ## Config
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > [➕ Add Integration](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 Search `Xiaomi Miot Auto`
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Devices and Services > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > [➕ Add Integration](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 Search `Xiaomi Miot Auto`
 
 Or click: [![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
@@ -54,9 +54,8 @@ xiaomi_miot:
   # server_country: cn # location of xiaomi cloud: cn(default), de, i2, ru, sg, us
 ```
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > Options > ☑️ Enable miot cloud
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Devices and Services > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > Options > ☑️ Enable miot cloud
 
-### Config translation languages:
 
 ```yaml
 # configuration.yaml
@@ -154,6 +153,10 @@ xiaomi_miot:
     - stream_address
     - motion_video_latest
 ```
+
+### YAML configuration reloading
+Starting from the v0.4.16 version, the component has added support for configuration reloading (to avoid having to restart [HomeAssistant](https://www.home-assistant.io) instance after a YAML configuration change):
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Settings > [🖥️ Server Controls](https://my.home-assistant.io/redirect/server_controls) > YAML configuration reloading > 🔍 Look for `Xiaomi Miot Auto` (almost at the bottom of the list)
 
 
 ## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)
@@ -299,7 +302,7 @@ logger:
     custom_components.xiaomi_miot: debug
 ```
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [✍️ Logs](https://my.home-assistant.io/redirect/logs)
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Settings > [✍️ Logs](https://my.home-assistant.io/redirect/logs)
 
 
 ## Obtain miio token

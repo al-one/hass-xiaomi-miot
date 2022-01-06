@@ -34,7 +34,7 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HU
 <a name="config"></a>
 ## 配置
 
-> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > [➕ 添加集成](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 搜索 `Xiaomi Miot Auto`
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设备与服务 > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > [➕ 添加集成](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 搜索 `Xiaomi Miot Auto`
 
 或者点击: [![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
@@ -62,7 +62,7 @@ xiaomi_miot:
   # server_country: cn # 小米云服务器位置: cn(默认), de, i2, ru, sg, us
 ```
 
-> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设备与服务 > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
 
 <a name="config-translation-languages"></a>
 ### 配置翻译词典:
@@ -165,6 +165,11 @@ xiaomi_miot:
     - stream_address
     - motion_video_latest
 ```
+
+<a name="yaml-configuration-reloading"></a>
+### YAML配置重载
+自v0.4.16版本开始，本插件支持配置重载(修改YAML配置后无需重启[HomeAssistant](https://www.home-assistant.io)):
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设置 > [🖥️ 服务控制](https://my.home-assistant.io/redirect/server_controls) > 配置重载 > 🔍 `重载 XIAOMI MIOT AUTO`
 
 
 <a name="supported-devices"></a>
@@ -318,7 +323,7 @@ logger:
     custom_components.xiaomi_miot: debug
 ```
 
-> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [✍️ 日志](https://my.home-assistant.io/redirect/logs)
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设置 > [✍️ 日志](https://my.home-assistant.io/redirect/logs)
 
 
 <a name="obtain-miio-token"></a>
