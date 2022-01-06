@@ -93,7 +93,12 @@ class Miio2MiotHelper:
                             tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                             tpl = cv.template(tpl)
                             tpl.hass = self.hass
-                            val = tpl.render({'value': val, 'props': dic})
+                            val = tpl.render({
+                                'value': val,
+                                'props': dic,
+                                'dict': c.get('dict', {}),
+                                'description': prop.list_description(val) if prop.value_list else None,
+                            })
                     
                         elif fmt and hasattr(mph, fmt):
                             val = getattr(mph, fmt)(val)
@@ -150,7 +155,12 @@ class Miio2MiotHelper:
                 tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                 tpl = cv.template(tpl)
                 tpl.hass = self.hass
-                pms = tpl.render({'value': value, 'props': self.miio_props_values}) or []
+                pms = tpl.render({
+                    'value': value,
+                    'props': self.miio_props_values,
+                    'dict': cfg.get('dict', {}),
+                    'description': prop.list_description(value) if prop.value_list else None,
+                }) or []
             elif fmt and hasattr(mph, fmt):
                 pms = getattr(mph, fmt)(value)
             elif d := cfg.get('dict', {}):
