@@ -394,35 +394,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 'select_option': self.press_key,
             })
             add_selects([self._subs[sub]], update_before_add=False)
-
-        if self._state_attrs.get('6095_state', True):
-            pms = {
-                'action': 'getinstalledapp',
-                'count': 999,
-                'changeIcon': 1,
-            }
-            rdt = await self.async_request_mitv_api('controller', params=pms)
-            if lst := rdt.get('AppInfo', []):
-                ias = {
-                    a.get('PackageName'): a.get('AppName')
-                    for a in lst
-                }
-                als = [
-                    f'{v} - {k}'
-                    for k, v in ias.items()
-                ]
-                add_selects = self._add_entities.get('select')
-                sub = 'apps'
-                if sub in self._subs:
-                    self._subs[sub].update_options(als)
-                    self._subs[sub].update()
-                elif add_selects:
-                    from .select import SelectSubEntity
-                    self._subs[sub] = SelectSubEntity(self, 'app_current', option={
-                        'options': als,
-                        'select_option': self.start_app,
-                    })
-                    add_selects([self._subs[sub]], update_before_add=False)
+        await self.async_update_apps()
 
     async def async_update(self):
         await super().async_update()
@@ -433,6 +405,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             'action': 'capturescreen',
             'compressrate': 100,
         })
+        prev_6095 = self._state_attrs.get('6095_state')
         rdt = await self.async_request_mitv_api('controller', params=pms)
         if 'url' in rdt:
             url = rdt.get('url', '')
@@ -450,6 +423,40 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 'app_page': rdt.get('clz'),
             })
         self._state_attrs.update(adt)
+
+        if prev_6095 != self._state_attrs.get('6095_state'):
+            await self.async_update_apps()
+
+    async def async_update_apps(self):
+        if not self._state_attrs.get('6095_state', True):
+            return
+        pms = {
+            'action': 'getinstalledapp',
+            'count': 999,
+            'changeIcon': 1,
+        }
+        rdt = await self.async_request_mitv_api('controller', params=pms)
+        if lst := rdt.get('AppInfo', []):
+            ias = {
+                a.get('PackageName'): a.get('AppName')
+                for a in lst
+            }
+            als = [
+                f'{v} - {k}'
+                for k, v in ias.items()
+            ]
+            add_selects = self._add_entities.get('select')
+            sub = 'apps'
+            if sub in self._subs:
+                self._subs[sub].update_options(als)
+                self._subs[sub].update()
+            elif add_selects:
+                from .select import SelectSubEntity
+                self._subs[sub] = SelectSubEntity(self, 'app_current', option={
+                    'options': als,
+                    'select_option': self.start_app,
+                })
+                add_selects([self._subs[sub]], update_before_add=False)
 
     @property
     def state(self):
