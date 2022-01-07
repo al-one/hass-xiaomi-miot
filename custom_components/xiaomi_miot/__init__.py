@@ -650,6 +650,7 @@ class MiioEntity(BaseEntity):
     def __init__(self, name, device, **kwargs):
         self._device = device
         self._config = dict(kwargs.get('config') or {})
+        self.hass = self._config.get('hass')
         self.logger = kwargs.get('logger') or _LOGGER
         try:
             miio_info = kwargs.get('miio_info', self._config.get('miio_info'))
@@ -927,6 +928,10 @@ class MiotEntity(MiioEntity):
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         self._vars['has_special_mapping'] = not not self._miot_mapping
         if self._miot_service:
+            if ext := self.custom_config_list('extend_miot_specs'):
+                self._miot_service.spec.extend_specs(services=ext)
+            if not self.cloud_only:
+                self._miio2miot = Miio2MiotHelper.from_model(self.hass, self._model, self._miot_service.spec)
             if not self._miot_mapping:
                 self._miot_mapping = miot_service.mapping() or {}
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
@@ -940,10 +945,6 @@ class MiotEntity(MiioEntity):
         await super().async_added_to_hass()
         if not self._miot_service:
             return
-        if ext := self.custom_config_list('extend_miot_specs'):
-            self._miot_service.spec.extend_specs(services=ext)
-        if not self.cloud_only:
-            self._miio2miot = Miio2MiotHelper.from_model(self.hass, self._model, self._miot_service.spec)
         if dic := self.custom_config_json('miot_mapping'):
             self._miot_service.spec.set_custom_mapping(dic)
         ems = self.custom_config_list('exclude_miot_services') or []

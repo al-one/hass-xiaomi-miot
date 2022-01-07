@@ -45,10 +45,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     hass.data.setdefault(DATA_KEY, {})
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
+    config['hass'] = hass
     model = str(config.get(CONF_MODEL) or '')
     entities = []
-    miot = config.get('miot_type')
-    if miot:
+    if miot := config.get('miot_type'):
         spec = await MiotSpec.async_from_type(hass, miot)
         if spec.name in ['remote_control', 'ir_remote_control']:
             if 'chuangmi.remote.' in model or 'chuangmi.ir.' in model:
