@@ -934,9 +934,10 @@ class MiotEntity(MiioEntity):
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         self._vars['has_special_mapping'] = not not self._miot_mapping
         if self._miot_service:
-            if ext := self.custom_config_list('extend_miot_specs'):
-                self._miot_service.spec.extend_specs(services=ext)
             if not self.cloud_only:
+                if ext := self.custom_config_list('extend_miot_specs'):
+                    # only for local mode
+                    self._miot_service.spec.extend_specs(services=ext)
                 self._miio2miot = Miio2MiotHelper.from_model(self.hass, self._model, self._miot_service.spec)
             if not self._miot_mapping:
                 self._miot_mapping = miot_service.mapping() or {}
