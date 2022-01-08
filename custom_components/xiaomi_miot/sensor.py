@@ -1,5 +1,6 @@
 """Support for Xiaomi sensors."""
 import logging
+from datetime import datetime, timedelta
 from functools import partial
 
 from homeassistant.const import *  # noqa: F401
@@ -9,16 +10,23 @@ from homeassistant.helpers.entity import (
 from homeassistant.components.sensor import (
     DOMAIN as ENTITY_DOMAIN,
 )
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 from miio.waterpurifier_yunmi import WaterPurifierYunmi
 
 from . import (
     DOMAIN,
     CONF_MODEL,
+    CONF_XIAOMI_CLOUD,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiioEntity,
     MiotEntity,
+    BaseEntity,
     BaseSubEntity,
     MiotPropertySubEntity,
+    MiotCloud,
     DeviceException,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -37,6 +45,16 @@ SERVICE_TO_METHOD = {}
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
+
+    cfg = hass.data[DOMAIN].get(config_entry.entry_id) or {}
+    mic = cfg.get(CONF_XIAOMI_CLOUD)
+    if isinstance(mic, MiotCloud) and mic.user_id:
+        hass.data[DOMAIN].setdefault('accounts', {})
+        hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
+        if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
+            entity = MihomeMessageSensor(hass, mic)
+            hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
+            async_add_entities([entity])
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -505,3 +523,62 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
 class WaterPurifierYunmiSubEntity(BaseSubEntity):
     def __init__(self, parent: WaterPurifierYunmiEntity, attr, option=None):
         super().__init__(parent, attr, option)
+
+
+class MihomeMessageSensor(CoordinatorEntity, SensorEntity, BaseEntity):
+    def __init__(self, hass, cloud: MiotCloud):
+        self.hass = hass
+        self.cloud = cloud
+        self.message = {}
+        self.entity_id = f'{ENTITY_DOMAIN}.mi_{cloud.user_id}_message'
+        self._attr_unique_id = f'{DOMAIN}-mihome-message-{cloud.user_id}'
+        self._attr_name = f'Xiaomi {cloud.user_id} message'
+        self._attr_icon = 'mdi:message'
+        self._attr_should_poll = False
+        self._attr_extra_state_attributes = {}
+        sec = self.custom_config_integer('interval_seconds') or 60
+        self.coordinator = DataUpdateCoordinator(
+            hass,
+            _LOGGER,
+            name=self._attr_unique_id,
+            update_method=self.fetch_latest_message,
+            update_interval=timedelta(seconds=sec),
+        )
+        super().__init__(self.coordinator)
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        await self.coordinator.async_config_entry_first_refresh()
+
+    async def fetch_latest_message(self):
+        res = await self.cloud.async_request_api('v2/message/v2/typelist', data={}) or {}
+        mls = (res.get('result') or {}).get('messages') or []
+        mls = list(sorted(mls, key=lambda x: x.get('ctime', 0)))
+        msg = mls.pop(-1) if mls else {}
+        self.message = msg
+        if old := self._attr_native_value:
+            self._attr_extra_state_attributes['prev_message'] = old
+        self._attr_native_value = None
+        tit = msg.get('title')
+        if con := msg.get('content'):
+            self._attr_native_value = f'{con}: {tit}'
+            logger = _LOGGER.info if old != self._attr_native_value else _LOGGER.debug
+            logger('New xiaomi message for %s: %s', self.cloud.user_id, self._attr_native_value)
+        else:
+            _LOGGER.warning('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
+        self._attr_entity_picture = msg.get('img_url')
+        tim = msg.get('ctime')
+        self._attr_extra_state_attributes.update({
+            'msg_id': msg.get('msg_id'),
+            'is_new': msg.get('is_new'),
+            'type': msg.get('type'),
+            'title': tit,
+            'content': con,
+            'user_id': msg.get('uid'),
+            'timestamp': datetime.fromtimestamp(tim) if tim else None,
+            'model': msg.get('params', {}).get('model'),
+            'event': msg.get('params', {}).get('body', {}).get('event'),
+            'home_name': msg.get('params', {}).get('body', {}).get('homeRoomExtra', {}).get('homeName'),
+            'room_name': msg.get('params', {}).get('body', {}).get('homeRoomExtra', {}).get('roomName'),
+        })
+        return msg
