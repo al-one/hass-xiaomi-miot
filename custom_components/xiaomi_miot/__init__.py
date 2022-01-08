@@ -885,6 +885,12 @@ class MiioEntity(BaseEntity):
 
     def update_attrs(self, attrs: dict, update_parent=False):
         self._state_attrs.update(attrs or {})
+        if tps := self.custom_config_list('attributes_template'):
+            for tpl in tps:
+                tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
+                tpl = cv.template(tpl)
+                tpl.hass = self.hass
+                self._state_attrs = tpl.render({'data': self._state_attrs})
         if update_parent and hasattr(self, '_parent'):
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
