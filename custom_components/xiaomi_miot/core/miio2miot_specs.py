@@ -718,7 +718,75 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.1': {'prop': 'time_state', 'setter': True, 'format': 'onoff'},
         },
     },
-    
+    'zhimi.fan.sa1': {
+        'miio_props': ['speed', 'poweroff_time', 'ac_power', 'buzzer', 'led_b', 'use_time'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {
+                'prop': 'speed_level',
+                'setter': True,
+                'template': '{% set lvl = props.natural_level or value %}'
+                            '{{ '
+                            '1 if lvl <= 25 else '
+                            '2 if lvl <= 50 else '
+                            '3 if lvl <= 75 else '
+                            '4 }}',
+                'set_template': '{{ {'
+                                '"method": "set_natural_level" if props.natural_level else "set_speed_level",'
+                                '"params": [value * 25],'
+                                '} }}',
+            },
+            'prop.2.3': {'prop': 'angle_enable', 'setter': True, 'format': 'onoff'},
+            'prop.2.4': {'prop': 'angle', 'setter': True},
+            'prop.2.5': {
+                'prop': 'natural_level',
+                'setter': True,
+                'template': '{{ 1 if value > 0 else 2 }}',
+                'set_template': '{{ value * 25 }}',
+            },
+            'prop.3.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
+        },
+    },
+    'zhimi.fan.v2': {
+        'extend_model': 'zhimi.fan.sa1',
+        'miio_specs': {
+            'prop.2.5': {
+                'prop': 'natural_level',
+                'setter': True,
+                'template': '{{ 1 if value > 0 else 0 }}',
+                'set_template': '{{ value * 25 }}',
+            },
+            'prop.4.1': {'prop': 'battery'},
+            'prop.4.2': {'prop': 'bat_charge', 'template': '{{ 2 if value == "complete" else 1 }}'},
+        },
+    },
+    'zhimi.fan.v3': 'zhimi.fan.v2',
+    'zhimi.fan.za1': 'zhimi.fan.sa1',
+    'zhimi.fan.za3': {
+        'extend_model': 'zhimi.fan.sa1',
+        'miio_specs': {
+            'prop.2.5': {
+                'prop': 'natural_level',
+                'setter': True,
+                'template': '{{ 1 if value > 0 else 0 }}',
+                'set_template': '{{ value * 25 }}',
+            },
+            'prop.4.1': {
+                'prop': 'buzzer',
+                'setter': True,
+                'template': '{{ value > 0 }}',
+                'set_template': '{{ 1 if value else 0 }}',
+            },
+            'prop.5.1': {
+                'prop': 'led_b',
+                'setter': True,
+                'template': '{{ value > 0 }}',
+                'set_template': '{{ 1 if value else 0 }}',
+            },
+        },
+    },
+    'zhimi.fan.za4': 'zhimi.fan.za3',
+
     'zimi.powerstrip.v2': {
         'miio_props': ['current', 'mode', 'power_price'],
         'miio_specs': {
