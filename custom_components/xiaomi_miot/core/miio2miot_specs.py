@@ -164,6 +164,19 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': 'control_device',
                 'set_template': '{{ ["start_hotdry",90] if value else ["stop_hotdry",0] }}',
             },
+            'prop.2.101': {
+                'prop': 'dry_status','dict': {
+                  'off': 0,
+                  'hotdry': 1,
+                  'winddry': 2,
+                },
+                'setter': 'control_device',
+                'set_template': '{{ '
+                  '["stop_winddry",0] if "winddry" in props.dry_status and value==0 else '
+                  '["stop_hotdry",0] if "hotdry" in props.dry_status and value==0 else '
+                  '["start_hotdry",90] if value==1 else '
+                  '["start_winddry",90]}}',
+            },
             'prop.2.5': {'prop': 'dry_remaining_time'},
             'prop.3.1': {'prop': 'light', 'setter': 'toggle_light', 'format': 'onoff'},
         },

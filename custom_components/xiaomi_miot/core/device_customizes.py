@@ -237,6 +237,28 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
+    'lumi.airer.acn01': {
+        'extend_miot_specs': [
+            {
+                'iid': 2,
+                'properties': [
+                    {
+                        'iid': 101,
+                        'type': 'urn:miot-spec-v2:property:dry_mode',
+                        'format': 'uint8',
+                        'access': ['read', 'write'],
+                        'value-list': [
+                            {'value': 0, 'description': 'off'},
+                            {'value': 1, 'description': 'dry'},
+                            {'value': 2, 'description': 'winddry'},
+                        ],
+                    },
+                ],
+            },
+        ],
+        'select_properties': 'dry_mode',
+        'exclude_miot_services': 'dryer',
+    },
     'lumi.ctrl_neutral1.*': {
         'cloud_delay_update': 10,
     },
