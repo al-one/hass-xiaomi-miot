@@ -164,6 +164,9 @@ class Miio2MiotHelper:
                     'dict': cfg.get('dict', {}),
                     'description': prop.list_description(value) if prop.value_list else None,
                 }) or []
+                if isinstance(pms, dict) and 'method' in pms:
+                    setter = pms.get('method', setter)
+                    pms = pms.get('params', [])
             elif fmt and hasattr(mph, fmt):
                 pms = getattr(mph, fmt)(value)
             elif d := cfg.get('dict', {}):
