@@ -257,7 +257,6 @@ DEVICE_CUSTOMIZES = {
             },
         ],
         'select_properties': 'dry_mode',
-        'exclude_miot_services': 'dryer',
     },
     'lumi.ctrl_neutral1.*': {
         'cloud_delay_update': 10,
