@@ -603,10 +603,8 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.ceiling6': {
+        'extend_model': 'yeelink.mirror.bm1',
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright', 'setter': True},
-            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
             'prop.2.4': {
                 'prop': 'nl_br',
                 'setter': 'set_ps',
@@ -668,6 +666,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.panel1': 'yeelink.light.ceiling2',
+    'yeelink.light.panel3': 'yeelink.light.ceiling2',
     'yeelink.light.strip1': 'yeelink.light.color1',
     'yeelink.light.strip2': {
         'miio_specs': {
@@ -697,6 +696,13 @@ MIIO_TO_MIOT_SPECS = {
                 'template': "{{ value in ['swing'] }}",
                 'set_template': "{{ ['swing' if value else 'stop'] }}",
             },
+        },
+    },
+    'yeelink.mirror.bm1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
         },
     },
     'yeelink.ven_fan.vf3': {

@@ -273,6 +273,10 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 15,
         'motion_timeout': 60,
     },
+    'lumi.sensor_gas.mcn02': {
+        'chunk_properties': 1,
+        'exclude_miot_services': 'gas_sensor_control',
+    },
     'lumi.sensor_motion.*': {
         'interval_seconds': 15,
         'motion_timeout': 60,
