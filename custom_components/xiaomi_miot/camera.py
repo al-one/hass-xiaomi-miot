@@ -6,10 +6,12 @@ import locale
 import base64
 import requests
 import re
+import asyncio
 from os import urandom
 from functools import partial
 from urllib.parse import urlencode
 from datetime import datetime, timedelta
+from .vacuum_map_extractor.const import *
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.core import HomeAssistant
@@ -25,7 +27,7 @@ from homeassistant.components.ffmpeg import async_get_image, DATA_FFMPEG
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from haffmpeg.camera import CameraMjpeg
-
+import io
 from . import (
     DOMAIN,
     CONF_MODEL,
@@ -400,8 +402,8 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         res = requests.head(url)
         if res.status_code > 200:
             self.update_attrs({
-                'stream_http_status':  res.status_code,
-                'stream_http_reason':  res.reason,
+                'stream_http_status': res.status_code,
+                'stream_http_reason': res.reason,
             })
             _LOGGER.warning(
                 '%s: stream address status invalid: %s (%s)',
@@ -596,3 +598,148 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
         return await self.hass.async_add_executor_job(
             partial(self._parent.get_motion_image_address, **kwargs)
         )
+
+
+class VacummMapCameraEntity(BaseSubEntity, Camera):
+    def __init__(self, parent):
+        super().__init__(parent, 'vacuum_map')
+        self._should_poll = True
+        self._supported_features |= SUPPORT_ON_OFF
+        self.parent = parent
+        self._map_raw_data = None
+    @property
+    def access_tokens(self) -> str:
+        return  self.parent.miot_did
+
+    @property
+    def entity_picture(self) -> str:
+        return f"/api/camera_proxy/camera.rockrobo_v1_7d69_vacuum_map?token={self.access_tokens}"
+
+    @property
+    def should_poll(self):
+        return self._should_poll
+
+    def turn_on(self):
+        self._should_poll = True
+
+    def turn_off(self):
+        self._should_poll = False
+
+    @property
+    def xiaomi_cloud(self):
+        return self.parent.xiaomi_cloud
+
+    @property
+    def brand(self):
+        return self.device_info.get('manufacturer')
+    @property
+    def state(self) -> str:
+        """Return the camera state."""
+        if self._map_raw_data == None:
+            return STATE_IDLE
+        return STATE_STREAMING
+
+    @property
+    def content_type(self) -> str:
+        return CONTENT_TYPE
+
+    async def get_map_name(self):
+        return '0'
+
+    async def get_map_raw(self):
+        if map_name := await self.get_map_name():
+            if map_url := await self.get_map_url(map_name):
+                try:
+                    import requests
+                    response = await self.hass.async_add_executor_job(partial(requests.get, map_url))
+                except Exception as e:
+                    _LOGGER.error(f"Cannot retrieve vacuum map raw: {e}")
+                if response is not None and response.status_code == 200:
+                    self._map_raw_data = response.content
+                    _LOGGER.debug(f"Retrieve vacuum map raw")
+                else:
+                    _LOGGER.error(f"Cannot retrieve vacuum map raw: {response}")
+
+    async def get_map_url(self, map_name):
+        params = {
+            "obj_name": f"{self.xiaomi_cloud.user_id}/{self.parent.miot_did}/{map_name}"
+        }
+        res = await self.xiaomi_cloud.async_request_api('v2/home/get_interim_file_url', params) or {}
+        url = (res.get('result') or {}).get('url') or None
+        _LOGGER.debug(f"Retrieving vacuum map url: {url}")
+        if not url:
+            _LOGGER.error("Cannot retrieve vacuum map url !")
+        return url
+
+    async def async_update(self):
+        from homeassistant.components.vacuum import STATE_CLEANING
+        if self.parent.state == STATE_CLEANING or self._map_raw_data == None:
+            self.hass.async_create_task(self.get_map_raw())
+
+    def _get_map_image(self, map_data):
+        img_byte_arr = io.BytesIO()
+        map_data.image.data.save(img_byte_arr, format='PNG')
+        return img_byte_arr.getvalue()
+
+class XiaomiMapCameraEntity(VacummMapCameraEntity):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    async def get_map_name(self):
+        for x in range(1, 11):
+            _LOGGER.debug(f"Retrieving map name from device: {x} times")
+            await asyncio.sleep(0.1)
+            map_name = self._device.send({'get_map_v1': None})[0]
+            _LOGGER.debug(f"get map name from device: {map_name}")
+            if map_name != 'retry':
+                return map_name
+        _LOGGER.error(f"Cannot get map name from device !")
+        return None
+
+    async def get_map_url(self, map_name):
+        params = {
+            "obj_name": map_name
+        }
+        res = await self.xiaomi_cloud.async_request_api('home/getmapfileurl', params) or {}
+        url = (res.get('result') or {}).get('url') or None
+        _LOGGER.debug(f"Retrieving vacuum map url: {url}")
+        if not url:
+            _LOGGER.error("Cannot retrieve vacuum map url !")
+        return url
+
+    async def async_camera_image(self, width=None, height=None):
+        import gzip
+        from .vacuum_map_extractor.xiaomi.map_data_parser import MapDataParserXiaomi
+        if self._map_raw_data != None:
+            unzipped = gzip.decompress(self._map_raw_data)
+
+            map_data = MapDataParserXiaomi.parse(raw=unzipped, colors={}, drawables=CONF_AVAILABLE_DRAWABLES, texts=[],
+                                                 sizes=DEFAULT_SIZES, image_config={CONF_TRIM: DEFAULT_TRIMS ,
+                                                                                    CONF_SCALE: 1,
+                                                                                    CONF_ROTATE: 0})
+            image = self._get_map_image(map_data)
+            _LOGGER.debug(f"Parse raw map data successful")
+        else:
+            _LOGGER.debug("Unable to create map"  )
+            image = self._get_map_image(MapDataParserXiaomi.create_empty(colors={}, text="Loading"))
+        return image
+
+class ViomiMapCameraEntity(VacummMapCameraEntity):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    async def async_camera_image(self, width=None, height=None):
+        import gzip
+        from .vacuum_map_extractor.viomi.map_data_parser import MapDataParserViomi
+        if self._map_raw_data != None:
+            unzipped = gzip.decompress(self._map_raw_data)
+            map_data = MapDataParserViomi.parse(raw=unzipped, colors={}, drawables=CONF_AVAILABLE_DRAWABLES, texts=[],
+                                                 sizes=DEFAULT_SIZES, image_config={CONF_TRIM: DEFAULT_TRIMS ,
+                                                                                    CONF_SCALE: 1,
+                                                                                    CONF_ROTATE: 0})
+            image = self._get_map_image(map_data)
+            _LOGGER.debug(f"Parse raw map data successful")
+        else:
+            _LOGGER.debug("Unable to create map"  )
+            image = self._get_map_image(MapDataParserViomi.create_empty(colors={}, text="Loading"))
+        return image
