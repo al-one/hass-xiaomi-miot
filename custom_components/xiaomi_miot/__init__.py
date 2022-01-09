@@ -1868,6 +1868,7 @@ class BaseSubEntity(BaseEntity):
         self._available = False
         self._parent = parent
         self._attr = attr
+        self._device = parent._device
         self._model = parent.device_info.get('model', '')
         self._option = dict(option or {})
         self._dict_key = self._option.get('dict_key')
