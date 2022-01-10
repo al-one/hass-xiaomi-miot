@@ -961,7 +961,7 @@ class MiotEntity(MiioEntity):
             self._state_attrs['exclude_miot_services'] = ems
         if not self._vars.get('has_special_mapping'):
             dic = self._miot_service.mapping() or {}
-            ems.append(self._miot_service.name)
+            ems = [self._miot_service.name, *ems]
             self._miot_mapping = self._miot_service.spec.services_mapping(excludes=ems) or {}
             self._miot_mapping = {**dic, **self._miot_mapping, **dic}
         self.logger.info('%s: Initializing miot device with mapping: %s', self.name, self._miot_mapping)
