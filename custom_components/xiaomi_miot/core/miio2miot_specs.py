@@ -758,7 +758,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.2': {
                 'prop': 'speed_level',
                 'setter': True,
-                'template': '{% set lvl = props.natural_level or value %}'
+                'template': '{% set lvl = (props.natural_level or value) | int(0) %}'
                             '{{ '
                             '1 if lvl <= 25 else '
                             '2 if lvl <= 50 else '
@@ -766,7 +766,7 @@ MIIO_TO_MIOT_SPECS = {
                             '4 }}',
                 'set_template': '{{ {'
                                 '"method": "set_natural_level" if props.natural_level else "set_speed_level",'
-                                '"params": [value * 25],'
+                                '"params": [value|int(0) * 25],'
                                 '} }}',
             },
             'prop.2.3': {'prop': 'angle_enable', 'setter': True, 'format': 'onoff'},
@@ -774,8 +774,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.5': {
                 'prop': 'natural_level',
                 'setter': True,
-                'template': '{{ 1 if value > 0 else 2 }}',
-                'set_template': '{{ value * 25 }}',
+                'template': '{{ 1 if value|int(0) > 0 else 2 }}',
+                'set_template': '{{ value|int(0) * 25 }}',
             },
             'prop.3.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
         },
@@ -786,7 +786,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.5': {
                 'prop': 'natural_level',
                 'setter': True,
-                'template': '{{ 1 if value > 0 else 0 }}',
+                'template': '{{ 1 if value|int(0) > 0 else 0 }}',
                 'set_template': '{{ value * 25 }}',
             },
             'prop.4.1': {'prop': 'battery'},
@@ -801,19 +801,19 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.5': {
                 'prop': 'natural_level',
                 'setter': True,
-                'template': '{{ 1 if value > 0 else 0 }}',
-                'set_template': '{{ value * 25 }}',
+                'template': '{{ 1 if value|int(0) > 0 else 0 }}',
+                'set_template': '{{ value|int(0) * 25 }}',
             },
             'prop.4.1': {
                 'prop': 'buzzer',
                 'setter': True,
-                'template': '{{ value > 0 }}',
+                'template': '{{ value|int(0) > 0 }}',
                 'set_template': '{{ 1 if value else 0 }}',
             },
             'prop.5.1': {
                 'prop': 'led_b',
                 'setter': True,
-                'template': '{{ value > 0 }}',
+                'template': '{{ value|int(0) > 0 }}',
                 'set_template': '{{ 1 if value else 0 }}',
             },
         },
