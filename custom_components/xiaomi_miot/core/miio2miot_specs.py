@@ -84,8 +84,8 @@ MIIO_TO_MIOT_SPECS = {
                 'on':   3,
             }, 'default': 1},
         },
-    }, 
-       
+    },
+
     'lumi.acpartner.mcn02': {
         # ['power', 'mode', 'tar_temp', 'fan_level', 'ver_swing', 'load_power']
         # ['on',    'dry',   16,        'small_fan', 'off',        84.0]
@@ -166,16 +166,16 @@ MIIO_TO_MIOT_SPECS = {
             },
             'prop.2.101': {
                 'prop': 'dry_status','dict': {
-                  'off': 0,
-                  'hotdry': 1,
-                  'winddry': 2,
+                    'off':     0,
+                    'hotdry':  1,
+                    'winddry': 2,
                 },
                 'setter': 'control_device',
                 'set_template': '{{ '
-                  '["stop_winddry",0] if "winddry" in props.dry_status and value==0 else '
-                  '["stop_hotdry",0] if "hotdry" in props.dry_status and value==0 else '
-                  '["start_hotdry",90] if value==1 else '
-                  '["start_winddry",90]}}',
+                                '["start_hotdry",90] if value == 1 else '
+                                '["start_winddry",90] if value == 2 else '
+                                '["stop_hotdry",0] if "hotdry" in props.dry_status else '
+                                '["stop_winddry",0] }}',
             },
             'prop.2.5': {'prop': 'dry_remaining_time'},
             'prop.3.1': {'prop': 'light', 'setter': 'toggle_light', 'format': 'onoff'},
@@ -195,7 +195,7 @@ MIIO_TO_MIOT_SPECS = {
             }, 'default': 1},
         },
     },
-    
+
     'minij.washer.v5': {
         # ["state","process","cycle","time_remain","child_lock","lock","dry_set","dirty_type"]
         # ["off","option:load,prewash,wash,rinse,spin;processing:invalid","dailywash","0069","off","unlock","none","none"]
