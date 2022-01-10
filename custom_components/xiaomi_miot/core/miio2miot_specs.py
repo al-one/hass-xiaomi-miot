@@ -86,6 +86,50 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'ksmb.walkingpad.v1': {
+        # https://github.com/al-one/hass-xiaomi-miot/issues/261#issuecomment-1001213758
+        # ['mode:2', 'time:0', 'sp:0.0', 'dist:0', 'cal:0', 'step:0']
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': ['all'],
+                'values': ['mode', 'time', 'speed', 'dist', 'calorie', 'step'],
+            },
+            {
+                'method': 'get_prop',
+                'params': ['state'],
+                'values': ['state'],
+                'delay': 1,
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {
+                'prop': 'mode',
+                'setter': True,
+                'template': '{{ (value|string).split(":")[1]|default(2)|int != 2 }}',
+                'set_template': '{{ [1 if value else 2] }}',
+            },
+            'prop.2.2': {
+                'prop': 'mode',
+                'setter': True,
+                'template': '{{ 1 if (value|string).split(":")[1]|default(2)|int else 0 }}',
+                'set_template': '{{ [0 if value else 1] }}',
+            },
+            'prop.2.3': {'prop': 'state', 'template': '{{ value | int(0) }}'},
+            'prop.2.4': {
+                'prop': 'speed',
+                'setter': True,
+                'template': '{{ (value|string).split(":")[1]|default(0)|round(1) }}',
+                'set_template': '{{ [value|round(1)|string] }}',
+            },
+            'prop.2.5': {'prop': 'dist', 'template': '{{ (value|string).split(":")[1]|default(0)|int }}'},
+            'prop.2.6': {'prop': 'time', 'template': '{{ (value|string).split(":")[1]|default(0)|int }}'},
+            'prop.2.7': {'prop': 'step', 'template': '{{ (value|string).split(":")[1]|default(0)|int }}'},
+            'prop.2.8': {'prop': 'calorie', 'template': '{{ (value|string).split(":")[1]|default(0)|int }}'},
+        },
+    },
+
     'lumi.acpartner.mcn02': {
         # ['power', 'mode', 'tar_temp', 'fan_level', 'ver_swing', 'load_power']
         # ['on',    'dry',   16,        'small_fan', 'off',        84.0]
