@@ -164,6 +164,19 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': 'control_device',
                 'set_template': '{{ ["start_hotdry",90] if value else ["stop_hotdry",0] }}',
             },
+            'prop.2.101': {
+                'prop': 'dry_status','dict': {
+                  'off': 0,
+                  'hotdry': 1,
+                  'winddry': 2,
+                },
+                'setter': 'control_device',
+                'set_template': '{{ '
+                  '["stop_winddry",0] if "winddry" in props.dry_status and value==0 else '
+                  '["stop_hotdry",0] if "hotdry" in props.dry_status and value==0 else '
+                  '["start_hotdry",90] if value==1 else '
+                  '["start_winddry",90]}}',
+            },
             'prop.2.5': {'prop': 'dry_remaining_time'},
             'prop.3.1': {'prop': 'light', 'setter': 'toggle_light', 'format': 'onoff'},
         },
@@ -590,10 +603,8 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.ceiling6': {
+        'extend_model': 'yeelink.mirror.bm1',
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright', 'setter': True},
-            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
             'prop.2.4': {
                 'prop': 'nl_br',
                 'setter': 'set_ps',
@@ -655,6 +666,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.panel1': 'yeelink.light.ceiling2',
+    'yeelink.light.panel3': 'yeelink.light.ceiling2',
     'yeelink.light.strip1': 'yeelink.light.color1',
     'yeelink.light.strip2': {
         'miio_specs': {
@@ -684,6 +696,13 @@ MIIO_TO_MIOT_SPECS = {
                 'template': "{{ value in ['swing'] }}",
                 'set_template': "{{ ['swing' if value else 'stop'] }}",
             },
+        },
+    },
+    'yeelink.mirror.bm1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
         },
     },
     'yeelink.ven_fan.vf3': {
