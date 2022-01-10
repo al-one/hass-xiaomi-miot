@@ -164,6 +164,19 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': 'control_device',
                 'set_template': '{{ ["start_hotdry",90] if value else ["stop_hotdry",0] }}',
             },
+            'prop.2.101': {
+                'prop': 'dry_status','dict': {
+                  'off': 0,
+                  'hotdry': 1,
+                  'winddry': 2,
+                },
+                'setter': 'control_device',
+                'set_template': '{{ '
+                  '["stop_winddry",0] if "winddry" in props.dry_status and value==0 else '
+                  '["stop_hotdry",0] if "hotdry" in props.dry_status and value==0 else '
+                  '["start_hotdry",90] if value==1 else '
+                  '["start_winddry",90]}}',
+            },
             'prop.2.5': {'prop': 'dry_remaining_time'},
             'prop.3.1': {'prop': 'light', 'setter': 'toggle_light', 'format': 'onoff'},
         },
@@ -590,10 +603,8 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.ceiling6': {
+        'extend_model': 'yeelink.mirror.bm1',
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright', 'setter': True},
-            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
             'prop.2.4': {
                 'prop': 'nl_br',
                 'setter': 'set_ps',
@@ -655,6 +666,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.panel1': 'yeelink.light.ceiling2',
+    'yeelink.light.panel3': 'yeelink.light.ceiling2',
     'yeelink.light.strip1': 'yeelink.light.color1',
     'yeelink.light.strip2': {
         'miio_specs': {
@@ -684,6 +696,13 @@ MIIO_TO_MIOT_SPECS = {
                 'template': "{{ value in ['swing'] }}",
                 'set_template': "{{ ['swing' if value else 'stop'] }}",
             },
+        },
+    },
+    'yeelink.mirror.bm1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
         },
     },
     'yeelink.ven_fan.vf3': {
@@ -739,7 +758,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.2': {
                 'prop': 'speed_level',
                 'setter': True,
-                'template': '{% set lvl = props.natural_level or value %}'
+                'template': '{% set lvl = (props.natural_level or value) | int(0) %}'
                             '{{ '
                             '1 if lvl <= 25 else '
                             '2 if lvl <= 50 else '
@@ -747,7 +766,7 @@ MIIO_TO_MIOT_SPECS = {
                             '4 }}',
                 'set_template': '{{ {'
                                 '"method": "set_natural_level" if props.natural_level else "set_speed_level",'
-                                '"params": [value * 25],'
+                                '"params": [value|int(0) * 25],'
                                 '} }}',
             },
             'prop.2.3': {'prop': 'angle_enable', 'setter': True, 'format': 'onoff'},
@@ -755,8 +774,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.5': {
                 'prop': 'natural_level',
                 'setter': True,
-                'template': '{{ 1 if value > 0 else 2 }}',
-                'set_template': '{{ value * 25 }}',
+                'template': '{{ 1 if value|int(0) > 0 else 2 }}',
+                'set_template': '{{ value|int(0) * 25 }}',
             },
             'prop.3.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
         },
@@ -767,7 +786,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.5': {
                 'prop': 'natural_level',
                 'setter': True,
-                'template': '{{ 1 if value > 0 else 0 }}',
+                'template': '{{ 1 if value|int(0) > 0 else 0 }}',
                 'set_template': '{{ value * 25 }}',
             },
             'prop.4.1': {'prop': 'battery'},
@@ -782,19 +801,19 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.5': {
                 'prop': 'natural_level',
                 'setter': True,
-                'template': '{{ 1 if value > 0 else 0 }}',
-                'set_template': '{{ value * 25 }}',
+                'template': '{{ 1 if value|int(0) > 0 else 0 }}',
+                'set_template': '{{ value|int(0) * 25 }}',
             },
             'prop.4.1': {
                 'prop': 'buzzer',
                 'setter': True,
-                'template': '{{ value > 0 }}',
+                'template': '{{ value|int(0) > 0 }}',
                 'set_template': '{{ 1 if value else 0 }}',
             },
             'prop.5.1': {
                 'prop': 'led_b',
                 'setter': True,
-                'template': '{{ value > 0 }}',
+                'template': '{{ value|int(0) > 0 }}',
                 'set_template': '{{ 1 if value else 0 }}',
             },
         },
