@@ -105,13 +105,17 @@ class MiotCloud(micloud.MiCloud):
         return vls.pop(0)
 
     async def async_check_auth(self, notify=False):
-        rdt = await self.hass.async_add_executor_job(
-            partial(self.get_user_device_data, '1', 'check_auth', raw=True, timeout=30)
-        ) or {}
-        nid = f'xiaomi-miot-auth-warning-{self.user_id}'
-        eno = rdt.get('code', 0)
-        if eno != 3:
-            return True
+        rdt = None
+        try:
+            rdt = await self.hass.async_add_executor_job(
+                partial(self.get_user_device_data, '1', 'check_auth', raw=True, timeout=30)
+            ) or {}
+            nid = f'xiaomi-miot-auth-warning-{self.user_id}'
+            eno = rdt.get('code', 0)
+            if eno != 3:
+                return True
+        except requests.exceptions.ConnectionError:
+            return None
         # auth err
         self.service_token = None
         self.ssecurity = None
@@ -213,29 +217,33 @@ class MiotCloud(micloud.MiCloud):
         fnm = f'xiaomi_miot/devices-{self.user_id}-{self.default_server}.json'
         store = Store(self.hass, 1, fnm)
         now = time.time()
-        dvs = None
-        if not renew:
-            dat = await store.async_load() or {}
-            if isinstance(dat, dict):
-                if dat.get('update_time', 0) > (now - 86400):
-                    dvs = dat.get('devices') or []
+        cds = []
+        dat = await store.async_load() or {}
+        if isinstance(dat, dict):
+            if dat.get('update_time', 0) > (now - 86400):
+                cds = dat.get('devices') or []
+        dvs = None if renew else cds
         if not dvs:
-            dvs = await self.hass.async_add_executor_job(self.get_device_list)
-            if dvs:
-                hls = await self.hass.async_add_executor_job(self.get_home_devices)
-                if hls:
-                    hds = hls.get('devices') or {}
-                    dvs = [
-                        {**d, **(hds.get(d.get('did')) or {})}
-                        for d in dvs
-                    ]
-                dat = {
-                    'update_time': now,
-                    'devices': dvs,
-                    'homes': hls.get('homelist', []),
-                }
-                await store.async_save(dat)
-                _LOGGER.info('Got %s devices from xiaomi cloud', len(dvs))
+            try:
+                dvs = await self.hass.async_add_executor_job(self.get_device_list)
+                if dvs:
+                    hls = await self.hass.async_add_executor_job(self.get_home_devices)
+                    if hls:
+                        hds = hls.get('devices') or {}
+                        dvs = [
+                            {**d, **(hds.get(d.get('did')) or {})}
+                            for d in dvs
+                        ]
+                    dat = {
+                        'update_time': now,
+                        'devices': dvs,
+                        'homes': hls.get('homelist', []),
+                    }
+                    await store.async_save(dat)
+                    _LOGGER.info('Got %s devices from xiaomi cloud', len(dvs))
+            except requests.exceptions.ConnectionError as exc:
+                dvs = cds
+                _LOGGER.warning('Get xiaomi devices filed: %s, use cached %s devices.', exc, len(cds))
         return dvs
 
     async def async_renew_devices(self):
