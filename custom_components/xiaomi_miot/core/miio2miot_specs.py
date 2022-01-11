@@ -15,7 +15,6 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.2': {'prop': 'name1', 'setter': 'SetSwtichname1'},
         },
     },
-
     '090615.switch.xswitch02': {
         'extend_model': '090615.switch.xswitch01',
         'miio_commands': [
@@ -34,7 +33,6 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.2': {'prop': 'name2', 'setter': 'SetSwtichname2'},
         },
     },
-
     '090615.switch.xswitch03': {
         'extend_model': '090615.switch.xswitch02',
         'without_props': True,
@@ -58,22 +56,30 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'temperature'},
-            'prop.3.1': {'prop': 'wifi_led'},
+            'prop.3.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
     },
     'chuangmi.plug.m3': 'chuangmi.plug.m1',
     'chuangmi.plug.v1': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'on'},
-            'prop.3.1': {'prop': 'wifi_led'},
+            'prop.2.1': {
+                'prop': 'on',
+                'setter': True,
+                'set_template': '{{ {"method": "set_on" if value else "set_off"} }}',
+            },
+            'prop.3.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
     },
     'chuangmi.plug.v3': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'on'},
-            'prop.3.1': {'prop': 'usb_on'},
+            'prop.2.1': {'prop': 'on', 'setter': 'set_power', 'format': 'onoff'},
+            'prop.3.1': {
+                'prop': 'usb_on',
+                'setter': True,
+                'set_template': '{{ {"method": "set_usb_on" if value else "set_usb_off"} }}',
+            },
             'prop.2.2': {'prop': 'temperature'},
-            'prop.4.1': {'prop': 'wifi_led'},
+            'prop.4.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
     },
 
