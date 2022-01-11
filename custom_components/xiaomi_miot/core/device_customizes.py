@@ -364,6 +364,10 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.016666,
         'unit_of_measurement': 'min',
     },
+    'roome.bhf_light.*': {
+        'sensor_attributes': 'temp,currenttemp',
+        'select_attributes': 'main_state,main_light,night_light,heat,vent,dry,natural_wind,delay_wind',
+    },
     'suittc.airrtc.wk168': {
         'switch_properties': 'on',
     },
