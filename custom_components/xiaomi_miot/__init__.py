@@ -890,7 +890,12 @@ class MiioEntity(BaseEntity):
                 tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                 tpl = cv.template(tpl)
                 tpl.hass = self.hass
-                self._state_attrs = tpl.render({'data': self._state_attrs})
+                adt = tpl.render({'data': self._state_attrs}) or {}
+                if isinstance(adt, dict):
+                    if adt.pop('_override', False):
+                        self._state_attrs = adt
+                    else:
+                        self._state_attrs.update(adt)
         if update_parent and hasattr(self, '_parent'):
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
