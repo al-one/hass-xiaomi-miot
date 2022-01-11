@@ -11,7 +11,7 @@ MIIO_TO_MIOT_SPECS = {
             {'method': 'get_prop', 'params': ['switchname1'], 'values': ['name1']},
         ],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power1', 'setter': 'SetSwitch1'},
+            'prop.2.1': {'prop': 'power1', 'setter': 'SetSwitch1', 'set_template': '{{ value|int(0) }}'},
             'prop.2.2': {'prop': 'name1', 'setter': 'SetSwtichname1'},
         },
     },
@@ -27,9 +27,7 @@ MIIO_TO_MIOT_SPECS = {
             {'method': 'get_prop', 'params': ['switchname2'], 'values': ['name2']},
         ],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power1', 'setter': 'SetSwitch1'},
-            'prop.2.2': {'prop': 'name1', 'setter': 'SetSwtichname1'},
-            'prop.3.1': {'prop': 'power2', 'setter': 'SetSwitch2'},
+            'prop.3.1': {'prop': 'power2', 'setter': 'SetSwitch2', 'set_template': '{{ value|int(0) }}'},
             'prop.3.2': {'prop': 'name2', 'setter': 'SetSwtichname2'},
         },
     },
@@ -47,7 +45,7 @@ MIIO_TO_MIOT_SPECS = {
             {'method': 'get_prop', 'params': ['switchname3'], 'values': ['name3']},
         ],
         'miio_specs': {
-            'prop.4.1': {'prop': 'power3', 'setter': 'SetSwitch3'},
+            'prop.4.1': {'prop': 'power3', 'setter': 'SetSwitch3', 'set_template': '{{ value|int(0) }}'},
             'prop.4.2': {'prop': 'name3', 'setter': 'SetSwtichname3'},
         },
     },
