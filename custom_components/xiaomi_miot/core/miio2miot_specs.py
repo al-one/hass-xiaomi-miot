@@ -98,25 +98,26 @@ MIIO_TO_MIOT_SPECS = {
             },
             {
                 'method': 'get_prop',
+                'params': ['auto'],
+                'values': ['auto'],
+                'delay': 2,
+            },
+            {
+                'method': 'get_prop',
                 'params': ['state'],
                 'values': ['state'],
-                'delay': 1,
+                'delay': 2,
             },
         ],
         'miio_specs': {
             'prop.2.1': {
-                'prop': 'mode',
+                'prop': 'mode',  # switch
                 'setter': True,
                 'template': '{{ (value|string).split(":")[1]|default(2)|int != 2 }}',
                 'set_template': '{{ [1 if value else 2] }}',
             },
-            'prop.2.2': {
-                'prop': 'mode',
-                'setter': True,
-                'template': '{{ 1 if (value|string).split(":")[1]|default(2)|int else 0 }}',
-                'set_template': '{{ [0 if value else 1] }}',
-            },
-            'prop.2.3': {'prop': 'state', 'template': '{{ value | int(0) }}'},
+            'prop.2.2': {'prop': 'auto', 'setter': True, 'template': '{{ value|int(0) }}'},
+            'prop.2.3': {'prop': 'state', 'template': '{{ 1 if value == "run" else 0 }}'},
             'prop.2.4': {
                 'prop': 'speed',
                 'setter': True,
