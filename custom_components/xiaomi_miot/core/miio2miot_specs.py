@@ -863,14 +863,15 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.2': {
                 'prop': 'speed_level',
                 'setter': True,
-                'template': '{% set lvl = (props.natural_level or value) | int(0) %}'
+                'template': '{% set lvl = props.natural_level|default(value,true)|int(0) %}'
                             '{{ '
                             '1 if lvl <= 25 else '
                             '2 if lvl <= 50 else '
                             '3 if lvl <= 75 else '
                             '4 }}',
-                'set_template': '{{ {'
-                                '"method": "set_natural_level" if props.natural_level else "set_speed_level",'
+                'set_template': '{% set nlv = props.natural_level|default(0)|int(0) %}'
+                                '{{ {'
+                                '"method": "set_natural_level" if nlv else "set_speed_level",'
                                 '"params": [value|int(0) * 25],'
                                 '} }}',
             },
