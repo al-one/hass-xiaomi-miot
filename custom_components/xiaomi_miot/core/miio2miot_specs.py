@@ -882,7 +882,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'zhimi.fan.sa1': {
-        'miio_props': ['speed', 'poweroff_time', 'ac_power', 'buzzer', 'led_b', 'use_time'],
+        'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {
