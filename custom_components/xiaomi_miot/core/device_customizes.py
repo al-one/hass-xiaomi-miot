@@ -65,6 +65,46 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
+    'chunmi.cooker.eh1': {
+        'extend_miot_specs': [
+            {
+                'iid': 2,
+                'properties': [
+                    {
+                        'iid': 1,
+                        'type': 'urn:miot-spec-v2:property:status',
+                        'format': 'uint8',
+                        'access': ['read'],
+                        'value-list': [
+                            {'value': 1, 'description': 'Idle'},
+                            {'value': 2, 'description': 'Running'},
+                            {'value': 3, 'description': 'Keep Warm'},
+                            {'value': 4, 'description': 'Cook Reservation'},
+                            {'value': 5, 'description': 'Setting'},
+                            {'value': 6, 'description': 'Setting'},
+                            {'value': 7, 'description': 'Setting'},
+                            {'value': 8, 'description': 'Error'},
+                            {'value': 9, 'description': 'Finish'},
+                        ],
+                    },
+                    {
+                        'iid': 101,
+                        'type': 'urn:miot-spec-v2:property:menu',
+                        'format': 'string',
+                        'access': ['read'],
+                    },
+                    {
+                        'iid': 102,
+                        'type': 'urn:miot-spec-v2:property:left_time',
+                        'unit': 'seconds',
+                        'format': 'uint32',
+                        'access': ['read'],
+                        'value-range': [0, 65535, 1],
+                    },
+                ],
+            },
+        ],
+    },
     'chunmi.health_pot.a1': {
         'miot_local': True,
     },
@@ -570,7 +610,7 @@ DEVICE_CUSTOMIZES = {
     },
     '*.cooker.*': {
         'sensor_properties': 'temperature,left_time',
-        'switch_properties': 'cooker.on,auto_keep_warm',
+        'switch_properties': 'cooker.on',
     },
     '*.desk.*': {
         'button_properties': 'motor_control,reset',

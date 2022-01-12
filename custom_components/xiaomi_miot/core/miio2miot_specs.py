@@ -93,6 +93,21 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'chunmi.cooker.eh1': {
+        # ['status','phase','menu','t_cook','t_left','t_pre','t_kw','taste','temp','rice','favs','akw',
+        # 't_start','t_finish','version','setting','code','en_warm','t_congee','t_love','boil']
+        # [1       ,0      ,"0001",60      ,3600    ,0      ,0     ,1      ,15    ,0     ,"0009",1    ,
+        # 0        ,0         ,13       ,0        ,0     ,15       ,120       ,60      ,0     ]
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {'prop': 'status', 'template': '{{ 9 if value == "finish" else value }}'},
+            'prop.2.2': {'prop': 'temp'},
+            'prop.2.3': {'prop': 'akw'},
+            'prop.2.101': {'prop': 'menu'},
+            'prop.2.102': {'prop': 't_left'},
+            'action.2.1': {'setter': 'cancel_cooking'},
+        },
+    },
     'chunmi.microwave.n23l01': {
         'without_props': True,
         'miio_commands': [
