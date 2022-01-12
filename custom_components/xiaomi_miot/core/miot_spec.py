@@ -618,6 +618,16 @@ class MiotProperty(MiotSpecInstance):
             return self.value_range[2]
         return None
 
+    def is_integer(self):
+        if self.format in [
+            'int8', 'int16', 'int32', 'int64',
+            'uint8', 'uint16', 'uint32', 'uint64',
+        ]:
+            return True
+        if self.value_list or self.value_range:
+            return True
+        return False
+
     @property
     def unit_of_measurement(self):
         name = self.name

@@ -109,13 +109,10 @@ class Miio2MiotHelper:
                         elif d := c.get('dict', {}):
                             val = d.get(val, c.get('default', val))
 
-                        elif prop.value_list or prop.value_range:
-                            val = int(val)
-
                         elif prop.format in ['bool']:
                             val = cv.boolean(val)
 
-                        elif prop.format in ['uint8', 'uint16', 'uint32', 'uint64']:
+                        elif prop.is_integer:
                             val = int(val)
 
                         elif prop.format in ['float']:

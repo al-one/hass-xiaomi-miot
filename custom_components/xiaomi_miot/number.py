@@ -81,6 +81,8 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity):
 
     def set_value(self, value: float):
         """Set new value."""
+        if self._miot_property.is_integer:
+            value = int(value)
         return self.set_parent_property(value)
 
     @property
