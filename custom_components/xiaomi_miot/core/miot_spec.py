@@ -75,7 +75,7 @@ class MiotSpecInstance:
 
     @staticmethod
     def format_desc_name(des, nam):
-        return MiotSpecInstance.format_name(nam if re.match(r'[^x00-xff]', des) else des)
+        return MiotSpecInstance.format_name(nam if not des or re.match(r'[^x00-xff]', des) else des)
 
     @staticmethod
     def name_by_type(typ):
@@ -499,7 +499,7 @@ class MiotProperty(MiotSpecInstance):
         return 'write' in self.access
 
     def generate_entity_id(self, entity):
-        eid = self.service.spec.generate_entity_id(entity, self.description)
+        eid = self.service.spec.generate_entity_id(entity, self.desc_name)
         eid = re.sub(r'_(\d(?:_|$))', r'\1', eid)  # issue#153
         return eid
 
