@@ -882,6 +882,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'zhimi.fan.sa1': {
+        # https://github.com/rytilahti/python-miio/blob/master/miio/fan.py#L321-L322
         'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
@@ -913,6 +914,7 @@ MIIO_TO_MIOT_SPECS = {
     },
     'zhimi.fan.v2': {
         'extend_model': 'zhimi.fan.sa1',
+        'chunk_properties': 15,
         'miio_specs': {
             'prop.2.5': {
                 'prop': 'natural_level',
