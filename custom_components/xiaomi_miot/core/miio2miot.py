@@ -174,8 +174,11 @@ class Miio2MiotHelper:
         pms = cv.ensure_list(pms)
         _LOGGER.info('Set miio prop via miot: %s', [device.ip, key, setter, pms])
         ret = device.send(setter, pms) or ['']
+        iok = ret == ['ok']
+        if self.config.get('ignore_result'):
+            iok = ret or isinstance(ret, list)
         return {
-            'code': 0 if ret == ['ok'] else 1,
+            'code': 0 if iok else 1,
             'siid': siid,
             'piid': piid,
             'result': ret,
