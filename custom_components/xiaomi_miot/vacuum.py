@@ -262,7 +262,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         if 'clean_time' in props:
             adt['clean_time'] = round(props['clean_time'] / 60, 1)
         if adt:
-            self.update_attrs(adt)
+            await self.async_update_attrs(adt)
         pnm = 'vacuum_map'
         add_camera = self._add_entities.get('camera')
         if pnm in self._subs:
@@ -353,7 +353,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
         if 'miio.s_time' in props:
             adt['clean_time'] = props['miio.s_time']
         if adt:
-            self.update_attrs(adt)
+            await self.async_update_attrs(adt)
             
         add_camera = self._add_entities.get('camera')
         pnm = 'vacuum_map'

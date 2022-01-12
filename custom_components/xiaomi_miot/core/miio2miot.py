@@ -109,13 +109,10 @@ class Miio2MiotHelper:
                         elif d := c.get('dict', {}):
                             val = d.get(val, c.get('default', val))
 
-                        elif prop.value_list or prop.value_range:
-                            val = int(val)
-
                         elif prop.format in ['bool']:
                             val = cv.boolean(val)
 
-                        elif prop.format in ['uint8', 'uint16', 'uint32', 'uint64']:
+                        elif prop.is_integer:
                             val = int(val)
 
                         elif prop.format in ['float']:
@@ -177,8 +174,11 @@ class Miio2MiotHelper:
         pms = cv.ensure_list(pms)
         _LOGGER.info('Set miio prop via miot: %s', [device.ip, key, setter, pms])
         ret = device.send(setter, pms) or ['']
+        iok = ret == ['ok']
+        if self.config.get('ignore_result'):
+            iok = ret or isinstance(ret, list)
         return {
-            'code': 0 if ret == ['ok'] else 1,
+            'code': 0 if iok else 1,
             'siid': siid,
             'piid': piid,
             'result': ret,

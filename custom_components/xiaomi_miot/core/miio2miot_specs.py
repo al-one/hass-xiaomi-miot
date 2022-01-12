@@ -1,25 +1,95 @@
 MIIO_TO_MIOT_SPECS = {
 
-    'chuangmi.plug.m1': {
+    '090615.switch.xswitch01': {
+        'without_props': True,
+        'ignore_result': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [0],
+                'values': ['power1', 'led'],
+            },
+            {'method': 'get_prop', 'params': ['switchname1'], 'values': ['name1']},
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power1', 'setter': 'SetSwitch1', 'set_template': '{{ [value|int(0)] }}'},
+            'prop.2.2': {'prop': 'name1', 'setter': 'SetSwtichname1'},
+        },
+    },
+    '090615.switch.xswitch02': {
+        'extend_model': '090615.switch.xswitch01',
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [0, 0],
+                'values': ['power1', 'power2', 'led'],
+            },
+            {'method': 'get_prop', 'params': ['switchname1'], 'values': ['name1']},
+            {'method': 'get_prop', 'params': ['switchname2'], 'values': ['name2']},
+        ],
+        'miio_specs': {
+            'prop.3.1': {'prop': 'power2', 'setter': 'SetSwitch2', 'set_template': '{{ [value|int(0)] }}'},
+            'prop.3.2': {'prop': 'name2', 'setter': 'SetSwtichname2'},
+        },
+    },
+    '090615.switch.xswitch03': {
+        'extend_model': '090615.switch.xswitch02',
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [0, 0, 0],
+                'values': ['power1', 'power2', 'power3', 'led'],
+            },
+            {'method': 'get_prop', 'params': ['switchname1'], 'values': ['name1']},
+            {'method': 'get_prop', 'params': ['switchname2'], 'values': ['name2']},
+            {'method': 'get_prop', 'params': ['switchname3'], 'values': ['name3']},
+        ],
+        'miio_specs': {
+            'prop.4.1': {'prop': 'power3', 'setter': 'SetSwitch3', 'set_template': '{{ [value|int(0)] }}'},
+            'prop.4.2': {'prop': 'name3', 'setter': 'SetSwtichname3'},
+        },
+    },
+
+    'chuangmi.plug.hmi205': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'temperature'},
-            'prop.3.1': {'prop': 'wifi_led'},
+        },
+    },
+    'chuangmi.plug.hmi206': 'chuangmi.plug.hmi205',
+    'chuangmi.plug.hmi208': {
+        'extend_model': 'chuangmi.plug.hmi205',
+        'miio_specs': {
+            'prop.3.1': {
+                'prop': 'usb_on',
+                'setter': True,
+                'set_template': '{{ {"method": "set_usb_on" if value else "set_usb_off"} }}',
+            },
+        },
+    },
+    'chuangmi.plug.m1': {
+        'extend_model': 'chuangmi.plug.hmi205',
+        'miio_specs': {
+            'prop.3.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
     },
     'chuangmi.plug.m3': 'chuangmi.plug.m1',
     'chuangmi.plug.v1': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'on'},
-            'prop.3.1': {'prop': 'wifi_led'},
+            'prop.2.1': {
+                'prop': 'on',
+                'setter': True,
+                'set_template': '{{ {"method": "set_on" if value else "set_off"} }}',
+            },
+            'prop.3.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
     },
     'chuangmi.plug.v3': {
+        'extend_model': 'chuangmi.plug.hmi208',
         'miio_specs': {
-            'prop.2.1': {'prop': 'on'},
-            'prop.3.1': {'prop': 'usb_on'},
+            'prop.2.1': {'prop': 'on', 'setter': 'set_power', 'format': 'onoff'},
             'prop.2.2': {'prop': 'temperature'},
-            'prop.4.1': {'prop': 'wifi_led'},
+            'prop.4.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
     },
 
@@ -84,8 +154,53 @@ MIIO_TO_MIOT_SPECS = {
                 'on':   3,
             }, 'default': 1},
         },
-    }, 
-       
+    },
+
+    'ksmb.walkingpad.v1': {
+        # https://github.com/al-one/hass-xiaomi-miot/issues/261#issuecomment-1001213758
+        # ['mode:2', 'time:0', 'sp:0.0', 'dist:0', 'cal:0', 'step:0']
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': ['all'],
+                'values': ['mode', 'time', 'speed', 'dist', 'calorie', 'step'],
+            },
+            {
+                'method': 'get_prop',
+                'params': ['auto'],
+                'values': ['auto'],
+                'delay': 2,
+            },
+            {
+                'method': 'get_prop',
+                'params': ['state'],
+                'values': ['state'],
+                'delay': 2,
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {
+                'prop': 'mode',  # switch
+                'setter': True,
+                'template': '{{ (value|string).split(":")[1]|default(2)|int != 2 }}',
+                'set_template': '{{ [1 if value else 2] }}',
+            },
+            'prop.2.2': {'prop': 'auto', 'setter': True, 'template': '{{ value|int(0) }}'},
+            'prop.2.3': {'prop': 'state', 'template': '{{ 1 if value == "run" else 0 }}'},
+            'prop.2.4': {
+                'prop': 'speed',
+                'setter': True,
+                'template': '{{ (value|string).split(":")[1]|default(0)|round(1) }}',
+                'set_template': '{{ [value|round(1)|string] }}',
+            },
+            'prop.2.5': {'prop': 'dist', 'template': '{{ (value|string).split(":")[1]|default(0)|int }}'},
+            'prop.2.6': {'prop': 'time', 'template': '{{ (value|string).split(":")[1]|default(0)|int }}'},
+            'prop.2.7': {'prop': 'step', 'template': '{{ (value|string).split(":")[1]|default(0)|int }}'},
+            'prop.2.8': {'prop': 'calorie', 'template': '{{ (value|string).split(":")[1]|default(0)|int }}'},
+        },
+    },
+
     'lumi.acpartner.mcn02': {
         # ['power', 'mode', 'tar_temp', 'fan_level', 'ver_swing', 'load_power']
         # ['on',    'dry',   16,        'small_fan', 'off',        84.0]
@@ -166,16 +281,16 @@ MIIO_TO_MIOT_SPECS = {
             },
             'prop.2.101': {
                 'prop': 'dry_status','dict': {
-                  'off': 0,
-                  'hotdry': 1,
-                  'winddry': 2,
+                    'off':     0,
+                    'hotdry':  1,
+                    'winddry': 2,
                 },
                 'setter': 'control_device',
                 'set_template': '{{ '
-                  '["stop_winddry",0] if "winddry" in props.dry_status and value==0 else '
-                  '["stop_hotdry",0] if "hotdry" in props.dry_status and value==0 else '
-                  '["start_hotdry",90] if value==1 else '
-                  '["start_winddry",90]}}',
+                                '["start_hotdry",90] if value == 1 else '
+                                '["start_winddry",90] if value == 2 else '
+                                '["stop_hotdry",0] if "hotdry" in props.dry_status else '
+                                '["stop_winddry",0] }}',
             },
             'prop.2.5': {'prop': 'dry_remaining_time'},
             'prop.3.1': {'prop': 'light', 'setter': 'toggle_light', 'format': 'onoff'},
@@ -195,7 +310,7 @@ MIIO_TO_MIOT_SPECS = {
             }, 'default': 1},
         },
     },
-    
+
     'minij.washer.v5': {
         # ["state","process","cycle","time_remain","child_lock","lock","dry_set","dirty_type"]
         # ["off","option:load,prewash,wash,rinse,spin;processing:invalid","dailywash","0069","off","unlock","none","none"]
@@ -758,14 +873,15 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.2': {
                 'prop': 'speed_level',
                 'setter': True,
-                'template': '{% set lvl = (props.natural_level or value) | int(0) %}'
+                'template': '{% set lvl = props.natural_level|default(value,true)|int(0) %}'
                             '{{ '
                             '1 if lvl <= 25 else '
                             '2 if lvl <= 50 else '
                             '3 if lvl <= 75 else '
                             '4 }}',
-                'set_template': '{{ {'
-                                '"method": "set_natural_level" if props.natural_level else "set_speed_level",'
+                'set_template': '{% set nlv = props.natural_level|default(0)|int(0) %}'
+                                '{{ {'
+                                '"method": "set_natural_level" if nlv else "set_speed_level",'
                                 '"params": [value|int(0) * 25],'
                                 '} }}',
             },

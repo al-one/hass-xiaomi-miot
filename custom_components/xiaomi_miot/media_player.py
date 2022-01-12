@@ -528,6 +528,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         return pms
 
     def request_mitv_api(self, path, **kwargs):
+        kwargs.setdefault('timeout', 5)
         try:
             req = requests.get(f'{self._mitv_api}{path}', **kwargs)
             rdt = json.loads(req.content or '{}') or {}
