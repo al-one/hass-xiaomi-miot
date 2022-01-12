@@ -302,9 +302,9 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 _LOGGER.warning('%s: camera events is empty. %s', self.name, rdt)
         if adt:
             self._supported_features |= SUPPORT_STREAM
-            self.update_attrs(adt)
+            await self.async_update_attrs(adt)
             if self._motion_enable:
-                self.update_attrs(self.motion_event_attributes)
+                await self.async_update_attrs(self.motion_event_attributes)
             if self._motion_entity:
                 await self.hass.async_add_executor_job(self._motion_entity.update)
 

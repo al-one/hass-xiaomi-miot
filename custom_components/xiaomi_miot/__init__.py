@@ -826,7 +826,7 @@ class MiioEntity(BaseEntity):
         self.logger.debug('%s: Got new state: %s', self.name, attrs)
         self._available = True
         self._state = attrs.get('power') == 'on'
-        self.update_attrs(attrs)
+        await self.async_update_attrs(attrs)
 
     def _update_attr_sensor_entities(self, attrs, domain='sensor', option=None):
         add_sensors = self._add_entities.get(domain)
@@ -885,7 +885,8 @@ class MiioEntity(BaseEntity):
 
     def update_attrs(self, attrs: dict, update_parent=False):
         self._state_attrs.update(attrs or {})
-        if tps := self.custom_config_list('attributes_template'):
+        if self.hass and self.platform:
+            tps = self.custom_config_list('attributes_template') or []
             for tpl in tps:
                 tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                 tpl = cv.template(tpl)
@@ -904,6 +905,11 @@ class MiioEntity(BaseEntity):
         if pls := self.custom_config_list('binary_sensor_attributes'):
             self._update_attr_sensor_entities(pls, domain='binary_sensor')
         return self._state_attrs
+
+    async def async_update_attrs(self, *args, **kwargs):
+        return await self.hass.async_add_executor_job(
+            partial(self.update_attrs, *args, **kwargs)
+        )
 
 
 class MiotEntityInterface:
@@ -1269,7 +1275,7 @@ class MiotEntity(MiioEntity):
             )
         if self._subs:
             attrs['sub_entities'] = list(self._subs.keys())
-        self.update_attrs(attrs)
+        await self.async_update_attrs(attrs)
         self.logger.debug('%s: Got new state: %s', self.name, attrs)
 
         # update miio prop/event in cloud

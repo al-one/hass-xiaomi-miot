@@ -261,7 +261,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         if 'clean_time' in props:
             adt['clean_time'] = round(props['clean_time'] / 60, 1)
         if adt:
-            self.update_attrs(adt)
+            await self.async_update_attrs(adt)
 
     @property
     def miio_props(self):
@@ -344,7 +344,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
         if 'miio.s_time' in props:
             adt['clean_time'] = props['miio.s_time']
         if adt:
-            self.update_attrs(adt)
+            await self.async_update_attrs(adt)
 
     def locate(self, **kwargs):
         """Locate the vacuum cleaner."""

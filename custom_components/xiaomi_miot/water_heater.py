@@ -83,7 +83,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                 val = self._prop_status.from_dict(self._state_attrs)
                 if val is not None:
                     off = val in self._prop_status.list_search('Off')
-                    self.update_attrs({
+                    await self.async_update_attrs({
                         self._prop_power.full_name: not off,
                     })
             self._update_sub_entities(self._prop_power.name, domain='switch')

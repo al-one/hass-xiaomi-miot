@@ -185,12 +185,12 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             return
         if self._miot_service.name in ['lock'] and self._prop_state.full_name not in self._state_attrs:
             if how := self._state_attrs.get('lock_method'):
-                self.update_attrs({
+                await self.async_update_attrs({
                     self._prop_state.full_name: how,
                 })
             elif edt := self._state_attrs.get('event.11', {}):
                 if isinstance(edt, dict):
-                    self.update_attrs({
+                    await self.async_update_attrs({
                         self._prop_state.full_name: edt.get('method'),
                     })
         self._prop_state.description_to_dict(self._state_attrs)
