@@ -34,7 +34,6 @@ MIIO_TO_MIOT_SPECS = {
     },
     '090615.switch.xswitch03': {
         'extend_model': '090615.switch.xswitch02',
-        'without_props': True,
         'miio_commands': [
             {
                 'method': 'get_prop',
@@ -51,10 +50,26 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
-    'chuangmi.plug.m1': {
+    'chuangmi.plug.hmi205': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'temperature'},
+        },
+    },
+    'chuangmi.plug.hmi206': 'chuangmi.plug.hmi205',
+    'chuangmi.plug.hmi208': {
+        'extend_model': 'chuangmi.plug.hmi205',
+        'miio_specs': {
+            'prop.3.1': {
+                'prop': 'usb_on',
+                'setter': True,
+                'set_template': '{{ {"method": "set_usb_on" if value else "set_usb_off"} }}',
+            },
+        },
+    },
+    'chuangmi.plug.m1': {
+        'extend_model': 'chuangmi.plug.hmi205',
+        'miio_specs': {
             'prop.3.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
     },
@@ -70,13 +85,9 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'chuangmi.plug.v3': {
+        'extend_model': 'chuangmi.plug.hmi208',
         'miio_specs': {
             'prop.2.1': {'prop': 'on', 'setter': 'set_power', 'format': 'onoff'},
-            'prop.3.1': {
-                'prop': 'usb_on',
-                'setter': True,
-                'set_template': '{{ {"method": "set_usb_on" if value else "set_usb_off"} }}',
-            },
             'prop.2.2': {'prop': 'temperature'},
             'prop.4.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
