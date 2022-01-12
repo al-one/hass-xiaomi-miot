@@ -7,7 +7,7 @@ MIIO_TO_MIOT_SPECS = {
             {
                 'method': 'get_prop',
                 'params': [0],
-                'values': ['power1', 'black'],
+                'values': ['power1', 'led'],
             },
             {'method': 'get_prop', 'params': ['switchname1'], 'values': ['name1']},
         ],
@@ -22,7 +22,7 @@ MIIO_TO_MIOT_SPECS = {
             {
                 'method': 'get_prop',
                 'params': [0, 0],
-                'values': ['power1', 'power2', 'black'],
+                'values': ['power1', 'power2', 'led'],
             },
             {'method': 'get_prop', 'params': ['switchname1'], 'values': ['name1']},
             {'method': 'get_prop', 'params': ['switchname2'], 'values': ['name2']},
@@ -39,7 +39,7 @@ MIIO_TO_MIOT_SPECS = {
             {
                 'method': 'get_prop',
                 'params': [0, 0, 0],
-                'values': ['power1', 'power2', 'power3', 'black'],
+                'values': ['power1', 'power2', 'power3', 'led'],
             },
             {'method': 'get_prop', 'params': ['switchname1'], 'values': ['name1']},
             {'method': 'get_prop', 'params': ['switchname2'], 'values': ['name2']},
