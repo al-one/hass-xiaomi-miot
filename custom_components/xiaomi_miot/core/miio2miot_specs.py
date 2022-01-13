@@ -618,7 +618,7 @@ MIIO_TO_MIOT_SPECS = {
                 'template': '{{ value != 0 }}',
                 'set_template': '{{ value|int }}',
             },
-            'prop.2.5': {'prop': None},  # water-level
+            'prop.2.5': {'prop': 'hotWater'},  # water-level
             'prop.2.6': {'prop': 'modeType', 'setter': 'set_mode'},
         },
     },
