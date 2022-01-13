@@ -108,6 +108,39 @@ MIIO_TO_MIOT_SPECS = {
             'action.2.1': {'setter': 'cancel_cooking'},
         },
     },
+    'chunmi.ihcooker.chefnic': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': ['all'],
+                'values': [
+                    'func',     'menu', 'action', 'tFunc', 'version',  'custom', 'setStatus', 'play',
+                    # ['pause', '0100', '0e0b00', '01000', '00050a04', '002497', '01'       , '0e00']
+                ],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'func', 'dict': {
+                'running':    1,
+                'timing':     2,
+                'pause':      3,
+                'pause_time': 3,
+                'shutdown':   4,
+                'waiting':    5,
+                'finish':     5,
+            }, 'default': 4},
+            'prop.2.3': {'prop': 'action', 'template': '{{ (value|string)[4:6]|int(0,16) }}'},
+            'prop.2.2': {
+                'prop': 'tFunc',  # left-time
+                'template': '{{ (value|string)[8:10]|int(0,16) * 60 + (value|string)[10:12]|int(0,16) }}',
+            },
+            'prop.2.4': {
+                'prop': 'tFunc',  # working-time
+                'template': '{{ (value|string)[4:6]|int(0,16) * 60 + (value|string)[6:8]|int(0,16) }}',
+            },
+        },
+    },
     'chunmi.microwave.n23l01': {
         'without_props': True,
         'miio_commands': [
