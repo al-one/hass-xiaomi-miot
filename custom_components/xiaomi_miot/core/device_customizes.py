@@ -699,6 +699,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
         'number_select_properties': 'speed_level',
     },
+    '*.washer.*': {
+        'button_actions': 'start_wash,pause',
+    },
     '*.waterheater.*': {
         'switch_properties': 'water_heater.on',
     },
