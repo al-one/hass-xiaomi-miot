@@ -1117,6 +1117,7 @@ class MiotEntity(MiioEntity):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
         updater = 'none'
+        attrs = {}
         results = None
         errors = None
         mapping = self.miot_mapping
@@ -1136,6 +1137,7 @@ class MiotEntity(MiioEntity):
             elif self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud'):
                 updater = 'lan'
                 results = await self._miio2miot.async_get_miot_props(self.miot_device, local_mapping)
+                attrs.update(self._miio2miot.entity_attrs())
             elif mic := self.miot_cloud:
                 updater = 'cloud'
                 results = await self.hass.async_add_executor_job(
@@ -1207,7 +1209,7 @@ class MiotEntity(MiioEntity):
                     self.name, results, mapping,
                 )
             return False
-        attrs = result.to_attributes(self._state_attrs)
+        attrs.update(result.to_attributes(self._state_attrs))
         attrs['state_updater'] = updater
         self._available = True
         self._state = True if self._state_attrs.get('power') else False

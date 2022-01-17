@@ -60,6 +60,9 @@ class Miio2MiotHelper:
                 if dly := c.get('delay', 0):
                     time.sleep(dly)
                 vls = device.send(c['method'], c.get('params', []))
+                kls = c.get('values', [])
+                if kls is True:
+                    kls = c.get('params', [])
                 if tpl := c.get('template'):
                     tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                     tpl = cv.template(tpl)
@@ -67,7 +70,7 @@ class Miio2MiotHelper:
                     pdt = tpl.render({'results': vls})
                     if isinstance(pdt, dict):
                         dic.update(pdt)
-                elif kls := c.get('values', []):
+                elif kls:
                     if len(kls) == len(vls):
                         dic.update(dict(zip(kls, vls)))
         self.miio_props_values = dic
@@ -187,6 +190,20 @@ class Miio2MiotHelper:
             'piid': piid,
             'result': ret,
         }
+
+    def entity_attrs(self):
+        adt = {}
+        eas = self.config.get('entity_attrs', [])
+        if isinstance(eas, list):
+            eas = {
+                k: k
+                for k in eas
+            }
+        for k, p in eas.items():
+            v = self.miio_props_values.get(p)
+            if v is not None:
+                adt[k] = v
+        return adt
 
     def only_miio_props(self, props: list):
         rls = []
