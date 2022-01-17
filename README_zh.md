@@ -19,8 +19,6 @@
 ## 常见问题
 - 👍 **[新手入门手把手教程1](https://mp.weixin.qq.com/s/1y_EV6xcg17r743aV-2eRw)** (感谢@来鸭大佬)
 - 👍 **[新手入门手把手教程2](https://bbs.iobroker.cn/t/topic/10831)** (感谢@萝卜大佬)
-- 📺 **[HACS安装插件视频教程](https://www.bilibili.com/video/BV17L411j73Y?t=62)** (感谢[@老明](https://space.bilibili.com/583175067))
-- 📺 **[手动安装插件视频教程](https://www.bilibili.com/video/BV1EU4y1n7VR)** (感谢[@爱运动的数码君](https://space.bilibili.com/39480347))
 - [支持哪些设备？是否支持XX型号？](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855183145)
 - [账号集成还是token集成？](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855183156)
 - [为什么XX型号的设备需要开启云端模式？如何开启？](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855185251)
@@ -31,7 +29,7 @@
 - [如何在HA查看摄像头实体回放(看家助手)视频？](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604)
 - [为什么设备状态会有延迟？如何减小延迟？](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-909031222)
 - [如何删除本插件生成的HA设备？](https://github.com/al-one/hass-xiaomi-miot/issues/165#issuecomment-899988208)
-- [更多其他常见问题...](https://github.com/al-one/hass-xiaomi-miot/issues/100)
+- [[**新手必读**]更多其他常见问题...](https://github.com/al-one/hass-xiaomi-miot/issues/100)
 
 
 <a name="installing"></a>
@@ -48,6 +46,9 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HU
 ```
 
 > 或者通过[HACS](https://hacs.xyz)搜索`Xiaomi Miot Auto`安装
+
+- 📺 **[HACS安装插件视频教程](https://www.bilibili.com/video/BV17L411j73Y?t=62)** (感谢[@老明](https://space.bilibili.com/583175067))
+- 📺 **[手动安装插件视频教程](https://www.bilibili.com/video/BV1EU4y1n7VR)** (感谢[@爱运动的数码君](https://space.bilibili.com/39480347))
 
 
 <a name="config"></a>
@@ -67,6 +68,7 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HU
 <a name="add-device-using-hosttoken"></a>
 ### 本地集成 (Add device using host/token):
 通过host/token接入设备，适用于在局域网环境下支持miot协议的设备
+
 
 <a name="config-xiaomi-cloud"></a>
 ### 配置云端模式:
