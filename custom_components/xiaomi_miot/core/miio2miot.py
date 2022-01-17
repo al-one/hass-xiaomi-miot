@@ -26,8 +26,7 @@ class Miio2MiotHelper:
         for k, v in self.specs.items():
             if p := v.get('prop'):
                 self.miio_props.append(p)
-        self.miio_props.extend(config.get('miio_props', []))
-        self.miio_props = list(dict(zip(self.miio_props, self.miio_props)).keys())
+        self.extend_miio_props(config.get('miio_props', []))
         self.miio_props_values = {}
 
     @staticmethod
@@ -41,6 +40,11 @@ class Miio2MiotHelper:
                 the = None
             return the
         return None
+
+    def extend_miio_props(self, props: list):
+        self.miio_props.extend(props)
+        self.miio_props = list(dict(zip(self.miio_props, self.miio_props)).keys())
+        return self.miio_props
 
     def get_miio_props(self, device):
         dic = {}
@@ -183,6 +187,12 @@ class Miio2MiotHelper:
             'piid': piid,
             'result': ret,
         }
+
+    def only_miio_props(self, props: list):
+        rls = []
+        for p in props:
+            rls.append(self.miio_props_values.get(p))
+        return rls
 
 
 class MiioPropertyHelper:

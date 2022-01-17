@@ -1124,6 +1124,12 @@ class MiotEntity(MiioEntity):
         if self._vars.get('has_local_mapping'):
             local_mapping = self._device.mapping
         max_properties = 10
+
+        if pls := self.custom_config_list('miio_properties'):
+            self._vars['miio_properties'] = pls
+            if self._miio2miot:
+                self._miio2miot.extend_miio_props(pls)
+
         try:
             if not (mapping or local_mapping):
                 results = []
@@ -1301,7 +1307,7 @@ class MiotEntity(MiioEntity):
             await self.hass.async_add_executor_job(partial(self.update_micloud_statistics, cls))
 
         # update miio properties in lan
-        if pls := self.custom_config_list('miio_properties'):
+        if pls := self._vars.get('miio_properties', []):
             await self.hass.async_add_executor_job(partial(self.update_miio_props, pls))
 
         # update miio commands in lan
@@ -1317,16 +1323,19 @@ class MiotEntity(MiioEntity):
     def update_miio_props(self, props):
         if not self.miot_device:
             return
-        try:
-            attrs = self._device.get_properties(props)
-        except DeviceException as exc:
-            self.logger.warning('%s: Got miio properties %s failed: %s', self.name, props, exc)
-            return
-        if len(props) != len(attrs):
-            self.update_attrs({
-                'miio.props': attrs,
-            })
-            return
+        if self._miio2miot:
+            attrs = self._miio2miot.only_miio_props(props)
+        else:
+            try:
+                attrs = self._device.get_properties(props)
+            except DeviceException as exc:
+                self.logger.warning('%s: Got miio properties %s failed: %s', self.name, props, exc)
+                return
+            if len(props) != len(attrs):
+                self.update_attrs({
+                    'miio.props': attrs,
+                })
+                return
         attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
         self.logger.debug('%s: Got miio properties: %s', self.name, attrs)
         self.update_attrs(attrs)
