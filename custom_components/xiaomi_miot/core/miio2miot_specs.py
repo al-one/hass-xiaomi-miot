@@ -915,6 +915,149 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.1': {'prop': 'time_state', 'setter': True, 'format': 'onoff'},
         },
     },
+
+    'zhimi.airpurifier._base': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':   0,
+                'silent': 1,
+                'low':    1,
+                'medium': 2,
+                'strong': 3,
+                'high':   3,
+            }, 'default': 0},
+            'prop.3.1': {'prop': 'aqi'},
+            'prop.4.1': {'prop': 'filter1_life'},
+            'prop.5.1': {'prop': 'led', 'setter': True, 'format': 'onoff'},
+            'prop.6.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
+        },
+    },
+    'zhimi.airpurifier.m1': {
+        'extend_model': 'zhimi.airpurifier.v3',
+        'miio_specs': {
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':     0,
+                'silent':   1,
+                'favorite': 2,
+            }, 'default': 0},
+            'prop.3.1': {'prop': 'humidity'},
+            'prop.3.2': {'prop': 'aqi'},
+            'prop.3.3': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
+            'prop.4.2': {'prop': 'f1_hour_used'},
+            'prop.5.2': {'prop': 'led_b', 'setter': True},
+            'prop.8.1': {'prop': 'favorite_level', 'setter': True},
+        },
+    },
+    'zhimi.airpurifier.m2': 'zhimi.airpurifier.m1',
+    'zhimi.airpurifier.ma2': 'zhimi.airpurifier.v6',
+    'zhimi.airpurifier.mc1': {
+        'extend_model': 'zhimi.airpurifier.v6',
+        'miio_specs': {
+            'prop.4.2': {
+                'prop': 'f1_hour_used',
+                'template': '{{ value/(props.filter1_life|default(0,true)/100)-value }}',
+            },
+        },
+    },
+    'zhimi.airpurifier.mc2': 'zhimi.airpurifier.mc1',
+    'zhimi.airpurifier.sa2': {
+        'extend_model': 'zhimi.airpurifier._base',
+        'miio_specs': {
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':     0,
+                'silent':   1,
+                'favorite': 2,
+                'low':      3,
+                'medium':   4,
+                'high':     5,
+                'strong':   5,
+            }, 'default': 0},
+            'prop.2.3': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':     0,
+                'silent':   1,
+                'favorite': 2,
+                'idle':     3,
+            }, 'default': 3},
+            'prop.3.1': {'prop': 'humidity'},
+            'prop.3.2': {'prop': 'aqi'},
+            'prop.3.3': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
+            'prop.4.2': {'prop': 'f1_hour_used'},
+            'prop.5.1': {'prop': 'filter2_life'},
+            'prop.5.2': {'prop': 'f2_hour_used'},
+            'prop.6.1': {'prop': 'led', 'setter': True, 'format': 'onoff'},
+            'prop.6.2': {'prop': 'led_b', 'setter': True},
+            'prop.7.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
+            'prop.8.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
+            'prop.9.1': {'prop': 'favorite_level', 'setter': True},
+        },
+    },
+    'zhimi.airpurifier.v1': {
+        'extend_model': 'zhimi.airpurifier._base',
+        'miio_specs': {
+            'prop.2.3': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':   0,
+                'silent': 1,  # Sleep
+                'strong': 2,
+                'idle':   3,
+            }, 'default': 0},
+            'prop.5.2': {
+                'prop': 'led_b',
+                'setter': True,
+                'dict': {
+                    0: 15,  # Bright
+                    1: 10,  # Dim
+                    2: 5,   # Off
+                },
+                'default': 0,
+                'set_template': '{{ ['
+                                '0 if value > 10 else '
+                                '1 if value > 5 else '
+                                '2] }}',
+            },
+        },
+    },
+    'zhimi.airpurifier.v2': {
+        'extend_model': 'zhimi.airpurifier._base',
+        'miio_specs': {
+            'prop.4.2': {
+                'prop': 'f1_hour_used',
+                'template': '{{ value/(props.filter1_life|default(0,true)/100)-value }}',
+            },
+            'prop.7.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
+        },
+    },
+    'zhimi.airpurifier.v3': {
+        'extend_model': 'zhimi.airpurifier.v2',
+        'miio_specs': {
+            'prop.2.3': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':   0,
+                'silent': 1,
+                'strong': 2,
+                'high':   2,
+                'idle':   3,
+            }, 'default': 3},
+        },
+    },
+    'zhimi.airpurifier.v5': 'zhimi.airpurifier.v2',
+    'zhimi.airpurifier.v6': {
+        'extend_model': 'zhimi.airpurifier.m1',
+        'miio_specs': {
+            'prop.2.3': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':     0,
+                'silent':   1,
+                'favorite': 2,
+            }, 'default': 0},
+        },
+    },
+    'zhimi.airpurifier.v7': {
+        'extend_model': 'zhimi.airpurifier.m1',
+        'miio_specs': {
+            'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
+            'prop.7.1': {'prop': 'led', 'setter': True, 'format': 'onoff'},
+        },
+    },
+
     'zhimi.fan.sa1': {
         # https://github.com/rytilahti/python-miio/blob/9bc6b65ce846707db7e83d403dd2c71d4e6bfa31/miio/fan.py#L321-L322
         'chunk_properties': 1,
