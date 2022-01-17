@@ -458,10 +458,6 @@ DEVICE_CUSTOMIZES = {
     'viomi.vacuum.*': {
         'sensor_attributes': 'miio.s_area,miio.s_time',
     },
-    'viomi.waterheater.e1': {
-        'miio_properties': 'washStatus,velocity,waterTemp,targetTemp,errStatus,'
-                           'hotWater,needClean,modeType,appointStart,appointEnd',
-    },
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
     },

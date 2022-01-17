@@ -1329,7 +1329,8 @@ class MiotEntity(MiioEntity):
             attrs = self._miio2miot.only_miio_props(props)
         else:
             try:
-                attrs = self._device.get_properties(props)
+                num = self.custom_config_integer('chunk_properties') or 15
+                attrs = self._device.get_properties(props, max_properties=num)
             except DeviceException as exc:
                 self.logger.warning('%s: Got miio properties %s failed: %s', self.name, props, exc)
                 return
