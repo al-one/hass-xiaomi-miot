@@ -597,6 +597,7 @@ DEVICE_CUSTOMIZES = {
     '*.airpurifier.*': {
         'switch_properties': 'air_purifier.on',
         'sensor_properties': 'relative_humidity,pm2_5_density,temperature,filter_life_level',
+        'number_properties': 'favorite_fan_level',
     },
     '*.toothbrush.*': {
         'miio_cloud_props': 'event.16',

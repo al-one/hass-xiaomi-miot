@@ -917,6 +917,8 @@ MIIO_TO_MIOT_SPECS = {
     },
 
     'zhimi.airpurifier._base': {
+        'miio_props': ['motor1_speed', 'motor2_speed', 'purify_volume'],
+        'entity_attrs': ['aqi', 'motor1_speed', 'motor2_speed', 'purify_volume'],
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
