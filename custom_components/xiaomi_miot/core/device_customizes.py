@@ -458,6 +458,31 @@ DEVICE_CUSTOMIZES = {
     'viomi.vacuum.*': {
         'sensor_attributes': 'miio.s_area,miio.s_time',
     },
+    'viomi.waterheater.e1': {
+        'extend_miot_specs': [
+            {
+                'iid': 2,
+                'properties': [
+                    {
+                        'iid': 2,
+                        'type': 'urn:miot-spec-v2:property:temperature',
+                        'format': 'uint8',
+                        'access': ['read'],
+                        'unit': 'celsius',
+                        'value-range': [0, 255, 1],
+                    },
+                    {
+                        'iid': 5,
+                        'type': 'urn:miot-spec-v2:property:water-level',
+                        'format': 'uint8',
+                        'access': ['read'],
+                        'unit': 'percentage',
+                        'value-range': [0, 100, 1],
+                    },
+                ],
+            },
+        ],
+    },
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
     },
