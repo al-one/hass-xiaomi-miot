@@ -211,6 +211,10 @@ DEVICE_CUSTOMIZES = {
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
     },
+    'fengmi.projector.*': {
+        'auto_cloud': True,
+        'number_properties': 'speaker.volume',
+    },
     'galime.curtain.*': {
         'auto_position_reverse': True,
         'select_properties': 'speed_control',
@@ -500,6 +504,11 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'iot_linkage,machine_state',
     },
     'xiaomi.tv.*': {
+        'auto_cloud': True,
+        'number_properties': 'speaker.volume',
+    },
+    'xiaomi.tvbox.*': {
+        'auto_cloud': True,
         'number_properties': 'speaker.volume',
     },
     'xiaomi.watch.*': {
