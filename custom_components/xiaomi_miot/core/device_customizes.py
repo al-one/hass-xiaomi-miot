@@ -203,7 +203,7 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'custom',
     },
     'dreame.vacuum.*': {
-        'exclude_miot_services': 'annoy,remote,time',
+        'exclude_miot_services': 'consumable,annoy,remote,time',
     },
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
