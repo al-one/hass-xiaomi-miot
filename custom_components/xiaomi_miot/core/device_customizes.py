@@ -198,6 +198,9 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'voltage',
         'unit_of_measurement': 'V',
     },
+    'deerma.humidifier.jsq5': {
+        'chunk_properties': 4,
+    },
     'deerma.humidifier.*': {
         'chunk_properties': 6,
         'exclude_miot_services': 'custom',
