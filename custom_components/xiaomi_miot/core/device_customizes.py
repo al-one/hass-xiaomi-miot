@@ -404,6 +404,9 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.016666,
         'unit_of_measurement': 'min',
     },
+    'roidmi.vacuum.*': {
+        'exclude_miot_services': 'custom',
+    },
     'roome.bhf_light.*': {
         'sensor_attributes': 'temp,currenttemp',
         'select_attributes': 'main_state,main_light,night_light,heat,vent,dry,natural_wind,delay_wind',
