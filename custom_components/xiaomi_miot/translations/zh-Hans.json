@@ -18,7 +18,7 @@
                 }
             },
             "cloud": {
-                "description": "配置小米账户",
+                "description": "配置小米账户\n{tip}",
                 "data": {
                     "username": "小米ID / 邮箱",
                     "password": "小米密码",
@@ -45,6 +45,8 @@
         "error": {
             "cannot_connect": "连接设备失败",
             "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登陆失败，请在与当前网络相同的环境下登陆小米官网(mi.com)后重试",
+            "cannot_reach": "无法访问小米API接口",
+            "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备"
         },
         "abort": {
@@ -65,7 +67,7 @@
                 }
             },
             "cloud": {
-                "description": "配置小米账户",
+                "description": "配置小米账户\n{tip}",
                 "data": {
                     "username": "小米ID / 邮箱",
                     "password": "小米密码",
@@ -92,6 +94,8 @@
         "error": {
             "cannot_connect": "连接设备失败",
             "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登陆失败，请在与当前网络相同的环境下登陆小米官网(mi.com)后重试",
+            "cannot_reach": "无法访问小米API接口",
+            "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备"
         }
     },

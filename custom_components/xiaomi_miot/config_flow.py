@@ -1,5 +1,6 @@
 """Config flow to configure Xiaomi Miot."""
 import logging
+import requests
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -99,30 +100,39 @@ async def check_miio_device(hass, user_input, errors):
 
 async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
     dvs = []
-    mic = await MiotCloud.from_token(hass, user_input, login=False)
+    mic = None
     try:
+        mic = await MiotCloud.from_token(hass, user_input, login=False)
         await mic.async_login()
         if not await mic.async_check_auth(False):
             raise MiCloudException('Login failed')
         await mic.async_stored_auth(mic.user_id, save=True)
         user_input['xiaomi_cloud'] = mic
         dvs = await mic.async_get_devices(renew=renew_devices) or []
-    except (MiCloudException, MiCloudAccessDenied) as exc:
-        if isinstance(exc, MiCloudAccessDenied):
+        if renew_devices:
+            await MiotSpec.async_get_model_type(hass, 'xiaomi.miot.auto', use_remote=True)
+    except (MiCloudException, MiCloudAccessDenied, Exception) as exc:
+        err = f'{exc}'
+        errors['base'] = 'cannot_login'
+        if isinstance(exc, MiCloudAccessDenied) and mic:
             if url := mic.attrs.pop('notificationUrl'):
+                err = f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!\n' \
+                      f'本次登陆小米账号需要安全验证，[点击这里]({url})继续！'
                 persistent_notification.create(
                     hass,
-                    f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!\n'
-                    f'本次登陆小米账号需要安全验证，[点击这里]({url})继续！',
+                    err,
                     f'Login to Xiaomi: {mic.username}',
                     f'{DOMAIN}-login',
                 )
-        errors['base'] = 'cannot_login'
+        if isinstance(exc, requests.exceptions.ConnectionError):
+            errors['base'] = 'cannot_reach'
+        elif 'ZoneInfoNotFoundError' in err:
+            errors['base'] = 'tzinfo_error'
+        hass.data[DOMAIN]['placeholders'] = {'tip': f'⚠️ {err}'}
         _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', mic.username, exc)
-    if renew_devices:
-        await MiotSpec.async_get_model_type(hass, 'xiaomi.miot.auto', use_remote=True)
     if not errors:
         user_input['devices'] = dvs
+        persistent_notification.dismiss(hass, f'{DOMAIN}-login')
     return user_input
 
 
@@ -274,6 +284,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional('filter_models', default=user_input.get('filter_models', False)): bool,
             }),
             errors=errors,
+            description_placeholders=self.hass.data[DOMAIN].get('placeholders', {'tip': ''}),
         )
 
     async def async_step_cloud_filter(self, user_input=None):
@@ -404,6 +415,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional('renew_devices', default=user_input.get('renew_devices', False)): bool,
             }),
             errors=errors,
+            description_placeholders=self.hass.data[DOMAIN].get('placeholders', {'tip': ''}),
         )
 
     async def async_step_cloud_filter(self, user_input=None):

@@ -228,10 +228,11 @@ class MiotSpec(MiotSpecInstance):
         url = 'https://miot-spec.org/miot-spec-v2/instances?status=all'
         fnm = f'{DOMAIN}/instances.json'
         store = Store(hass, 1, fnm)
+        cached = await store.async_load() or {}
         now = int(time.time())
         dat = {}
         if not use_remote:
-            dat = await store.async_load() or {}
+            dat = cached
             ptm = dat.pop('_updated_time', 0)
             if dat and now - ptm > 86400 * 7:
                 dat = {}
@@ -239,28 +240,31 @@ class MiotSpec(MiotSpecInstance):
             try:
                 res = await hass.async_add_executor_job(requests.get, url)
                 dat = res.json() or {}
-            except (TypeError, ValueError):
-                dat = {}
-            if dat:
-                sdt = {
-                    '_updated_time': now,
-                }
-                for v in (dat.get('instances') or []):
-                    m = v.get('model')
-                    o = sdt.get(m) or {}
-                    if o:
-                        if o.get('status') == 'released' and v.get('status') != o.get('status'):
-                            continue
-                        if v.get('version') < o.get('version'):
-                            continue
-                    v.pop('model', None)
-                    sdt[m] = v
-                await store.async_save(sdt)
-                dat = sdt
-                _LOGGER.info(
-                    'Renew miot spec instances: %s, count: %s, model: %s',
-                    fnm, len(sdt) - 1, model,
-                )
+                if dat:
+                    sdt = {
+                        '_updated_time': now,
+                    }
+                    for v in (dat.get('instances') or []):
+                        m = v.get('model')
+                        o = sdt.get(m) or {}
+                        if o:
+                            if o.get('status') == 'released' and v.get('status') != o.get('status'):
+                                continue
+                            if v.get('version') < o.get('version'):
+                                continue
+                        v.pop('model', None)
+                        sdt[m] = v
+                    await store.async_save(sdt)
+                    dat = sdt
+                    _LOGGER.info(
+                        'Renew miot spec instances: %s, count: %s, model: %s',
+                        fnm, len(sdt) - 1, model,
+                    )
+            except (TypeError, ValueError, requests.exceptions.ConnectionError) as exc:
+                if not cached:
+                    raise exc
+                dat = cached
+                _LOGGER.warning('Get miot specs filed: %s, use cached.', exc)
         typ = None
         if 'instances' in dat:
             for v in (dat.get('instances') or []):
