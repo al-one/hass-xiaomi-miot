@@ -722,6 +722,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
         'number_properties': 'target_time',
     },
+    '*.tow_w.*': {
+        'sensor_properties': 'temperature',
+        'select_properties': 'mode',
+        'number_properties': 'target_temperature',
+    },
     '*.treadmill.*': {
         'button_actions': 'start_work,pause,stop_working',
         'sensor_properties': 'current_distance,current_step_count,current_calorie_consumption,'
