@@ -230,6 +230,7 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
             config['miot_type'] = await MiotSpec.async_get_model_type(hass, model)
         config['miio_info'] = info
         config['config_entry'] = config_entry
+        config['miot_local'] = True
         config[CONF_CONN_MODE] = 'local'
         hass.data[DOMAIN][entry_id] = config
         _LOGGER.debug('Xiaomi Miot setup config entry: %s', {
@@ -297,6 +298,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             'miot_type': urn,
             'miio_info': mif,
             CONF_CONN_MODE: conn,
+            'miot_local': conn == 'local',
             'miot_cloud': conn != 'local',
             'home_name': d.get('home_name') or '',
             'room_name': d.get('room_name') or '',
@@ -304,6 +306,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             CONF_CONFIG_VERSION: entry.get(CONF_CONFIG_VERSION) or 0,
         }
         if conn == 'auto' and model in MIOT_LOCAL_MODELS:
+            cfg['miot_local'] = True
             cfg['miot_cloud'] = False
         config['configs'].append(cfg)
         _LOGGER.debug('Xiaomi cloud device: %s', {**cfg, CONF_TOKEN: '****'})
@@ -1058,7 +1061,7 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_local(self):
-        if self.custom_config_bool('miot_local'):
+        if self.custom_config_bool('miot_local') or self._config.get('miot_local'):
             return self.miot_device
         return None
 
@@ -1131,11 +1134,11 @@ class MiotEntity(MiioEntity):
             if self._miio2miot:
                 self._miio2miot.extend_miio_props(pls)
 
-        use_local = self.miot_local
-        if self.custom_config_bool('miot_cloud'):
+        use_local = self.miot_local or self._miio2miot
+        if self.cloud_only:
             use_local = False
-        elif self.miot_device or self._miio2miot:
-            use_local = True
+        elif self.custom_config_bool('miot_cloud'):
+            use_local = False
         elif not self.miot_device:
             use_local = False
         use_cloud = not use_local and self.miot_cloud
