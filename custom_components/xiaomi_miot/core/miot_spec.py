@@ -282,7 +282,8 @@ class MiotSpec(MiotSpecInstance):
         if platform.system() == 'Windows':
             fnm = fnm.replace(':', '_')
         store = Store(hass, 1, fnm)
-        dat = await store.async_load() or {}
+        cached = await store.async_load() or {}
+        dat = cached
         ptm = dat.pop('_updated_time', 0)
         now = int(time.time())
         day = 2
@@ -294,12 +295,18 @@ class MiotSpec(MiotSpecInstance):
             try:
                 res = await hass.async_add_executor_job(requests.get, url)
                 dat = res.json() or {}
-            except (TypeError, ValueError):
-                dat = {
-                    'type': typ or 'unknown',
-                }
-            dat['_updated_time'] = now
-            await store.async_save(dat)
+                dat['_updated_time'] = now
+                await store.async_save(dat)
+            except (TypeError, ValueError, requests.exceptions.ConnectionError) as exc:
+                if cached:
+                    dat = cached
+                else:
+                    dat = {
+                        'type': typ or 'unknown',
+                        '_updated_time': now,
+                    }
+                    await store.async_save(dat)
+                    _LOGGER.warning('Get miot-spec for %s failed: %s', typ, exc)
         return MiotSpec(dat)
 
     @staticmethod
