@@ -941,7 +941,7 @@ class MiotEntity(MiioEntity):
             kwargs['miot_service'] = self._miot_service
         super().__init__(name, device, **kwargs)
 
-        self._local_state = False
+        self._local_state = None
         self._miio2miot = None
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         self._vars['has_special_mapping'] = not not self._miot_mapping
@@ -1131,10 +1131,12 @@ class MiotEntity(MiioEntity):
             if self._miio2miot:
                 self._miio2miot.extend_miio_props(pls)
 
-        use_local = self.miot_local or self._miio2miot
-        if not self.miot_device:
+        use_local = self.miot_local
+        if self.custom_config_bool('miot_cloud'):
             use_local = False
-        elif self.custom_config_bool('miot_cloud'):
+        elif self.miot_device or self._miio2miot:
+            use_local = True
+        elif not self.miot_device:
             use_local = False
         use_cloud = not use_local and self.miot_cloud
         if not (mapping or local_mapping):
@@ -1174,17 +1176,18 @@ class MiotEntity(MiioEntity):
                             mapping=local_mapping,
                         )
                     )
+                self._available = True
                 self._local_state = True
             except DeviceException as exc:
-                self._local_state = False
-                logger = self.logger.error
+                log = self.logger.error
                 if self.custom_config_bool('auto_cloud'):
                     use_cloud = self.xiaomi_cloud
-                    logger = self.logger.warning
+                    log = self.logger.warning if self._local_state else self.logger.info
                 else:
                     self._available = False
                     errors = f'{exc}'
-                logger(
+                self._local_state = False
+                log(
                     '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',
                     self.name, exc, mapping, max_properties, len(mapping)
                 )
@@ -1196,6 +1199,7 @@ class MiotEntity(MiioEntity):
                 results = await self.hass.async_add_executor_job(
                     partial(mic.get_properties_for_mapping, self.miot_did, mapping)
                 )
+                self._available = True
                 if self.custom_config_bool('check_lan'):
                     if self.miot_device:
                         await self.hass.async_add_executor_job(self.miot_device.info)
@@ -1230,7 +1234,6 @@ class MiotEntity(MiioEntity):
             return False
         attrs.update(result.to_attributes(self._state_attrs))
         attrs['state_updater'] = updater
-        self._available = True
         self._state = True if self._state_attrs.get('power') else False
 
         if self._miot_service:
