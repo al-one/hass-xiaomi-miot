@@ -1641,11 +1641,16 @@ class MiotEntity(MiioEntity):
         action = kwargs.get('action')
         if not action and self._miot_service:
             action = self._miot_service.spec.services.get(siid, {}).actions.get(aiid)
+        m2m = self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud_action')
         mca = self.miot_cloud_action
         if self.custom_config_bool('auto_cloud') and not self._local_state:
             mca = self.xiaomi_cloud
         try:
-            if isinstance(mca, MiotCloud):
+            if m2m and self._miio2miot.has_setter(siid, aiid):
+                result = [
+                    self._miio2miot.call_action(self.miot_device, siid, aiid, pms),
+                ]
+            elif isinstance(mca, MiotCloud):
                 result = mca.do_action(pms)
                 dly = self.custom_config_integer('cloud_delay_update', 5)
             else:

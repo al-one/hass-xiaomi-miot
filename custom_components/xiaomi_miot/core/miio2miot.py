@@ -3,7 +3,7 @@ import logging
 import voluptuous as vol
 from functools import partial
 
-from .miot_spec import (MiotSpec, MiotProperty)
+from .miot_spec import (MiotSpec, MiotProperty, MiotAction)
 from .templates import CUSTOM_TEMPLATES
 from .miio2miot_specs import MIIO_TO_MIOT_SPECS
 import homeassistant.helpers.config_validation as cv
@@ -150,9 +150,6 @@ class Miio2MiotHelper:
             setter = None
             if prop := cfg.get('prop'):
                 setter = f'set_{prop}'
-        if not setter:
-            _LOGGER.warning('Set miio prop via miot failed: %s', [device.ip, key, setter, cfg])
-            return None
         pms = [value]
         prop = self.miot_spec.specs.get(key)
         if prop and isinstance(prop, MiotProperty):
@@ -179,6 +176,9 @@ class Miio2MiotHelper:
                         pms = [dk]
                         break
         pms = cv.ensure_list(pms)
+        if not setter:
+            _LOGGER.warning('Set miio prop via miot failed: %s', [device.ip, key, setter, cfg])
+            return None
         _LOGGER.info('Set miio prop via miot: %s', [device.ip, key, setter, pms])
         ret = device.send(setter, pms) or ['']
         iok = ret == ['ok']
@@ -188,6 +188,40 @@ class Miio2MiotHelper:
             'code': 0 if iok else 1,
             'siid': siid,
             'piid': piid,
+            'result': ret,
+        }
+
+    def call_action(self, device, siid, aiid, params):
+        key = MiotSpec.unique_prop(siid=siid, aiid=aiid)
+        cfg = self.specs.get(key, {})
+        setter = cfg.get('setter')
+        pms = cv.ensure_list(params)
+        act = self.miot_spec.specs.get(key)
+        if act and isinstance(act, MiotAction):
+            if tpl := cfg.get('set_template'):
+                tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
+                tpl = cv.template(tpl)
+                tpl.hass = self.hass
+                pms = tpl.render({
+                    'params': pms,
+                    'props': self.miio_props_values,
+                }) or []
+                if isinstance(pms, dict) and 'method' in pms:
+                    setter = pms.get('method', setter)
+                    pms = pms.get('params', [])
+        pms = cv.ensure_list(pms)
+        if not setter:
+            _LOGGER.warning('Call miio method via miot action failed: %s', [device.ip, key, setter, cfg])
+            return None
+        _LOGGER.info('Call miio method via miot action: %s', [device.ip, key, setter, pms])
+        ret = device.send(setter, pms) or ['']
+        iok = ret == ['ok']
+        if self.config.get('ignore_result'):
+            iok = ret or isinstance(ret, list)
+        return {
+            'code': 0 if iok else 1,
+            'siid': siid,
+            'aiid': aiid,
             'result': ret,
         }
 
