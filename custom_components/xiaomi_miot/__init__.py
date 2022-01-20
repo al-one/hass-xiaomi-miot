@@ -991,7 +991,7 @@ class MiotEntity(MiioEntity):
                 self._miot_service.spec.set_custom_mapping(mapping)
                 self._vars['has_local_mapping'] = True
             try:
-                device = MiotDevice(ip=host, token=token, mapping=mapping)
+                device = MiotDevice(ip=host, token=token, mapping=mapping or {})
             except TypeError as exc:
                 err = f'{exc}'
                 if 'mapping' in err:
