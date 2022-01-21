@@ -1594,7 +1594,7 @@ class MiotEntity(MiioEntity):
         if self.custom_config_bool('auto_cloud') and not self._local_state:
             mcw = self.xiaomi_cloud
         try:
-            if m2m and self._miio2miot.has_setter(siid, piid):
+            if m2m and self._miio2miot.has_setter(siid, piid=piid):
                 results = [
                     self._miio2miot.set_property(self.miot_device, siid, piid, value),
                 ]
@@ -1660,7 +1660,7 @@ class MiotEntity(MiioEntity):
         if self.custom_config_bool('auto_cloud') and not self._local_state:
             mca = self.xiaomi_cloud
         try:
-            if m2m and self._miio2miot.has_setter(siid, aiid):
+            if m2m and self._miio2miot.has_setter(siid, aiid=aiid):
                 result = [
                     self._miio2miot.call_action(self.miot_device, siid, aiid, pms),
                 ]

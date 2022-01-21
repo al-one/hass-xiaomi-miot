@@ -137,8 +137,8 @@ class Miio2MiotHelper:
                 })
         return rls
 
-    def has_setter(self, siid, piid):
-        key = MiotSpec.unique_prop(siid=siid, piid=piid)
+    def has_setter(self, siid, piid=None, aiid=None):
+        key = MiotSpec.unique_prop(siid=siid, piid=piid, aiid=aiid)
         ret = self.specs.get(key, {}).get('setter')
         return ret
 
