@@ -162,6 +162,25 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'fawad.airrtc.fwd20011': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power_status', 'setter': True, 'set_template': '{{ value|int }}'},
+            'prop.2.2': {'prop': 'work_mode', 'setter': True, 'dict': {
+                1: 2,
+                2: 1,
+                3: 3,
+            }, 'default': 1},
+            'prop.2.3': {'prop': 'temperature_set', 'setter': True, 'set_template': '{{ value|int }}'},
+            'prop.3.1': {'prop': 'fan_speed', 'setter': True, 'dict': {
+                0: 3,
+                1: 2,
+                2: 1,
+                3: 0,
+            }, 'default': 0},
+            'prop.4.1': {'prop': 'temperature_current'},
+        },
+    },
+
     'hfjh.fishbowl.v1': {
         # ["Equipment_Status","feed_num","feed_switch","feed_time","feed_time_week","heater_switch",
         # "led_board_brightness","led_board_color","led_board_model","led_board_speed","led_board_stream",
