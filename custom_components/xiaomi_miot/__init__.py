@@ -983,9 +983,15 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_device(self):
-        if self.hass and not self._device and CONF_TOKEN in self._config:
-            host = self._config.get(CONF_HOST) or ''
-            token = self._config.get(CONF_TOKEN) or None
+        host = self._config.get(CONF_HOST) or ''
+        token = self._config.get(CONF_TOKEN) or None
+        if self._device:
+            pass
+        elif not host or host in ['0.0.0.0']:
+            pass
+        elif not token:
+            pass
+        elif self.hass:
             device = None
             mapping = self.custom_config_json('miot_local_mapping')
             if not mapping:
