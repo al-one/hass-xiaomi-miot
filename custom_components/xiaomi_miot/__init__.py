@@ -889,8 +889,10 @@ class MiioEntity(BaseEntity):
     def update_attrs(self, attrs: dict, update_parent=False):
         self._state_attrs.update(attrs or {})
         if self.hass and self.platform:
-            tps = self.custom_config_list('attributes_template') or []
+            tps = cv.ensure_list(self.custom_config('attributes_template'))
             for tpl in tps:
+                if not tpl:
+                    continue
                 tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                 tpl = cv.template(tpl)
                 tpl.hass = self.hass
