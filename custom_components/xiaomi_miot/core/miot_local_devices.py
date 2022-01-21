@@ -117,6 +117,7 @@ MIOT_LOCAL_MODELS = [
     'lumi.curtain.hagl05',
     'lumi.curtain.hagl08',
     'lumi.curtain.hmcn01',
+    'lumi.sensor_gas.mcn02',
     'miaomiaoce.airm.air01',
     'miaomiaoce.blanket.s02',
     'mibx2.washer.v5',
