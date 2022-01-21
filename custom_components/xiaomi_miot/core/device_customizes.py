@@ -322,6 +322,7 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.sensor_gas.mcn02': {
         'chunk_properties': 1,
+        'sensor_properties': 'status',
         'exclude_miot_services': 'gas_sensor_control',
     },
     'lumi.sensor_motion.*': {
