@@ -6,6 +6,7 @@ import locale
 import base64
 import requests
 import re
+import collections
 from os import urandom
 from functools import partial
 from urllib.parse import urlencode
@@ -84,6 +85,7 @@ class BaseCameraEntity(Camera):
 
     def __init__(self, hass: HomeAssistant):
         super().__init__()
+        self.access_tokens = collections.deque(self.access_tokens, 12 * 2)
         self._manager = hass.data.get(DATA_FFMPEG)
         # http://ffmpeg.org/ffmpeg-all.html
         self._ffmpeg_options = ''
