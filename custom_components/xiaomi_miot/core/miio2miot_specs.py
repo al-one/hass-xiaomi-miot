@@ -493,7 +493,12 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'bright', 'setter': True},
             'prop.2.3': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
-            'prop.2.4': {'prop': 'cct', 'setter': True},
+            'prop.2.4': {
+                'prop': 'cct',
+                'setter': True,
+                'template': '{{ (max - min) * value / 100 + min }}',
+                'set_template': '{{ (value - min) / (max - min) }}',
+            },
         },
     },
     'philips.light.cbulb': {

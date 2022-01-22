@@ -107,6 +107,9 @@ class Miio2MiotHelper:
                                 'value': val,
                                 'props': dic,
                                 'dict': c.get('dict', {}),
+                                'min': prop.range_min(),
+                                'max': prop.range_max(),
+                                'step': prop.range_step(),
                                 'description': prop.list_description(val) if prop.value_list else None,
                             })
                     
@@ -163,6 +166,9 @@ class Miio2MiotHelper:
                     'value': value,
                     'props': self.miio_props_values,
                     'dict': cfg.get('dict', {}),
+                    'min': prop.range_min(),
+                    'max': prop.range_max(),
+                    'step': prop.range_step(),
                     'description': prop.list_description(value) if prop.value_list else None,
                 }) or []
                 if isinstance(pms, dict) and 'method' in pms:
