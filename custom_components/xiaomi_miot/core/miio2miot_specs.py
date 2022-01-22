@@ -168,6 +168,7 @@ MIIO_TO_MIOT_SPECS = {
     },
 
     'fawad.airrtc.fwd20011': {
+        'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'power_status', 'setter': True, 'set_template': '{{ value|int }}'},
             'prop.2.2': {'prop': 'work_mode', 'setter': True, 'dict': {
