@@ -1156,6 +1156,21 @@ MIIO_TO_MIOT_SPECS = {
     },
     'zhimi.fan.za4': 'zhimi.fan.za3',
 
+    'zhimi.humidifier.ca1': {
+        'extend_model': 'zhimi.humidifier.v1',
+        # https://github.com/rytilahti/python-miio/blob/9bc6b65ce846707db7e83d403dd2c71d4e6bfa31/miio/airhumidifier.py#L297-L302
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.3': {'prop': 'depth'},
+        },
+    },
+    'zhimi.humidifier.cb1': {
+        'extend_model': 'zhimi.humidifier.ca1',
+        'miio_specs': {
+            'prop.3.2': {'prop': 'temperature'},
+        },
+    },
+    'zhimi.humidifier.cb2': 'zhimi.humidifier.cb1',
     'zhimi.humidifier.v1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
@@ -1172,21 +1187,6 @@ MIIO_TO_MIOT_SPECS = {
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
         },
     },
-    'zhimi.humidifier.ca1': {
-        'extend_model': 'zhimi.humidifier.ca1',
-        # https://github.com/rytilahti/python-miio/blob/9bc6b65ce846707db7e83d403dd2c71d4e6bfa31/miio/airhumidifier.py#L297-L302
-        'chunk_properties': 1,
-        'miio_specs': {
-            'prop.2.3': {'prop': 'depth'},
-        },
-    },
-    'zhimi.humidifier.cb1': {
-        'extend_model': 'zhimi.humidifier.ca1',
-        'miio_specs': {
-            'prop.3.2': {'prop': 'temperature'},
-        },
-    },
-    'zhimi.humidifier.cb2': 'zhimi.humidifier.cb1',
 
     'zimi.powerstrip.v2': {
         'miio_props': ['current', 'mode', 'power_price'],
