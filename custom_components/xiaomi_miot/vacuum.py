@@ -85,7 +85,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         self._prop_status = miot_service.get_property('status')
         self._prop_mode = miot_service.get_property('fan_level', 'speed_level', 'mode')
         self._act_start = miot_service.get_action('start_sweep')
-        self._act_pause = miot_service.get_action('pause_sweeping','pause')
+        self._act_pause = miot_service.get_action('pause_sweeping', 'pause')
         self._act_stop = miot_service.get_action('stop_sweeping')
         self._act_locate = miot_service.get_action('position')
         self._prop_battery = miot_service.get_property('battery_level')
