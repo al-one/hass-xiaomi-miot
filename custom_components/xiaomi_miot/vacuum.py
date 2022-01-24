@@ -87,14 +87,14 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         self._act_start = miot_service.get_action('start_sweep')
         self._act_pause = miot_service.get_action('pause_sweeping', 'pause')
         self._act_stop = miot_service.get_action('stop_sweeping')
-        self._act_locate = miot_service.get_action('position')
+        self._act_locate = miot_service.get_action('find_device', 'position')
         self._prop_battery = miot_service.get_property('battery_level')
         self._srv_battery = miot_service.spec.get_service('battery')
         if self._srv_battery:
             self._prop_battery = self._srv_battery.get_property('battery_level')
         self._srv_audio = miot_service.spec.get_service('audio', 'voice')
         if self._srv_audio and not self._act_locate:
-            self._act_locate = self._srv_battery.get_property('position', 'find_device')
+            self._act_locate = self._srv_audio.get_action('find_device', 'position')
         self._act_charge = None
         for srv in [*miot_service.spec.get_services('battery', 'go_charging'), miot_service]:
             act = srv.get_action('start_charge', 'start_charging')
