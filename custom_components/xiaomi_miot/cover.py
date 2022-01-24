@@ -82,14 +82,12 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
         self._prop_status = miot_service.get_property('status')
         self._prop_motor_control = miot_service.get_property('motor_control')
-        self._prop_current_position = miot_service.get_property(
-            'target_position' if self.custom_config('target2current_position_mapping')
-             else 'current_position'
-        )
+        self._prop_current_position = miot_service.get_property('current_position')
         self._prop_target_position = miot_service.get_property('target_position')
 
         self._motor_reverse = False
         self._position_reverse = False
+        self._target2current = False
         self._open_texts = []
         self._close_texts = []
 
@@ -103,6 +101,11 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
                 self._prop_target_position = None
         if self._prop_motor_control.list_first('Pause', 'Stop') is not None:
             self._supported_features |= SUPPORT_STOP
+
+        self._target2current = self.custom_config('target2current_position')
+        if self._target2current:
+            self._prop_current_position = self._prop_target_position
+
         self._motor_reverse = self.custom_config_bool('motor_reverse', False)
         self._position_reverse = self.custom_config_bool('position_reverse', self._motor_reverse)
         self._open_texts = [
@@ -190,8 +193,8 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
     def set_cover_position(self, **kwargs):
         pos = round(kwargs.get(ATTR_POSITION) or 0)
-        if self._position_reverse and self.custom_config('target2current_position_mapping'):
-            pos = 100 - pos        
+        if self._position_reverse and self._target2current:
+            pos = 100 - pos
         srv = self._miot_service
         for p in srv.get_properties('target_position'):
             if not p.value_range:
@@ -284,10 +287,10 @@ class MiotCoverSubEntity(MiotPropertySubEntity, CoverEntity):
             val = round(self._miot_property.from_dict(self._state_attrs) or -1, 2)
             top = self._miot_property.range_max()
             return round(val / top * 100)
-        prop = self._miot_service.get_property(
-            'target_position' if self.custom_config('target2current_position_mapping')
-             else 'current_position'
-             )        
+
+        prop = self._miot_service.get_property('current_position')
+        if self.custom_config('target2current_position'):
+            prop = self._miot_service.get_property('target_position') or prop
         if prop:
             return round(prop.from_dict(self._state_attrs) or -1)
         return None
