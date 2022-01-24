@@ -1187,7 +1187,6 @@ class MiotEntity(MiioEntity):
                             mapping=local_mapping,
                         )
                     )
-                self._available = True
                 self._local_state = True
             except DeviceException as exc:
                 log = self.logger.error
@@ -1210,7 +1209,6 @@ class MiotEntity(MiioEntity):
                 results = await self.hass.async_add_executor_job(
                     partial(mic.get_properties_for_mapping, self.miot_did, mapping)
                 )
-                self._available = True
                 if self.custom_config_bool('check_lan'):
                     if self.miot_device:
                         await self.hass.async_add_executor_job(self.miot_device.info)
@@ -1245,6 +1243,7 @@ class MiotEntity(MiioEntity):
             return False
         attrs.update(result.to_attributes(self._state_attrs))
         attrs['state_updater'] = updater
+        self._available = True
         self._state = True if self._state_attrs.get('power') else False
 
         if self._miot_service:
