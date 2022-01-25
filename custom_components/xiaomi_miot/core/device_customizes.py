@@ -198,15 +198,22 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'voltage',
         'unit_of_measurement': 'V',
     },
+    'deerma.humidifier.jsq5': {
+        'chunk_properties': 4,
+    },
     'deerma.humidifier.*': {
         'chunk_properties': 6,
         'exclude_miot_services': 'custom',
     },
     'dreame.vacuum.*': {
-        'exclude_miot_services': 'annoy,remote,time',
+        'exclude_miot_services': 'consumable,annoy,remote,time',
     },
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
+    },
+    'fengmi.projector.*': {
+        'auto_cloud': True,
+        'number_properties': 'speaker.volume',
     },
     'galime.curtain.*': {
         'auto_position_reverse': True,
@@ -318,6 +325,7 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.sensor_gas.mcn02': {
         'chunk_properties': 1,
+        'sensor_properties': 'status',
         'exclude_miot_services': 'gas_sensor_control',
     },
     'lumi.sensor_motion.*': {
@@ -406,6 +414,9 @@ DEVICE_CUSTOMIZES = {
     'rockrobo.vacuum.*:props:clean_time': {
         'value_ratio': 0.016666,
         'unit_of_measurement': 'min',
+    },
+    'roidmi.vacuum.*': {
+        'exclude_miot_services': 'custom',
     },
     'roome.bhf_light.*': {
         'sensor_attributes': 'temp,currenttemp',
@@ -497,6 +508,11 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'iot_linkage,machine_state',
     },
     'xiaomi.tv.*': {
+        'auto_cloud': True,
+        'number_properties': 'speaker.volume',
+    },
+    'xiaomi.tvbox.*': {
+        'auto_cloud': True,
         'number_properties': 'speaker.volume',
     },
     'xiaomi.watch.*': {
@@ -709,6 +725,11 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,engaged',
         'select_properties': 'mode',
         'number_properties': 'target_time',
+    },
+    '*.tow_w.*': {
+        'sensor_properties': 'temperature',
+        'select_properties': 'mode',
+        'number_properties': 'target_temperature',
     },
     '*.treadmill.*': {
         'button_actions': 'start_work,pause,stop_working',

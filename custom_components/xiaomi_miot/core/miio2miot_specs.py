@@ -85,9 +85,14 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'chuangmi.plug.v3': {
-        'extend_model': 'chuangmi.plug.hmi208',
         'miio_specs': {
+            # must ['on', 'usb_on', 'temperature', 'wifi_led']
             'prop.2.1': {'prop': 'on', 'setter': 'set_power', 'format': 'onoff'},
+            'prop.3.1': {
+                'prop': 'usb_on',
+                'setter': True,
+                'set_template': '{{ {"method": "set_usb_on" if value else "set_usb_off"} }}',
+            },
             'prop.2.2': {'prop': 'temperature'},
             'prop.4.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
@@ -159,6 +164,26 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {'prop': 'status'},
             'prop.2.2': {'prop': 'tLeft'},
             'action.2.1': {'setter': 'pause_cooking', 'set_template': '{{ ["050201"] }}'},
+        },
+    },
+
+    'fawad.airrtc.fwd20011': {
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power_status', 'setter': True, 'set_template': '{{ value|int }}'},
+            'prop.2.2': {'prop': 'work_mode', 'setter': True, 'dict': {
+                1: 2,
+                2: 1,
+                3: 3,
+            }, 'default': 1},
+            'prop.2.3': {'prop': 'temperature_set', 'setter': True, 'set_template': '{{ value|int }}'},
+            'prop.3.1': {'prop': 'fan_speed', 'setter': True, 'dict': {
+                0: 3,
+                1: 2,
+                2: 1,
+                3: 0,
+            }, 'default': 0},
+            'prop.4.1': {'prop': 'temperature_current'},
         },
     },
 
@@ -468,8 +493,18 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'bright', 'setter': True},
-            'prop.2.3': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
-            'prop.2.4': {'prop': 'cct', 'setter': True},
+            'prop.2.3': {'prop': 'snm', 'setter': 'apply_fixed_scene', 'dict': {
+                1: 1,
+                2: 3,
+                3: 4,
+                4: 2,
+            }, 'default': 1},
+            'prop.2.4': {
+                'prop': 'cct',
+                'setter': True,
+                'template': '{{ ((max - min) * value / 100 + min) | round }}',
+                'set_template': '{{ ((value - min) / (max - min) * 100) | round }}',
+            },
         },
     },
     'philips.light.cbulb': {
@@ -1132,6 +1167,21 @@ MIIO_TO_MIOT_SPECS = {
     },
     'zhimi.fan.za4': 'zhimi.fan.za3',
 
+    'zhimi.humidifier.ca1': {
+        'extend_model': 'zhimi.humidifier.v1',
+        # https://github.com/rytilahti/python-miio/blob/9bc6b65ce846707db7e83d403dd2c71d4e6bfa31/miio/airhumidifier.py#L297-L302
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.3': {'prop': 'depth'},
+        },
+    },
+    'zhimi.humidifier.cb1': {
+        'extend_model': 'zhimi.humidifier.ca1',
+        'miio_specs': {
+            'prop.3.2': {'prop': 'temperature'},
+        },
+    },
+    'zhimi.humidifier.cb2': 'zhimi.humidifier.cb1',
     'zhimi.humidifier.v1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
@@ -1148,21 +1198,6 @@ MIIO_TO_MIOT_SPECS = {
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
         },
     },
-    'zhimi.humidifier.ca1': {
-        'extend_model': 'zhimi.humidifier.ca1',
-        # https://github.com/rytilahti/python-miio/blob/9bc6b65ce846707db7e83d403dd2c71d4e6bfa31/miio/airhumidifier.py#L297-L302
-        'chunk_properties': 1,
-        'miio_specs': {
-            'prop.2.3': {'prop': 'depth'},
-        },
-    },
-    'zhimi.humidifier.cb1': {
-        'extend_model': 'zhimi.humidifier.ca1',
-        'miio_specs': {
-            'prop.3.2': {'prop': 'temperature'},
-        },
-    },
-    'zhimi.humidifier.cb2': 'zhimi.humidifier.cb1',
 
     'zimi.powerstrip.v2': {
         'miio_props': ['current', 'mode', 'power_price'],

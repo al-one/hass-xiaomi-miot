@@ -230,6 +230,7 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
             config['miot_type'] = await MiotSpec.async_get_model_type(hass, model)
         config['miio_info'] = info
         config['config_entry'] = config_entry
+        config['miot_local'] = True
         config[CONF_CONN_MODE] = 'local'
         hass.data[DOMAIN][entry_id] = config
         _LOGGER.debug('Xiaomi Miot setup config entry: %s', {
@@ -297,6 +298,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             'miot_type': urn,
             'miio_info': mif,
             CONF_CONN_MODE: conn,
+            'miot_local': conn == 'local',
             'miot_cloud': conn != 'local',
             'home_name': d.get('home_name') or '',
             'room_name': d.get('room_name') or '',
@@ -304,6 +306,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
             CONF_CONFIG_VERSION: entry.get(CONF_CONFIG_VERSION) or 0,
         }
         if conn == 'auto' and model in MIOT_LOCAL_MODELS:
+            cfg['miot_local'] = True
             cfg['miot_cloud'] = False
         config['configs'].append(cfg)
         _LOGGER.debug('Xiaomi cloud device: %s', {**cfg, CONF_TOKEN: '****'})
@@ -886,8 +889,10 @@ class MiioEntity(BaseEntity):
     def update_attrs(self, attrs: dict, update_parent=False):
         self._state_attrs.update(attrs or {})
         if self.hass and self.platform:
-            tps = self.custom_config_list('attributes_template') or []
+            tps = cv.ensure_list(self.custom_config('attributes_template'))
             for tpl in tps:
+                if not tpl:
+                    continue
                 tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                 tpl = cv.template(tpl)
                 tpl.hass = self.hass
@@ -941,6 +946,7 @@ class MiotEntity(MiioEntity):
             kwargs['miot_service'] = self._miot_service
         super().__init__(name, device, **kwargs)
 
+        self._local_state = None
         self._miio2miot = None
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         self._vars['has_special_mapping'] = not not self._miot_mapping
@@ -979,9 +985,15 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_device(self):
-        if self.hass and not self._device and CONF_TOKEN in self._config:
-            host = self._config.get(CONF_HOST) or ''
-            token = self._config.get(CONF_TOKEN) or None
+        host = self._config.get(CONF_HOST) or ''
+        token = self._config.get(CONF_TOKEN) or None
+        if self._device:
+            pass
+        elif not host or host in ['0.0.0.0']:
+            pass
+        elif not token:
+            pass
+        elif self.hass:
             device = None
             mapping = self.custom_config_json('miot_local_mapping')
             if not mapping:
@@ -990,7 +1002,7 @@ class MiotEntity(MiioEntity):
                 self._miot_service.spec.set_custom_mapping(mapping)
                 self._vars['has_local_mapping'] = True
             try:
-                device = MiotDevice(ip=host, token=token, mapping=mapping)
+                device = MiotDevice(ip=host, token=token, mapping=mapping or {})
             except TypeError as exc:
                 err = f'{exc}'
                 if 'mapping' in err:
@@ -1057,7 +1069,7 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_local(self):
-        if self.custom_config_bool('miot_local'):
+        if self.custom_config_bool('miot_local') or self._config.get('miot_local'):
             return self.miot_device
         return None
 
@@ -1124,22 +1136,76 @@ class MiotEntity(MiioEntity):
         local_mapping = mapping
         if self._vars.get('has_local_mapping'):
             local_mapping = self._device.mapping
-        max_properties = 10
 
         if pls := self.custom_config_list('miio_properties'):
             self._vars['miio_properties'] = pls
             if self._miio2miot:
                 self._miio2miot.extend_miio_props(pls)
 
-        try:
-            if not (mapping or local_mapping):
-                results = []
-            elif self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud'):
-                updater = 'lan'
-                results = await self._miio2miot.async_get_miot_props(self.miot_device, local_mapping)
-                attrs.update(self._miio2miot.entity_attrs())
-            elif mic := self.miot_cloud:
-                updater = 'cloud'
+        use_local = self.miot_local or self._miio2miot
+        if self.cloud_only:
+            use_local = False
+        elif self.custom_config_bool('miot_cloud'):
+            use_local = False
+        elif not self.miot_device:
+            use_local = False
+        use_cloud = not use_local and self.miot_cloud
+        if not (mapping or local_mapping):
+            use_local = False
+            use_cloud = False
+            results = []
+
+        if use_local:
+            updater = 'lan'
+            max_properties = 10
+            try:
+                if self._miio2miot:
+                    results = await self._miio2miot.async_get_miot_props(self.miot_device, local_mapping)
+                    attrs.update(self._miio2miot.entity_attrs())
+                else:
+                    max_properties = self.custom_config_integer('chunk_properties')
+                    if not max_properties:
+                        idx = len(local_mapping)
+                        if idx >= 10:
+                            idx -= 10
+                        chunks = [
+                            # 10,11,12,13,14,15,16,17,18,19
+                            10, 6, 6, 7, 7, 8, 8, 9, 9, 10,
+                            # 20,21,22,23,24,25,26,27,28,29
+                            10, 7, 8, 8, 8, 9, 9, 9, 10, 10,
+                            # 30,31,32,33,34,35,36,37,38,39
+                            10, 8, 8, 7, 7, 7, 9, 9, 10, 10,
+                            # 40,41,42,43,44,45,46,47,48,49
+                            10, 9, 9, 9, 9, 9, 10, 10, 10, 10,
+                        ]
+                        max_properties = 10 if idx >= len(chunks) else chunks[idx]
+                    results = await self.hass.async_add_executor_job(
+                        partial(
+                            self._device.get_properties_for_mapping,
+                            max_properties=max_properties,
+                            did=self.miot_did,
+                            mapping=local_mapping,
+                        )
+                    )
+                self._local_state = True
+            except DeviceException as exc:
+                log = self.logger.error
+                if self.custom_config_bool('auto_cloud'):
+                    use_cloud = self.xiaomi_cloud
+                    log = self.logger.warning if self._local_state else self.logger.info
+                else:
+                    self._available = False
+                    errors = f'{exc}'
+                self._local_state = False
+                log(
+                    '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',
+                    self.name, exc, mapping, max_properties, len(mapping)
+                )
+
+        if use_cloud:
+            updater = 'cloud'
+            try:
+                mic = self.xiaomi_cloud
                 results = await self.hass.async_add_executor_job(
                     partial(mic.get_properties_for_mapping, self.miot_did, mapping)
                 )
@@ -1149,48 +1215,14 @@ class MiotEntity(MiioEntity):
                     else:
                         self._available = False
                         return
-            elif self.miot_device:
-                updater = 'lan'
-                max_properties = self.custom_config_integer('chunk_properties')
-                if not max_properties:
-                    idx = len(local_mapping)
-                    if idx >= 10:
-                        idx -= 10
-                    chunks = [
-                        # 10,11,12,13,14,15,16,17,18,19
-                        10, 6, 6, 7, 7, 8, 8, 9, 9, 10,
-                        # 20,21,22,23,24,25,26,27,28,29
-                        10, 7, 8, 8, 8, 9, 9, 9, 10, 10,
-                        # 30,31,32,33,34,35,36,37,38,39
-                        10, 8, 8, 7, 7, 7, 9, 9, 10, 10,
-                        # 40,41,42,43,44,45,46,47,48,49
-                        10, 9, 9, 9, 9, 9, 10, 10, 10, 10,
-                    ]
-                    max_properties = 10 if idx >= len(chunks) else chunks[idx]
-                results = await self.hass.async_add_executor_job(
-                    partial(
-                        self._device.get_properties_for_mapping,
-                        max_properties=max_properties,
-                        did=self.miot_did,
-                        mapping=local_mapping,
-                    )
+            except MiCloudException as exc:
+                self._available = False
+                errors = f'{exc}'
+                self.logger.error(
+                    '%s: Got MiCloudException while fetching the state: %s, mapping: %s',
+                    self.name, exc, mapping,
                 )
-            else:
-                self.logger.error('%s: Local device and miot cloud not ready.', self.name)
-        except DeviceException as exc:
-            self._available = False
-            errors = f'{exc}'
-            self.logger.error(
-                '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',
-                self.name, exc, mapping, max_properties, len(mapping)
-            )
-        except MiCloudException as exc:
-            self._available = False
-            errors = f'{exc}'
-            self.logger.error(
-                '%s: Got MiCloudException while fetching the state: %s, mapping: %s',
-                self.name, exc, mapping,
-            )
+
         result = MiotResults(results, mapping)
         if not result.is_valid:
             self._available = False
@@ -1558,8 +1590,10 @@ class MiotEntity(MiioEntity):
         dly = 1
         m2m = self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud_write')
         mcw = self.miot_cloud_write
+        if self.custom_config_bool('auto_cloud') and not self._local_state:
+            mcw = self.xiaomi_cloud
         try:
-            if m2m and self._miio2miot.has_setter(siid, piid):
+            if m2m and self._miio2miot.has_setter(siid, piid=piid):
                 results = [
                     self._miio2miot.set_property(self.miot_device, siid, piid, value),
                 ]
@@ -1620,9 +1654,14 @@ class MiotEntity(MiioEntity):
         action = kwargs.get('action')
         if not action and self._miot_service:
             action = self._miot_service.spec.services.get(siid, {}).actions.get(aiid)
+        m2m = self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud_action')
+        mca = self.miot_cloud_action
+        if self.custom_config_bool('auto_cloud') and not self._local_state:
+            mca = self.xiaomi_cloud
         try:
-            mca = self.miot_cloud_action
-            if isinstance(mca, MiotCloud):
+            if m2m and self._miio2miot.has_setter(siid, aiid=aiid):
+                result = self._miio2miot.call_action(self.miot_device, siid, aiid, pms)
+            elif isinstance(mca, MiotCloud):
                 result = mca.do_action(pms)
                 dly = self.custom_config_integer('cloud_delay_update', 5)
             else:
