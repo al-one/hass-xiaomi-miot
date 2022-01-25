@@ -65,6 +65,46 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
+    'chunmi.cooker.eh1': {
+        'extend_miot_specs': [
+            {
+                'iid': 2,
+                'properties': [
+                    {
+                        'iid': 1,
+                        'type': 'urn:miot-spec-v2:property:status',
+                        'format': 'uint8',
+                        'access': ['read'],
+                        'value-list': [
+                            {'value': 1, 'description': 'Idle'},
+                            {'value': 2, 'description': 'Running'},
+                            {'value': 3, 'description': 'Keep Warm'},
+                            {'value': 4, 'description': 'Cook Reservation'},
+                            {'value': 5, 'description': 'Setting'},
+                            {'value': 6, 'description': 'Setting'},
+                            {'value': 7, 'description': 'Setting'},
+                            {'value': 8, 'description': 'Error'},
+                            {'value': 9, 'description': 'Finish'},
+                        ],
+                    },
+                    {
+                        'iid': 101,
+                        'type': 'urn:miot-spec-v2:property:menu',
+                        'format': 'string',
+                        'access': ['read'],
+                    },
+                    {
+                        'iid': 102,
+                        'type': 'urn:miot-spec-v2:property:left_time',
+                        'unit': 'seconds',
+                        'format': 'uint32',
+                        'access': ['read'],
+                        'value-range': [0, 65535, 1],
+                    },
+                ],
+            },
+        ],
+    },
     'chunmi.health_pot.a1': {
         'miot_local': True,
     },
@@ -158,15 +198,22 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'voltage',
         'unit_of_measurement': 'V',
     },
+    'deerma.humidifier.jsq5': {
+        'chunk_properties': 4,
+    },
     'deerma.humidifier.*': {
         'chunk_properties': 6,
         'exclude_miot_services': 'custom',
     },
     'dreame.vacuum.*': {
-        'exclude_miot_services': 'annoy,remote,time',
+        'exclude_miot_services': 'consumable,annoy,remote,time',
     },
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
+    },
+    'fengmi.projector.*': {
+        'auto_cloud': True,
+        'number_properties': 'speaker.volume',
     },
     'galime.curtain.*': {
         'auto_position_reverse': True,
@@ -275,6 +322,7 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.sensor_gas.mcn02': {
         'chunk_properties': 1,
+        'sensor_properties': 'status',
         'exclude_miot_services': 'gas_sensor_control',
     },
     'lumi.sensor_motion.*': {
@@ -364,6 +412,9 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.016666,
         'unit_of_measurement': 'min',
     },
+    'roidmi.vacuum.*': {
+        'exclude_miot_services': 'custom',
+    },
     'roome.bhf_light.*': {
         'sensor_attributes': 'temp,currenttemp',
         'select_attributes': 'main_state,main_light,night_light,heat,vent,dry,natural_wind,delay_wind',
@@ -419,8 +470,29 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'miio.s_area,miio.s_time',
     },
     'viomi.waterheater.e1': {
-        'miio_properties': 'washStatus,velocity,waterTemp,targetTemp,errStatus,'
-                           'hotWater,needClean,modeType,appointStart,appointEnd',
+        'extend_miot_specs': [
+            {
+                'iid': 2,
+                'properties': [
+                    {
+                        'iid': 2,
+                        'type': 'urn:miot-spec-v2:property:temperature',
+                        'format': 'uint8',
+                        'access': ['read'],
+                        'unit': 'celsius',
+                        'value-range': [0, 255, 1],
+                    },
+                    {
+                        'iid': 5,
+                        'type': 'urn:miot-spec-v2:property:water-level',
+                        'format': 'uint8',
+                        'access': ['read'],
+                        'unit': 'percentage',
+                        'value-range': [0, 100, 1],
+                    },
+                ],
+            },
+        ],
     },
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
@@ -433,6 +505,11 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'iot_linkage,machine_state',
     },
     'xiaomi.tv.*': {
+        'auto_cloud': True,
+        'number_properties': 'speaker.volume',
+    },
+    'xiaomi.tvbox.*': {
+        'auto_cloud': True,
         'number_properties': 'speaker.volume',
     },
     'xiaomi.watch.*': {
@@ -556,6 +633,8 @@ DEVICE_CUSTOMIZES = {
     },
     '*.airpurifier.*': {
         'switch_properties': 'air_purifier.on',
+        'sensor_properties': 'relative_humidity,pm2_5_density,temperature,filter_life_level',
+        'number_properties': 'favorite_fan_level',
     },
     '*.toothbrush.*': {
         'miio_cloud_props': 'event.16',
@@ -570,7 +649,7 @@ DEVICE_CUSTOMIZES = {
     },
     '*.cooker.*': {
         'sensor_properties': 'temperature,left_time',
-        'switch_properties': 'cooker.on,auto_keep_warm',
+        'switch_properties': 'cooker.on',
     },
     '*.desk.*': {
         'button_properties': 'motor_control,reset',
@@ -644,6 +723,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
         'number_properties': 'target_time',
     },
+    '*.tow_w.*': {
+        'sensor_properties': 'temperature',
+        'select_properties': 'mode',
+        'number_properties': 'target_temperature',
+    },
     '*.treadmill.*': {
         'button_actions': 'start_work,pause,stop_working',
         'sensor_properties': 'current_distance,current_step_count,current_calorie_consumption,'
@@ -658,6 +742,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_distance,target_time',
         'select_properties': 'mode',
         'number_select_properties': 'speed_level',
+    },
+    '*.washer.*': {
+        'button_actions': 'start_wash,pause',
     },
     '*.waterheater.*': {
         'switch_properties': 'water_heater.on',

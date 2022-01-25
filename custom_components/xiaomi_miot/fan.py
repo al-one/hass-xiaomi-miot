@@ -64,7 +64,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entities = []
     if miot := config.get('miot_type'):
         spec = await MiotSpec.async_from_type(hass, miot)
-        for srv in spec.get_services(ENTITY_DOMAIN, 'ceiling_fan', 'air_fresh', 'hood'):
+        for srv in spec.get_services(ENTITY_DOMAIN, 'ceiling_fan', 'air_fresh', 'air_purifier', 'hood'):
             if not srv.bool_property('on'):
                 continue
             elif srv.name in ['air_fresh'] and spec.name not in ['air_fresh']:

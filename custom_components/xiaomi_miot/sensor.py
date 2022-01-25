@@ -535,6 +535,7 @@ class MihomeMessageSensor(CoordinatorEntity, SensorEntity, BaseEntity):
         self._attr_name = f'Xiaomi {cloud.user_id} message'
         self._attr_icon = 'mdi:message'
         self._attr_should_poll = False
+        self._attr_native_value = None
         self._attr_extra_state_attributes = {}
         sec = self.custom_config_integer('interval_seconds') or 60
         self.coordinator = DataUpdateCoordinator(

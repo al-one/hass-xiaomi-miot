@@ -242,6 +242,8 @@ class MiotCloud(micloud.MiCloud):
                     await store.async_save(dat)
                     _LOGGER.info('Got %s devices from xiaomi cloud', len(dvs))
             except requests.exceptions.ConnectionError as exc:
+                if not cds:
+                    raise exc
                 dvs = cds
                 _LOGGER.warning('Get xiaomi devices filed: %s, use cached %s devices.', exc, len(cds))
         return dvs
