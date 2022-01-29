@@ -360,17 +360,8 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
         if pnm in self._subs:
             self._subs[pnm].update()
         elif add_camera:
-            from .camera import XiaomiMapCameraEntity
-            self._subs[pnm] = XiaomiMapCameraEntity(self)
-            add_camera([self._subs[pnm]], update_before_add=True)
-
-        add_camera = self._add_entities.get('camera')
-        pnm = 'vacuum_map'
-        if pnm in self._subs:
-            self._subs[pnm].update()
-        elif add_camera:
-            from .camera import XiaomiMapCameraEntity
-            self._subs[pnm] = XiaomiMapCameraEntity(self)
+            from .camera import ViomiMapCameraEntity
+            self._subs[pnm] = ViomiMapCameraEntity(self)
             add_camera([self._subs[pnm]], update_before_add=True)
 
     def locate(self, **kwargs):

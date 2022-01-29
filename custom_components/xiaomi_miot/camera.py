@@ -602,14 +602,35 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
         )
 
 
-class VacummMapCameraEntity(BaseSubEntity, Camera):
+class VacummMapCameraEntity(Camera):
     def __init__(self, parent):
-        super().__init__(parent, 'vacuum_map')
-        Camera.__init__(self)
+        super().__init__()
         self._should_poll = True
-        self._supported_features |= SUPPORT_ON_OFF
+        self._supported_features = SUPPORT_ON_OFF
         self.parent = parent
         self._map_raw_data = None
+        self.content_type = CONTENT_TYPE
+        self.hass = parent.hass
+        self._device = parent._device
+        self._unique_id = f'{parent.unique_id}-vacuum_map'
+        self._name = f'{parent.name} vacuum_map'
+
+    @property
+    def unique_id(self):
+        return self._unique_id
+
+    @property
+    def unique_mac(self):
+        return self.parent.unique_mac
+
+    @property
+    def name(self):
+        return self._name
+
+
+    @property
+    def device_info(self):
+        return self.parent.device_info
 
     @property
     def should_poll(self):
@@ -628,16 +649,10 @@ class VacummMapCameraEntity(BaseSubEntity, Camera):
     @property
     def brand(self):
         return self.device_info.get('manufacturer')
-    @property
-    def state(self) -> str:
-        """Return the camera state."""
-        if self._map_raw_data == None:
-            return STATE_IDLE
-        return STATE_STREAMING
 
     @property
-    def content_type(self) -> str:
-        return CONTENT_TYPE
+    def frame_interval(self):
+        return 1
 
     async def get_map_name(self):
         return '0'
@@ -668,9 +683,18 @@ class VacummMapCameraEntity(BaseSubEntity, Camera):
         return url
 
     async def async_update(self):
-        from homeassistant.components.vacuum import STATE_CLEANING
-        if self.parent.state == STATE_CLEANING or self._map_raw_data == None:
+        if self.is_vacuum_moving() or self._map_raw_data == None:
             self.hass.async_create_task(self.get_map_raw())
+        self._should_poll = self.is_vacuum_moving()
+
+    def is_vacuum_moving(self):
+        from homeassistant.components.vacuum import STATE_CLEANING, STATE_RETURNING
+        return self.parent.state in (STATE_CLEANING, STATE_RETURNING)
+
+    def update(self):
+        asyncio.run_coroutine_threadsafe(
+        self.async_update(), self.hass.loop
+            )
 
     def _get_map_image(self, map_data):
         img_byte_arr = io.BytesIO()
@@ -718,11 +742,12 @@ class XiaomiMapCameraEntity(VacummMapCameraEntity):
                                                  sizes=DEFAULT_SIZES, image_config={CONF_TRIM: DEFAULT_TRIMS ,
                                                                                     CONF_SCALE: 1,
                                                                                     CONF_ROTATE: 0})
-            image = self._get_map_image(map_data)
+            image = await self._get_map_image(map_data)
             _LOGGER.debug(f"Parse raw map data successful")
+            self._map_raw_data
         else:
             _LOGGER.debug("Unable to create map"  )
-            image = self._get_map_image(MapDataParserXiaomi.create_empty(colors={}, text="Loading"))
+            image = await self._get_map_image(MapDataParserXiaomi.create_empty(colors={}, text="Loading"))
         return image
 
 class ViomiMapCameraEntity(VacummMapCameraEntity):
@@ -738,9 +763,9 @@ class ViomiMapCameraEntity(VacummMapCameraEntity):
                                                  sizes=DEFAULT_SIZES, image_config={CONF_TRIM: DEFAULT_TRIMS ,
                                                                                     CONF_SCALE: 1,
                                                                                     CONF_ROTATE: 0})
-            image = self._get_map_image(map_data)
+            image = await self._get_map_image(map_data)
             _LOGGER.debug(f"Parse raw map data successful")
         else:
             _LOGGER.debug("Unable to create map"  )
-            image = self._get_map_image(MapDataParserViomi.create_empty(colors={}, text="Loading"))
+            image = await self._get_map_image(MapDataParserViomi.create_empty(colors={}, text="Loading"))
         return image
