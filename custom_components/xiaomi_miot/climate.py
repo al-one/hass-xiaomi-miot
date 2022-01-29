@@ -115,7 +115,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             if not self._prop_fan_level:
                 self._prop_fan_level = miot_service.get_property('heat_level', 'water_level')
 
-        if miot_service.name in ['air_fresh']:
+        if miot_service.name in ['air_fresh', 'air_purifier']:
             self._name = f'{self._name} Deprecated'
             self._vars['exclude_services'] = ['air_conditioner', 'enhance', 'indicator_light', 'alarm']
 

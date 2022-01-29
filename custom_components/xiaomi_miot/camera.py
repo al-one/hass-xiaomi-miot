@@ -7,6 +7,7 @@ import base64
 import requests
 import re
 import asyncio
+import collections
 from os import urandom
 from functools import partial
 from urllib.parse import urlencode
@@ -86,6 +87,7 @@ class BaseCameraEntity(Camera):
 
     def __init__(self, hass: HomeAssistant):
         super().__init__()
+        self.access_tokens = collections.deque(self.access_tokens, 12 * 2)
         self._manager = hass.data.get(DATA_FFMPEG)
         # http://ffmpeg.org/ffmpeg-all.html
         self._ffmpeg_options = ''
@@ -304,9 +306,9 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 _LOGGER.warning('%s: camera events is empty. %s', self.name, rdt)
         if adt:
             self._supported_features |= SUPPORT_STREAM
-            self.update_attrs(adt)
+            await self.async_update_attrs(adt)
             if self._motion_enable:
-                self.update_attrs(self.motion_event_attributes)
+                await self.async_update_attrs(self.motion_event_attributes)
             if self._motion_entity:
                 await self.hass.async_add_executor_job(self._motion_entity.update)
 
@@ -706,6 +708,11 @@ class XiaomiMapCameraEntity(VacummMapCameraEntity):
         if not url:
             _LOGGER.error("Cannot retrieve vacuum map url !")
         return url
+
+    async def _get_map_image(self, map_data):
+        img_byte_arr = io.BytesIO()
+        map_data.image.data.save(img_byte_arr, format='PNG')
+        return img_byte_arr.getvalue()
 
     async def async_camera_image(self, width=None, height=None):
         import gzip

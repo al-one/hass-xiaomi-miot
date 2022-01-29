@@ -267,7 +267,7 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
         if sta is not None:
             self._state = sta
         if adt:
-            self.update_attrs(adt)
+            await self.async_update_attrs(adt)
 
 
 class MiotToiletEntity(MiotBinarySensorEntity):
@@ -380,7 +380,7 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
         if self._prop_state and self._state is not None:
             adt[self._prop_state.full_name] = self._state
         if adt:
-            self.update_attrs(adt)
+            await self.async_update_attrs(adt)
 
 
 class MiotBinarySensorSubEntity(MiotPropertySubEntity, ToggleSubEntity, BinarySensorEntity):

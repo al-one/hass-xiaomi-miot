@@ -85,16 +85,16 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         self._prop_status = miot_service.get_property('status')
         self._prop_mode = miot_service.get_property('fan_level', 'speed_level', 'mode')
         self._act_start = miot_service.get_action('start_sweep')
-        self._act_pause = miot_service.get_action('pause_sweeping')
+        self._act_pause = miot_service.get_action('pause_sweeping', 'pause')
         self._act_stop = miot_service.get_action('stop_sweeping')
-        self._act_locate = miot_service.get_action('position')
+        self._act_locate = miot_service.get_action('find_device', 'position')
         self._prop_battery = miot_service.get_property('battery_level')
         self._srv_battery = miot_service.spec.get_service('battery')
         if self._srv_battery:
             self._prop_battery = self._srv_battery.get_property('battery_level')
         self._srv_audio = miot_service.spec.get_service('audio', 'voice')
         if self._srv_audio and not self._act_locate:
-            self._act_locate = self._srv_battery.get_property('position', 'find_device')
+            self._act_locate = self._srv_audio.get_action('find_device', 'position')
         self._act_charge = None
         for srv in [*miot_service.spec.get_services('battery', 'go_charging'), miot_service]:
             act = srv.get_action('start_charge', 'start_charging')
@@ -262,7 +262,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         if 'clean_time' in props:
             adt['clean_time'] = round(props['clean_time'] / 60, 1)
         if adt:
-            self.update_attrs(adt)
+            await self.async_update_attrs(adt)
         pnm = 'vacuum_map'
         add_camera = self._add_entities.get('camera')
         if pnm in self._subs:
@@ -353,7 +353,16 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
         if 'miio.s_time' in props:
             adt['clean_time'] = props['miio.s_time']
         if adt:
-            self.update_attrs(adt)
+            await self.async_update_attrs(adt)
+            
+        add_camera = self._add_entities.get('camera')
+        pnm = 'vacuum_map'
+        if pnm in self._subs:
+            self._subs[pnm].update()
+        elif add_camera:
+            from .camera import XiaomiMapCameraEntity
+            self._subs[pnm] = XiaomiMapCameraEntity(self)
+            add_camera([self._subs[pnm]], update_before_add=True)
 
         add_camera = self._add_entities.get('camera')
         pnm = 'vacuum_map'

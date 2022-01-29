@@ -83,7 +83,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                 val = self._prop_status.from_dict(self._state_attrs)
                 if val is not None:
                     off = val in self._prop_status.list_search('Off')
-                    self.update_attrs({
+                    await self.async_update_attrs({
                         self._prop_power.full_name: not off,
                     })
             self._update_sub_entities(self._prop_power.name, domain='switch')
@@ -132,9 +132,6 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     @property
     def current_temperature(self):
         """Return the current temperature."""
-        if 'miio.waterTemp' in self._state_attrs:
-            # viomi.waterheater.e1
-            return round(self._state_attrs.get('miio.waterTemp') or 0)
         if self._prop_temperature:
             return round(self._prop_temperature.from_dict(self._state_attrs) or 0, 2)
         return None
@@ -177,9 +174,6 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
             val = round(self._prop_target_temp.from_dict(self._state_attrs) or 0, 2)
             if val:
                 self._prev_target_temp = val
-            elif 'miio.targetTemp' in self._state_attrs:
-                # viomi.waterheater.e1
-                val = round(self._state_attrs.get('miio.targetTemp') or 0)
             elif self._prev_target_temp:
                 val = self._prev_target_temp
             return val
