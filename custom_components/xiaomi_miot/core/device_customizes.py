@@ -304,6 +304,9 @@ DEVICE_CUSTOMIZES = {
             },
         ],
         'select_properties': 'dry_mode',
+        'motor_reverse': False,
+        'position_reverse': True,
+        'target2current_position': True,
     },
     'lumi.ctrl_neutral1.*': {
         'cloud_delay_update': 10,
