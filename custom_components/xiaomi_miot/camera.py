@@ -605,17 +605,11 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
 class VacummMapCameraEntity(BaseSubEntity, Camera):
     def __init__(self, parent):
         super().__init__(parent, 'vacuum_map')
+        Camera.__init__(self)
         self._should_poll = True
         self._supported_features |= SUPPORT_ON_OFF
         self.parent = parent
         self._map_raw_data = None
-    @property
-    def access_tokens(self) -> str:
-        return  self.parent.miot_did
-
-    @property
-    def entity_picture(self) -> str:
-        return f"/api/camera_proxy/camera.rockrobo_v1_7d69_vacuum_map?token={self.access_tokens}"
 
     @property
     def should_poll(self):
