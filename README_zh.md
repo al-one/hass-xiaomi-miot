@@ -347,6 +347,12 @@ logger:
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设置 > [✍️ 日志](https://my.home-assistant.io/redirect/logs)
 
 
+## 交流
+
+- QQ群：[198841186](https://jq.qq.com/?_wv=1027&k=lZAMn5Uo)
+- 微信群：
+  ![xiaomi miot weixin group](https://user-images.githubusercontent.com/4549099/151705782-397b8b8e-9ff6-45aa-aba2-064f32dbf656.png)
+
 <a name="obtain-miio-token"></a>
 ## 获取 miio token
 
