@@ -208,6 +208,23 @@ DEVICE_CUSTOMIZES = {
     'dreame.vacuum.*': {
         'exclude_miot_services': 'consumable,annoy,remote,time',
     },
+    'dreame.vacuum.mc1808': {
+        'extend_miot_specs': [
+            {
+                'iid': 18,
+                'properties': [
+                    {
+                        'iid': 9,
+                        'type': 'urn:dreame-spec:property:water-box:0000000A:dreame-mc1808:1',
+                        'description': 'water-box',
+                        'format': 'int32',
+                        'access': ['read', 'notify'],
+                        'value-range': [0, 10, 1],
+                    },
+                ],
+            },
+        ],
+    },
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
     },
