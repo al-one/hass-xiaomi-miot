@@ -461,7 +461,10 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.1': {'prop': 'volume', 'setter': True},
         },
     },
-    'minij.washer.v14': 'minij.washer.v5',
+    'minij.washer.v14': {
+        'extend_model': 'minij.washer.v5',
+        'chunk_properties': 1,
+    },
 
     'opple.light.fanlight': {
         # ["LightPower","Brightness","ColorTemperature","Scenes","FanPower","Speed",
