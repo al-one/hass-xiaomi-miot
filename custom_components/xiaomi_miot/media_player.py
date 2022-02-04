@@ -296,12 +296,6 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         if not self._available:
             return
         self._update_sub_entities('on', domain='switch')
-        # deprecated
-        self._update_sub_entities(
-            ['input_control'],
-            ['television', 'projector'],
-            domain='fan',
-        )
 
     def turn_on(self):
         if self._act_turn_on:
