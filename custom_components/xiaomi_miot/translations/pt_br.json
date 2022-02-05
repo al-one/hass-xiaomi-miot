@@ -1,0 +1,111 @@
+{
+    "config": {
+        "flow_title": "Xiaomi Miot: {name}",
+        "step": {
+            "user": {
+                "title": "Selecione a forma de integração",
+                "data": {
+                    "action": "Opções"
+                }
+            },
+            "token": {
+                "description": "Config infor do dispositivo.",
+                "data": {
+                    "host": "IP Local",
+                    "token": "Token",
+                    "name": "Nome do dispositivo",
+                    "scan_interval": "Intervalo de update do estado (segundos)"
+                }
+            },
+            "cloud": {
+                "description": "Configurar pela conta xiaomi.\n{tip}",
+                "data": {
+                    "username": "ID de conta Xiaomi / Email",
+                    "password": "Senha",
+                    "server_country": "Região da MiCloud",
+                    "conn_mode": "Modo de conexão com o dispositivo",
+                    "filter_models": "Filtro de dispositivo via model/WiFi"
+                }
+            },
+            "cloud_filter": {
+                "title": "Filtro de dispositivos da nuvem",
+                "description": "Você pode incluir ou excluir dispositivos para a integrar só o que quiser. No modo de exclusão, se você não marcar nenhuma opção da lista, equivale a incluir todas as opções.\n{tip}",
+                "data": {
+                    "filter_model": "Filtro de dispositivos",
+                    "model_list": "Lista de dispositivos",
+                    "filter_ssid": "Filtro por WiFi SSID",
+                    "ssid_list": "Lista de WiFi SSID",
+                    "filter_bssid": "Filtro WiFi BSSID",
+                    "bssid_list": "Lista de WiFi BSSID",
+                    "filter_did": "Filtrar dispositivos",
+                    "did_list": "Lista de dispositivos"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Falha em conectar o dispositivo",
+            "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
+            "cannot_reach": "Incapaz de accessar a API Xiaomi",
+            "tzinfo_error": "Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Sem dispositivos na conta xiaomi"
+        },
+        "abort": {
+            "already_configured": "O dispositivo já está configurado",
+            "not_xiaomi_miio": "Não é um dispositivo Xiaomi miio/miot."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "Configurar info do dispositivo.",
+                "data": {
+                    "host": "IP Local",
+                    "token": "Token",
+                    "scan_interval": "Intervalo de update do estado (segundos)",
+                    "miot_cloud": "Habilitar miot cloud (Configurar conta no YAML)"
+                }
+            },
+            "cloud": {
+                "description": "Config conta xiaomi.\n{tip}",
+                "data": {
+                    "username": "ID de conta Xiaomi / Email",
+                    "password": "Senha",
+                    "server_country": "Região da MiCloud",
+                    "conn_mode": "Modo de conexão com o dispositivo",
+                    "renew_devices": "Forçar renovar dispositivos"
+                }
+            },
+            "cloud_filter": {
+                "title": "Filtro de dispositivos da nuvem",
+                "description": "Você pode incluir ou excluir dispositivos para a integrar só o que quiser. No modo de exclusão, se você não marcar nenhuma opção da lista, equivale a incluir todas as opções.\n{tip}",
+                "data": {
+                    "filter_model": "Filtro de dispositivos",
+                    "model_list": "Lista de dispositivos",
+                    "filter_ssid": "Filtro por WiFi SSID",
+                    "ssid_list": "Lista de WiFi SSID",
+                    "filter_bssid": "Filtro por WiFi BSSID",
+                    "bssid_list": "Lista de WiFi BSSID",
+                    "filter_did": "Filtrar dispositivos",
+                    "did_list": "Lista de dispositivos"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Falha em conectar o dispositivo",
+            "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
+            "cannot_reach": "Incapaz de accessar a API Xiaomi",
+            "tzinfo_error": "Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Sem dispositivos na conta xiaomi"
+        }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "Versião do componente",
+            "can_reach_server": "Acessar server Xiaomi API",
+            "can_reach_spec": "Acessar server MIoT-Spec",
+            "logged_accounts": "Contas logadas",
+            "total_devices": "Total de dispositivos MiHome"
+        }
+    }
+}
