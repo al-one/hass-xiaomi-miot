@@ -138,7 +138,6 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
 
     def update(self, data=None):
         self._available = True
-        time.sleep(0.2)
         self._attr_current_option = None
 
     def select_option(self, option):
