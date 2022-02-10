@@ -523,6 +523,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
 
     def request_mitv_api(self, path, **kwargs):
         kwargs.setdefault('timeout', 5)
+        req = None
         try:
             req = requests.get(f'{self._mitv_api}{path}', **kwargs)
             rdt = json.loads(req.content or '{}') or {}
@@ -535,6 +536,10 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 log = self.logger.info if 'NewConnectionError' in f'{exc}' else self.logger.warning
                 log('%s: Request mitv api error: %s', self.name, exc)
             self._state_attrs['6095_state'] = False
+        except json.decoder.JSONDecodeError:
+            rdt = {}
+            if req:
+                self.logger.warning('%s: Invalid response data: %s with %s', req.content, kwargs)
         return rdt.get('data') or {}
 
     async def async_request_mitv_api(self, path, **kwargs):
