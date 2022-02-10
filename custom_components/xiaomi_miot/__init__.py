@@ -1982,7 +1982,7 @@ class BaseSubEntity(BaseEntity):
 
     @property
     def available(self):
-        return self._available
+        return self._available and self._parent.available
 
     @property
     def supported_features(self):
