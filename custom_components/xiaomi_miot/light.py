@@ -245,6 +245,10 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
             self._prop_power = parent_power
             self._available = True
 
+    @property
+    def available(self):
+        return self._available and self._parent.available
+
     def update(self, data=None):
         super().update(data)
         if not self._available:
