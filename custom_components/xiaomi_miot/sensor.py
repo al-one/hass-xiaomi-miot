@@ -392,7 +392,7 @@ class MiotCookerEntity(MiotSensorEntity):
                     self._prop_state.full_name: sta,
                 })
         else:
-            _LOGGER.warning('Miot device %s has no turn_action: %s', self.name, on)
+            _LOGGER.warning('%s: Miot device has no turn_action: %s', self.name_model, on)
         return ret
 
 

@@ -132,7 +132,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             val = per * 100
             if self._prop_brightness.value_range:
                 val = per * self._prop_brightness.range_max()
-            _LOGGER.debug('Setting light: %s brightness: %s %s%%', self.name, brightness, per * 100)
+            _LOGGER.debug('%s: Setting light brightness: %s %s%%', self.name_model, brightness, per * 100)
             ret = self.set_property(self._prop_brightness, int(val))
 
         if self._prop_color_temp and ATTR_COLOR_TEMP in kwargs:
@@ -140,18 +140,18 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             color_temp = self.translate_mired(mired)
             if self._vars.get('color_temp_reverse'):
                 color_temp = self._vars.get('color_temp_sum') - color_temp
-            _LOGGER.debug('Setting light: %s color temperature: %s mireds, %s ct', self.name, mired, color_temp)
+            _LOGGER.debug('%s: Setting light color temperature: %s mireds, %s ct', self.name_model, mired, color_temp)
             ret = self.set_property(self._prop_color_temp, color_temp)
 
         if self._prop_color and ATTR_HS_COLOR in kwargs:
             rgb = color.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
             num = rgb_to_int(rgb)
-            _LOGGER.debug('Setting light: %s color: %s', self.name, rgb)
+            _LOGGER.debug('%s: Setting light color: %s', self.name_model, rgb)
             ret = self.set_property(self._prop_color, num)
 
         if self._prop_mode and ATTR_EFFECT in kwargs:
             val = self._prop_mode.list_value(kwargs[ATTR_EFFECT])
-            _LOGGER.debug('Setting light: %s effect: %s(%s)', self.name, kwargs[ATTR_EFFECT], val)
+            _LOGGER.debug('%s: Setting light effect: %s(%s)', self.name_model, kwargs[ATTR_EFFECT], val)
             ret = self.set_property(self._prop_mode, val)
 
         return ret

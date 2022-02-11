@@ -201,7 +201,7 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
         rdt = await self.hass.async_add_executor_job(
             mic.request_miot_api, 'device/batchdevicedatas', [pms],
         ) or {}
-        self.logger.debug('%s: Got miio cloud props: %s', self.name, rdt)
+        self.logger.debug('%s: Got miio cloud props: %s', self.name_model, rdt)
         props = (rdt.get('result') or {}).get(did, {})
         sta = None
         adt = {}
@@ -219,7 +219,7 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
                     val = int.from_bytes(bytes.fromhex(val), 'little')
                 except (TypeError, ValueError):
                     val = None
-                    self.logger.warning('%s: BLE object data invalid: %s (%s)', self.name, k, vls)
+                    self.logger.warning('%s: BLE object data invalid: %s (%s)', self.name_model, k, vls)
             if ise and not tim:
                 continue
 
@@ -374,9 +374,9 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
         elif typ in ['event.leak', 'event.no_leak']:
             self._state = typ == 'event.leak'
         elif self._prop_state and self._prop_state.full_name in self._state_attrs:
-            _LOGGER.info('Get miio data for %s failed: %s', self.name, dlg)
+            _LOGGER.info('%s: Get miio data failed: %s', self.name_model, dlg)
         else:
-            _LOGGER.warning('Get miio data for %s failed: %s', self.name, dlg)
+            _LOGGER.warning('%s: Get miio data failed: %s', self.name_model, dlg)
         if self._prop_state and self._state is not None:
             adt[self._prop_state.full_name] = self._state
         if adt:

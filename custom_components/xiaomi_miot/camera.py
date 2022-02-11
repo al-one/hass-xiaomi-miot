@@ -274,7 +274,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                     'motion_video_latest': fst,
                 }
             else:
-                _LOGGER.warning('%s: camera alarm playlist is empty. %s', self.name, rdt)
+                _LOGGER.warning('%s: camera alarm playlist is empty. %s', self.name_model, rdt)
         else:
             api = mic.get_api_by_host('business.smartcamera.api.io.mi.com', 'common/app/get/eventlist')
             rqd = {
@@ -301,7 +301,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                     'motion_video_latest': fst,
                 }
             else:
-                _LOGGER.warning('%s: camera events is empty. %s', self.name, rdt)
+                _LOGGER.warning('%s: camera events is empty. %s', self.name_model, rdt)
         if adt:
             self._supported_features |= SUPPORT_STREAM
             await self.async_update_attrs(adt)
@@ -339,7 +339,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         now = time.time()
         if now >= self._url_expiration:
             self._last_url = None
-            _LOGGER.debug('%s: camera stream: %s expired: %s', self.name, self._last_url, self._url_expiration)
+            _LOGGER.debug('%s: camera stream: %s expired: %s', self.name_model, self._last_url, self._url_expiration)
         result = {}
         if not self._act_start_stream:
             self.update_attrs({
@@ -365,12 +365,12 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                     ) or {}
                     updater = 'cloud'
                 if isinstance(result, dict):
-                    _LOGGER.debug('%s: Get miot camera stream from %s: %s', self.name, updater, result)
+                    _LOGGER.debug('%s: Get miot camera stream from %s: %s', self.name_model, updater, result)
                 else:
-                    _LOGGER.warning('%s: Get miot camera stream error from %s: %s', self.name, updater, result)
+                    _LOGGER.warning('%s: Get miot camera stream error from %s: %s', self.name_model, updater, result)
                     result = {}
             except MiCloudException as exc:
-                _LOGGER.error('%s: Get miot camera stream from %s failed: %s', self.name, updater, exc)
+                _LOGGER.error('%s: Get miot camera stream from %s failed: %s', self.name_model, updater, exc)
             odt = self._act_start_stream.out_results(result.get('out')) or {
                 'stream_address': '',
             }
@@ -456,7 +456,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         pms = mic.rc4_params('GET', api, {'data': mic.json_encode(pms)})
         pms['yetAnotherServiceToken'] = mic.service_token
         url = f'{api}?{urlencode(pms)}'
-        _LOGGER.debug('%s: Got stream url: %s', self.name, url)
+        _LOGGER.debug('%s: Got stream url: %s', self.name_model, url)
         return url
 
     def get_motion_video_address(self, **kwargs):
@@ -480,7 +480,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         pms = mic.rc4_params('GET', api, {'data': mic.json_encode(dat)})
         pms['yetAnotherServiceToken'] = mic.service_token
         url = f'{api}?{urlencode(pms)}'
-        _LOGGER.debug('%s: Got video url: %s', self.name, url)
+        _LOGGER.debug('%s: Got video url: %s', self.name_model, url)
 
         if kwargs.get('debug'):
             req = requests.get(url)
@@ -488,7 +488,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 try:
                     signed_nonce = mic.signed_nonce(pms['_nonce'])
                     rdt = json.loads(MiotCloud.decrypt_data(signed_nonce, req.text).decode())
-                    _LOGGER.info('%s: video stream content: %s', self.name, rdt)
+                    _LOGGER.info('%s: video stream content: %s', self.name_model, rdt)
                 except (TypeError, ValueError):
                     pass
         if kwargs.get('crypto'):
@@ -503,7 +503,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             return None
         req = requests.get(url)
         if float(req.headers.get('x-xiaomi-status-code', 200)) >= 400:
-            _LOGGER.warning('%s: camera motion stream with a failed http code: %s', self.name, req)
+            _LOGGER.warning('%s: camera motion stream with a failed http code: %s', self.name_model, req)
             return url
         aes_key = None
         aes__iv = None
@@ -517,7 +517,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             req = requests.get(aes_key)
             key = req.content.hex()
             mp4 = f'-decryption_key {key} -decryption_iv {aes__iv} -i "crypto+{mp4}"'
-            _LOGGER.debug('%s: Got video url: %s', self.name, mp4)
+            _LOGGER.debug('%s: Got video url: %s', self.name_model, mp4)
         return mp4
 
     def get_motion_image_address(self, **kwargs):
@@ -541,7 +541,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         pms = mic.rc4_params('GET', api, {'data': mic.json_encode(dat)})
         pms['yetAnotherServiceToken'] = mic.service_token
         url = f'{api}?{urlencode(pms)}'
-        _LOGGER.debug('%s: Got image url: %s', self.name, url)
+        _LOGGER.debug('%s: Got image url: %s', self.name_model, url)
 
         if kwargs.get('crypto'):
             key = base64.b64decode(mic.ssecurity).hex()

@@ -123,7 +123,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             if percentage:
                 ret = self.set_property(self._prop_percentage, percentage)
             elif percentage is not None:
-                _LOGGER.warning('Set fan speed percentage to %s failed: %s', self.name, {
+                _LOGGER.warning('%s: Set fan speed percentage failed: %s', self.name_model, {
                     'speed': speed,
                     'percentage': percentage,
                 })
@@ -137,7 +137,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             if val is not None:
                 ret = self.set_property(self._prop_speed, val)
             elif speed is not None:
-                _LOGGER.warning('Set fan speed level to %s failed: %s', self.name, {
+                _LOGGER.warning('%s: Set fan speed level failed: %s', self.name_model, {
                     'speed': speed,
                     'percentage': percentage,
                     'value':  val,
@@ -253,7 +253,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             else:
                 if n > num:
                     num = n
-        _LOGGER.debug('Setting direction to %s: %s(%s)', self.name, direction, num)
+        _LOGGER.debug('%s: Setting direction: %s(%s)', self.name_model, direction, num)
         return self.set_property(self._prop_direction, num)
 
     @property
@@ -473,7 +473,7 @@ class MiotModesSubEntity(MiotPropertySubEntity, FanSubEntity):
                 val = round(float(preset_mode) / stp) * stp
             except ValueError as exc:
                 val = None
-                _LOGGER.warning('Switch mode: %s to %s failed: %s', preset_mode, self.name, exc)
+                _LOGGER.warning('%s: Switch mode: %s failed: %s', self.name_model, preset_mode, exc)
         else:
             val = self._miot_property.list_first(preset_mode)
         if val is not None:

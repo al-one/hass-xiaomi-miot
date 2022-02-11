@@ -357,7 +357,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
         dvc = self.miot_device
         if not dvc:
             raise NotImplementedError()
-        _LOGGER.debug('Send command to %s: %s %s', self.name, command, params)
+        _LOGGER.debug('%s: Send command: %s %s', self.name_model, command, params)
         if command == 'app_zoned_clean':
             rpt = 1
             lst = []

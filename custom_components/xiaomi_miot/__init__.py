@@ -525,6 +525,10 @@ class BaseEntity(Entity):
     _config = None
     _model = None
 
+    @property
+    def name_model(self):
+        return f'{self.name}({self._model})'
+
     def global_config(self, key=None, default=None):
         if not self.hass:
             return default
@@ -636,7 +640,7 @@ class BaseEntity(Entity):
         tim = timedelta(seconds=sec)
         if sec > 0 and tim != self.platform.scan_interval:
             self.platform.scan_interval = tim
-            _LOGGER.debug('%s: Update custom scan interval: %s', self.name, tim)
+            _LOGGER.debug('%s: Update custom scan interval: %s', self.name_model, tim)
 
     def filter_state_attributes(self, dat: dict):
         if exl := self.global_config('exclude_state_attributes'):
@@ -711,6 +715,14 @@ class MiioEntity(BaseEntity):
         return self._name
 
     @property
+    def name_model(self):
+        return f'{self.device_name}({self._model})'
+
+    @property
+    def device_name(self):
+        return self._config.get(CONF_NAME) or self._name
+
+    @property
     def available(self):
         return self._available
 
@@ -731,10 +743,6 @@ class MiioEntity(BaseEntity):
     @property
     def supported_features(self):
         return self._supported_features
-
-    @property
-    def device_name(self):
-        return self._config.get(CONF_NAME) or self._name
 
     @property
     def device_info(self):
@@ -782,7 +790,7 @@ class MiioEntity(BaseEntity):
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
             result = await self.hass.async_add_executor_job(partial(func, *args, **kwargs))
-            self.logger.debug('%s: Response received from miio: %s', self.name, result)
+            self.logger.debug('%s: Response received from miio: %s', self.name_model, result)
             return result == self._success_result
         except DeviceException as exc:
             self.logger.error(mask_error, exc)
@@ -790,15 +798,15 @@ class MiioEntity(BaseEntity):
         return False
 
     def send_miio_command(self, method, params=None, **kwargs):
-        self.logger.debug('%s: Send miio command: %s(%s)', self.name, method, params)
+        self.logger.debug('%s: Send miio command: %s(%s)', self.name_model, method, params)
         try:
             result = self._device.send(method, params if params is not None else [])
         except DeviceException as ex:
-            self.logger.error('%s: Send miio command: %s(%s) failed: %s', self.name, method, params, ex)
+            self.logger.error('%s: Send miio command: %s(%s) failed: %s', self.name_model, method, params, ex)
             return False
         ret = result == self._success_result
         if not ret:
-            self.logger.info('%s: Send miio command: %s(%s) failed, result: %s', self.name, method, params, result)
+            self.logger.info('%s: Send miio command: %s(%s) failed, result: %s', self.name_model, method, params, result)
         if kwargs.get('throw'):
             persistent_notification.create(
                 self.hass,
@@ -823,10 +831,10 @@ class MiioEntity(BaseEntity):
             )
         except DeviceException as ex:
             self._available = False
-            self.logger.error('%s: Got exception while fetching the state %s: %s', self.name, self._props, ex)
+            self.logger.error('%s: Got exception while fetching the state %s: %s', self.name_model, self._props, ex)
             return
         attrs = dict(zip(self._props, attrs))
-        self.logger.debug('%s: Got new state: %s', self.name, attrs)
+        self.logger.debug('%s: Got new state: %s', self.name_model, attrs)
         self._available = True
         self._state = attrs.get('power') == 'on'
         await self.async_update_attrs(attrs)
@@ -849,7 +857,7 @@ class MiioEntity(BaseEntity):
                 self._check_same_sub_entity(p, domain, add=1)
             elif tms > 0:
                 if tms <= 1:
-                    self.logger.info('%s: Device sub entity %s: %s already exists.', self.name, domain, p)
+                    self.logger.info('%s: Device sub entity %s: %s already exists.', self.name_model, domain, p)
                 continue
             elif not add_sensors:
                 pass
@@ -988,7 +996,7 @@ class MiotEntity(MiioEntity):
                 exclude_properties=eps,
             ) or {}
             self._miot_mapping = {**dic, **self._miot_mapping, **dic}
-        self.logger.info('%s: Initializing miot device with mapping: %s', self.name, self._miot_mapping)
+        self.logger.info('%s: Initializing miot device with mapping: %s', self.name_model, self._miot_mapping)
 
     @property
     def miot_device(self):
@@ -1022,7 +1030,7 @@ class MiotEntity(MiioEntity):
                         # https://github.com/al-one/hass-xiaomi-miot/issues/44#issuecomment-815474650
                         device = MiotDevice(mapping, host, token)  # noqa
             except ValueError as exc:
-                self.logger.warning('%s: Initializing with host %s failed: %s', host, self.name, exc)
+                self.logger.warning('%s: Initializing with host %s failed: %s', host, self.name_model, exc)
             if device:
                 self._device = device
         return self._device
@@ -1116,7 +1124,7 @@ class MiotEntity(MiioEntity):
             results = await self.hass.async_add_executor_job(partial(func, *args, **kwargs)) or []
             for result in results:
                 break
-            self.logger.debug('%s: Response received from miot: %s', self.name, result)
+            self.logger.debug('%s: Response received from miot: %s', self.name_model, result)
             if isinstance(result, dict):
                 return dict(result or {}).get('code', 1) == self._success_code
             else:
@@ -1129,7 +1137,7 @@ class MiotEntity(MiioEntity):
     def send_miio_command(self, method, params=None, **kwargs):
         if self.miot_device:
             return super().send_miio_command(method, params, **kwargs)
-        self.logger.error('%s: None local device for send miio command %s(%s)', self.name, method, params)
+        self.logger.error('%s: None local device for send miio command %s(%s)', self.name_model, method, params)
 
     async def async_update(self):
         if self._vars.get('delay_update'):
@@ -1323,7 +1331,7 @@ class MiotEntity(MiioEntity):
         if self._subs:
             attrs['sub_entities'] = list(self._subs.keys())
         await self.async_update_attrs(attrs)
-        self.logger.debug('%s: Got new state: %s', self.name, attrs)
+        self.logger.debug('%s: Got new state: %s', self.name_model, attrs)
 
         # update miio prop/event in cloud
         if cls := self.custom_config_list('miio_cloud_records'):
@@ -1371,7 +1379,7 @@ class MiotEntity(MiioEntity):
                 num = self.custom_config_integer('chunk_properties') or 15
                 attrs = self._device.get_properties(props, max_properties=num)
             except DeviceException as exc:
-                self.logger.warning('%s: Got miio properties %s failed: %s', self.name, props, exc)
+                self.logger.warning('%s: Got miio properties %s failed: %s', self.name_model, props, exc)
                 return
             if len(props) != len(attrs):
                 self.update_attrs({
@@ -1379,7 +1387,7 @@ class MiotEntity(MiioEntity):
                 })
                 return
         attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
-        self.logger.debug('%s: Got miio properties: %s', self.name, attrs)
+        self.logger.debug('%s: Got miio properties: %s', self.name_model, attrs)
         self.update_attrs(attrs)
 
     def update_miio_commands(self, commands):
@@ -1398,7 +1406,7 @@ class MiotEntity(MiioEntity):
             try:
                 attrs = self._device.send(cmd, pms)
             except DeviceException as exc:
-                self.logger.warning('%s: Send miio command %s(%s) failed: %s', self.name, cmd, cfg, exc)
+                self.logger.warning('%s: Send miio command %s(%s) failed: %s', self.name_model, cmd, cfg, exc)
                 continue
             props = cfg.get('values', pms) or []
             if len(props) != len(attrs):
@@ -1407,7 +1415,7 @@ class MiotEntity(MiioEntity):
                 }
             else:
                 attrs = dict(zip(props, attrs))
-            self.logger.debug('%s: Got miio properties: %s', self.name, attrs)
+            self.logger.debug('%s: Got miio properties: %s', self.name_model, attrs)
             self.update_attrs(attrs)
 
     def update_miio_cloud_props(self, keys):
@@ -1425,7 +1433,7 @@ class MiotEntity(MiioEntity):
             'props': kls,
         }
         rdt = mic.request_miot_api('device/batchdevicedatas', [pms]) or {}
-        self.logger.debug('%s: Got miio cloud props: %s', self.name, rdt)
+        self.logger.debug('%s: Got miio cloud props: %s', self.name_model, rdt)
         props = (rdt.get('result') or {}).get(did, {})
 
         tpl = self.custom_config('miio_cloud_props_template')
@@ -1496,7 +1504,7 @@ class MiotEntity(MiioEntity):
                 'limit': int(c.get('limit') or 1),
             }
             rdt = mic.request_miot_api('v2/user/statistics', pms) or {}
-            self.logger.debug('%s: Got micloud statistics: %s', self.name, rdt)
+            self.logger.debug('%s: Got micloud statistics: %s', self.name_model, rdt)
             tpl = c.get('template')
             if tpl:
                 tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
@@ -1535,7 +1543,7 @@ class MiotEntity(MiioEntity):
             prop['did']: prop['value'] if prop['code'] == 0 else None
             for prop in results
         }
-        self.logger.info('%s: Get miot properties: %s', self.name, results)
+        self.logger.info('%s: Get miot properties: %s', self.name_model, results)
         if throw:
             persistent_notification.create(
                 self.hass,
@@ -1558,14 +1566,17 @@ class MiotEntity(MiioEntity):
         else:
             ext = self.miot_mapping.get(field) or {}
             if not ext:
-                self.logger.warning('%s: Set miot property %s(%s) failed: property not found', self.name, field, value)
+                self.logger.warning(
+                    '%s: Set miot property %s(%s) failed: property not found',
+                    self.name_model, field, value,
+                )
                 return False
             siid = ext['siid']
             piid = ext['piid']
         try:
             result = self.set_miot_property(siid, piid, value)
         except (DeviceException, MiCloudException) as exc:
-            self.logger.error('%s: Set miot property %s(%s) failed: %s', self.name, field, value, exc)
+            self.logger.error('%s: Set miot property %s(%s) failed: %s', self.name_model, field, value, exc)
             return False
         ret = result.is_success if result else False
         if ret:
@@ -1573,14 +1584,14 @@ class MiotEntity(MiioEntity):
                 self.update_attrs({
                     field: value,
                 }, update_parent=False)
-            self.logger.debug('%s: Set miot property %s(%s), result: %s', self.name, field, value, result)
+            self.logger.debug('%s: Set miot property %s(%s), result: %s', self.name_model, field, value, result)
         else:
-            self.logger.info('%s: Set miot property %s(%s) failed, result: %s', self.name, field, value, result)
+            self.logger.info('%s: Set miot property %s(%s) failed, result: %s', self.name_model, field, value, result)
         return ret
 
     async def async_set_property(self, *args, **kwargs):
         if not self.hass:
-            self.logger.info('%s: Set miot property %s failed: hass not ready.', self.name, args)
+            self.logger.info('%s: Set miot property %s failed: hass not ready.', self.name_model, args)
             return False
         return await self.hass.async_add_executor_job(partial(self.set_property, *args, **kwargs))
 
@@ -1611,13 +1622,13 @@ class MiotEntity(MiioEntity):
                 results = self.miot_device.send('set_properties', [pms])
             ret = MiotResults(results).first
         except (DeviceException, MiCloudException) as exc:
-            self.logger.warning('%s: Set miot property %s failed: %s', self.name, pms, exc)
+            self.logger.warning('%s: Set miot property %s failed: %s', self.name_model, pms, exc)
         if ret:
             self._vars['delay_update'] = dly
             if not ret.is_success:
-                self.logger.warning('%s: Set miot property %s failed, result: %s', self.name, pms, ret)
+                self.logger.warning('%s: Set miot property %s failed, result: %s', self.name_model, pms, ret)
             else:
-                self.logger.debug('%s: Set miot property %s, result: %s', self.name, pms, ret)
+                self.logger.debug('%s: Set miot property %s, result: %s', self.name_model, pms, ret)
                 if not self._miot_service:
                     pass
                 elif not (srv := self._miot_service.spec.services.get(siid)):
@@ -1677,16 +1688,16 @@ class MiotEntity(MiioEntity):
                 result = self.miot_device.send('action', pms)
             eno = dict(result or {}).get('code', eno)
         except (DeviceException, MiCloudException) as exc:
-            self.logger.warning('%s: Call miot action %s failed: %s', self.name, pms, exc)
+            self.logger.warning('%s: Call miot action %s failed: %s', self.name_model, pms, exc)
         except (TypeError, ValueError) as exc:
-            self.logger.warning('%s: Call miot action %s failed: %s, result: %s', self.name, pms, exc, result)
+            self.logger.warning('%s: Call miot action %s failed: %s, result: %s', self.name_model, pms, exc, result)
         ret = eno == self._success_code
         if ret:
             self._vars['delay_update'] = dly
-            self.logger.debug('%s: Call miot action %s, result: %s', self.name, pms, result)
+            self.logger.debug('%s: Call miot action %s, result: %s', self.name_model, pms, result)
         else:
             self._state_attrs['miot_action_error'] = MiotSpec.spec_error(eno)
-            self.logger.info('%s: Call miot action %s failed: %s', self.name, pms, result)
+            self.logger.info('%s: Call miot action %s failed: %s', self.name_model, pms, result)
         self._state_attrs['miot_action_result'] = result
         if kwargs.get('throw'):
             persistent_notification.create(
@@ -1757,7 +1768,7 @@ class MiotEntity(MiioEntity):
                     self._check_same_sub_entity(fnm, domain, add=1)
                 elif tms > 0:
                     if tms <= 1:
-                        self.logger.info('%s: Device sub entity %s: %s already exists.', self.name, domain, fnm)
+                        self.logger.info('%s: Device sub entity %s: %s already exists.', self.name_model, domain, fnm)
                 elif add_lights and domain == 'light':
                     pon = s.get_property('on', 'color', 'brightness')
                     if pon and pon.full_name in self._state_attrs:
@@ -1770,7 +1781,7 @@ class MiotEntity(MiioEntity):
                         add_fans([self._subs[fnm]], update_before_add=True)
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
-                    self.logger.debug('%s: Added sub entity %s: %s', self.name, domain, fnm)
+                    self.logger.debug('%s: Added sub entity %s: %s', self.name_model, domain, fnm)
                 continue
             pls = []
             if properties:
@@ -1791,7 +1802,7 @@ class MiotEntity(MiioEntity):
                     self._check_same_sub_entity(fnm, domain, add=1)
                 elif tms > 0:
                     if tms <= 1:
-                        self.logger.info('%s: Device sub entity %s: %s already exists.', self.name, domain, fnm)
+                        self.logger.info('%s: Device sub entity %s: %s already exists.', self.name_model, domain, fnm)
                 elif isinstance(p, MiotAction):
                     if add_buttons and domain == 'button':
                         from .button import MiotButtonActionSubEntity
@@ -1842,7 +1853,7 @@ class MiotEntity(MiioEntity):
                     add_selects([self._subs[fnm]], update_before_add=True)
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
-                    self.logger.debug('%s: Added sub entity %s: %s', self.name, domain, fnm)
+                    self.logger.debug('%s: Added sub entity %s: %s', self.name_model, domain, fnm)
 
     async def async_get_device_data(self, key, did=None, throw=False, **kwargs):
         if did is None:
@@ -1862,7 +1873,7 @@ class MiotEntity(MiioEntity):
         if throw:
             raise Warning(f'Xiaomi device data for {self.name}: {result}')
         else:
-            _LOGGER.debug('%s: Xiaomi device data: %s', self.name, result)
+            _LOGGER.debug('%s: Xiaomi device data: %s', self.name_model, result)
         return result
 
     async def async_get_bindkey(self, did=None, throw=False):
@@ -1880,7 +1891,7 @@ class MiotEntity(MiioEntity):
         if throw:
             raise Warning(f'Xiaomi device bindkey for {self.name}: {result}')
         else:
-            _LOGGER.warning('%s: Xiaomi device bindkey/beaconkey: %s', self.name, result)
+            _LOGGER.warning('%s: Xiaomi device bindkey/beaconkey: %s', self.name_model, result)
         return (result or {}).get('beaconkey')
 
     async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=True, **kwargs):
@@ -1979,9 +1990,16 @@ class BaseSubEntity(BaseEntity):
     def name(self):
         return self._name
 
+    @property
+    def device_name(self):
+        return self._parent.device_name
+
+    @property
+    def name_model(self):
+        return f'{self.device_name}({self._model})'
+
     def format_name_by_property(self, prop: MiotProperty):
-        dnm = self._parent.device_name
-        return f'{dnm} {prop.friendly_desc}'.strip()
+        return f'{self.device_name} {prop.friendly_desc}'.strip()
 
     @property
     def state(self):
@@ -2111,7 +2129,7 @@ class BaseSubEntity(BaseEntity):
             if hasattr(self._parent, f):
                 ret = getattr(self._parent, f)(*args, **kwargs)
                 break
-            _LOGGER.info('%s: Parent entity has no method: %s', self.name, f)
+            _LOGGER.info('%s: Parent entity has no method: %s', self.name_model, f)
         if ret:
             self.update()
         return ret

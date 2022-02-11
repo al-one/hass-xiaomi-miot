@@ -324,13 +324,13 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                     pms.append(sil)
                 return self.miot_action(srv.iid, act.iid, pms, **kwargs)
             else:
-                _LOGGER.warning('%s does not have action: %s', self.name, anm)
+                _LOGGER.warning('%s does not have action: %s', self.name_model, anm)
         elif self._message_router:
             act = self._message_router.get_action('post')
             if act and execute:
                 return self.call_action(act, [text], **kwargs)
         else:
-            _LOGGER.error('%s does not have service: %s', self.name, 'intelligent_speaker/message_router')
+            _LOGGER.error('%s does not have service: %s', self.name_model, 'intelligent_speaker/message_router')
         return False
 
     async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
@@ -344,9 +344,9 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 pms = [text or ''] if act.ins else []
                 return self.miot_action(srv.iid, act.iid, pms, **kwargs)
             else:
-                _LOGGER.warning('%s does not have action: %s', self.name, 'wake_up')
+                _LOGGER.warning('%s does not have action: %s', self.name_model, 'wake_up')
         else:
-            _LOGGER.error('%s does not have service: %s', self.name, 'intelligent_speaker')
+            _LOGGER.error('%s does not have service: %s', self.name_model, 'intelligent_speaker')
         return False
 
     async def async_xiaoai_wakeup(self, text=None, **kwargs):
@@ -491,7 +491,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             'sign': hashlib.md5(f'mitvsignsalt{media_id}{self._api_key}{tim[-5:]}'.encode()).hexdigest(),
         }
         rdt = self.request_mitv_api('controller', params=pms)
-        self.logger.debug('%s: Play media: %s', self.name, [pms, rdt])
+        self.logger.debug('%s: Play media: %s', self.name_model, [pms, rdt])
         return not not rdt
 
     def start_app(self, app, **kwargs):
@@ -529,12 +529,12 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             rdt = json.loads(req.content or '{}') or {}
             self._state_attrs['6095_state'] = True
             if 'success' not in rdt.get('msg', ''):
-                self.logger.warning('%s: Request mitv api error: %s', self.name, req.text)
+                self.logger.warning('%s: Request mitv api error: %s', self.name_model, req.text)
         except requests.exceptions.RequestException as exc:
             rdt = {}
             if self._state_attrs.get('6095_state'):
                 log = self.logger.info if 'NewConnectionError' in f'{exc}' else self.logger.warning
-                log('%s: Request mitv api error: %s', self.name, exc)
+                log('%s: Request mitv api error: %s', self.name_model, exc)
             self._state_attrs['6095_state'] = False
         except json.decoder.JSONDecodeError:
             rdt = {}

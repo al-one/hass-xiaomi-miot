@@ -246,7 +246,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 num = float(sta.state)
             except ValueError:
                 num = None
-                _LOGGER.info('Got bound state from %s for %s: %s, state invalid', bse, self.name, sta.state)
+                _LOGGER.info('%s: Got bound state from %s: %s, state invalid', self.name_model, bse, sta.state)
             if num is not None:
                 cls = sta.attributes.get(ATTR_DEVICE_CLASS)
                 unit = sta.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
@@ -256,7 +256,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                     ext[ATTR_CURRENT_HUMIDITY] = num
         if ext:
             self.update_attrs(ext)
-            _LOGGER.debug('Got bound state from %s for %s: %s', bss, self.name, ext)
+            _LOGGER.debug('%s: Got bound state from %s: %s', self.name_model, bss, ext)
 
     @property
     def is_on(self):
