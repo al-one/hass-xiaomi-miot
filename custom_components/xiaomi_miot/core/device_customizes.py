@@ -5,7 +5,7 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'custom',
     },
     'cgllc.airm.cgdn1': {
-        'chunk_properties': 9,
+        'exclude_miot_services': 'mac,settings',
     },
     'chuangmi.camera.v6': {
         'use_alarm_playlist': True,
