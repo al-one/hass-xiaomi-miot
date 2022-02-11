@@ -151,6 +151,7 @@ class MiotSpec(MiotSpecInstance):
 
     def services_mapping(self, *args, **kwargs):
         dat = None
+        eps = kwargs.pop('exclude_properties', [])
         sls = self.get_services(*args, **kwargs)
         if self.custom_mapping:
             sis = list(map(lambda x: x.iid, sls))
@@ -163,7 +164,7 @@ class MiotSpec(MiotSpecInstance):
         for s in sls:
             if dat is None:
                 dat = {}
-            nxt = s.mapping() or {}
+            nxt = s.mapping(excludes=eps) or {}
             dat = {**nxt, **dat}
         return dat
 
@@ -361,14 +362,21 @@ class MiotService(MiotSpecInstance):
     def name_count(self):
         return self.spec.services_count.get(self.name) or 0
 
-    def mapping(self):
+    def mapping(self, excludes=None):
         dat = {}
+        if not isinstance(excludes, list):
+            excludes = []
         for p in self.properties.values():
             if not isinstance(p, MiotProperty):
                 continue
             if not p.full_name:
                 continue
             if not p.readable and not p.writeable:
+                continue
+            if p.name in excludes \
+                    or p.full_name in excludes \
+                    or p.friendly_name in excludes \
+                    or p.unique_prop in excludes:
                 continue
             dat[p.full_name] = {
                 'siid': self.iid,
@@ -457,6 +465,7 @@ class MiotProperty(MiotSpecInstance):
         self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
         self.unique_prop = self.service.unique_prop(piid=self.iid)
         self.desc_name = self.format_desc_name(self.description, self.name)
+        self.friendly_name = f'{service.name}.{self.name}'
         self.friendly_desc = self.short_desc
         self.format = dat.get('format') or ''
         self.access = dat.get('access') or []
@@ -468,7 +477,7 @@ class MiotProperty(MiotSpecInstance):
             if self.name == service.name:
                 self.full_name = self.name
             else:
-                self.full_name = f'{service.name}.{self.name}'
+                self.full_name = self.friendly_name
             if service.name_count > 1:
                 self.full_name = f'{service.unique_name}.{self.name}'
             if self.full_name in service.spec.services_properties:

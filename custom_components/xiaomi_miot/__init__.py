@@ -957,7 +957,10 @@ class MiotEntity(MiioEntity):
                     self._miot_service.spec.extend_specs(services=ext)
                 self._miio2miot = Miio2MiotHelper.from_model(self.hass, self._model, self._miot_service.spec)
             if not self._miot_mapping:
-                self._miot_mapping = miot_service.mapping() or {}
+                eps = self.custom_config_list('exclude_miot_properties') or []
+                if eps:
+                    self._state_attrs['exclude_miot_properties'] = eps
+                self._miot_mapping = miot_service.mapping(excludes=eps) or {}
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self.entity_id = self._miot_service.generate_entity_id(self)
             self._state_attrs['miot_type'] = self._miot_service.spec.type
@@ -976,10 +979,14 @@ class MiotEntity(MiioEntity):
         if ems:
             self._vars['exclude_services'] = ems
             self._state_attrs['exclude_miot_services'] = ems
+        eps = self._state_attrs.get('exclude_miot_properties') or []
         if not self._vars.get('has_special_mapping'):
-            dic = self._miot_service.mapping() or {}
+            dic = self._miot_service.mapping(excludes=eps) or {}
             ems = [self._miot_service.name, *ems]
-            self._miot_mapping = self._miot_service.spec.services_mapping(excludes=ems) or {}
+            self._miot_mapping = self._miot_service.spec.services_mapping(
+                excludes=ems,
+                exclude_properties=eps,
+            ) or {}
             self._miot_mapping = {**dic, **self._miot_mapping, **dic}
         self.logger.info('%s: Initializing miot device with mapping: %s', self.name, self._miot_mapping)
 
