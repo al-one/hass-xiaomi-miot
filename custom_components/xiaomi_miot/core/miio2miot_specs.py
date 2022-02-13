@@ -518,6 +518,16 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.6': {'prop': 'cid', 'template': '{{ 2 if val == 360 else 1 }}'},
         },
     },
+    'philips.light.moonlight': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'pow', 'setter': 'set_power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bri', 'setter': 'set_bright'},
+            'prop.2.3': {'prop': 'rgb', 'setter': True},
+            'prop.2.4': {'prop': 'cct', 'setter': True},
+            #'prop.2.5': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
+            #'prop.2.6': {'prop': 'cid',},
+        },
+    },
 
     'rockrobo.vacuum.v1': {
         'extend_model': 'roborock.vacuum.t6',
