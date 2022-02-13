@@ -523,7 +523,7 @@ DEVICE_CUSTOMIZES = {
                         'iid': 101,
                         'type': 'urn:miot-spec-v2:property:water-level',
                         'format': 'uint8',
-                        'access': ['read', 'write'],
+                        'access': ['read'],
                         'unit': 'percentage',
                         'value-range': [0, 100, 1],
                     },
