@@ -520,6 +520,12 @@ DEVICE_CUSTOMIZES = {
                 'iid': 2,
                 'properties': [
                     {
+                        'iid': 5,
+                        'type': 'urn:miot-spec-v2:property:on',
+                        'format': 'bool',
+                        'access': ['read', 'write'],
+                    },
+                    {
                         'iid': 101,
                         'type': 'urn:miot-spec-v2:property:water-level',
                         'format': 'uint8',
