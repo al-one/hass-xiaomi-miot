@@ -514,6 +514,48 @@ DEVICE_CUSTOMIZES = {
             },
         ],
     },
+    'viomi.waterheater.u8': {
+        'extend_miot_specs': [
+            {
+                'iid': 2,
+                'properties': [
+                    {
+                        'iid': 101,
+                        'type': 'urn:miot-spec-v2:property:water-level',
+                        'format': 'uint8',
+                        'access': ['read', 'write'],
+                        'unit': 'percentage',
+                        'value-range': [0, 100, 1],
+                    },
+                    {
+                        'iid': 102,
+                        'type': 'urn:miot-spec-v2:property:mode',
+                        'format': 'uint8',
+                        'access': ['read', 'write'],
+                        'value-list': [
+                            {'value': 0, 'description': 'Custom'},
+                            {'value': 1, 'description': 'Children'},
+                            {'value': 2, 'description': 'Comfortable'},
+                            {'value': 3, 'description': 'Old Man'},
+                            {'value': 4, 'description': 'Kitchen'},
+                        ],
+                    },
+                ],
+            },
+            {
+                'iid': 200,
+                'type': 'urn:miot-spec-v2:service:extend',
+                'properties': [
+                    {
+                        'iid': 201,
+                        'type': 'urn:miot-spec-v2:property:on',
+                        'format': 'bool',
+                        'access': ['read', 'write'],
+                    },
+                ],
+            },
+        ],
+    },
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
     },
