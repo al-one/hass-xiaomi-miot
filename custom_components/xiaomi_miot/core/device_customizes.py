@@ -544,7 +544,7 @@ DEVICE_CUSTOMIZES = {
             },
             {
                 'iid': 200,
-                'type': 'urn:miot-spec-v2:service:extend',
+                'type': 'urn:miot-spec-v2:service:cruise-appointmen',
                 'properties': [
                     {
                         'iid': 201,
