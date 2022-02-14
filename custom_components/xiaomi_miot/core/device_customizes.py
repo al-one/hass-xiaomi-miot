@@ -521,9 +521,11 @@ DEVICE_CUSTOMIZES = {
                 'properties': [
                     {
                         'iid': 5,
-                        'type': 'urn:miot-spec-v2:property:on',
-                        'format': 'bool',
                         'access': ['read', 'write'],
+                    },
+                    {
+                        'iid': 3,
+                        'access': ['read'],
                     },
                     {
                         'iid': 101,
