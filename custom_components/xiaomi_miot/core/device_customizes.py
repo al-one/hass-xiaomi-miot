@@ -65,46 +65,6 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
-    'chunmi.cooker.eh1': {
-        'extend_miot_specs': [
-            {
-                'iid': 2,
-                'properties': [
-                    {
-                        'iid': 1,
-                        'type': 'urn:miot-spec-v2:property:status',
-                        'format': 'uint8',
-                        'access': ['read'],
-                        'value-list': [
-                            {'value': 1, 'description': 'Idle'},
-                            {'value': 2, 'description': 'Running'},
-                            {'value': 3, 'description': 'Keep Warm'},
-                            {'value': 4, 'description': 'Cook Reservation'},
-                            {'value': 5, 'description': 'Setting'},
-                            {'value': 6, 'description': 'Setting'},
-                            {'value': 7, 'description': 'Setting'},
-                            {'value': 8, 'description': 'Error'},
-                            {'value': 9, 'description': 'Finish'},
-                        ],
-                    },
-                    {
-                        'iid': 101,
-                        'type': 'urn:miot-spec-v2:property:menu',
-                        'format': 'string',
-                        'access': ['read'],
-                    },
-                    {
-                        'iid': 102,
-                        'type': 'urn:miot-spec-v2:property:left_time',
-                        'unit': 'seconds',
-                        'format': 'uint32',
-                        'access': ['read'],
-                        'value-range': [0, 65535, 1],
-                    },
-                ],
-            },
-        ],
-    },
     'chunmi.health_pot.a1': {
         'miot_local': True,
     },
@@ -208,23 +168,6 @@ DEVICE_CUSTOMIZES = {
     'dreame.vacuum.*': {
         'exclude_miot_services': 'consumable,annoy,remote,time',
     },
-    'dreame.vacuum.mc1808': {
-        'extend_miot_specs': [
-            {
-                'iid': 18,
-                'properties': [
-                    {
-                        'iid': 9,
-                        'type': 'urn:dreame-spec:property:water-box:0000000A:dreame-mc1808:1',
-                        'description': 'water-box',
-                        'format': 'int32',
-                        'access': ['read', 'notify'],
-                        'value-range': [0, 10, 1],
-                    },
-                ],
-            },
-        ],
-    },
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
     },
@@ -306,24 +249,6 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'kWh',
     },
     'lumi.airer.acn01': {
-        'extend_miot_specs': [
-            {
-                'iid': 2,
-                'properties': [
-                    {
-                        'iid': 101,
-                        'type': 'urn:miot-spec-v2:property:dry_mode',
-                        'format': 'uint8',
-                        'access': ['read', 'write'],
-                        'value-list': [
-                            {'value': 0, 'description': 'off'},
-                            {'value': 1, 'description': 'dry'},
-                            {'value': 2, 'description': 'winddry'},
-                        ],
-                    },
-                ],
-            },
-        ],
         'select_properties': 'dry_mode',
         'motor_reverse': False,
         'position_reverse': True,
@@ -446,77 +371,8 @@ DEVICE_CUSTOMIZES = {
     'suittc.airrtc.wk168': {
         'switch_properties': 'on',
     },
-    'tinymu.toiletlid.v1': {
-        'extend_miot_specs': [
-            {
-                'iid': 3,
-                'properties': [
-                    {
-                        'iid': 101,
-                        'type': 'urn:miot-spec-v2:property:status',
-                        'format': 'uint8',
-                        'access': ['read'],
-                        'value-list': [
-                            {'value': 0, 'description': 'idle'},
-                            {'value': 1, 'description': 'occupied'},
-                            {'value': 2, 'description': 'rear_cleanse'},
-                            {'value': 3, 'description': 'front_cleanse'},
-                            {'value': 6, 'description': 'nozzle_clean'},
-                        ],
-                    },
-                    {
-                        'iid': 102,
-                        'type': 'urn:miot-spec-v2:property:seating-state',
-                        'format': 'bool',
-                        'access': ['read'],
-                    },
-                    {
-                        'iid': 103,
-                        'type': 'urn:miot-spec-v2:property:ambient-light',
-                        'format': 'uint8',
-                        'access': ['read', 'write'],
-                        'value-list': [
-                            {'value': 0, 'description': 'White'},
-                            {'value': 1, 'description': 'Yellow'},
-                            {'value': 2, 'description': 'Pink'},
-                            {'value': 3, 'description': 'Green'},
-                            {'value': 4, 'description': 'Violet'},
-                            {'value': 5, 'description': 'Blue'},
-                            {'value': 6, 'description': 'Orange'},
-                            {'value': 7, 'description': 'Red'},
-                        ],
-                    },
-                ],
-            },
-        ],
-    },
     'viomi.vacuum.*': {
         'sensor_attributes': 'miio.s_area,miio.s_time',
-    },
-    'viomi.waterheater.e1': {
-        'extend_miot_specs': [
-            {
-                'iid': 2,
-                'properties': [
-                    {
-                        'iid': 2,
-                        'type': 'urn:miot-spec-v2:property:temperature',
-                        'format': 'uint8',
-                        'access': ['read'],
-                        'unit': 'celsius',
-                        'value-range': [0, 255, 1],
-                    },
-                    {
-                        'iid': 5,
-                        'type': 'urn:miot-spec-v2:property:water-level',
-                        'format': 'uint8',
-                        'access': ['read'],
-                        'unit': 'percentage',
-                        'value-range': [0, 100, 1],
-                    },
-                ],
-            },
-        ],
     },
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
@@ -541,35 +397,6 @@ DEVICE_CUSTOMIZES = {
     },
     'yeelink.bhf_light.v6': {
         'chunk_properties': 3,
-    },
-    'yeelink.light.color1': {
-        'extend_miot_specs': [
-            {
-                'iid': 2,
-                'properties': [
-                    {
-                        'iid': 101,
-                        'type': 'urn:miot-spec-v2:property:nl_br',
-                        'format': 'uint8',
-                        'access': ['read', 'write'],
-                        'unit': 'percentage',
-                        'value-range': [1, 100, 1],
-                    },
-                ],
-            },
-            {
-                'iid': 200,
-                'type': 'urn:miot-spec-v2:service:extend',
-                'properties': [
-                    {
-                        'iid': 201,
-                        'type': 'urn:miot-spec-v2:property:delayoff',
-                        'format': 'string',
-                        'access': ['read', 'write'],
-                    },
-                ],
-            },
-        ],
     },
     'yeelink.light.nl1': {
         'use_ble_object': True,

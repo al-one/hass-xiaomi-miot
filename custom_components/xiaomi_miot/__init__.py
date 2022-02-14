@@ -4,6 +4,7 @@ import asyncio
 import socket
 import json
 import time
+import os
 import re
 from datetime import timedelta
 from functools import partial
@@ -185,6 +186,13 @@ async def async_setup(hass, hass_config: dict):
     hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('add_entities', {})
     hass.data[DOMAIN].setdefault('sub_entities', {})
+
+    with open(os.path.dirname(__file__) + '/core/miot_specs_extend.json') as file:
+        models = json.load(file) or {}
+        for m, specs in models.items():
+            DEVICE_CUSTOMIZES.setdefault(m, {})
+            DEVICE_CUSTOMIZES[m]['extend_miot_specs'] = specs
+
     component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
     hass.data[DOMAIN]['component'] = component
     await component.async_setup(config)
