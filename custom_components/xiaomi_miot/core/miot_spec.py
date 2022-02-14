@@ -346,12 +346,18 @@ class MiotService(MiotSpecInstance):
 
     def extend_specs(self, properties: list, actions: list):
         for p in properties:
+            iid = int(p.get('iid') or 0)
+            if old := self.properties.get(iid):
+                p = {**old.raw, **p}
             prop = MiotProperty(p, self)
             if not prop.name:
                 continue
             self.properties[prop.iid] = prop
             self.spec.specs[prop.unique_prop] = prop
         for a in actions:
+            iid = int(a.get('iid') or 0)
+            if old := self.actions.get(iid):
+                a = {**old.raw, **a}
             act = MiotAction(a, self)
             if not act.name:
                 continue
