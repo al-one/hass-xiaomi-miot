@@ -88,7 +88,7 @@ CUSTOM_TEMPLATES = {
                               "'method': mls[how] | default('unknown'),"
                               "'key_id': key,"
                               "} }}",
-    'lumi_acpartner_electric_power': "{%- set val = props.get('prop.ac_power',props.get('prop.load_power',0)) %}"
+    'lumi_acpartner_electric_power': "{%- set val = props.get('prop.load_power') or props.get('prop.ac_power',0) %}"
                                      "{{ {"
                                      "'electric_power': val | default(0,true) | round(2),"
                                      "} }}",
