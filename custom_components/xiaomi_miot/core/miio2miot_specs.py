@@ -543,6 +543,16 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.6': {'prop': 'cid', 'template': '{{ 2 if val == 360 else 1 }}'},
         },
     },
+    'philips.light.moonlight': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'pow', 'setter': 'set_power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bri', 'setter': 'set_bright'},
+            'prop.2.3': {'prop': 'rgb', 'setter': True},
+            'prop.2.4': {'prop': 'cct', 'setter': True},
+            #'prop.2.5': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
+            #'prop.2.6': {'prop': 'cid',},
+        },
+    },
 
     'rockrobo.vacuum.v1': {
         'extend_model': 'roborock.vacuum.t6',
@@ -684,6 +694,46 @@ MIIO_TO_MIOT_SPECS = {
             },
             'prop.2.5': {'prop': 'hotWater'},  # water-level
             'prop.2.6': {'prop': 'modeType', 'setter': 'set_mode'},
+        },
+    },
+    'viomi.waterheater.u8': {
+        #["washStatus","velocity","waterTemp","targetTemp","errStatus","preHeatTime1","preHeatTime2","isPreHeatNow"]
+        #[2          ,    4      ,     44    ,       44   ,      0    ,  "0-6-10"   ,   "0-16-22"   ,   0]
+        'miio_specs': {
+            'prop.2.1': {'prop': 'targetTemp', 'setter': 'set_temp', 'set_template': '{{ [value|int] }}'},
+            'prop.2.2': {'prop': 'waterTemp'},
+            'prop.2.3': {'prop': 'washStatus'},
+            'prop.2.5': {
+                'prop': 'washStatus',
+                'setter': 'set_power',
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.2.101': {'prop': 'velocity'},  # water-level
+            'prop.2.102': {
+                'prop': 'targetTemp',
+                'setter': 'set_temp',
+                'dict': {
+                    99:0,
+                    39:1,
+                    40:2,
+                    42:3,
+                    36:4,
+                },
+                'default': 0,
+                'template': '{{ '
+                            '1 if 39 in value else '
+                            '2 if 40 in value else '
+                            '3 if 42 in value else '
+                            '4 if 36 in value else '
+                            '0 }}',
+            },  #mode
+            'prop.200.201': {
+                'prop': 'isPreHeatNow',
+                'setter': 'set_preheat_now',
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },  # PreHeatNow
         },
     },
 
