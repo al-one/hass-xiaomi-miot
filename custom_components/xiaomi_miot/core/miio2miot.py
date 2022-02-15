@@ -1,12 +1,18 @@
 import time
 import logging
 import voluptuous as vol
+from typing import Tuple
 from functools import partial
 
 from .miot_spec import (MiotSpec, MiotProperty, MiotAction)
 from .templates import CUSTOM_TEMPLATES
 from .miio2miot_specs import MIIO_TO_MIOT_SPECS
 import homeassistant.helpers.config_validation as cv
+
+from miio.utils import (
+    rgb_to_int,
+    int_to_rgb,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -261,3 +267,12 @@ class MiioPropertyHelper:
         if self.reverse:
             return 'on' if value else 'off'
         return value is True or 'on' == f'{value}'.lower()
+
+    def rgb(self, value):
+        is_tuple = isinstance(value, Tuple)
+        if self.reverse:
+            if not is_tuple:
+                return int_to_rgb(value)
+        elif is_tuple:
+            return rgb_to_int(value)
+        return value

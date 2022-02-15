@@ -547,10 +547,22 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'pow', 'setter': 'set_power', 'format': 'onoff'},
             'prop.2.2': {'prop': 'bri', 'setter': 'set_bright'},
-            'prop.2.3': {'prop': 'rgb', 'setter': True},
-            'prop.2.4': {'prop': 'cct', 'setter': True},
-            #'prop.2.5': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
-            #'prop.2.6': {'prop': 'cid',},
+            'prop.2.3': {'prop': 'rgb', 'setter': True, 'format': 'rgb'},
+            'prop.2.4': {
+                'prop': 'cct',
+                'setter': True,
+                'template': '{{ ((max - min) * value / 100 + min) | round }}',
+                'set_template': '{{ ((value - min) / (max - min) * 100) | round }}',
+            },
+            'prop.2.5': {
+                'prop': 'snm',
+                'setter': True,
+                'template': '{{ 1 if value == 6 else 0 }}',
+                'set_template': '{{ {"method": "go_night"} '
+                                'if value == 6 else '
+                                '{"method": "apply_fixed_scene","params": [value|int(1)]} }}',
+            },
+            'prop.2.6': {'prop': 'rgb', 'template': '{{ 1 if value > 0 else 2 }}'},
         },
     },
 
