@@ -710,24 +710,13 @@ MIIO_TO_MIOT_SPECS = {
                 'set_template': '{{ [value|int(1)] }}',
             },
             'prop.2.101': {'prop': 'velocity'},  # water-level
-            'prop.2.102': {
-                'prop': 'targetTemp',
-                'setter': 'set_temp',
-                'dict': {
-                    99:0,
-                    39:1,
-                    40:2,
-                    42:3,
-                    36:4,
-                },
-                'default': 0,
-                'template': '{{ '
-                            '1 if 39 in value else '
-                            '2 if 40 in value else '
-                            '3 if 42 in value else '
-                            '4 if 36 in value else '
-                            '0 }}',
-            },  #mode
+            'prop.2.102': {'prop': 'targetTemp', 'setter': 'set_temp', 'dict': {
+                99: 0,  # Custom
+                39: 1,  # Children
+                40: 2,  # Comfortable
+                42: 3,  # Old Man
+                36: 4,  # Kitchen
+            }, 'default': 0},  # mode
             'prop.200.201': {
                 'prop': 'isPreHeatNow',
                 'setter': 'set_preheat_now',
