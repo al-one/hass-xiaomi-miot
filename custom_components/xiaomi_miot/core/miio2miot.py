@@ -272,7 +272,8 @@ class MiioPropertyHelper:
         is_tuple = isinstance(value, Tuple)
         if self.reverse:
             if not is_tuple:
-                return int_to_rgb(value)
+                value = int_to_rgb(value)
+            value = list(value)
         elif is_tuple:
             return rgb_to_int(value)
         return value
