@@ -562,7 +562,7 @@ MIIO_TO_MIOT_SPECS = {
                                 'if value == 6 else '
                                 '{"method": "apply_fixed_scene","params": [value|int(1)]} }}',
             },
-            'prop.2.6': {'prop': 'rgb', 'template': '{{ 1 if value > 0 else 2 }}'},
+            'prop.2.6': {'prop': 'sta', 'template': '{{ 2 if value == 0 else 1 }}'},
         },
     },
 
