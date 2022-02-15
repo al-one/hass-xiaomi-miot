@@ -59,12 +59,13 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         self._prop_mode = miot_service.get_property('mode')
         self._prop_fan_level = miot_service.get_property('fan_level')
         self._prop_water_level = miot_service.get_property('water_level')
-        self._prop_target_humi = miot_service.get_property('target_humidity')
         self._prop_temperature = miot_service.get_property('temperature')
+        self._prop_target_humi = miot_service.get_property('target_humidity')
         self._prop_humidity = miot_service.get_property('relative_humidity', 'humidity')
         self._environment = miot_service.spec.get_service('environment')
         if self._environment:
             self._prop_temperature = self._environment.get_property('temperature') or self._prop_temperature
+            self._prop_target_humi = self._environment.get_property('target_humidity') or self._prop_target_humi
             self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity') or self._prop_humidity
 
         self._humidifier_mode = None

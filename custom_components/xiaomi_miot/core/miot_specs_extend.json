@@ -66,6 +66,37 @@
     }
   ],
 
+  "deerma.humidifier.jsq": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:target_humidity",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    }
+  ],
+  "deerma.humidifier.jsq1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:target_humidity",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    }
+  ],
+
   "tinymu.toiletlid.v1": [
     {
       "iid": 3,
