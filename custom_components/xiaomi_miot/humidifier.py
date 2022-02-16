@@ -77,7 +77,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        self._vars['show_current_humidity'] = self.custom_config_bool('show_current_humidity')
+        self._vars['target_humidity_factor'] = self.custom_config_number('target_humidity_factor')
 
     async def async_update(self):
         await super().async_update()
@@ -110,9 +110,10 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
     def target_humidity(self):
         if not self._prop_target_humi:
             return None
-        if self._prop_humidity and self._vars.get('show_current_humidity'):
-            return int(self._prop_humidity.from_dict(self._state_attrs) or 0)
-        return int(self._prop_target_humi.from_dict(self._state_attrs) or 0)
+        num = int(self._prop_target_humi.from_dict(self._state_attrs) or 0)
+        if fac := self._vars.get('target_humidity_factor'):
+            num = num * fac - fac
+        return num
 
     def set_humidity(self, humidity: int):
         if not self._prop_target_humi:
@@ -121,6 +122,8 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         if self._prop_target_humi.value_range:
             stp = self._prop_target_humi.range_step()
             num = round(humidity / stp) * stp
+            if fac := self._vars.get('target_humidity_factor'):
+                num = (num + fac) / fac
         elif self._prop_target_humi.value_list:
             num = None
             vls = self._prop_target_humi.list_value(None)
@@ -140,7 +143,10 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             vls = self._prop_target_humi.list_value(None)
             vls.sort()
             return vls[0]
-        return self._prop_target_humi.range_min()
+        num = self._prop_target_humi.range_min()
+        if fac := self._vars.get('target_humidity_factor'):
+            num = num * fac - fac
+        return num
 
     @property
     def max_humidity(self):
@@ -150,7 +156,10 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             vls = self._prop_target_humi.list_value(None)
             vls.sort()
             return vls[-1]
-        return self._prop_target_humi.range_max()
+        num = self._prop_target_humi.range_max()
+        if fac := self._vars.get('target_humidity_factor'):
+            num = num * fac - fac
+        return num
 
     @property
     def mode(self):
