@@ -75,6 +75,10 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             self._humidifier_mode = self._mode_props.pop(0)
             self._supported_features = SUPPORT_MODES
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self._vars['show_current_humidity'] = self.custom_config_bool('show_current_humidity')
+
     async def async_update(self):
         await super().async_update()
         if not self._available:
@@ -106,6 +110,8 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
     def target_humidity(self):
         if not self._prop_target_humi:
             return None
+        if self._prop_humidity and self._vars.get('show_current_humidity'):
+            return int(self._prop_humidity.from_dict(self._state_attrs) or 0)
         return int(self._prop_target_humi.from_dict(self._state_attrs) or 0)
 
     def set_humidity(self, humidity: int):

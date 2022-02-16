@@ -165,6 +165,9 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 6,
         'exclude_miot_services': 'custom',
     },
+    'deye.derh.u20a3': {
+        'show_current_humidity': True,
+    },
     'dreame.vacuum.*': {
         'exclude_miot_services': 'consumable,annoy,remote,time',
     },
