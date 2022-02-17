@@ -166,7 +166,7 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'custom',
     },
     'deye.derh.u20a3': {
-        'target_humidity_factor': 10,
+        'target_humidity_ratio': 9.0909,
     },
     'dreame.vacuum.*': {
         'exclude_miot_services': 'consumable,annoy,remote,time',

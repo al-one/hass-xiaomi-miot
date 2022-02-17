@@ -77,7 +77,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        self._vars['target_humidity_factor'] = self.custom_config_number('target_humidity_factor')
+        self._vars['target_humidity_ratio'] = self.custom_config_number('target_humidity_ratio')
 
     async def async_update(self):
         await super().async_update()
@@ -111,8 +111,8 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         if not self._prop_target_humi:
             return None
         num = int(self._prop_target_humi.from_dict(self._state_attrs) or 0)
-        if fac := self._vars.get('target_humidity_factor'):
-            num = num * fac - fac
+        if fac := self._vars.get('target_humidity_ratio'):
+            num = round(num * fac)
         return num
 
     def set_humidity(self, humidity: int):
@@ -122,8 +122,8 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         if self._prop_target_humi.value_range:
             stp = self._prop_target_humi.range_step()
             num = round(humidity / stp) * stp
-            if fac := self._vars.get('target_humidity_factor'):
-                num = (num + fac) / fac
+            if fac := self._vars.get('target_humidity_ratio'):
+                num = round(num / fac)
         elif self._prop_target_humi.value_list:
             num = None
             vls = self._prop_target_humi.list_value(None)
@@ -144,8 +144,8 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             vls.sort()
             return vls[0]
         num = self._prop_target_humi.range_min()
-        if fac := self._vars.get('target_humidity_factor'):
-            num = num * fac - fac
+        if fac := self._vars.get('target_humidity_ratio'):
+            num = round(num * fac)
         return num
 
     @property
@@ -157,8 +157,8 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             vls.sort()
             return vls[-1]
         num = self._prop_target_humi.range_max()
-        if fac := self._vars.get('target_humidity_factor'):
-            num = num * fac - fac
+        if fac := self._vars.get('target_humidity_ratio'):
+            num = round(num * fac)
         return num
 
     @property
