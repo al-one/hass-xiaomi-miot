@@ -560,8 +560,8 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': True,
                 'template': '{{ 1 if value == 6 else 0 }}',
                 'set_template': '{{ {"method": "go_night"} '
-                                'if value == 6 else '
-                                '{"method": "apply_fixed_scene","params": [value|int(1)]} }}',
+                                'if value == 1 else '
+                                '{"method": "apply_fixed_scene","params": [5]} }}',
             },
             'prop.2.6': {'prop': 'sta', 'template': '{{ 2 if value == 0 else 1 }}'},
         },
