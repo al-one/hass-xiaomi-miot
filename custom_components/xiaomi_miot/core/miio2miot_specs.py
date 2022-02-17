@@ -532,7 +532,8 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'cct',
                 'setter': True,
                 'template': '{{ ((max - min) * value / 100 + min) | round }}',
-                'set_template': '{{ ((value - min) / (max - min) * 100) | round }}',
+                'set_template': '{% set num = ((value - min) / (max - min) * 100) | round %}'
+                                '{{ num if num > 0 else 1 }}',
             },
         },
     },
@@ -545,16 +546,11 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'philips.light.moonlight': {
+        'extend_model': 'philips.light.bulb',
         'miio_specs': {
             'prop.2.1': {'prop': 'pow', 'setter': 'set_power', 'format': 'onoff'},
             'prop.2.2': {'prop': 'bri', 'setter': 'set_bright'},
             'prop.2.3': {'prop': 'rgb', 'setter': True, 'format': 'rgb'},
-            'prop.2.4': {
-                'prop': 'cct',
-                'setter': True,
-                'template': '{{ ((max - min) * value / 100 + min) | round }}',
-                'set_template': '{{ ((value - min) / (max - min) * 100) | round }}',
-            },
             'prop.2.5': {
                 'prop': 'snm',
                 'setter': True,
