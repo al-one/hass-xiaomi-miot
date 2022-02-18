@@ -813,6 +813,33 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.6': {'prop': 'temperature'},
         },
     },
+    'yeelink.bhf_light.v6': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {
+                'prop': 'light_mode',
+                'setter': True,
+                'template': '{{ 2 if value == "nightlight" else 1 }}',
+                'set_template': '{{ {'
+                                '"method":"set_ps",'
+                                '"params":"on" if value == 2 else "off",'
+                                '} }}',
+            },
+            'prop.2.3': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.3.1': {'prop': 'bh_mode', 'dict': {
+                'bh_off':   0,  # stop_bath_heater
+                'coolwind': 1,
+                'warmwind': 2,
+                'venting':  3,
+                'drying':   4,
+            }, 'default': 0},
+            'prop.3.2': {'prop': 'aim_temp', 'setter': 'set_temp'},
+            'prop.3.3': {'prop': 'temperature'},
+            'prop.3.101': {'prop': 'fan_speed_idx', 'template': 'yeelink_bhf_light_v2_fan_levels'},
+            'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off"] }}'},
+        },
+    },
+
     'yeelink.light.bslamp1': {
         'extend_model': 'yeelink.light.color1',
         'miio_specs': {

@@ -205,6 +205,25 @@
     }
   ],
 
+  "yeelink.bhf_light.v6": [
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:fan-level",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Medium"},
+            {"value": 3, "description": "High"}
+          ]
+        }
+      ]
+    }
+  ],
+
   "yeelink.light.color1": [
     {
       "iid": 2,
