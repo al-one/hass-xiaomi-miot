@@ -72,11 +72,23 @@
       "properties": [
         {
           "iid": 101,
-          "type": "urn:miot-spec-v2:property:target_humidity",
+          "type": "urn:miot-spec-v2:property:target-humidity",
           "format": "uint8",
           "access": ["read", "write"],
           "unit": "percentage",
-          "value-range": [0, 100, 1]
+          "value-range": [1, 99, 1]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:water-status",
+          "format": "bool",
+          "access": ["read"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:tank-status",
+          "format": "bool",
+          "access": ["read"]
         }
       ]
     }
@@ -87,11 +99,42 @@
       "properties": [
         {
           "iid": 101,
-          "type": "urn:miot-spec-v2:property:target_humidity",
+          "type": "urn:miot-spec-v2:property:target-humidity",
           "format": "uint8",
           "access": ["read", "write"],
           "unit": "percentage",
-          "value-range": [0, 100, 1]
+          "value-range": [1, 99, 1]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:water-status",
+          "format": "bool",
+          "access": ["read"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:tank-status",
+          "format": "bool",
+          "access": ["read"]
+        }
+      ]
+    }
+  ],
+  "deerma.humidifier.mjjsq": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:water-status",
+          "format": "bool",
+          "access": ["read"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:tank-status",
+          "format": "bool",
+          "access": ["read"]
         }
       ]
     }

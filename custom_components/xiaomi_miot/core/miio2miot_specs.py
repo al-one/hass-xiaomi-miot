@@ -173,17 +173,19 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {'prop': 'OnOff_State', 'setter': 'Set_OnOff', 'set_template': '{{ [value|int] }}'},
             'prop.3.1': {'prop': 'Humidity_Value'},
             'prop.3.2': {'prop': 'TemperatureValue'},
-            'prop.4.1': {'prop': 'Led_State', 'setter': 'SetLedState', 'format': '{{ [value|int] }}'},
-            'prop.5.1': {'prop': 'TipSound_State', 'setter': 'SetTipSound_Status', 'format': '{{ [value|int] }}'},
+            'prop.4.1': {'prop': 'Led_State', 'setter': 'SetLedState', 'set_template': '{{ [value|int] }}'},
+            'prop.5.1': {'prop': 'TipSound_State', 'setter': 'SetTipSound_Status', 'set_template': '{{ [value|int] }}'},
             'prop.2.101': {'prop': 'HumiSet_Value', 'setter': 'Set_HumiValue'},
+            'prop.2.102': {'prop': 'waterstatus'},
+            'prop.2.103': {'prop': 'watertankstatus'},
         },
     },
     'deerma.humidifier.jsq1': {
         'extend_model': 'deerma.humidifier.jsq',
         'miio_specs': {
             'prop.2.2': {'prop': 'Humidifier_Gear', 'setter': 'Set_HumidifierGears'},
-            'prop.4.1': {'prop': 'TipSound_State', 'setter': 'SetTipSound_Status', 'format': '{{ [value|int] }}'},
-            'prop.5.1': {'prop': 'Led_State', 'setter': 'SetLedState', 'format': '{{ [value|int] }}'},
+            'prop.4.1': {'prop': 'TipSound_State', 'setter': 'SetTipSound_Status', 'set_template': '{{ [value|int] }}'},
+            'prop.5.1': {'prop': 'Led_State', 'setter': 'SetLedState', 'set_template': '{{ [value|int] }}'},
         },
     },
     'deerma.humidifier.mjjsq': {
