@@ -196,6 +196,10 @@ DEVICE_CUSTOMIZES = {
             2: 0,
         },
     },
+    'ijai.vacuum.*': {
+        'exclude_miot_services': 'order',
+        'exclude_miot_properties': 'zone_points,restrict_points,target_point',
+    },
     'lumi.acpartner.mcn02:electric_power': {
         'value_ratio': 0.001,
     },

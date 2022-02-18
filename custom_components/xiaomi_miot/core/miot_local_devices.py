@@ -100,6 +100,8 @@ MIOT_LOCAL_MODELS = [
     'hyd.airer.znlyj1',
     'hyd.airer.znlyj4',
     'ijai.vacuum.v1',
+    'ijai.vacuum.v10',
+    'ijai.vacuum.v13',
     'ijai.vacuum.v14',
     'ijai.vacuum.v2',
     'ijai.vacuum.v3',
