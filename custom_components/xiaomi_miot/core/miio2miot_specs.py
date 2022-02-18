@@ -379,7 +379,8 @@ MIIO_TO_MIOT_SPECS = {
                 'set_template': '{{ ["start_hotdry",90] if value else ["stop_hotdry",0] }}',
             },
             'prop.2.101': {
-                'prop': 'dry_status','dict': {
+                'prop': 'dry_status',
+                'dict': {
                     'off':     0,
                     'hotdry':  1,
                     'winddry': 2,
@@ -706,8 +707,8 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'viomi.waterheater.u8': {
-        #["washStatus","velocity","waterTemp","targetTemp","errStatus","preHeatTime1","preHeatTime2","isPreHeatNow"]
-        #[2          ,    4      ,     44    ,       44   ,      0    ,  "0-6-10"   ,   "0-16-22"   ,   0]
+        # ["washStatus","velocity","waterTemp","targetTemp","errStatus","preHeatTime1","preHeatTime2","isPreHeatNow"]
+        # [2          ,    4      ,     44    ,       44   ,      0    ,  "0-6-10"   ,   "0-16-22"   ,   0]
         'miio_specs': {
             'prop.2.1': {'prop': 'targetTemp', 'setter': 'set_temp', 'set_template': '{{ [value|int] }}'},
             'prop.2.2': {'prop': 'waterTemp'},
