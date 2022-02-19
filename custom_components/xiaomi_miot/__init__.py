@@ -1222,7 +1222,7 @@ class MiotEntity(MiioEntity):
                 self._local_state = False
                 log(
                     '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',
-                    self.name, exc, mapping, max_properties, len(mapping)
+                    self.name_model, exc, mapping, max_properties, len(mapping)
                 )
 
         if use_cloud:
@@ -1243,7 +1243,7 @@ class MiotEntity(MiioEntity):
                 errors = f'{exc}'
                 self.logger.error(
                     '%s: Got MiCloudException while fetching the state: %s, mapping: %s',
-                    self.name, exc, mapping,
+                    self.name_model, exc, mapping,
                 )
 
         result = MiotResults(results, mapping)
@@ -1261,7 +1261,7 @@ class MiotEntity(MiioEntity):
             if result.is_empty and results:
                 self.logger.warning(
                     '%s: Got invalid miot result while fetching the state: %s, mapping: %s',
-                    self.name, results, mapping,
+                    self.name_model, results, mapping,
                 )
             return False
         attrs.update(result.to_attributes(self._state_attrs))
@@ -1542,7 +1542,7 @@ class MiotEntity(MiioEntity):
         except (ValueError, DeviceException) as exc:
             self.logger.error(
                 '%s: Got exception while get properties: %s, mapping: %s, miio: %s',
-                self.name, exc, mapping, self._miio_info.data,
+                self.name_model, exc, mapping, self._miio_info.data,
             )
             if throw:
                 raise exc

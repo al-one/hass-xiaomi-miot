@@ -261,6 +261,9 @@ DEVICE_CUSTOMIZES = {
         'position_reverse': True,
         'target2current_position': True,
     },
+    'lumi.ctrl_ln2.aq1': {
+        'exclude_miot_services': 'power_consumption',  # issues/426
+    },
     'lumi.ctrl_neutral1.*': {
         'cloud_delay_update': 10,
     },

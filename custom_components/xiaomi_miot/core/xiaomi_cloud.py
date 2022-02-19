@@ -71,7 +71,10 @@ class MiotCloud(micloud.MiCloud):
         rdt = self.request_miot_api('miotspec/' + api, {
             'params': params or [],
         }) or {}
-        return rdt.get('result')
+        rls = rdt.get('result')
+        if not rls and rdt.get('code'):
+            raise MiCloudException(json.dumps(rdt))
+        return rls
 
     def get_user_device_data(self, did, key, typ='prop', raw=False, **kwargs):
         now = int(time.time())
