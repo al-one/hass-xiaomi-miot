@@ -497,10 +497,8 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'relative_humidity,pm2_5_density,temperature,filter_life_level',
         'number_properties': 'favorite_fan_level',
     },
-    '*.toothbrush.*': {
-        'miio_cloud_props': 'event.16',
-        'miio_cloud_props_template': 'ble_toothbrush_events',
-        'sensor_attributes': 'event,score,timestamp',
+    '*.blanket.*': {
+        'select_properties': 'mode,heat_level,water_level',
     },
     '*.camera.*': {
         'miot_cloud_action': True,
@@ -583,6 +581,11 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,engaged',
         'select_properties': 'mode',
         'number_properties': 'target_time',
+    },
+    '*.toothbrush.*': {
+        'miio_cloud_props': 'event.16',
+        'miio_cloud_props_template': 'ble_toothbrush_events',
+        'sensor_attributes': 'event,score,timestamp',
     },
     '*.tow_w.*': {
         'sensor_properties': 'temperature',
