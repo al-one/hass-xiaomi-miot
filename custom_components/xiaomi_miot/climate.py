@@ -52,10 +52,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if miot := config.get('miot_type'):
         spec = await MiotSpec.async_from_type(hass, miot)
         for srv in spec.get_services(
-            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
-            'heater', 'ptc_bath_heater', 'light_bath_heater',
-            'air_purifier', 'air_fresh', 'electric_blanket',
-            'water_dispenser', 'dishwasher', 'thermostat',
+            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet', 'thermostat',
+            'heater', 'ptc_bath_heater', 'light_bath_heater', 'air_purifier',
+            'electric_blanket', 'water_dispenser', 'dishwasher',
         ):
             if not srv.get_property('on', 'mode', 'target_temperature'):
                 continue
@@ -115,7 +114,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
             if not self._prop_fan_level:
                 self._prop_fan_level = miot_service.get_property('heat_level', 'water_level')
 
-        if miot_service.name in ['air_fresh', 'air_purifier', 'electric_blanket']:
+        if miot_service.name in ['air_purifier', 'electric_blanket']:
             self._name = f'{self._name} Deprecated'
             self._vars['exclude_services'] = ['air_conditioner', 'enhance', 'indicator_light', 'alarm']
 
@@ -176,7 +175,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         if self._preset_modes:
             self._supported_features |= SUPPORT_PRESET_MODE
 
-        if self._miot_service.name in ['air_fresh', 'air_purifier']:
+        if self._miot_service.name in ['air_purifier']:
             self.logger.warning(
                 '%s has been deprecated and will be removed in a future version. Please use %s.',
                 self.entity_id,
