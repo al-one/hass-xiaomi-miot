@@ -196,15 +196,21 @@ MIIO_TO_MIOT_SPECS = {
     },
 
     'fawad.airrtc.fwd20011': {
+        # ["real_fan_speed","fan_mode","Wind_Out","hot_switch_status","power_status","work_mode","fan_speed",
+        # "temperature_current","temperature_set","timers_info","timers_enable","low_temp_protect_enable",
+        # "screen_lock_enable","heat_type"]
+        # [3               ,1         ,0         ,0                  ,0             ,3          ,0          ,
+        # 12.61004447937011    ,30               ,[[0,0,0,0,0]],false          ,false                    ,
+        # false               ,2]
         'chunk_properties': 1,
         'miio_specs': {
-            'prop.2.1': {'prop': 'power_status', 'setter': True, 'set_template': '{{ value|int }}'},
+            'prop.2.1': {'prop': 'power_status', 'setter': True, 'set_template': '{{ [value|int] }}'},
             'prop.2.2': {'prop': 'work_mode', 'setter': True, 'dict': {
                 1: 2,
                 2: 1,
                 3: 3,
             }, 'default': 1},
-            'prop.2.3': {'prop': 'temperature_set', 'setter': True, 'set_template': '{{ value|int }}'},
+            'prop.2.3': {'prop': 'temperature_set', 'setter': True, 'set_template': '{{ [value|int] }}'},
             'prop.3.1': {'prop': 'fan_speed', 'setter': True, 'dict': {
                 0: 3,
                 1: 2,
