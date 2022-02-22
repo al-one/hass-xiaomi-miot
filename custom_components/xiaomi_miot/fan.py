@@ -98,14 +98,17 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
         self._prop_percentage = None
         for s in miot_service.spec.get_services():
-            for p in s.get_properties('speed_level', 'wind_speed'):
+            for p in s.get_properties('speed_level', 'wind_speed', 'fan_level'):
                 if not p.value_range:
                     continue
                 self._prop_percentage = p
                 break
 
-        if self._prop_speed:
+        if self._prop_speed or self._prop_percentage:
             self._supported_features |= SUPPORT_SET_SPEED
+            if self._prop_speed and self._prop_percentage:
+                if self._prop_speed.unique_name == self._prop_percentage.unique_name:
+                    self._prop_speed = None
         if self._prop_direction:
             self._supported_features |= SUPPORT_DIRECTION
         if self._prop_oscillate:
