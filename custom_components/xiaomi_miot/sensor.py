@@ -566,7 +566,7 @@ class MihomeMessageSensor(CoordinatorEntity, SensorEntity, BaseEntity):
             logger = _LOGGER.info if old != self._attr_native_value else _LOGGER.debug
             logger('New xiaomi message for %s: %s', self.cloud.user_id, self._attr_native_value)
         else:
-            _LOGGER.warning('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
+            _LOGGER.info('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
         self._attr_entity_picture = msg.get('img_url')
         tim = msg.get('ctime')
         self._attr_extra_state_attributes.update({
