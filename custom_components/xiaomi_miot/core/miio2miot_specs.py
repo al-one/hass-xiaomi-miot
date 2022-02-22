@@ -696,6 +696,11 @@ MIIO_TO_MIOT_SPECS = {
                 7: 7,  # Mopping
             }, 'default': 1},
             'prop.3.1': {'prop': 'battary_life'},
+            'action.2.1': {'setter': 'set_mode_withroom', 'set_template': '{{ [0,1,0] }}'},  # start-sweep
+            'action.2.2': {'setter': 'set_mode', 'set_template': '{{ [0] }}'},  # stop-sweeping
+            'action.2.3': {'setter': 'set_mode_withroom', 'set_template': '{{ [1,1,0] }}'},  # start-sweep-mop
+            'action.2.4': {'setter': 'set_mode_withroom', 'set_template': '{{ [3,1,0] }}'},  # start-mop
+            'action.2.5': {'setter': 'set_mode_withroom', 'set_template': '{{ [0,3,0] }}'},  # pause-sweeping
         },
     },
     'viomi.vacuum.v8': {
