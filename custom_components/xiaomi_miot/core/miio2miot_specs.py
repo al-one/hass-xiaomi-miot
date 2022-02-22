@@ -698,6 +698,23 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {'prop': 'battary_life'},
         },
     },
+    'viomi.vacuum.v8': {
+        'extend_model': 'viomi.vacuum.v7',
+        'miio_specs': {
+            'prop.2.1': {'prop': 'run_state', 'dict': {
+                0: 1,  # IdleNotDocked
+                1: 1,  # Idle
+                2: 3,  # Idle2
+                3: 4,  # Cleaning
+                4: 5,  # Returning
+                5: 6,  # Docked
+                6: 8,  # VacuumingAndMopping
+                7: 7,  # Mopping
+            }, 'default': 1},
+            'prop.2.2': {'prop': 'suction_grade'},
+            'prop.3.1': {'prop': 'battary_life'},
+        },
+    },
     'viomi.waterheater.e1': {
         'chunk_properties': 1,
         'miio_specs': {
