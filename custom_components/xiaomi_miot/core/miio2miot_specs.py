@@ -701,6 +701,10 @@ MIIO_TO_MIOT_SPECS = {
             'action.2.3': {'setter': 'set_mode_withroom', 'set_template': '{{ [1,1,0] }}'},  # start-sweep-mop
             'action.2.4': {'setter': 'set_mode_withroom', 'set_template': '{{ [3,1,0] }}'},  # start-mop
             'action.2.5': {'setter': 'set_mode_withroom', 'set_template': '{{ [0,3,0] }}'},  # pause-sweeping
+            'prop.200.201': {'prop': 'main_brush_life'},
+            'prop.200.202': {'prop': 'side_brush_life'},
+            'prop.200.203': {'prop': 'hypa_life'},
+            'prop.200.204': {'prop': 'mop_life'},
         },
     },
     'viomi.vacuum.v8': {

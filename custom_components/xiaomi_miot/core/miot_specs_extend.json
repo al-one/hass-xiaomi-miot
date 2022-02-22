@@ -183,6 +183,87 @@
     }
   ],
 
+  "viomi.vacuum.v7": [
+    {
+      "iid": 200,
+      "type": "urn:viomi-spec:service:viomi-vacuum",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:viomi-spec:property:main-brush-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 202,
+          "type": "urn:viomi-spec:property:side-brush-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 203,
+          "type": "urn:viomi-spec:property:hypa-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 204,
+          "type": "urn:viomi-spec:property:mop-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    }
+  ],
+  "viomi.vacuum.v8": [
+    {
+      "iid": 200,
+      "type": "urn:viomi-spec:service:viomi-vacuum",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:viomi-spec:property:main-brush-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 202,
+          "type": "urn:viomi-spec:property:side-brush-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 203,
+          "type": "urn:viomi-spec:property:hypa-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 204,
+          "type": "urn:viomi-spec:property:mop-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    }
+  ],
+
   "viomi.waterheater.e1": [
     {
       "iid": 2,
@@ -198,7 +279,6 @@
       ]
     }
   ],
-  
   "viomi.waterheater.u8": [
     {
       "iid": 2,

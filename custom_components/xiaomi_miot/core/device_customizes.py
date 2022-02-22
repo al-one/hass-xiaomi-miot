@@ -383,6 +383,7 @@ DEVICE_CUSTOMIZES = {
     },
     'viomi.vacuum.*': {
         'sensor_attributes': 'miio.s_area,miio.s_time',
+        'sensor_properties': 'main_brush_life,side_brush_life,hypa_life,mop_life',
     },
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
