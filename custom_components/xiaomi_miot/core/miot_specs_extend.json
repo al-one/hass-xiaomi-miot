@@ -76,7 +76,7 @@
           "format": "uint8",
           "access": ["read", "write"],
           "unit": "percentage",
-          "value-range": [1, 99, 1]
+          "value-range": [40, 99, 1]
         },
         {
           "iid": 102,
