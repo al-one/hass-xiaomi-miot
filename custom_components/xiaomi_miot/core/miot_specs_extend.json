@@ -312,14 +312,6 @@
           "value-range": [0, 100, 1]
         },
         {
-          "iid": 103,
-          "type": "urn:miot-spec-v2:property:water-velocity",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        },
-        {
           "iid": 102,
           "type": "urn:miot-spec-v2:property:mode",
           "format": "uint8",
@@ -331,6 +323,14 @@
               {"value": 3, "description": "Old Man"},
               {"value": 4, "description": "Kitchen"}
           ]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:water-velocity",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
         }
       ]
     },
