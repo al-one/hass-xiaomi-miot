@@ -305,7 +305,7 @@
         },
         {
           "iid": 101,
-          "type": "urn:miot-spec-v2:property:water-level",
+          "type": "urn:miot-spec-v2:property:water-velocity",
           "format": "uint8",
           "access": ["read", "notify"],
           "unit": "percentage",
@@ -353,7 +353,7 @@
         },
         {
           "iid": 101,
-          "type": "urn:miot-spec-v2:property:water-level",
+          "type": "urn:miot-spec-v2:property:water-velocity",
           "format": "uint8",
           "access": ["read", "notify"],
           "unit": "percentage",
