@@ -775,6 +775,9 @@ MIIO_TO_MIOT_SPECS = {
             },  # PreHeatNow
         },
     },
+    'viomi.waterheater.u12': {
+        'extend_model': 'viomi.waterheater.u8',
+    }
 
     'xjx.toilet.pro': {
         'miio_specs': {
