@@ -767,6 +767,7 @@ MIIO_TO_MIOT_SPECS = {
                 42: 3,  # Old Man
                 36: 4,  # Kitchen
             }, 'default': 0},  # mode
+            'prop.2.103': {'prop': 'velocity'},  # water-level
             'prop.200.201': {
                 'prop': 'isPreHeatNow',
                 'setter': 'set_preheat_now',
