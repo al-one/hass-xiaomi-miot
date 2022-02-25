@@ -1,428 +1,438 @@
 {
-  "chunmi.cooker.eh1": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 1,
-          "value-list": [
-            {"value": 1, "description": "Idle"},
-            {"value": 2, "description": "Running"},
-            {"value": 3, "description": "Keep Warm"},
-            {"value": 4, "description": "Cook Reservation"},
-            {"value": 5, "description": "Setting"},
-            {"value": 6, "description": "Setting"},
-            {"value": 7, "description": "Setting"},
-            {"value": 8, "description": "Error"},
-            {"value": 9, "description": "Finish"}
-          ]
-        },
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:menu",
-          "format": "string",
-          "access": ["read"]
-        },
-        {
-          "iid": 102,
-          "type": "urn:miot-spec-v2:property:left_time",
-          "unit": "seconds",
-          "format": "uint32",
-          "access": ["read"],
-          "value-range": [0, 65535, 1]
-        }
-      ]
-    }
-  ],
-
-  "dreame.vacuum.mc1808": [
-    {
-      "iid": 18,
-      "properties": [
-        {
-          "iid": 9,
-          "access": ["read", "notify"]
-        }
-      ]
-    }
-  ],
-
-  "lumi.airer.acn01": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:dry_mode",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "value-list": [
-            {"value": 0, "description": "off"},
-            {"value": 1, "description": "dry"},
-            {"value": 2, "description": "winddry"}
-          ]
-        }
-      ]
-    }
-  ],
-
-  "deerma.humidifier.jsq": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:target-humidity",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "unit": "percentage",
-          "value-range": [40, 99, 1]
-        },
-        {
-          "iid": 102,
-          "type": "urn:miot-spec-v2:property:water-status",
-          "format": "bool",
-          "access": ["read"]
-        },
-        {
-          "iid": 103,
-          "type": "urn:miot-spec-v2:property:tank-status",
-          "format": "bool",
-          "access": ["read"]
-        },
-        {
-          "iid": 104,
-          "type": "urn:miot-spec-v2:property:fan-level",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "value-list": [
-            {"value": 1, "description": "Low"},
-            {"value": 2, "description": "Medium"},
-            {"value": 3, "description": "High"},
-            {"value": 4, "description": "ConstHumidity"}
-          ]
-        }
-      ]
-    }
-  ],
-  "deerma.humidifier.jsq1": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:target-humidity",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "unit": "percentage",
-          "value-range": [1, 99, 1]
-        },
-        {
-          "iid": 102,
-          "type": "urn:miot-spec-v2:property:water-status",
-          "format": "bool",
-          "access": ["read"]
-        },
-        {
-          "iid": 103,
-          "type": "urn:miot-spec-v2:property:tank-status",
-          "format": "bool",
-          "access": ["read"]
-        }
-      ]
-    }
-  ],
-  "deerma.humidifier.mjjsq": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 102,
-          "type": "urn:miot-spec-v2:property:water-status",
-          "format": "bool",
-          "access": ["read"]
-        },
-        {
-          "iid": 103,
-          "type": "urn:miot-spec-v2:property:tank-status",
-          "format": "bool",
-          "access": ["read"]
-        }
-      ]
-    }
-  ],
-
-  "tinymu.toiletlid.v1": [
-    {
-      "iid": 3,
-      "properties": [
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:status",
-          "format": "uint8",
-          "access": ["read"],
-          "value-list": [
-            {"value": 0, "description": "idle"},
-            {"value": 1, "description": "occupied"},
-            {"value": 2, "description": "rear_cleanse"},
-            {"value": 3, "description": "front_cleanse"},
-            {"value": 6, "description": "nozzle_clean"}
-          ]
-        },
-        {
-          "iid": 102,
-          "type": "urn:miot-spec-v2:property:seating-state",
-          "format": "bool",
-          "access": ["read"]
-        },
-        {
-          "iid": 103,
-          "type": "urn:miot-spec-v2:property:ambient-light",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "value-list": [
-            {"value": 0, "description": "White"},
-            {"value": 1, "description": "Yellow"},
-            {"value": 2, "description": "Pink"},
-            {"value": 3, "description": "Green"},
-            {"value": 4, "description": "Violet"},
-            {"value": 5, "description": "Blue"},
-            {"value": 6, "description": "Orange"},
-            {"value": 7, "description": "Red"}
-          ]
-        }
-      ]
-    }
-  ],
-
-  "viomi.vacuum.v7": [
-    {
-      "iid": 200,
-      "type": "urn:viomi-spec:service:viomi-vacuum",
-      "properties": [
-        {
-          "iid": 201,
-          "type": "urn:viomi-spec:property:main-brush-life",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        },
-        {
-          "iid": 202,
-          "type": "urn:viomi-spec:property:side-brush-life",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        },
-        {
-          "iid": 203,
-          "type": "urn:viomi-spec:property:hypa-life",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        },
-        {
-          "iid": 204,
-          "type": "urn:viomi-spec:property:mop-life",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        }
-      ]
-    }
-  ],
-  "viomi.vacuum.v8": [
-    {
-      "iid": 200,
-      "type": "urn:viomi-spec:service:viomi-vacuum",
-      "properties": [
-        {
-          "iid": 201,
-          "type": "urn:viomi-spec:property:main-brush-life",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        },
-        {
-          "iid": 202,
-          "type": "urn:viomi-spec:property:side-brush-life",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        },
-        {
-          "iid": 203,
-          "type": "urn:viomi-spec:property:hypa-life",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        },
-        {
-          "iid": 204,
-          "type": "urn:viomi-spec:property:mop-life",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        }
-      ]
-    }
-  ],
-
-  "viomi.waterheater.e1": [
-    {
-      "iid": 2,
-      "properties": [
+    "chunmi.cooker.eh1": [
+      {
+        "iid": 2,
+        "properties": [
+          {
+            "iid": 1,
+            "value-list": [
+              {"value": 1, "description": "Idle"},
+              {"value": 2, "description": "Running"},
+              {"value": 3, "description": "Keep Warm"},
+              {"value": 4, "description": "Cook Reservation"},
+              {"value": 5, "description": "Setting"},
+              {"value": 6, "description": "Setting"},
+              {"value": 7, "description": "Setting"},
+              {"value": 8, "description": "Error"},
+              {"value": 9, "description": "Finish"}
+            ]
+          },
+          {
+            "iid": 101,
+            "type": "urn:miot-spec-v2:property:menu",
+            "format": "string",
+            "access": ["read"]
+          },
+          {
+            "iid": 102,
+            "type": "urn:miot-spec-v2:property:left_time",
+            "unit": "seconds",
+            "format": "uint32",
+            "access": ["read"],
+            "value-range": [0, 65535, 1]
+          }
+        ]
+      }
+    ],
+  
+    "dreame.vacuum.mc1808": [
+      {
+        "iid": 18,
+        "properties": [
+          {
+            "iid": 9,
+            "access": ["read", "notify"]
+          }
+        ]
+      }
+    ],
+  
+    "lumi.airer.acn01": [
+      {
+        "iid": 2,
+        "properties": [
+          {
+            "iid": 101,
+            "type": "urn:miot-spec-v2:property:dry_mode",
+            "format": "uint8",
+            "access": ["read", "write"],
+            "value-list": [
+              {"value": 0, "description": "off"},
+              {"value": 1, "description": "dry"},
+              {"value": 2, "description": "winddry"}
+            ]
+          }
+        ]
+      }
+    ],
+  
+    "deerma.humidifier.jsq": [
+      {
+        "iid": 2,
+        "properties": [
+          {
+            "iid": 101,
+            "type": "urn:miot-spec-v2:property:target-humidity",
+            "format": "uint8",
+            "access": ["read", "write"],
+            "unit": "percentage",
+            "value-range": [40, 99, 1]
+          },
+          {
+            "iid": 102,
+            "type": "urn:miot-spec-v2:property:water-status",
+            "format": "bool",
+            "access": ["read"]
+          },
+          {
+            "iid": 103,
+            "type": "urn:miot-spec-v2:property:tank-status",
+            "format": "bool",
+            "access": ["read"]
+          },
+          {
+            "iid": 104,
+            "type": "urn:miot-spec-v2:property:fan-level",
+            "format": "uint8",
+            "access": ["read", "write"],
+            "value-list": [
+              {"value": 1, "description": "Low"},
+              {"value": 2, "description": "Medium"},
+              {"value": 3, "description": "High"},
+              {"value": 4, "description": "ConstHumidity"}
+            ]
+          }
+        ]
+      }
+    ],
+    "deerma.humidifier.jsq1": [
+      {
+        "iid": 2,
+        "properties": [
+          {
+            "iid": 101,
+            "type": "urn:miot-spec-v2:property:target-humidity",
+            "format": "uint8",
+            "access": ["read", "write"],
+            "unit": "percentage",
+            "value-range": [1, 99, 1]
+          },
+          {
+            "iid": 102,
+            "type": "urn:miot-spec-v2:property:water-status",
+            "format": "bool",
+            "access": ["read"]
+          },
+          {
+            "iid": 103,
+            "type": "urn:miot-spec-v2:property:tank-status",
+            "format": "bool",
+            "access": ["read"]
+          }
+        ]
+      }
+    ],
+    "deerma.humidifier.mjjsq": [
+      {
+        "iid": 2,
+        "properties": [
+          {
+            "iid": 102,
+            "type": "urn:miot-spec-v2:property:water-status",
+            "format": "bool",
+            "access": ["read"]
+          },
+          {
+            "iid": 103,
+            "type": "urn:miot-spec-v2:property:tank-status",
+            "format": "bool",
+            "access": ["read"]
+          }
+        ]
+      }
+    ],
+  
+    "tinymu.toiletlid.v1": [
+      {
+        "iid": 3,
+        "properties": [
+          {
+            "iid": 101,
+            "type": "urn:miot-spec-v2:property:status",
+            "format": "uint8",
+            "access": ["read"],
+            "value-list": [
+              {"value": 0, "description": "idle"},
+              {"value": 1, "description": "occupied"},
+              {"value": 2, "description": "rear_cleanse"},
+              {"value": 3, "description": "front_cleanse"},
+              {"value": 6, "description": "nozzle_clean"}
+            ]
+          },
+          {
+            "iid": 102,
+            "type": "urn:miot-spec-v2:property:seating-state",
+            "format": "bool",
+            "access": ["read"]
+          },
+          {
+            "iid": 103,
+            "type": "urn:miot-spec-v2:property:ambient-light",
+            "format": "uint8",
+            "access": ["read", "write"],
+            "value-list": [
+              {"value": 0, "description": "White"},
+              {"value": 1, "description": "Yellow"},
+              {"value": 2, "description": "Pink"},
+              {"value": 3, "description": "Green"},
+              {"value": 4, "description": "Violet"},
+              {"value": 5, "description": "Blue"},
+              {"value": 6, "description": "Orange"},
+              {"value": 7, "description": "Red"}
+            ]
+          }
+        ]
+      }
+    ],
+  
+    "viomi.vacuum.v7": [
+      {
+        "iid": 200,
+        "type": "urn:viomi-spec:service:viomi-vacuum",
+        "properties": [
+          {
+            "iid": 201,
+            "type": "urn:viomi-spec:property:main-brush-life",
+            "format": "uint8",
+            "access": ["read", "notify"],
+            "unit": "percentage",
+            "value-range": [0, 100, 1]
+          },
+          {
+            "iid": 202,
+            "type": "urn:viomi-spec:property:side-brush-life",
+            "format": "uint8",
+            "access": ["read", "notify"],
+            "unit": "percentage",
+            "value-range": [0, 100, 1]
+          },
+          {
+            "iid": 203,
+            "type": "urn:viomi-spec:property:hypa-life",
+            "format": "uint8",
+            "access": ["read", "notify"],
+            "unit": "percentage",
+            "value-range": [0, 100, 1]
+          },
+          {
+            "iid": 204,
+            "type": "urn:viomi-spec:property:mop-life",
+            "format": "uint8",
+            "access": ["read", "notify"],
+            "unit": "percentage",
+            "value-range": [0, 100, 1]
+          }
+        ]
+      }
+    ],
+    "viomi.vacuum.v8": [
+      {
+        "iid": 200,
+        "type": "urn:viomi-spec:service:viomi-vacuum",
+        "properties": [
+          {
+            "iid": 201,
+            "type": "urn:viomi-spec:property:main-brush-life",
+            "format": "uint8",
+            "access": ["read", "notify"],
+            "unit": "percentage",
+            "value-range": [0, 100, 1]
+          },
+          {
+            "iid": 202,
+            "type": "urn:viomi-spec:property:side-brush-life",
+            "format": "uint8",
+            "access": ["read", "notify"],
+            "unit": "percentage",
+            "value-range": [0, 100, 1]
+          },
+          {
+            "iid": 203,
+            "type": "urn:viomi-spec:property:hypa-life",
+            "format": "uint8",
+            "access": ["read", "notify"],
+            "unit": "percentage",
+            "value-range": [0, 100, 1]
+          },
+          {
+            "iid": 204,
+            "type": "urn:viomi-spec:property:mop-life",
+            "format": "uint8",
+            "access": ["read", "notify"],
+            "unit": "percentage",
+            "value-range": [0, 100, 1]
+          }
+        ]
+      }
+    ],
+  
+    "viomi.waterheater.e1": [
+      {
+        "iid": 2,
+        "properties": [
+          {
+            "iid": 2,
+            "access": ["read", "notify"]
+          },
+          {
+            "iid": 5,
+            "access": ["read", "notify"]
+          }
+        ]
+      }
+    ],
+    "viomi.waterheater.u8": [
+      {
+        "iid": 2,
+        "properties": [
+          {
+            "iid": 5,
+            "access": ["read", "notify", "write"]
+          },
+          {
+            "iid": 3,
+            "access": ["read", "notify"]
+          },
+          {
+            "iid": 101,
+            "type": "urn:miot-spec-v2:property:water-level",
+            "format": "uint8",
+            "access": ["read", "notify"],
+            "unit": "percentage",
+            "value-range": [0, 100, 1]
+          },
+          {
+            "iid": 102,
+            "type": "urn:miot-spec-v2:property:mode",
+            "format": "uint8",
+            "access": ["read", "write"],
+            "value-list": [
+                {"value": 0, "description": "Custom"},
+                {"value": 1, "description": "Children"},
+                {"value": 2, "description": "Comfortable"},
+                {"value": 3, "description": "Old Man"},
+                {"value": 4, "description": "Kitchen"}
+            ]
+          }
+        ]
+      },
+      {
+        "iid": 200,
+        "type": "urn:miot-spec-v2:service:cruise-appointmen",
+        "properties": [
+            {
+                "iid": 201,
+                "type": "urn:miot-spec-v2:property:on",
+                "format": "bool",
+                "access": ["read", "write", "notify"]
+            }
+        ]
+      }
+    ],
+    "viomi.waterheater.u12": [
         {
           "iid": 2,
-          "access": ["read", "notify"]
+          "properties": [
+            {
+              "iid": 5,
+              "access": ["read", "notify", "write"]
+            },
+            {
+              "iid": 3,
+              "access": ["read", "notify"]
+            },
+            {
+              "iid": 101,
+              "type": "urn:miot-spec-v2:property:water-level",
+              "format": "uint8",
+              "access": ["read", "notify"],
+              "unit": "percentage",
+              "value-range": [0, 100, 1]
+            },
+            {
+              "iid": 102,
+              "type": "urn:miot-spec-v2:property:mode",
+              "format": "uint8",
+              "access": ["read", "write"],
+              "value-list": [
+                  {"value": 0, "description": "Custom"},
+                  {"value": 1, "description": "Children"},
+                  {"value": 2, "description": "Comfortable"},
+                  {"value": 3, "description": "Old Man"},
+                  {"value": 4, "description": "Kitchen"}
+              ]
+            }
+          ]
         },
         {
-          "iid": 5,
-          "access": ["read", "notify"]
-        }
-      ]
-    }
-  ],
-  "viomi.waterheater.u8": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 5,
-          "access": ["read", "notify", "write"]
-        },
-        {
-          "iid": 3,
-          "access": ["read", "notify"]
-        },
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:water-level",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        },
-        {
-          "iid": 102,
-          "type": "urn:miot-spec-v2:property:mode",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "value-list": [
-              {"value": 0, "description": "Custom"},
-              {"value": 1, "description": "Children"},
-              {"value": 2, "description": "Comfortable"},
-              {"value": 3, "description": "Old Man"},
-              {"value": 4, "description": "Kitchen"}
+          "iid": 200,
+          "type": "urn:miot-spec-v2:service:cruise-appointmen",
+          "properties": [
+              {
+                  "iid": 201,
+                  "type": "urn:miot-spec-v2:property:on",
+                  "format": "bool",
+                  "access": ["read", "write", "notify"]
+              }
           ]
         }
-      ]
-    }
-  ],
-    "viomi.waterheater.u12": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 5,
-          "access": ["read", "notify", "write"]
-        },
-        {
-          "iid": 3,
-          "access": ["read", "notify"]
-        },
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:water-level",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        },
-        {
-          "iid": 102,
-          "type": "urn:miot-spec-v2:property:mode",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "value-list": [
-              {"value": 0, "description": "Custom"},
-              {"value": 1, "description": "Children"},
-              {"value": 2, "description": "Comfortable"},
-              {"value": 3, "description": "Old Man"},
-              {"value": 4, "description": "Kitchen"}
-          ]
-        }
-      ]
-    }  
-   ],
-
-    {
-      "iid": 200,
-      "type": "urn:miot-spec-v2:service:cruise-appointmen",
-      "properties": [
+      ],
+  
+    "yeelink.bhf_light.v6": [
+      {
+        "iid": 3,
+        "properties": [
           {
-              "iid": 201,
-              "type": "urn:miot-spec-v2:property:on",
-              "format": "bool",
-              "access": ["read", "write", "notify"]
+            "iid": 101,
+            "type": "urn:miot-spec-v2:property:fan-level",
+            "format": "uint8",
+            "access": ["read", "write"],
+            "value-list": [
+              {"value": 1, "description": "Low"},
+              {"value": 2, "description": "Medium"},
+              {"value": 3, "description": "High"}
+            ]
           }
-      ]
-    }
-  ],
-
-  "yeelink.bhf_light.v6": [
-    {
-      "iid": 3,
-      "properties": [
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:fan-level",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "value-list": [
-            {"value": 1, "description": "Low"},
-            {"value": 2, "description": "Medium"},
-            {"value": 3, "description": "High"}
-          ]
-        }
-      ]
-    }
-  ],
-
-  "yeelink.light.color1": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:nl_br",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "unit": "percentage",
-          "value-range": [1, 100, 1]
-        }
-      ]
-    },
-    {
-      "iid": 200,
-      "type": "urn:miot-spec-v2:service:extend",
-      "properties": [
-        {
-          "iid": 201,
-          "type": "urn:miot-spec-v2:property:delayoff",
-          "format": "string",
-          "access": ["read", "write"]
-        }
-      ]
-    }
-  ]
-
-}
+        ]
+      }
+    ],
+  
+    "yeelink.light.color1": [
+      {
+        "iid": 2,
+        "properties": [
+          {
+            "iid": 101,
+            "type": "urn:miot-spec-v2:property:nl_br",
+            "format": "uint8",
+            "access": ["read", "write"],
+            "unit": "percentage",
+            "value-range": [1, 100, 1]
+          }
+        ]
+      },
+      {
+        "iid": 200,
+        "type": "urn:miot-spec-v2:service:extend",
+        "properties": [
+          {
+            "iid": 201,
+            "type": "urn:miot-spec-v2:property:delayoff",
+            "format": "string",
+            "access": ["read", "write"]
+          }
+        ]
+      }
+    ]
+  
+  }
