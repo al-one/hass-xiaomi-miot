@@ -785,10 +785,10 @@ class MiioEntity(BaseEntity):
         if self._model:
             gcs = GLOBAL_CUSTOMIZES['models']
             ucs = self.global_config('device_customizes') or {}
-            if ucs and isinstance(ucs, dict):
-                gcs.update(ucs)
             for m in self.wildcard_models:
                 cus = gcs.get(m) or {}
+                if ucs and isinstance(ucs, dict):
+                    cus.update(ucs.get(m) or {})
                 if key is not None and key not in cus:
                     continue
                 if cus:
