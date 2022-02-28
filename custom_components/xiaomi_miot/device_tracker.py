@@ -182,7 +182,7 @@ class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
         if not loc:
             self.logger.warning('%s: Got xiaoxun watch location faild: %s', self.name_model, rdt)
             return
-        self.logger.warning('%s: Got xiaoxun watch location: %s', self.name_model, rdt)
+        self.logger.debug('%s: Got xiaoxun watch location: %s', self.name_model, rdt)
         gps = f"{loc.get('location', '')},".split(',')
         self._attr_latitude = float(gps[0])
         self._attr_longitude = float(gps[1])
