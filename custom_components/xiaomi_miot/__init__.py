@@ -785,10 +785,10 @@ class MiioEntity(BaseEntity):
         if self._model:
             gcs = GLOBAL_CUSTOMIZES['models']
             ucs = self.global_config('device_customizes') or {}
-            if ucs and isinstance(ucs, dict):
-                gcs.update(ucs)
             for m in self.wildcard_models:
                 cus = gcs.get(m) or {}
+                if ucs and isinstance(ucs, dict):
+                    cus.update(ucs.get(m) or {})
                 if key is not None and key not in cus:
                     continue
                 if cus:
@@ -980,6 +980,10 @@ class MiotEntity(MiioEntity):
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self.entity_id = self._miot_service.generate_entity_id(self)
             self._state_attrs['miot_type'] = self._miot_service.spec.type
+        if not self.entity_id and self._model:
+            mls = f'{self._model}..'.split('.')
+            mac = re.sub(r'[\W_]+', '', self.unique_mac)
+            self.entity_id = f'{DOMAIN}.{mls[1]}_{mls[3]}_{mac[-4:]}_{mls[2]}'
         if self._model in MIOT_LOCAL_MODELS:
             self._vars['track_miot_error'] = True
         self._success_code = 0
