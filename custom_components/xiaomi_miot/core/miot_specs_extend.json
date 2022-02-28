@@ -323,6 +323,14 @@
               {"value": 3, "description": "Old Man"},
               {"value": 4, "description": "Kitchen"}
           ]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:water-velocity",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
         }
       ]
     },
@@ -336,6 +344,54 @@
               "format": "bool",
               "access": ["read", "write", "notify"]
           }
+      ]
+    }
+  ],
+  "viomi.waterheater.u12": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 5,
+          "access": ["read", "notify", "write"]
+        },
+        {
+          "iid": 3,
+          "access": ["read", "notify"]
+        },
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:water-velocity",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Custom"},
+            {"value": 1, "description": "Children"},
+            {"value": 2, "description": "Comfortable"},
+            {"value": 3, "description": "Old Man"},
+            {"value": 4, "description": "Kitchen"}
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 200,
+      "type": "urn:miot-spec-v2:service:cruise-appointmen",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:on",
+          "format": "bool",
+          "access": ["read", "write", "notify"]
+        }
       ]
     }
   ],
