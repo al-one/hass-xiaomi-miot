@@ -332,6 +332,11 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
             'suction_grade', 'water_grade', 'remember_map', 'has_map', 'is_mop', 'has_newmap',
         ]
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if self._miio2miot:
+            self._miio2miot.extend_miio_props(self._miio_props)
+
     async def async_update(self):
         await super().async_update()
         if not self._available:
