@@ -684,6 +684,10 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'viomi.vacuum.v7': {
+        'miio_props': [
+            'run_state', 'mode', 'err_state', 'battary_life', 'box_type', 'mop_type', 's_time', 's_area',
+            'suction_grade', 'water_grade', 'remember_map', 'has_map', 'is_mop', 'has_newmap',
+        ],
         'miio_specs': {
             'prop.2.1': {'prop': 'suction_grade', 'dict': {
                 0: 0,  # Silent
@@ -715,6 +719,18 @@ MIIO_TO_MIOT_SPECS = {
     },
     'viomi.vacuum.v8': {
         'extend_model': 'viomi.vacuum.v7',
+        'miio_commands': [
+            {
+                'method': 'get_consumables',
+                # 'values': ['main_brush_hours', 'side_brush_hours', 'hypa_hours', 'mop_hours'],
+                'template': '{{ '
+                            '"main_brush_life": (results[0] | default(360) | int(0) / 360 * 100) | round,'
+                            '"side_brush_life": (results[1] | default(180) | int(0) / 180 * 100) | round,'
+                            '"hypa_life": (results[2] | default(180) | int(0) / 180 * 100) | round,'
+                            '"mop_life": (results[3] | default(180) | int(0) / 180 * 100) | round,'
+                            ' }}',
+            },
+        ],
         'miio_specs': {
             'prop.2.1': {'prop': 'run_state', 'dict': {
                 0: 1,  # IdleNotDocked
