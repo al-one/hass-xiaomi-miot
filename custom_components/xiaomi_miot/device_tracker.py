@@ -150,9 +150,6 @@ class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
 
     async def async_update(self):
         await super().async_update()
-        if not self._available:
-            pass
-            #return
         await self.update_location()
 
     async def update_location(self):
@@ -184,8 +181,8 @@ class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
             return
         self.logger.debug('%s: Got xiaoxun watch location: %s', self.name_model, rdt)
         gps = f"{loc.get('location', '')},".split(',')
-        self._attr_latitude = float(gps[0])
-        self._attr_longitude = float(gps[1])
+        self._attr_latitude = float(gps[1])
+        self._attr_longitude = float(gps[0])
         self._attr_location_name = loc.get('desc')
         self._attr_location_accuracy = int(loc.get('radius') or 0)
         tim = loc.get('timestamp', '')
