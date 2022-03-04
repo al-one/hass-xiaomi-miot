@@ -32,7 +32,8 @@ SUPPORTED_DOMAINS = [
 ]
 
 CLOUD_SERVERS = {
-    'cn': 'China',
+    'cn': '中国大陆',
+    'tw': '中國台灣',
     'de': 'Europe',
     'i2': 'India',
     'ru': 'Russia',

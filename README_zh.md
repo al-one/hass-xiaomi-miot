@@ -80,7 +80,7 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HU
 xiaomi_miot:
   username: xiaomi_username
   password: xiaomi_password
-  # server_country: cn # 小米云服务器位置: cn(默认), de, i2, ru, sg, us
+  # server_country: cn # 小米云服务器位置: cn(默认), de, i2, ru, sg, tw, us
 ```
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设备与服务 > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
