@@ -581,13 +581,13 @@ class MiotProperty(MiotSpecInstance):
                     des = v.get('value')
                 rls.append(str(des))
             elif val == v.get('value'):
-                return str(des)
+                return des
         if self.value_range:
             if val is None:
                 # range to list
                 return self.list_descriptions()
             else:
-                return val
+                return str(val)
         return rls if val is None else None
 
     def list_descriptions(self, max_length=200):
