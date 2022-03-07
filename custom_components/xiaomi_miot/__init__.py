@@ -983,7 +983,7 @@ class MiotEntity(MiioEntity):
         if not self.entity_id and self._model:
             mls = f'{self._model}..'.split('.')
             mac = re.sub(r'[\W_]+', '', self.unique_mac)
-            self.entity_id = f'{DOMAIN}.{mls[1]}_{mls[3]}_{mac[-4:]}_{mls[2]}'
+            self.entity_id = f'{DOMAIN}.{mls[0]}_{mls[2]}_{mac[-4:]}_{mls[1]}'
         if self._model in MIOT_LOCAL_MODELS:
             self._vars['track_miot_error'] = True
         self._success_code = 0
