@@ -11,6 +11,7 @@ from homeassistant.components.fan import (
     SPEED_OFF,
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
+    OFF_SPEED_VALUES,
 )
 
 from . import (
@@ -188,8 +189,9 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             val = self._prop_percentage.from_dict(self._state_attrs)
             if val is not None:
                 return val
+        lst = [v for v in self.speed_list if v not in OFF_SPEED_VALUES]
         try:
-            return self.speed_to_percentage(str(self.speed))
+            return ordered_list_item_to_percentage(lst, self.speed)
         except ValueError:
             return None
 
