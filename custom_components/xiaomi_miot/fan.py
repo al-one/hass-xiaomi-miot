@@ -101,6 +101,8 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             for p in s.get_properties('speed_level', 'wind_speed', 'fan_level'):
                 if not p.value_range:
                     continue
+                if p.range_max() < 90:
+                    continue
                 self._prop_percentage = p
                 break
 
