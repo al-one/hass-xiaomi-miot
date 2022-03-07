@@ -180,7 +180,8 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         """Return the number of speeds the fan supports."""
         if self._prop_percentage:
             return round(self._prop_percentage.range_max() / self._prop_percentage.range_step())
-        return super().speed_count
+        lst = [v for v in self.speed_list if v not in OFF_SPEED_VALUES]
+        return len(lst)
 
     @property
     def percentage(self):
