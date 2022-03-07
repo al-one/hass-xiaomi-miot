@@ -723,12 +723,12 @@ MIIO_TO_MIOT_SPECS = {
             {
                 'method': 'get_consumables',
                 # 'values': ['main_brush_hours', 'side_brush_hours', 'hypa_hours', 'mop_hours'],
-                'template': '{{ '
+                'template': '{{ {'
                             '"main_brush_life": (results[0] | default(360) | int(0) / 360 * 100) | round,'
                             '"side_brush_life": (results[1] | default(180) | int(0) / 180 * 100) | round,'
                             '"hypa_life": (results[2] | default(180) | int(0) / 180 * 100) | round,'
                             '"mop_life": (results[3] | default(180) | int(0) / 180 * 100) | round,'
-                            ' }}',
+                            '} }}',
             },
         ],
         'miio_specs': {
