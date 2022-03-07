@@ -138,7 +138,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
     @property
     def min_humidity(self):
         if not self._prop_target_humi:
-            return None
+            return DEFAULT_MIN_HUMIDITY
         if self._prop_target_humi.value_list:
             vls = self._prop_target_humi.list_value(None)
             vls.sort()
@@ -151,7 +151,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
     @property
     def max_humidity(self):
         if not self._prop_target_humi:
-            return None
+            return DEFAULT_MAX_HUMIDITY
         if self._prop_target_humi.value_list:
             vls = self._prop_target_humi.list_value(None)
             vls.sort()
