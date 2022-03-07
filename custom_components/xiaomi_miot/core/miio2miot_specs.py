@@ -821,7 +821,12 @@ MIIO_TO_MIOT_SPECS = {
                 'drying':   4,
                 'coolwind': 5,
             }, 'default': 1},
-            'prop.4.1': {'prop': 'fan_speed_idx', 'template': 'yeelink_bhf_light_v2_fan_levels'},
+            'prop.4.1': {
+                'prop': 'fan_speed_idx',
+                'setter': 'set_gears_idx',
+                'template': 'yeelink_bhf_light_v2_fan_levels',
+                'set_template': '{{ [value - 1] }}',
+            },
         },
     },
     'yeelink.bhf_light.v5': {
@@ -893,7 +898,12 @@ MIIO_TO_MIOT_SPECS = {
             }, 'default': 0},
             'prop.3.2': {'prop': 'aim_temp', 'setter': 'set_temp'},
             'prop.3.3': {'prop': 'temperature'},
-            'prop.3.101': {'prop': 'fan_speed_idx', 'template': 'yeelink_bhf_light_v2_fan_levels'},
+            'prop.3.101': {
+                'prop': 'fan_speed_idx',
+                'setter': 'set_gears_idx',
+                'template': 'yeelink_bhf_light_v2_fan_levels',
+                'set_template': '{{ [value - 1] }}',
+            },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off"] }}'},
         },
     },
