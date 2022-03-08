@@ -1277,6 +1277,7 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': True,
                 'template': '{% set lvl = props.natural_level|default(value,true)|int(0) %}'
                             '{{ '
+                            'lvl if max == 100 else '
                             '1 if lvl <= 25 else '
                             '2 if lvl <= 50 else '
                             '3 if lvl <= 75 else '
@@ -1284,7 +1285,7 @@ MIIO_TO_MIOT_SPECS = {
                 'set_template': '{% set nlv = props.natural_level|default(0)|int(0) %}'
                                 '{{ {'
                                 '"method": "set_natural_level" if nlv else "set_speed_level",'
-                                '"params": [value|int(0) * 25],'
+                                '"params": [value|int(0) * (1 if max == 100 else 25)],'
                                 '} }}',
             },
             'prop.2.3': {'prop': 'angle_enable', 'setter': True, 'format': 'onoff'},

@@ -441,6 +441,18 @@
         }
       ]
     }
+  ],
+
+  "zhimi.fan.za4": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "value-range": [1, 100, 1]
+        }
+      ]
+    }
   ]
 
 }
