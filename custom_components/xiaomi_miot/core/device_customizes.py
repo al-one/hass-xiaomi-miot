@@ -378,6 +378,10 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'temp,currenttemp',
         'select_attributes': 'main_state,main_light,night_light,heat,vent,dry,natural_wind,delay_wind',
     },
+    'smith.waterpuri.cxr800': {
+        'miot_type': 'urn:miot-spec-v2:device:water-purifier:0000A013:smith-cxr800:2',
+        'sensor_attributes': 'filter_life_level,rwaterconsumption,rsysstate',
+    },
     'suittc.airrtc.wk168': {
         'switch_properties': 'on',
     },

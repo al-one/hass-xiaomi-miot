@@ -235,7 +235,8 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
         config[CONF_MODEL] = model
 
         if 'miot_type' not in config:
-            config['miot_type'] = await MiotSpec.async_get_model_type(hass, model)
+            urn = DEVICE_CUSTOMIZES.get(model, {}).get('miot_type')
+            config['miot_type'] = urn or await MiotSpec.async_get_model_type(hass, model)
         config['miio_info'] = info
         config['config_entry'] = config_entry
         config['miot_local'] = True
@@ -282,7 +283,8 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         model = d.get(CONF_MODEL)
         urn = None
         if model:
-            urn = await MiotSpec.async_get_model_type(hass, model)
+            urn = DEVICE_CUSTOMIZES.get(model, {}).get('miot_type')
+            urn = urn or await MiotSpec.async_get_model_type(hass, model)
         if not urn:
             _LOGGER.info('Xiaomi device: %s has no urn', [d.get('name'), model])
             continue
