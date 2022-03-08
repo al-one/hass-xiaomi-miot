@@ -719,7 +719,16 @@ MIIO_TO_MIOT_SPECS = {
     },
     'viomi.vacuum.v8': {
         'extend_model': 'viomi.vacuum.v7',
+        'without_props': True,
         'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [
+                    'sw_info', 'run_state', 'mode', 'err_state', 'battary_life', 'box_type', 'mop_type', 's_time',
+                    's_area', 'suction_grade', 'water_grade', 'remember_map', 'has_map', 'is_mop', 'has_newmap',
+                ],
+                'values': True,
+            },
             {
                 'method': 'get_consumables',
                 # 'values': ['main_brush_hours', 'side_brush_hours', 'hypa_hours', 'mop_hours'],
