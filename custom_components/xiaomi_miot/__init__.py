@@ -2177,8 +2177,8 @@ class MiotPropertySubEntity(BaseSubEntity):
         if self._attr_entity_category is None:
             self._attr_entity_category = miot_property.entity_category
         self._extra_attrs.update({
-            'service_description': miot_property.service.description,
-            'property_description': miot_property.description,
+            'service_description': miot_property.service.description or miot_property.service.name,
+            'property_description': miot_property.description or miot_property.name,
         })
 
     def set_parent_property(self, val, prop=None):

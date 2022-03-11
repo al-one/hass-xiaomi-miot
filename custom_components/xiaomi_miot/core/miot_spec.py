@@ -503,7 +503,7 @@ class MiotProperty(MiotSpecInstance):
     @property
     def short_desc(self):
         sde = self.service.description.strip()
-        pde = self.description.strip()
+        pde = self.desc_name.strip()
         des = pde
         if sde != pde:
             des = f'{sde} {pde}'.strip()
