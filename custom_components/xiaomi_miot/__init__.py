@@ -904,7 +904,7 @@ class MiioEntity(BaseEntity):
             self.update_attrs({'power': 'off'})
         return ret
 
-    def update_attrs(self, attrs: dict, update_parent=False):
+    def update_attrs(self, attrs: dict, update_parent=False, update_subs=True):
         self._state_attrs.update(attrs or {})
         if self.hass and self.platform:
             tps = cv.ensure_list(self.custom_config('attributes_template'))
@@ -923,10 +923,11 @@ class MiioEntity(BaseEntity):
         if update_parent and hasattr(self, '_parent'):
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
-        if pls := self.custom_config_list('sensor_attributes'):
-            self._update_attr_sensor_entities(pls, domain='sensor')
-        if pls := self.custom_config_list('binary_sensor_attributes'):
-            self._update_attr_sensor_entities(pls, domain='binary_sensor')
+        if update_subs:
+            if pls := self.custom_config_list('sensor_attributes'):
+                self._update_attr_sensor_entities(pls, domain='sensor')
+            if pls := self.custom_config_list('binary_sensor_attributes'):
+                self._update_attr_sensor_entities(pls, domain='binary_sensor')
         return self._state_attrs
 
     async def async_update_attrs(self, *args, **kwargs):
@@ -967,18 +968,36 @@ class MiotEntity(MiioEntity):
         self._local_state = None
         self._miio2miot = None
         self._miot_mapping = dict(kwargs.get('mapping') or {})
-        self._vars['has_special_mapping'] = not not self._miot_mapping
         if self._miot_service:
             if not self.cloud_only:
                 if ext := self.custom_config_list('extend_miot_specs'):
                     # only for local mode
                     self._miot_service.spec.extend_specs(services=ext)
                 self._miio2miot = Miio2MiotHelper.from_model(self.hass, self._model, self._miot_service.spec)
+            if dic := self.custom_config_json('miot_mapping'):
+                self._miot_service.spec.set_custom_mapping(dic)
             if not self._miot_mapping:
-                eps = self.custom_config_list('exclude_miot_properties') or []
-                if eps:
+                if ems := self.custom_config_list('exclude_miot_services') or []:
+                    self._state_attrs['exclude_miot_services'] = ems
+                if eps := self.custom_config_list('exclude_miot_properties') or []:
                     self._state_attrs['exclude_miot_properties'] = eps
                 self._miot_mapping = miot_service.mapping(excludes=eps) or {}
+                ism = True
+                if mms := self.custom_config_list('main_miot_services') or []:
+                    if self._miot_service.unique_name in mms:
+                        ism = True
+                    elif self._miot_service.name in mms:
+                        ism = True
+                    else:
+                        ism = False
+                if ism:
+                    ems = [self._miot_service.name, *ems]
+                    ext = self._miot_service.spec.services_mapping(
+                        excludes=ems,
+                        exclude_properties=eps,
+                    ) or {}
+                    self._miot_mapping = {**self._miot_mapping, **ext, **self._miot_mapping}
+                self._vars['is_main_entity'] = ism
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self.entity_id = self._miot_service.generate_entity_id(self)
             self._state_attrs['miot_type'] = self._miot_service.spec.type
@@ -989,28 +1008,12 @@ class MiotEntity(MiioEntity):
         if self._model in MIOT_LOCAL_MODELS:
             self._vars['track_miot_error'] = True
         self._success_code = 0
+        self.logger.info('%s: Initializing miot device with mapping: %s', self.name_model, self._miot_mapping)
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         if not self._miot_service:
             return
-        if dic := self.custom_config_json('miot_mapping'):
-            self._miot_service.spec.set_custom_mapping(dic)
-        ems = self.custom_config_list('exclude_miot_services') or []
-        ems.extend(self._vars.get('exclude_services') or [])
-        if ems:
-            self._vars['exclude_services'] = ems
-            self._state_attrs['exclude_miot_services'] = ems
-        eps = self._state_attrs.get('exclude_miot_properties') or []
-        if not self._vars.get('has_special_mapping'):
-            dic = self._miot_service.mapping(excludes=eps) or {}
-            ems = [self._miot_service.name, *ems]
-            self._miot_mapping = self._miot_service.spec.services_mapping(
-                excludes=ems,
-                exclude_properties=eps,
-            ) or {}
-            self._miot_mapping = {**dic, **self._miot_mapping, **dic}
-        self.logger.info('%s: Initializing miot device with mapping: %s', self.name_model, self._miot_mapping)
 
     @property
     def miot_device(self):
@@ -1103,6 +1106,10 @@ class MiotEntity(MiioEntity):
         return None
 
     @property
+    def is_main_entity(self):
+        return self._vars.get('is_main_entity')
+
+    @property
     def miot_config(self):
         return self._config or {}
 
@@ -1113,17 +1120,6 @@ class MiotEntity(MiioEntity):
             mmp = self._miot_mapping
         elif self._device and hasattr(self._device, 'mapping'):
             mmp = self._device.mapping or {}
-
-        exs = self._vars.get('exclude_services') or []
-        if exs and mmp and self._miot_service:
-            sls = self._miot_service.spec.get_services(*exs)
-            sis = list(map(lambda x: x.iid, sls))
-            if sis:
-                mmp = {
-                    k: v
-                    for k, v in mmp.items()
-                    if v.get('siid') not in sis
-                }
         return mmp
 
     @property
@@ -1275,6 +1271,14 @@ class MiotEntity(MiioEntity):
         self._available = True
         self._state = True if self._state_attrs.get('power') else False
 
+        if self.is_main_entity:
+            await self.async_update_for_main_entity()
+        if self._subs:
+            attrs['sub_entities'] = list(self._subs.keys())
+        await self.async_update_attrs(attrs)
+        self.logger.debug('%s: Got new state: %s', self.name_model, attrs)
+
+    async def async_update_for_main_entity(self):
         if self._miot_service:
             for d in [
                 'sensor', 'binary_sensor', 'switch', 'number',
@@ -1342,10 +1346,6 @@ class MiotEntity(MiioEntity):
                     'entity_category': ENTITY_CATEGORY_CONFIG,
                 },
             )
-        if self._subs:
-            attrs['sub_entities'] = list(self._subs.keys())
-        await self.async_update_attrs(attrs)
-        self.logger.debug('%s: Got new state: %s', self.name_model, attrs)
 
         # update miio prop/event in cloud
         if cls := self.custom_config_list('miio_cloud_records'):
@@ -1768,7 +1768,7 @@ class MiotEntity(MiioEntity):
         add_numbers = self._add_entities.get('number')
         add_selects = self._add_entities.get('select')
         add_buttons = self._add_entities.get('button')
-        exclude_services = self._vars.get('exclude_services') or []
+        exclude_services = self._state_attrs.get('exclude_miot_services') or []
         for s in sls:
             if s.name in exclude_services:
                 continue

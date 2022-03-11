@@ -94,6 +94,9 @@ DEVICE_CUSTOMIZES = {
             'indicator_light.on': {'siid': 3, 'piid': 1},
         },
     },
+    'cuco.plug.cp2a': {
+        'main_miot_services': 'switch-2',
+    },
     'cuco.plug.cp4': {
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
@@ -127,6 +130,7 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'kWh',
     },
     'cuco.plug.sp5': {
+        'main_miot_services': 'switch-2',
         'exclude_miot_services': 'custome,physical_controls_locked,indicator_light',
     },
     'cuco.plug.*:electric_current': {
