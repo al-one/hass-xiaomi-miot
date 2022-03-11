@@ -906,22 +906,30 @@ MIIO_TO_MIOT_SPECS = {
                                 '} }}',
             },
             'prop.2.3': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
-            'prop.3.1': {'prop': 'bh_mode', 'dict': {
-                'bh_off':   0,  # stop_bath_heater
-                'coolwind': 1,
-                'warmwind': 2,
-                'venting':  3,
-                'drying':   4,
-            }, 'default': 0},
+            'prop.3.1': {
+                'prop': 'bh_mode',
+                'template': '{{ '
+                            '1 if "coolwind" in value else '
+                            '2 if "warmwind" in value else '
+                            '3 if "venting" in value else '
+                            '4 if "drying" in value else '
+                            '0 }}',
+                'set_template': '{{ '
+                                '["coolwind", 2] if value == 1 else '
+                                '["warmwind", 2] if value == 2 else '
+                                '["venting", 2] if value == 3 else '
+                                '["drying", 2] if value == 4 else '
+                                '["bh_off", 0] }}',
+            },
             'prop.3.2': {'prop': 'aim_temp', 'setter': 'set_temp'},
             'prop.3.3': {'prop': 'temperature'},
             'prop.3.101': {
                 'prop': 'fan_speed_idx',
-                'setter': 'set_gears_idx',
-                'template': 'yeelink_bhf_light_v2_fan_levels',
-                'set_template': '{{ [value - 1] }}',
+                'setter': 'set_bh_mode',
+                'template': 'yeelink_bhf_light_v5_fan_levels',
+                'set_template': '{{ [props.bh_mode, value - 1] }}',
             },
-            'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off"] }}'},
+            'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
         },
     },
 

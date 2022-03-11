@@ -152,7 +152,14 @@ CUSTOM_TEMPLATES = {
                                        "'venting': val[3],"
                                        "'warmwind': val[4],"
                                        "} %}"
-                                       "{{ [1,2,3,3][mds[props.bh_mode] | default(0) | int(0)] | default(1) }}",
+                                       "{{ [1,2,3][mds[props.bh_mode] | default(0) | int(0)] | default(3) }}",
+    'yeelink_bhf_light_v5_fan_levels': "{%- set val = ('000' ~ value)[-3:] %}"
+                                       "{%- set mds = {"
+                                       "'warmwind': val[0],"
+                                       "'coolwind': val[1],"
+                                       "'venting': val[2],"
+                                       "} %}"
+                                       "{{ [1,2,3][mds[props.bh_mode] | default(0) | int(0)] | default(3) }}",
     'zimi_powerstrip_v2_power_cost': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
                                      "{%- set day = now().day %}"
                                      "{%- set vls = (val | from_json)[0-day:] %}"
