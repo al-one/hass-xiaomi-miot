@@ -14,6 +14,7 @@ MIOT_LOCAL_MODELS = [
     'aupu.bhf_light.s368m',
     # 'babai.curtain.190812',  # mode/current_position return -4004
     # 'babai.curtain.bb82mj',  # mode/current_position return -4004
+    # 'babai.curtain.m515e',   # mode/current_position return -4004
     # 'babai.curtain.mtx850',  # mode/current_position return -4004
     'babai.switch.bb101s',
     'babai.switch.bb102s',
@@ -37,6 +38,7 @@ MIOT_LOCAL_MODELS = [
     'chunmi.waterpuri.600f2',
     'chunmi.waterpuri.600j6',
     'chunmi.waterpuri.800f3',
+    'coc.dryer.fdpsm',
     # 'cubee.airrtc.th123e',  # issues/282
     # 'cubee.airrtc.th123w',  # issues/213
     'cuco.light.sl4',
@@ -101,6 +103,7 @@ MIOT_LOCAL_MODELS = [
     'hfjh.fishbowl.v2',
     'huayi.light.fanwy',
     'hyd.airer.znlyj1',
+    'hyd.airer.znlyj3',
     'hyd.airer.znlyj4',
     'ijai.vacuum.v1',
     'ijai.vacuum.v10',
@@ -123,6 +126,7 @@ MIOT_LOCAL_MODELS = [
     'linp.doorbell.g04',
     'linp.switch.q31',
     'linp.switch.q32',
+    'linp.switch.q33',
     'lumi.acpartner.mcn04',
     'lumi.airer.acn02',
     'lumi.curtain.hagl05',
@@ -131,6 +135,7 @@ MIOT_LOCAL_MODELS = [
     'lumi.sensor_gas.mcn02',
     'miaomiaoce.airm.air01',
     'miaomiaoce.blanket.s02',
+    'mibx2.fridge.v1',
     'mibx2.washer.v5',
     'midjd6.fridge.v1',
     'mijia.vacuum.v1',
@@ -141,6 +146,7 @@ MIOT_LOCAL_MODELS = [
     'msj.f_washer.m1pro',
     'nbczwl.airer.airer',
     'nnleaf.light.strips',
+    'noc196.light.mdyctd',
     'nwt.derh.312en',
     'nwt.derh.330ef',
     'opple.bhf_light.acmoto',
@@ -242,14 +248,17 @@ MIOT_LOCAL_MODELS = [
     'yeelink.bhf_light.v6',
     'yeelink.curtain.ctmt1',
     'yeelink.light.ceil26',
+    'yeelink.light.ceil29',
     'yeelink.light.ceil34',
     'yeelink.light.ceila',
     'yeelink.light.ceilb',
     'yeelink.light.ceilc',
     # 'yeelink.light.color5',  # -9999
+    'yeelink.light.colorb',
     'yeelink.light.colorc',
     'yeelink.light.fancl1',
     'yeelink.light.fancl2',
+    'yeelink.light.fancl5',
     'yeelink.light.lamp15',
     'yeelink.light.lamp22',
     # 'yeelink.light.lamp4',  # miio2miot
@@ -258,6 +267,7 @@ MIOT_LOCAL_MODELS = [
     'yeelink.light.monob',
     'yeelink.light.stripa',
     'yeelink.switch.sw1',
+    'yh1209.airer.public',
     'ymt.flowerpot.v1',
     'yuemee.sensor_gas.56712',
     'yunmi.waterpuri.f7',
