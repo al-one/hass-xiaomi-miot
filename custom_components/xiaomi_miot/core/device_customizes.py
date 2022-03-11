@@ -436,6 +436,10 @@ DEVICE_CUSTOMIZES = {
     'zhimi.airpurifier.*': {
         'exclude_miot_services': 'motor_speed,rfid,others',
     },
+    'zhimi.heater.nb1': {
+        'brightness_for_on': 0,
+        'brightness_for_off': 2,
+    },
     'zimi.plug.zncz01': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '3.2',

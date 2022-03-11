@@ -120,11 +120,18 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         self._vars['color_temp_reverse'] = self.custom_config_bool('color_temp_reverse')
+        if self._prop_brightness:
+            self._vars['brightness_for_on'] = self.custom_config_integer('brightness_for_on')
+            self._vars['brightness_for_off'] = self.custom_config_integer('brightness_for_off')
 
     def turn_on(self, **kwargs):
         ret = False
         if not self.is_on:
-            ret = self.set_property(self._prop_power, True)
+            bri = self._vars.get('brightness_for_on')
+            if bri is not None:
+                ret = self.set_property(self._prop_brightness, bri)
+            else:
+                ret = self.set_property(self._prop_power, True)
 
         if self._prop_brightness and ATTR_BRIGHTNESS in kwargs:
             brightness = kwargs[ATTR_BRIGHTNESS]
@@ -154,6 +161,14 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             _LOGGER.debug('%s: Setting light effect: %s(%s)', self.name_model, kwargs[ATTR_EFFECT], val)
             ret = self.set_property(self._prop_mode, val)
 
+        return ret
+
+    def turn_off(self, **kwargs):
+        bri = self._vars.get('brightness_for_off')
+        if bri is not None:
+            ret = self.set_property(self._prop_brightness, bri)
+        else:
+            ret = super().turn_off()
         return ret
 
     @property
