@@ -440,6 +440,10 @@ DEVICE_CUSTOMIZES = {
     'zhimi.airpurifier.*': {
         'exclude_miot_services': 'motor_speed,rfid,others',
     },
+    'zhimi.heater.za1': {
+        'brightness_for_on': 0,
+        'brightness_for_off': 2,
+    },
     'zhimi.heater.nb1': {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
