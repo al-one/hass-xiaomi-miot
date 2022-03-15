@@ -91,6 +91,7 @@ MIOT_LOCAL_MODELS = [
     'dreame.vacuum.p2259',
     'fawad.airrtc.30011',
     'fawad.airrtc.30012',
+    'fengmi.projector.l176',
     'fengmi.projector.l176jp',
     'fengmi.projector.l185',
     'fengmi.projector.l206j',
