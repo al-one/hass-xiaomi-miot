@@ -152,6 +152,31 @@
     }
   ],
 
+  "shuii.humidifier.jsq002": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 5,
+          "access": ["read", "notify"]
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 1,
+          "access": ["read", "notify"]
+        },
+        {
+          "iid": 2,
+          "access": ["read", "notify"]
+        }
+      ]
+    }
+  ],
+
   "tinymu.toiletlid.v1": [
     {
       "iid": 3,
