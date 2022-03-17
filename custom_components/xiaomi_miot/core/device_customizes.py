@@ -438,7 +438,8 @@ DEVICE_CUSTOMIZES = {
         },
     },
     'zhimi.airpurifier.*': {
-        'exclude_miot_services': 'motor_speed,rfid,others',
+        'exclude_miot_services': 'button,motor_speed,use_time,rfid,others',
+        'exclude_miot_properties': 'filter_time_set,filter_hour_debug',
     },
     'zhimi.airpurifier.za1': {
         'brightness_for_on': 0,
