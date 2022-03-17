@@ -404,7 +404,9 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         if 'url' in rdt:
             url = rdt.get('url', '')
             pms = urlparse(url).query
-            url = f'{url}'.replace(pms, '').replace('//null:', f'//{self._host}:')
+            url = f'{url}'.replace(pms, '')
+            url = url.replace('//null:', f'//{self._host}:')
+            url = url.replace('//0.0.0.0:', f'//{self._host}:')
             pms = dict(parse_qsl(pms))
             pms = self.with_opaque(pms, token=rdt.get('token'))
             self._attr_media_image_url = url + urlencode(pms)
