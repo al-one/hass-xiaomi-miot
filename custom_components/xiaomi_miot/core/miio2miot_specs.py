@@ -857,22 +857,28 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {
                 'prop': 'bh_mode',
                 'setter': True,
-                'dict': {
-                    'drying':    1,
-                    'defog':     2,
-                    'fastdefog': 3,
-                    'fastwarm':  4,
-                    'bh_off':    5,
-                    'warmwind':  6,
-                },
-                'default': 5,
                 'template': '{{ '
                             '3 if "fastdefog" in value else '
                             '4 if "fastwarm" in value else '
                             '1 if "drying" in value else '
                             '2 if "defog" in value else '
+                            '8 if "venting" in value else '
+                            '7 if "coolwind" in value else '
                             '6 if "warmwind" in value else '
-                            '5 }}',
+                            '5 if "bh_off" in value else '
+                            '0 }}',
+                'set_template': '{{ '
+                                '["drying"] if value == 1 else '
+                                '["defog"] if value == 2 else '
+                                '["fastdefog"] if value == 3 else '
+                                '["fastwarm"] if value == 4 else '
+                                '["warmwind", 2] if value == 6 else '
+                                '["coolwind", 2] if value == 7 else '
+                                '["venting", 2] if value == 8 else '
+                                '["ventingoff"] if props.bh_mode == "venting" else '
+                                '["windoff"] if props.bh_mode == "coolwind" else '
+                                '["windoff"] if props.bh_mode == "warmwind" else '
+                                '["bh_off", 0] }}',
             },
             'prop.3.2': {
                 'prop': 'bh_mode', 'setter': True,
@@ -891,6 +897,7 @@ MIIO_TO_MIOT_SPECS = {
             },
             'prop.3.5': {'prop': 'aim_temp', 'setter': 'set_temp'},
             'prop.3.6': {'prop': 'temperature'},
+            'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
         },
     },
     'yeelink.bhf_light.v6': {
@@ -908,6 +915,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.3': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
             'prop.3.1': {
                 'prop': 'bh_mode',
+                'setter': True,
                 'template': '{{ '
                             '7 if "fastdefog" in value else '
                             '6 if "fastwarm" in value else '

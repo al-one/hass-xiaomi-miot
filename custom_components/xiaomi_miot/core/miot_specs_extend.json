@@ -396,6 +396,37 @@
     }
   ],
 
+  "yeelink.bhf_light.v5": [
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 1,
+          "value-list": [
+            {"value": 1, "description": "Dry"},
+            {"value": 2, "description": "Defog"},
+            {"value": 3, "description": "Quick Defog"},
+            {"value": 4, "description": "Quick Heat"},
+            {"value": 5, "description": "Idle"},
+            {"value": 6, "description": "Heat"},
+            {"value": 7, "description": "Fan"},
+            {"value": 8, "description": "Ventilate"}
+          ]
+        },
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:fan-level",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Medium"},
+            {"value": 3, "description": "High"}
+          ]
+        }
+      ]
+    }
+  ],
   "yeelink.bhf_light.v6": [
     {
       "iid": 3,
