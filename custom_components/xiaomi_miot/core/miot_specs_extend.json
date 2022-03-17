@@ -401,6 +401,19 @@
       "iid": 3,
       "properties": [
         {
+          "iid": 1,
+          "value-list": [
+            {"value": 0, "description": "Idle"},
+            {"value": 1, "description": "Fan"},
+            {"value": 2, "description": "Heat"},
+            {"value": 3, "description": "Ventilate"},
+            {"value": 4, "description": "Dry"},
+            {"value": 5, "description": "Defog"},
+            {"value": 6, "description": "Quick Heat"},
+            {"value": 7, "description": "Quick Defog"}
+          ]
+        },
+        {
           "iid": 101,
           "type": "urn:miot-spec-v2:property:fan-level",
           "format": "uint8",
@@ -410,6 +423,27 @@
             {"value": 2, "description": "Medium"},
             {"value": 3, "description": "High"}
           ]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:heating",
+          "description": "Heating",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:blow",
+          "description": "Blow",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 104,
+          "type": "urn:miot-spec-v2:property:ventilation",
+          "description": "Ventilation",
+          "format": "bool",
+          "access": ["read", "write"]
         }
       ]
     }
