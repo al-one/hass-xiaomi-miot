@@ -622,6 +622,37 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'shuii.humidifier.jsq002': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_props',
+                'values': [
+                    'power', 'gear', 'humidity', 'ledLevel', 'temperature', 'waterLevel',
+                    'heat', 'beaPower', 'childLock', 'targetTemp', 'targetHumidity',
+                ],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {
+                'prop': 'power',
+                'setter': 'on_off',
+                'template': '{{ value == 1 and props.waterLevel not in [0,6] }}',
+                'set_template': '{{ [value|int] }}',
+            },
+            'prop.2.2': {'prop': 'gear', 'setter': True},
+            'prop.2.3': {'prop': 'heat', 'setter': 'warm_on', 'set_template': '{{ [value|int] }}'},
+            'prop.2.4': {'prop': 'targetHumidity', 'setter': 'set_humidity'},
+            'prop.2.5': {'prop': 'waterLevel'},
+            'prop.2.6': {'prop': 'targetTemp', 'setter': 'set_temp'},
+            'prop.3.1': {'prop': 'humidity'},
+            'prop.3.2': {'prop': 'temperature'},
+            'prop.4.1': {'prop': 'ledLevel', 'setter': 'set_led'},
+            'prop.5.1': {'prop': 'beaPower', 'setter': 'buzzer_on', 'set_template': '{{ [value|int] }}'},
+            'prop.6.1': {'prop': 'childLock', 'setter': 'set_lock', 'set_template': '{{ [value|int] }}'},
+        },
+    },
+
     'skyrc.pet_waterer.fre1': {
         'without_props': True,
         'miio_commands': [

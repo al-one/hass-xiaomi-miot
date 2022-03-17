@@ -386,6 +386,10 @@ DEVICE_CUSTOMIZES = {
         'miot_type': 'urn:miot-spec-v2:device:water-purifier:0000A013:smith-cxr800:2',
         'sensor_attributes': 'filter_life_level,rwaterconsumption,rsysstate',
     },
+    'shuii.humidifier.jsq002': {
+        'brightness_for_on': 3,
+        'brightness_for_off': 1,
+    },
     'suittc.airrtc.wk168': {
         'switch_properties': 'on',
     },
