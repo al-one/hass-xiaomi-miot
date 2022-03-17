@@ -897,6 +897,12 @@ MIIO_TO_MIOT_SPECS = {
             },
             'prop.3.5': {'prop': 'aim_temp', 'setter': 'set_temp'},
             'prop.3.6': {'prop': 'temperature'},
+            'prop.3.101': {
+                'prop': 'fan_speed_idx',
+                'setter': 'set_bh_mode',
+                'template': 'yeelink_bhf_light_v5_fan_levels',
+                'set_template': '{{ [props.bh_mode, value - 1] }}',
+            },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
         },
     },
