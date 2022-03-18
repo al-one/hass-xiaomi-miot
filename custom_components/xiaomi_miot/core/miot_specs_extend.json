@@ -445,7 +445,6 @@
           "access": ["read", "write"],
           "value-list": [
             {"value": 1, "description": "Low"},
-            {"value": 2, "description": "Medium"},
             {"value": 3, "description": "High"}
           ]
         }
@@ -476,7 +475,6 @@
           "access": ["read", "write"],
           "value-list": [
             {"value": 1, "description": "Low"},
-            {"value": 2, "description": "Medium"},
             {"value": 3, "description": "High"}
           ]
         },

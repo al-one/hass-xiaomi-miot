@@ -159,7 +159,7 @@ CUSTOM_TEMPLATES = {
                                        "'coolwind': val[1],"
                                        "'venting': val[2],"
                                        "} %}"
-                                       "{{ [1,2,3][mds[props.bh_mode] | default(0) | int(0)] | default(3) }}",
+                                       "{{ [1,1,3,3][mds[props.bh_mode] | default(0) | int(0)] | default(1) }}",
     'zimi_powerstrip_v2_power_cost': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
                                      "{%- set day = now().day %}"
                                      "{%- set vls = (val | from_json)[0-day:] %}"

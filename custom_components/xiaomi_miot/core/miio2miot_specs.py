@@ -1,3 +1,16 @@
+import logging
+
+_LOGGER = logging.getLogger(__name__)
+
+
+def set_callback_via_param_index(index=0):
+    def cbk(prop, params, props, **kwargs):
+        if prop in props and len(params) > index:
+            props[prop] = params[index]
+        _LOGGER.debug('New miio props after setting %s(%s): %s', prop, params, props)
+    return cbk
+
+
 MIIO_TO_MIOT_SPECS = {
 
     '090615.switch.xswitch01': {
@@ -903,13 +916,14 @@ MIIO_TO_MIOT_SPECS = {
                                 '["defog"] if value == 2 else '
                                 '["fastdefog"] if value == 3 else '
                                 '["fastwarm"] if value == 4 else '
-                                '["warmwind", 2] if value == 6 else '
+                                '["warmwind", 3] if value == 6 else '
                                 '["coolwind", 2] if value == 7 else '
                                 '["venting", 2] if value == 8 else '
                                 '["ventingoff"] if props.bh_mode == "venting" else '
                                 '["windoff"] if props.bh_mode == "coolwind" else '
                                 '["windoff"] if props.bh_mode == "warmwind" else '
                                 '["bh_off", 0] }}',
+                'set_callback': set_callback_via_param_index(0),
             },
             'prop.3.2': {
                 'prop': 'bh_mode', 'setter': True,
@@ -964,7 +978,7 @@ MIIO_TO_MIOT_SPECS = {
                             '0 }}',
                 'set_template': '{{ '
                                 '["coolwind", 2] if value == 1 else '
-                                '["warmwind", 2] if value == 2 else '
+                                '["warmwind", 3] if value == 2 else '
                                 '["venting", 2] if value == 3 else '
                                 '["drying"] if value == 4 else '
                                 '["defog"] if value == 5 else '
@@ -974,6 +988,7 @@ MIIO_TO_MIOT_SPECS = {
                                 '["windoff"] if props.bh_mode == "coolwind" else '
                                 '["windoff"] if props.bh_mode == "warmwind" else '
                                 '["bh_off", 0] }}',
+                'set_callback': set_callback_via_param_index(0),
             },
             'prop.3.2': {'prop': 'aim_temp', 'setter': 'set_temp'},
             'prop.3.3': {'prop': 'temperature'},

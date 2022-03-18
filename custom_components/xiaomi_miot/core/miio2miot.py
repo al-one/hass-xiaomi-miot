@@ -196,6 +196,9 @@ class Miio2MiotHelper:
         iok = ret == ['ok']
         if self.config.get('ignore_result'):
             iok = ret or isinstance(ret, list)
+        cbk = cfg.get('set_callback')
+        if iok and cbk:
+            cbk(prop=cfg.get('prop'), config=cfg, setter=setter, params=pms, props=self.miio_props_values)
         return {
             'code': 0 if iok else 1,
             'siid': siid,
