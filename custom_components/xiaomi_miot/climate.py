@@ -385,28 +385,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         return hms
 
     def set_hvac_mode(self, mode: str):
-        if mode == HVAC_MODE_OFF:
-            return self.turn_off()
-        if not self.is_on:
-            self.turn_on(without_modes=True)
-        if not self._prop_mode:
-            return False
-        val = self._hvac_modes.get(mode, {}).get('value')
-        if val is None:
-            if self._prop_mode.value_list:
-                val = self._prop_mode.list_first(mode)
-            elif self._prop_mode.value_range:
-                for k, v in self._preset_modes.items():
-                    if v != mode:
-                        continue
-                    try:
-                        val = int(k)
-                        break
-                    except (TypeError, ValueError):
-                        val = None
-        if val is None:
-            return False
-        return self.set_property(self._prop_mode, val)
+        return self.set_preset_mode(mode)
 
     @property
     def preset_mode(self):
@@ -429,9 +408,28 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         return pms
 
     def set_preset_mode(self, mode: str):
-        if not self._preset_modes:
+        if mode == HVAC_MODE_OFF:
+            return self.turn_off()
+        if not self.is_on:
+            self.turn_on(without_modes=True)
+        if not self._prop_mode:
             return False
-        return self.set_hvac_mode(mode)
+        val = self._hvac_modes.get(mode, {}).get('value')
+        if val is None:
+            if self._prop_mode.value_list:
+                val = self._prop_mode.list_first(mode)
+            elif self._prop_mode.value_range:
+                for k, v in self._preset_modes.items():
+                    if v != mode:
+                        continue
+                    try:
+                        val = int(k)
+                        break
+                    except (TypeError, ValueError):
+                        val = None
+        if val is None:
+            return False
+        return self.set_property(self._prop_mode, val)
 
     @property
     def temperature_unit(self):
