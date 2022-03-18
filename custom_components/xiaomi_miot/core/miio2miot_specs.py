@@ -916,12 +916,12 @@ MIIO_TO_MIOT_SPECS = {
                                 '["defog"] if value == 2 else '
                                 '["fastdefog"] if value == 3 else '
                                 '["fastwarm"] if value == 4 else '
-                                '["warmwind", 3] if value == 6 else '
-                                '["coolwind", 2] if value == 7 else '
-                                '["venting", 2] if value == 8 else '
-                                '["ventingoff"] if props.bh_mode == "venting" else '
-                                '["windoff"] if props.bh_mode == "coolwind" else '
-                                '["windoff"] if props.bh_mode == "warmwind" else '
+                                '["warmwind", 2] if value == 6 else '
+                                '["coolwind", 3] if value == 7 else '
+                                '["venting", 3] if value == 8 else '
+                                '["windoff"] if "coolwind" in props.bh_mode else '
+                                '["windoff"] if "warmwind" in props.bh_mode else '
+                                '["ventingoff"] if "venting" in props.bh_mode else '
                                 '["bh_off", 0] }}',
                 'set_callback': set_callback_via_param_index(0),
             },
@@ -949,7 +949,8 @@ MIIO_TO_MIOT_SPECS = {
                 'set_template': '{{ ['
                                 'props.bh_mode,'
                                 '1 if value <= 1 else '
-                                '3 if props.bh_mode == "warmwind" else '
+                                '3 if "coolwind" in props.bh_mode else '
+                                '3 if "venting" in props.bh_mode else '
                                 '2] }}',
             },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
@@ -981,16 +982,16 @@ MIIO_TO_MIOT_SPECS = {
                             '5 if "defog" in value else '
                             '0 }}',
                 'set_template': '{{ '
-                                '["coolwind", 2] if value == 1 else '
-                                '["warmwind", 3] if value == 2 else '
-                                '["venting", 2] if value == 3 else '
+                                '["coolwind", 3] if value == 1 else '
+                                '["warmwind", 2] if value == 2 else '
+                                '["venting", 3] if value == 3 else '
                                 '["drying"] if value == 4 else '
                                 '["defog"] if value == 5 else '
                                 '["fastwarm"] if value == 6 else '
                                 '["fastdefog"] if value == 7 else '
-                                '["ventingoff"] if props.bh_mode == "venting" else '
-                                '["windoff"] if props.bh_mode == "coolwind" else '
-                                '["windoff"] if props.bh_mode == "warmwind" else '
+                                '["windoff"] if "coolwind" in props.bh_mode else '
+                                '["windoff"] if "warmwind" in props.bh_mode else '
+                                '["ventingoff"] if "venting" in props.bh_mode else '
                                 '["bh_off", 0] }}',
                 'set_callback': set_callback_via_param_index(0),
             },
@@ -1003,7 +1004,8 @@ MIIO_TO_MIOT_SPECS = {
                 'set_template': '{{ ['
                                 'props.bh_mode,'
                                 '1 if value <= 1 else '
-                                '3 if props.bh_mode == "warmwind" else '
+                                '3 if "coolwind" in props.bh_mode else '
+                                '3 if "venting" in props.bh_mode else '
                                 '2] }}',
             },
             'prop.3.102': {
