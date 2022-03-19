@@ -129,6 +129,9 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
+    'cuco.plug.cp5pro:voltage': {
+        'value_ratio': 1,
+    },
     'cuco.plug.sp5': {
         'main_miot_services': 'switch-2',
         'exclude_miot_services': 'custome,physical_controls_locked,indicator_light',
