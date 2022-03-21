@@ -211,6 +211,9 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
         'exclude_miot_services': 'remote,default,scene',
     },
+    'leshi.light.wyfan': {
+        'chunk_properties': 3,
+    },
     'lumi.acpartner.mcn02:electric_power': {
         'value_ratio': 0.001,
     },
