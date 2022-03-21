@@ -119,6 +119,7 @@ MIOT_LOCAL_MODELS = [
     'kejia.airer.mznpro',
     'leishi.light.eps112',
     'leishi.light.eps118',
+    'leshi.light.wy0b01',
     'leshi.light.wyfan',
     'leshow.heater.bs1s',
     'leshow.heater.bs3',

@@ -207,6 +207,10 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'order',
         'exclude_miot_properties': 'zone_points,restrict_points,target_point',
     },
+    'leshi.light.wy0b01': {
+        'chunk_properties': 1,
+        'exclude_miot_services': 'remote,default,scene',
+    },
     'lumi.acpartner.mcn02:electric_power': {
         'value_ratio': 0.001,
     },
