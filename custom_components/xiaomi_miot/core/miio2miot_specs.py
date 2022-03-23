@@ -830,6 +830,12 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {'prop': 'targetTemp', 'setter': 'set_temp', 'set_template': '{{ [value|int] }}'},
             'prop.2.2': {'prop': 'waterTemp'},
             'prop.2.3': {'prop': 'washStatus'},
+            'prop.2.4': {  # viomi.waterheater.u12
+                'prop': 'washStatus',
+                'setter': 'set_power',
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
             'prop.2.5': {
                 'prop': 'washStatus',
                 'setter': 'set_power',
