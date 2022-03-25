@@ -428,8 +428,11 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.watch.*': {
         'sensor_properties': 'current_step_count,current_distance',
     },
+    'yeelink.bhf_light.v5': {
+        'select_properties': 'heat_mode,cold_mode,vent_mode',
+    },
     'yeelink.bhf_light.v6': {
-        'chunk_properties': 3,
+        'select_properties': 'heat_mode,cold_mode,vent_mode',
     },
     'yeelink.light.nl1': {
         'use_ble_object': True,
