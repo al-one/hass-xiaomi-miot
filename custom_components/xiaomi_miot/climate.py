@@ -52,9 +52,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if miot := config.get('miot_type'):
         spec = await MiotSpec.async_from_type(hass, miot)
         for srv in spec.get_services(
-            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet', 'thermostat',
-            'heater', 'ptc_bath_heater', 'light_bath_heater', 'air_purifier',
-            'electric_blanket', 'water_dispenser', 'dishwasher',
+            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet', 'thermostat', 'heater',
+            'ptc_bath_heater', 'air_purifier', 'electric_blanket', 'water_dispenser', 'dishwasher',
         ):
             if not srv.get_property('on', 'mode', 'target_temperature'):
                 continue
@@ -129,7 +128,7 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         if self._prop_heater and miot_service.name in ['air_conditioner', 'air_condition_outlet']:
             self._supported_features |= SUPPORT_AUX_HEAT
 
-        self._power_modes = ['blow', 'heating', 'ventilation']
+        self._power_modes = []
         if miot_service.get_property('heat_level'):
             self._power_modes.append('heater')
         self._hvac_modes = {
@@ -228,6 +227,10 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
                 elif add_switches and pnm not in [self._prop_heater.full_name if self._prop_heater else None]:
                     self._subs[pnm] = MiotSwitchSubEntity(self, p)
                     add_switches([self._subs[pnm]], update_before_add=True)
+
+            if self._miot_service.name in ['ptc_bath_heater']:
+                self._update_sub_entities(None, ['light_bath_heater'], domain='light')
+
             if self._miot_service.get_action('start_wash'):
                 pnm = 'action_wash'
                 prop = self._miot_service.get_property('status')
