@@ -160,6 +160,12 @@ CUSTOM_TEMPLATES = {
                                        "'venting': val[2],"
                                        "} %}"
                                        "{{ [1,1,3,3][mds[props.bh_mode] | default(0) | int(0)] | default(1) }}",
+    'yeelink_bhf_light_v5_miio_props': "{%- set val = ('000' ~ props.fan_speed_idx)[-3:] %}"
+                                       "{{ {"
+                                       "'warmwind_gear': val[0],"
+                                       "'coolwind_gear': val[1],"
+                                       "'venting_gear': val[2],"
+                                       "} }}",
     'zimi_powerstrip_v2_power_cost': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
                                      "{%- set day = now().day %}"
                                      "{%- set vls = (val | from_json)[0-day:] %}"

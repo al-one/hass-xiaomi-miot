@@ -897,6 +897,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.bhf_light.v5': {
+        'miio_template': 'yeelink_bhf_light_v5_miio_props',
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {
@@ -959,6 +960,21 @@ MIIO_TO_MIOT_SPECS = {
                                 '3 if "venting" in props.bh_mode else '
                                 '2] }}',
             },
+            'prop.3.111': {
+                'prop': 'warmwind_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["warmwind" if value else "windoff", value] }}',
+            },
+            'prop.3.112': {
+                'prop': 'coolwind_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["coolwind" if value else "windoff", value] }}',
+            },
+            'prop.3.113': {
+                'prop': 'venting_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["venting" if value else "ventingoff", value] }}',
+            },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
         },
     },
@@ -1014,20 +1030,20 @@ MIIO_TO_MIOT_SPECS = {
                                 '3 if "venting" in props.bh_mode else '
                                 '2] }}',
             },
-            'prop.3.102': {
-                'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "warm" in value }}',
-                'set_template': '{{ ["warmwind" if value else "windoff"] }}',
+            'prop.3.111': {
+                'prop': 'warmwind_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["warmwind" if value else "windoff", value] }}',
             },
-            'prop.3.103': {
-                'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "coolwind" in value }}',
-                'set_template': '{{ ["coolwind" if value else "windoff"] }}',
+            'prop.3.112': {
+                'prop': 'coolwind_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["coolwind" if value else "windoff", value] }}',
             },
-            'prop.3.104': {
-                'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "venting" in value }}',
-                'set_template': '{{ ["venting" if value else "ventingoff"] }}',
+            'prop.3.113': {
+                'prop': 'venting_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["venting" if value else "ventingoff", value] }}',
             },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
         },

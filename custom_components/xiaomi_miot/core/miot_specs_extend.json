@@ -447,6 +447,39 @@
             {"value": 1, "description": "Low"},
             {"value": 3, "description": "High"}
           ]
+        },
+        {
+          "iid": 111,
+          "type": "urn:miot-spec-v2:property:heat-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "High"}
+          ]
+        },
+        {
+          "iid": 112,
+          "type": "urn:miot-spec-v2:property:cold-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 3, "description": "High"}
+          ]
+        },
+        {
+          "iid": 113,
+          "type": "urn:miot-spec-v2:property:vent-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 3, "description": "High"}
+          ]
         }
       ]
     }
@@ -479,25 +512,37 @@
           ]
         },
         {
-          "iid": 102,
-          "type": "urn:miot-spec-v2:property:heating",
-          "description": "Heating",
-          "format": "bool",
-          "access": ["read", "write"]
+          "iid": 111,
+          "type": "urn:miot-spec-v2:property:heat-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "High"}
+          ]
         },
         {
-          "iid": 103,
-          "type": "urn:miot-spec-v2:property:blow",
-          "description": "Blow",
-          "format": "bool",
-          "access": ["read", "write"]
+          "iid": 112,
+          "type": "urn:miot-spec-v2:property:cold-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 3, "description": "High"}
+          ]
         },
         {
-          "iid": 104,
-          "type": "urn:miot-spec-v2:property:ventilation",
-          "description": "Ventilation",
-          "format": "bool",
-          "access": ["read", "write"]
+          "iid": 113,
+          "type": "urn:miot-spec-v2:property:vent-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 3, "description": "High"}
+          ]
         }
       ]
     }

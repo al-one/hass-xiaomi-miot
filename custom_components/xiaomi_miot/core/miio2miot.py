@@ -79,6 +79,13 @@ class Miio2MiotHelper:
                 elif kls:
                     if len(kls) == len(vls):
                         dic.update(dict(zip(kls, vls)))
+        if tpl := self.config.get('miio_template'):
+            tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
+            tpl = cv.template(tpl)
+            tpl.hass = self.hass
+            pdt = tpl.render({'props': dic})
+            if isinstance(pdt, dict):
+                dic.update(pdt)
         self.miio_props_values = dic
         _LOGGER.info('Got miio props for miot: %s', [device.ip, dic])
         return dic
