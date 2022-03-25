@@ -124,6 +124,15 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             self._vars['brightness_for_on'] = self.custom_config_integer('brightness_for_on')
             self._vars['brightness_for_off'] = self.custom_config_integer('brightness_for_off')
 
+    @property
+    def is_on(self):
+        if self._prop_brightness:
+            val = self._prop_brightness.from_dict(self._state_attrs)
+            bri = self._vars.get('brightness_for_on')
+            if bri is not None:
+                return val == bri
+        return super().is_on
+
     def turn_on(self, **kwargs):
         ret = False
         if not self.is_on:
