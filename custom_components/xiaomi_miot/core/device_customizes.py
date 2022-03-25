@@ -511,6 +511,12 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
+    'zinguo.switch.b5m': {
+        'main_miot_services': 'switch-2',
+        'sensor_attributes': 'temperature',
+        'switch_properties': 'heating,blow,ventilation',
+        'select_properties': 'link',
+    },
 
     '*.aircondition.*': {
         'fan_services': 'air_fresh',
