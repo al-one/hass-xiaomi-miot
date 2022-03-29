@@ -1264,6 +1264,36 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'zhimi.airfresh.va2': {
+        'miio_props': ['average_aqi', 'motor1_speed', 'use_time'],
+        'entity_attrs': ['motor1_speed', 'use_time'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':     0,
+                'silent':   1,
+                'interval': 2,
+                'low':      3,
+                'medium':   4,
+                'strong':   5,
+            }, 'default': 0},
+            'prop.3.1': {'prop': 'humidity'},
+            'prop.3.2': {'prop': 'aqi'},
+            'prop.3.3': {'prop': 'temp_dec'},
+            'prop.3.4': {'prop': 'co2'},
+            'prop.4.1': {'prop': 'f1_hour_used'},
+            'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
+            'prop.6.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
+            'prop.7.1': {'prop': 'led_level', 'setter': True},
+        },
+    },
+    'zhimi.airfresh.va4': {
+        'extend_model': 'zhimi.airfresh.va2',
+        'miio_specs': {
+            'prop.2.3': {'prop': 'ptc_state', 'setter': True, 'format': 'onoff'},
+            'prop.3.3': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
+        },
+    },
     'zhimi.airpurifier._base': {
         'miio_props': ['motor1_speed', 'motor2_speed', 'purify_volume'],
         'entity_attrs': ['aqi', 'motor1_speed', 'motor2_speed', 'purify_volume'],
