@@ -8,10 +8,8 @@ from homeassistant.components.fan import (
     SUPPORT_SET_SPEED,
     SUPPORT_DIRECTION,
     SUPPORT_OSCILLATE,
-    SPEED_OFF,
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
-    OFF_SPEED_VALUES,
 )
 
 from . import (
@@ -49,6 +47,12 @@ except ImportError:
     def percentage_to_ordered_list_item(ordered_list, percentage):
         raise NotImplementedError()
 
+try:
+    # hass 2022.4.0b0+
+    from homeassistant.components.fan import SPEED_OFF, OFF_SPEED_VALUES
+except ImportError:
+    SPEED_OFF = 'off'
+    OFF_SPEED_VALUES = [SPEED_OFF, None]
 
 SERVICE_TO_METHOD = {}
 
