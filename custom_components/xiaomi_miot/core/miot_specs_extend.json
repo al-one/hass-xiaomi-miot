@@ -316,6 +316,25 @@
       ]
     }
   ],
+  "viomi.waterheater.u1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 6,
+          "access": ["read", "write", "notify"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:water-velocity",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    }
+  ],
   "viomi.waterheater.u8": [
     {
       "iid": 2,
