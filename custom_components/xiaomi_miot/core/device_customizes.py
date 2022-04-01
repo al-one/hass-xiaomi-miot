@@ -353,6 +353,12 @@ DEVICE_CUSTOMIZES = {
             'light.color_temperature': {'siid': 2, 'piid': 5},
         },
     },
+    'philips.light.strip3': {
+        'switch_properties': 'mitv_rhythm,acousto_optic_rhythm',
+        'select_properties': 'rhythm_sensitivity,rhythm_animation',
+        'number_properties': 'dvalue,diy_id',
+        'button_actions': 'toggle_rhythm',
+    },
     'pwzn.light.apple': {
         'light_services': 'light_ct',
         'switch_properties': 'enable',
