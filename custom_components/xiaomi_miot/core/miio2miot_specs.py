@@ -1290,7 +1290,15 @@ MIIO_TO_MIOT_SPECS = {
     'zhimi.airfresh.va4': {
         'extend_model': 'zhimi.airfresh.va2',
         'miio_specs': {
-            'prop.2.3': {'prop': 'ptc_state', 'setter': True, 'format': 'onoff'},
+            'prop.2.3': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':     0,
+                'silent':   1,
+                'interval': 2,
+                'low':      3,
+                'medium':   4,
+                'strong':   5,
+            }, 'default': 0},
+            'prop.2.4': {'prop': 'ptc_state', 'setter': True, 'format': 'onoff'},
             'prop.3.3': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
         },
     },
