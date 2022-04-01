@@ -340,20 +340,12 @@
       "iid": 2,
       "properties": [
         {
-          "iid": 5,
-          "access": ["read", "notify", "write"]
-        },
-        {
           "iid": 3,
           "access": ["read", "notify"]
         },
         {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:water-level",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
+          "iid": 5,
+          "access": ["read", "write", "notify"]
         },
         {
           "iid": 102,
@@ -396,14 +388,6 @@
       "iid": 2,
       "properties": [
         {
-          "iid": 5,
-          "access": ["read", "notify", "write"]
-        },
-        {
-          "iid": 3,
-          "access": ["read", "notify"]
-        },
-        {
           "iid": 101,
           "type": "urn:miot-spec-v2:property:water-velocity",
           "format": "uint8",
@@ -423,6 +407,14 @@
             {"value": 3, "description": "Old Man"},
             {"value": 4, "description": "Kitchen"}
           ]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:water-velocity",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
         }
       ]
     },

@@ -856,21 +856,20 @@ MIIO_TO_MIOT_SPECS = {
                 'template': '{{ value != 0 }}',
                 'set_template': '{{ [value|int(1)] }}',
             },
-            'prop.2.101': {'prop': 'velocity'},  # water-level deprecated
             'prop.2.102': {'prop': 'targetTemp', 'setter': 'set_temp', 'dict': {
                 99: 0,  # Custom
                 39: 1,  # Children
                 40: 2,  # Comfortable
                 42: 3,  # Old Man
                 36: 4,  # Kitchen
-            }, 'default': 0},  # mode
-            'prop.2.103': {'prop': 'velocity'},  # water-velocity
+            }, 'default': 0},
+            'prop.2.103': {'prop': 'velocity'},
             'prop.200.201': {
                 'prop': 'isPreHeatNow',
                 'setter': 'set_preheat_now',
                 'template': '{{ value != 0 }}',
                 'set_template': '{{ [value|int(1)] }}',
-            },  # PreHeatNow
+            },
         },
     },
     'viomi.waterheater.u12': 'viomi.waterheater.u8',
