@@ -49,7 +49,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     cfg = hass.data[DOMAIN].get(config_entry.entry_id) or {}
     mic = cfg.get(CONF_XIAOMI_CLOUD)
     if isinstance(mic, MiotCloud) and mic.user_id:
-        hass.data[DOMAIN].setdefault('accounts', {})
         hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
         if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
             entity = MihomeMessageSensor(hass, mic)
