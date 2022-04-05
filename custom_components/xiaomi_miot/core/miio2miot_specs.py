@@ -71,13 +71,14 @@ MIIO_TO_MIOT_SPECS = {
     },
     'chuangmi.plug.hmi206': 'chuangmi.plug.hmi205',
     'chuangmi.plug.hmi208': {
-        'extend_model': 'chuangmi.plug.hmi205',
         'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.3.1': {
                 'prop': 'usb_on',
                 'setter': True,
                 'set_template': '{{ {"method": "set_usb_on" if value else "set_usb_off"} }}',
             },
+            'prop.2.2': {'prop': 'temperature'},
         },
     },
     'chuangmi.plug.m1': {

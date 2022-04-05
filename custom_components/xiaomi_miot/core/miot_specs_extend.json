@@ -1,4 +1,21 @@
 {
+  "chuangmi.plug.hmi208": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:temperature",
+          "description": "Temperature",
+          "format": "float",
+          "access": ["read"],
+          "unit": "celsius",
+          "value-range": [-40, 125, 0.1]
+        }
+      ]
+    }
+  ],
+
   "chunmi.cooker.eh1": [
     {
       "iid": 2,
