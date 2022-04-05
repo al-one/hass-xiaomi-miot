@@ -1160,6 +1160,12 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.ceiling21': {
         'extend_model': 'yeelink.light.ceiling6',
         'miio_specs': {
+            'prop.2.4': {
+                'prop': 'nl_br',
+                'setter': 'set_ps',
+                'template': '{{ 1 if value|int else 0 }}',
+                'set_template': "{{ ['nightlight','on' if value == 1 else 'off'] }}",
+            },
             'prop.2.5': {'prop': 'smart_switch'},
         },
     },
