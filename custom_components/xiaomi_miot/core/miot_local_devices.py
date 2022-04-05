@@ -166,7 +166,7 @@ MIOT_LOCAL_MODELS = [
     # 'philips.light.bulb',  # issues/254
     # 'philips.light.cbulb',  # miio2miot
     'philips.light.dlight',
-    'philips.light.downlight',
+    # 'philips.light.downlight',  # miio2miot
     'philips.light.sread3',
     'philips.light.strip2',
     'pwzn.light.apple',

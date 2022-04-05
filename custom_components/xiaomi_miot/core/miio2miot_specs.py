@@ -573,6 +573,20 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.6': {'prop': 'cid', 'template': '{{ 2 if val == 360 else 1 }}'},
         },
     },
+    'philips.light.downlight': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {
+                'prop': 'cct',
+                'setter': True,
+                'template': '{{ ((max - min) * value / 100 + min) | round }}',
+                'set_template': '{% set num = ((value - min) / (max - min) * 100) | round %}'
+                                '{{ [num if num > 0 else 1] }}',
+            },
+            'prop.2.4': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
+        },
+    },
     'philips.light.moonlight': {
         'extend_model': 'philips.light.bulb',
         'miio_specs': {
