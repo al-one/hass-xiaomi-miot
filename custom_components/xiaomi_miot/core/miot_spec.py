@@ -13,8 +13,7 @@ from .const import (
     TRANSLATION_LANGUAGES,
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
-    ENTITY_CATEGORY_CONFIG,
-    ENTITY_CATEGORY_DIAGNOSTIC,
+    EntityCategory,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -777,11 +776,11 @@ class MiotProperty(MiotSpecInstance):
         cate = None
         name = self.name
         names = {
-            'battery_level': ENTITY_CATEGORY_DIAGNOSTIC,
-            'countdown_time': ENTITY_CATEGORY_CONFIG,
-            'fan_init_power_opt': ENTITY_CATEGORY_CONFIG,
-            'init_power_opt': ENTITY_CATEGORY_CONFIG,
-            'off_delay_time': ENTITY_CATEGORY_CONFIG,
+            'battery_level': EntityCategory.DIAGNOSTIC.value,
+            'countdown_time': EntityCategory.CONFIG.value,
+            'fan_init_power_opt': EntityCategory.CONFIG.value,
+            'init_power_opt': EntityCategory.CONFIG.value,
+            'off_delay_time': EntityCategory.CONFIG.value,
         }
         if name in names:
             cate = names[name]

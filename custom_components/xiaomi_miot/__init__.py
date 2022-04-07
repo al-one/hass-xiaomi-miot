@@ -539,6 +539,20 @@ class BaseEntity(Entity):
     _model = None
 
     @property
+    def entity_category(self):
+        cat = super().entity_category
+        if ENTITY_CATEGORY_VIA_ENUM:
+            if isinstance(cat, str):
+                try:
+                    cat = EntityCategory[cat]
+                except KeyError:
+                    cat = None
+        elif isinstance(cat, EntityCategory):
+            # for v2021.11
+            cat = cat.value
+        return cat
+
+    @property
     def name_model(self):
         return f'{self.name}({self._model})'
 
@@ -1338,7 +1352,7 @@ class MiotEntity(MiioEntity):
                 ['physical_controls_locked', self._miot_service.name],
                 domain='switch',
                 option={
-                    'entity_category': ENTITY_CATEGORY_CONFIG,
+                    'entity_category': EntityCategory.CONFIG.value,
                 },
             )
             self._update_sub_entities(
@@ -1346,7 +1360,7 @@ class MiotEntity(MiioEntity):
                 ['indicator_light', 'night_light', 'ambient_light', 'plant_light'],
                 domain='light',
                 option={
-                    'entity_category': ENTITY_CATEGORY_CONFIG,
+                    'entity_category': EntityCategory.CONFIG.value,
                 },
             )
 

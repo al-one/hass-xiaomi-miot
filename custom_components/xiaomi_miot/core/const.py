@@ -1,3 +1,5 @@
+from enum import Enum
+
 from .device_customizes import DEVICE_CUSTOMIZES
 from .miot_local_devices import MIOT_LOCAL_MODELS  # noqa
 from .translation_languages import TRANSLATION_LANGUAGES  # noqa
@@ -68,18 +70,22 @@ except (ModuleNotFoundError, ImportError):
     STATE_CLASS_TOTAL_INCREASING = None
 
 try:
-    # hass 2021.11
-    from homeassistant.const import ENTITY_CATEGORY_CONFIG, ENTITY_CATEGORY_DIAGNOSTIC
-except (ModuleNotFoundError, ImportError):
-    ENTITY_CATEGORY_CONFIG = None
-    ENTITY_CATEGORY_DIAGNOSTIC = None
-
-try:
     # hass 2021.12
     from homeassistant.components.button import DOMAIN as DOMAIN_BUTTON
     SUPPORTED_DOMAINS.append(DOMAIN_BUTTON)
 except (ModuleNotFoundError, ImportError):
     DOMAIN_BUTTON = None
+
+try:
+    # hass 2022.12
+    from homeassistant.helpers.entity import EntityCategory
+    ENTITY_CATEGORY_VIA_ENUM = True
+except (ModuleNotFoundError, ImportError):
+    class EntityCategory(Enum):
+        CONFIG = 'config'
+        DIAGNOSTIC = 'diagnostic'
+        SYSTEM = 'system'
+    ENTITY_CATEGORY_VIA_ENUM = False
 
 
 GLOBAL_CUSTOMIZES = {
