@@ -914,7 +914,9 @@ class MiotResult:
 
     @property
     def is_success(self):
-        return self.code == 0
+        # 0: successful
+        # 1: operation not completed
+        return self.code in [0, 1]
 
     @property
     def spec_error(self):
