@@ -1109,7 +1109,12 @@ MIIO_TO_MIOT_SPECS = {
     },
     'yeelink.light.color2': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.1': {
+                'prop': 'power',
+                'setter': True,
+                'format': 'onoff',
+                'set_template': '{{ ["on" if value else "off","smooth",500] }}',
+            },
             'prop.2.2': {'prop': 'bright', 'setter': True},
             'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
             'prop.2.4': {'prop': 'rgb', 'setter': True},
@@ -1129,7 +1134,12 @@ MIIO_TO_MIOT_SPECS = {
     },
     'yeelink.light.ceiling2': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.1': {
+                'prop': 'power',
+                'setter': True,
+                'format': 'onoff',
+                'set_template': '{{ ["on" if value else "off","smooth",500] }}',
+            },
             'prop.2.2': {'prop': 'bright', 'setter': True},
             'prop.2.3': {
                 'prop': 'nl_br',
