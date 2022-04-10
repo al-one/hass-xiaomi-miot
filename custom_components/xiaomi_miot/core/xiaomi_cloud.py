@@ -13,6 +13,7 @@ from homeassistant.const import *
 from homeassistant.helpers.storage import Store
 from homeassistant.components import persistent_notification
 
+from .const import DOMAIN
 from .utils import RC4
 from micloud import miutils
 from micloud.micloudexception import MiCloudException
@@ -31,7 +32,7 @@ class MiotCloud(micloud.MiCloud):
         super().__init__(username, password)
         self.hass = hass
         self.default_server = country or 'cn'
-        self.http_timeout = 10
+        self.http_timeout = int(hass.data[DOMAIN].get('config', {}).get('http_timeout') or 10)
         self.attrs = {}
 
     def get_properties_for_mapping(self, did, mapping: dict):
