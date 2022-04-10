@@ -51,7 +51,8 @@ Suitable for devices support miot-spec protocol in LAN
 xiaomi_miot:
   username: xiaomi_username
   password: xiaomi_password
-  # server_country: cn # location of xiaomi cloud: cn(default), de, i2, ru, sg, tw, us
+  # server_country: cn # Location of xiaomi cloud: cn(default), de, i2, ru, sg, tw, us
+  # http_timeout: 15   # Timeout (seconds) for requesting the xiaomi apis
 ```
 
 > [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Devices and Services > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > Options > ☑️ Enable miot cloud
