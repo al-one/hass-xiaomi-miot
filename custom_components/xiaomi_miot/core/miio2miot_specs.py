@@ -139,6 +139,7 @@ MIIO_TO_MIOT_SPECS = {
                 ],
             },
         ],
+        'entity_attrs': ['func'],
         'miio_specs': {
             'prop.2.1': {'prop': 'func', 'dict': {
                 'running':    1,
@@ -158,6 +159,7 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'tFunc',  # working-time
                 'template': '{{ (value|string)[4:6]|int(0,16) * 60 + (value|string)[6:8]|int(0,16) }}',
             },
+            'action.2.101': {'setter': 'set_func', 'set_template': '{{ ["end030307"] }}'},
         },
     },
     'chunmi.microwave.n23l01': {

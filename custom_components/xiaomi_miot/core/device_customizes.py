@@ -556,6 +556,7 @@ DEVICE_CUSTOMIZES = {
     '*.cooker.*': {
         'sensor_properties': 'temperature,left_time',
         'switch_properties': 'cooker.on',
+        'button_actions': 'start_cook,pause,cancel_cooking',
     },
     '*.desk.*': {
         'button_properties': 'motor_control,reset',
@@ -582,6 +583,10 @@ DEVICE_CUSTOMIZES = {
     '*.heater.*': {
         'switch_properties': 'heater.on',
         'number_properties': 'countdown_time',
+    },
+    '*.ihcooker.*': {
+        'sensor_properties': 'temperature,left_time',
+        'button_actions': 'start_cook,pause,cancel_cooking',
     },
     '*.light.*': {
         'number_properties': 'off_delay_time',

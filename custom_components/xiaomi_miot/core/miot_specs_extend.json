@@ -52,6 +52,27 @@
     }
   ],
 
+  "chunmi.ihcooker.chefnic": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "access": ["read", "notify"]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:action:cancel-cooking",
+          "description": "Cancel Cooking",
+          "in": [],
+          "out": []
+        }
+      ]
+    }
+  ],
+
   "dreame.vacuum.mc1808": [
     {
       "iid": 18,
