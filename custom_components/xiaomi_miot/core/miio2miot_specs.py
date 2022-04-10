@@ -1117,6 +1117,8 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.color3': 'yeelink.light.color2',
     'yeelink.light.color4': 'yeelink.light.color2',
     'yeelink.light.color5': 'yeelink.light.color2',
+    'yeelink.light.color7': 'yeelink.light.color2',
+    'yeelink.light.color8': 'yeelink.light.color2',
     'yeelink.light.ceiling1': {
         'extend_model': 'yeelink.light.ceiling2',
         'miio_specs': {
