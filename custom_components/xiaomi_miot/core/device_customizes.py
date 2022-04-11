@@ -199,6 +199,7 @@ DEVICE_CUSTOMIZES = {
         'cover_position_mapping': {},
     },
     'hyd.airer.*': {
+        'switch_properties': 'uv',
         'select_properties': 'mode,dryer',
         'number_properties': 'drying_time',
         'disable_target_position': True,
