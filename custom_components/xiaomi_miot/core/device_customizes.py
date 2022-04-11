@@ -195,7 +195,12 @@ DEVICE_CUSTOMIZES = {
     'hmpace.bracelet.*': {
         'sensor_properties': 'current_step_count,current_distance',
     },
+    'hyd.airer.lyjpro': {
+        'cover_position_mapping': {},
+    },
     'hyd.airer.*': {
+        'select_properties': 'mode,dryer',
+        'number_properties': 'drying_time',
         'disable_target_position': True,
         'cover_position_mapping': {
             0: 50,

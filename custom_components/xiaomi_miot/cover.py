@@ -82,7 +82,12 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
         self._prop_status = miot_service.get_property('status')
         self._prop_motor_control = miot_service.get_property('motor_control')
-        self._prop_current_position = miot_service.get_property('current_position')
+        self._prop_current_position = None
+        for p in miot_service.get_properties('current_position'):
+            self._prop_current_position = p
+            if p.value_range:
+                # https://home.miot-spec.com/spec/hyd.airer.lyjpro
+                break
         self._prop_target_position = miot_service.get_property('target_position')
 
         self._motor_reverse = False
