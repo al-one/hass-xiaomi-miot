@@ -221,7 +221,7 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 3,
     },
     'lumi.acpartner.mcn02:electric_power': {
-        'value_ratio': 0.001,
+        'value_ratio': 1,
     },
     'lumi.acpartner.mcn04': {
         'chunk_properties': 7,
