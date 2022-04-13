@@ -188,11 +188,6 @@ async def async_setup(hass, hass_config: dict):
     hass.data[DOMAIN].setdefault('add_entities', {})
     hass.data[DOMAIN].setdefault('sub_entities', {})
 
-    dcs = config.get('device_customizes')
-    if dcs and isinstance(dcs, dict):
-        for m, cus in dcs.items():
-            DEVICE_CUSTOMIZES.setdefault(m, {})
-            DEVICE_CUSTOMIZES[m].update(cus)
     with open(os.path.dirname(__file__) + '/core/miot_specs_extend.json') as file:
         models = json.load(file) or {}
         for m, specs in models.items():
@@ -397,13 +392,20 @@ def bind_services_to_entries(hass, services):
 
 async def async_reload_integration_config(hass, config):
     hass.data[DOMAIN]['config'] = config
+
     if lang := config.get('language'):
         dic = TRANSLATION_LANGUAGES.get(lang)
         if isinstance(dic, dict):
             TRANSLATION_LANGUAGES.update(dic)
-    if dic := config.get('translations') or {}:
-        if isinstance(dic, dict):
-            TRANSLATION_LANGUAGES.update(dic)
+    dic = config.get('translations') or {}
+    if dic and isinstance(dic, dict):
+        TRANSLATION_LANGUAGES.update(dic)
+
+    dcs = config.get('device_customizes')
+    if dcs and isinstance(dcs, dict):
+        for m, cus in dcs.items():
+            DEVICE_CUSTOMIZES.setdefault(m, {})
+            DEVICE_CUSTOMIZES[m].update(cus)
     return config
 
 
