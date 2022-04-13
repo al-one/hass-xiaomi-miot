@@ -1303,7 +1303,6 @@ MIIO_TO_MIOT_SPECS = {
 
     'yyunyi.wopener.yypy24': {
         'chunk_properties': 1,
-        'miio_props': ['hand_start', 'rains_remind', 'err'],
         'miio_specs': {
             'prop.2.1': {'prop': 'status', 'template': '{{ value|int + 1 }}'},
             'prop.2.2': {'prop': 'progress', 'setter': 'setProgress'},
