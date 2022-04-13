@@ -132,12 +132,12 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
         if miot_service.get_property('heat_level'):
             self._power_modes.append('heater')
         self._hvac_modes = {
-            HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None']},
+            HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None'], 'action': CURRENT_HVAC_OFF},
             HVAC_MODE_AUTO: {'list': ['Auto', 'Manual', 'Normal']},
-            HVAC_MODE_COOL: {'list': ['Cool']},
-            HVAC_MODE_HEAT: {'list': ['Heat']},
-            HVAC_MODE_DRY:  {'list': ['Dry']},
-            HVAC_MODE_FAN_ONLY: {'list': ['Fan']},
+            HVAC_MODE_COOL: {'list': ['Cool'], 'action': CURRENT_HVAC_COOL},
+            HVAC_MODE_HEAT: {'list': ['Heat'], 'action': CURRENT_HVAC_HEAT},
+            HVAC_MODE_DRY:  {'list': ['Dry'], 'action': CURRENT_HVAC_DRY},
+            HVAC_MODE_FAN_ONLY: {'list': ['Fan'], 'action': CURRENT_HVAC_FAN},
         }
         self._preset_modes = {}
 
@@ -389,6 +389,18 @@ class MiotClimateEntity(MiotToggleEntity, ClimateEntity):
 
     def set_hvac_mode(self, mode: str):
         return self.set_preset_mode(mode)
+
+    @property
+    def hvac_action(self):
+        """Return the current running hvac operation if supported.
+        Need to be one of CURRENT_HVAC_*.
+        """
+        if not self.is_on:
+            return CURRENT_HVAC_OFF
+        hvac = self.hvac_mode
+        if hvac is None:
+            return CURRENT_HVAC_IDLE
+        return self._hvac_modes.get(hvac, {}).get('action')
 
     @property
     def preset_mode(self):
