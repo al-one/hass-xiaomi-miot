@@ -188,6 +188,11 @@ async def async_setup(hass, hass_config: dict):
     hass.data[DOMAIN].setdefault('add_entities', {})
     hass.data[DOMAIN].setdefault('sub_entities', {})
 
+    dcs = config.get('device_customizes')
+    if dcs and isinstance(dcs, dict):
+        for m, cus in dcs.items():
+            DEVICE_CUSTOMIZES.setdefault(m, {})
+            DEVICE_CUSTOMIZES[m].update(cus)
     with open(os.path.dirname(__file__) + '/core/miot_specs_extend.json') as file:
         models = json.load(file) or {}
         for m, specs in models.items():
@@ -802,12 +807,8 @@ class MiioEntity(BaseEntity):
         else:
             cfg = ret or {}
         if self._model:
-            gcs = GLOBAL_CUSTOMIZES['models']
-            ucs = self.global_config('device_customizes') or {}
             for m in self.wildcard_models:
-                cus = gcs.get(m) or {}
-                if ucs and isinstance(ucs, dict):
-                    cus.update(ucs.get(m) or {})
+                cus = DEVICE_CUSTOMIZES.get(m) or {}
                 if key is not None and key not in cus:
                     continue
                 if cus:
@@ -2098,12 +2099,8 @@ class BaseSubEntity(BaseEntity):
                     prop = getattr(self, '_miot_property')
                     if prop:
                         mar.append(f'{mod}:{prop.name}')
-            gcs = GLOBAL_CUSTOMIZES['models']
-            ucs = self.global_config('device_customizes') or {}
-            if ucs and isinstance(ucs, dict):
-                gcs.update(ucs)
             for m in mar:
-                cus = gcs.get(m) or {}
+                cus = DEVICE_CUSTOMIZES.get(m) or {}
                 if key is not None and key not in cus:
                     continue
                 if cus:

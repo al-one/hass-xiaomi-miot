@@ -86,8 +86,3 @@ except (ModuleNotFoundError, ImportError):
         DIAGNOSTIC = 'diagnostic'
         SYSTEM = 'system'
     ENTITY_CATEGORY_VIA_ENUM = False
-
-
-GLOBAL_CUSTOMIZES = {
-    'models': DEVICE_CUSTOMIZES,
-}
