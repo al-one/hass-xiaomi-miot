@@ -412,12 +412,12 @@
       "iid": 200,
       "type": "urn:miot-spec-v2:service:cruise-appointmen",
       "properties": [
-          {
-              "iid": 201,
-              "type": "urn:miot-spec-v2:property:on",
-              "format": "bool",
-              "access": ["read", "write", "notify"]
-          }
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:on",
+          "format": "bool",
+          "access": ["read", "write"]
+        }
       ]
     }
   ],
@@ -620,6 +620,32 @@
           "type": "urn:miot-spec-v2:property:delayoff",
           "format": "string",
           "access": ["read", "write"]
+        }
+      ]
+    }
+  ],
+
+  "yyunyi.wopener.yypy24": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 3,
+          "unit": "cm/s"
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:motor_reverse",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:clamp_strength",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "kg",
+          "value-range": [3, 13, 2]
         }
       ]
     }

@@ -1301,6 +1301,32 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'yyunyi.wopener.yypy24': {
+        'chunk_properties': 1,
+        'miio_props': ['hand_start', 'rains_remind', 'err'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'status', 'template': '{{ value|int + 1 }}'},
+            'prop.2.2': {'prop': 'progress', 'setter': 'setProgress'},
+            'prop.2.3': {'prop': 'speed', 'setter': 'setSpeed'},
+            'prop.2.4': {
+                'prop': 'status',
+                'setter': 'setStatus',
+                'template': '{{ value|int + 1 }}',
+                'set_template': '{{ [value|int - 1] }}',
+            },
+            'prop.2.5': {
+                'prop': 'mode',
+                'setter': 'setMode',
+                'template': '{{ value|int + 1 }}',
+                'set_template': '{{ [value|int - 1] }}',
+            },
+            'prop.3.1': {'prop': 'alarm', 'setter': 'setAlarm', 'set_template': '{{ [value|int] }}'},
+            'prop.4.1': {'prop': 'child_lock', 'setter': 'setChildLock', 'set_template': '{{ [value|int] }}'},
+            'prop.2.102': {'prop': 'direction', 'setter': 'setDirection', 'set_template': '{{ [value|int] }}'},
+            'prop.2.103': {'prop': 'clamp_strength', 'setter': 'setClampStrength'},
+        },
+    },
+
     'zhimi.airmonitor.v1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'aqi'},

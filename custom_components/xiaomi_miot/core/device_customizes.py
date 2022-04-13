@@ -466,6 +466,12 @@ DEVICE_CUSTOMIZES = {
             'extension.rc_list':   {'siid': 4, 'piid': 3},
         },
     },
+    'yyunyi.wopener.yypy24': {
+        'switch_properties': 'motor_reverse',
+        'select_properties': 'mode',
+        'number_properties': 'speed_level,clamp_strength',
+        'target2current_position': True,
+    },
     'zhimi.airpurifier.*': {
         'exclude_miot_services': 'button,motor_speed,use_time,rfid,others',
         'exclude_miot_properties': 'filter_time_set,filter_hour_debug',

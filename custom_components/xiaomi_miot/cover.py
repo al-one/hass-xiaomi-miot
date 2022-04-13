@@ -95,10 +95,10 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         self._target2current = False
         self._open_texts = []
         self._close_texts = []
+        self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
         if self._prop_target_position:
             if not self.custom_config('disable_target_position'):
                 self._supported_features |= SUPPORT_SET_POSITION
@@ -107,8 +107,8 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         if self._prop_motor_control.list_first('Pause', 'Stop') is not None:
             self._supported_features |= SUPPORT_STOP
 
-        self._target2current = self.custom_config('target2current_position')
-        if self._target2current:
+        self._target2current = self.custom_config_bool('target2current_position')
+        if self._target2current and self._prop_target_position:
             self._prop_current_position = self._prop_target_position
 
         self._motor_reverse = self.custom_config_bool('motor_reverse', False)
@@ -294,7 +294,7 @@ class MiotCoverSubEntity(MiotPropertySubEntity, CoverEntity):
             return round(val / top * 100)
 
         prop = self._miot_service.get_property('current_position')
-        if self.custom_config('target2current_position'):
+        if self.custom_config_bool('target2current_position'):
             prop = self._miot_service.get_property('target_position') or prop
         if prop:
             return round(prop.from_dict(self._state_attrs) or -1)
