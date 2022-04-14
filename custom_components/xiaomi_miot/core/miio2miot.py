@@ -9,6 +9,7 @@ from .templates import CUSTOM_TEMPLATES
 from .miio2miot_specs import MIIO_TO_MIOT_SPECS
 import homeassistant.helpers.config_validation as cv
 
+from miio import DeviceException
 from miio.utils import (
     rgb_to_int,
     int_to_rgb,
@@ -28,6 +29,7 @@ class Miio2MiotHelper:
         self.config = config
         self.miot_spec = miot_spec
         self.specs = config.get('miio_specs', {})
+        self.model = config.get('model', None)
         self.miio_props = []
         for k, v in self.specs.items():
             if p := v.get('prop'):
@@ -41,10 +43,8 @@ class Miio2MiotHelper:
         if isinstance(cfg, str):
             return Miio2MiotHelper.from_model(hass, cfg, miot_spec)
         if cfg:
-            the = Miio2MiotHelper(hass, cfg, miot_spec)
-            if not the.miio_props:
-                the = None
-            return the
+            cfg.setdefault('model', model)
+            return Miio2MiotHelper(hass, cfg, miot_spec)
         return None
 
     def extend_miio_props(self, props: list):
@@ -59,13 +59,21 @@ class Miio2MiotHelper:
                 num = int(self.config.get('chunk_properties'))
             except (TypeError, ValueError):
                 num = None
-            vls = device.get_properties(self.miio_props, max_properties=num)
-            dic.update(dict(zip(self.miio_props, vls)))
+            try:
+                vls = device.get_properties(self.miio_props, max_properties=num)
+                dic.update(dict(zip(self.miio_props, vls)))
+            except DeviceException as exc:
+                _LOGGER.error('%s: Got MiioException: %s while get_properties(%s)', self.model, exc, self.miio_props)
         if cls := self.config.get('miio_commands'):
             for c in cls:
                 if dly := c.get('delay', 0):
                     time.sleep(dly)
-                vls = device.send(c['method'], c.get('params', []))
+                pms = c.get('params', [])
+                try:
+                    vls = device.send(c['method'], pms)
+                except DeviceException as exc:
+                    _LOGGER.error('%s: Got MiioException: %s while %s(%s)', self.model, exc, c['method'], pms)
+                    continue
                 kls = c.get('values', [])
                 if kls is True:
                     kls = c.get('params', [])
@@ -87,7 +95,7 @@ class Miio2MiotHelper:
             if isinstance(pdt, dict):
                 dic.update(pdt)
         self.miio_props_values = dic
-        _LOGGER.info('Got miio props for miot: %s', [device.ip, dic])
+        _LOGGER.info('%s: Got miio props for miot: %s', self.model, dic)
         return dic
 
     async def async_get_miot_props(self, *args, **kwargs):
@@ -196,9 +204,9 @@ class Miio2MiotHelper:
                         break
         pms = cv.ensure_list(pms)
         if not setter:
-            _LOGGER.warning('Set miio prop via miot failed: %s', [device.ip, key, setter, cfg])
+            _LOGGER.warning('%s: Set miio prop via miot failed: %s', self.model, [key, setter, cfg])
             return None
-        _LOGGER.info('Set miio prop via miot: %s', [device.ip, key, setter, pms])
+        _LOGGER.info('%s: Set miio prop via miot: %s', self.model, [key, setter, pms])
         ret = device.send(setter, pms) or ['']
         iok = ret == ['ok']
         if self.config.get('ignore_result'):
@@ -233,9 +241,9 @@ class Miio2MiotHelper:
                     pms = pms.get('params', [])
         pms = cv.ensure_list(pms)
         if not setter:
-            _LOGGER.warning('Call miio method via miot action failed: %s', [device.ip, key, setter, cfg])
+            _LOGGER.warning('%s: Call miio method via miot action failed: %s', self.model, [key, setter, cfg])
             return None
-        _LOGGER.info('Call miio method via miot action: %s', [device.ip, key, setter, pms])
+        _LOGGER.info('%s: Call miio method via miot action: %s', self.model, [key, setter, pms])
         ret = device.send(setter, pms) or ['']
         iok = ret == ['ok']
         if self.config.get('ignore_result'):
