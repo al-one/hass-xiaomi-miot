@@ -608,14 +608,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
-    'rockrobo.vacuum.v1': {
-        'extend_model': 'roborock.vacuum.t6',
-        'miio_specs': {
-            'prop.3.2': {'prop': 'charging', 'template': '{{ 1 if props.state in [8] else 2 }}'},
-        },
-    },
-
-    'roborock.vacuum.t6': {
+    'roborock.vacuum._base': {
         'without_props': True,
         'miio_commands': [
             {
@@ -626,7 +619,15 @@ MIIO_TO_MIOT_SPECS = {
                 'method': 'get_consumable',
                 'template': '{{ results.0 | default({}) }}',
             },
+            {
+                'method': 'get_custom_mode',
+                'values': ['fan_mode'],
+            },
         ],
+    },
+
+    'roborock.vacuum.t6': {
+        'extend_model': 'roborock.vacuum._base',
         'miio_specs': {
             'prop.2.1': {'prop': 'state', 'dict': {
                 1: 2,  # Starting
@@ -647,8 +648,24 @@ MIIO_TO_MIOT_SPECS = {
                 17: 2,  # Zoned cleaning
                 18: 2,  # Segment cleaning
             }, 'default': 1},
-            'prop.2.2': {'prop': 'fan_power'},
+            'prop.2.2': {
+                'prop': 'fan_mode',
+                'setter': 'set_custom_mode',
+                'template': '{{ value|int - 100 }}',
+                'set_template': '{{ [value|int + 100] }}',
+            },
             'prop.3.1': {'prop': 'battery'},
+            'action.2.1': {'setter': 'app_start'},
+            'action.2.2': {'setter': 'app_stop'},
+            'action.3.1': {'setter': 'app_charge'},
+        },
+    },
+
+    'rockrobo.vacuum.v1': {
+        'extend_model': 'roborock.vacuum.t6',
+        'miio_specs': {
+            'prop.2.2': {'prop': 'fan_power', 'setter': 'set_custom_mode'},
+            'prop.3.2': {'prop': 'charging', 'template': '{{ 1 if props.state in [8] else 2 }}'},
         },
     },
 

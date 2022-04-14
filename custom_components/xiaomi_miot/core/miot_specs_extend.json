@@ -190,6 +190,18 @@
     }
   ],
 
+  "rockrobo.vacuum.v1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "value-range": [10, 100, 10]
+        }
+      ]
+    }
+  ],
+
   "shuii.humidifier.jsq002": [
     {
       "iid": 2,

@@ -244,16 +244,13 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
         self._supported_features |= SUPPORT_LOCATE
-        self._miio_commands = {
-            'get_status': ['props'],
-            'get_consumable': ['consumables'],
-        }
 
     async def async_update(self):
         await super().async_update()
         if not self._available:
             return
-        await self.hass.async_add_executor_job(partial(self.update_miio_commands, self._miio_commands))
+        if self._miio2miot:
+            self._state_attrs['props'] = self._miio2miot.miio_props_values
         props = self.miio_props
         adt = {}
         if 'clean_area' in props:
@@ -268,42 +265,16 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         return self._state_attrs.get('props') or {}
 
     @property
-    def state(self):
-        sta = super().state
-        if sta is not None:
-            return sta
-        states = {
-            1: STATE_CLEANING,  # Starting
-            2: 'Charger disconnected',
-            3: STATE_DOCKED,    # Idle
-            4: STATE_CLEANING,  # Remote control active
-            5: STATE_CLEANING,
-            6: STATE_RETURNING,
-            7: 'Manual mode',
-            8: STATE_DOCKED,  # Charging
-            9: STATE_ERROR,   # Charging problem
-            10: STATE_PAUSED,
-            11: STATE_CLEANING,  # Spot cleaning
-            12: STATE_ERROR,
-            13: 'Shutting down',
-            14: STATE_DOCKED,     # Updating
-            15: STATE_RETURNING,  # Docking
-            16: STATE_CLEANING,   # Going to target
-            17: STATE_CLEANING,   # Zoned cleaning
-            18: STATE_CLEANING,   # Segment cleaning
-            100: STATE_DOCKED,    # Charging complete
-            101: 'Device offline',
-        }
-        sta = self.miio_props.get('state')
-        sta = states.get(sta, sta)
-        return sta
-
-    @property
     def battery_level(self):
         val = super().battery_level
         if val is not None:
             return val
         return self.miio_props.get('battery')
+
+    def return_to_base(self, **kwargs):
+        if self._model in ['rockrobo.vacuum.v1']:
+            self.stop()
+        return super().return_to_base()
 
     def clean_spot(self, **kwargs):
         """Perform a spot clean-up."""

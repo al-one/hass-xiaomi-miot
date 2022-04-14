@@ -2129,7 +2129,10 @@ class BaseSubEntity(BaseEntity):
                 self._state = self._state.get(self._dict_key)
             svd = self.custom_config_number('value_ratio') or 0
             if svd:
-                self._state = round(float(self._state) * svd, 3)
+                try:
+                    self._state = round(float(self._state) * svd, 3)
+                except (TypeError, ValueError):
+                    pass
         keys = self._option.get('keys', [])
         if isinstance(keys, list) and self._attr not in keys:
             keys.append(self._attr)
