@@ -482,6 +482,21 @@
     }
   ],
 
+  "xiaomi.wifispeaker.x08c": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "value-list": [
+            {"value": 0, "description": "Playing"},
+            {"value": 1, "description": "Pause"}
+          ]
+        }
+      ]
+    }
+  ],
+
   "yeelink.bhf_light.v5": [
     {
       "iid": 3,
