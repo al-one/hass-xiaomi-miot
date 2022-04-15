@@ -2223,17 +2223,22 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
 
     def update(self, data=None):
         super().update(data)
-        if self._available:
-            attrs = self._state_attrs
-            self._state = cv.boolean(attrs.get(self._attr) or False)
+        if not self._available:
+            return
+        try:
+            self._state = cv.boolean(self._state_attrs.get(self._attr))
+        except vol.Invalid:
+            self._state = None
 
     @property
     def state(self):
-        return STATE_ON if self.is_on else STATE_OFF
+        if (is_on := self.is_on) is None:
+            return None
+        return STATE_ON if is_on else STATE_OFF
 
     @property
     def is_on(self):
-        if self._reverse_state:
+        if self._reverse_state and self._state is not None:
             return not self._state
         return self._state
 

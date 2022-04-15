@@ -133,10 +133,6 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
                 self._state = val in self._miot_property.list_search('On', 'Open', '开')
         return self._state
 
-    @property
-    def state(self):
-        return STATE_ON if self.is_on else STATE_OFF
-
     def turn_on(self, **kwargs):
         val = True
         if self._miot_property.value_list:
