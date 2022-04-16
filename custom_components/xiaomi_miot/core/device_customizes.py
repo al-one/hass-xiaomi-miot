@@ -68,6 +68,11 @@ DEVICE_CUSTOMIZES = {
     'chunmi.health_pot.a1': {
         'miot_local': True,
     },
+    'cuco.light.sl4a': {
+        'switch_properties': 'swich',
+        'select_properties': 'scene.mode,change_type',
+        'number_properties': 'change_speed',
+    },
     'cuco.plug.co1': {
         'exclude_miot_services': 'setting,cycle',
     },
