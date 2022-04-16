@@ -65,9 +65,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         spec = await MiotSpec.async_from_type(hass, miot)
         svs = spec.get_services(ENTITY_DOMAIN, 'camera_control', 'video_doorbell')
         if not svs and spec.name in ['video_doorbell'] and spec.services:
-            # loock.cateye.v02
-            srv = spec.get_service('p2p_stream') or spec.first_service
-            entities.append(MiotCameraEntity(hass, config, srv))
+            srv = None
+            if spec.name in ['video_doorbell']:
+                # loock.cateye.v02
+                srv = spec.get_service('p2p_stream') or spec.first_service
+            if model in ['lumi.lock.bmcn05']:
+                srv = spec.first_service
+            if srv:
+                entities.append(MiotCameraEntity(hass, config, srv))
         for srv in svs:
             entities.append(MiotCameraEntity(hass, config, srv))
     for entity in entities:
@@ -173,7 +178,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             self._supported_features |= SUPPORT_ON_OFF
         if miot_service:
             self._prop_motion_tracking = miot_service.get_property('motion_tracking')
-            self._is_doorbell = miot_service.name in ['video_doorbell']
+            self._is_doorbell = miot_service.name in ['video_doorbell'] or '.lock.' in self._model
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -280,7 +285,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             rqd = {
                 'did': self.miot_did,
                 'model': self._model,
-                'doorBell': self._miot_service.name in ['video_doorbell'],
+                'doorBell': self._is_doorbell,
                 'eventType': 'Default',
                 'needMerge': True,
                 'sortType': 'DESC',
