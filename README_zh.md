@@ -86,8 +86,10 @@ xiaomi_miot:
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设备与服务 > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
 
-<a name="config-translation-languages"></a>
+<a name="translations"></a>
 ### 配置翻译词典:
+
+> 可以通过配置文件将大部分miot属性的选项描述（如：模式、风速等）翻译成你想要的语言，当然也欢迎你[贡献](https://github.com/al-one/hass-xiaomi-miot/edit/master/custom_components/xiaomi_miot/core/translation_languages.py)你的词典给其他人👏🏻。
 
 ```yaml
 # configuration.yaml
@@ -100,8 +102,8 @@ xiaomi_miot:
     busy: '工作中'
     # 指定风扇模式的词典
     fan.mode:
-      'straight wind': '直吹模式'
-      'natural wind': '自然风'
+      straight wind: '直吹模式'
+      natural wind: '自然风'
     # 指定洗衣机烘干模式的词典
     washer.drying_level:
       moist: '微湿'
@@ -121,7 +123,7 @@ homeassistant:
 xiaomi_miot:
   # https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/device_customizes.py
   device_customizes:
-    'chuangmi.plug.212a01':
+    chuangmi.plug.212a01:
       miot_local: true
       chunk_properties: 7
 
@@ -149,6 +151,8 @@ domain.parent_entity_id:
 
 light.your_entity_id:
   color_temp_reverse: false # 反转色温(需重载集成配置)
+  yeelight_smooth_on:  2000 # 毫秒 (仅支持本地接入的易来灯)
+  yeelight_smooth_off: 3000 # 毫秒 (仅支持本地接入的易来灯)
 
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # 绑定传感器实体

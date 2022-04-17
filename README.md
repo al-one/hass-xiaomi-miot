@@ -57,6 +57,9 @@ xiaomi_miot:
 
 > [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Devices and Services > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > Options > ☑️ Enable miot cloud
 
+### Translations
+
+> Looking forward to your [contribution](https://github.com/al-one/hass-xiaomi-miot/edit/master/custom_components/xiaomi_miot/core/translation_languages.py).
 
 ```yaml
 # configuration.yaml
@@ -69,8 +72,8 @@ xiaomi_miot:
     busy: '工作中'
     # Dictionary for specifying fan modes
     fan.mode:
-      'straight wind': '直吹模式'
-      'natural wind': '自然风'
+      straight wind: '直吹模式'
+      natural wind: '自然风'
     # Dictionary for specifying the drying modes of the washer
     washer.drying_level:
       moist: '微湿'
@@ -89,7 +92,7 @@ homeassistant:
 xiaomi_miot:
   # https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/device_customizes.py
   device_customizes:
-    'chuangmi.plug.212a01':
+    chuangmi.plug.212a01:
       miot_local: true
       chunk_properties: 7
 
@@ -117,6 +120,8 @@ domain.parent_entity_id:
 
 light.your_entity_id:
   color_temp_reverse: false # Reverse color temperature (Requires reload config entry)
+  yeelight_smooth_on:  2000 # milliseconds (Only for Yeelights in local mode)
+  yeelight_smooth_off: 3000 # milliseconds (Only for Yeelights in local mode)
 
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
