@@ -203,7 +203,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if self._prop_stream_address:
             self._supported_features |= SUPPORT_STREAM
             self._sub_motion_stream = True
-        elif self._miot_service.name in ['camera_control']:
+        elif self._miot_service.name in ['camera_control'] or self._is_doorbell:
             if self.custom_config_bool('use_motion_stream'):
                 pass
             elif self.custom_config_bool('sub_motion_stream'):
