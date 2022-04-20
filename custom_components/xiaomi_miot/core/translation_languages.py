@@ -102,8 +102,11 @@ TRANSLATION_LANGUAGES = {
         },
 
         'vacuum.mode': {
+            'basic': '正常',
             'silent': '安静',
+            'standard': '正常',
             'strong': '强力',
+            'turbo': '强力',
         },
 
         'washer': {

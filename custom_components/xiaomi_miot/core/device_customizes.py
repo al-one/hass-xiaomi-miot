@@ -181,7 +181,7 @@ DEVICE_CUSTOMIZES = {
         'target_humidity_ratio': 9.0909,
     },
     'dreame.vacuum.*': {
-        'sensor_attributes': 'vacuum.status',
+        'sensor_properties': 'vacuum.status',
         'exclude_miot_services': 'consumable,annoy,remote,time',
     },
     'fawad.airrtc.*': {
@@ -216,7 +216,7 @@ DEVICE_CUSTOMIZES = {
         },
     },
     'ijai.vacuum.*': {
-        'sensor_attributes': 'vacuum.status',
+        'sensor_properties': 'vacuum.status',
         'exclude_miot_services': 'order',
         'exclude_miot_properties': 'zone_points,restrict_points,target_point',
     },
@@ -379,7 +379,8 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'numleds,pixel_per_step,fade_delay,step_delay,stair_travel_time',
     },
     'roborock.vacuum.*': {
-        'sensor_attributes': 'vacuum.status,props:clean_area,props:clean_time',
+        'sensor_attributes': 'props:clean_area,props:clean_time',
+        'sensor_properties': 'vacuum.status',
     },
     'roborock.vacuum.*:props:clean_area': {
         'value_ratio': 0.000001,
@@ -391,10 +392,7 @@ DEVICE_CUSTOMIZES = {
     },
     'rockrobo.vacuum.*': {
         'sensor_attributes': 'props:clean_area,props:clean_time',
-        'miio_commands': {
-            'get_status': ['props'],
-            'get_consumable': ['consumables'],
-        },
+        'sensor_properties': 'vacuum.status',
     },
     'rockrobo.vacuum.*:props:clean_area': {
         'value_ratio': 0.000001,
@@ -423,8 +421,14 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on',
     },
     'viomi.vacuum.*': {
-        'sensor_attributes': 'vacuum.status,miio.s_area,miio.s_time',
-        'sensor_properties': 'main_brush_life,side_brush_life,hypa_life,mop_life',
+        'sensor_attributes': 'miio.s_area,miio.s_time',
+        'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life',
+    },
+    'viomi.vacuum.*:miio.s_area': {
+        'unit_of_measurement': '㎡',
+    },
+    'viomi.vacuum.*:miio.s_time': {
+        'unit_of_measurement': 'min',
     },
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
