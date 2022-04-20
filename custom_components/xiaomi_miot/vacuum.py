@@ -123,6 +123,12 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         if self._act_locate:
             self._supported_features |= SUPPORT_LOCATE
 
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        self._prop_status.description_to_dict(self._state_attrs)
+
     @property
     def status(self):
         if self._prop_status:
