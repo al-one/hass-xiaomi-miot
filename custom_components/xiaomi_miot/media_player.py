@@ -308,15 +308,14 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         return False
 
     def intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
-        srv = self._intelligent_speaker
-        if srv:
+        if srv := self._intelligent_speaker:
             anm = 'execute_text_directive' if execute else 'play_text'
             act = srv.get_action(anm)
             if act:
                 pms = [text]
                 pse = srv.get_property('silent_execution')
                 if execute and pse:
-                    sil = silent and True
+                    sil = not silent
                     if pse.value_list:
                         sil = pse.list_value('On' if silent else 'Off')
                         if sil is None:
@@ -324,13 +323,13 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                     pms.append(sil)
                 return self.miot_action(srv.iid, act.iid, pms, **kwargs)
             else:
-                _LOGGER.warning('%s does not have action: %s', self.name_model, anm)
+                self.logger.warning('%s does not have action: %s', self.name_model, anm)
         elif self._message_router:
             act = self._message_router.get_action('post')
             if act and execute:
                 return self.call_action(act, [text], **kwargs)
         else:
-            _LOGGER.error('%s does not have service: %s', self.name_model, 'intelligent_speaker/message_router')
+            self.logger.error('%s does not have service: %s', self.name_model, 'intelligent_speaker/message_router')
         return False
 
     async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
@@ -344,9 +343,9 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 pms = [text or ''] if act.ins else []
                 return self.miot_action(srv.iid, act.iid, pms, **kwargs)
             else:
-                _LOGGER.warning('%s does not have action: %s', self.name_model, 'wake_up')
+                self.logger.warning('%s does not have action: %s', self.name_model, 'wake_up')
         else:
-            _LOGGER.error('%s does not have service: %s', self.name_model, 'intelligent_speaker')
+            self.logger.error('%s does not have service: %s', self.name_model, 'intelligent_speaker')
         return False
 
     async def async_xiaoai_wakeup(self, text=None, **kwargs):
