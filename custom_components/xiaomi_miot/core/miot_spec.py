@@ -58,6 +58,9 @@ SPEC_ERRORS = {
 }
 
 
+# https://iot.mi.com/new/doc/tools-and-resources/design/spec/overall
+# https://iot.mi.com/new/doc/tools-and-resources/design/spec/xiaoai
+# https://iot.mi.com/new/doc/tools-and-resources/design/spec/shortcut
 class MiotSpecInstance:
     def __init__(self, dat: dict):
         self.raw = dat
@@ -101,6 +104,7 @@ class MiotSpecInstance:
         dls = [
             des.lower(),
             des,
+            des.replace('-', ' '),
         ]
         tls = self.translations
         for d in dls:
@@ -501,8 +505,8 @@ class MiotProperty(MiotSpecInstance):
 
     @property
     def short_desc(self):
-        sde = self.service.description.strip()
-        pde = self.desc_name.strip()
+        sde = (self.service.description or self.service.name).strip()
+        pde = (self.description or self.name).strip()
         des = pde
         if sde != pde:
             des = f'{sde} {pde}'.strip()
