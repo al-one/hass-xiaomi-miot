@@ -44,8 +44,6 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
-
     cfg = hass.data[DOMAIN].get(config_entry.entry_id) or {}
     mic = cfg.get(CONF_XIAOMI_CLOUD)
     if isinstance(mic, MiotCloud) and mic.user_id:
@@ -54,6 +52,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             entity = MihomeMessageSensor(hass, mic)
             hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
             async_add_entities([entity])
+    await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -536,19 +535,20 @@ class MihomeMessageSensor(CoordinatorEntity, SensorEntity, BaseEntity):
         self._attr_should_poll = False
         self._attr_native_value = None
         self._attr_extra_state_attributes = {}
-        sec = self.custom_config_integer('interval_seconds') or 60
         self.coordinator = DataUpdateCoordinator(
             hass,
             _LOGGER,
             name=self._attr_unique_id,
             update_method=self.fetch_latest_message,
-            update_interval=timedelta(seconds=sec),
+            update_interval=timedelta(seconds=30),
         )
         super().__init__(self.coordinator)
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         await self.coordinator.async_config_entry_first_refresh()
+        if sec := self.custom_config_integer('interval_seconds'):
+            self.coordinator.update_interval = timedelta(seconds=sec)
 
     async def fetch_latest_message(self):
         res = await self.cloud.async_request_api('v2/message/v2/typelist', data={}) or {}
