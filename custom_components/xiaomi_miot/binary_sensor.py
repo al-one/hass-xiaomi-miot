@@ -198,9 +198,7 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
             'did': did,
             'props': self._props,
         }
-        rdt = await self.hass.async_add_executor_job(
-            mic.request_miot_api, 'device/batchdevicedatas', [pms],
-        ) or {}
+        rdt = await mic.async_request_api('device/batchdevicedatas', [pms]) or {}
         self.logger.debug('%s: Got miio cloud props: %s', self.name_model, rdt)
         props = (rdt.get('result') or {}).get(did, {})
         sta = None

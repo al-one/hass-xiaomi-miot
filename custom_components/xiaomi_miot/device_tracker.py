@@ -171,7 +171,7 @@ class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
                 },
             },
         }
-        rdt = await self.hass.async_add_executor_job(mic.request_miot_api, 'third/api', pms) or {}
+        rdt = await mic.async_request_api('third/api', pms) or {}
         loc = {}
         for v in (rdt.get('result') or {}).get('PL', {}).get('List', {}).values():
             loc = v.get('result', {})
