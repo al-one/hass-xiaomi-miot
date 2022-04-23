@@ -1,5 +1,7 @@
 """Support for Xiaomi sensors."""
 import logging
+import time
+import json
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -580,5 +582,80 @@ class MihomeMessageSensor(CoordinatorEntity, SensorEntity, BaseEntity):
             'event': msg.get('params', {}).get('body', {}).get('event'),
             'home_name': msg.get('params', {}).get('body', {}).get('homeRoomExtra', {}).get('homeName'),
             'room_name': msg.get('params', {}).get('body', {}).get('homeRoomExtra', {}).get('roomName'),
+        })
+        return msg
+
+
+class XiaoaiConversationSensor(CoordinatorEntity, BaseSensorSubEntity):
+    def __init__(self, parent, hass, option=None):
+        BaseSensorSubEntity.__init__(self, parent, 'conversation', option)
+        self.hass = hass
+        self.conversation = {}
+        self._available = True
+        self._attr_native_value = None
+        self._option.setdefault('icon', 'mdi:account-voice')
+        self.coordinator = DataUpdateCoordinator(
+            hass,
+            _LOGGER,
+            name=self.unique_id,
+            update_method=self.fetch_latest_message,
+            update_interval=timedelta(seconds=5),
+        )
+        super().__init__(self.coordinator)
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        await self.coordinator.async_config_entry_first_refresh()
+        if sec := self.custom_config_integer('interval_seconds'):
+            self.coordinator.update_interval = timedelta(seconds=sec)
+
+    async def fetch_latest_message(self):
+        mic = self._parent.xiaoai_cloud
+        dvc = self._parent.xiaoai_device or {}
+        aid = dvc.get('deviceID')
+        if not isinstance(mic, MiotCloud) or not aid:
+            self._available = False
+            return
+        api = 'https://userprofile.mina.mi.com/device_profile/v2/conversation'
+        dat = {
+            'hardware': dvc.get('hardware', ''),
+            'timestamp': int(time.time() * 1000),
+            'limit': 3,
+        }
+        cks = {
+            'deviceId': aid,
+        }
+        res = await mic.async_request_api(api, data=dat, method='GET', cookies=cks) or {}
+        rdt = res.get('data', {})
+        if not isinstance(rdt, dict):
+            rdt = json.loads(rdt) or {}
+        mls = rdt.get('records')
+        msg = mls.pop(0) if mls else {}
+        self.conversation = msg
+        old = self._attr_native_value
+        if con := msg.get('query'):
+            self._state = con
+            self._attr_native_value = con
+            logger = _LOGGER.info if old != self._attr_native_value else _LOGGER.debug
+            logger('%s: New xiaoai conversation: %s', self.name_model, self._attr_native_value)
+        else:
+            _LOGGER.info('%s: Get xiaoai conversation failed: %s', self.name_model, res)
+        tim = msg.get('time')
+        ans = []
+        for v in msg.get('answers', []):
+            if not isinstance(v, dict):
+                continue
+            typ = v.get('type', '').lower()
+            v.pop('bitSet', None)
+            v.get(typ, {}).pop('bitSet', None)
+            ans.append(v)
+        self._state_attrs.update({
+            'content': con,
+            'answers': ans,
+            'history': [
+                v.get('query')
+                for v in mls
+            ],
+            'timestamp': datetime.fromtimestamp(tim / 1000) if tim else None,
         })
         return msg

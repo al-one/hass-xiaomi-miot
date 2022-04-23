@@ -353,6 +353,11 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             except (TypeError, ValueError, Exception) as exc:
                 self.logger.warning('Got exception while fetch xiaoai playing status: %s', [aid, exc])
 
+            from .sensor import XiaoaiConversationSensor
+            add_sensors = self._add_entities.get('sensor')
+            if 'conversation' not in self._subs and add_sensors:
+                add_sensors([XiaoaiConversationSensor(self, self.hass)])
+
     def turn_on(self):
         if self._act_turn_on:
             return self.call_action(self._act_turn_on)
