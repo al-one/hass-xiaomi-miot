@@ -344,4 +344,5 @@ request_xiaomi_api:
               value: xiaomiio
             - label: Xiaoai API
               value: micoapi
-            - i.mi.com
+            - label: i.mi.com
+              value: i.mi.com
