@@ -351,12 +351,16 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                         3: REPEAT_MODE_OFF,  # random
                     }.get(info.get('loop_type'), REPEAT_MODE_OFF)
             except (TypeError, ValueError, Exception) as exc:
-                self.logger.warning('Got exception while fetch xiaoai playing status: %s', [aid, exc])
+                self.logger.warning(
+                    '%s: Got exception while fetch xiaoai playing status: %s',
+                    self.name_model, [aid, exc],
+                )
 
             from .sensor import XiaoaiConversationSensor
             add_sensors = self._add_entities.get('sensor')
             if 'conversation' not in self._subs and add_sensors:
-                add_sensors([XiaoaiConversationSensor(self, self.hass)])
+                self._subs['conversation'] = XiaoaiConversationSensor(self, self.hass)
+                add_sensors([self._subs['conversation']])
 
     def turn_on(self):
         if self._act_turn_on:
