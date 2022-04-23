@@ -333,3 +333,15 @@ request_xiaomi_api:
       example: true
       selector:
         boolean:
+    sid:
+      description: Xiaomi site ID.
+      default: xiaomiio
+      example: xiaomiio
+      selector:
+        select:
+          options:
+            - label: Mihome API
+              value: xiaomiio
+            - label: Xiaoai API
+              value: micoapi
+            - i.mi.com

@@ -154,10 +154,9 @@ SERVICE_TO_METHOD_BASE = {
             {
                 vol.Required('api'): cv.string,
                 vol.Optional('data', default={}): vol.Any(dict, list),
-                vol.Optional('params', default={}): vol.Any(dict, list, None),  # deprecated
                 vol.Optional('method', default='POST'): cv.string,
                 vol.Optional('crypt', default=True): cv.boolean,
-                vol.Optional('throw', default=False): cv.boolean,
+                vol.Optional('sid', default=None): cv.string,
             },
         ),
     },
@@ -185,6 +184,7 @@ async def async_setup(hass, hass_config: dict):
     hass.data[DOMAIN].setdefault('configs', {})
     hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('accounts', {})
+    hass.data[DOMAIN].setdefault('sessions', {})
     hass.data[DOMAIN].setdefault('add_entities', {})
     hass.data[DOMAIN].setdefault('sub_entities', {})
 
@@ -269,7 +269,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         'configs': [],
     }
     try:
-        mic = await MiotCloud.from_token(hass, entry)
+        mic = await MiotCloud.from_token(hass, entry, login=False)
         await mic.async_check_auth(notify=True)
         config[CONF_XIAOMI_CLOUD] = mic
         config['devices_by_mac'] = await mic.async_get_devices_by_key('mac', filters=entry) or {}
@@ -1932,18 +1932,19 @@ class MiotEntity(MiioEntity):
         mic = self.miot_cloud
         if not isinstance(mic, MiotCloud):
             return None
-        dat = data or kwargs.get('params')
-        result = await mic.async_request_api(api, data=dat, method=method, crypt=crypt)
+        sid = kwargs.pop('sid', None) or 'xiaomiio'
+        if sid != mic.sid:
+            mic = await mic.async_change_sid(sid)
+        pms = kwargs.pop('params', None)
+        dat = data or pms
+        result = await mic.async_request_api(api, data=dat, method=method, crypt=crypt, **kwargs)
         persistent_notification.async_create(
             self.hass,
             f'{result}',
             f'Xiaomi Api: {api}',
             f'{DOMAIN}-debug',
         )
-        if kwargs.get('throw'):
-            raise Warning(f'Xiaomi Api {api}: {result}')
-        else:
-            _LOGGER.debug('Xiaomi Api %s: %s', api, result)
+        _LOGGER.debug('Xiaomi Api %s: %s', api, result)
         return result
 
 
