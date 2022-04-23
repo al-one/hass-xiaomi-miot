@@ -28,6 +28,7 @@ from . import (
     XIAOMI_MIIO_SERVICE_SCHEMA,
     MiotEntityInterface,
     MiotEntity,
+    MiotCloud,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -288,14 +289,69 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
 
         self._intelligent_speaker = miot_service.spec.get_service('intelligent_speaker')
         self._message_router = miot_service.spec.get_service('message_router')
+        self.xiaoai_cloud = None
+        self.xiaoai_device = None
         if self._intelligent_speaker:
             self._state_attrs[ATTR_ATTRIBUTION] = 'Support TTS through service'
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if self._intelligent_speaker:
+            mic = self.miot_cloud
+            if isinstance(mic, MiotCloud):
+                self.xiaoai_cloud = await mic.async_change_sid('micoapi')
 
     async def async_update(self):
         await super().async_update()
         if not self._available:
             return
         self._update_sub_entities('on', domain='switch')
+
+        if isinstance(self.xiaoai_cloud, MiotCloud) and self.xiaoai_device is None:
+            api = 'https://api2.mina.mi.com/admin/v2/device_list'
+            dat = {
+              'presence': True,
+              'master': False,
+            }
+            result = await self.xiaoai_cloud.async_request_api(api, data=dat, method='GET') or {}
+            if 'data' in result:
+                self.xiaoai_device = {}
+            for d in result.get('data', []):
+                if not isinstance(d, dict):
+                    continue
+                if d.get('miotDID') == self.miot_did or d.get('mac') == self._miio_info.mac_address:
+                    self.xiaoai_device = d
+                    break
+
+        if self.xiaoai_device:
+            aid = self.xiaoai_device.get('deviceID')
+            api = 'https://api2.mina.mi.com/remote/ubus'
+            dat = {
+                'deviceId': aid,
+                'path': 'mediaplayer',
+                'method': 'player_get_play_status',
+                'message': '{}',
+            }
+            try:
+                result = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
+                info = result.get('data', {}).get('info', {})
+                if not isinstance(info, dict):
+                    info = json.loads(info)
+                if song := info.get('play_song_detail'):
+                    self._attr_media_content_id = song.get('audio_id')
+                    self._attr_media_content_type = song.get('audioType')
+                    self._attr_media_title = song.get('title')
+                    self._attr_media_artist = song.get('artist')
+                    self._attr_media_album_name = song.get('album')
+                    self._attr_media_image_url = song.get('cover', '')
+                    self._attr_media_image_remotely_accessible = True
+                    self._attr_repeat = {
+                        0: REPEAT_MODE_ONE,
+                        1: REPEAT_MODE_ALL,
+                        3: REPEAT_MODE_OFF,  # random
+                    }.get(info.get('loop_type'), REPEAT_MODE_OFF)
+            except (TypeError, ValueError, Exception) as exc:
+                self.logger.warning('Got exception while fetch xiaoai playing status: %s', [aid, exc])
 
     def turn_on(self):
         if self._act_turn_on:
