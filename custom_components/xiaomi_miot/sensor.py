@@ -645,8 +645,6 @@ class XiaoaiConversationSensor(CoordinatorEntity, BaseSensorSubEntity):
             self._attr_native_value = con
             logger = _LOGGER.info if old != self._attr_native_value else _LOGGER.debug
             logger('%s: New xiaoai conversation: %s', self.name_model, self._attr_native_value)
-        else:
-            _LOGGER.info('%s: Get xiaoai conversation failed: %s', self.name_model, res)
         tim = msg.get('time')
         ans = []
         for v in msg.get('answers', []):
