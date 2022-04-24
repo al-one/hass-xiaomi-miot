@@ -18,6 +18,7 @@ from . import (
     CONF_CONFIG_VERSION,
     DEFAULT_NAME,
     DEFAULT_CONN_MODE,
+    init_integration_data,
 )
 from .core.utils import async_analytics_track_event
 from .core.const import CLOUD_SERVERS
@@ -208,7 +209,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     async def async_step_user(self, user_input=None):
-        self.hass.data.setdefault(DOMAIN, {})
+        init_integration_data(self.hass)
         errors = {}
         if user_input is None:
             user_input = {}
@@ -344,7 +345,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
-        self.hass.data.setdefault(DOMAIN, {})
         if CONF_USERNAME in self.config_entry.data:
             return await self.async_step_cloud()
         return await self.async_step_user()

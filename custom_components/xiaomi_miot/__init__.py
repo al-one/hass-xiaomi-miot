@@ -178,15 +178,9 @@ CONFIG_SCHEMA = vol.Schema(
 
 
 async def async_setup(hass, hass_config: dict):
-    hass.data.setdefault(DOMAIN, {})
+    init_integration_data(hass)
     config = hass_config.get(DOMAIN) or {}
     await async_reload_integration_config(hass, config)
-    hass.data[DOMAIN].setdefault('configs', {})
-    hass.data[DOMAIN].setdefault('entities', {})
-    hass.data[DOMAIN].setdefault('accounts', {})
-    hass.data[DOMAIN].setdefault('sessions', {})
-    hass.data[DOMAIN].setdefault('add_entities', {})
-    hass.data[DOMAIN].setdefault('sub_entities', {})
 
     with open(os.path.dirname(__file__) + '/core/miot_specs_extend.json') as file:
         models = json.load(file) or {}
@@ -351,6 +345,16 @@ async def async_unload_entry(hass: hass_core.HomeAssistant, config_entry: config
         hass.data[DOMAIN].pop(config_entry.entry_id, None)
         hass.data[DOMAIN]['sub_entities'] = {}
     return unload_ok
+
+
+def init_integration_data(hass):
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN].setdefault('configs', {})
+    hass.data[DOMAIN].setdefault('entities', {})
+    hass.data[DOMAIN].setdefault('accounts', {})
+    hass.data[DOMAIN].setdefault('sessions', {})
+    hass.data[DOMAIN].setdefault('add_entities', {})
+    hass.data[DOMAIN].setdefault('sub_entities', {})
 
 
 def bind_services_to_entries(hass, services):
