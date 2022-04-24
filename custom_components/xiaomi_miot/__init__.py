@@ -1398,13 +1398,7 @@ class MiotEntity(MiioEntity):
             await self.hass.async_add_executor_job(partial(self.update_miio_props, pls))
 
         # update miio commands in lan
-        # sensor_miio_commands is deprecated
-        cls = self.custom_config_json('miio_commands')
-        if not cls:
-            cls = self.custom_config_json('sensor_miio_commands')
-            if cls:
-                _LOGGER.warning('Custom attribute `sensor_miio_commands` is deprecated, please use `miio_commands`.')
-        if cls:
+        if cls := self.custom_config_json('miio_commands'):
             await self.hass.async_add_executor_job(partial(self.update_miio_commands, cls))
 
     def update_miio_props(self, props):

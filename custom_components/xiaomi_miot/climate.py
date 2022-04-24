@@ -53,8 +53,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if miot := config.get('miot_type'):
         spec = await MiotSpec.async_from_type(hass, miot)
         for srv in spec.get_services(
-            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet', 'thermostat', 'ir_aircondition_control',
-            'heater', 'ptc_bath_heater', 'air_purifier', 'electric_blanket', 'water_dispenser', 'dishwasher',
+            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet', 'ir_aircondition_control',
+            'thermostat', 'heater', 'ptc_bath_heater', 'water_dispenser', 'dishwasher',
         ):
             if srv.name in ['ir_aircondition_control']:
                 entities.append(MiirClimateEntity(config, srv))
@@ -139,13 +139,9 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
             if not self._prop_humidity:
                 self._prop_humidity = s.get_property('relative_humidity', 'humidity')
 
-        if miot_service.name in ['electric_blanket', 'water_dispenser']:
+        if miot_service.name in ['water_dispenser']:
             if not self._prop_fan_level:
                 self._prop_fan_level = miot_service.get_property('heat_level', 'water_level')
-
-        if miot_service.name in ['air_purifier', 'electric_blanket']:
-            self._name = f'{self._name} Deprecated'
-            self._vars['exclude_services'] = ['air_conditioner', 'enhance', 'indicator_light', 'alarm']
 
         if self._prop_target_temp:
             self._supported_features |= SUPPORT_TARGET_TEMPERATURE
@@ -203,19 +199,6 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 }
         if self._preset_modes:
             self._supported_features |= SUPPORT_PRESET_MODE
-
-        if self._miot_service.name in ['air_purifier']:
-            self.logger.warning(
-                '%s has been deprecated and will be removed in a future version. Please use %s.',
-                self.entity_id,
-                self.entity_id.replace('climate.', 'fan.'),
-            )
-        if self._miot_service.name in ['electric_blanket']:
-            self.logger.warning(
-                '%s has been deprecated and will be removed in a future version. Please use %s.',
-                self.entity_id,
-                self.entity_id.replace('climate.', 'switch.'),
-            )
 
     async def async_update(self):
         await super().async_update()
