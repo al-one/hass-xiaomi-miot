@@ -384,6 +384,8 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
         """
         if not self.is_on:
             return CURRENT_HVAC_OFF
+        if self._miot_service.name in ['heater']:
+            return CURRENT_HVAC_HEAT
         hvac = self.hvac_mode
         if hvac is None:
             return CURRENT_HVAC_IDLE
