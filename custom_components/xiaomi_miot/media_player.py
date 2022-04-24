@@ -178,7 +178,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
 
     def mute_volume(self, mute):
         if self._prop_mute:
-            return self.set_property(self._prop_mute.full_name, True if mute else False)
+            return self.set_property(self._prop_mute, True if mute else False)
         return False
 
     @property
@@ -196,7 +196,21 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
             stp = self._prop_volume.range_step()
             if stp and stp > 1:
                 val = round(val / stp) * stp
-            return self.set_property(self._prop_volume.full_name, val)
+            return self.set_property(self._prop_volume, val)
+        return False
+
+    def volume_up(self):
+        if self._prop_volume:
+            stp = self._prop_volume.range_step() or 5
+            val = round(self._prop_volume.from_dict(self._state_attrs) or 0) + stp
+            return self.set_property(self._prop_volume, val)
+        return False
+
+    def volume_down(self):
+        if self._prop_volume:
+            stp = self._prop_volume.range_step() or 5
+            val = round(self._prop_volume.from_dict(self._state_attrs) or 0) - stp
+            return self.set_property(self._prop_volume, val)
         return False
 
     def media_play(self):
