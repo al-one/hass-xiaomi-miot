@@ -384,10 +384,6 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 self._attr_media_content_type = song.get('audioType')
                 self._attr_media_title = song.get('title') or song.get('name')
                 self._attr_media_artist = song.get('artist') or song.get('artistName')
-                if not self._attr_media_title or not self._attr_media_artist:
-                    pass
-                elif self._attr_media_artist not in self._attr_media_title:
-                    self._attr_media_title += f' - {self._attr_media_artist}'
                 self._attr_media_album_name = song.get('album') or song.get('albumName')
                 self._attr_media_image_url = song.get('cover', '')
                 self._attr_media_image_remotely_accessible = True
