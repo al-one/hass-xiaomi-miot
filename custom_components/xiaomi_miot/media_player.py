@@ -338,7 +338,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             return self.xiaoai_device
         api = 'https://api2.mina.mi.com/admin/v2/device_list'
         dat = {
-          'presence': True,
+          'presence': False,
           'master': False,
         }
         result = await self.xiaoai_cloud.async_request_api(api, data=dat, method='GET') or {}
@@ -356,6 +356,9 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         if not self.xiaoai_device:
             return
         aid = self.xiaoai_device.get('deviceID')
+        self.update_attrs({
+            'xiaoai_id': aid,
+        })
         api = 'https://api2.mina.mi.com/remote/ubus'
         dat = {
             'deviceId': aid,
@@ -370,17 +373,30 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 info = json.loads(info)
             if info:
                 song = info.get('play_song_detail') or {}
-                self._attr_media_content_id = song.get('audio_id')
+                mid = song.get('audio_id')
+                if mid and not song.get('title'):
+                    song = self._vars.get('latest_song')
+                    if not song or mid != self._attr_media_content_id:
+                        song = await self.async_get_media_detail(song) or {}
+                        self._vars['latest_song'] = song
+                self._attr_media_content_id = mid
                 self._attr_media_content_type = song.get('audioType')
-                self._attr_media_title = song.get('title')
-                self._attr_media_artist = song.get('artist')
+                self._attr_media_title = song.get('title') or song.get('name')
+                self._attr_media_artist = song.get('artist') or song.get('artistName')
                 if not self._attr_media_title or not self._attr_media_artist:
                     pass
                 elif self._attr_media_artist not in self._attr_media_title:
                     self._attr_media_title += f' - {self._attr_media_artist}'
-                self._attr_media_album_name = song.get('album')
+                self._attr_media_album_name = song.get('album') or song.get('albumName')
                 self._attr_media_image_url = song.get('cover', '')
                 self._attr_media_image_remotely_accessible = True
+                if 'duration' in song:
+                    self._attr_media_duration = int(song['duration'] / 1000)
+                    if 'artistName' in song:
+                        # /aivs3/audio/info
+                        self._attr_media_duration = int(song['duration'])
+                if 'position' in song:
+                    self._attr_media_duration = int(song['position'] / 1000)
                 self._attr_repeat = {
                     0: REPEAT_MODE_ONE,
                     1: REPEAT_MODE_ALL,
@@ -391,6 +407,27 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 '%s: Got exception while fetch xiaoai playing status: %s',
                 self.name_model, [aid, exc],
             )
+
+    async def async_get_media_detail(self, media: dict):
+        mid = media.get('audio_id')
+        if not mid:
+            return None
+        api = 'https://api2.mina.mi.com/music/song_info'
+        if is3 := self.xiaoai_device.get('capabilities', {}).get('ai_protocol_3_0', 0):
+            api = 'https://api2.mina.mi.com/aivs3/audio/info'
+        dat = {
+            'audioIdList' if is3 else 'songIdList': json.dumps([mid]),
+        }
+        try:
+            result = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
+            for m in result.get('data') or []:
+                return m
+        except (TypeError, ValueError, Exception) as exc:
+            self.logger.info(
+                '%s: Got exception while fetch xiaoai playing media: %s',
+                self.name_model, [mid, exc],
+            )
+        return None
 
     def turn_on(self):
         if self._act_turn_on:
