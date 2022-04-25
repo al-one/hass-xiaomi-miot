@@ -372,13 +372,14 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             if not isinstance(info, dict):
                 info = json.loads(info)
             if info:
-                song = info.get('play_song_detail') or {}
+                song = playing = info.get('play_song_detail') or {}
                 mid = song.get('audio_id')
                 if mid and not song.get('title'):
-                    song = self._vars.get('latest_song')
+                    song = self._vars.get('latest_song') or {}
                     if not song or mid != self._attr_media_content_id:
                         song = await self.async_get_media_detail(song) or {}
                         self._vars['latest_song'] = song
+                song.update(playing)
                 self._attr_media_content_id = mid
                 self._attr_media_content_type = song.get('audioType')
                 self._attr_media_title = song.get('title') or song.get('name')
@@ -392,9 +393,6 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 self._attr_media_image_remotely_accessible = True
                 if 'duration' in song:
                     self._attr_media_duration = int(song['duration'] / 1000)
-                    if 'artistName' in song:
-                        # /aivs3/audio/info
-                        self._attr_media_duration = int(song['duration'])
                 if 'position' in song:
                     self._attr_media_duration = int(song['position'] / 1000)
                 self._attr_repeat = {
@@ -421,6 +419,8 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         try:
             result = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
             for m in result.get('data') or []:
+                if 'duration' in m:
+                    m['duration'] = int(m['duration'] * 1000)
                 return m
         except (TypeError, ValueError, Exception) as exc:
             self.logger.info(
