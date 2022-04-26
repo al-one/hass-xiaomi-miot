@@ -2186,6 +2186,8 @@ class MiotPropertySubEntity(BaseSubEntity):
         if not self._option.get('unique_id'):
             self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
         self.entity_id = miot_property.generate_entity_id(self)
+        if not miot_property.readable:
+            self._available = miot_property.writeable
         if 'icon' not in self._option:
             self._option['icon'] = miot_property.entity_icon
         if 'unit' not in self._option:
