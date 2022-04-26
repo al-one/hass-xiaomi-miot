@@ -373,7 +373,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 info = json.loads(info)
             if info:
                 song = playing = info.get('play_song_detail') or {}
-                mid = song.get('audio_id')
+                mid = song.get('audio_id') or song.get('global_id')
                 if mid and not song.get('title'):
                     song = self._vars.get('latest_song') or {}
                     if not song or mid != self._attr_media_content_id:
@@ -385,7 +385,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 self._attr_media_title = song.get('title') or song.get('name')
                 self._attr_media_artist = song.get('artist') or song.get('artistName')
                 self._attr_media_album_name = song.get('album') or song.get('albumName')
-                self._attr_media_image_url = song.get('cover', '')
+                self._attr_media_image_url = song.get('cover')
                 self._attr_media_image_remotely_accessible = True
                 if 'duration' in song:
                     self._attr_media_duration = int(song['duration'] / 1000)
@@ -396,6 +396,8 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                     1: REPEAT_MODE_ALL,
                     3: REPEAT_MODE_OFF,  # random
                 }.get(info.get('loop_type'), REPEAT_MODE_OFF)
+                if not self._attr_media_title:
+                    self.logger.info('%s: Got empty media info: %s', song)
         except (TypeError, ValueError, Exception) as exc:
             self.logger.warning(
                 '%s: Got exception while fetch xiaoai playing status: %s',
@@ -403,7 +405,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             )
 
     async def async_get_media_detail(self, media: dict):
-        mid = media.get('audio_id')
+        mid = media.get('audio_id') or media.get('global_id')
         if not mid:
             return None
         api = 'https://api2.mina.mi.com/music/song_info'
