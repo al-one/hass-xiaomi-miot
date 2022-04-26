@@ -397,7 +397,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                     3: REPEAT_MODE_OFF,  # random
                 }.get(info.get('loop_type'), REPEAT_MODE_OFF)
                 if not self._attr_media_title:
-                    self.logger.info('%s: Got empty media info: %s', song)
+                    self.logger.info('%s: Got empty media info: %s', self.name_model, song)
         except (TypeError, ValueError, Exception) as exc:
             self.logger.warning(
                 '%s: Got exception while fetch xiaoai playing status: %s',
