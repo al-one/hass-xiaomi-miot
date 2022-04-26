@@ -1856,7 +1856,7 @@ class MiotEntity(MiioEntity):
                         add_buttons(nls, update_before_add=True)
                         new = True
                         fnm = f
-                elif p.full_name not in self._state_attrs and not kwargs.get('whatever'):
+                elif p.full_name not in self._state_attrs and not p.writeable and not kwargs.get('whatever'):
                     continue
                 elif add_switches and domain == 'switch' and p.format in ['bool', 'uint8'] and p.writeable:
                     self._subs[fnm] = MiotSwitchSubEntity(self, p, option=opt)
