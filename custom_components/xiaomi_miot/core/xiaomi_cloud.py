@@ -325,7 +325,6 @@ class MiotCloud(micloud.MiCloud):
         return await self.async_login()
 
     def _logout(self):
-        self.hass.data[DOMAIN]['sessions'].pop(self.unique_id, None)
         self.service_token = None
 
     def _login_request(self):
@@ -431,17 +430,20 @@ class MiotCloud(micloud.MiCloud):
             config.get('sid'),
         )
         mic.user_id = str(config.get('user_id') or '')
-        sdt = await mic.async_stored_auth(mic.user_id, save=False)
-        config.update(sdt)
-        mic.service_token = config.get('service_token')
-        mic.ssecurity = config.get('ssecurity')
+        if a := hass.data[DOMAIN].get('sessions', {}).get(mic.unique_id):
+            mic = a
+        else:
+            sdt = await mic.async_stored_auth(mic.user_id, save=False)
+            config.update(sdt)
+            mic.service_token = config.get('service_token')
+            mic.ssecurity = config.get('ssecurity')
         if login is None:
-            if mic.unique_id in hass.data[DOMAIN].get('sessions', {}):
-                mic = hass.data[DOMAIN]['sessions'][mic.unique_id]
-            if not mic.user_id or not mic.service_token:
+            if not mic.service_token:
                 login = True
         if login:
             await mic.async_login()
+        else:
+            hass.data[DOMAIN]['sessions'][mic.unique_id] = mic
         return mic
 
     async def async_change_sid(self, sid: str, login=None):
