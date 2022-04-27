@@ -156,7 +156,7 @@ SERVICE_TO_METHOD_BASE = {
                 vol.Optional('data', default={}): vol.Any(dict, list),
                 vol.Optional('method', default='POST'): cv.string,
                 vol.Optional('crypt', default=True): cv.boolean,
-                vol.Optional('sid', default=None): cv.string,
+                vol.Optional('sid', default=None): vol.Any(cv.string, None),
             },
         ),
     },
