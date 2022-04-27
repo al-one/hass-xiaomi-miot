@@ -374,11 +374,14 @@ def bind_services_to_entries(hass, services):
                 for eid in entity_ids
                 if eid in hass.data[DOMAIN].get('entities', {})
             ]
-        _LOGGER.debug('Xiaomi Miot service handler: %s', {
-            'targets': [ent.entity_id for ent in target_entities],
-            'method': fun,
-            'params': params,
-        })
+        if not target_entities:
+            _LOGGER.warning('Call service failed: Entities not found for %s', entity_ids)
+        else:
+            _LOGGER.debug('Xiaomi Miot service handler: %s', {
+                'targets': [ent.entity_id for ent in target_entities],
+                'method': fun,
+                'params': params,
+            })
         update_tasks = []
         for ent in target_entities:
             if hasattr(ent, 'parent_entity'):
@@ -1894,7 +1897,7 @@ class MiotEntity(MiioEntity):
     async def async_get_device_data(self, key, did=None, throw=False, **kwargs):
         if did is None:
             did = self.miot_did
-        mic = self.miot_cloud
+        mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
         result = await self.hass.async_add_executor_job(
@@ -1913,7 +1916,7 @@ class MiotEntity(MiioEntity):
         return result
 
     async def async_get_bindkey(self, did=None, throw=False):
-        mic = self.miot_cloud
+        mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
         dat = {'did': did or self.miot_did, 'pdid': 1}
@@ -1931,7 +1934,7 @@ class MiotEntity(MiioEntity):
         return (result or {}).get('beaconkey')
 
     async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=True, **kwargs):
-        mic = self.miot_cloud
+        mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
         sid = kwargs.pop('sid', None) or 'xiaomiio'
