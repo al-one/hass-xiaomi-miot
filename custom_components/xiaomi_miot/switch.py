@@ -121,6 +121,9 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         if self._prop_power:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_power.full_name]
             self._option['icon'] = self._prop_power.entity_icon or self._option.get('icon')
+        self._on_descriptions = ['On', 'Open', 'Enable', 'Enabled', 'Yes', '开']
+        if des := self.custom_config_list('descriptions_for_on'):
+            self._on_descriptions = des
 
     @property
     def is_on(self):
@@ -130,7 +133,7 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         if self._miot_property.value_list:
             val = self._miot_property.from_dict(self._state_attrs)
             if val is not None:
-                self._state = val in self._miot_property.list_search('On', 'Open', '开')
+                self._state = val in self._miot_property.list_search(*self._on_descriptions)
         return self._state
 
     def turn_on(self, **kwargs):
