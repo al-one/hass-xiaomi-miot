@@ -386,7 +386,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 self._attr_media_artist = song.get('artist') or song.get('artistName')
                 self._attr_media_album_name = song.get('album') or song.get('albumName')
                 self._attr_media_image_url = song.get('cover')
-                self._attr_media_image_remotely_accessible = True
+                self._attr_media_image_remotely_accessible = False
                 if 'duration' in song:
                     self._attr_media_duration = int(song['duration'] / 1000)
                 if 'position' in song:
