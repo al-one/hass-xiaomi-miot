@@ -35,7 +35,10 @@ from miio.device import DeviceInfo as MiioInfoBase
 from miio.miot_device import MiotDevice as MiotDeviceBase
 
 from .core.const import *
-from .core.utils import async_analytics_track_event
+from .core.utils import (
+    is_offline_exception,
+    async_analytics_track_event,
+)
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -766,6 +769,10 @@ class MiioEntity(BaseEntity):
         return self._config.get(CONF_NAME) or self._name
 
     @property
+    def device_host(self):
+        return self._config.get(CONF_HOST) or ''
+
+    @property
     def available(self):
         return self._available
 
@@ -1048,7 +1055,7 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_device(self):
-        host = self._config.get(CONF_HOST) or ''
+        host = self.device_host
         token = self._config.get(CONF_TOKEN) or None
         if self._device:
             pass
@@ -1244,7 +1251,7 @@ class MiotEntity(MiioEntity):
                         )
                     )
                 self._local_state = True
-            except DeviceException as exc:
+            except (DeviceException, OSError) as exc:
                 log = self.logger.error
                 if self.custom_config_bool('auto_cloud'):
                     use_cloud = self.xiaomi_cloud
@@ -1282,8 +1289,38 @@ class MiotEntity(MiioEntity):
         result = MiotResults(results, mapping)
         if not result.is_valid:
             self._available = False
-            if errors and 'Unable to discover the device' in errors:
-                pass
+            if errors and is_offline_exception(errors):
+                self.hass.data[DOMAIN].setdefault('offline_devices', {})
+                odd = self.hass.data[DOMAIN]['offline_devices'].get(self.unique_did) or {}
+                self._vars.setdefault('offline_times', 0)
+                self._vars['offline_times'] += 1
+                if odd:
+                    odd.update({
+                        'occurrences': self._vars['offline_times'],
+                    })
+                elif self._vars['offline_times'] >= 5:
+                    odd = {
+                        'entity': self,
+                        'occurrences': self._vars['offline_times'],
+                    }
+                    self.hass.data[DOMAIN]['offline_devices'][self.unique_did] = odd
+                    tip = f'Some devices cannot be connected in the LAN, please check their IP ' \
+                          f'and make sure they are in the same subnet as the HA.\n\n' \
+                          f'一些设备无法通过局域网连接，请检查它们的IP，并确保它们和HA在同一子网。\n'
+                    for d in self.hass.data[DOMAIN]['offline_devices'].values():
+                        ent = d.get('entity')
+                        if not ent:
+                            continue
+                        tip += f'\n - {ent.name_model}: {ent.device_host}'
+                    url = 'https://github.com/al-one/hass-xiaomi-miot/search' \
+                          '?type=issues&q=%22Unable+to+discover+the+device%22'
+                    tip += f'\n\n[Known issues | 了解更多]({url})'
+                    persistent_notification.async_create(
+                        self.hass,
+                        tip,
+                        'Devices offline',
+                        f'{DOMAIN}-devices-offline',
+                    )
             elif self._vars.get('track_miot_error') and updater == 'lan':
                 await async_analytics_track_event(
                     self.hass, 'miot', 'error', self._model,

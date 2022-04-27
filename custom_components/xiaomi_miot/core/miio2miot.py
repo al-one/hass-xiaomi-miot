@@ -4,6 +4,7 @@ import voluptuous as vol
 from typing import Tuple
 from functools import partial
 
+from .utils import is_offline_exception
 from .miot_spec import (MiotSpec, MiotProperty, MiotAction)
 from .templates import CUSTOM_TEMPLATES
 from .miio2miot_specs import MIIO_TO_MIOT_SPECS
@@ -62,7 +63,9 @@ class Miio2MiotHelper:
             try:
                 vls = device.get_properties(self.miio_props, max_properties=num)
                 dic.update(dict(zip(self.miio_props, vls)))
-            except DeviceException as exc:
+            except (DeviceException, OSError) as exc:
+                if is_offline_exception(exc):
+                    raise exc
                 _LOGGER.error('%s: Got MiioException: %s while get_properties(%s)', self.model, exc, self.miio_props)
         if cls := self.config.get('miio_commands'):
             for c in cls:
@@ -71,7 +74,9 @@ class Miio2MiotHelper:
                 pms = c.get('params', [])
                 try:
                     vls = device.send(c['method'], pms)
-                except DeviceException as exc:
+                except (DeviceException, OSError) as exc:
+                    if is_offline_exception(exc):
+                        raise exc
                     _LOGGER.error('%s: Got MiioException: %s while %s(%s)', self.model, exc, c['method'], pms)
                     continue
                 kls = c.get('values', [])

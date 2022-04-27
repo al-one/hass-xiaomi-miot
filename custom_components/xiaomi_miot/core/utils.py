@@ -46,6 +46,16 @@ class RC4:
         return self
 
 
+def is_offline_exception(exc):
+    err = f'{exc}'
+    ret = 'Unable to discover the device' in err
+    if not ret:
+        ret = 'OSError: [Errno 64] Host is down' in err
+    if not ret:
+        ret = 'OSError: [Errno 65] No route to host' in err
+    return ret
+
+
 def analytics_track_event(event, action, label, value=0, **kwargs):
     if True:
         # disabled
