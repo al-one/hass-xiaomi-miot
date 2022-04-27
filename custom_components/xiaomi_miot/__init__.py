@@ -366,26 +366,28 @@ def bind_services_to_entries(hass, services):
             for key, value in service.data.items()
             if key != ATTR_ENTITY_ID
         }
-        target_devices = []
+        target_entities = []
         entity_ids = service.data.get(ATTR_ENTITY_ID)
         if entity_ids:
-            target_devices = [
-                dvc
-                for dvc in hass.data[DOMAIN]['entities'].values()
-                if dvc.entity_id in entity_ids
+            target_entities = [
+                hass.data[DOMAIN]['entities'][eid]
+                for eid in entity_ids
+                if eid in hass.data[DOMAIN].get('entities', {})
             ]
         _LOGGER.debug('Xiaomi Miot service handler: %s', {
-            'targets': [dvc.entity_id for dvc in target_devices],
+            'targets': [ent.entity_id for ent in target_entities],
             'method': fun,
             'params': params,
         })
         update_tasks = []
-        for dvc in target_devices:
-            if not hasattr(dvc, fun):
-                _LOGGER.info('Entity %s have no method: %s', dvc.entity_id, fun)
+        for ent in target_entities:
+            if hasattr(ent, 'parent_entity'):
+                ent = getattr(ent, 'parent_entity') or ent
+            if not hasattr(ent, fun):
+                _LOGGER.warning('Call service failed: Entity %s have no method: %s', ent.entity_id, fun)
                 continue
-            await getattr(dvc, fun)(**params)
-            update_tasks.append(dvc.async_update_ha_state(True))
+            await getattr(ent, fun)(**params)
+            update_tasks.append(ent.async_update_ha_state(True))
         if update_tasks:
             await asyncio.wait(update_tasks)
 
@@ -798,6 +800,8 @@ class MiioEntity(BaseEntity):
         }
 
     async def async_added_to_hass(self):
+        if self.hass:
+            self.hass.data[DOMAIN]['entities'][self.entity_id] = self
         if self.platform:
             self.update_custom_scan_interval()
             if self.platform.config_entry:
@@ -2047,6 +2051,10 @@ class BaseSubEntity(BaseEntity):
         return self._supported_features
 
     @property
+    def parent_entity(self):
+        return self._parent
+
+    @property
     def parent_attributes(self):
         return self._parent.state_attrs or {}
 
@@ -2109,6 +2117,8 @@ class BaseSubEntity(BaseEntity):
         return cfg if key is None else cfg.get(key, default)
 
     async def async_added_to_hass(self):
+        if self.hass:
+            self.hass.data[DOMAIN]['entities'][self.entity_id] = self
         if self.platform:
             self.update_custom_scan_interval(only_custom=True)
         self._option['icon'] = self.custom_config('icon', self.icon)
