@@ -99,6 +99,14 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'chuangmi.plug.v3': {
+        'entity_attrs': ['electric_power'],
+        'miio_commands': [
+            {
+                'method': 'get_power',
+                'params': [],
+                'values': ['electric_power'],
+            },
+        ],
         'miio_specs': {
             # must ['on', 'usb_on', 'temperature', 'wifi_led']
             'prop.2.1': {'prop': 'on', 'setter': 'set_power', 'format': 'onoff'},
