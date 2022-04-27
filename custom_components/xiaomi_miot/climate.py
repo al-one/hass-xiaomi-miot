@@ -728,7 +728,7 @@ class MiirClimateEntity(BaseClimateEntity):
         self._act_turn_on = miot_service.get_action('turn_on')
         self._act_turn_off = miot_service.get_action('turn_off')
 
-        self._attr_hvac_mode = STATE_UNKNOWN
+        self._attr_hvac_mode = None
         self._hvac_modes = {
             HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None']},
             HVAC_MODE_AUTO: {'list': ['Auto', 'Manual', 'Normal']},
