@@ -139,7 +139,7 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
     def turn_on(self, **kwargs):
         val = True
         if self._miot_property.value_list:
-            ret = self._miot_property.list_first('On', 'Open', '开')
+            ret = self._miot_property.list_first(*self._on_descriptions)
             if ret is not None:
                 val = ret
         return self.set_parent_property(val)
