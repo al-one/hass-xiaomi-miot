@@ -196,8 +196,6 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         self._prop_state.description_to_dict(self._state_attrs)
 
         if self._miot_service.name in ['washer']:
-            add_fans = self._add_entities.get('fan')
-            add_selects = self._add_entities.get('select')
             pls = self._miot_service.get_properties(
                 'mode', 'spin_speed', 'rinsh_times',
                 'target_temperature', 'target_water_level',
@@ -206,25 +204,19 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             for p in pls:
                 if not p.value_list and not p.value_range:
                     continue
-                if p.name in self._subs:
-                    self._subs[p.name].update()
-                elif add_selects and self.entry_config_version >= 0.3:
-                    from .select import MiotSelectSubEntity
+                if self.entry_config_version >= 0.3:
                     opt = {
                         'before_select': self.before_select_modes,
                     }
-                    self._subs[p.name] = MiotSelectSubEntity(self, p, option=opt)
-                    add_selects([self._subs[p.name]], update_before_add=True)
-                elif add_fans:
-                    from .fan import MiotWasherSubEntity
-                    self._subs[p.name] = MiotWasherSubEntity(self, p)
-                    add_fans([self._subs[p.name]], update_before_add=True)
+                    self._update_sub_entities(p, None, 'select', option=opt)
+                else:
+                    self._update_sub_entities(p, None, 'fan')
             add_switches = self._add_entities.get('switch')
             if self._miot_service.get_action('start_wash', 'pause'):
                 pnm = 'action'
                 prop = self._miot_service.get_property('status')
                 if pnm in self._subs:
-                    self._subs[pnm].update()
+                    self._subs[pnm].schedule_update_ha_state(force_refresh=True)
                 elif add_switches and prop:
                     from .switch import MiotWasherActionSubEntity
                     self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
@@ -328,7 +320,7 @@ class MiotCookerEntity(MiotSensorEntity):
                     continue
                 opt = None
                 if p.name in self._subs:
-                    self._subs[p.name].update()
+                    self._subs[p.name].schedule_update_ha_state(force_refresh=True)
                 elif not (p.value_list or p.value_range):
                     continue
                 elif add_selects:
@@ -360,7 +352,7 @@ class MiotCookerEntity(MiotSensorEntity):
             if self._action_start or self._action_cancel:
                 pnm = 'cook_switch'
                 if pnm in self._subs:
-                    self._subs[pnm].update()
+                    self._subs[pnm].schedule_update_ha_state(force_refresh=True)
                 elif add_switches:
                     from .switch import MiotCookerSwitchSubEntity
                     self._subs[pnm] = MiotCookerSwitchSubEntity(self, self._prop_state)
@@ -514,7 +506,7 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
         add_entities = self._add_entities.get('sensor')
         for k, v in self._subs.items():
             if 'entity' in v:
-                v['entity'].update()
+                v['entity'].schedule_update_ha_state(force_refresh=True)
             elif add_entities:
                 v['entity'] = WaterPurifierYunmiSubEntity(self, k, v)
                 add_entities([v['entity']], update_before_add=True)

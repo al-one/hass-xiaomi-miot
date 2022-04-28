@@ -42,7 +42,6 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
-from .switch import MiotSwitchSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -229,13 +228,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if not self._available:
             return
         if self._prop_power:
-            add_switches = self._add_entities.get('switch')
-            pnm = self._prop_power.full_name
-            if pnm in self._subs:
-                self._subs[pnm].update()
-            elif add_switches:
-                self._subs[pnm] = MiotSwitchSubEntity(self, self._prop_power)
-                add_switches([self._subs[pnm]], update_before_add=True)
+            self._update_sub_entities(self._prop_power, None, 'switch')
 
         self._motion_enable = self.custom_config_bool('use_motion_stream', self._use_motion_stream)
         add_cameras = self._add_entities.get(ENTITY_DOMAIN)

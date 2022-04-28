@@ -279,7 +279,7 @@ class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
             k = 'switch_%02d' % s
             self._state_attrs[k] = STATE_ON if sta & b else STATE_OFF
             if k in self._subs:
-                self._subs[k].update()
+                self._subs[k].schedule_update_ha_state(force_refresh=True)
             elif add_switches:
                 self._subs[k] = PwznRelaySwitchSubEntity(self, 0, s, {
                     'attr': k,
@@ -376,7 +376,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
                     k = f'g{g}s{s}'
                     self._state_attrs[k] = STATE_ON if sta & b else STATE_OFF
                     if k in self._subs:
-                        self._subs[k].update()
+                        self._subs[k].schedule_update_ha_state(force_refresh=True)
                     elif add_switches:
                         self._subs[k] = PwznRelaySwitchSubEntity(self, g, s, {
                             'attr': k,
@@ -392,7 +392,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
                         continue
                     self._state_attrs[k] = STATE_ON if attrs[k] else STATE_OFF
                     if k in self._subs:
-                        self._subs[k].update()
+                        self._subs[k].schedule_update_ha_state(force_refresh=True)
                     elif add_switches:
                         self._subs[k] = PwznRelaySwitchSubEntity(self, 0, 0, {
                             'attr': k,

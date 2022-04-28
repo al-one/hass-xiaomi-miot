@@ -574,7 +574,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             sub = 'apps'
             if sub in self._subs:
                 self._subs[sub].update_options(als)
-                self._subs[sub].update()
+                self._subs[sub].schedule_update_ha_state(force_refresh=True)
             elif add_selects:
                 from .select import SelectSubEntity
                 self._subs[sub] = SelectSubEntity(self, 'app_current', option={

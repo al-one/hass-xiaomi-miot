@@ -94,7 +94,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             if self._humidifier_mode and pnm == self._humidifier_mode.full_name:
                 continue
             if pnm in self._subs:
-                self._subs[pnm].update()
+                self._subs[pnm].schedule_update_ha_state(force_refresh=True)
             elif add_fans:
                 self._subs[pnm] = MiotModesSubEntity(self, p)
                 add_fans([self._subs[pnm]], update_before_add=True)

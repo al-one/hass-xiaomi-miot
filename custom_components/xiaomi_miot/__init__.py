@@ -900,8 +900,8 @@ class MiioEntity(BaseEntity):
             if a not in self._state_attrs:
                 continue
             tms = self._check_same_sub_entity(p, domain)
-            if p in self._subs and hasattr(self._subs[p], 'update'):
-                self._subs[p].update()
+            if p in self._subs:
+                self._subs[p].schedule_update_ha_state(force_refresh=True)
                 self._check_same_sub_entity(p, domain, add=1)
             elif tms > 0:
                 if tms <= 1:
@@ -1819,6 +1819,8 @@ class MiotEntity(MiioEntity):
             sls = list(self._miot_service.spec.services.values())
         elif services:
             sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
+        elif isinstance(properties, MiotProperty):
+            sls = [properties.service]
         else:
             sls = [self._miot_service]
         add_sensors = self._add_entities.get('sensor')
@@ -1840,7 +1842,7 @@ class MiotEntity(MiioEntity):
                 new = True
                 if fnm in self._subs:
                     new = False
-                    self._subs[fnm].update()
+                    self._subs[fnm].schedule_update_ha_state(force_refresh=True)
                     self._check_same_sub_entity(fnm, domain, add=1)
                 elif tms > 0:
                     if tms <= 1:
@@ -1860,6 +1862,8 @@ class MiotEntity(MiioEntity):
                     self.logger.debug('%s: Added sub entity %s: %s', self.name_model, domain, fnm)
                 continue
             pls = []
+            if isinstance(properties, MiotProperty):
+                pls = [properties]
             if properties:
                 pls.extend(s.get_properties(*cv.ensure_list(properties)))
             if actions:
@@ -1874,7 +1878,7 @@ class MiotEntity(MiioEntity):
                 new = True
                 if fnm in self._subs:
                     new = False
-                    self._subs[fnm].update()
+                    self._subs[fnm].schedule_update_ha_state(force_refresh=True)
                     self._check_same_sub_entity(fnm, domain, add=1)
                 elif tms > 0:
                     if tms <= 1:
@@ -1883,7 +1887,7 @@ class MiotEntity(MiioEntity):
                     if add_buttons and domain == 'button':
                         from .button import MiotButtonActionSubEntity
                         self._subs[fnm] = MiotButtonActionSubEntity(self, p, option=opt)
-                        add_buttons([self._subs[fnm]], update_before_add=True)
+                        add_buttons([self._subs[fnm]])
                 elif add_buttons and domain == 'button' and p.value_list:
                     from .button import MiotButtonSubEntity
                     nls = []

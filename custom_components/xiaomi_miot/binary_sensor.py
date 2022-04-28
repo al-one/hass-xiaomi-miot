@@ -30,8 +30,6 @@ from .core.miot_spec import (
     MiotProperty,
 )
 from .core.xiaomi_cloud import MiotCloud
-from .fan import MiotModesSubEntity
-from .switch import SwitchSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -288,6 +286,7 @@ class MiotToiletEntity(MiotBinarySensorEntity):
         await super().async_update()
         if not self._available:
             return
+        from .fan import MiotModesSubEntity
         add_fans = self._add_entities.get('fan')
         pls = self._miot_service.get_properties(
             'mode', 'washing_strength', 'nozzle_position', 'heat_level',
@@ -300,7 +299,7 @@ class MiotToiletEntity(MiotBinarySensorEntity):
             else:
                 self._update_sub_entities(
                     ['heating', 'deodorization'],
-                    [seat.name],
+                    [seat],
                     domain='switch',
                 )
         for p in pls:
@@ -317,14 +316,8 @@ class MiotToiletEntity(MiotBinarySensorEntity):
                 self._subs[p.name] = MiotModesSubEntity(self, p, opt)
                 add_fans([self._subs[p.name]], update_before_add=True)
 
-        add_switches = self._add_entities.get('switch')
         if self._prop_power:
-            pnm = self._prop_power.full_name
-            if pnm in self._subs:
-                self._subs[pnm].update()
-            elif add_switches:
-                self._subs[pnm] = SwitchSubEntity(self, pnm)
-                add_switches([self._subs[pnm]], update_before_add=True)
+            self._update_sub_entities(self._prop_power, None, 'switch')
 
     @property
     def icon(self):

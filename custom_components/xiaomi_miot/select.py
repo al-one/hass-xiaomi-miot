@@ -1,6 +1,5 @@
 """Support select entity for Xiaomi Miot."""
 import logging
-import time
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.select import (
@@ -181,6 +180,7 @@ class SelectSubEntity(SelectEntity, BaseSubEntity):
             }
             if ret := self._select_option(option, **kws):
                 self._attr_current_option = option
+                self.async_write_ha_state()
             return ret
         raise NotImplementedError()
 

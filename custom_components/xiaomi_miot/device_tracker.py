@@ -22,7 +22,6 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
-from .binary_sensor import MiotBinarySensorSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -83,13 +82,8 @@ class MiotTrackerEntity(MiotEntity, TrackerEntity):
         if prop := self._miot_service.get_property('current_address'):
             self._attr_location_name = prop.from_dict(self._state_attrs)
 
-        add_binary_sensors = self._add_entities.get('binary_sensor')
         for p in self._miot_service.get_properties('driving_status'):
-            if p.full_name in self._subs:
-                self._subs[p.full_name].update()
-            elif add_binary_sensors and p.format == 'bool':
-                self._subs[p.full_name] = MiotBinarySensorSubEntity(self, p)
-                add_binary_sensors([self._subs[p.full_name]], update_before_add=True)
+            self._update_sub_entities(p, None, 'binary_sensor')
 
     @property
     def should_poll(self):
