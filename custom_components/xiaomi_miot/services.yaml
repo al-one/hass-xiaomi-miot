@@ -149,7 +149,7 @@ call_action:
         boolean:
 
 intelligent_speaker:
-  description: Play text on Xiaoai Speaker / Execute text directive / 小爱TTS及执行语音命令
+  description: Play text on Xiaoai speaker / Execute text directive / 小爱TTS及执行语音命令
   fields:
     entity_id:
       description: ID of the entity.
@@ -185,7 +185,7 @@ intelligent_speaker:
         boolean:
 
 xiaoai_wakeup:
-  description: Weak up the xiaoai speaker / 唤醒小爱音箱
+  description: Wake up the Xiaoai speaker / 唤醒小爱音箱
   fields:
     entity_id:
       description: ID of the xiaoai entity.
