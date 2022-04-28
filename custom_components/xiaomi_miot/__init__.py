@@ -901,7 +901,7 @@ class MiioEntity(BaseEntity):
                 continue
             tms = self._check_same_sub_entity(p, domain)
             if p in self._subs:
-                self._subs[p].schedule_update_ha_state(force_refresh=True)
+                self._subs[p].update_from_parent()
                 self._check_same_sub_entity(p, domain, add=1)
             elif tms > 0:
                 if tms <= 1:
@@ -1842,7 +1842,7 @@ class MiotEntity(MiioEntity):
                 new = True
                 if fnm in self._subs:
                     new = False
-                    self._subs[fnm].schedule_update_ha_state(force_refresh=True)
+                    self._subs[fnm].update_from_parent()
                     self._check_same_sub_entity(fnm, domain, add=1)
                 elif tms > 0:
                     if tms <= 1:
@@ -1878,7 +1878,7 @@ class MiotEntity(MiioEntity):
                 new = True
                 if fnm in self._subs:
                     new = False
-                    self._subs[fnm].schedule_update_ha_state(force_refresh=True)
+                    self._subs[fnm].update_from_parent()
                     self._check_same_sub_entity(fnm, domain, add=1)
                 elif tms > 0:
                     if tms <= 1:
@@ -2172,6 +2172,12 @@ class BaseSubEntity(BaseEntity):
             self._attr_entity_category = self.custom_config('entity_category', self.entity_category)
         if not self.device_class:
             self._option['device_class'] = self.custom_config('device_class')
+
+    def update_from_parent(self):
+        if self.hass:
+            self.schedule_update_ha_state()
+        else:
+            self.update()
 
     def update(self, data=None):
         attrs = self.parent_attributes

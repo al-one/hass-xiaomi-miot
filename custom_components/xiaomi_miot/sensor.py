@@ -216,7 +216,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
                 pnm = 'action'
                 prop = self._miot_service.get_property('status')
                 if pnm in self._subs:
-                    self._subs[pnm].schedule_update_ha_state(force_refresh=True)
+                    self._subs[pnm].update_from_parent()
                 elif add_switches and prop:
                     from .switch import MiotWasherActionSubEntity
                     self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
@@ -320,7 +320,7 @@ class MiotCookerEntity(MiotSensorEntity):
                     continue
                 opt = None
                 if p.name in self._subs:
-                    self._subs[p.name].schedule_update_ha_state(force_refresh=True)
+                    self._subs[p.name].update_from_parent()
                 elif not (p.value_list or p.value_range):
                     continue
                 elif add_selects:
@@ -352,7 +352,7 @@ class MiotCookerEntity(MiotSensorEntity):
             if self._action_start or self._action_cancel:
                 pnm = 'cook_switch'
                 if pnm in self._subs:
-                    self._subs[pnm].schedule_update_ha_state(force_refresh=True)
+                    self._subs[pnm].update_from_parent()
                 elif add_switches:
                     from .switch import MiotCookerSwitchSubEntity
                     self._subs[pnm] = MiotCookerSwitchSubEntity(self, self._prop_state)
@@ -506,7 +506,7 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
         add_entities = self._add_entities.get('sensor')
         for k, v in self._subs.items():
             if 'entity' in v:
-                v['entity'].schedule_update_ha_state(force_refresh=True)
+                v['entity'].update_from_parent()
             elif add_entities:
                 v['entity'] = WaterPurifierYunmiSubEntity(self, k, v)
                 add_entities([v['entity']], update_before_add=True)

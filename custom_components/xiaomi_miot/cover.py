@@ -515,14 +515,14 @@ class MrBondAirerProEntity(MiioCoverEntity):
 
             add_lights = self._add_entities.get('light')
             if 'light' in self._subs:
-                self._subs['light'].schedule_update_ha_state(force_refresh=True)
+                self._subs['light'].update_from_parent()
             elif add_lights and 'led' in attrs:
                 self._subs['light'] = MrBondAirerProLightEntity(self)
                 add_lights([self._subs['light']], update_before_add=True)
 
             add_fans = self._add_entities.get('fan')
             if 'fan' in self._subs:
-                self._subs['fan'].schedule_update_ha_state(force_refresh=True)
+                self._subs['fan'].update_from_parent()
             elif add_fans and 'dry' in attrs:
                 self._subs['fan'] = MrBondAirerProDryEntity(self, option={'keys': ['drytime']})
                 add_fans([self._subs['fan']], update_before_add=True)

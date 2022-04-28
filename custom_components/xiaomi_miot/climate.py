@@ -206,14 +206,14 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
             for m in self._power_modes:
                 p = self._miot_service.bool_property(m)
                 if m in self._subs:
-                    self._subs[m].schedule_update_ha_state(force_refresh=True)
+                    self._subs[m].update_from_parent()
                 elif add_fans and p:
                     self._subs[m] = ClimateModeSubEntity(self, p)
                     add_fans([self._subs[m]], update_before_add=True)
             off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
             for val, des in self._preset_modes.items():
                 if des in self._subs:
-                    self._subs[des].schedule_update_ha_state(force_refresh=True)
+                    self._subs[des].update_from_parent()
                 elif add_fans and self._prop_mode and self._miot_service.name in ['ptc_bath_heater']:
                     self._subs[des] = ClimateModeSubEntity(self, self._prop_mode, {
                         'unique_id':  f'{self.unique_id}-{self._prop_mode.full_name}-{val}',
@@ -241,7 +241,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 pnm = 'action_wash'
                 prop = self._miot_service.get_property('status')
                 if pnm in self._subs:
-                    self._subs[pnm].schedule_update_ha_state(force_refresh=True)
+                    self._subs[pnm].update_from_parent()
                 elif add_switches and prop:
                     from .switch import MiotWasherActionSubEntity
                     self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
