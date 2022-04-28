@@ -1,5 +1,9 @@
 DEVICE_CUSTOMIZES = {
 
+    'bofu.curtain.bfmh': {
+        'select_properties': 'motor_control',
+    },
+
     'careli.fryer.*': {
         'button_actions': 'start_cook,pause,cancel_cooking',
         'exclude_miot_services': 'custom',
