@@ -21,12 +21,6 @@ DEVICE_CUSTOMIZES = {
     },
     'chuangmi.plug.v3': {
         'sensor_attributes': 'electric_power,prop_cal_day.power_cost:today,prop_cal_day.power_cost:month',
-        'miio_commands': {
-            'get_power': {
-                'params': [],
-                'values': ['electric_power'],
-            },
-        },
         'miio_cloud_records': 'prop_cal_day.power_cost:31',
         'miio_prop_cal_day_power_cost_template': 'chuangmi_plug_v3_power_cost',
     },
