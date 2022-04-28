@@ -2023,6 +2023,7 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
 
 class BaseSubEntity(BaseEntity):
     def __init__(self, parent, attr, option=None):
+        self.hass = parent.hass
         self._unique_id = f'{parent.unique_id}-{attr}'
         self._name = f'{parent.name} {attr}'
         self._state = STATE_UNKNOWN
