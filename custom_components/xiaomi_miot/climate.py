@@ -709,12 +709,12 @@ class MiirClimateEntity(BaseClimateEntity):
 
         self._attr_hvac_mode = None
         self._hvac_modes = {
-            HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None']},
+            HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None'], 'action': CURRENT_HVAC_OFF},
             HVAC_MODE_AUTO: {'list': ['Auto', 'Manual', 'Normal']},
-            HVAC_MODE_COOL: {'list': ['Cool']},
-            HVAC_MODE_HEAT: {'list': ['Heat']},
-            HVAC_MODE_DRY:  {'list': ['Dry']},
-            HVAC_MODE_FAN_ONLY: {'list': ['Fan']},
+            HVAC_MODE_COOL: {'list': ['Cool'], 'action': CURRENT_HVAC_COOL},
+            HVAC_MODE_HEAT: {'list': ['Heat'], 'action': CURRENT_HVAC_HEAT},
+            HVAC_MODE_DRY:  {'list': ['Dry'], 'action': CURRENT_HVAC_DRY},
+            HVAC_MODE_FAN_ONLY: {'list': ['Fan'], 'action': CURRENT_HVAC_FAN},
         }
         self._attr_hvac_modes = []
         self._prop_mode = miot_service.get_property('ir_mode')
@@ -728,6 +728,10 @@ class MiirClimateEntity(BaseClimateEntity):
                     self._attr_hvac_modes.append(mk)
 
         self._attr_current_temperature = None
+        self._attr_temperature_unit = None
+        self._attr_max_temp = DEFAULT_MAX_TEMP
+        self._attr_min_temp = DEFAULT_MIN_TEMP
+        self._attr_target_temperature_step = 1
         self._prop_temperature = miot_service.get_property('ir_temperature')
         if self._prop_temperature:
             self._supported_features |= SUPPORT_TARGET_TEMPERATURE
@@ -735,11 +739,13 @@ class MiirClimateEntity(BaseClimateEntity):
             self._attr_target_temperature_step = self._prop_temperature.range_step() or 1
             self._attr_max_temp = self._prop_temperature.range_max() or DEFAULT_MAX_TEMP
             self._attr_min_temp = self._prop_temperature.range_min() or DEFAULT_MIN_TEMP
-            self._attr_target_temperature_high = self._attr_max_temp
-            self._attr_target_temperature_low = self._attr_min_temp
-            self._attr_target_temperature = int((self._attr_max_temp - self._attr_min_temp) / 1.2) + self._attr_min_temp
+        self._attr_target_temperature_high = self._attr_max_temp
+        self._attr_target_temperature_low = self._attr_min_temp
+        self._attr_target_temperature = int((self._attr_max_temp - self._attr_min_temp) / 1.2) + self._attr_min_temp
 
         self._fan_modes = {}
+        self._attr_fan_modes = []
+        self._attr_fan_mode = None
         self._act_fan_down = miot_service.get_action('fan_speed_down')
         if self._act_fan_down:
             self._fan_modes[self._act_fan_down.friendly_desc] = self._act_fan_down
@@ -748,13 +754,16 @@ class MiirClimateEntity(BaseClimateEntity):
             self._fan_modes[self._act_fan_up.friendly_desc] = self._act_fan_up
         if self._fan_modes:
             self._supported_features |= SUPPORT_FAN_MODE
-            self._attr_fan_mode = None
             self._attr_fan_modes = list(self._fan_modes.keys())
 
     async def async_update(self):
         self.update_bind_sensor()
         if ATTR_CURRENT_TEMPERATURE in self._state_attrs:
             self._attr_current_temperature = self._state_attrs.get(ATTR_CURRENT_TEMPERATURE)
+
+    @property
+    def is_on(self):
+        return self.hvac_mode not in [None, HVAC_MODE_OFF]
 
     def turn_on(self, **kwargs):
         """Turn the entity on."""
@@ -784,6 +793,18 @@ class MiirClimateEntity(BaseClimateEntity):
         if ret := self.set_property(self._prop_mode, val):
             self._attr_hvac_mode = hvac_mode
         return ret
+
+    @property
+    def hvac_action(self):
+        """Return the current running hvac operation if supported.
+        Need to be one of CURRENT_HVAC_*.
+        """
+        if not self.is_on:
+            return CURRENT_HVAC_OFF
+        hvac = self.hvac_mode
+        if hvac is None:
+            return CURRENT_HVAC_IDLE
+        return self._hvac_modes.get(hvac, {}).get('action')
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
