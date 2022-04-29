@@ -716,9 +716,9 @@ class MiirClimateEntity(BaseClimateEntity):
             HVAC_MODE_DRY:  {'list': ['Dry']},
             HVAC_MODE_FAN_ONLY: {'list': ['Fan']},
         }
+        self._attr_hvac_modes = []
         self._prop_mode = miot_service.get_property('ir_mode')
         if self._prop_mode:
-            self._attr_hvac_modes = []
             for mk, mv in self._hvac_modes.items():
                 val = self._prop_mode.list_first(*(mv.get('list') or []))
                 if val is not None:
