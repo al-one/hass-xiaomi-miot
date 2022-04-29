@@ -450,7 +450,7 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
         _LOGGER.info('%s: Initializing with host %s (token %s...)', name, host, token[:5])
 
         self._device = WaterPurifierYunmi(host, token)
-        super().__init__(name, self._device, logger=_LOGGER)
+        super().__init__(name, self._device, config=config, logger=_LOGGER)
         self._subs = {
             'tds_in':  {'keys': ['tds_warn_thd'], 'unit': CONCENTRATION_PARTS_PER_MILLION, 'icon': 'mdi:water'},
             'tds_out': {'keys': ['tds_warn_thd'], 'unit': CONCENTRATION_PARTS_PER_MILLION, 'icon': 'mdi:water-check'},
