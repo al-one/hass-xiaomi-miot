@@ -462,6 +462,9 @@ DEVICE_CUSTOMIZES = {
     'yeelink.light.stripa': {
         'chunk_properties': 2,
     },
+    'yeelink.light.*': {
+        'main_miot_services': 'light-2',
+    },
     'yeelink.switch.sw1': {
         'miot_mapping': {
             'switch1.on':          {'siid': 2, 'piid': 1},
