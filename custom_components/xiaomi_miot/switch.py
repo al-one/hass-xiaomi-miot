@@ -338,7 +338,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
 
         self._config = config
         self._device = MiioDevice(host, token)
-        super().__init__(name, self._device, logger=_LOGGER)
+        super().__init__(name, self._device, config=config, logger=_LOGGER)
         self._success_result = [0]
 
         self._props = [
