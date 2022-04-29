@@ -227,20 +227,19 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     if config_entry.data.get(CONF_USERNAME):
         await async_setup_xiaomi_cloud(hass, config_entry)
     else:
-        info = config_entry.data.get('miio_info') or {}
         config = dict(config_entry.data)
         config.update(config_entry.options or {})
+        info = config.get('miio_info') or {}
         model = str(config.get(CONF_MODEL) or info.get(CONF_MODEL) or '')
         config[CONF_MODEL] = model
 
         urn = None
         if 'miot_type' not in config:
             urn = DEVICE_CUSTOMIZES.get(model, {}).get('miot_type')
-            urn or await MiotSpec.async_get_model_type(hass, model)
-        if model not in hass.data[DOMAIN]['miot_specs']:
+            urn = urn or await MiotSpec.async_get_model_type(hass, model)
+        if urn and model not in hass.data[DOMAIN]['miot_specs']:
             hass.data[DOMAIN]['miot_specs'][model] = await MiotSpec.async_from_type(hass, urn)
         config['miot_type'] = urn
-        config['miio_info'] = info
         config['config_entry'] = config_entry
         config['miot_local'] = True
         config[CONF_CONN_MODE] = 'local'
