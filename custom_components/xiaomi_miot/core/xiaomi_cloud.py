@@ -116,16 +116,19 @@ class MiotCloud(micloud.MiCloud):
         return vls.pop(0)
 
     async def async_check_auth(self, notify=False):
-        rdt = None
+        api = 'v2/message/v2/check_new_msg'
+        dat = {
+            'begin_at': int(time.time()) - 60,
+        }
         try:
-            rdt = await self.hass.async_add_executor_job(
-                partial(self.get_user_device_data, '1', 'check_auth', raw=True, timeout=30)
-            ) or {}
+            rdt = await self.async_request_api(api, dat, method='POST') or {}
             nid = f'xiaomi-miot-auth-warning-{self.user_id}'
             eno = rdt.get('code', 0)
             if eno != 3:
                 return True
         except requests.exceptions.ConnectionError:
+            return None
+        except requests.exceptions.Timeout:
             return None
         # auth err
         if await self.async_relogin():
