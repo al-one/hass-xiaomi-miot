@@ -1345,11 +1345,13 @@ class MiotEntity(MiioEntity):
         self._available = True
         self._state = True if self._state_attrs.get('power') else False
 
+        await self.async_update_attrs(attrs, update_subs=True)
         if self.is_main_entity:
             await self.async_update_for_main_entity()
         if self._subs:
-            attrs['sub_entities'] = list(self._subs.keys())
-        await self.async_update_attrs(attrs)
+            await self.async_update_attrs({
+                'sub_entities': list(self._subs.keys()),
+            }, update_subs=False)
         self.logger.debug('%s: Got new state: %s', self.name_model, attrs)
 
     async def async_update_for_main_entity(self):
@@ -2180,10 +2182,9 @@ class BaseSubEntity(BaseEntity):
             self._option['device_class'] = self.custom_config('device_class')
 
     def update_from_parent(self):
+        self.update()
         if self.hass:
-            self.schedule_update_ha_state()
-        else:
-            self.update()
+            self.async_write_ha_state()
 
     def update(self, data=None):
         attrs = self.parent_attributes
