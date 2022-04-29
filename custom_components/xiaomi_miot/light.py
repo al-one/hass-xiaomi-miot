@@ -64,18 +64,17 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     config['hass'] = hass
     model = str(config.get(CONF_MODEL) or '')
+    spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if model.find('mrbond.airer') >= 0:
         pass
-    else:
-        if miot := config.get('miot_type'):
-            spec = await MiotSpec.async_from_type(hass, miot)
-            for srv in spec.get_services(ENTITY_DOMAIN, 'light_bath_heater'):
-                if not srv.get_property('on'):
-                    continue
-                elif srv.name in ['light_bath_heater'] and spec.get_service('ptc_bath_heater'):
-                    continue
-                entities.append(MiotLightEntity(config, srv))
+    elif isinstance(spec, MiotSpec):
+        for srv in spec.get_services(ENTITY_DOMAIN, 'light_bath_heater'):
+            if not srv.get_property('on'):
+                continue
+            elif srv.name in ['light_bath_heater'] and spec.get_service('ptc_bath_heater'):
+                continue
+            entities.append(MiotLightEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)

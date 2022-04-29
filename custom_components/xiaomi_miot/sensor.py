@@ -39,6 +39,19 @@ from .core.miot_spec import (
     MiotProperty,
 )
 
+try:
+    # hass 2021.4.0b0+
+    from homeassistant.components.sensor import SensorEntity
+except ImportError:
+    class SensorEntity(Entity):
+        """Base class for sensor entities."""
+
+try:
+    # hass 2021.6.0b0+
+    from homeassistant.components.sensor import STATE_CLASSES
+except ImportError:
+    STATE_CLASSES = []
+
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
@@ -62,69 +75,54 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     config['hass'] = hass
     model = str(config.get(CONF_MODEL) or '')
+    spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if model in ['yunmi.waterpuri.lx9', 'yunmi.waterpuri.lx11']:
         entity = WaterPurifierYunmiEntity(config)
         entities.append(entity)
-    else:
-        if miot := config.get('miot_type'):
-            spec = await MiotSpec.async_from_type(hass, miot)
-            for srv in spec.get_services(
-                'battery', 'environment', 'tds_sensor', 'switch_sensor', 'vibration_sensor',
-                'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor',
-                'router', 'lock', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad', 'treadmill',
-                'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
-                'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer', 'water_purifier',
-                'pet_feeder', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp', 'vital_signs',
-                'fruit_vegetable_purifier', 'sterilizer', 'steriliser', 'table',
-            ):
-                if srv.name in ['lock']:
-                    if not srv.get_property('operation_method', 'operation_id'):
-                        continue
-                elif srv.name in ['battery']:
-                    if spec.name not in ['switch_sensor', 'toothbrush']:
-                        continue
-                elif srv.name in ['environment']:
-                    if spec.name not in ['air_monitor']:
-                        continue
-                elif srv.name in ['tds_sensor']:
-                    if spec.get_service('water_purifier', 'fish_tank'):
-                        continue
-                elif srv.name in ['temperature_humidity_sensor']:
-                    if spec.name not in ['temperature_humidity_sensor']:
-                        continue
-                elif srv.name in ['illumination_sensor']:
-                    if spec.name not in ['illumination_sensor']:
-                        continue
-                elif srv.name in ['pet_feeder']:
-                    # no readable properties in mmgg.feeder.petfeeder
-                    pass
-                elif not srv.mapping():
+    elif isinstance(spec, MiotSpec):
+        for srv in spec.get_services(
+            'battery', 'environment', 'tds_sensor', 'switch_sensor', 'vibration_sensor',
+            'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor',
+            'router', 'lock', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad', 'treadmill',
+            'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
+            'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer', 'water_purifier',
+            'pet_feeder', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp', 'vital_signs',
+            'fruit_vegetable_purifier', 'sterilizer', 'steriliser', 'table',
+        ):
+            if srv.name in ['lock']:
+                if not srv.get_property('operation_method', 'operation_id'):
                     continue
-                if srv.get_property('cook_mode') or srv.get_action('start_cook', 'cancel_cooking'):
-                    entities.append(MiotCookerEntity(config, srv))
-                elif srv.name in ['oven', 'microwave_oven']:
-                    entities.append(MiotCookerEntity(config, srv))
-                else:
-                    entities.append(MiotSensorEntity(config, srv))
+            elif srv.name in ['battery']:
+                if spec.name not in ['switch_sensor', 'toothbrush']:
+                    continue
+            elif srv.name in ['environment']:
+                if spec.name not in ['air_monitor']:
+                    continue
+            elif srv.name in ['tds_sensor']:
+                if spec.get_service('water_purifier', 'fish_tank'):
+                    continue
+            elif srv.name in ['temperature_humidity_sensor']:
+                if spec.name not in ['temperature_humidity_sensor']:
+                    continue
+            elif srv.name in ['illumination_sensor']:
+                if spec.name not in ['illumination_sensor']:
+                    continue
+            elif srv.name in ['pet_feeder']:
+                # no readable properties in mmgg.feeder.petfeeder
+                pass
+            elif not srv.mapping():
+                continue
+            if srv.get_property('cook_mode') or srv.get_action('start_cook', 'cancel_cooking'):
+                entities.append(MiotCookerEntity(config, srv))
+            elif srv.name in ['oven', 'microwave_oven']:
+                entities.append(MiotCookerEntity(config, srv))
+            else:
+                entities.append(MiotSensorEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
-
-
-try:
-    # hass 2021.4.0b0+
-    from homeassistant.components.sensor import SensorEntity
-except ImportError:
-    class SensorEntity(Entity):
-        """Base class for sensor entities."""
-
-try:
-    # hass 2021.6.0b0+
-    from homeassistant.components.sensor import STATE_CLASSES
-except ImportError:
-    STATE_CLASSES = []
 
 
 class MiotSensorEntity(MiotEntity, SensorEntity):

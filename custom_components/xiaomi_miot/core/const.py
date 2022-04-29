@@ -1,6 +1,6 @@
 from enum import Enum
 
-from .device_customizes import DEVICE_CUSTOMIZES
+from .device_customizes import DEVICE_CUSTOMIZES  # noqa
 from .miot_local_devices import MIOT_LOCAL_MODELS  # noqa
 from .translation_languages import TRANSLATION_LANGUAGES  # noqa
 

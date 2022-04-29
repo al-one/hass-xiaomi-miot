@@ -47,9 +47,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     config['hass'] = hass
     did = str(config.get('miot_did') or '')
     model = str(config.get(CONF_MODEL) or '')
+    spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
-    if miot := config.get('miot_type'):
-        spec = await MiotSpec.async_from_type(hass, miot)
+    if isinstance(spec, MiotSpec):
         for srv in spec.get_services('toilet', 'seat', 'motion_sensor', 'magnet_sensor', 'submersion_sensor'):
             if spec.get_service('nobody_time'):
                 # lumi.motion.agl02

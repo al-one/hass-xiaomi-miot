@@ -44,11 +44,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     config['hass'] = hass
     model = str(config.get(CONF_MODEL) or '')
+    spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if model in ['pwzn.relay.banana']:
         entities.append(PwznRelaySwitchEntity(config))
-    elif miot := config.get('miot_type'):
-        spec = await MiotSpec.async_from_type(hass, miot)
+    elif isinstance(spec, MiotSpec):
         if model in ['pwzn.switch.apple']:
             srv = spec.get_service('relays')
             if srv:

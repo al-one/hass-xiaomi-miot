@@ -233,9 +233,13 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
         model = str(config.get(CONF_MODEL) or info.get(CONF_MODEL) or '')
         config[CONF_MODEL] = model
 
+        urn = None
         if 'miot_type' not in config:
             urn = DEVICE_CUSTOMIZES.get(model, {}).get('miot_type')
-            config['miot_type'] = urn or await MiotSpec.async_get_model_type(hass, model)
+            urn or await MiotSpec.async_get_model_type(hass, model)
+        if model not in hass.data[DOMAIN]['miot_specs']:
+            hass.data[DOMAIN]['miot_specs'][model] = await MiotSpec.async_from_type(hass, urn)
+        config['miot_type'] = urn
         config['miio_info'] = info
         config['config_entry'] = config_entry
         config['miot_local'] = True
@@ -287,6 +291,8 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         if not urn:
             _LOGGER.info('Xiaomi device: %s has no urn', [d.get('name'), model])
             continue
+        if model not in hass.data[DOMAIN]['miot_specs']:
+            hass.data[DOMAIN]['miot_specs'][model] = await MiotSpec.async_from_type(hass, urn)
         ext = d.get('extra') or {}
         mif = {
             'ap':     {'ssid': d.get('ssid'), 'bssid': d.get('bssid'), 'rssi': d.get('rssi')},
@@ -356,6 +362,7 @@ def init_integration_data(hass):
     hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('accounts', {})
     hass.data[DOMAIN].setdefault('sessions', {})
+    hass.data[DOMAIN].setdefault('miot_specs', {})
     hass.data[DOMAIN].setdefault('add_entities', {})
     hass.data[DOMAIN].setdefault('sub_entities', {})
 
@@ -713,8 +720,8 @@ class MiioEntity(BaseEntity):
         except DeviceException as exc:
             self.logger.error('%s: Device unavailable or token incorrect: %s', name, exc)
             raise PlatformNotReady from exc
-        except socket.gaierror as exc:
-            self.logger.error("%s: Device unavailable: socket.gaierror %s", name, exc)
+        except (socket.gaierror, OSError) as exc:
+            self.logger.error("%s: Device unavailable: %s", name, exc)
             raise PlatformNotReady from exc
         self._unique_did = self.unique_did
         self._unique_id = self._unique_did
@@ -1312,8 +1319,7 @@ class MiotEntity(MiioEntity):
                         if not ent:
                             continue
                         tip += f'\n - {ent.name_model}: {ent.device_host}'
-                    url = 'https://github.com/al-one/hass-xiaomi-miot/search' \
-                          '?type=issues&q=%22Unable+to+discover+the+device%22'
+                    url = 'https://github.com/al-one/hass-xiaomi-miot/issues/500#offline'
                     tip += f'\n\n[Known issues | 了解更多]({url})'
                     persistent_notification.async_create(
                         self.hass,
