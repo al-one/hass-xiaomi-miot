@@ -531,6 +531,27 @@ MIIO_TO_MIOT_SPECS = {
         'chunk_properties': 1,
     },
 
+    'opple.light.bydceiling': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'SyncBaseInfo',
+                'params': [],
+                'values': ['state', 'ColorTemperature', 'Brightness', 'Scenes'],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'state', 'setter': 'SetState'},
+            'prop.2.2': {'prop': 'Scenes', 'setter': 'SetScenes', 'dict': {
+                'NIGHT': 1,
+                'TV':    2,
+                'GUEST': 3,
+                'PLAY':  4,
+            }, 'default': 3},
+            'prop.2.3': {'prop': 'Brightness', 'setter': 'SetBrightness'},
+            'prop.2.4': {'prop': 'ColorTemperature', 'setter': 'SetColorTemperature'},
+        },
+    },
     'opple.light.fanlight': {
         # ["LightPower","Brightness","ColorTemperature","Scenes","FanPower","Speed",
         # "SmartBtn","SmartVal","Gear","Temperature","Circular","CountdownTime","CountdownAct"]
