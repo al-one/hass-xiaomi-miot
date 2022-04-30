@@ -130,6 +130,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
             self._attr_source_list = self._prop_input.list_descriptions()
         if self._prop_volume:
             self._supported_features |= SUPPORT_VOLUME_SET
+            self._supported_features |= SUPPORT_VOLUME_STEP
         if self._prop_mute:
             self._supported_features |= SUPPORT_VOLUME_MUTE
         if self._act_turn_on:
@@ -274,6 +275,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
         return None
 
     def select_source(self, source):
+        """Select input source."""
         val = self._prop_input.list_value(source)
         if val is not None:
             return self.set_property(self._prop_input, val)
@@ -505,10 +507,22 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             'volumeup',
             'volumedown',
         ]
+        self._apps = {}
         self._supported_features |= SUPPORT_PLAY_MEDIA
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        if sva := self.custom_config_list('sources_via_apps'):
+            if not self.custom_config_bool('source_list_append', True):
+                self._attr_source_list = []
+            self._attr_source_list.extend(sva)
+            self._vars['sources_via_apps'] = sva
+        if svk := self.custom_config_list('sources_via_keycodes'):
+            if not sva:
+                self._attr_source_list = []
+            self._attr_source_list.extend(svk)
+            self._vars['sources_via_keycodes'] = svk
+
         if add_selects := self._add_entities.get('select'):
             from .select import SelectSubEntity
             sub = 'keycodes'
@@ -562,13 +576,13 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         }
         rdt = await self.async_request_mitv_api('controller', params=pms)
         if lst := rdt.get('AppInfo', []):
-            ias = {
+            self._apps = {
                 a.get('PackageName'): a.get('AppName')
                 for a in lst
             }
             als = [
                 f'{v} - {k}'
-                for k, v in ias.items()
+                for k, v in self._apps.items()
             ]
             add_selects = self._add_entities.get('select')
             sub = 'apps'
@@ -622,11 +636,41 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             'sign': hashlib.md5(f'mitvsignsalt{media_id}{self._api_key}{tim[-5:]}'.encode()).hexdigest(),
         }
         rdt = self.request_mitv_api('controller', params=pms)
-        self.logger.debug('%s: Play media: %s', self.name_model, [pms, rdt])
+        self.logger.info('%s: Play media: %s', self.name_model, [pms, rdt])
         return not not rdt
+
+    @property
+    def source(self):
+        """Name of the current input source."""
+        if self.app_name in self._vars.get('sources_via_apps', []):
+            return self.app_name
+        return super().source
+
+    def select_source(self, source):
+        """Select input source."""
+        if source in self._apps:
+            return self.start_app(self._apps[source])
+        if source in self._apps.values():
+            return self.start_app(source)
+        if source in self._keycodes:
+            ret = self.press_key(source)
+            self._attr_app_name = source
+            self.async_write_ha_state()
+            return ret
+        if source in self.source_list:
+            return super().select_source(source)
+        return False
 
     def start_app(self, app, **kwargs):
         pkg = f'{app}'.split(' - ').pop(-1).strip()
+        if pkg not in self._apps:
+            pkg = None
+            for k, v in self._apps.items():
+                if v == app:
+                    pkg = k
+                    break
+        if pkg is None:
+            return False
         pms = {
             'action': 'startapp',
             'type': 'packagename',
