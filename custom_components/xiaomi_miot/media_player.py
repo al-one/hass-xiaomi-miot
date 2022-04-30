@@ -513,12 +513,20 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        if sva := self.custom_config_list('sources_via_apps'):
+
+        sva = self.custom_config_list('sources_via_apps')
+        if self.custom_config('sources_via_apps') in [True, 'true', 'all', '*']:
+            sva = list(self._apps.values())
+        if sva:
             if not self.custom_config_bool('source_list_append', True):
                 self._attr_source_list = []
             self._attr_source_list.extend(sva)
             self._vars['sources_via_apps'] = sva
-        if svk := self.custom_config_list('sources_via_keycodes'):
+
+        svk = self.custom_config_list('sources_via_keycodes')
+        if self.custom_config('sources_via_keycodes') in [True, 'true', 'all', '*']:
+            svk = [*self._keycodes]
+        if svk:
             if not sva:
                 self._attr_source_list = []
             self._attr_source_list.extend(svk)
