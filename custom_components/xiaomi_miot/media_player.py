@@ -19,6 +19,7 @@ from homeassistant.components.media_player import (
     DEVICE_CLASS_RECEIVER,
 )
 from homeassistant.components.media_player.const import *
+from homeassistant.components.homekit.const import EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED
 import homeassistant.helpers.config_validation as cv
 
 from . import (
@@ -533,6 +534,19 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             add_selects([self._subs[sub]], update_before_add=False)
         await self.async_update_apps()
 
+        self._vars['homekit_remote_unsub'] = self.hass.bus.async_listen(
+            EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED,
+            self.async_homekit_remote_event_handler,
+        )
+
+    async def async_will_remove_from_hass(self):
+        """Run when entity will be removed from hass.
+        To be extended by integrations.
+        """
+        await super().async_will_remove_from_hass()
+        if unsub := self._vars.pop('homekit_remote_unsub'):
+            unsub()
+
     async def async_update(self):
         await super().async_update()
         if not self._available:
@@ -605,18 +619,23 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         return sta
 
     def turn_on(self):
-        if eid := self.custom_config('bind_xiaoai'):
+        if self._local_state and self._state_attrs.get('6095_state'):
+            # tv is on
+            pass
+        elif eid := self.custom_config('bind_xiaoai'):
             nam = self.device_info.get('name')
             nam = self.custom_config('television_name', nam)
+            sil = self.custom_config_bool('xiaoai_silent', True)
             if not nam:
                 sta = self.hass.states.get(self.entity_id)
                 nam = sta.attributes.get(ATTR_FRIENDLY_NAME)
             if nam and self.hass.states.get(eid):
+                txt = f'{nam}亮屏' if self._local_state else f'打开{nam}'
                 self.hass.services.call(DOMAIN, 'intelligent_speaker', {
                     'entity_id': eid,
-                    'text': f'打开{nam}',
+                    'text': txt,
                     'execute': True,
-                    'silent': self.custom_config_bool('xiaoai_silent', True),
+                    'silent': sil,
                 })
         return super().turn_on()
 
@@ -684,6 +703,24 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             'keycode': key,
         }
         return self.request_mitv_api('controller', params=pms)
+
+    async def async_homekit_remote_event_handler(self, event):
+        eid = event.data.get('entity_id')
+        if eid != self.entity_id:
+            return
+        dic = {
+            'arrow_up': 'up',
+            'arrow_down': 'down',
+            'arrow_left': 'left',
+            'arrow_right': 'right',
+            'back': 'back',
+            'select': 'enter',
+            'information': 'menu',
+        }
+        key = dic.get(event.data.get('key_name', ''))
+        if not key:
+            return
+        return self.hass.async_add_executor_job(self.press_key, key)
 
     def with_opaque(self, pms: dict, token=None):
         if token is None:
