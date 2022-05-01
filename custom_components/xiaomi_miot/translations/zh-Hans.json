@@ -24,7 +24,7 @@
                     "password": "小米密码",
                     "server_country": "小米服务器",
                     "conn_mode": "设备连接模式",
-                    "filter_models": "通过型号/WiFi筛选设备"
+                    "filter_models": "通过型号/WiFi筛选设备 (高级模式，新手勿选)"
                 }
             },
             "cloud_filter": {
