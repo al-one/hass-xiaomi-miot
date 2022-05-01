@@ -409,7 +409,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 self.name_model, [aid, exc],
             )
 
-        if unsub := self._vars.pop('unsub_play_status'):
+        if unsub := self._vars.pop('unsub_play_status', None):
             unsub()
         if self._attr_media_duration is None or self._attr_media_position is None:
             pass
@@ -566,7 +566,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         To be extended by integrations.
         """
         await super().async_will_remove_from_hass()
-        if unsub := self._vars.pop('homekit_remote_unsub'):
+        if unsub := self._vars.pop('homekit_remote_unsub', None):
             unsub()
 
     async def async_update(self):
