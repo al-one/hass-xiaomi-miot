@@ -727,6 +727,7 @@ MIIO_TO_MIOT_SPECS = {
                 'template': '{{ value|int }}',
                 'set_template': '{{ [value|int] }}',
             },
+            'prop.3.2': {'prop': 'charging', 'template': '{{ 1 if props.state in [8] else 2 }}'},
         },
     },
     'rockrobo.vacuum.v1': {
