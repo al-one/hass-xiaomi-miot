@@ -383,7 +383,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 if mid and not song.get('title'):
                     song = self._vars.get('latest_song') or {}
                     aid = song.get('audioId') or song.get('songID')
-                    if not song or mid != aid:
+                    if not aid or mid != aid or mid != self._attr_media_content_id:
                         song = await self.async_get_media_detail(song) or {}
                         self._vars['latest_song'] = song
                 song.update(playing)
