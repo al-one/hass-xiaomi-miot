@@ -690,7 +690,8 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'start_wash,pause',
     },
     '*.waterheater.*': {
-        'switch_properties': 'water_heater.on',
+        'sensor_properties': 'water_velocity',
+        'switch_properties': 'water_heater.on,preheating,cruise_press',
     },
 
 }

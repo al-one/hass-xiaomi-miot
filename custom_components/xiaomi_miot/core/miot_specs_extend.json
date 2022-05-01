@@ -379,8 +379,8 @@
           "type": "urn:miot-spec-v2:property:water-velocity",
           "format": "uint8",
           "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
+          "unit": "L/min",
+          "value-range": [0, 255, 1]
         }
       ]
     }
@@ -415,8 +415,8 @@
           "type": "urn:miot-spec-v2:property:water-velocity",
           "format": "uint8",
           "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
+          "unit": "L/min",
+          "value-range": [0, 255, 1]
         }
       ]
     },
@@ -438,14 +438,6 @@
       "iid": 2,
       "properties": [
         {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:water-velocity",
-          "format": "uint8",
-          "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
-        },
-        {
           "iid": 102,
           "type": "urn:miot-spec-v2:property:mode",
           "format": "uint8",
@@ -463,8 +455,8 @@
           "type": "urn:miot-spec-v2:property:water-velocity",
           "format": "uint8",
           "access": ["read", "notify"],
-          "unit": "percentage",
-          "value-range": [0, 100, 1]
+          "unit": "L/min",
+          "value-range": [0, 255, 1]
         }
       ]
     },
