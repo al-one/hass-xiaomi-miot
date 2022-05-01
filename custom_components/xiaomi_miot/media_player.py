@@ -527,6 +527,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        await self.async_update_apps()
 
         sva = self.custom_config_list('sources_via_apps')
         if self.custom_config('sources_via_apps') in [True, 'true', 'all', '*']:
@@ -554,7 +555,6 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 'select_option': self.press_key,
             })
             add_selects([self._subs[sub]], update_before_add=False)
-        await self.async_update_apps()
 
         self._vars['homekit_remote_unsub'] = self.hass.bus.async_listen(
             EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED,
