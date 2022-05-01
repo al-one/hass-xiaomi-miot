@@ -139,6 +139,9 @@ DEVICE_CUSTOMIZES = {
         'main_miot_services': 'switch-2',
         'exclude_miot_services': 'custome,physical_controls_locked,indicator_light',
     },
+    'cuco.plug.*': {
+        'main_miot_services': 'switch-2',
+    },
     'cuco.plug.*:electric_current': {
         'state_class': 'measurement',
         'device_class': 'current',
