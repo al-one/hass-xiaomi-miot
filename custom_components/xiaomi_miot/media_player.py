@@ -20,6 +20,9 @@ from homeassistant.components.media_player import (
 )
 from homeassistant.components.media_player.const import *
 from homeassistant.components.homekit.const import EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED
+from homeassistant.core import HassJob
+from homeassistant.util.dt import utcnow
+from homeassistant.helpers.event import async_track_point_in_utc_time
 import homeassistant.helpers.config_validation as cv
 
 from . import (
@@ -379,7 +382,8 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 mid = song.get('audio_id') or song.get('global_id')
                 if mid and not song.get('title'):
                     song = self._vars.get('latest_song') or {}
-                    if not song or mid != self._attr_media_content_id:
+                    aid = song.get('audioId') or song.get('songID')
+                    if not song or mid != aid:
                         song = await self.async_get_media_detail(song) or {}
                         self._vars['latest_song'] = song
                 song.update(playing)
@@ -388,12 +392,10 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 self._attr_media_title = song.get('title') or song.get('name')
                 self._attr_media_artist = song.get('artist') or song.get('artistName')
                 self._attr_media_album_name = song.get('album') or song.get('albumName')
-                self._attr_media_image_url = song.get('cover')
+                self._attr_media_image_url = song.get('cover') or song.get('coverURL')
                 self._attr_media_image_remotely_accessible = False
-                if 'duration' in song:
-                    self._attr_media_duration = int(song['duration'] / 1000)
-                if 'position' in song:
-                    self._attr_media_duration = int(song['position'] / 1000)
+                self._attr_media_duration = int(song['duration'] / 1000) if 'duration' in song else None
+                self._attr_media_position = int(song['position'] / 1000) if 'position' in song else None
                 self._attr_repeat = {
                     0: REPEAT_MODE_ONE,
                     1: REPEAT_MODE_ALL,
@@ -405,6 +407,18 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             self.logger.warning(
                 '%s: Got exception while fetch xiaoai playing status: %s',
                 self.name_model, [aid, exc],
+            )
+
+        if unsub := self._vars.pop('unsub_play_status'):
+            unsub()
+        if self._attr_media_duration is None or self._attr_media_position is None:
+            pass
+        elif self._attr_media_duration >= self._attr_media_position:
+            rem = timedelta(seconds=self._attr_media_duration - self._attr_media_position + 1)
+            self._vars['unsub_play_status'] = async_track_point_in_utc_time(
+                self.hass,
+                HassJob(self.async_update_play_status),
+                utcnow().replace(microsecond=0) + rem,
             )
 
     async def async_get_media_detail(self, media: dict):
