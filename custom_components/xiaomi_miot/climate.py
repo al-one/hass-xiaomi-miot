@@ -728,7 +728,7 @@ class MiirClimateEntity(BaseClimateEntity):
                     self._attr_hvac_modes.append(mk)
 
         self._attr_current_temperature = None
-        self._attr_temperature_unit = None
+        self._attr_temperature_unit = TEMP_CELSIUS
         self._attr_max_temp = DEFAULT_MAX_TEMP
         self._attr_min_temp = DEFAULT_MIN_TEMP
         self._attr_target_temperature_step = 1
