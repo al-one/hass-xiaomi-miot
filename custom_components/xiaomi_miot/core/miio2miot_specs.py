@@ -1720,4 +1720,16 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.1': {'prop': 'wifi_led'},
         },
     },
+    'yunmi.waterpuri.lx5':{
+    'chunk_properties': 1,
+        'miio_specs': {
+                'prop.2.1': {'prop': 'temperature'},
+                'prop.3.1': {'prop': 'tds_in'},
+                'prop.3.2': {'prop': 'tds_out'},
+                'prop.4.1': {'prop': 'f1_usedtime'},
+                'prop.4.2': {'prop': 'f1_usedflow'},
+                'prop.5.1': {'prop': 'f2_usedtime'},
+                'prop.5.2': {'prop': 'f2_usedflow'},
+        },
+    },
 }
