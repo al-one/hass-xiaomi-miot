@@ -506,7 +506,6 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
         self._host = self._config.get(CONF_HOST) or ''
-        self._mitv_api = f'http://{self._host}:6095/'
         self._api_key = '881fd5a8c94b4945b46527b07eca2431'
         self._hmac_key = '2840d5f0d078472dbc5fb78e39da123e'
         self._state_attrs['6095_state'] = True
@@ -550,6 +549,12 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+
+        if lip := self.custom_config('mitv_lan_host'):
+            self._host = lip
+            self._config = {**self._config, CONF_HOST: lip}
+            self._device = None
+
         await self.async_update_apps()
 
         sva = self.custom_config_list('sources_via_apps')
@@ -782,11 +787,14 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         pms.pop('token', None)
         return pms
 
+    def mitv_api_path(self, path=''):
+        return f'http://{self._host}:6095/{path.lstrip("/")}'
+
     def request_mitv_api(self, path, **kwargs):
         kwargs.setdefault('timeout', 5)
         req = None
         try:
-            req = requests.get(f'{self._mitv_api}{path}', **kwargs)
+            req = requests.get(self.mitv_api_path(path), **kwargs)
             rdt = json.loads(req.content or '{}') or {}
             self._state_attrs['6095_state'] = True
             if 'success' not in rdt.get('msg', ''):
