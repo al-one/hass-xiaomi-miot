@@ -673,6 +673,16 @@ MIIO_TO_MIOT_SPECS = {
             'action.4.1': {'setter': 'app_charge'},
         },
     },
+    'roborock.vacuum.a01': 'roborock.vacuum.t6',
+    'roborock.vacuum.a08': {
+        'extend_model': 'roborock.vacuum.t6',
+        'miio_specs': {
+            'prop.2.1': {'prop': 'state'},
+            'prop.2.2': {'prop': 'fan_mode', 'setter': 'set_custom_mode'},
+        },
+    },
+    'roborock.vacuum.a09': 'roborock.vacuum.t6',
+    'roborock.vacuum.a10': 'roborock.vacuum.t6',
     'roborock.vacuum.a11': 'roborock.vacuum.t6',
     'roborock.vacuum.t4': {
         'extend_model': 'roborock.vacuum.t6',
