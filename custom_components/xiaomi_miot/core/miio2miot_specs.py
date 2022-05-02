@@ -684,6 +684,13 @@ MIIO_TO_MIOT_SPECS = {
     'roborock.vacuum.a09': 'roborock.vacuum.t6',
     'roborock.vacuum.a10': 'roborock.vacuum.t6',
     'roborock.vacuum.a11': 'roborock.vacuum.t6',
+    'roborock.vacuum.c1': 'rockrobo.vacuum.v1',
+    'roborock.vacuum.e2': 'rockrobo.vacuum.v1',
+    'roborock.vacuum.p5': 'roborock.vacuum.a08',
+    'roborock.vacuum.s4': 'roborock.vacuum.t4',
+    'roborock.vacuum.s5': 'rockrobo.vacuum.v1',
+    'roborock.vacuum.s5e': 'rockrobo.vacuum.a08',
+    'roborock.vacuum.s6': 'roborock.vacuum.t6',
     'roborock.vacuum.t4': {
         'extend_model': 'roborock.vacuum.t6',
         'miio_specs': {
@@ -727,18 +734,6 @@ MIIO_TO_MIOT_SPECS = {
             'action.2.1': {'setter': 'app_start'},
             'action.2.2': {'setter': 'app_stop'},
             'action.3.1': {'setter': 'app_charge'},
-        },
-    },
-    'roborock.vacuum.s5': {
-        'extend_model': 'roborock.vacuum.t6',
-        'miio_specs': {
-            'prop.2.2': {
-                'prop': 'fan_mode',
-                'setter': 'set_custom_mode',
-                'template': '{{ value|int }}',
-                'set_template': '{{ [value|int] }}',
-            },
-            'prop.3.2': {'prop': 'charging', 'template': '{{ 1 if props.state in [8] else 2 }}'},
         },
     },
     'rockrobo.vacuum.v1': {
