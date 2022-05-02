@@ -7,10 +7,12 @@
   "documentation": "https://github.com/al-one/hass-xiaomi-miot",
   "issue_tracker": "https://github.com/al-one/hass-xiaomi-miot/issues",
   "codeowners": ["@al-one"],
-  "dependencies": ["persistent_notification"],
+  "dependencies": [
+    "http",
+    "persistent_notification"
+  ],
   "after_dependencies": [
     "homekit",
-    "stream",
     "ffmpeg"
   ],
   "requirements": [
