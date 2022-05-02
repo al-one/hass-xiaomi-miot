@@ -599,7 +599,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         adt = {}
         pms = self.with_opaque({
             'action': 'capturescreen',
-            'compressrate': 100,
+            'compressrate': self.custom_config_integer('screenshot_compress') or 50,
         })
         prev_6095 = self._state_attrs.get('6095_state')
         rdt = await self.async_request_mitv_api('controller', params=pms)
