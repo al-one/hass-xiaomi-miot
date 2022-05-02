@@ -62,7 +62,7 @@ SERVICE_TO_METHOD = {
         'method': 'async_xiaoai_wakeup',
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
-                vol.Optional('text', default=None): cv.string,
+                vol.Optional('text', default=''): vol.Any(cv.string, None),
                 vol.Optional('throw', default=False): cv.boolean,
             },
         ),
