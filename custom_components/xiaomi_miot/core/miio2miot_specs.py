@@ -836,7 +836,7 @@ MIIO_TO_MIOT_SPECS = {
             'suction_grade', 'water_grade', 'remember_map', 'has_map', 'is_mop', 'has_newmap',
         ],
         'miio_specs': {
-            'prop.2.1': {'prop': 'suction_grade', 'dict': {
+            'prop.2.1': {'prop': 'suction_grade', 'setter': 'set_suction', 'dict': {
                 0: 0,  # Silent
                 1: 1,  # Standard
                 2: 1,  # Medium
@@ -906,7 +906,7 @@ MIIO_TO_MIOT_SPECS = {
                 6: 8,  # VacuumingAndMopping
                 7: 7,  # Mopping
             }, 'default': 1},
-            'prop.2.2': {'prop': 'suction_grade'},
+            'prop.2.2': {'prop': 'suction_grade', 'setter': 'set_suction'},
             'prop.3.1': {'prop': 'battary_life'},
         },
     },
