@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import time
 import json
+import re
 import voluptuous as vol
 from datetime import timedelta
 from functools import partial
@@ -525,6 +526,28 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         self._apps = {}
         self._supported_features |= SUPPORT_PLAY_MEDIA
 
+    @property
+    def device_class(self):
+        return DEVICE_CLASS_TV
+
+    @property
+    def mitv_name(self):
+        nam = self.device_info.get('name', '')
+        if not re.match(r'[^x00-xff]', nam):
+            nam = None
+        nam = self.custom_config('television_name') or nam
+        if not nam:
+            sta = self.hass.states.get(self.entity_id)
+            nam = sta.attributes.get(ATTR_FRIENDLY_NAME) if sta else None
+        return nam or self.device_info.get('name', '电视')
+
+    @property
+    def bind_xiaoai(self):
+        eid = self.custom_config('bind_xiaoai')
+        if not eid or not self.hass:
+            return None
+        return self.hass.states.get(eid)
+
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         await self.async_update_apps()
@@ -644,26 +667,30 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         if self._local_state and self._state_attrs.get('6095_state'):
             # tv is on
             pass
-        elif eid := self.custom_config('bind_xiaoai'):
-            nam = self.device_info.get('name')
-            nam = self.custom_config('television_name', nam)
-            sil = self.custom_config_bool('xiaoai_silent', True)
-            if not nam:
-                sta = self.hass.states.get(self.entity_id)
-                nam = sta.attributes.get(ATTR_FRIENDLY_NAME)
-            if nam and self.hass.states.get(eid):
-                txt = f'{nam}亮屏' if self._local_state else f'打开{nam}'
-                self.hass.services.call(DOMAIN, 'intelligent_speaker', {
-                    'entity_id': eid,
-                    'text': txt,
-                    'execute': True,
-                    'silent': sil,
-                })
+        elif xai := self.bind_xiaoai:
+            nam = self.mitv_name
+            txt = f'{nam}亮屏' if self._local_state else f'打开{nam}'
+            self.hass.services.call(DOMAIN, 'intelligent_speaker', {
+                'entity_id': xai.entity_id,
+                'text': txt,
+                'execute': True,
+                'silent': self.custom_config_bool('xiaoai_silent', True),
+            })
         return super().turn_on()
 
-    @property
-    def device_class(self):
-        return DEVICE_CLASS_TV
+    def turn_off(self):
+        if self.custom_config_bool('turn_off_screen'):
+            act = self._message_router.get_action('post') if self._message_router else None
+            if act:
+                return self.call_action(act, ['熄屏'])
+            elif xai := self.bind_xiaoai:
+                return self.hass.services.call(DOMAIN, 'intelligent_speaker', {
+                    'entity_id': xai.entity_id,
+                    'text': f'{self.mitv_name}熄屏',
+                    'execute': True,
+                    'silent': self.custom_config_bool('xiaoai_silent', True),
+                })
+        return super().turn_off()
 
     def play_media(self, media_type, media_id, **kwargs):
         """Play a piece of media."""
