@@ -66,6 +66,12 @@ DEVICE_CUSTOMIZES = {
     'chunmi.health_pot.a1': {
         'miot_local': True,
     },
+    'chunmi.ysj.*': {
+        'sensor_properties': 'water_dispenser.status,filter_life_level,home_temp,clean_precent',
+        'switch_properties': 'winter_mode,cold_keep,cup_check',
+        'select_properties': 'lock_temp,cold_mode,default_mode',
+        'number_properties': 'boil_point,oled_close_time',
+    },
     'cuco.light.sl4a': {
         'switch_properties': 'swich',
         'select_properties': 'scene.mode,change_type',
