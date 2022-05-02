@@ -189,6 +189,7 @@ MIOT_LOCAL_MODELS = [
     'viewx.light.101001',
     'viomi.aircondition.y1',
     'viomi.aircondition.y69',
+    'viomi.airer.ich108',
     'viomi.airer.vcy102',
     'viomi.airp.v3',
     'viomi.bhf_light.v3',
