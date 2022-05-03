@@ -359,7 +359,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 break
         return self.xiaoai_device
 
-    async def async_update_play_status(self):
+    async def async_update_play_status(self, now=None):
         if not self.xiaoai_device:
             return
         aid = self.xiaoai_device.get('deviceID')
@@ -412,10 +412,12 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
 
         if unsub := self._vars.pop('unsub_play_status', None):
             unsub()
-        if self._attr_media_duration is None or self._attr_media_position is None:
+        if self.state not in [STATE_PLAYING]:
+            pass
+        elif not self._attr_media_duration or self._attr_media_position is None:
             pass
         elif self._attr_media_duration >= self._attr_media_position:
-            rem = timedelta(seconds=self._attr_media_duration - self._attr_media_position + 1)
+            rem = timedelta(seconds=self._attr_media_duration - self._attr_media_position + 3)
             self._vars['unsub_play_status'] = async_track_point_in_utc_time(
                 self.hass,
                 HassJob(self.async_update_play_status),
