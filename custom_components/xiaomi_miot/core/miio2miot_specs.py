@@ -1400,8 +1400,12 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'temperature'},
             'prop.2.101': {'prop': 'rinse'},
-            'prop.2.102': {'prop': 'lightMode'},
-            'prop.2.103': {'prop': 'tds_warn_thd','setter':'set_tds_warn_thd'}, #此选项需要米家app净水器设置内点击[功能设置]5次,打开隐藏设置后选择[特殊需求模式]才有效
+            'prop.2.102': {
+                'prop': 'lightMode',
+                'setter': 'set_lightMode',
+                'set_template': '{{ value|int}}',
+            },
+            'prop.2.103': {'prop': 'tds_warn_thd','setter':'set_tds_warn_thd'}, 
             'prop.3.1': {'prop': 'tds_in'},
             'prop.3.2': {'prop': 'tds_out'},
             'prop.4.1': {'prop': 'f1_usedtime'},
