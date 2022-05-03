@@ -2,7 +2,6 @@ DEVICE_CUSTOMIZES = {
 
     'bofu.curtain.bfmh': {
         'select_properties': 'motor_control',
-        'sensor_properties': 'rinse,lightmode',
     },
 
     'careli.fryer.*': {
@@ -487,6 +486,11 @@ DEVICE_CUSTOMIZES = {
             'extension.flash':     {'siid': 4, 'piid': 2},
             'extension.rc_list':   {'siid': 4, 'piid': 3},
         },
+    },
+    'yunmi.waterpuri.lx5': {
+        'number_properties': 'tds_warn_thd',
+        'sensor_properties': 'rinse',
+        'switch_properties': 'lightmode',
     },
     'yyunyi.wopener.yypy24': {
         'switch_properties': 'motor_reverse',
