@@ -2,6 +2,7 @@ DEVICE_CUSTOMIZES = {
 
     'bofu.curtain.bfmh': {
         'select_properties': 'motor_control',
+        'sensor_properties': 'rinse,lightmode',
     },
 
     'careli.fryer.*': {
