@@ -653,8 +653,8 @@
           "format": "uint8",
           "access": ["read"],
 		  "value-list": [
-            {"value": 0, "description": "Off"},
-            {"value": 1, "description": "on"}
+			  {"value": 0, "description": "Off"},
+			  {"value": 1, "description": "on"}
           ]
 	   },
 	   {
