@@ -1395,16 +1395,20 @@ MIIO_TO_MIOT_SPECS = {
 
     'yunmi.waterpuri.lx5': {
         'chunk_properties': 1,
-        'miio_props': ['run_status', 'f1_totalflow', 'f1_totaltime', 'f2_totalflow', 'f2_totaltime', 'tds_warn_thd'],
-        'entity_attrs': ['run_status', 'f1_totalflow', 'f1_totaltime', 'f2_totalflow', 'f2_totaltime', 'tds_warn_thd'],
+        'miio_props': ['run_status'],
+        'entity_attrs': ['run_status'],
         'miio_specs': {
             'prop.2.1': {'prop': 'temperature'},
+            'prop.2.101': {'prop': 'rinse'},
+            'prop.2.102': {'prop': 'lightMode'},
+            'prop.2.103': {'prop': 'tds_warn_thd','setter':'set_tds_warn_thd'}, #此选项需要米家app净水器设置内点击[功能设置]5次,打开隐藏设置后选择[特殊需求模式]才有效
             'prop.3.1': {'prop': 'tds_in'},
             'prop.3.2': {'prop': 'tds_out'},
             'prop.4.1': {'prop': 'f1_usedtime'},
             'prop.4.2': {'prop': 'f1_usedflow'},
             'prop.5.1': {'prop': 'f2_usedtime'},
             'prop.5.2': {'prop': 'f2_usedflow'},
+            
         },
     },
 
