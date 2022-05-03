@@ -1407,7 +1407,6 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.2': {'prop': 'f1_usedflow'},
             'prop.5.1': {'prop': 'f2_usedtime'},
             'prop.5.2': {'prop': 'f2_usedflow'},
-            
         },
     },
     'yyunyi.wopener.yypy24': {
