@@ -1402,7 +1402,6 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.101': {'prop': 'rinse'},
             'prop.2.102': {'prop': 'lightMode', 'setter': True},
             'prop.2.103': {'prop': 'tds_warn_thd', 'setter': True},
-            'prop.3.1': {'prop': 'tds_in'},
             'prop.3.2': {'prop': 'tds_out'},
             'prop.4.1': {'prop': 'f1_usedtime'},
             'prop.4.2': {'prop': 'f1_usedflow'},
