@@ -1391,17 +1391,18 @@ MIIO_TO_MIOT_SPECS = {
             },
             'prop.3.3': {'prop': 'bright', 'setter': True},
         },
-    },    
+    },
+
     'yunmi.waterpuri.lx5': {
         'chunk_properties': 1,
+        'miio_props': ['run_status', 'f1_totalflow', 'f2_totalflow'],
+        'entity_attrs': ['run_status', 'f1_totalflow', 'f2_totalflow'],
         'miio_specs': {
             'prop.2.1': {'prop': 'temperature'},
             'prop.2.101': {'prop': 'rinse'},
-            'prop.2.102': {'prop': 'lightMode',
-                'setter':'set_lightMode',
-                'set_template': '{{ value|int}}',
-            },
-            'prop.2.103': {'prop': 'tds_warn_thd','setter':'set_tds_warn_thd'},
+            'prop.2.102': {'prop': 'lightMode', 'setter': True},
+            'prop.2.103': {'prop': 'tds_warn_thd', 'setter': True},
+            'prop.3.1': {'prop': 'tds_in'},
             'prop.3.2': {'prop': 'tds_out'},
             'prop.4.1': {'prop': 'f1_usedtime'},
             'prop.4.2': {'prop': 'f1_usedflow'},
@@ -1409,6 +1410,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.5.2': {'prop': 'f2_usedflow'},
         },
     },
+
     'yyunyi.wopener.yypy24': {
         'chunk_properties': 1,
         'miio_specs': {
