@@ -22,6 +22,7 @@
                 "data": {
                     "username": "小米ID / 邮箱",
                     "password": "小米密码",
+                    "captcha": "验证码",
                     "server_country": "小米服务器",
                     "conn_mode": "设备连接模式",
                     "filter_models": "通过型号/WiFi筛选设备 (高级模式，新手勿选)"
@@ -71,6 +72,7 @@
                 "data": {
                     "username": "小米ID / 邮箱",
                     "password": "小米密码",
+                    "captcha": "验证码",
                     "server_country": "小米服务器",
                     "conn_mode": "设备连接模式",
                     "renew_devices": "更新设备列表"

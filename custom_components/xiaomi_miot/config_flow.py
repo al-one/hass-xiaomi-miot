@@ -104,7 +104,8 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
     mic = None
     try:
         mic = await MiotCloud.from_token(hass, user_input, login=False)
-        await mic.async_login()
+        mic.login_times = 0
+        await mic.async_login(captcha=user_input.get('captcha'))
         if not await mic.async_check_auth(False):
             raise MiCloudException('Login failed')
         user_input['xiaomi_cloud'] = mic
@@ -115,7 +116,7 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
         err = f'{exc}'
         errors['base'] = 'cannot_login'
         if isinstance(exc, MiCloudAccessDenied) and mic:
-            if url := mic.attrs.pop('notificationUrl'):
+            if url := mic.attrs.pop('notificationUrl', None):
                 err = f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!\n' \
                       f'本次登陆小米账号需要安全验证，[点击这里]({url})继续！'
                 persistent_notification.create(
@@ -124,6 +125,10 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
                     f'Login to Xiaomi: {mic.username}',
                     f'{DOMAIN}-login',
                 )
+            elif url := mic.attrs.pop('captchaImg', None):
+                err = f'Captcha:\n![captcha](data:image/jpeg;base64,{url})'
+                user_input['xiaomi_cloud'] = mic
+                user_input['captchaIck'] = mic.attrs.get('captchaIck')
         if isinstance(exc, requests.exceptions.ConnectionError):
             errors['base'] = 'cannot_reach'
         elif 'ZoneInfoNotFoundError' in err:
@@ -271,19 +276,25 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             await check_xiaomi_account(self.hass, user_input, errors, renew_devices=True)
             if not errors:
                 return await self.async_step_cloud_filter(user_input)
+        schema = {}
+        if user_input.get('captchaIck'):
+            schema.update({
+                vol.Required('captcha', default=''): str,
+            })
+        schema.update({
+            vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
+            vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
+            vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
+                vol.In(CLOUD_SERVERS),
+            vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, 'auto')):
+                vol.In(CONN_MODES),
+            vol.Optional('filter_models', default=user_input.get('filter_models', False)): bool,
+        })
         return self.async_show_form(
             step_id='cloud',
-            data_schema=vol.Schema({
-                vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
-                vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
-                vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
-                    vol.In(CLOUD_SERVERS),
-                vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, 'auto')):
-                    vol.In(CONN_MODES),
-                vol.Optional('filter_models', default=user_input.get('filter_models', False)): bool,
-            }),
+            data_schema=vol.Schema(schema),
             errors=errors,
-            description_placeholders=self.hass.data[DOMAIN].get('placeholders', {'tip': ''}),
+            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', {'tip': ''}),
         )
 
     async def async_step_cloud_filter(self, user_input=None):
@@ -313,7 +324,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id='cloud_filter',
             data_schema=schema,
             errors=errors,
-            description_placeholders=self.hass.data[DOMAIN].get('placeholders'),
+            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', None),
         )
 
     async def async_step_zeroconf(self, discovery_info):
@@ -401,19 +412,25 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 return await self.async_step_cloud_filter(user_input)
         else:
             user_input = prev_input
+        schema = {}
+        if user_input.get('captchaIck'):
+            schema.update({
+                vol.Required('captcha', default=''): str,
+            })
+        schema.update({
+            vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
+            vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
+            vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
+                vol.In(CLOUD_SERVERS),
+            vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, DEFAULT_CONN_MODE)):
+                vol.In(CONN_MODES),
+            vol.Optional('renew_devices', default=user_input.get('renew_devices', False)): bool,
+        })
         return self.async_show_form(
             step_id='cloud',
-            data_schema=vol.Schema({
-                vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
-                vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
-                vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
-                    vol.In(CLOUD_SERVERS),
-                vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, DEFAULT_CONN_MODE)):
-                    vol.In(CONN_MODES),
-                vol.Optional('renew_devices', default=user_input.get('renew_devices', False)): bool,
-            }),
+            data_schema=vol.Schema(schema),
             errors=errors,
-            description_placeholders=self.hass.data[DOMAIN].get('placeholders', {'tip': ''}),
+            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', {'tip': ''}),
         )
 
     async def async_step_cloud_filter(self, user_input=None):
@@ -443,5 +460,5 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id='cloud_filter',
             data_schema=schema,
             errors=errors,
-            description_placeholders=self.hass.data[DOMAIN].get('placeholders'),
+            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', None),
         )

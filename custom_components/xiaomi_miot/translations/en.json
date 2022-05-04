@@ -22,6 +22,7 @@
                 "data": {
                     "username": "Xiaomi Account ID / Email",
                     "password": "Password",
+                    "captcha": "Captcha",
                     "server_country": "Server location of MiCloud",
                     "conn_mode": "Connection mode for device",
                     "filter_models": "Filter devices via model/WiFi (Advanced)"
@@ -71,6 +72,7 @@
                 "data": {
                     "username": "Xiaomi Account ID / Email",
                     "password": "Password",
+                    "captcha": "Captcha",
                     "server_country": "Server location of MiCloud",
                     "conn_mode": "Connection mode for device",
                     "renew_devices": "Force renew devices"

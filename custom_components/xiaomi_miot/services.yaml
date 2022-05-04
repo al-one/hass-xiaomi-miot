@@ -334,7 +334,7 @@ request_xiaomi_api:
       selector:
         boolean:
     sid:
-      description: Xiaomi site ID.
+      description: Xiaomi service ID.
       default: xiaomiio
       example: xiaomiio
       selector:
