@@ -490,7 +490,7 @@ DEVICE_CUSTOMIZES = {
     'yunmi.waterpuri.lx5': {
         'number_properties': 'tds_warn_thd',
         'sensor_properties': 'rinse',
-        'switch_properties': 'lightmode',
+        'switch_properties': 'light_mode',
     },
     'yyunyi.wopener.yypy24': {
         'switch_properties': 'motor_reverse',
