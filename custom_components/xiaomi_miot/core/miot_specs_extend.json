@@ -644,6 +644,37 @@
     }
   ],
 
+  "yunmi.waterpuri.lx5": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:rinse",
+          "format": "uint8",
+          "access": ["read"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "On"}
+          ]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:light_mode",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:tds_warn_thd",
+          "format": "uint16",
+          "access": ["read", "write"],
+          "value-range": [5, 50, 5]
+        }
+      ]
+    }
+  ],
+
   "yyunyi.wopener.yypy24": [
     {
       "iid": 2,

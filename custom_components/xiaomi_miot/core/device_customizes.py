@@ -487,6 +487,11 @@ DEVICE_CUSTOMIZES = {
             'extension.rc_list':   {'siid': 4, 'piid': 3},
         },
     },
+    'yunmi.waterpuri.lx5': {
+        'number_properties': 'tds_warn_thd',
+        'sensor_properties': 'rinse',
+        'switch_properties': 'light_mode',
+    },
     'yyunyi.wopener.yypy24': {
         'switch_properties': 'motor_reverse',
         'select_properties': 'mode',
