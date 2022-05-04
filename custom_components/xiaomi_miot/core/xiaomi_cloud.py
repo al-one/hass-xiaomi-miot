@@ -435,7 +435,10 @@ class MiotCloud(micloud.MiCloud):
         mic.user_id = str(config.get('user_id') or '')
         if a := hass.data[DOMAIN].get('sessions', {}).get(mic.unique_id):
             mic = a
-        else:
+            if mic.password != config.get(CONF_PASSWORD):
+                mic.password = config.get(CONF_PASSWORD)
+                mic.service_token = None
+        if not mic.service_token:
             sdt = await mic.async_stored_auth(mic.user_id, save=False)
             config.update(sdt)
             mic.service_token = config.get('service_token')
