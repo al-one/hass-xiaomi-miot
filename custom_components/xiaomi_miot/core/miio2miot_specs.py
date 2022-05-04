@@ -63,6 +63,30 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'cgllc.airmonitor.s1': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_value',
+                'params': [
+                    'aqi', 'pm25', 'co2', 'tvoc', 'humidity', 'temperature',
+                    'tvoc_unit', 'temperature_unit', 'battery', 'battery_state',
+                ],
+                'template': '{{ results | default({},true) }}',
+            },
+        ],
+        'entity_attrs': ['tvoc_unit', 'temperature_unit', 'battery_state'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'humidity'},
+            'prop.2.2': {'prop': 'pm25'},
+            'prop.2.3': {'prop': 'temperature'},
+            'prop.2.4': {'prop': 'co2'},
+            'prop.2.5': {'prop': 'tvoc'},
+            'prop.3.1': {'prop': 'battery'},
+            'prop.3.2': {'prop': 'battery_state', 'template': '{{ 1 if value == "charging" else 2 }}'},
+        },
+    },
+
     'chuangmi.plug.hmi205': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
