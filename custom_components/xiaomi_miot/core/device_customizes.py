@@ -464,6 +464,9 @@ DEVICE_CUSTOMIZES = {
     'yeelink.bhf_light.v6': {
         'select_properties': 'heat_mode,cold_mode,vent_mode',
     },
+    'yeelink.light.fancl5': {
+        'number_properties': 'fan_speed_std,fan_speed_rec,dl_brightness,nl_brightness',
+    },
     'yeelink.light.nl1': {
         'use_ble_object': True,
         'interval_seconds': 15,
