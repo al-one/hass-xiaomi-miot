@@ -76,6 +76,7 @@ TRANSLATION_LANGUAGES = {
 
         'fan.mode': {
             'basic': '标准',
+            'basic wind': '标准风',
             'straight wind': '直吹风',
             'natural wind': '自然风',
             'energy saving': '节能风',

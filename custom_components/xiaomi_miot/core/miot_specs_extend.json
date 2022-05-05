@@ -643,6 +643,32 @@
       ]
     }
   ],
+  "yeelink.light.fancl5": [
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 4,
+          "value-list": [
+            {"value": 0, "description": "Basic Wind"},
+            {"value": 1, "description": "Circular Wind"}
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 6,
+      "properties": [
+        {
+          "iid": 7,
+          "value-list": [
+            {"value": 0, "description": "Basic Wind"},
+            {"value": 1, "description": "Circular Wind"}
+          ]
+        }
+      ]
+    }
+  ],
 
   "yunmi.waterpuri.lx5": [
     {
