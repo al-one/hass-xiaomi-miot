@@ -236,11 +236,12 @@ class MiotCloud(micloud.MiCloud):
         store = Store(self.hass, 1, fnm)
         now = time.time()
         cds = []
+        dvs = []
         dat = await store.async_load() or {}
         if isinstance(dat, dict):
-            if dat.get('update_time', 0) > (now - 86400):
-                cds = dat.get('devices') or []
-        dvs = None if renew else cds
+            cds = dat.get('devices') or []
+            if not renew and dat.get('update_time', 0) > (now - 86400):
+                dvs = cds
         if not dvs:
             try:
                 dvs = await self.hass.async_add_executor_job(self.get_device_list)
