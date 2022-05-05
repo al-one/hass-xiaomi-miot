@@ -152,11 +152,12 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         self._name = f'{self.device_name} {self._prop_state.friendly_desc}'
         self._attr_icon = self._miot_service.entity_icon
         self._attr_state_class = None
+        self._attr_native_unit_of_measurement = None
 
         if self._prop_state:
             self._attr_icon = self._prop_state.entity_icon
             self._attr_device_class = self._prop_state.device_class
-            self._attr_unit_of_measurement = self._prop_state.unit_of_measurement
+            self._attr_native_unit_of_measurement = self._prop_state.unit_of_measurement
 
         self._state_attrs.update({
             'state_property': self._prop_state.full_name if self._prop_state else None,
