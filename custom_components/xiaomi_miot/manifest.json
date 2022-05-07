@@ -9,12 +9,10 @@
   "codeowners": ["@al-one"],
   "dependencies": [
     "http",
-    "persistent_notification"
-  ],
-  "after_dependencies": [
-    "homekit",
+    "persistent_notification",
     "ffmpeg"
   ],
+  "after_dependencies": ["homekit"],
   "requirements": [
     "construct==2.10.56",
     "python-miio>=0.5.6",
