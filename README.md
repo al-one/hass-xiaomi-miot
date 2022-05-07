@@ -51,11 +51,15 @@ Suitable for devices support miot-spec protocol in LAN
 xiaomi_miot:
   username: xiaomi_username
   password: xiaomi_password
-  # server_country: cn # location of xiaomi cloud: cn(default), de, i2, ru, sg, us
+  # server_country: cn # Location of xiaomi cloud: cn(default), de, i2, ru, sg, tw, us
+  # http_timeout: 15   # Timeout (seconds) for requesting the xiaomi apis
 ```
 
 > [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Devices and Services > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > Options > ☑️ Enable miot cloud
 
+### Translations
+
+> Looking forward to your [contribution](https://github.com/al-one/hass-xiaomi-miot/edit/master/custom_components/xiaomi_miot/core/translation_languages.py).
 
 ```yaml
 # configuration.yaml
@@ -68,8 +72,8 @@ xiaomi_miot:
     busy: '工作中'
     # Dictionary for specifying fan modes
     fan.mode:
-      'straight wind': '直吹模式'
-      'natural wind': '自然风'
+      straight wind: '直吹模式'
+      natural wind: '自然风'
     # Dictionary for specifying the drying modes of the washer
     washer.drying_level:
       moist: '微湿'
@@ -88,7 +92,7 @@ homeassistant:
 xiaomi_miot:
   # https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/device_customizes.py
   device_customizes:
-    'chuangmi.plug.212a01':
+    chuangmi.plug.212a01:
       miot_local: true
       chunk_properties: 7
 
@@ -116,6 +120,8 @@ domain.parent_entity_id:
 
 light.your_entity_id:
   color_temp_reverse: false # Reverse color temperature (Requires reload config entry)
+  yeelight_smooth_on:  2000 # milliseconds (Only for Yeelights in local mode)
+  yeelight_smooth_off: 3000 # milliseconds (Only for Yeelights in local mode)
 
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # Sensor entities
@@ -163,9 +169,9 @@ Starting from the v0.4.16 version, the component has added support for configura
 
 - 🔌 [outlet](https://home.miot-spec.com/s/plug) / [switch](https://home.miot-spec.com/s/switch)
 - 💡 [light](https://home.miot-spec.com/s/light)
-- ❄️ [air-conditioner](https://home.miot-spec.com/s/aircondition) / [air-conditioner-outlet](https://home.miot-spec.com/s/acpartner) / [thermostat](https://home.miot-spec.com/s/airrtc)
+- ❄️ [air-conditioner](https://home.miot-spec.com/s/aircondition) / [air-conditioner-outlet](https://home.miot-spec.com/s/acpartner) / [ir-aircondition-control](https://home.miot-spec.com/s/miir.aircondition)
 - 🌀 [fan](https://home.miot-spec.com/s/fan) / [ceiling-fan](https://home.miot-spec.com/s/ven_fan)
-- 🛀 [bath-heater](https://home.miot-spec.com/s/bhf_light) / 🔥 [heater](https://home.miot-spec.com/s/heater)
+- 🛀 [bath-heater](https://home.miot-spec.com/s/bhf_light) / 🔥 [heater](https://home.miot-spec.com/s/heater) / [thermostat](https://home.miot-spec.com/s/airrtc)
 - 📷 [camera](https://home.miot-spec.com/s/camera) / [video-doorbell](https://home.miot-spec.com/s/cateye) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604)
 - 📺 [television](https://home.miot-spec.com/s/tv) / 📽️ [projector](https://home.miot-spec.com/s/projector) / [tv-box](https://home.miot-spec.com/s/tvbox)
 - 🗣️ [intelligent-speaker](https://home.miot-spec.com/s/wifispeaker) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-885989099)

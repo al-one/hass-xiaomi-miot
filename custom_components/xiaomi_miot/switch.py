@@ -44,19 +44,19 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     config['hass'] = hass
     model = str(config.get(CONF_MODEL) or '')
+    spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if model in ['pwzn.relay.banana']:
         entities.append(PwznRelaySwitchEntity(config))
-    elif miot := config.get('miot_type'):
-        spec = await MiotSpec.async_from_type(hass, miot)
+    elif isinstance(spec, MiotSpec):
         if model in ['pwzn.switch.apple']:
             srv = spec.get_service('relays')
             if srv:
                 entities.append(MiotPwznRelaySwitchEntity(config, srv))
         else:
             for srv in spec.get_services(
-                ENTITY_DOMAIN, 'outlet', 'massager', 'towel_rack',
-                'fish_tank', 'pet_drinking_fountain', 'mosquito_dispeller',
+                ENTITY_DOMAIN, 'outlet', 'massager', 'towel_rack', 'fish_tank',
+                'pet_drinking_fountain', 'mosquito_dispeller', 'electric_blanket',
             ):
                 if not srv.get_property('on'):
                     continue
@@ -121,6 +121,9 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         if self._prop_power:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_power.full_name]
             self._option['icon'] = self._prop_power.entity_icon or self._option.get('icon')
+        self._on_descriptions = ['On', 'Open', 'Enable', 'Enabled', 'Yes', '开']
+        if des := self.custom_config_list('descriptions_for_on'):
+            self._on_descriptions = des
 
     @property
     def is_on(self):
@@ -130,17 +133,13 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         if self._miot_property.value_list:
             val = self._miot_property.from_dict(self._state_attrs)
             if val is not None:
-                self._state = val in self._miot_property.list_search('On', 'Open', '开')
+                self._state = val in self._miot_property.list_search(*self._on_descriptions)
         return self._state
-
-    @property
-    def state(self):
-        return STATE_ON if self.is_on else STATE_OFF
 
     def turn_on(self, **kwargs):
         val = True
         if self._miot_property.value_list:
-            ret = self._miot_property.list_first('On', 'Open', '开')
+            ret = self._miot_property.list_first(*self._on_descriptions)
             if ret is not None:
                 val = ret
         return self.set_parent_property(val)
@@ -280,7 +279,7 @@ class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
             k = 'switch_%02d' % s
             self._state_attrs[k] = STATE_ON if sta & b else STATE_OFF
             if k in self._subs:
-                self._subs[k].update()
+                self._subs[k].update_from_parent()
             elif add_switches:
                 self._subs[k] = PwznRelaySwitchSubEntity(self, 0, s, {
                     'attr': k,
@@ -339,7 +338,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
 
         self._config = config
         self._device = MiioDevice(host, token)
-        super().__init__(name, self._device, logger=_LOGGER)
+        super().__init__(name, self._device, config=config, logger=_LOGGER)
         self._success_result = [0]
 
         self._props = [
@@ -377,7 +376,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
                     k = f'g{g}s{s}'
                     self._state_attrs[k] = STATE_ON if sta & b else STATE_OFF
                     if k in self._subs:
-                        self._subs[k].update()
+                        self._subs[k].update_from_parent()
                     elif add_switches:
                         self._subs[k] = PwznRelaySwitchSubEntity(self, g, s, {
                             'attr': k,
@@ -393,7 +392,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
                         continue
                     self._state_attrs[k] = STATE_ON if attrs[k] else STATE_OFF
                     if k in self._subs:
-                        self._subs[k].update()
+                        self._subs[k].update_from_parent()
                     elif add_switches:
                         self._subs[k] = PwznRelaySwitchSubEntity(self, 0, 0, {
                             'attr': k,

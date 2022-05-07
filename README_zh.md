@@ -80,13 +80,16 @@ wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HU
 xiaomi_miot:
   username: xiaomi_username
   password: xiaomi_password
-  # server_country: cn # 小米云服务器位置: cn(默认), de, i2, ru, sg, us
+  # server_country: cn # 小米云服务器位置: cn(默认), de, i2, ru, sg, tw, us
+  # http_timeout: 15   # 请求小米接口的超时时间(秒)
 ```
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设备与服务 > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
 
-<a name="config-translation-languages"></a>
+<a name="translations"></a>
 ### 配置翻译词典:
+
+> 可以通过配置文件将大部分miot属性的选项描述（如：模式、风速等）翻译成你想要的语言，当然也欢迎你[贡献](https://github.com/al-one/hass-xiaomi-miot/edit/master/custom_components/xiaomi_miot/core/translation_languages.py)你的词典给其他人👏🏻。
 
 ```yaml
 # configuration.yaml
@@ -99,8 +102,8 @@ xiaomi_miot:
     busy: '工作中'
     # 指定风扇模式的词典
     fan.mode:
-      'straight wind': '直吹模式'
-      'natural wind': '自然风'
+      straight wind: '直吹模式'
+      natural wind: '自然风'
     # 指定洗衣机烘干模式的词典
     washer.drying_level:
       moist: '微湿'
@@ -120,7 +123,7 @@ homeassistant:
 xiaomi_miot:
   # https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/core/device_customizes.py
   device_customizes:
-    'chuangmi.plug.212a01':
+    chuangmi.plug.212a01:
       miot_local: true
       chunk_properties: 7
 
@@ -148,6 +151,8 @@ domain.parent_entity_id:
 
 light.your_entity_id:
   color_temp_reverse: false # 反转色温(需重载集成配置)
+  yeelight_smooth_on:  2000 # 毫秒 (仅支持本地接入的易来灯)
+  yeelight_smooth_off: 3000 # 毫秒 (仅支持本地接入的易来灯)
 
 climate.your_entity_id:
   bind_sensor: sensor.temperature_entity,sensor.humidity_entity # 绑定传感器实体
@@ -198,9 +203,9 @@ xiaomi_miot:
 
 - 🔌 [插座](https://home.miot-spec.com/s/plug) / [开关](https://home.miot-spec.com/s/switch)
 - 💡 [智能灯](https://home.miot-spec.com/s/light)
-- ❄️ [空调](https://home.miot-spec.com/s/aircondition) / [空调伴侣](https://home.miot-spec.com/s/acpartner) / [温控器](https://home.miot-spec.com/s/airrtc)
+- ❄️ [空调](https://home.miot-spec.com/s/aircondition) / [空调伴侣](https://home.miot-spec.com/s/acpartner) / [红外空调](https://home.miot-spec.com/s/miir.aircondition)
 - 🌀 [风扇](https://home.miot-spec.com/s/fan) / [凉霸](https://home.miot-spec.com/s/ven_fan)
-- 🛀 [浴霸](https://home.miot-spec.com/s/bhf_light) / 🔥 [取暖器](https://home.miot-spec.com/s/heater)
+- 🛀 [浴霸](https://home.miot-spec.com/s/bhf_light) / 🔥 [取暖器](https://home.miot-spec.com/s/heater) / [温控器](https://home.miot-spec.com/s/airrtc)
 - 📷 [摄像头](https://home.miot-spec.com/s/camera) / [猫眼/可视门铃](https://home.miot-spec.com/s/cateye) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604)
 - 📺 [电视](https://home.miot-spec.com/s/tv) / 📽️ [投影仪](https://home.miot-spec.com/s/projector) / [机顶盒](https://home.miot-spec.com/s/tvbox)
 - 🗣️ [小爱音箱](https://home.miot-spec.com/s/wifispeaker) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-885989099)
@@ -345,6 +350,14 @@ logger:
 ```
 
 > [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设置 > [✍️ 日志](https://my.home-assistant.io/redirect/logs)
+
+
+## 交流
+
+- QQ群：[198841186](https://jq.qq.com/?_wv=1027&k=lZAMn5Uo)
+- 微信群：
+
+  ![xiaomi miot weixin group](https://user-images.githubusercontent.com/4549099/152003439-d537fda6-15dd-43df-84cb-2c64c693c013.png)
 
 
 <a name="obtain-miio-token"></a>

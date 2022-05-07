@@ -149,7 +149,7 @@ call_action:
         boolean:
 
 intelligent_speaker:
-  description: Play text / Execute text directive.
+  description: Play text on Xiaoai speaker / Execute text directive / 小爱TTS及执行语音命令
   fields:
     entity_id:
       description: ID of the entity.
@@ -185,7 +185,7 @@ intelligent_speaker:
         boolean:
 
 xiaoai_wakeup:
-  description: Weak up the xiaoai speaker.
+  description: Wake up the Xiaoai speaker / 唤醒小爱音箱
   fields:
     entity_id:
       description: ID of the xiaoai entity.
@@ -333,3 +333,16 @@ request_xiaomi_api:
       example: true
       selector:
         boolean:
+    sid:
+      description: Xiaomi service ID.
+      default: xiaomiio
+      example: xiaomiio
+      selector:
+        select:
+          options:
+            - label: Mihome API
+              value: xiaomiio
+            - label: Xiaoai API
+              value: micoapi
+            - label: i.mi.com
+              value: i.mi.com

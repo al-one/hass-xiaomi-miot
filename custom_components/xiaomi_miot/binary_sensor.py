@@ -30,8 +30,6 @@ from .core.miot_spec import (
     MiotProperty,
 )
 from .core.xiaomi_cloud import MiotCloud
-from .fan import MiotModesSubEntity
-from .switch import SwitchSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -49,9 +47,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     config['hass'] = hass
     did = str(config.get('miot_did') or '')
     model = str(config.get(CONF_MODEL) or '')
+    spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
-    if miot := config.get('miot_type'):
-        spec = await MiotSpec.async_from_type(hass, miot)
+    if isinstance(spec, MiotSpec):
         for srv in spec.get_services('toilet', 'seat', 'motion_sensor', 'magnet_sensor', 'submersion_sensor'):
             if spec.get_service('nobody_time'):
                 # lumi.motion.agl02
@@ -198,10 +196,8 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
             'did': did,
             'props': self._props,
         }
-        rdt = await self.hass.async_add_executor_job(
-            mic.request_miot_api, 'device/batchdevicedatas', [pms],
-        ) or {}
-        self.logger.debug('%s: Got miio cloud props: %s', self.name, rdt)
+        rdt = await mic.async_request_api('device/batchdevicedatas', [pms]) or {}
+        self.logger.debug('%s: Got miio cloud props: %s', self.name_model, rdt)
         props = (rdt.get('result') or {}).get(did, {})
         sta = None
         adt = {}
@@ -219,7 +215,7 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
                     val = int.from_bytes(bytes.fromhex(val), 'little')
                 except (TypeError, ValueError):
                     val = None
-                    self.logger.warning('%s: BLE object data invalid: %s (%s)', self.name, k, vls)
+                    self.logger.warning('%s: BLE object data invalid: %s (%s)', self.name_model, k, vls)
             if ise and not tim:
                 continue
 
@@ -290,6 +286,7 @@ class MiotToiletEntity(MiotBinarySensorEntity):
         await super().async_update()
         if not self._available:
             return
+        from .fan import MiotModesSubEntity
         add_fans = self._add_entities.get('fan')
         pls = self._miot_service.get_properties(
             'mode', 'washing_strength', 'nozzle_position', 'heat_level',
@@ -302,7 +299,7 @@ class MiotToiletEntity(MiotBinarySensorEntity):
             else:
                 self._update_sub_entities(
                     ['heating', 'deodorization'],
-                    [seat.name],
+                    [seat],
                     domain='switch',
                 )
         for p in pls:
@@ -319,14 +316,8 @@ class MiotToiletEntity(MiotBinarySensorEntity):
                 self._subs[p.name] = MiotModesSubEntity(self, p, opt)
                 add_fans([self._subs[p.name]], update_before_add=True)
 
-        add_switches = self._add_entities.get('switch')
         if self._prop_power:
-            pnm = self._prop_power.full_name
-            if pnm in self._subs:
-                self._subs[pnm].update()
-            elif add_switches:
-                self._subs[pnm] = SwitchSubEntity(self, pnm)
-                add_switches([self._subs[pnm]], update_before_add=True)
+            self._update_sub_entities(self._prop_power, None, 'switch')
 
     @property
     def icon(self):
@@ -374,9 +365,9 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
         elif typ in ['event.leak', 'event.no_leak']:
             self._state = typ == 'event.leak'
         elif self._prop_state and self._prop_state.full_name in self._state_attrs:
-            _LOGGER.info('Get miio data for %s failed: %s', self.name, dlg)
+            _LOGGER.info('%s: Get miio data failed: %s', self.name_model, dlg)
         else:
-            _LOGGER.warning('Get miio data for %s failed: %s', self.name, dlg)
+            _LOGGER.warning('%s: Get miio data failed: %s', self.name_model, dlg)
         if self._prop_state and self._state is not None:
             adt[self._prop_state.full_name] = self._state
         if adt:

@@ -1,3 +1,16 @@
+import logging
+
+_LOGGER = logging.getLogger(__name__)
+
+
+def set_callback_via_param_index(index=0):
+    def cbk(prop, params, props, **kwargs):
+        if prop in props and len(params) > index:
+            props[prop] = params[index]
+        _LOGGER.debug('New miio props after setting %s(%s): %s', prop, params, props)
+    return cbk
+
+
 MIIO_TO_MIOT_SPECS = {
 
     '090615.switch.xswitch01': {
@@ -50,6 +63,30 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'cgllc.airmonitor.s1': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_value',
+                'params': [
+                    'aqi', 'pm25', 'co2', 'tvoc', 'humidity', 'temperature',
+                    'tvoc_unit', 'temperature_unit', 'battery', 'battery_state',
+                ],
+                'template': '{{ results | default({},true) }}',
+            },
+        ],
+        'entity_attrs': ['tvoc_unit', 'temperature_unit', 'battery_state'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'humidity'},
+            'prop.2.2': {'prop': 'pm25'},
+            'prop.2.3': {'prop': 'temperature'},
+            'prop.2.4': {'prop': 'co2'},
+            'prop.2.5': {'prop': 'tvoc'},
+            'prop.3.1': {'prop': 'battery'},
+            'prop.3.2': {'prop': 'battery_state', 'template': '{{ 1 if value == "charging" else 2 }}'},
+        },
+    },
+
     'chuangmi.plug.hmi205': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
@@ -58,13 +95,14 @@ MIIO_TO_MIOT_SPECS = {
     },
     'chuangmi.plug.hmi206': 'chuangmi.plug.hmi205',
     'chuangmi.plug.hmi208': {
-        'extend_model': 'chuangmi.plug.hmi205',
         'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.3.1': {
                 'prop': 'usb_on',
                 'setter': True,
                 'set_template': '{{ {"method": "set_usb_on" if value else "set_usb_off"} }}',
             },
+            'prop.2.2': {'prop': 'temperature'},
         },
     },
     'chuangmi.plug.m1': {
@@ -85,6 +123,14 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'chuangmi.plug.v3': {
+        'entity_attrs': ['electric_power'],
+        'miio_commands': [
+            {
+                'method': 'get_power',
+                'params': [],
+                'values': ['electric_power'],
+            },
+        ],
         'miio_specs': {
             # must ['on', 'usb_on', 'temperature', 'wifi_led']
             'prop.2.1': {'prop': 'on', 'setter': 'set_power', 'format': 'onoff'},
@@ -125,6 +171,7 @@ MIIO_TO_MIOT_SPECS = {
                 ],
             },
         ],
+        'entity_attrs': ['func'],
         'miio_specs': {
             'prop.2.1': {'prop': 'func', 'dict': {
                 'running':    1,
@@ -144,6 +191,7 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'tFunc',  # working-time
                 'template': '{{ (value|string)[4:6]|int(0,16) * 60 + (value|string)[6:8]|int(0,16) }}',
             },
+            'action.2.101': {'setter': 'set_func', 'set_template': '{{ ["end030307"] }}'},
         },
     },
     'chunmi.microwave.n23l01': {
@@ -167,16 +215,56 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
-    'fawad.airrtc.fwd20011': {
+    'deerma.humidifier._base': {
         'chunk_properties': 1,
         'miio_specs': {
-            'prop.2.1': {'prop': 'power_status', 'setter': True, 'set_template': '{{ value|int }}'},
+            'prop.2.1': {'prop': 'OnOff_State', 'setter': 'Set_OnOff', 'set_template': '{{ [value|int] }}'},
+            'prop.3.1': {'prop': 'Humidity_Value'},
+            'prop.3.2': {'prop': 'TemperatureValue'},
+            'prop.4.1': {'prop': 'TipSound_State', 'setter': 'SetTipSound_Status', 'set_template': '{{ [value|int] }}'},
+            'prop.5.1': {'prop': 'Led_State', 'setter': 'SetLedState', 'set_template': '{{ [value|int] }}'},
+            'prop.2.101': {'prop': 'HumiSet_Value', 'setter': 'Set_HumiValue'},
+            'prop.2.102': {'prop': 'waterstatus'},
+            'prop.2.103': {'prop': 'watertankstatus'},
+        },
+    },
+    'deerma.humidifier.jsq': {
+        'extend_model': 'deerma.humidifier._base',
+        'miio_specs': {
+            'prop.4.1': {'prop': 'Led_State', 'setter': 'SetLedState', 'set_template': '{{ [value|int] }}'},
+            'prop.5.1': {'prop': 'TipSound_State', 'setter': 'SetTipSound_Status', 'set_template': '{{ [value|int] }}'},
+            'prop.2.104': {'prop': 'Humidifier_Gear', 'setter': 'Set_HumidifierGears'},
+        },
+    },
+    'deerma.humidifier.jsq1': {
+        'extend_model': 'deerma.humidifier._base',
+        'miio_specs': {
+            'prop.2.2': {'prop': 'Humidifier_Gear', 'setter': 'Set_HumidifierGears'},
+        },
+    },
+    'deerma.humidifier.mjjsq': {
+        'extend_model': 'deerma.humidifier.jsq1',
+        'miio_specs': {
+            'prop.3.3': {'prop': 'HumiSet_Value', 'setter': 'Set_HumiValue'},
+        },
+    },
+
+    'fawad.airrtc.fwd20011': {
+        # ["real_fan_speed","fan_mode","Wind_Out","hot_switch_status","power_status","work_mode","fan_speed",
+        # "temperature_current","temperature_set","timers_info","timers_enable","low_temp_protect_enable",
+        # "screen_lock_enable","heat_type"]
+        # [3               ,1         ,0         ,0                  ,0             ,3          ,0          ,
+        # 12.61004447937011    ,30               ,[[0,0,0,0,0]],false          ,false                    ,
+        # false               ,2]
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power_status', 'setter': True, 'set_template': '{{ [value|int] }}'},
             'prop.2.2': {'prop': 'work_mode', 'setter': True, 'dict': {
                 1: 2,
                 2: 1,
                 3: 3,
             }, 'default': 1},
-            'prop.2.3': {'prop': 'temperature_set', 'setter': True, 'set_template': '{{ value|int }}'},
+            'prop.2.3': {'prop': 'temperature_set', 'setter': True, 'set_template': '{{ [value|int] }}'},
             'prop.3.1': {'prop': 'fan_speed', 'setter': True, 'dict': {
                 0: 3,
                 1: 2,
@@ -218,7 +306,7 @@ MIIO_TO_MIOT_SPECS = {
         # ["on"   ,"on"           ,"off" ,"on"       ,0              ,"on"   ,"0"         ,"on"  ,0]
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},  # restart_device []
-            'prop.2.2': {'prop': 'flip', 'template': "{{ 0 if value in ['off'] else 180 }}"},
+            'prop.2.2': {'prop': 'flip', 'template': '{{ 0 if value in ["off"] else 180 }}'},
             'prop.2.3': {'prop': 'night_mode'},
             'prop.2.4': {'prop': 'watermark', 'format': 'onoff'},
             'prop.2.5': {'prop': 'motion_record', 'dict': {
@@ -353,7 +441,8 @@ MIIO_TO_MIOT_SPECS = {
                 'set_template': '{{ ["start_hotdry",90] if value else ["stop_hotdry",0] }}',
             },
             'prop.2.101': {
-                'prop': 'dry_status','dict': {
+                'prop': 'dry_status',
+                'dict': {
                     'off':     0,
                     'hotdry':  1,
                     'winddry': 2,
@@ -373,7 +462,7 @@ MIIO_TO_MIOT_SPECS = {
     'mijia.camera.v3': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'flip', 'template': "{{ 0 if value in ['off'] else 180 }}"},
+            'prop.2.2': {'prop': 'flip', 'template': '{{ 0 if value in ["off"] else 180 }}'},
             'prop.2.3': {'prop': 'night_mode'},
             'prop.2.5': {'prop': 'band_nearby'},
             'prop.2.7': {'prop': 'watermark', 'format': 'onoff'},
@@ -432,7 +521,7 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'speed',
                 'setter': True,
                 'template': '{{ value | regex_replace("rpm","") | int }}',
-                'set_template': '{{ value ~ "rpm" }}',
+                'set_template': '{{ [value ~ "rpm"] }}',
             },
             'prop.2.6': {
                 'prop': 'temp',
@@ -461,8 +550,32 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.1': {'prop': 'volume', 'setter': True},
         },
     },
-    'minij.washer.v14': 'minij.washer.v5',
+    'minij.washer.v14': {
+        'extend_model': 'minij.washer.v5',
+        'chunk_properties': 1,
+    },
 
+    'opple.light.bydceiling': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'SyncBaseInfo',
+                'params': [],
+                'values': ['state', 'ColorTemperature', 'Brightness', 'Scenes'],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'state', 'setter': 'SetState'},
+            'prop.2.2': {'prop': 'Scenes', 'setter': 'SetScenes', 'dict': {
+                'NIGHT': 1,
+                'TV':    2,
+                'GUEST': 3,
+                'PLAY':  4,
+            }, 'default': 3},
+            'prop.2.3': {'prop': 'Brightness', 'setter': 'SetBrightness'},
+            'prop.2.4': {'prop': 'ColorTemperature', 'setter': 'SetColorTemperature'},
+        },
+    },
     'opple.light.fanlight': {
         # ["LightPower","Brightness","ColorTemperature","Scenes","FanPower","Speed",
         # "SmartBtn","SmartVal","Gear","Temperature","Circular","CountdownTime","CountdownAct"]
@@ -503,7 +616,8 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'cct',
                 'setter': True,
                 'template': '{{ ((max - min) * value / 100 + min) | round }}',
-                'set_template': '{{ ((value - min) / (max - min) * 100) | round }}',
+                'set_template': '{% set num = ((value - min) / (max - min) * 100) | round %}'
+                                '{{ [num if num > 0 else 1] }}',
             },
         },
     },
@@ -515,15 +629,39 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.6': {'prop': 'cid', 'template': '{{ 2 if val == 360 else 1 }}'},
         },
     },
-
-    'rockrobo.vacuum.v1': {
-        'extend_model': 'roborock.vacuum.t6',
+    'philips.light.downlight': {
         'miio_specs': {
-            'prop.3.2': {'prop': 'charging', 'template': '{{ 1 if props.state in [8] else 2 }}'},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {
+                'prop': 'cct',
+                'setter': True,
+                'template': '{{ ((max - min) * value / 100 + min) | round }}',
+                'set_template': '{% set num = ((value - min) / (max - min) * 100) | round %}'
+                                '{{ [num if num > 0 else 1] }}',
+            },
+            'prop.2.4': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
+        },
+    },
+    'philips.light.moonlight': {
+        'extend_model': 'philips.light.bulb',
+        'miio_specs': {
+            'prop.2.1': {'prop': 'pow', 'setter': 'set_power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bri', 'setter': 'set_bright'},
+            'prop.2.3': {'prop': 'rgb', 'setter': True, 'format': 'rgb'},
+            'prop.2.5': {
+                'prop': 'snm',
+                'setter': True,
+                'template': '{{ 1 if value == 6 else 0 }}',
+                'set_template': '{{ {"method": "go_night"} '
+                                'if value == 1 else '
+                                '{"method": "apply_fixed_scene","params": [5]} }}',
+            },
+            'prop.2.6': {'prop': 'sta', 'template': '{{ 2 if value == 0 else 1 }}'},
         },
     },
 
-    'roborock.vacuum.t6': {
+    'roborock.vacuum._base': {
         'without_props': True,
         'miio_commands': [
             {
@@ -534,7 +672,62 @@ MIIO_TO_MIOT_SPECS = {
                 'method': 'get_consumable',
                 'template': '{{ results.0 | default({}) }}',
             },
+            {
+                'method': 'get_custom_mode',
+                'values': ['fan_mode'],
+            },
         ],
+    },
+    'roborock.vacuum.m1s': {
+        'extend_model': 'roborock.vacuum._base',
+        'miio_specs': {
+            'prop.2.1': {
+                'prop': 'fan_mode',
+                'setter': 'set_custom_mode',
+                'template': '{{ value|int - 100 }}',
+                'set_template': '{{ [value|int + 100] }}',
+            },
+            'prop.2.3': {'prop': 'state', 'dict': {
+                1: 5,  # Starting
+                4: 7,  # Remote control active
+            }},
+            'prop.4.1': {'prop': 'battery'},
+            'action.2.1': {'setter': 'app_start'},
+            'action.2.2': {'setter': 'app_stop'},
+            'action.4.1': {'setter': 'app_charge'},
+        },
+    },
+    'roborock.vacuum.a01': 'roborock.vacuum.t6',
+    'roborock.vacuum.a08': {
+        'extend_model': 'roborock.vacuum.t6',
+        'miio_specs': {
+            'prop.2.1': {'prop': 'state'},
+            'prop.2.2': {'prop': 'fan_mode', 'setter': 'set_custom_mode'},
+        },
+    },
+    'roborock.vacuum.a09': 'roborock.vacuum.t6',
+    'roborock.vacuum.a10': 'roborock.vacuum.t6',
+    'roborock.vacuum.a11': 'roborock.vacuum.t6',
+    'roborock.vacuum.c1': 'rockrobo.vacuum.v1',
+    'roborock.vacuum.e2': 'rockrobo.vacuum.v1',
+    'roborock.vacuum.p5': 'roborock.vacuum.a08',
+    'roborock.vacuum.s4': 'roborock.vacuum.t4',
+    'roborock.vacuum.s5': 'rockrobo.vacuum.v1',
+    'roborock.vacuum.s5e': 'rockrobo.vacuum.a08',
+    'roborock.vacuum.s6': 'roborock.vacuum.t6',
+    'roborock.vacuum.t4': {
+        'extend_model': 'roborock.vacuum.t6',
+        'miio_specs': {
+            'prop.2.2': {
+                'prop': 'fan_mode',
+                'setter': 'set_custom_mode',
+                'template': '{{ value|int - 101 }}',
+                'set_template': '{{ [value|int + 101] }}',
+            },
+        },
+    },
+    'roborock.vacuum.t6': {
+        'extend_model': 'roborock.vacuum._base',
         'miio_specs': {
             'prop.2.1': {'prop': 'state', 'dict': {
                 1: 2,  # Starting
@@ -555,8 +748,54 @@ MIIO_TO_MIOT_SPECS = {
                 17: 2,  # Zoned cleaning
                 18: 2,  # Segment cleaning
             }, 'default': 1},
-            'prop.2.2': {'prop': 'fan_power'},
+            'prop.2.2': {
+                'prop': 'fan_mode',
+                'setter': 'set_custom_mode',
+                'template': '{{ value|int - 100 }}',
+                'set_template': '{{ [value|int + 100] }}',
+            },
             'prop.3.1': {'prop': 'battery'},
+            'action.2.1': {'setter': 'app_start'},
+            'action.2.2': {'setter': 'app_stop'},
+            'action.3.1': {'setter': 'app_charge'},
+        },
+    },
+    'rockrobo.vacuum.v1': {
+        'extend_model': 'roborock.vacuum.t6',
+        'miio_specs': {
+            'prop.2.2': {'prop': 'fan_power', 'setter': 'set_custom_mode'},
+            'prop.3.2': {'prop': 'charging', 'template': '{{ 1 if props.state in [8] else 2 }}'},
+        },
+    },
+
+    'shuii.humidifier.jsq002': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_props',
+                'values': [
+                    'power', 'gear', 'humidity', 'ledLevel', 'temperature', 'waterLevel',
+                    'heat', 'beaPower', 'childLock', 'targetTemp', 'targetHumidity',
+                ],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {
+                'prop': 'power',
+                'setter': 'on_off',
+                'template': '{{ value == 1 and props.waterLevel not in [0,6] }}',
+                'set_template': '{{ [value|int] }}',
+            },
+            'prop.2.2': {'prop': 'gear', 'setter': True},
+            'prop.2.3': {'prop': 'heat', 'setter': 'warm_on', 'set_template': '{{ [value|int] }}'},
+            'prop.2.4': {'prop': 'targetHumidity', 'setter': 'set_humidity'},
+            'prop.2.5': {'prop': 'waterLevel'},
+            'prop.2.6': {'prop': 'targetTemp', 'setter': 'set_temp'},
+            'prop.3.1': {'prop': 'humidity'},
+            'prop.3.2': {'prop': 'temperature'},
+            'prop.4.1': {'prop': 'ledLevel', 'setter': 'set_led'},
+            'prop.5.1': {'prop': 'beaPower', 'setter': 'buzzer_on', 'set_template': '{{ [value|int] }}'},
+            'prop.6.1': {'prop': 'childLock', 'setter': 'set_lock', 'set_template': '{{ [value|int] }}'},
         },
     },
 
@@ -569,8 +808,8 @@ MIIO_TO_MIOT_SPECS = {
             },
         ],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'set_template': "{{ [1 if value else 0] }}"},
-            'prop.3.1': {'prop': 'bright_value', 'setter': True, 'set_template': "{{ [1 if value else 0] }}"},
+            'prop.2.1': {'prop': 'power', 'setter': True, 'set_template': '{{ [1 if value else 0] }}'},
+            'prop.3.1': {'prop': 'bright_value', 'setter': True, 'set_template': '{{ [1 if value else 0] }}'},
             'prop.4.1': {'prop': 'filter'},  # set_filter_alarm [0]
         },
     },
@@ -622,8 +861,12 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'viomi.vacuum.v7': {
+        'miio_props': [
+            'run_state', 'mode', 'err_state', 'battary_life', 'box_type', 'mop_type', 's_time', 's_area',
+            'suction_grade', 'water_grade', 'remember_map', 'has_map', 'is_mop', 'has_newmap',
+        ],
         'miio_specs': {
-            'prop.2.1': {'prop': 'suction_grade', 'dict': {
+            'prop.2.1': {'prop': 'suction_grade', 'setter': 'set_suction', 'dict': {
                 0: 0,  # Silent
                 1: 1,  # Standard
                 2: 1,  # Medium
@@ -639,6 +882,61 @@ MIIO_TO_MIOT_SPECS = {
                 6: 8,  # VacuumingAndMopping
                 7: 7,  # Mopping
             }, 'default': 1},
+            'prop.3.1': {'prop': 'battary_life'},
+            'action.2.1': {'setter': 'set_mode_withroom', 'set_template': '{{ [0,1,0] }}'},  # start-sweep
+            'action.2.2': {'setter': 'set_mode', 'set_template': '{{ [0] }}'},  # stop-sweeping
+            'action.2.3': {'setter': 'set_mode_withroom', 'set_template': '{{ [1,1,0] }}'},  # start-sweep-mop
+            'action.2.4': {'setter': 'set_mode_withroom', 'set_template': '{{ [3,1,0] }}'},  # start-mop
+            'action.2.5': {'setter': 'set_mode_withroom', 'set_template': '{{ [0,3,0] }}'},  # pause-sweeping
+            'action.3.1': {'setter': 'set_charge', 'set_template': '{{ [1] }}'},  # start-charge
+            'prop.200.201': {'prop': 'main_brush_life'},
+            'prop.200.202': {'prop': 'side_brush_life'},
+            'prop.200.203': {'prop': 'hypa_life'},
+            'prop.200.204': {'prop': 'mop_life'},
+        },
+    },
+    'viomi.vacuum.v8': {
+        'extend_model': 'viomi.vacuum.v7',
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [
+                    'sw_info', 'run_state', 'mode', 'err_state', 'battary_life', 'box_type', 'mop_type', 's_time',
+                    's_area', 'suction_grade', 'water_grade', 'remember_map', 'has_map', 'is_mop', 'has_newmap',
+                ],
+                'values': True,
+            },
+            {
+                'method': 'get_consumables',
+                'template': '{%- set c0 = results[0] | default(0) | int(0) %}'
+                            '{%- set c1 = results[1] | default(0) | int(0) %}'
+                            '{%- set c2 = results[2] | default(0) | int(0) %}'
+                            '{%- set c3 = results[3] | default(0) | int(0) %}'
+                            '{{ {'
+                            '"main_brush_hours": c0,'
+                            '"side_brush_hours": c1,'
+                            '"hypa_hours": c2,'
+                            '"mop_hours": c3,'
+                            '"main_brush_life": [100 - c0 / 360 * 100, 0] | max | round,'
+                            '"side_brush_life": [100 - c1 / 180 * 100, 0] | max | round,'
+                            '"hypa_life": [100 - c2 / 180 * 100, 0] | max | round,'
+                            '"mop_life": [100 - c3 / 180 * 100, 0] | max | round,'
+                            '} }}',
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'run_state', 'dict': {
+                0: 1,  # IdleNotDocked
+                1: 1,  # Idle
+                2: 3,  # Idle2
+                3: 4,  # Cleaning
+                4: 5,  # Returning
+                5: 6,  # Docked
+                6: 8,  # VacuumingAndMopping
+                7: 7,  # Mopping
+            }, 'default': 1},
+            'prop.2.2': {'prop': 'suction_grade', 'setter': 'set_suction'},
             'prop.3.1': {'prop': 'battary_life'},
         },
     },
@@ -658,6 +956,56 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.6': {'prop': 'modeType', 'setter': 'set_mode'},
         },
     },
+    'viomi.waterheater.u1': {
+        'miio_specs': {
+            'prop.2.2': {'prop': 'targetTemp', 'setter': 'set_temp', 'set_template': '{{ [value|int] }}'},
+            'prop.2.3': {'prop': 'waterTemp'},
+            'prop.2.5': {'prop': 'washStatus'},
+            'prop.2.6': {
+                'prop': 'washStatus',
+                'setter': 'set_power',
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.2.103': {'prop': 'velocity'},
+        },
+    },
+    'viomi.waterheater.u8': {
+        # ["washStatus","velocity","waterTemp","targetTemp","errStatus","preHeatTime1","preHeatTime2","isPreHeatNow"]
+        # [2          ,    4      ,     44    ,       44   ,      0    ,  "0-6-10"   ,   "0-16-22"   ,   0]
+        'miio_specs': {
+            'prop.2.1': {'prop': 'targetTemp', 'setter': 'set_temp', 'set_template': '{{ [value|int] }}'},
+            'prop.2.2': {'prop': 'waterTemp'},
+            'prop.2.3': {'prop': 'washStatus'},
+            'prop.2.4': {  # viomi.waterheater.u12
+                'prop': 'washStatus',
+                'setter': 'set_power',
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.2.5': {
+                'prop': 'washStatus',
+                'setter': 'set_power',
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.2.102': {'prop': 'targetTemp', 'setter': 'set_temp', 'dict': {
+                99: 0,  # Custom
+                39: 1,  # Children
+                40: 2,  # Comfortable
+                42: 3,  # Old Man
+                36: 4,  # Kitchen
+            }, 'default': 0},
+            'prop.2.103': {'prop': 'velocity'},
+            'prop.200.201': {
+                'prop': 'isPreHeatNow',
+                'setter': 'set_preheat_now',
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+        },
+    },
+    'viomi.waterheater.u12': 'viomi.waterheater.u8',
 
     'xjx.toilet.pro': {
         'miio_specs': {
@@ -668,10 +1016,10 @@ MIIO_TO_MIOT_SPECS = {
         'extend_model': 'xjx.toilet.pro',
         'miio_specs': {
             'prop.2.1': {'prop': 'seating'},
-            'prop.2.2': {'prop': 'status_bubbleshield', 'setter': 'set_bubble', 'set_template': '{{ value|int }}'},
-            'prop.3.1': {'prop': 'status_seatheat', 'setter': 'work_seatheat', 'set_template': '{{ value|int }}'},
+            'prop.2.2': {'prop': 'status_bubbleshield', 'setter': 'set_bubble', 'set_template': '{{ [value|int] }}'},
+            'prop.3.1': {'prop': 'status_seatheat', 'setter': 'work_seatheat', 'set_template': '{{ [value|int] }}'},
             'prop.3.2': {'prop': 'seat_temp', 'setter': 'set_seat_temp'},
-            'prop.4.1': {'prop': 'status_led', 'setter': 'work_night_led', 'set_template': '{{ value|int }}'},
+            'prop.4.1': {'prop': 'status_led', 'setter': 'work_night_led', 'set_template': '{{ [value|int] }}'},
         },
     },
 
@@ -686,10 +1034,16 @@ MIIO_TO_MIOT_SPECS = {
                 'drying':   4,
                 'coolwind': 5,
             }, 'default': 1},
-            'prop.4.1': {'prop': 'fan_speed_idx', 'template': 'yeelink_bhf_light_v2_fan_levels'},
+            'prop.4.1': {
+                'prop': 'fan_speed_idx',
+                'setter': 'set_gears_idx',
+                'template': 'yeelink_bhf_light_v2_fan_levels',
+                'set_template': '{{ [value - 1] }}',
+            },
         },
     },
     'yeelink.bhf_light.v5': {
+        'miio_template': 'yeelink_bhf_light_v5_miio_props',
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {
@@ -700,22 +1054,29 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {
                 'prop': 'bh_mode',
                 'setter': True,
-                'dict': {
-                    'drying':    1,
-                    'defog':     2,
-                    'fastdefog': 3,
-                    'fastwarm':  4,
-                    'bh_off':    5,
-                    'warmwind':  6,
-                },
-                'default': 5,
                 'template': '{{ '
                             '3 if "fastdefog" in value else '
                             '4 if "fastwarm" in value else '
                             '1 if "drying" in value else '
                             '2 if "defog" in value else '
+                            '8 if "venting" in value else '
+                            '7 if "coolwind" in value else '
                             '6 if "warmwind" in value else '
-                            '5 }}',
+                            '5 if "bh_off" in value else '
+                            '0 }}',
+                'set_template': '{{ '
+                                '["drying"] if value == 1 else '
+                                '["defog"] if value == 2 else '
+                                '["fastdefog"] if value == 3 else '
+                                '["fastwarm"] if value == 4 else '
+                                '["warmwind", 2] if value == 6 else '
+                                '["coolwind", 3] if value == 7 else '
+                                '["venting", 3] if value == 8 else '
+                                '["windoff"] if "coolwind" in props.bh_mode else '
+                                '["windoff"] if "warmwind" in props.bh_mode else '
+                                '["ventingoff"] if "venting" in props.bh_mode else '
+                                '["bh_off", 0] }}',
+                'set_callback': set_callback_via_param_index(0),
             },
             'prop.3.2': {
                 'prop': 'bh_mode', 'setter': True,
@@ -734,8 +1095,106 @@ MIIO_TO_MIOT_SPECS = {
             },
             'prop.3.5': {'prop': 'aim_temp', 'setter': 'set_temp'},
             'prop.3.6': {'prop': 'temperature'},
+            'prop.3.101': {
+                'prop': 'fan_speed_idx',
+                'setter': 'set_bh_mode',
+                'template': 'yeelink_bhf_light_v5_fan_levels',
+                'set_template': '{{ ['
+                                'props.bh_mode,'
+                                '1 if value <= 1 else '
+                                '3 if "coolwind" in props.bh_mode else '
+                                '3 if "venting" in props.bh_mode else '
+                                '2] }}',
+            },
+            'prop.3.111': {
+                'prop': 'warmwind_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["warmwind" if value else "windoff", value] }}',
+            },
+            'prop.3.112': {
+                'prop': 'coolwind_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["coolwind" if value else "windoff", value] }}',
+            },
+            'prop.3.113': {
+                'prop': 'venting_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["venting" if value else "ventingoff", value] }}',
+            },
+            'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
         },
     },
+    'yeelink.bhf_light.v6': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {
+                'prop': 'light_mode',
+                'setter': True,
+                'template': '{{ 2 if value == "nightlight" else 1 }}',
+                'set_template': '{{ {'
+                                '"method":"set_ps",'
+                                '"params":"on" if value == 2 else "off",'
+                                '} }}',
+            },
+            'prop.2.3': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.3.1': {
+                'prop': 'bh_mode',
+                'setter': True,
+                'template': '{{ '
+                            '7 if "fastdefog" in value else '
+                            '6 if "fastwarm" in value else '
+                            '1 if "coolwind" in value else '
+                            '2 if "warmwind" in value else '
+                            '3 if "venting" in value else '
+                            '4 if "drying" in value else '
+                            '5 if "defog" in value else '
+                            '0 }}',
+                'set_template': '{{ '
+                                '["coolwind", 3] if value == 1 else '
+                                '["warmwind", 2] if value == 2 else '
+                                '["venting", 3] if value == 3 else '
+                                '["drying"] if value == 4 else '
+                                '["defog"] if value == 5 else '
+                                '["fastwarm"] if value == 6 else '
+                                '["fastdefog"] if value == 7 else '
+                                '["windoff"] if "coolwind" in props.bh_mode else '
+                                '["windoff"] if "warmwind" in props.bh_mode else '
+                                '["ventingoff"] if "venting" in props.bh_mode else '
+                                '["bh_off", 0] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.3.2': {'prop': 'aim_temp', 'setter': 'set_temp'},
+            'prop.3.3': {'prop': 'temperature'},
+            'prop.3.101': {
+                'prop': 'fan_speed_idx',
+                'setter': 'set_bh_mode',
+                'template': 'yeelink_bhf_light_v5_fan_levels',
+                'set_template': '{{ ['
+                                'props.bh_mode,'
+                                '1 if value <= 1 else '
+                                '3 if "coolwind" in props.bh_mode else '
+                                '3 if "venting" in props.bh_mode else '
+                                '2] }}',
+            },
+            'prop.3.111': {
+                'prop': 'warmwind_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["warmwind" if value else "windoff", value] }}',
+            },
+            'prop.3.112': {
+                'prop': 'coolwind_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["coolwind" if value else "windoff", value] }}',
+            },
+            'prop.3.113': {
+                'prop': 'venting_gear',
+                'setter': 'set_bh_mode',
+                'set_template': '{{ ["venting" if value else "ventingoff", value] }}',
+            },
+            'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
+        },
+    },
+
     'yeelink.light.bslamp1': {
         'extend_model': 'yeelink.light.color1',
         'miio_specs': {
@@ -759,37 +1218,50 @@ MIIO_TO_MIOT_SPECS = {
         'extend_model': 'yeelink.light.color2',
         'miio_specs': {
             'prop.2.3': {'prop': 'rgb', 'setter': True},
-            'prop.2.4': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
+            'prop.2.4': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
             'prop.2.101': {'prop': 'nl_br', 'setter': True},
             'prop.200.201': {'prop': 'delayoff'},
         },
     },
     'yeelink.light.color2': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.1': {
+                'prop': 'power',
+                'setter': True,
+                'format': 'onoff',
+                'set_template': '{{ ["on" if value else "off","smooth",500] }}',
+            },
             'prop.2.2': {'prop': 'bright', 'setter': True},
-            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
             'prop.2.4': {'prop': 'rgb', 'setter': True},
             'prop.2.5': {'prop': 'color_mode'},
         },
     },
     'yeelink.light.color3': 'yeelink.light.color2',
     'yeelink.light.color4': 'yeelink.light.color2',
+    'yeelink.light.color5': 'yeelink.light.color2',
+    'yeelink.light.color7': 'yeelink.light.color2',
+    'yeelink.light.color8': 'yeelink.light.color2',
     'yeelink.light.ceiling1': {
         'extend_model': 'yeelink.light.ceiling2',
         'miio_specs': {
-            'prop.2.4': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
+            'prop.2.4': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
         },
     },
     'yeelink.light.ceiling2': {
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.1': {
+                'prop': 'power',
+                'setter': True,
+                'format': 'onoff',
+                'set_template': '{{ ["on" if value else "off","smooth",500] }}',
+            },
             'prop.2.2': {'prop': 'bright', 'setter': True},
             'prop.2.3': {
                 'prop': 'nl_br',
                 'setter': 'set_ps',
                 'template': '{{ 2 if value|int else 1 }}',
-                'set_template': "{{ ['nightlight','on' if value == 2 else 'off'] }}",
+                'set_template': '{{ ["nightlight","on" if value == 2 else "off"] }}',
             },
         },
     },
@@ -808,7 +1280,7 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'nl_br',
                 'setter': 'set_ps',
                 'template': '{{ 2 if value|int else 1 }}',
-                'set_template': "{{ ['nightlight','on' if value == 2 else 'off'] }}",
+                'set_template': '{{ ["nightlight","on" if value == 2 else "off"] }}',
             },
         },
     },
@@ -824,7 +1296,7 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.ceiling16': {
         'extend_model': 'yeelink.light.ceiling2',
         'miio_specs': {
-            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
         },
     },
     'yeelink.light.ceiling17': 'yeelink.light.ceiling16',
@@ -834,6 +1306,12 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.ceiling21': {
         'extend_model': 'yeelink.light.ceiling6',
         'miio_specs': {
+            'prop.2.4': {
+                'prop': 'nl_br',
+                'setter': 'set_ps',
+                'template': '{{ 1 if value|int else 0 }}',
+                'set_template': '{{ ["nightlight","on" if value == 1 else "off"] }}',
+            },
             'prop.2.5': {'prop': 'smart_switch'},
         },
     },
@@ -882,8 +1360,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {
                 'prop': 'bh_mode',
                 'setter': True,
-                'template': "{{ value in ['coolwind'] }}",
-                'set_template': "{{ ['coolwind' if value else 'bh_off'] }}",
+                'template': '{{ value in ["coolwind"] }}',
+                'set_template': '{{ ["coolwind" if value else "bh_off"] }}',
             },
             'prop.2.2': {'prop': 'gears', 'setter': 'set_gears_idx', 'dict': {
                 0: 1,  # Low
@@ -892,8 +1370,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.3': {
                 'prop': 'swing_action',
                 'setter': 'set_swing',
-                'template': "{{ value in ['swing'] }}",
-                'set_template': "{{ ['swing' if value else 'stop'] }}",
+                'template': '{{ value in ["swing"] }}',
+                'set_template': '{{ ["swing" if value else "stop"] }}',
             },
         },
     },
@@ -901,7 +1379,7 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'bright', 'setter': True},
-            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': "{{ [value,'smooth',500] }}"},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
         },
     },
     'yeelink.ven_fan.vf3': {
@@ -910,8 +1388,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.3': {
                 'prop': 'swing_action',
                 'setter': 'set_swing',
-                'template': "{{ value in ['swing'] }}",
-                'set_template': "{{ ['swing' if value else 'stop'] }}",
+                'template': '{{ value in ["swing"] }}',
+                'set_template': '{{ ["swing" if value else "stop"] }}',
             },
         },
     },
@@ -920,8 +1398,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {
                 'prop': 'bh_mode',
                 'setter': True,
-                'template': "{{ value in ['coolwind'] }}",
-                'set_template': "{{ ['coolwind' if value else 'bh_off'] }}",
+                'template': '{{ value in ["coolwind"] }}',
+                'set_template': '{{ ["coolwind" if value else "bh_off"] }}',
             },
             'prop.2.2': {'prop': 'gears', 'setter': 'set_gears_idx', 'dict': {
                 0: 1,  # Low
@@ -933,9 +1411,51 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'nl_br',
                 'setter': 'set_ps',
                 'template': '{{ 2 if value|int else 1 }}',
-                'set_template': "{{ ['nightlight','on' if value == 2 else 'off'] }}",
+                'set_template': '{{ ["nightlight","on" if value == 2 else "off"] }}',
             },
             'prop.3.3': {'prop': 'bright', 'setter': True},
+        },
+    },
+
+    'yunmi.waterpuri.lx5': {
+        'chunk_properties': 1,
+        'miio_props': ['run_status', 'f1_totalflow', 'f2_totalflow'],
+        'entity_attrs': ['run_status', 'f1_totalflow', 'f2_totalflow'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'temperature'},
+            'prop.2.101': {'prop': 'rinse'},
+            'prop.2.102': {'prop': 'lightMode', 'setter': True},
+            'prop.2.103': {'prop': 'tds_warn_thd', 'setter': True},
+            'prop.3.2': {'prop': 'tds_out'},
+            'prop.4.1': {'prop': 'f1_usedtime'},
+            'prop.4.2': {'prop': 'f1_usedflow'},
+            'prop.5.1': {'prop': 'f2_usedtime'},
+            'prop.5.2': {'prop': 'f2_usedflow'},
+        },
+    },
+
+    'yyunyi.wopener.yypy24': {
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {'prop': 'status', 'template': '{{ value|int + 1 }}'},
+            'prop.2.2': {'prop': 'progress', 'setter': 'setProgress'},
+            'prop.2.3': {'prop': 'speed', 'setter': 'setSpeed'},
+            'prop.2.4': {
+                'prop': 'status',
+                'setter': 'setStatus',
+                'template': '{{ value|int + 1 }}',
+                'set_template': '{{ [value|int - 1] }}',
+            },
+            'prop.2.5': {
+                'prop': 'mode',
+                'setter': 'setMode',
+                'template': '{{ value|int + 1 }}',
+                'set_template': '{{ [value|int - 1] }}',
+            },
+            'prop.3.1': {'prop': 'alarm', 'setter': 'setAlarm', 'set_template': '{{ [value|int] }}'},
+            'prop.4.1': {'prop': 'child_lock', 'setter': 'setChildLock', 'set_template': '{{ [value|int] }}'},
+            'prop.2.102': {'prop': 'direction', 'setter': 'setDirection', 'set_template': '{{ [value|int] }}'},
+            'prop.2.103': {'prop': 'clamp_strength', 'setter': 'setClampStrength'},
         },
     },
 
@@ -951,6 +1471,44 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'zhimi.airfresh.va2': {
+        'miio_props': ['average_aqi', 'motor1_speed', 'use_time'],
+        'entity_attrs': ['motor1_speed', 'use_time'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto':     0,
+                'silent':   1,
+                'interval': 2,
+                'low':      3,
+                'medium':   4,
+                'strong':   5,
+            }, 'default': 0},
+            'prop.3.1': {'prop': 'humidity'},
+            'prop.3.2': {'prop': 'aqi'},
+            'prop.3.3': {'prop': 'temp_dec'},
+            'prop.3.4': {'prop': 'co2'},
+            'prop.4.1': {'prop': 'f1_hour_used'},
+            'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
+            'prop.6.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
+            'prop.7.1': {'prop': 'led_level', 'setter': True},
+        },
+    },
+    'zhimi.airfresh.va4': {
+        'extend_model': 'zhimi.airfresh.va2',
+        'miio_specs': {
+            'prop.2.3': {'prop': 'mode', 'setter': True, 'dict': {
+                'interval': 0,
+                'silent':   1,
+                'low':      2,
+                'medium':   3,
+                'strong':   4,
+                'auto':     5,
+            }, 'default': 5},
+            'prop.2.4': {'prop': 'ptc_state', 'setter': True, 'format': 'onoff'},
+            'prop.3.3': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
+        },
+    },
     'zhimi.airpurifier._base': {
         'miio_props': ['motor1_speed', 'motor2_speed', 'purify_volume'],
         'entity_attrs': ['aqi', 'motor1_speed', 'motor2_speed', 'purify_volume'],
@@ -1105,6 +1663,7 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': True,
                 'template': '{% set lvl = props.natural_level|default(value,true)|int(0) %}'
                             '{{ '
+                            'lvl if max == 100 else '
                             '1 if lvl <= 25 else '
                             '2 if lvl <= 50 else '
                             '3 if lvl <= 75 else '
@@ -1112,7 +1671,7 @@ MIIO_TO_MIOT_SPECS = {
                 'set_template': '{% set nlv = props.natural_level|default(0)|int(0) %}'
                                 '{{ {'
                                 '"method": "set_natural_level" if nlv else "set_speed_level",'
-                                '"params": [value|int(0) * 25],'
+                                '"params": [value|int(0) * (1 if max == 100 else 25)],'
                                 '} }}',
             },
             'prop.2.3': {'prop': 'angle_enable', 'setter': True, 'format': 'onoff'},
@@ -1121,7 +1680,7 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'natural_level',
                 'setter': True,
                 'template': '{{ 1 if value|int(0) > 0 else 2 }}',
-                'set_template': '{{ value|int(0) * 25 }}',
+                'set_template': '{{ [value|int(0) * 25] }}',
             },
             'prop.3.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
         },
@@ -1134,7 +1693,7 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'natural_level',
                 'setter': True,
                 'template': '{{ 1 if value|int(0) > 0 else 0 }}',
-                'set_template': '{{ value * 25 }}',
+                'set_template': '{{ [value|int(0) * 25] }}',
             },
             'prop.4.1': {'prop': 'battery'},
             'prop.4.2': {'prop': 'bat_charge', 'template': '{{ 2 if value == "complete" else 1 }}'},
@@ -1149,19 +1708,19 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'natural_level',
                 'setter': True,
                 'template': '{{ 1 if value|int(0) > 0 else 0 }}',
-                'set_template': '{{ value|int(0) * 25 }}',
+                'set_template': '{{ [value|int(0) * 25] }}',
             },
             'prop.4.1': {
                 'prop': 'buzzer',
                 'setter': True,
                 'template': '{{ value|int(0) > 0 }}',
-                'set_template': '{{ 1 if value else 0 }}',
+                'set_template': '{{ [1 if value else 0] }}',
             },
             'prop.5.1': {
                 'prop': 'led_b',
                 'setter': True,
                 'template': '{{ value|int(0) > 0 }}',
-                'set_template': '{{ 1 if value else 0 }}',
+                'set_template': '{{ [1 if value else 0] }}',
             },
         },
     },

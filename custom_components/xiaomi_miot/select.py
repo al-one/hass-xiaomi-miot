@@ -1,6 +1,5 @@
 """Support select entity for Xiaomi Miot."""
 import logging
-import time
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.select import (
@@ -40,9 +39,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     config['hass'] = hass
     model = str(config.get(CONF_MODEL) or '')
+    spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
-    if miot := config.get('miot_type'):
-        spec = await MiotSpec.async_from_type(hass, miot)
+    if isinstance(spec, MiotSpec):
         for srv in spec.get_services('ir_aircondition_control'):
             if not srv.actions:
                 continue
@@ -138,7 +137,6 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
 
     def update(self, data=None):
         self._available = True
-        time.sleep(0.2)
         self._attr_current_option = None
 
     def select_option(self, option):
@@ -182,6 +180,7 @@ class SelectSubEntity(SelectEntity, BaseSubEntity):
             }
             if ret := self._select_option(option, **kws):
                 self._attr_current_option = option
+                self.async_write_ha_state()
             return ret
         raise NotImplementedError()
 

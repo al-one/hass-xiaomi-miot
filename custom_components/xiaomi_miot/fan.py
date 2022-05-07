@@ -8,7 +8,6 @@ from homeassistant.components.fan import (
     SUPPORT_SET_SPEED,
     SUPPORT_DIRECTION,
     SUPPORT_OSCILLATE,
-    SPEED_OFF,
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
 )
@@ -48,6 +47,12 @@ except ImportError:
     def percentage_to_ordered_list_item(ordered_list, percentage):
         raise NotImplementedError()
 
+try:
+    # hass 2022.4.0b0+
+    from homeassistant.components.fan import SPEED_OFF, OFF_SPEED_VALUES
+except ImportError:
+    SPEED_OFF = 'off'
+    OFF_SPEED_VALUES = [SPEED_OFF, None]
 
 SERVICE_TO_METHOD = {}
 
@@ -61,9 +66,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     config['hass'] = hass
     model = str(config.get(CONF_MODEL) or '')
+    spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
-    if miot := config.get('miot_type'):
-        spec = await MiotSpec.async_from_type(hass, miot)
+    if isinstance(spec, MiotSpec):
         for srv in spec.get_services(ENTITY_DOMAIN, 'ceiling_fan', 'air_fresh', 'air_purifier', 'hood'):
             if not srv.bool_property('on'):
                 continue
@@ -98,20 +103,35 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
         self._prop_percentage = None
         for s in miot_service.spec.get_services():
-            for p in s.get_properties('speed_level', 'wind_speed'):
+            for p in s.get_properties('speed_level', 'wind_speed', 'fan_level'):
                 if not p.value_range:
+                    continue
+                if p.range_max() < 90:
                     continue
                 self._prop_percentage = p
                 break
 
-        if self._prop_speed:
+        if self._prop_speed or self._prop_percentage:
             self._supported_features |= SUPPORT_SET_SPEED
+            if self._prop_speed and self._prop_percentage:
+                if self._prop_speed.unique_name == self._prop_percentage.unique_name:
+                    self._prop_speed = None
         if self._prop_direction:
             self._supported_features |= SUPPORT_DIRECTION
         if self._prop_oscillate:
             self._supported_features |= SUPPORT_OSCILLATE
         if self._prop_mode and SUPPORT_PRESET_MODE:
             self._supported_features |= SUPPORT_PRESET_MODE
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if per := self.custom_config('percentage_property'):
+            prop = self._miot_service.spec.specs.get(per)
+            if not isinstance(prop, MiotProperty):
+                prop = self._miot_service.get_property(per)
+            if prop:
+                self._prop_percentage = prop
+                self._supported_features |= SUPPORT_SET_SPEED
 
     def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         ret = False
@@ -123,7 +143,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             if percentage:
                 ret = self.set_property(self._prop_percentage, percentage)
             elif percentage is not None:
-                _LOGGER.warning('Set fan speed percentage to %s failed: %s', self.name, {
+                _LOGGER.warning('%s: Set fan speed percentage failed: %s', self.name_model, {
                     'speed': speed,
                     'percentage': percentage,
                 })
@@ -137,7 +157,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             if val is not None:
                 ret = self.set_property(self._prop_speed, val)
             elif speed is not None:
-                _LOGGER.warning('Set fan speed level to %s failed: %s', self.name, {
+                _LOGGER.warning('%s: Set fan speed level failed: %s', self.name_model, {
                     'speed': speed,
                     'percentage': percentage,
                     'value':  val,
@@ -174,7 +194,8 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         """Return the number of speeds the fan supports."""
         if self._prop_percentage:
             return round(self._prop_percentage.range_max() / self._prop_percentage.range_step())
-        return super().speed_count
+        lst = [v for v in self.speed_list if v not in OFF_SPEED_VALUES]
+        return len(lst)
 
     @property
     def percentage(self):
@@ -183,8 +204,9 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             val = self._prop_percentage.from_dict(self._state_attrs)
             if val is not None:
                 return val
+        lst = [v for v in self.speed_list if v not in OFF_SPEED_VALUES]
         try:
-            return self.speed_to_percentage(str(self.speed))
+            return ordered_list_item_to_percentage(lst, self.speed)
         except ValueError:
             return None
 
@@ -253,7 +275,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             else:
                 if n > num:
                     num = n
-        _LOGGER.debug('Setting direction to %s: %s(%s)', self.name, direction, num)
+        _LOGGER.debug('%s: Setting direction: %s(%s)', self.name_model, direction, num)
         return self.set_property(self._prop_direction, num)
 
     @property
@@ -295,6 +317,10 @@ class MiotFanSubEntity(MiotFanEntity, ToggleSubEntity):
         if parent_power:
             self._prop_power = parent_power
             self._available = True
+
+    @property
+    def available(self):
+        return self._available and self._parent.available
 
     def update(self, data=None):
         super().update(data)
@@ -469,7 +495,7 @@ class MiotModesSubEntity(MiotPropertySubEntity, FanSubEntity):
                 val = round(float(preset_mode) / stp) * stp
             except ValueError as exc:
                 val = None
-                _LOGGER.warning('Switch mode: %s to %s failed: %s', preset_mode, self.name, exc)
+                _LOGGER.warning('%s: Switch mode: %s failed: %s', self.name_model, preset_mode, exc)
         else:
             val = self._miot_property.list_first(preset_mode)
         if val is not None:

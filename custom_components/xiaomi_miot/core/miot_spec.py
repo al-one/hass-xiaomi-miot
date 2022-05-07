@@ -13,8 +13,7 @@ from .const import (
     TRANSLATION_LANGUAGES,
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL_INCREASING,
-    ENTITY_CATEGORY_CONFIG,
-    ENTITY_CATEGORY_DIAGNOSTIC,
+    EntityCategory,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,6 +58,9 @@ SPEC_ERRORS = {
 }
 
 
+# https://iot.mi.com/new/doc/tools-and-resources/design/spec/overall
+# https://iot.mi.com/new/doc/tools-and-resources/design/spec/xiaoai
+# https://iot.mi.com/new/doc/tools-and-resources/design/spec/shortcut
 class MiotSpecInstance:
     def __init__(self, dat: dict):
         self.raw = dat
@@ -102,6 +104,7 @@ class MiotSpecInstance:
         dls = [
             des.lower(),
             des,
+            des.replace('-', ' '),
         ]
         tls = self.translations
         for d in dls:
@@ -151,6 +154,7 @@ class MiotSpec(MiotSpecInstance):
 
     def services_mapping(self, *args, **kwargs):
         dat = None
+        eps = kwargs.pop('exclude_properties', [])
         sls = self.get_services(*args, **kwargs)
         if self.custom_mapping:
             sis = list(map(lambda x: x.iid, sls))
@@ -163,7 +167,7 @@ class MiotSpec(MiotSpecInstance):
         for s in sls:
             if dat is None:
                 dat = {}
-            nxt = s.mapping() or {}
+            nxt = s.mapping(excludes=eps) or {}
             dat = {**nxt, **dat}
         return dat
 
@@ -345,12 +349,18 @@ class MiotService(MiotSpecInstance):
 
     def extend_specs(self, properties: list, actions: list):
         for p in properties:
+            iid = int(p.get('iid') or 0)
+            if old := self.properties.get(iid):
+                p = {**old.raw, **p}
             prop = MiotProperty(p, self)
             if not prop.name:
                 continue
             self.properties[prop.iid] = prop
             self.spec.specs[prop.unique_prop] = prop
         for a in actions:
+            iid = int(a.get('iid') or 0)
+            if old := self.actions.get(iid):
+                a = {**old.raw, **a}
             act = MiotAction(a, self)
             if not act.name:
                 continue
@@ -361,14 +371,21 @@ class MiotService(MiotSpecInstance):
     def name_count(self):
         return self.spec.services_count.get(self.name) or 0
 
-    def mapping(self):
+    def mapping(self, excludes=None):
         dat = {}
+        if not isinstance(excludes, list):
+            excludes = []
         for p in self.properties.values():
             if not isinstance(p, MiotProperty):
                 continue
             if not p.full_name:
                 continue
             if not p.readable and not p.writeable:
+                continue
+            if p.name in excludes \
+                    or p.full_name in excludes \
+                    or p.friendly_name in excludes \
+                    or p.unique_prop in excludes:
                 continue
             dat[p.full_name] = {
                 'siid': self.iid,
@@ -457,6 +474,7 @@ class MiotProperty(MiotSpecInstance):
         self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
         self.unique_prop = self.service.unique_prop(piid=self.iid)
         self.desc_name = self.format_desc_name(self.description, self.name)
+        self.friendly_name = f'{service.name}.{self.name}'
         self.friendly_desc = self.short_desc
         self.format = dat.get('format') or ''
         self.access = dat.get('access') or []
@@ -468,7 +486,7 @@ class MiotProperty(MiotSpecInstance):
             if self.name == service.name:
                 self.full_name = self.name
             else:
-                self.full_name = f'{service.name}.{self.name}'
+                self.full_name = self.friendly_name
             if service.name_count > 1:
                 self.full_name = f'{service.unique_name}.{self.name}'
             if self.full_name in service.spec.services_properties:
@@ -487,8 +505,8 @@ class MiotProperty(MiotSpecInstance):
 
     @property
     def short_desc(self):
-        sde = self.service.description.strip()
-        pde = self.description.strip()
+        sde = (self.service.description or self.service.name).strip()
+        pde = (self.description or self.name).strip()
         des = pde
         if sde != pde:
             des = f'{sde} {pde}'.strip()
@@ -564,7 +582,7 @@ class MiotProperty(MiotSpecInstance):
             if val is None:
                 if des == '':
                     des = v.get('value')
-                rls.append(des)
+                rls.append(str(des))
             elif val == v.get('value'):
                 return des
         if self.value_range:
@@ -572,7 +590,7 @@ class MiotProperty(MiotSpecInstance):
                 # range to list
                 return self.list_descriptions()
             else:
-                return val
+                return str(val)
         return rls if val is None else None
 
     def list_descriptions(self, max_length=200):
@@ -762,11 +780,11 @@ class MiotProperty(MiotSpecInstance):
         cate = None
         name = self.name
         names = {
-            'battery_level': ENTITY_CATEGORY_DIAGNOSTIC,
-            'countdown_time': ENTITY_CATEGORY_CONFIG,
-            'fan_init_power_opt': ENTITY_CATEGORY_CONFIG,
-            'init_power_opt': ENTITY_CATEGORY_CONFIG,
-            'off_delay_time': ENTITY_CATEGORY_CONFIG,
+            'battery_level': EntityCategory.DIAGNOSTIC.value,
+            'countdown_time': EntityCategory.CONFIG.value,
+            'fan_init_power_opt': EntityCategory.CONFIG.value,
+            'init_power_opt': EntityCategory.CONFIG.value,
+            'off_delay_time': EntityCategory.CONFIG.value,
         }
         if name in names:
             cate = names[name]
@@ -900,7 +918,9 @@ class MiotResult:
 
     @property
     def is_success(self):
-        return self.code == 0
+        # 0: successful
+        # 1: operation not completed
+        return self.code in [0, 1]
 
     @property
     def spec_error(self):

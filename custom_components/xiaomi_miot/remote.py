@@ -47,9 +47,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
     config['hass'] = hass
     model = str(config.get(CONF_MODEL) or '')
+    spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
-    if miot := config.get('miot_type'):
-        spec = await MiotSpec.async_from_type(hass, miot)
+    if isinstance(spec, MiotSpec):
         if spec.name in ['remote_control', 'ir_remote_control']:
             if 'chuangmi.remote.' in model or 'chuangmi.ir.' in model:
                 entities.append(MiotRemoteEntity(config, spec))
@@ -100,7 +100,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                 })
                 add_selects = self._add_entities.get('select')
                 if not kys:
-                    self.logger.info('%s: IR device %s(%s) have no keys: %s', self.name, ird, d.get('name'), rdt)
+                    self.logger.info('%s: IR device %s(%s) have no keys: %s', self.name_model, ird, d.get('name'), rdt)
                 elif add_selects and ird not in self._subs:
                     from .select import SelectSubEntity
                     ols = []
@@ -135,9 +135,9 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                         ret = self.send_cloud_command(did, cmd)
                     else:
                         ret = self._device.play(cmd)
-                    self.logger.info('%s: Send IR command %s(%s) result: %s', self.name, cmd, kwargs, ret)
+                    self.logger.info('%s: Send IR command %s(%s) result: %s', self.name_model, cmd, kwargs, ret)
                 except (DeviceException, MiCloudException) as exc:
-                    self.logger.error('%s: Send IR command %s(%s) failed: %s', self.name, cmd, kwargs, exc)
+                    self.logger.error('%s: Send IR command %s(%s) failed: %s', self.name_model, cmd, kwargs, exc)
                 time.sleep(delays)
 
     def send_cloud_command(self, did, command):
@@ -149,7 +149,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         except (TypeError, ValueError):
             key = None
         if not did or not key:
-            self.logger.warning('%s: IR command %s to %s invalid for cloud.', self.name, command, did)
+            self.logger.warning('%s: IR command %s to %s invalid for cloud.', self.name_model, command, did)
             return False
         mic = self.miot_cloud
         if not mic:
@@ -159,7 +159,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
             'key_id': key,
         }) or {}
         if res.get('code'):
-            self.logger.warning('%s: Send IR command %s(%s) failed: %s', self.name, command, did, res)
+            self.logger.warning('%s: Send IR command %s(%s) failed: %s', self.name_model, command, did, res)
         return res
 
     async def async_send_command(self, command, **kwargs):
@@ -175,7 +175,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
             return self._device.learn(key)
         except (TypeError, ValueError, DeviceException) as exc:
             self.logger.warning('%s: Learn command failed: %s, the device ID is used to store command '
-                                'and must between 1 and 1000000.', self.name, exc)
+                                'and must between 1 and 1000000.', self.name_model, exc)
         return False
 
     def delete_command(self, **kwargs):

@@ -1,0 +1,742 @@
+{
+  "chuangmi.plug.hmi208": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:temperature",
+          "description": "Temperature",
+          "format": "float",
+          "access": ["read"],
+          "unit": "celsius",
+          "value-range": [-40, 125, 0.1]
+        }
+      ]
+    }
+  ],
+
+  "chunmi.cooker.eh1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "value-list": [
+            {"value": 1, "description": "Idle"},
+            {"value": 2, "description": "Running"},
+            {"value": 3, "description": "Keep Warm"},
+            {"value": 4, "description": "Cook Reservation"},
+            {"value": 5, "description": "Setting"},
+            {"value": 6, "description": "Setting"},
+            {"value": 7, "description": "Setting"},
+            {"value": 8, "description": "Error"},
+            {"value": 9, "description": "Finish"}
+          ]
+        },
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:menu",
+          "format": "string",
+          "access": ["read"]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:left_time",
+          "unit": "seconds",
+          "format": "uint32",
+          "access": ["read"],
+          "value-range": [0, 65535, 1]
+        }
+      ]
+    }
+  ],
+
+  "chunmi.ihcooker.chefnic": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "access": ["read", "notify"]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:action:cancel-cooking",
+          "description": "Cancel Cooking",
+          "in": [],
+          "out": []
+        }
+      ]
+    }
+  ],
+
+  "dreame.vacuum.mc1808": [
+    {
+      "iid": 18,
+      "properties": [
+        {
+          "iid": 9,
+          "access": ["read", "notify"]
+        }
+      ]
+    }
+  ],
+
+  "lumi.airer.acn01": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:dry_mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "off"},
+            {"value": 1, "description": "dry"},
+            {"value": 2, "description": "winddry"}
+          ]
+        }
+      ]
+    }
+  ],
+
+  "deerma.humidifier.jsq": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:target-humidity",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [40, 99, 1]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:water-status",
+          "format": "bool",
+          "access": ["read"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:tank-status",
+          "format": "bool",
+          "access": ["read"]
+        },
+        {
+          "iid": 104,
+          "type": "urn:miot-spec-v2:property:fan-level",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Medium"},
+            {"value": 3, "description": "High"},
+            {"value": 4, "description": "ConstHumidity"}
+          ]
+        }
+      ]
+    }
+  ],
+  "deerma.humidifier.jsq1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:target-humidity",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [1, 99, 1]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:water-status",
+          "format": "bool",
+          "access": ["read"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:tank-status",
+          "format": "bool",
+          "access": ["read"]
+        }
+      ]
+    }
+  ],
+  "deerma.humidifier.mjjsq": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:water-status",
+          "format": "bool",
+          "access": ["read"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:tank-status",
+          "format": "bool",
+          "access": ["read"]
+        }
+      ]
+    }
+  ],
+
+  "rockrobo.vacuum.v1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "value-range": [10, 100, 10]
+        }
+      ]
+    }
+  ],
+
+  "shuii.humidifier.jsq002": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 5,
+          "access": ["read", "notify"]
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 1,
+          "access": ["read", "notify"]
+        },
+        {
+          "iid": 2,
+          "access": ["read", "notify"]
+        }
+      ]
+    }
+  ],
+
+  "tinymu.toiletlid.v1": [
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:status",
+          "format": "uint8",
+          "access": ["read"],
+          "value-list": [
+            {"value": 0, "description": "idle"},
+            {"value": 1, "description": "occupied"},
+            {"value": 2, "description": "rear_cleanse"},
+            {"value": 3, "description": "front_cleanse"},
+            {"value": 6, "description": "nozzle_clean"}
+          ]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:seating-state",
+          "format": "bool",
+          "access": ["read"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:ambient-light",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "White"},
+            {"value": 1, "description": "Yellow"},
+            {"value": 2, "description": "Pink"},
+            {"value": 3, "description": "Green"},
+            {"value": 4, "description": "Violet"},
+            {"value": 5, "description": "Blue"},
+            {"value": 6, "description": "Orange"},
+            {"value": 7, "description": "Red"}
+          ]
+        }
+      ]
+    }
+  ],
+
+  "viomi.vacuum.v7": [
+    {
+      "iid": 200,
+      "type": "urn:viomi-spec:service:viomi-vacuum",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:viomi-spec:property:main-brush-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 202,
+          "type": "urn:viomi-spec:property:side-brush-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 203,
+          "type": "urn:viomi-spec:property:hypa-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 204,
+          "type": "urn:viomi-spec:property:mop-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    }
+  ],
+  "viomi.vacuum.v8": [
+    {
+      "iid": 200,
+      "type": "urn:viomi-spec:service:viomi-vacuum",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:viomi-spec:property:main-brush-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 202,
+          "type": "urn:viomi-spec:property:side-brush-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 203,
+          "type": "urn:viomi-spec:property:hypa-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 204,
+          "type": "urn:viomi-spec:property:mop-life",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    }
+  ],
+
+  "viomi.waterheater.e1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "access": ["read", "notify"]
+        },
+        {
+          "iid": 5,
+          "access": ["read", "notify"]
+        }
+      ]
+    }
+  ],
+  "viomi.waterheater.u1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 6,
+          "access": ["read", "write", "notify"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:water-velocity",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "L/min",
+          "value-range": [0, 255, 1]
+        }
+      ]
+    }
+  ],
+  "viomi.waterheater.u8": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 3,
+          "access": ["read", "notify"]
+        },
+        {
+          "iid": 5,
+          "access": ["read", "write", "notify"]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+              {"value": 0, "description": "Custom"},
+              {"value": 1, "description": "Children"},
+              {"value": 2, "description": "Comfortable"},
+              {"value": 3, "description": "Old Man"},
+              {"value": 4, "description": "Kitchen"}
+          ]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:water-velocity",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "L/min",
+          "value-range": [0, 255, 1]
+        }
+      ]
+    },
+    {
+      "iid": 200,
+      "type": "urn:miot-spec-v2:service:cruise-appointmen",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:on",
+          "format": "bool",
+          "access": ["read", "write"]
+        }
+      ]
+    }
+  ],
+  "viomi.waterheater.u12": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Custom"},
+            {"value": 1, "description": "Children"},
+            {"value": 2, "description": "Comfortable"},
+            {"value": 3, "description": "Old Man"},
+            {"value": 4, "description": "Kitchen"}
+          ]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:water-velocity",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "L/min",
+          "value-range": [0, 255, 1]
+        }
+      ]
+    },
+    {
+      "iid": 200,
+      "type": "urn:miot-spec-v2:service:cruise-appointmen",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:on",
+          "format": "bool",
+          "access": ["read", "write", "notify"]
+        }
+      ]
+    }
+  ],
+
+  "xiaomi.wifispeaker.x08c": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "value-list": [
+            {"value": 0, "description": "Playing"},
+            {"value": 1, "description": "Pause"}
+          ]
+        }
+      ]
+    }
+  ],
+
+  "yeelink.bhf_light.v5": [
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 1,
+          "value-list": [
+            {"value": 1, "description": "Dry"},
+            {"value": 2, "description": "Defog"},
+            {"value": 3, "description": "Quick Defog"},
+            {"value": 4, "description": "Quick Heat"},
+            {"value": 5, "description": "Idle"},
+            {"value": 6, "description": "Heat"},
+            {"value": 7, "description": "Fan"},
+            {"value": 8, "description": "Ventilate"}
+          ]
+        },
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:fan-level",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 1, "description": "Low"},
+            {"value": 3, "description": "High"}
+          ]
+        },
+        {
+          "iid": 111,
+          "type": "urn:miot-spec-v2:property:heat-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "High"}
+          ]
+        },
+        {
+          "iid": 112,
+          "type": "urn:miot-spec-v2:property:cold-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 3, "description": "High"}
+          ]
+        },
+        {
+          "iid": 113,
+          "type": "urn:miot-spec-v2:property:vent-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 3, "description": "High"}
+          ]
+        }
+      ]
+    }
+  ],
+  "yeelink.bhf_light.v6": [
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 1,
+          "value-list": [
+            {"value": 0, "description": "Idle"},
+            {"value": 1, "description": "Fan"},
+            {"value": 2, "description": "Heat"},
+            {"value": 3, "description": "Ventilate"},
+            {"value": 4, "description": "Dry"},
+            {"value": 5, "description": "Defog"},
+            {"value": 6, "description": "Quick Heat"},
+            {"value": 7, "description": "Quick Defog"}
+          ]
+        },
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:fan-level",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 1, "description": "Low"},
+            {"value": 3, "description": "High"}
+          ]
+        },
+        {
+          "iid": 111,
+          "type": "urn:miot-spec-v2:property:heat-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "High"}
+          ]
+        },
+        {
+          "iid": 112,
+          "type": "urn:miot-spec-v2:property:cold-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 3, "description": "High"}
+          ]
+        },
+        {
+          "iid": 113,
+          "type": "urn:miot-spec-v2:property:vent-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "Low"},
+            {"value": 3, "description": "High"}
+          ]
+        }
+      ]
+    }
+  ],
+
+  "yeelink.light.color1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:nl_br",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [1, 100, 1]
+        }
+      ]
+    },
+    {
+      "iid": 200,
+      "type": "urn:miot-spec-v2:service:extend",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:delayoff",
+          "format": "string",
+          "access": ["read", "write"]
+        }
+      ]
+    }
+  ],
+  "yeelink.light.fancl5": [
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 4,
+          "value-list": [
+            {"value": 0, "description": "Basic Wind"},
+            {"value": 1, "description": "Circular Wind"}
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 6,
+      "properties": [
+        {
+          "iid": 7,
+          "value-list": [
+            {"value": 0, "description": "Basic Wind"},
+            {"value": 1, "description": "Circular Wind"}
+          ]
+        }
+      ]
+    }
+  ],
+
+  "yunmi.waterpuri.lx5": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:rinse",
+          "format": "uint8",
+          "access": ["read"],
+          "value-list": [
+            {"value": 0, "description": "Off"},
+            {"value": 1, "description": "On"}
+          ]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:light_mode",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:tds_warn_thd",
+          "format": "uint16",
+          "access": ["read", "write"],
+          "value-range": [5, 50, 5]
+        }
+      ]
+    }
+  ],
+
+  "yyunyi.wopener.yypy24": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 3,
+          "unit": "cm/s"
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:motor_reverse",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:clamp_strength",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "kg",
+          "value-range": [3, 13, 2]
+        }
+      ]
+    }
+  ],
+
+  "zhimi.fan.za4": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "value-range": [1, 100, 1]
+        }
+      ]
+    }
+  ]
+
+}

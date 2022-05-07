@@ -1,16 +1,18 @@
 {
   "name": "Xiaomi Miot Auto",
   "domain": "xiaomi_miot",
-  "version": "0.5.1",
+  "version": "0.6.2",
   "config_flow": true,
   "iot_class": "cloud_polling",
   "documentation": "https://github.com/al-one/hass-xiaomi-miot",
   "issue_tracker": "https://github.com/al-one/hass-xiaomi-miot/issues",
   "codeowners": ["@al-one"],
   "dependencies": [
+    "http",
     "persistent_notification",
     "ffmpeg"
   ],
+  "after_dependencies": ["homekit"],
   "requirements": [
     "construct==2.10.56",
     "python-miio>=0.5.6",
