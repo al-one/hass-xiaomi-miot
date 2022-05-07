@@ -1058,6 +1058,7 @@ class MiotEntity(MiioEntity):
         await super().async_added_to_hass()
         if not self._miot_service:
             return
+        self._vars['ignore_offline'] = self.custom_config_bool('ignore_offline')
 
     @property
     def miot_device(self):
@@ -1292,14 +1293,15 @@ class MiotEntity(MiioEntity):
                     self.name_model, exc, mapping,
                 )
 
+        self._vars.setdefault('offline_times', 0)
         result = MiotResults(results, mapping)
         if not result.is_valid:
             self._available = False
             if errors and is_offline_exception(errors):
                 self.hass.data[DOMAIN].setdefault('offline_devices', {})
                 odd = self.hass.data[DOMAIN]['offline_devices'].get(self.unique_did) or {}
-                self._vars.setdefault('offline_times', 0)
-                self._vars['offline_times'] += 1
+                if not self._vars.get('ignore_offline'):
+                    self._vars['offline_times'] += 1
                 if odd:
                     odd.update({
                         'occurrences': self._vars['offline_times'],
@@ -1339,6 +1341,7 @@ class MiotEntity(MiioEntity):
                     self.name_model, results, mapping,
                 )
             return False
+        self._vars['offline_times'] = 0
         attrs.update(result.to_attributes(self._state_attrs))
         attrs['state_updater'] = updater
         self._available = True
