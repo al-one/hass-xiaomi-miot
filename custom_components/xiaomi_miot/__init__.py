@@ -1320,8 +1320,12 @@ class MiotEntity(MiioEntity):
                         if not ent:
                             continue
                         tip += f'\n - {ent.name_model}: {ent.device_host}'
+                    tip += '\n\n'
+                    url = 'https://github.com/al-one/hass-xiaomi-miot/search' \
+                          '?type=issues&q=%22Unable+to+discover+the+device%22'
+                    tip += f'[Known issues]({url})'
                     url = 'https://github.com/al-one/hass-xiaomi-miot/issues/500#offline'
-                    tip += f'\n\n[Known issues | 了解更多]({url})'
+                    tip += f' | [了解更多]({url})'
                     persistent_notification.async_create(
                         self.hass,
                         tip,
