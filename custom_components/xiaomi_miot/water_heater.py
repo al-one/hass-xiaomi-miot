@@ -86,7 +86,6 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                     await self.async_update_attrs({
                         self._prop_power.full_name: not off,
                     })
-            self._update_sub_entities(self._prop_power.name, domain='switch')
 
     @property
     def state(self):
