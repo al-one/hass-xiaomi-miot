@@ -21,6 +21,7 @@ from homeassistant.helpers.entity import (
     Entity,
     ToggleEntity,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.components import persistent_notification
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.reload import async_integration_yaml_config
@@ -518,8 +519,11 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
     async def updated(event: hass_core.Event):
         if event.data['action'] != 'update':
             return
-        registry = hass.data['device_registry']
-        device = registry.async_get(event.data['device_id'])
+        registry: dr.DeviceRegistry = hass.data['device_registry']
+        device_id = event.data.get('device_id')
+        if device_id not in registry.devices:
+            return
+        device = registry.async_get(device_id)
         if not device or not device.identifiers:
             return
         identifier = next(iter(device.identifiers))
@@ -529,6 +533,33 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
             # remove from Hass
             registry.async_remove_device(device.id)
     hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, updated)
+
+
+async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, entry: ConfigEntry, device: dr.DeviceEntry):
+    """Supported from Hass v2022.3"""
+    dvc = None
+    identifier = next(iter(device.identifiers))
+    if len(identifier) >= 2 and identifier[0] == DOMAIN:
+        mac = identifier[1].split('-')[0]
+        if mac:
+            dvc = hass.data[DOMAIN].get(entry.entry_id, {}).get('devices_by_mac', {}).get(mac.upper()) or {}
+    data = {**entry.data, **entry.options}
+    for typ in (['did', 'model'] if dvc else []):
+        filter_typ = data.get(f'filter_{typ}')
+        filter_val = dvc.get(typ)
+        if not filter_val or not filter_typ:
+            continue
+        lst = data.get(f'{typ}_list') or []
+        if filter_typ == 'exclude':
+            lst = list({*lst, filter_val})
+        else:
+            lst = list({*lst}.difference({filter_val}))
+        data[f'{typ}_list'] = lst
+        hass.config_entries.async_update_entry(entry, data=data)
+        _LOGGER.info('Remove miot device: %s', [dvc])
+
+    dr.async_get(hass).async_remove_device(device.id)
+    return True
 
 
 class MiioInfo(MiioInfoBase):
