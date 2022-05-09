@@ -1541,7 +1541,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.3': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
             'prop.4.2': {'prop': 'f1_hour_used'},
             'prop.5.2': {'prop': 'led_b', 'setter': True},
-            'prop.8.1': {'prop': 'favorite_level', 'setter': True},
+            'prop.8.1': {'prop': 'favorite_level', 'setter': 'set_level_favorite'},
         },
     },
     'zhimi.airpurifier.m2': 'zhimi.airpurifier.m1',
@@ -1584,7 +1584,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.6.2': {'prop': 'led_b', 'setter': True},
             'prop.7.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
             'prop.8.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
-            'prop.9.1': {'prop': 'favorite_level', 'setter': True},
+            'prop.9.1': {'prop': 'favorite_level', 'setter': 'set_level_favorite'},
         },
     },
     'zhimi.airpurifier.v1': {
