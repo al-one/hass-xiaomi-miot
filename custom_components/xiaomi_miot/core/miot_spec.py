@@ -380,6 +380,7 @@ class MiotService(MiotSpecInstance):
         for p in properties:
             iid = int(p.get('iid') or 0)
             if old := self.properties.get(iid):
+                self.spec.services_properties.pop(old.full_name, None)
                 p = {**old.raw, **p}
             prop = MiotProperty(p, self)
             if not prop.name:
