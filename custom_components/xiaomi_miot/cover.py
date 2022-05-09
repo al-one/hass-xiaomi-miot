@@ -264,7 +264,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
 class MiotCoverSubEntity(MiotPropertySubEntity, CoverEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property, option)
+        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
         self._prop_status = self._option.get('status_property')
         if self._prop_status:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_status.full_name]

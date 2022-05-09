@@ -67,7 +67,7 @@ class MiotNumberEntity(MiotEntity, NumberEntity):
 
 class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property, option)
+        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
 
     @property
     def value(self):

@@ -2036,7 +2036,7 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
 
 
 class BaseSubEntity(BaseEntity):
-    def __init__(self, parent, attr, option=None):
+    def __init__(self, parent, attr, option=None, **kwargs):
         self.hass = parent.hass
         self._unique_id = f'{parent.unique_id}-{attr}'
         self._name = f'{parent.name} {attr}'
@@ -2054,17 +2054,8 @@ class BaseSubEntity(BaseEntity):
             self._unique_id = self._option.get('unique_id')
         if self._option.get('name'):
             self._name = self._option.get('name')
-        if self._option.get('entity_id'):
-            self.entity_id = self._option.get('entity_id')
-            if '.' not in self.entity_id:
-                self.entity_id = f'{DOMAIN}.{self.entity_id}'
-        elif hasattr(parent, 'entity_id_prefix'):
-            eip = getattr(parent, 'entity_id_prefix')
-            if eip:
-                suf = attr
-                if self._dict_key:
-                    suf = f'{suf}_{self._dict_key}'
-                self.entity_id = f'{eip}_{suf}'
+        self._option['domain'] = kwargs.get('domain')
+        self.generate_entity_id()
         self._supported_features = int(self._option.get('supported_features', 0))
         self._attr_entity_category = self._option.get('entity_category')
         self._extra_attrs = {
@@ -2073,6 +2064,28 @@ class BaseSubEntity(BaseEntity):
         }
         self._state_attrs = {}
         self._parent_attrs = {}
+
+    def generate_entity_id(self, domain=None):
+        entity_id = None
+        if self._option.get('entity_id'):
+            entity_id = self._option.get('entity_id')
+        elif not hasattr(self._parent, 'entity_id_prefix'):
+            pass
+        elif eip := self._parent.entity_id_prefix:
+            suf = self._attr
+            if self._dict_key:
+                suf = f'{suf}_{self._dict_key}'
+            entity_id = f'{eip}_{suf}'
+        if not domain:
+            domain = self._option.get('domain') or DOMAIN
+        if entity_id is None:
+            pass
+        elif f'{domain}.' in entity_id:
+            self.entity_id = entity_id
+        else:
+            if '.' in entity_id:
+                entity_id = hass_core.split_entity_id(entity_id)[1]
+            self.entity_id = f'{domain}.{entity_id}'
 
     @property
     def unique_id(self):
@@ -2189,7 +2202,7 @@ class BaseSubEntity(BaseEntity):
 
     def update_from_parent(self):
         self.update()
-        if self.hass:
+        if self.platform:
             self.async_write_ha_state()
 
     def update(self, data=None):
@@ -2251,16 +2264,18 @@ class BaseSubEntity(BaseEntity):
 
 
 class MiotPropertySubEntity(BaseSubEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None):
+    def __init__(self, parent, miot_property: MiotProperty, option=None, **kwargs):
         self._miot_service = miot_property.service
         self._miot_property = miot_property
-        super().__init__(parent, miot_property.full_name, option)
+        super().__init__(parent, miot_property.full_name, option, **kwargs)
 
         if not self._option.get('name'):
             self._name = self.format_name_by_property(miot_property)
         if not self._option.get('unique_id'):
             self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
-        self.entity_id = miot_property.generate_entity_id(self)
+        if not self._option.get('entity_id'):
+            self._option['entity_id'] = miot_property.generate_entity_id(self)
+        self.generate_entity_id()
         if not miot_property.readable:
             self._available = miot_property.writeable
         if 'icon' not in self._option:
@@ -2288,10 +2303,10 @@ class MiotPropertySubEntity(BaseSubEntity):
 
 
 class ToggleSubEntity(BaseSubEntity, ToggleEntity):
-    def __init__(self, parent, attr='power', option=None):
+    def __init__(self, parent, attr='power', option=None, **kwargs):
         self._prop_power = None
         self._reverse_state = None
-        super().__init__(parent, attr, option)
+        super().__init__(parent, attr, option, **kwargs)
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()

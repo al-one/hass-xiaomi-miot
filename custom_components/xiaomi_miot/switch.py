@@ -109,13 +109,17 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
 
 
 class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
+    def __init__(self, parent, attr='switch', option=None, **kwargs):
+        kwargs.setdefault('domain', ENTITY_DOMAIN)
+        super().__init__(parent, attr, option, **kwargs)
+
     def update(self, data=None):
         super().update(data)
 
 
 class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property, option)
+        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
         self._name = self.format_name_by_property(miot_property)
         self._prop_power = self._miot_service.get_property('on', 'power')
         if self._prop_power:
@@ -156,7 +160,7 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
 class MiotSwitchActionSubEntity(MiotPropertySubEntity, SwitchSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, miot_action: MiotAction, option=None):
         SwitchSubEntity.__init__(self, parent, miot_action.full_name, option)
-        super().__init__(parent, miot_property, option)
+        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
         self._miot_action = miot_action
         self._state = False
         if miot_action.name in ['pet_food_out']:

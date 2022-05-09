@@ -388,8 +388,9 @@ class MiotCookerEntity(MiotSensorEntity):
 
 
 class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
-    def __init__(self, parent, attr, option=None):
-        super().__init__(parent, attr, option)
+    def __init__(self, parent, attr, option=None, **kwargs):
+        kwargs.setdefault('domain', ENTITY_DOMAIN)
+        super().__init__(parent, attr, option, **kwargs)
         self._attr_state_class = self._option.get('state_class')
 
     @property
@@ -406,7 +407,7 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
 class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         self._attr_state_class = None
-        super().__init__(parent, miot_property, option)
+        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
 
         self._prop_battery = None
         for s in self._miot_service.spec.get_services('battery', self._miot_service.name):

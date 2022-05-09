@@ -270,7 +270,8 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
             **parent.miot_config,
             'name': f'{parent.device_name}',
         }, miot_service, device=parent.miot_device)
-        self.entity_id = miot_service.generate_entity_id(self)
+
+        self.entity_id = miot_service.generate_entity_id(self, domain=ENTITY_DOMAIN)
         self._prop_power = prop_power
         if parent_power:
             self._prop_power = parent_power

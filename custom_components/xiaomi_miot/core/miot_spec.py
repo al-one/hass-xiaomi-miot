@@ -209,7 +209,7 @@ class MiotSpec(MiotSpecInstance):
             return s
         return None
 
-    def generate_entity_id(self, entity, suffix=None):
+    def generate_entity_id(self, entity, suffix=None, domain=None):
         mod = f'{self.type}::::'.split(':')[5]
         if not mod:
             return None
@@ -218,7 +218,9 @@ class MiotSpec(MiotSpecInstance):
         if suffix:
             eid = f'{eid}_{suffix}'
         eid = re.sub(r'\W+', '_', eid).lower()
-        return f'{DOMAIN}.{eid}'
+        if not domain:
+            domain = DOMAIN
+        return f'{domain}.{eid}'
 
     @staticmethod
     async def async_from_model(hass, model, use_remote=False):
@@ -445,8 +447,8 @@ class MiotService(MiotSpecInstance):
     def unique_prop(self, **kwargs):
         return self.spec.unique_prop(self.iid, **kwargs)
 
-    def generate_entity_id(self, entity):
-        return self.spec.generate_entity_id(entity, self.description)
+    def generate_entity_id(self, entity, domain=None):
+        return self.spec.generate_entity_id(entity, self.desc_name, domain)
 
     @property
     def translation_keys(self):
@@ -527,8 +529,8 @@ class MiotProperty(MiotSpecInstance):
     def writeable(self):
         return 'write' in self.access
 
-    def generate_entity_id(self, entity):
-        eid = self.service.spec.generate_entity_id(entity, self.desc_name)
+    def generate_entity_id(self, entity, domain=None):
+        eid = self.service.spec.generate_entity_id(entity, self.desc_name, domain)
         eid = re.sub(r'_(\d(?:_|$))', r'\1', eid)  # issue#153
         return eid
 

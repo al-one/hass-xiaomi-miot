@@ -312,7 +312,8 @@ class MiotFanSubEntity(MiotFanEntity, ToggleSubEntity):
             **parent.miot_config,
             'name': f'{parent.device_name}',
         }, miot_service, device=parent.miot_device)
-        self.entity_id = miot_service.generate_entity_id(self)
+
+        self.entity_id = miot_service.generate_entity_id(self, domain=ENTITY_DOMAIN)
         self._prop_power = prop_power
         if parent_power:
             self._prop_power = parent_power
@@ -382,7 +383,7 @@ class FanSubEntity(ToggleSubEntity, FanEntity):
 class MiotModesSubEntity(MiotPropertySubEntity, FanSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         FanSubEntity.__init__(self, parent, miot_property.full_name, option)
-        super().__init__(parent, miot_property, option)
+        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
         self._prop_power = self._option.get('power_property')
         if self._prop_power:
             self._option['keys'] = [self._prop_power.full_name, *(self._option.get('keys') or [])]

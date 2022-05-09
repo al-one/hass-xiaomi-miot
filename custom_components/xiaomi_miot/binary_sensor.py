@@ -377,4 +377,4 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
 class MiotBinarySensorSubEntity(MiotPropertySubEntity, ToggleSubEntity, BinarySensorEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         ToggleSubEntity.__init__(self, parent, miot_property.full_name, option)
-        super().__init__(parent, miot_property, option)
+        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)

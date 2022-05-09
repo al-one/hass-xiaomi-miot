@@ -565,7 +565,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
 
 class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
     def __init__(self, parent, hass: HomeAssistant, option=None):
-        super().__init__(parent, 'motion_event', option)
+        super().__init__(parent, 'motion_event', option, domain=ENTITY_DOMAIN)
         BaseCameraEntity.__init__(self, hass)
         self._available = True
         self._supported_features |= SUPPORT_STREAM
