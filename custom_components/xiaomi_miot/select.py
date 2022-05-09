@@ -92,9 +92,9 @@ class MiotActionsEntity(MiotSelectEntity):
         return ret
 
 
-class MiotSelectSubEntity(MiotPropertySubEntity, SelectEntity):
+class MiotSelectSubEntity(SelectEntity, MiotPropertySubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
+        MiotPropertySubEntity.__init__(self, parent, miot_property, option, domain=ENTITY_DOMAIN)
         self._attr_options = miot_property.list_descriptions()
 
     def update(self, data=None):
