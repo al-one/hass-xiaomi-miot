@@ -161,9 +161,9 @@ class MiotSwitchActionSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         self._state = False
         if miot_action.name in ['pet_food_out']:
             self._option['icon'] = 'mdi:shaker'
-        self.update_attrs({
+        self._state_attrs.update({
             'miot_action': miot_action.full_name,
-        }, update_parent=False)
+        })
 
     def update(self, data=None):
         self._state = False

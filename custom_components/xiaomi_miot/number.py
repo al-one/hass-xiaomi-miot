@@ -106,9 +106,9 @@ class MiotNumberActionSubEntity(MiotNumberSubEntity):
         super().__init__(parent, miot_property, option)
         self._miot_action = miot_action
         self._value = 0
-        self.update_attrs({
+        self._state_attrs.update({
             'miot_action': miot_action.full_name,
-        }, update_parent=False)
+        })
 
     def update(self, data=None):
         self._available = True

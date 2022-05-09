@@ -315,8 +315,6 @@ class MiotCookerEntity(MiotSensorEntity):
                 'mode', 'cook_mode', 'heat_level', 'target_time', 'target_temperature',
             )
             for p in pls:
-                if not (p.writeable or self._action_start):
-                    continue
                 opt = None
                 if p.name in self._subs:
                     self._subs[p.name].update_from_parent()
@@ -329,6 +327,8 @@ class MiotCookerEntity(MiotSensorEntity):
                     )
                     if p.writeable:
                         self._subs[p.name] = MiotSelectSubEntity(self, p)
+                    elif not self._action_start:
+                        continue
                     elif p.iid in self._action_start.ins:
                         if self._action_cancel:
                             opt = {

@@ -131,9 +131,9 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
         if self._extra_actions:
             self._attr_options.extend(self._extra_actions.keys())
 
-        self.update_attrs({
+        self._state_attrs.update({
             'miot_action': miot_action.full_name,
-        }, update_parent=False)
+        })
 
     def update(self, data=None):
         self._available = True

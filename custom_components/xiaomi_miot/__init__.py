@@ -2225,7 +2225,8 @@ class BaseSubEntity(BaseEntity):
         if update_parent:
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
-        if self.hass:
+        if self.hass and self.platform:
+            # don't set state before added to hass
             self.async_write_ha_state()
         return self._state_attrs
 
