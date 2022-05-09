@@ -1,5 +1,5 @@
 import logging
-import requests
+import asyncio
 import platform
 import random
 import time
@@ -7,6 +7,7 @@ import re
 
 from homeassistant.const import *
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     DOMAIN,
@@ -231,7 +232,6 @@ class MiotSpec(MiotSpecInstance):
     async def async_get_model_type(hass, model, use_remote=False):
         if not model:
             return None
-        url = 'https://miot-spec.org/miot-spec-v2/instances?status=all'
         fnm = f'{DOMAIN}/instances.json'
         store = Store(hass, 1, fnm)
         cached = await store.async_load() or {}
@@ -244,8 +244,8 @@ class MiotSpec(MiotSpecInstance):
                 dat = {}
         if not dat:
             try:
-                res = await hass.async_add_executor_job(requests.get, url)
-                dat = res.json() or {}
+                url = '/miot-spec-v2/instances?status=all'
+                dat = await MiotSpec.async_download_miot_spec(hass, url, tries=3, timeout=60)
                 if dat:
                     sdt = {
                         '_updated_time': now,
@@ -266,7 +266,7 @@ class MiotSpec(MiotSpecInstance):
                         'Renew miot spec instances: %s, count: %s, model: %s',
                         fnm, len(sdt) - 1, model,
                     )
-            except (TypeError, ValueError, requests.exceptions.ConnectionError) as exc:
+            except (TypeError, ValueError, BaseException) as exc:
                 if not cached:
                     raise exc
                 dat = cached
@@ -283,7 +283,6 @@ class MiotSpec(MiotSpecInstance):
 
     @staticmethod
     async def async_from_type(hass, typ):
-        url = f'https://miot-spec.org/miot-spec-v2/instance?type={typ}'
         fnm = f'{DOMAIN}/{typ}.json'
         if platform.system() == 'Windows':
             fnm = fnm.replace(':', '_')
@@ -292,23 +291,24 @@ class MiotSpec(MiotSpecInstance):
         dat = cached
         ptm = dat.pop('_updated_time', 0)
         now = int(time.time())
-        day = 2
+        ttl = 60
         if dat.get('services'):
-            day = random.randint(30, 50)
-        if dat and now - ptm > 86400 * day:
+            ttl = 86400 * random.randint(30, 50)
+        if dat and now - ptm > ttl:
             dat = {}
         if not dat.get('type'):
             try:
-                res = await hass.async_add_executor_job(requests.get, url)
-                dat = res.json() or {}
+                url = f'/miot-spec-v2/instance?type={typ}'
+                dat = await MiotSpec.async_download_miot_spec(hass, url, tries=3)
                 dat['_updated_time'] = now
                 await store.async_save(dat)
-            except (TypeError, ValueError, requests.exceptions.ConnectionError) as exc:
+            except (TypeError, ValueError, BaseException) as exc:
                 if cached:
                     dat = cached
                 else:
                     dat = {
                         'type': typ or 'unknown',
+                        'exception': f'{exc}',
                         '_updated_time': now,
                     }
                     await store.async_save(dat)
@@ -333,6 +333,33 @@ class MiotSpec(MiotSpecInstance):
         if valid and not iid:
             return None
         return f'{typ}.{siid}.{iid}'
+
+    @staticmethod
+    async def async_download_miot_spec(hass, path, tries=1, timeout=30):
+        session = async_get_clientsession(hass)
+        hosts = [
+            'https://miot-spec.org',
+            'https://spec.miot-spec.com',
+        ]
+        exception = None
+        while tries > 0:
+            for host in hosts:
+                url = f'{host}{path}'
+                try:
+                    request = await session.get(url=url, timeout=timeout)
+                    if request.status == 200:
+                        return await request.json() or {}
+                    raise UserWarning(f'Got status code {request.status} when trying to request {url}')
+                except asyncio.TimeoutError as exc:
+                    exception = exc
+                    _LOGGER.warning('Timeout when trying to request %s', url)
+                except BaseException as exc:
+                    exception = exc
+                    _LOGGER.warning('Got exception %s when trying to request %s', exc, url)
+            tries -= 1
+            await asyncio.sleep(1)
+        if exception:
+            raise exception
 
 
 # https://miot-spec.org/miot-spec-v2/spec/services
