@@ -411,10 +411,7 @@ class MiotService(MiotSpecInstance):
                 continue
             if not p.readable and not p.writeable:
                 continue
-            if p.name in excludes \
-                    or p.full_name in excludes \
-                    or p.friendly_name in excludes \
-                    or p.unique_prop in excludes:
+            if p.in_list(excludes):
                 continue
             dat[p.full_name] = {
                 'siid': self.iid,
@@ -426,7 +423,7 @@ class MiotService(MiotSpecInstance):
         return [
             p
             for p in self.properties.values()
-            if p.name in args or p.full_name in args or p.desc_name in args
+            if p.in_list(args)
         ]
 
     def get_property(self, *args, only_format=None):
@@ -434,7 +431,7 @@ class MiotService(MiotSpecInstance):
             only_format = only_format if isinstance(only_format, list) else [only_format]
         for a in args:
             for p in self.properties.values():
-                if a not in [p.name, p.desc_name]:
+                if not p.in_list([a]):
                     continue
                 if only_format and p.format not in only_format:
                     continue
@@ -448,12 +445,12 @@ class MiotService(MiotSpecInstance):
         return [
             a
             for a in self.actions.values()
-            if a.name in args or a.full_name in args
+            if a.in_list(args)
         ]
 
     def get_action(self, *args):
         for a in self.actions.values():
-            if a.name in args:
+            if a.in_list(args):
                 return a
         return None
 
@@ -531,6 +528,14 @@ class MiotProperty(MiotSpecInstance):
                 'siid': self.siid,
                 'piid': self.iid,
             }
+
+    def in_list(self, lst):
+        return self.name in lst \
+            or self.desc_name in lst \
+            or self.friendly_name in lst \
+            or self.unique_name in lst \
+            or self.unique_prop in lst \
+            or self.full_name in lst
 
     @property
     def short_desc(self):
@@ -829,9 +834,17 @@ class MiotAction(MiotSpecInstance):
         self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
         self.unique_prop = self.service.unique_prop(aiid=self.iid)
         self.full_name = f'{service.name}.{self.name}'
+        self.friendly_name = f'{service.name}.{self.name}'
         self.friendly_desc = self.get_translation(self.description or self.name)
         self.ins = dat.get('in') or []
         self.out = dat.get('out') or []
+
+    def in_list(self, lst):
+        return self.name in lst \
+            or self.friendly_name in lst \
+            or self.unique_name in lst \
+            or self.unique_prop in lst \
+            or self.full_name in lst
 
     def in_params_from_attrs(self, dat: dict, with_piid=True):
         pms = []
