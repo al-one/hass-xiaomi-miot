@@ -161,8 +161,8 @@ xiaomi_miot:
 ```
 
 ### YAML configuration reloading
-Starting from the v0.4.16 version, the component has added support for configuration reloading (to avoid having to restart [HomeAssistant](https://www.home-assistant.io) instance after a YAML configuration change):
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Settings > [🖥️ Server Controls](https://my.home-assistant.io/redirect/server_controls) > YAML configuration reloading > 🔍 Look for `Xiaomi Miot Auto` (almost at the bottom of the list)
+This component has added support for configuration reloading (to avoid having to restart [HomeAssistant](https://www.home-assistant.io) instance after a YAML configuration change):
+> [🔨 Developer tools](https://my.home-assistant.io/redirect/developer_states) > [YAML Configuration](https://my.home-assistant.io/redirect/server_controls) > YAML configuration reloading > 🔍 Look for `Xiaomi Miot Auto` (almost at the bottom of the list)
 
 
 ## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)

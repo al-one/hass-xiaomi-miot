@@ -19,6 +19,7 @@
 ## 常见问题
 - 👍 **[新手入门手把手教程1](https://mp.weixin.qq.com/s/1y_EV6xcg17r743aV-2eRw)** (感谢@来鸭大佬)
 - 👍 **[新手入门手把手教程2](https://bbs.iobroker.cn/t/topic/10831)** (感谢@萝卜大佬)
+- [登录失败/没有实体等常见问题解决办法](https://github.com/al-one/hass-xiaomi-miot/issues/500)
 - [支持哪些设备？是否支持XX型号？](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855183145)
 - [账号集成还是token集成？](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855183156)
 - [为什么XX型号的设备需要开启云端模式？如何开启？](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855185251)
@@ -42,11 +43,15 @@
 wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | bash -
 
 # 如果遇到下载缓慢或下载失败可以执行下面的命令
-wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HUB_DOMAIN=hub.fastgit.org bash -
+wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HUB_DOMAIN=hub.fastgit.xyz bash -
+
+# 或者
+wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | HUB_DOMAIN=ghproxy.com/github.com bash -
 ```
 
 > 或者通过[HACS](https://hacs.xyz)搜索`Xiaomi Miot Auto`安装
 
+- 📺 **[HACS安装插件及使用视频教程](https://www.bilibili.com/video/BV1hY4y1a7Gh?t=48)** (感谢[小帅同学Js](https://space.bilibili.com/230242045))
 - 📺 **[HACS安装插件视频教程](https://www.bilibili.com/video/BV17L411j73Y?t=62)** (感谢[@老明](https://space.bilibili.com/583175067))
 - 📺 **[手动安装插件视频教程](https://www.bilibili.com/video/BV1EU4y1n7VR)** (感谢[@爱运动的数码君](https://space.bilibili.com/39480347))
 
@@ -171,6 +176,11 @@ cover.your_entity_id:
 
 media_player.mitv_entity_id:
   bind_xiaoai: media_player.xiaoai_entity_id # 绑定小爱音箱以打开电视
+  turn_off_screen: true   # 关闭电视/投影时发送熄屏指令
+  screenshot_compress: 20 # 指定电视/投影屏幕截图的压缩率 默认为50%，100时质量最高
+  sources_via_apps: 桌面,米家,百度网盘,设置 # 将电视内的APP添加到输入源列表
+  sources_via_keycodes: menu,enter,back # 将电视遥控按键添加到输入源列表
+  mitv_lan_host: 192.168.31.66 # 指定小米电视的局域网IP
 
 domain.your_entity_id_xxxx:
   interval_seconds: 30 # 每次更新状态间隔秒数(需重载集成配置)
@@ -194,8 +204,8 @@ xiaomi_miot:
 
 <a name="yaml-configuration-reloading"></a>
 ### YAML配置重载
-自v0.4.16版本开始，本插件支持配置重载(修改YAML配置后无需重启[HomeAssistant](https://www.home-assistant.io)):
-> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设置 > [🖥️ 服务控制](https://my.home-assistant.io/redirect/server_controls) > 配置重载 > 🔍 `重载 XIAOMI MIOT AUTO`
+本插件支持配置重载(修改YAML配置后无需重启[HomeAssistant](https://www.home-assistant.io)):
+> [🔨 开发者工具](https://my.home-assistant.io/redirect/developer_states) > [YAML 重载](https://my.home-assistant.io/redirect/server_controls) > 配置重载 > 🔍 `重载 XIAOMI MIOT AUTO`
 
 
 <a name="supported-devices"></a>
