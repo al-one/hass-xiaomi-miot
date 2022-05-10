@@ -469,7 +469,9 @@ DEVICE_CUSTOMIZES = {
     },
     'yeelink.light.nl1': {
         'use_ble_object': True,
+        'motion_timeout': 120,
         'interval_seconds': 15,
+        'sensor_attributes': 'no_motion_seconds',
     },
     'yeelink.light.stripa': {
         'chunk_properties': 2,

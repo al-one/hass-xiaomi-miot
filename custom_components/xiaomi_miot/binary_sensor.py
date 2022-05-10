@@ -120,10 +120,8 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
         if rev is not None:
             self._vars['reverse_state'] = rev
 
-    async def async_update(self):
-        await super().async_update()
-        if not self._available:
-            return
+    async def async_update_for_main_entity(self):
+        await super().async_update_for_main_entity()
         self._update_sub_entities(['illumination', 'no_motion_duration'], domain='sensor')
 
     @property
@@ -134,6 +132,8 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
             if val is None:
                 pass
             elif self._prop_state.name in ['no_motion_duration', 'nobody_time']:
+                if self._prop_state.unit in ['minutes']:
+                    val *= 60
                 dur = self.custom_config_integer('motion_timeout')
                 if dur is None and self._prop_state.value_range:
                     stp = self._prop_state.range_step()
@@ -180,12 +180,11 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
             'prop.4121',  # 0x1019 magnet
         ]
 
-    async def async_update(self):
-        await super().async_update()
-        if not self._available:
-            return
+    async def async_update_for_main_entity(self):
         if self.custom_config_bool('use_ble_object', True):
             await self.async_update_ble_data()
+        await super().async_update_for_main_entity()
+        self._update_sub_entities(['illumination', 'no_motion_duration'], domain='sensor')
 
     async def async_update_ble_data(self):
         did = self.miot_did
@@ -239,10 +238,7 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
 
             # https://iot.mi.com/new/doc/embedded-development/ble/object-definition#%E6%97%A0%E4%BA%BA%E7%A7%BB%E5%8A%A8%E5%B1%9E%E6%80%A7
             elif k == 'prop.4119':
-                if prop := self._miot_service.get_property('no_motion_duration'):
-                    vlk = prop.full_name
-                else:
-                    vlk = 'no_motion_duration'
+                vlk = 'no_motion_seconds'
 
             # https://iot.mi.com/new/doc/embedded-development/ble/object-definition#%E5%85%89%E7%85%A7%E5%BC%BA%E5%BC%B1%E5%B1%9E%E6%80%A7
             elif k == 'prop.4120':
