@@ -194,13 +194,13 @@ class MiotSpec(MiotSpecInstance):
         return [
             s
             for s in self.services.values()
-            if s.name not in excludes and (not args or s.name in args or s.desc_name in args)
+            if not s.in_list(excludes) and (not args or s.in_list(args))
         ]
 
     def get_service(self, *args):
         for a in args:
             for s in self.services.values():
-                if a not in [s.name, s.desc_name]:
+                if s.in_list([a]):
                     continue
                 return s
         return None
@@ -376,6 +376,13 @@ class MiotService(MiotSpecInstance):
         self.actions = {}
         self.extend_specs(properties=dat.get('properties') or [], actions=dat.get('actions') or [])
 
+    def in_list(self, lst):
+        return self.name in lst \
+            or self.friendly_desc in lst \
+            or self.unique_name in lst \
+            or self.unique_prop in lst \
+            or self.desc_name in lst
+
     def extend_specs(self, properties: list, actions: list):
         for p in properties:
             iid = int(p.get('iid') or 0)
@@ -424,7 +431,7 @@ class MiotService(MiotSpecInstance):
         return [
             p
             for p in self.properties.values()
-            if p.in_list(args)
+            if p.in_list(args) or not args
         ]
 
     def get_property(self, *args, only_format=None):
@@ -446,7 +453,7 @@ class MiotService(MiotSpecInstance):
         return [
             a
             for a in self.actions.values()
-            if a.in_list(args)
+            if a.in_list(args) or not args
         ]
 
     def get_action(self, *args):
@@ -514,13 +521,17 @@ class MiotProperty(MiotSpecInstance):
                 self.full_name = self.name
             else:
                 self.full_name = self.friendly_name
+
             if service.name_count > 1:
                 self.full_name = f'{service.unique_name}.{self.name}'
             if self.full_name in service.spec.services_properties:
                 self.full_name = f'{service.unique_name}.{self.desc_name}'
             if self.full_name in service.spec.services_properties:
                 self.full_name = self.unique_name
-            if not (self.readable or self.writeable):
+
+            if self.full_name in ['battery.battery_level']:
+                self.full_name = self.name
+            elif not (self.readable or self.writeable):
                 self.full_name = self.name
             elif len(self.full_name) >= 32:
                 # miot did length must less than 32

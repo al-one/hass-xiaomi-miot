@@ -1058,11 +1058,9 @@ class MiotEntity(MiioEntity):
                 self._miot_mapping = miot_service.mapping(excludes=eps) or {}
                 ism = True
                 if mms := self.custom_config_list('main_miot_services') or []:
-                    if self._miot_service.unique_name in mms:
+                    if self._miot_service.in_list(mms):
                         ism = True
-                    elif self._miot_service.name in mms:
-                        ism = True
-                    else:
+                    elif self._miot_service.spec.get_services(*mms):
                         ism = False
                 if ism:
                     ems = [self._miot_service.name, *ems]
