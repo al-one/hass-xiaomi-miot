@@ -63,6 +63,25 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'air.fan.ca23ad9': {
+        'without_props': True,
+        'ignore_result': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': ['on'],
+                'values': ['power', 'mode', 'speed', 'lrWind', 'udWind', 'onTime', 'offTime'],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': 'SetSwitch'},
+            'prop.2.2': {'prop': 'speed', 'setter': 'SetLevel'},
+            'prop.2.3': {'prop': 'lrWind', 'setter': 'SetH_Swing'},
+            'prop.2.4': {'prop': 'udWind', 'setter': 'SetV_Swing'},
+            'prop.2.5': {'prop': 'mode', 'setter': 'SetMode'},
+        },
+    },
+
     'cgllc.airmonitor.s1': {
         'without_props': True,
         'miio_commands': [
