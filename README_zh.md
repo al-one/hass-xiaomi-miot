@@ -359,7 +359,7 @@ logger:
     custom_components.xiaomi_miot: debug
 ```
 
-> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设置 > [✍️ 日志](https://my.home-assistant.io/redirect/logs)
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > [⚙️ 系统](https://my.home-assistant.io/redirect/system_dashboard) > [✍️ 日志](https://my.home-assistant.io/redirect/logs)
 
 
 ## 交流

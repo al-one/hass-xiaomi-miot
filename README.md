@@ -308,7 +308,7 @@ logger:
     custom_components.xiaomi_miot: debug
 ```
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Settings > [✍️ Logs](https://my.home-assistant.io/redirect/logs)
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [⚙️ System](https://my.home-assistant.io/redirect/system_dashboard) > [✍️ Logs](https://my.home-assistant.io/redirect/logs)
 
 
 ## Obtain miio token
