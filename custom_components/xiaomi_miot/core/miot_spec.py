@@ -200,7 +200,7 @@ class MiotSpec(MiotSpecInstance):
     def get_service(self, *args):
         for a in args:
             for s in self.services.values():
-                if s.in_list([a]):
+                if not s.in_list([a]):
                     continue
                 return s
         return None
