@@ -504,8 +504,9 @@ DEVICE_CUSTOMIZES = {
         'target2current_position': True,
     },
     'zhimi.airpurifier.*': {
-        'exclude_miot_services': 'button,motor_speed,use_time,rfid,others',
-        'exclude_miot_properties': 'filter_time_set,filter_hour_debug',
+        # https://github.com/rytilahti/python-miio/blob/31c5d740d403c6f45f1e7e0d4a8a6276684a8ecd/miio/integrations/airpurifier/zhimi/airpurifier_miot.py#L13
+        'exclude_miot_services': 'button,motor_speed,filter_time,rfid,others',
+        'exclude_miot_properties': 'average_aqi_cnt,aqi_zone,sensor_state,aqi_goodh,aqi_runstate,aqi_state',
     },
     'zhimi.airpurifier.za1': {
         'brightness_for_on': 0,
