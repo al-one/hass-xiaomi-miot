@@ -234,6 +234,9 @@ DEVICE_CUSTOMIZES = {
     'leshi.light.wyfan': {
         'chunk_properties': 3,
     },
+    'leshow.humidifier.jsq1': {
+        'miot_type': 'urn:miot-spec-v2:device:humidifier:0000A00E:leshow-jsq1:2',
+    },
     'lumi.acpartner.mcn02:electric_power': {
         'value_ratio': 1,
     },
