@@ -249,6 +249,31 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'dmaker.fan.p5': {
+        """
+        https://github.com/rytilahti/python-miio/blob/31c5d740d403c6f45f1e7e0d4a8a6276684a8ecd/miio/integrations/fan/dmaker/fan.py#L28
+        {'power': False, 'mode': 'normal', 'speed': 35, 'roll_enable': False, 'roll_angle': 140,
+        'time_off': 0, 'light': True, 'beep_sound': False, 'child_lock': False}
+        """
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': 's_power'},
+            'prop.2.2': {'prop': 'roll_enable', 'setter': 's_roll'},
+            'prop.2.3': {'prop': 'mode', 'setter': 's_mode', 'dict': {
+                'nature': 0,
+                'normal': 1,
+            }},
+            'prop.2.4': {
+                'prop': 'speed',
+                'setter': 's_speed',
+                'template': '{{ (value/25)|round }}',
+                'set_template': '{{ (value*25)|round }}',
+            },
+            'prop.3.1': {'prop': 'child_lock', 'setter': 's_lock'},
+            'prop.4.1': {'prop': 'light', 'setter': 's_light'},
+            'prop.5.1': {'prop': 'beep_sound', 'setter': 's_sound'},
+        },
+    },
+
     'fawad.airrtc.fwd20011': {
         # ["real_fan_speed","fan_mode","Wind_Out","hot_switch_status","power_status","work_mode","fan_speed",
         # "temperature_current","temperature_set","timers_info","timers_enable","low_temp_protect_enable",
