@@ -544,7 +544,7 @@ async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, entry:
         if mac:
             dvc = hass.data[DOMAIN].get(entry.entry_id, {}).get('devices_by_mac', {}).get(mac.upper()) or {}
     data = {**entry.data, **entry.options}
-    for typ in (['did', 'model'] if dvc else []):
+    for typ in (['did'] if dvc else []):
         filter_typ = data.get(f'filter_{typ}')
         filter_val = dvc.get(typ)
         if not filter_val or not filter_typ:
