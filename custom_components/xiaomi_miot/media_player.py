@@ -688,15 +688,15 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
     def turn_off(self):
         if self.custom_config_bool('turn_off_screen'):
             act = self._message_router.get_action('post') if self._message_router else None
-            if act:
-                return self.call_action(act, ['熄屏'])
-            elif xai := self.bind_xiaoai:
+            if xai := self.bind_xiaoai:
                 return self.hass.services.call(DOMAIN, 'intelligent_speaker', {
                     'entity_id': xai.entity_id,
                     'text': f'{self.mitv_name}熄屏',
                     'execute': True,
                     'silent': self.custom_config_bool('xiaoai_silent', True),
                 })
+            elif act:
+                return self.call_action(act, ['熄屏'])
         return super().turn_off()
 
     def play_media(self, media_type, media_id, **kwargs):
