@@ -237,11 +237,9 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
         model = str(config.get(CONF_MODEL) or info.get(CONF_MODEL) or '')
         config[CONF_MODEL] = model
 
-        urn = config.get('miot_type')
-        if not urn:
-            urn = DEVICE_CUSTOMIZES.get(model, {}).get('miot_type')
-            urn = urn or await MiotSpec.async_get_model_type(hass, model)
-            config['miot_type'] = urn
+        urn = DEVICE_CUSTOMIZES.get(model, {}).get('miot_type') or config.get('miot_type')
+        urn = urn or await MiotSpec.async_get_model_type(hass, model)
+        config['miot_type'] = urn
         if urn and model:
             hass.data[DOMAIN]['miot_specs'][model] = await MiotSpec.async_from_type(hass, urn)
         config['config_entry'] = config_entry
