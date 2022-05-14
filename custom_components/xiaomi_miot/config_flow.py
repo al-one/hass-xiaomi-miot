@@ -244,8 +244,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required('action', default=prev_action): vol.In({
                     'account': 'Add devices using Mi Account (账号集成)',
                     'token': 'Add device using host/token (局域网集成)',
-                    'customizing_entity': 'Customizing entity (自定义实体属性)',
-                    'customizing_device': 'Customizing device (自定义设备属性)',
+                    'customizing_entity': 'Customizing entity (自定义实体)',
+                    'customizing_device': 'Customizing device (自定义设备)',
                 }),
             }),
             errors=errors,

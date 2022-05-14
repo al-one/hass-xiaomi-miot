@@ -103,10 +103,9 @@
         }
     },
     "options": {
-        "flow_title": "Xiaomi Miot Auto",
         "step": {
             "user": {
-                "title": "Xiaomi Miot Auto",
+                "title": "Xiaomi Miot",
                 "description": "Config device info.",
                 "data": {
                     "host": "Local IP",
