@@ -1,6 +1,6 @@
 {
     "config": {
-        "flow_title": "Xiaomi Miot: {name}",
+        "flow_title": "Xiaomi Miot Auto",
         "step": {
             "user": {
                 "title": "Select Action",
@@ -41,6 +41,52 @@
                     "filter_did": "Filter Device",
                     "did_list": "Device List"
                 }
+            },
+            "customizing": {
+                "title": "Customizing entities / devices",
+                "description": "{tip}",
+                "data": {
+                    "domain": "Select entity domain",
+                    "entity": "Select entity",
+                    "model": "Select device model",
+                    "model_specified": "Specified device model (Optional)",
+                    "only_main_entity": "Only main (parent) entities",
+
+                    "binary_sensor_attributes": "binary_sensor_attributes",
+                    "binary_sensor_properties": "binary_sensor_properties",
+                    "bind_sensor": "bind_sensor",
+                    "bind_xiaoai": "bind_xiaoai",
+                    "button_actions": "button_actions",
+                    "chunk_properties": "chunk_properties",
+                    "close_texts": "close_texts",
+                    "closed_position": "closed_position",
+                    "deviated_position": "deviated_position",
+                    "device_class": "device_class",
+                    "exclude_miot_properties": "exclude_miot_properties",
+                    "exclude_miot_services": "exclude_miot_services",
+                    "interval_seconds": "interval_seconds",
+                    "light_services": "light_services",
+                    "main_miot_services": "main_miot_services",
+                    "motion_stream_slice": "motion_stream_slice",
+                    "motion_timeout": "motion_timeout",
+                    "number_properties": "number_properties",
+                    "open_texts": "open_texts",
+                    "select_properties": "select_properties",
+                    "sensor_attributes": "sensor_attributes",
+                    "sensor_properties": "sensor_properties",
+                    "sources_via_apps": "sources_via_apps",
+                    "sources_via_keycodes": "sources_via_keycodes",
+                    "stat_power_cost_key": "stat_power_cost_key",
+                    "state_class": "state_class",
+                    "switch_properties": "switch_properties",
+                    "unit_of_measurement": "unit_of_measurement",
+                    "value_ratio": "value_ratio",
+                    "video_attribute": "video_attribute",
+                    "yeelight_smooth_off": "yeelight_smooth_off",
+                    "yeelight_smooth_on": "yeelight_smooth_on",
+
+                    "bool2selects": "Customize options"
+                }
             }
         },
         "error": {
@@ -51,14 +97,16 @@
             "none_devices": "None devices in the xiaomi cloud account"
         },
         "abort": {
+            "config_saved": "Configuration saved\n{tip}\n\nSome customizable options require [reload integration](/developer-tools/yaml) to take effect.",
             "already_configured": "Device is already configured",
             "not_xiaomi_miio": "Not a Xiaomi miio/miot device."
         }
     },
     "options": {
+        "flow_title": "Xiaomi Miot Auto",
         "step": {
             "user": {
-                "title": "Xiaomi Miot",
+                "title": "Xiaomi Miot Auto",
                 "description": "Config device info.",
                 "data": {
                     "host": "Local IP",
@@ -99,6 +147,9 @@
             "cannot_reach": "Unable to access Xiaomi API",
             "tzinfo_error": "See: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "None devices in the xiaomi cloud account"
+        },
+        "abort": {
+            "show_customizes": "[![Add new integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=xiaomi_miot)\n[Add a new integration](https://my.home-assistant.io/redirect/config_flow_start/?domain=xiaomi_miot) to modify customization.\n{tip}"
         }
     },
     "system_health": {

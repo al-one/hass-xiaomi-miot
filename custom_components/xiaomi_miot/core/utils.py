@@ -1,4 +1,5 @@
 import time
+import re
 import locale
 import requests
 from functools import partial
@@ -44,6 +45,19 @@ class RC4:
     def init1024(self):
         self.crypt(bytes(1024))
         return self
+
+
+def wildcard_models(model):
+    if not model:
+        return []
+    if ':' in model:
+        return [model]
+    wil = re.sub(r'\.[^.]+$', '.*', model)
+    return [
+        model,
+        wil,
+        re.sub(r'^[^.]+\.', '*.', wil),
+    ]
 
 
 def is_offline_exception(exc):

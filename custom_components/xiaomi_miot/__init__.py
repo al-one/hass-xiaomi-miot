@@ -37,6 +37,7 @@ from miio.miot_device import MiotDevice as MiotDeviceBase
 
 from .core.const import *
 from .core.utils import (
+    wildcard_models,
     is_offline_exception,
     async_analytics_track_event,
 )
@@ -225,7 +226,9 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     entry_id = config_entry.entry_id
     unique_id = config_entry.unique_id
 
-    if config_entry.data.get(CONF_USERNAME):
+    if config_entry.data.get('customizing_entity') or config_entry.data.get('customizing_device'):
+        await async_setup_customizes(hass, config_entry)
+    elif config_entry.data.get(CONF_USERNAME):
         await async_setup_xiaomi_cloud(hass, config_entry)
     else:
         config = dict(config_entry.data)
@@ -327,6 +330,20 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
     hass.data[DOMAIN][entry_id] = config
     hass.data[DOMAIN]['accounts'][mic.user_id] = {}
     return True
+
+
+async def async_setup_customizes(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
+    entry_data = {**config_entry.data, **config_entry.options}
+    if cus := entry_data.get('customizing_entity'):
+        hass.data[DOMAIN][DATA_CUSTOMIZE] = cus
+    if cus := entry_data.get('customizing_device'):
+        for m, cfg in cus.items():
+            if not isinstance(cfg, dict):
+                continue
+            DEVICE_CUSTOMIZES.setdefault(m, {})
+            DEVICE_CUSTOMIZES[m].update(cfg)
+    if entry_data:
+        _LOGGER.info('Customizing via config flow: %s', entry_data)
 
 
 async def async_update_options(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
@@ -562,6 +579,41 @@ async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, entry:
     return True
 
 
+def get_customize_via_entity(entity, key=None, default=None):
+    if key is None:
+        default = {}
+    if not isinstance(entity, BaseEntity):
+        return default
+    cfg = {}
+    if entity.hass and entity.entity_id:
+        cfg = {
+            **(entity.hass.data[DATA_CUSTOMIZE].get(entity.entity_id) or {}),
+            **(entity.hass.data[DOMAIN].get(DATA_CUSTOMIZE, {}).get(entity.entity_id) or {}),
+        }
+        if key is not None and key in cfg:
+            return cfg.get(key)
+    mls = []
+    if entity.model:
+        if hasattr(entity, 'customize_keys'):
+            mls.extend(entity.customize_keys)
+        mls.append(entity.model)
+    for mod in mls:
+        cus = get_customize_via_model(mod)
+        cfg = {**cus, **cfg}
+    return cfg if key is None else cfg.get(key, default)
+
+
+def get_customize_via_model(model, key=None, default=None):
+    cfg = {}
+    for m in wildcard_models(model):
+        cus = DEVICE_CUSTOMIZES.get(m) or {}
+        if key is not None and key not in cus:
+            continue
+        if cus:
+            cfg = {**cus, **cfg}
+    return cfg if key is None else cfg.get(key, default)
+
+
 class MiioInfo(MiioInfoBase):
     @property
     def firmware_version(self):
@@ -608,6 +660,10 @@ class BaseEntity(Entity):
         return cat
 
     @property
+    def model(self):
+        return self._model
+
+    @property
     def name_model(self):
         return f'{self.name}({self._model})'
 
@@ -617,24 +673,8 @@ class BaseEntity(Entity):
         cfg = self.hass.data[DOMAIN]['config'] or {}
         return cfg if key is None else cfg.get(key, default)
 
-    @property
-    def wildcard_models(self):
-        if not self._model:
-            return []
-        wil = re.sub(r'\.[^.]+$', '.*', self._model)
-        return [
-            self._model,
-            wil,
-            re.sub(r'^[^.]+\.', '*.', wil),
-        ]
-
     def custom_config(self, key=None, default=None):
-        if not self.hass:
-            return default
-        if not self.entity_id:
-            return default
-        cfg = self.hass.data[DATA_CUSTOMIZE].get(self.entity_id) or {}
-        return cfg if key is None else cfg.get(key, default)
+        return get_customize_via_entity(self, key, default)
 
     @property
     def conn_mode(self):
@@ -695,7 +735,7 @@ class BaseEntity(Entity):
             return default
         if not isinstance(lst, list):
             lst = f'{lst}'.split(',')
-        return lst
+        return list(map(lambda x: x.strip(), lst))
 
     def custom_config_json(self, key=None, default=None):
         dic = self.custom_config(key)
@@ -853,23 +893,6 @@ class MiioEntity(BaseEntity):
             if self.platform.config_entry:
                 eid = self.platform.config_entry.entry_id
                 self._add_entities = self.hass.data[DOMAIN][eid].get('add_entities') or {}
-
-    def custom_config(self, key=None, default=None):
-        ret = super().custom_config(key)
-        if key is not None:
-            if ret is not None:
-                return ret
-            cfg = {}
-        else:
-            cfg = ret or {}
-        if self._model:
-            for m in self.wildcard_models:
-                cus = DEVICE_CUSTOMIZES.get(m) or {}
-                if key is not None and key not in cus:
-                    continue
-                if cus:
-                    cfg = {**cus, **cfg}
-        return cfg if key is None else cfg.get(key, default)
 
     async def _try_command(self, mask_error, func, *args, **kwargs):
         try:
@@ -2189,32 +2212,19 @@ class BaseSubEntity(BaseEntity):
             raise RuntimeError('The parent entity of %s does not have Mi Cloud.', self.name)
         return mic
 
-    def custom_config(self, key=None, default=None):
-        ret = super().custom_config(key)
-        if key is not None:
-            if ret is not None:
-                return ret
-            cfg = {}
-        else:
-            cfg = ret or {}
-        if self._model:
-            mar = []
-            for mod in self.wildcard_models:
-                if self._dict_key:
-                    mar.append(f'{mod}:{self._attr}:{self._dict_key}')
-                else:
-                    mar.append(f'{mod}:{self._attr}')
-                if hasattr(self, '_miot_property'):
-                    prop = getattr(self, '_miot_property')
-                    if prop:
-                        mar.append(f'{mod}:{prop.name}')
-            for m in mar:
-                cus = DEVICE_CUSTOMIZES.get(m) or {}
-                if key is not None and key not in cus:
-                    continue
-                if cus:
-                    cfg = {**cus, **cfg}
-        return cfg if key is None else cfg.get(key, default)
+    @property
+    def customize_keys(self):
+        mar = []
+        for mod in wildcard_models(self._model):
+            if self._dict_key:
+                mar.append(f'{mod}:{self._attr}:{self._dict_key}')
+            elif self._attr:
+                mar.append(f'{mod}:{self._attr}')
+            if hasattr(self, '_miot_property'):
+                prop = getattr(self, '_miot_property')
+                if prop:
+                    mar.append(f'{mod}:{prop.name}')
+        return mar
 
     async def async_added_to_hass(self):
         if self.hass:

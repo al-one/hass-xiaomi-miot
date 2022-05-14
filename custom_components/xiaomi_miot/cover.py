@@ -100,7 +100,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         if self._prop_target_position:
-            if not self.custom_config('disable_target_position'):
+            if not self.custom_config_bool('disable_target_position'):
                 self._supported_features |= SUPPORT_SET_POSITION
             else:
                 self._prop_target_position = None

@@ -51,6 +51,7 @@
             "none_devices": "该小米账户下没有设备"
         },
         "abort": {
+            "config_saved": "配置已保存\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
             "already_configured": "该设备已经配置过",
             "not_xiaomi_miio": "该设备不支持miio/miot协议"
         }
@@ -99,6 +100,9 @@
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备"
+        },
+        "abort": {
+            "show_customizes": "[![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=xiaomi_miot)\n请再次添加[`Xiaomi Miot Auto`](https://my.home-assistant.io/redirect/config_flow_start/?domain=xiaomi_miot)集成来修改自定义属性\n{tip}"
         }
     },
     "system_health": {
