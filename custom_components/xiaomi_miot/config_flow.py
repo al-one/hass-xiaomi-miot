@@ -223,6 +223,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return OptionsFlowHandler(entry)
 
     async def async_step_user(self, user_input=None):
+        self.context['last_step'] = False
         init_integration_data(self.hass)
         errors = {}
         if user_input is None:
@@ -232,7 +233,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if action in ['account', 'cloud']:
                 return await self.async_step_cloud()
             elif action in ['customizing_entity', 'customizing_device']:
-                return await self.async_step_customizing(via=action)
+                self.context['customizing_via'] = action
+                return await self.async_step_customizing()
             else:
                 return await self.async_step_token()
         prev_action = user_input.get('action', 'account')
@@ -249,6 +251,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 }),
             }),
             errors=errors,
+            last_step=self.context.get('last_step'),
         )
 
     async def async_step_token(self, user_input=None):
@@ -340,9 +343,9 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             description_placeholders=self.hass.data[DOMAIN].pop('placeholders', None),
         )
 
-    async def async_step_customizing(self, user_input=None, via=None):
+    async def async_step_customizing(self, user_input=None):
         tip = ''
-        via = via or self.context.get('customizing_via') or 'customizing_entity'
+        via = self.context.get('customizing_via') or 'customizing_entity'
         self.context['customizing_via'] = via
         entry = await self.async_set_unique_id(f'{DOMAIN}-customizes')
         entry_data = dict(entry.data) if entry else {}
@@ -352,6 +355,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         user_input = user_input or {}
         bool2selects = [
             'auto_cloud',
+            'ignore_offline',
             'miot_local',
             'miot_cloud',
             'miot_cloud_write',
@@ -375,7 +379,9 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             'exclude_miot_properties': cv.string,
             'main_miot_services': cv.string,
         }
-        options = {}
+        options = {
+            'entity_category': cv.string,
+        }
 
         last_step = self.context.pop('last_step', False)
         customize_key = self.context.pop('customize_key', None)
@@ -402,9 +408,11 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 for k, v in (get_customize_via_entity(ent) or {}).items():
                     customizes.setdefault(k, v)
                 state = self.hass.states.get(entity)
-                tip = f'{state.name}\n{entity}\n[{model}](https://home.miot-spec.com/spec/{model})'
+                tip = f'{state.name}\n{entity}'
+                if model:
+                    tip += f'\n[{model}](https://home.miot-spec.com/spec/{model})'
                 if not hasattr(ent, 'parent_entity'):
-                    options.update(main_options)
+                    options = {**main_options, **options}
                 get_customize_options(options, bool2selects, entity_id=entity, model=model)
                 if options:
                     self.context['last_step'] = True
@@ -447,7 +455,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 else:
                     tip = f'[{model}](https://home.miot-spec.com/spec/{model})'
                 if ':' not in model:
-                    options.update(main_options)
+                    options = {**main_options, **options}
                 get_customize_options(options, bool2selects, model=model)
                 if options:
                     self.context['last_step'] = True
@@ -631,6 +639,10 @@ def get_customize_options(options={}, bool2selects=[], entity_id='', model=''): 
             'device_class': cv.string,
             'unit_of_measurement': cv.string,
         })
+        if '_conversation' in entity_id:
+            options.update({
+                'interval_seconds': cv.positive_int,
+            })
 
     if domain == 'binary_sensor' or re.search(r'motion|magnet', model, re.I):
         bool2selects.extend(['reverse_state'])

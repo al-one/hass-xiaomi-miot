@@ -62,6 +62,7 @@
                     "closed_position": "closed_position",
                     "deviated_position": "deviated_position",
                     "device_class": "device_class",
+                    "entity_category": "entity_category",
                     "exclude_miot_properties": "exclude_miot_properties",
                     "exclude_miot_services": "exclude_miot_services",
                     "interval_seconds": "interval_seconds",

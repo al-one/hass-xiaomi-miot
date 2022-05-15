@@ -12,10 +12,7 @@ from homeassistant.helpers.entity import (
 from homeassistant.components.sensor import (
     DOMAIN as ENTITY_DOMAIN,
 )
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-)
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from miio.waterpurifier_yunmi import WaterPurifierYunmi
 
 from . import (
@@ -25,8 +22,8 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiioEntity,
     MiotEntity,
-    BaseEntity,
     BaseSubEntity,
+    MiCoordinatorEntity,
     MiotPropertySubEntity,
     MiotCloud,
     DeviceException,
@@ -517,7 +514,7 @@ class WaterPurifierYunmiSubEntity(BaseSubEntity):
         super().__init__(parent, attr, option)
 
 
-class MihomeMessageSensor(CoordinatorEntity, SensorEntity, BaseEntity):
+class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
     def __init__(self, hass, cloud: MiotCloud):
         self.hass = hass
         self.cloud = cloud
@@ -540,6 +537,7 @@ class MihomeMessageSensor(CoordinatorEntity, SensorEntity, BaseEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        self.hass.data[DOMAIN]['entities'][self.entity_id] = self
         await self.coordinator.async_config_entry_first_refresh()
         if sec := self.custom_config_integer('interval_seconds'):
             self.coordinator.update_interval = timedelta(seconds=sec)
@@ -578,7 +576,7 @@ class MihomeMessageSensor(CoordinatorEntity, SensorEntity, BaseEntity):
         return msg
 
 
-class XiaoaiConversationSensor(CoordinatorEntity, BaseSensorSubEntity):
+class XiaoaiConversationSensor(MiCoordinatorEntity, BaseSensorSubEntity):
     def __init__(self, parent, hass, option=None):
         BaseSensorSubEntity.__init__(self, parent, 'conversation', option)
         self.hass = hass
@@ -597,6 +595,7 @@ class XiaoaiConversationSensor(CoordinatorEntity, BaseSensorSubEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        self.hass.data[DOMAIN]['entities'][self.entity_id] = self
         await self.coordinator.async_config_entry_first_refresh()
         if sec := self.custom_config_integer('interval_seconds'):
             self.coordinator.update_interval = timedelta(seconds=sec)
