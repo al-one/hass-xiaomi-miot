@@ -733,7 +733,8 @@ class BaseEntity(Entity):
             return default
         if not isinstance(lst, list):
             lst = f'{lst}'.split(',')
-        return list(map(lambda x: x.strip(), lst))
+            lst = list(map(lambda x: x.strip(), lst))
+        return lst
 
     def custom_config_json(self, key=None, default=None):
         dic = self.custom_config(key)
