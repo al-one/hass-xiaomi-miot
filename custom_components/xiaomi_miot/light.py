@@ -10,10 +10,12 @@ from homeassistant.components.light import (
     SUPPORT_COLOR_TEMP,
     SUPPORT_COLOR,
     SUPPORT_EFFECT,
+    SUPPORT_TRANSITION,
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
     ATTR_EFFECT,
+    ATTR_TRANSITION,
 )
 from homeassistant.util import color
 
@@ -118,6 +120,9 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             self._attr_supported_color_modes.add(COLOR_MODE_HS)
         if self._prop_mode:
             self._supported_features |= SUPPORT_EFFECT
+        self._is_yeelight = 'yeelink.' in f'{self.model}'
+        if self._is_yeelight:
+            self._supported_features |= SUPPORT_TRANSITION
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -139,10 +144,19 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
 
     def turn_on(self, **kwargs):
         ret = False
+        trs = kwargs.get(ATTR_TRANSITION)
+        if trs is not None:
+            trs *= 1000
+        else:
+            trs = self._vars.get('yeelight_smooth_on')
+        if not (self._is_yeelight and self._local_state):
+            # only yeelight in local mode
+            trs = None
+
         if not self.is_on:
-            if (num := self._vars.get('yeelight_smooth_on')) and self._local_state:
-                if ret := self.send_miio_command('set_power', ['on', 'smooth', num]):
-                    self._vars['delay_update'] = num / 1000
+            if trs := int(trs):
+                if ret := self.send_miio_command('set_power', ['on', 'smooth', trs]):
+                    self._vars['delay_update'] = trs / 1000
             elif (bri := self._vars.get('brightness_for_on')) is not None:
                 ret = self.set_property(self._prop_brightness, bri)
             else:
@@ -151,41 +165,60 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         if self._prop_brightness and ATTR_BRIGHTNESS in kwargs:
             brightness = kwargs[ATTR_BRIGHTNESS]
             per = brightness / 255
-            val = per * 100
             if self._prop_brightness.value_range:
                 val = per * self._prop_brightness.range_max()
-            _LOGGER.debug('%s: Setting light brightness: %s %s%%', self.name_model, brightness, per * 100)
-            ret = self.set_property(self._prop_brightness, int(val))
+            else:
+                val = per * 100
+            val = int(val)
+            self.logger.debug('%s: Setting light brightness: %s %s%%', self.name_model, brightness, val)
+            if trs:
+                ret = self.send_miio_command('set_bright', [val, 'smooth', trs])
+            else:
+                ret = self.set_property(self._prop_brightness, val)
 
         if self._prop_color_temp and ATTR_COLOR_TEMP in kwargs:
             mired = kwargs[ATTR_COLOR_TEMP]
             color_temp = self.translate_mired(mired)
             if self._vars.get('color_temp_reverse'):
                 color_temp = self._vars.get('color_temp_sum') - color_temp
-            _LOGGER.debug('%s: Setting light color temperature: %s mireds, %s ct', self.name_model, mired, color_temp)
-            ret = self.set_property(self._prop_color_temp, color_temp)
+            self.logger.debug('%s: Setting light color temperature: %s mireds, %s ct', self.name_model, mired, color_temp)
+            if trs:
+                ret = self.send_miio_command('set_ct_abx', [color_temp, 'smooth', trs])
+            else:
+                ret = self.set_property(self._prop_color_temp, color_temp)
 
         if self._prop_color and ATTR_HS_COLOR in kwargs:
             rgb = color.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
             num = rgb_to_int(rgb)
-            _LOGGER.debug('%s: Setting light color: %s', self.name_model, rgb)
+            self.logger.debug('%s: Setting light color: %s', self.name_model, rgb)
             ret = self.set_property(self._prop_color, num)
 
         if self._prop_mode and ATTR_EFFECT in kwargs:
-            val = self._prop_mode.list_value(kwargs[ATTR_EFFECT])
-            _LOGGER.debug('%s: Setting light effect: %s(%s)', self.name_model, kwargs[ATTR_EFFECT], val)
+            mode = kwargs[ATTR_EFFECT]
+            val = self._prop_mode.list_value(mode)
+            self.logger.debug('%s: Setting light effect: %s(%s)', self.name_model, mode, val)
             ret = self.set_property(self._prop_mode, val)
 
         return ret
 
     def turn_off(self, **kwargs):
-        if (num := self._vars.get('yeelight_smooth_off')) and self._local_state:
-            if ret := self.send_miio_command('set_power', ['off', 'smooth', num]):
-                self._vars['delay_update'] = num / 1000
+        trs = kwargs.get(ATTR_TRANSITION)
+        if trs is not None:
+            trs *= 1000
+        else:
+            trs = self._vars.get('yeelight_smooth_off')
+        if not (self._is_yeelight and self._local_state):
+            # only yeelight in local mode
+            trs = None
+
+        if trs := int(trs):
+            if ret := self.send_miio_command('set_power', ['off', 'smooth', trs]):
+                self._vars['delay_update'] = trs / 1000
         elif (bri := self._vars.get('brightness_for_off')) is not None:
             ret = self.set_property(self._prop_brightness, bri)
         else:
             ret = super().turn_off()
+        self.logger.info('%s: Turn off light result: %s, transition: %s', self.name_model, ret, trs)
         return ret
 
     @property
