@@ -507,6 +507,7 @@ DEVICE_CUSTOMIZES = {
         'target2current_position': True,
     },
     'zhimi.airpurifier.*': {
+        'number_properties': 'favorite_level,favorite_fan_level',
         # https://github.com/rytilahti/python-miio/blob/31c5d740d403c6f45f1e7e0d4a8a6276684a8ecd/miio/integrations/airpurifier/zhimi/airpurifier_miot.py#L13
         'exclude_miot_services': 'button,motor_speed,filter_time,rfid,others',
         'exclude_miot_properties': 'average_aqi_cnt,aqi_zone,sensor_state,aqi_goodh,aqi_runstate,aqi_state',
@@ -589,7 +590,6 @@ DEVICE_CUSTOMIZES = {
     '*.airpurifier.*': {
         'switch_properties': 'air_purifier.on',
         'sensor_properties': 'relative_humidity,pm2_5_density,temperature,filter_life_level',
-        'number_properties': 'favorite_fan_level',
     },
     '*.bhf_light.*': {
         'main_miot_services': 'ptc_bath_heater',
