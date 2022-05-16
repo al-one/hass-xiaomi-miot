@@ -506,6 +506,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'speed_level,clamp_strength',
         'target2current_position': True,
     },
+    'zhimi.airfresh.*': {
+        'switch_properties': 'heater',
+    },
     'zhimi.airpurifier.*': {
         'number_properties': 'favorite_level,favorite_fan_level',
         # https://github.com/rytilahti/python-miio/blob/31c5d740d403c6f45f1e7e0d4a8a6276684a8ecd/miio/integrations/airpurifier/zhimi/airpurifier_miot.py#L13
