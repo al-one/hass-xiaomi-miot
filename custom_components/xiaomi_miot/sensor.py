@@ -516,6 +516,8 @@ class WaterPurifierYunmiSubEntity(BaseSubEntity):
 
 
 class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
+    _filter_homes = None
+
     def __init__(self, hass, cloud: MiotCloud):
         self.hass = hass
         self.cloud = cloud
@@ -526,13 +528,15 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
         self._attr_icon = 'mdi:message'
         self._attr_should_poll = False
         self._attr_native_value = None
-        self._attr_extra_state_attributes = {}
+        self._attr_extra_state_attributes = {
+            'entity_class': self.__class__.__name__,
+        }
         self.coordinator = DataUpdateCoordinator(
             hass,
             _LOGGER,
             name=self._attr_unique_id,
             update_method=self.fetch_latest_message,
-            update_interval=timedelta(seconds=30),
+            update_interval=timedelta(seconds=15),
         )
         super().__init__(self.coordinator)
 
@@ -542,6 +546,13 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
         await self.coordinator.async_config_entry_first_refresh()
         if sec := self.custom_config_integer('interval_seconds'):
             self.coordinator.update_interval = timedelta(seconds=sec)
+
+    async def async_will_remove_from_hass(self):
+        """Run when entity will be removed from hass.
+        To be extended by integrations.
+        """
+        await super().async_will_remove_from_hass()
+        self.hass.data[DOMAIN]['accounts'].get(self.cloud.user_id, {}).pop('messenger', None)
 
     async def fetch_latest_message(self):
         res = await self.cloud.async_request_api('v2/message/v2/typelist', data={}) or {}
