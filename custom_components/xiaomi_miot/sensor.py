@@ -543,6 +543,7 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         self.hass.data[DOMAIN]['entities'][self.entity_id] = self
+        self._filter_homes = self.custom_config_list('filter_home')
         await self.coordinator.async_config_entry_first_refresh()
         if sec := self.custom_config_integer('interval_seconds'):
             self.coordinator.update_interval = timedelta(seconds=sec)
@@ -557,9 +558,17 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
     async def fetch_latest_message(self):
         res = await self.cloud.async_request_api('v2/message/v2/typelist', data={}) or {}
         mls = (res.get('result') or {}).get('messages') or []
-        mls = list(sorted(mls, key=lambda x: x.get('ctime', 0)))
-        msg = mls.pop(-1) if mls else {}
-        self.message = msg
+        mls.sort(key=lambda x: x.get('ctime', 0), reverse=True)
+        for m in mls:
+            hre = m.get('params', {}).get('body', {}).get('homeRoomExtra', {})
+            home = hre.get('homeName')
+            if self._filter_homes and home and home not in self._filter_homes:
+                continue
+            m['homeName'] = home
+            m['roomName'] = hre.get('roomName')
+            self.message = m
+            break
+        msg = self.message
         if old := self._attr_native_value:
             self._attr_extra_state_attributes['prev_message'] = old
         self._attr_native_value = None
@@ -572,6 +581,7 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
             _LOGGER.info('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
         self._attr_entity_picture = msg.get('img_url')
         tim = msg.get('ctime')
+        body = msg.get('params', {}).get('body', {})
         self._attr_extra_state_attributes.update({
             'msg_id': msg.get('msg_id'),
             'is_new': msg.get('is_new'),
@@ -581,9 +591,11 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
             'user_id': msg.get('uid'),
             'timestamp': datetime.fromtimestamp(tim) if tim else None,
             'model': msg.get('params', {}).get('model'),
-            'event': msg.get('params', {}).get('body', {}).get('event'),
-            'home_name': msg.get('params', {}).get('body', {}).get('homeRoomExtra', {}).get('homeName'),
-            'room_name': msg.get('params', {}).get('body', {}).get('homeRoomExtra', {}).get('roomName'),
+            'device_id': msg.get('params', {}).get('did'),
+            'home_name': msg.get('homeName'),
+            'room_name': msg.get('roomName'),
+            'event': body.get('event'),
+            'event_data': body.get('extra', body.get('value')),
         })
         return msg
 

@@ -114,7 +114,7 @@
             "none_devices": "该小米账户下没有设备"
         },
         "abort": {
-            "show_customizes": "[![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n请再次添加[`Xiaomi Miot Auto`](/_my_redirect/config_flow_start?domain=xiaomi_miot)集成来修改自定义属性\n{tip}"
+            "show_customizes": "[![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n请再次添加[`Xiaomi Miot Auto`](/_my_redirect/config_flow_start?domain=xiaomi_miot)集成来修改自定义选项\n{tip}"
         }
     },
     "system_health": {

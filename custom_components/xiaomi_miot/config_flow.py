@@ -413,7 +413,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     tip += f'\n[{model}](https://home.miot-spec.com/spec/{model})'
                 if not hasattr(ent, 'parent_entity'):
                     options = {**main_options, **options}
-                get_customize_options(options, bool2selects, entity_id=entity, model=model)
+                get_customize_options(self.hass, options, bool2selects, entity_id=entity, model=model)
                 if options:
                     self.context['last_step'] = True
                     self.context['customize_key'] = entity
@@ -456,7 +456,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     tip = f'[{model}](https://home.miot-spec.com/spec/{model})'
                 if ':' not in model:
                     options = {**main_options, **options}
-                get_customize_options(options, bool2selects, model=model)
+                get_customize_options(self.hass, options, bool2selects, model=model)
                 if options:
                     self.context['last_step'] = True
                     self.context['customize_key'] = model
@@ -627,10 +627,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         )
 
 
-def get_customize_options(options={}, bool2selects=[], entity_id='', model=''):  # noqa
+def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model=''):  # noqa
+    entity = None
     domain = ''
     if entity_id:
+        entity = hass.data[DOMAIN].get('entities', {}).get(entity_id)
         domain, _ = split_entity_id(entity_id)
+    attrs = entity.extra_state_attributes if entity else {}
+    entity_class = attrs.get('entity_class')
 
     if domain == 'sensor':
         options.update({
@@ -639,7 +643,11 @@ def get_customize_options(options={}, bool2selects=[], entity_id='', model=''): 
             'device_class': cv.string,
             'unit_of_measurement': cv.string,
         })
-        if '_conversation' in entity_id:
+        if entity_class in ['MihomeMessageSensor']:
+            options.update({
+                'filter_home': cv.string,
+            })
+        if entity_class in ['XiaoaiConversationSensor']:
             options.update({
                 'interval_seconds': cv.positive_int,
             })

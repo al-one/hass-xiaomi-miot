@@ -65,6 +65,7 @@
                     "entity_category": "entity_category",
                     "exclude_miot_properties": "exclude_miot_properties",
                     "exclude_miot_services": "exclude_miot_services",
+                    "filter_home": "filter_home",
                     "interval_seconds": "interval_seconds",
                     "light_services": "light_services",
                     "main_miot_services": "main_miot_services",
