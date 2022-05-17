@@ -2101,6 +2101,7 @@ class BaseSubEntity(BaseEntity):
         self._unique_id = f'{parent.unique_id}-{attr}'
         self._name = f'{parent.name} {attr}'
         self._state = STATE_UNKNOWN
+        self._attr_state = STATE_UNKNOWN
         self._available = False
         self._parent = parent
         self._attr = attr
@@ -2118,6 +2119,7 @@ class BaseSubEntity(BaseEntity):
         self.generate_entity_id()
         self._supported_features = int(self._option.get('supported_features', 0))
         self._attr_entity_category = self._option.get('entity_category')
+        self._attr_unit_of_measurement = self._option.get('unit')
         self._extra_attrs = {
             'entity_class': self.__class__.__name__,
             'parent_entity_id': parent.entity_id,
@@ -2171,10 +2173,6 @@ class BaseSubEntity(BaseEntity):
         return f'{self.device_name} {prop.friendly_desc}'.strip()
 
     @property
-    def state(self):
-        return self._state
-
-    @property
     def available(self):
         return self._available and self._parent.available
 
@@ -2211,10 +2209,6 @@ class BaseSubEntity(BaseEntity):
         return self._option.get('icon')
 
     @property
-    def unit_of_measurement(self):
-        return self._option.get('unit')
-
-    @property
     def miot_cloud(self):
         mic = self._parent.miot_cloud
         if not isinstance(mic, MiotCloud):
@@ -2240,11 +2234,11 @@ class BaseSubEntity(BaseEntity):
         if self.platform:
             self.update_custom_scan_interval(only_custom=True)
         self._option['icon'] = self.custom_config('icon', self.icon)
-        self._option['unit'] = self.custom_config('unit_of_measurement', self.unit_of_measurement)
+        self._option['device_class'] = self.custom_config('device_class', self.device_class)
+        if uom := self.custom_config('unit_of_measurement'):
+            self._attr_unit_of_measurement = uom
         if hasattr(self, 'entity_category'):
             self._attr_entity_category = self.custom_config('entity_category', self.entity_category)
-        if not self.device_class:
-            self._option['device_class'] = self.custom_config('device_class')
 
     def update_from_parent(self):
         self.update()
@@ -2256,13 +2250,13 @@ class BaseSubEntity(BaseEntity):
         self._parent_attrs = attrs
         if self._attr in attrs:
             self._available = True
-            self._state = attrs.get(self._attr)
-            if self._dict_key and isinstance(self._state, dict):
-                self._state = self._state.get(self._dict_key)
+            self._attr_state = attrs.get(self._attr)
+            if self._dict_key and isinstance(self._attr_state, dict):
+                self._attr_state = self._attr_state.get(self._dict_key)
             svd = self.custom_config_number('value_ratio') or 0
             if svd:
                 try:
-                    self._state = round(float(self._state) * svd, 3)
+                    self._attr_state = round(float(self._attr_state) * svd, 3)
                 except (TypeError, ValueError):
                     pass
         keys = self._option.get('keys', [])
@@ -2326,10 +2320,10 @@ class MiotPropertySubEntity(BaseSubEntity):
             self._available = miot_property.writeable
         if 'icon' not in self._option:
             self._option['icon'] = miot_property.entity_icon
-        if 'unit' not in self._option:
-            self._option['unit'] = miot_property.unit_of_measurement
         if 'device_class' not in self._option:
             self._option['device_class'] = miot_property.device_class
+        if self._attr_unit_of_measurement is None:
+            self._attr_unit_of_measurement = miot_property.unit_of_measurement
         if self._attr_entity_category is None:
             self._attr_entity_category = miot_property.entity_category
         self._extra_attrs.update({

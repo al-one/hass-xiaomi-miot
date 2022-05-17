@@ -166,6 +166,9 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         if cls in STATE_CLASSES:
             self._attr_state_class = cls
 
+        if uom := self.custom_config('unit_of_measurement'):
+            self._attr_native_unit_of_measurement = uom
+
         if act := self._miot_service.get_action('pet_food_out'):
             prop = self._miot_service.get_property('feeding_measure')
             add_switches = self._add_entities.get('switch')
@@ -260,10 +263,6 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             ['fridge_chamber'],
             domain='number',
         )
-
-    @property
-    def state(self):
-        return self.native_value
 
     @property
     def native_value(self):
@@ -387,8 +386,9 @@ class MiotCookerEntity(MiotSensorEntity):
 class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
     def __init__(self, parent, attr, option=None, **kwargs):
         kwargs.setdefault('domain', ENTITY_DOMAIN)
+        self._attr_state_class = None
         super().__init__(parent, attr, option, **kwargs)
-        self._attr_state_class = self._option.get('state_class')
+        self._attr_native_unit_of_measurement = self._attr_unit_of_measurement
 
     @property
     def state_class(self):
@@ -396,15 +396,19 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        self._attr_state_class = self.custom_config('state_class', self._attr_state_class)
-        if self._attr_state_class not in STATE_CLASSES:
-            self._attr_state_class = None
+        cls = self.custom_config('state_class')
+        if cls in STATE_CLASSES:
+            self._attr_state_class = cls
+
+        if uom := self.custom_config('unit_of_measurement'):
+            self._attr_native_unit_of_measurement = uom
 
 
 class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        self._attr_state_class = None
         super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
+        self._attr_state_class = miot_property.state_class
+        self._attr_native_unit_of_measurement = self._attr_unit_of_measurement
 
         self._prop_battery = None
         for s in self._miot_service.spec.get_services('battery', self._miot_service.name):
@@ -416,8 +420,6 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
 
     async def async_added_to_hass(self):
         await BaseSensorSubEntity.async_added_to_hass(self)
-        if not self._attr_state_class:
-            self._attr_state_class = self._miot_property.state_class
 
     def update(self, data=None):
         super().update(data)
@@ -426,7 +428,7 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
         self._miot_property.description_to_dict(self._state_attrs)
 
     @property
-    def state(self):
+    def native_value(self):
         key = f'{self._miot_property.full_name}_desc'
         if key in self._state_attrs:
             return f'{self._state_attrs[key]}'.lower()
@@ -435,8 +437,7 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
             svd = self.custom_config_number('value_ratio') or 0
             if svd:
                 val = round(float(val) * svd, 3)
-            return val
-        return STATE_UNKNOWN
+        return val
 
 
 class WaterPurifierYunmiEntity(MiioEntity, Entity):

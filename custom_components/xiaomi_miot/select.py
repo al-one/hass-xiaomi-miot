@@ -168,7 +168,7 @@ class SelectSubEntity(SelectEntity, BaseSubEntity):
 
     def update(self, data=None):
         super().update(data)
-        self._attr_current_option = self._state
+        self._attr_current_option = self._attr_state
         self.async_write_ha_state()
 
     def select_option(self, option):
