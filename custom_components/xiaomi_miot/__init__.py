@@ -1354,11 +1354,11 @@ class MiotEntity(MiioEntity):
                 )
 
         self._vars.setdefault('offline_times', 0)
+        self.hass.data[DOMAIN].setdefault('offline_devices', {})
         result = MiotResults(results, mapping)
         if not result.is_valid:
             self._available = False
             if errors and is_offline_exception(errors):
-                self.hass.data[DOMAIN].setdefault('offline_devices', {})
                 odd = self.hass.data[DOMAIN]['offline_devices'].get(self.unique_did) or {}
                 if not self._vars.get('ignore_offline'):
                     self._vars['offline_times'] += 1
@@ -1406,6 +1406,12 @@ class MiotEntity(MiioEntity):
                 )
             return False
         self._vars['offline_times'] = 0
+        if self.hass.data[DOMAIN]['offline_devices'].pop(self.unique_did, None):
+            if not self.hass.data[DOMAIN]['offline_devices']:
+                persistent_notification.async_dismiss(
+                    self.hass,
+                    f'{DOMAIN}-devices-offline',
+                )
         attrs.update(result.to_attributes(self._state_attrs))
         attrs['state_updater'] = updater
         self._available = True
