@@ -148,14 +148,14 @@ class Miio2MiotHelper:
                         elif prop.format in ['bool']:
                             val = cv.boolean(val)
 
-                        elif prop.is_integer:
-                            val = int(val)
+                        elif r := c.get('value_ratio'):
+                            val = round(float(val) * float(r), 3)
 
                         elif prop.format in ['float']:
                             val = round(float(val), 4)
 
-                        elif r := c.get('value_ratio'):
-                            val = round(float(val) * float(r), 3)
+                        elif prop.is_integer:
+                            val = int(val)
 
                     except (TypeError, ValueError, vol.Invalid):
                         val = dic.get(p)
