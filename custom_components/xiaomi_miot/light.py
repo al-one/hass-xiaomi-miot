@@ -154,7 +154,8 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             trs = None
 
         if not self.is_on:
-            if trs := int(trs):
+            if trs:
+                trs = int(trs)
                 if ret := self.send_miio_command('set_power', ['on', 'smooth', trs]):
                     self._vars['delay_update'] = trs / 1000
             elif (bri := self._vars.get('brightness_for_on')) is not None:
@@ -211,7 +212,8 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             # only yeelight in local mode
             trs = None
 
-        if trs := int(trs):
+        if trs:
+            trs = int(trs)
             if ret := self.send_miio_command('set_power', ['off', 'smooth', trs]):
                 self._vars['delay_update'] = trs / 1000
         elif (bri := self._vars.get('brightness_for_off')) is not None:
