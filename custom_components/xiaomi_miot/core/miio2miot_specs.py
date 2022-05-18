@@ -94,13 +94,19 @@ MIIO_TO_MIOT_SPECS = {
                 'template': '{{ results | default({},true) }}',
             },
         ],
-        'entity_attrs': ['tvoc_unit', 'temperature_unit', 'battery_state'],
+        'entity_attrs': ['tvoc', 'tvoc_unit', 'temperature_unit', 'battery_state'],
         'miio_specs': {
             'prop.2.1': {'prop': 'humidity'},
             'prop.2.2': {'prop': 'pm25'},
             'prop.2.3': {'prop': 'temperature'},
             'prop.2.4': {'prop': 'co2'},
-            'prop.2.5': {'prop': 'tvoc'},
+            'prop.2.5': {
+                'prop': 'tvoc',
+                'template': '{{ '
+                            '(value/1000)|round(3) if props.tvoc_unit == "ppm" else '
+                            '(value/218.77)|round(3) if props.tvoc_unit == "mg_m3" else '
+                            'value }}',
+            },
             'prop.3.1': {'prop': 'battery'},
             'prop.3.2': {'prop': 'battery_state', 'template': '{{ 1 if value == "charging" else 2 }}'},
         },
