@@ -391,6 +391,10 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
         self._attr_native_unit_of_measurement = self._attr_unit_of_measurement
 
     @property
+    def native_value(self):
+        return self._attr_state
+
+    @property
     def state_class(self):
         return self._attr_state_class
 
