@@ -12,6 +12,7 @@ from homeassistant.helpers.entity import (
 from homeassistant.components.sensor import (
     DOMAIN as ENTITY_DOMAIN,
 )
+from homeassistant.helpers.restore_state import RestoreEntity, RestoreStateData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from miio.waterpurifier_yunmi import WaterPurifierYunmi
 
@@ -35,6 +36,7 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
 )
+from .core.utils import local_zone
 
 try:
     # hass 2021.4.0b0+
@@ -63,7 +65,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
             entity = MihomeMessageSensor(hass, mic)
             hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
-            async_add_entities([entity])
+            async_add_entities([entity], update_before_add=False)
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
@@ -519,7 +521,7 @@ class WaterPurifierYunmiSubEntity(BaseSubEntity):
         super().__init__(parent, attr, option)
 
 
-class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
+class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
     _filter_homes = None
 
     def __init__(self, hass, cloud: MiotCloud):
@@ -547,10 +549,18 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         self.hass.data[DOMAIN]['entities'][self.entity_id] = self
-        self._filter_homes = self.custom_config_list('filter_home')
-        await self.coordinator.async_config_entry_first_refresh()
+        self._filter_homes = self.custom_config_list('filter_home') or []
         if sec := self.custom_config_integer('interval_seconds'):
             self.coordinator.update_interval = timedelta(seconds=sec)
+
+        restored = await RestoreStateData.async_get_instance(self.hass)
+        if restored and self.entity_id in restored.last_states:
+            state = restored.last_states[self.entity_id].state
+            self._attr_native_value = state.state
+            self._attr_extra_state_attributes.update(state.attributes)
+
+        self._attr_extra_state_attributes['filter_homes'] = self._filter_homes
+        await self.coordinator.async_config_entry_first_refresh()
 
     async def async_will_remove_from_hass(self):
         """Run when entity will be removed from hass.
@@ -559,33 +569,20 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
         await super().async_will_remove_from_hass()
         self.hass.data[DOMAIN]['accounts'].get(self.cloud.user_id, {}).pop('messenger', None)
 
-    async def fetch_latest_message(self):
-        res = await self.cloud.async_request_api('v2/message/v2/typelist', data={}) or {}
-        mls = (res.get('result') or {}).get('messages') or []
-        mls.sort(key=lambda x: x.get('ctime', 0), reverse=True)
-        for m in mls:
-            hre = m.get('params', {}).get('body', {}).get('homeRoomExtra', {})
-            home = hre.get('homeName')
-            if self._filter_homes and home and home not in self._filter_homes:
-                continue
-            m['homeName'] = home
-            m['roomName'] = hre.get('roomName')
-            self.message = m
-            break
-        msg = self.message
+    async def async_set_message(self, msg):
+        if msg == self.message:
+            return
         if old := self._attr_native_value:
             self._attr_extra_state_attributes['prev_message'] = old
-        self._attr_native_value = None
         tit = msg.get('title')
         if con := msg.get('content'):
             self._attr_native_value = f'{con}: {tit}'
             logger = _LOGGER.info if old != self._attr_native_value else _LOGGER.debug
             logger('New xiaomi message for %s: %s', self.cloud.user_id, self._attr_native_value)
-        else:
-            _LOGGER.info('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
-        self._attr_entity_picture = msg.get('img_url')
         tim = msg.get('ctime')
-        body = msg.get('params', {}).get('body', {})
+        params = msg.get('params', {})
+        body = params.get('body', {})
+        self._attr_entity_picture = msg.get('img_url') or None
         self._attr_extra_state_attributes.update({
             'msg_id': msg.get('msg_id'),
             'is_new': msg.get('is_new'),
@@ -593,14 +590,43 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity):
             'title': tit,
             'content': con,
             'user_id': msg.get('uid'),
-            'timestamp': datetime.fromtimestamp(tim) if tim else None,
-            'model': msg.get('params', {}).get('model'),
-            'device_id': msg.get('params', {}).get('did'),
+            'ctime': tim,
+            'timestamp': datetime.fromtimestamp(tim, local_zone()) if tim else None,
+            'model': params.get('model', body.get('model')),
+            'device_id': msg.get('did', body.get('did')),
             'home_name': msg.get('homeName'),
             'room_name': msg.get('roomName'),
             'event': body.get('event'),
             'event_data': body.get('extra', body.get('value')),
         })
+
+    async def fetch_latest_message(self):
+        res = await self.cloud.async_request_api('v2/message/v2/typelist', data={}) or {}
+        mls = (res.get('result') or {}).get('messages') or []
+        mls.sort(key=lambda x: x.get('ctime', 0), reverse=False)
+        prev_time = self._attr_extra_state_attributes.get('ctime')
+        prev_mid = self._attr_extra_state_attributes.get('msg_id')
+        msg = {}
+        for m in mls:
+            hre = m.get('params', {}).get('body', {}).get('homeRoomExtra', {})
+            home = hre.get('homeName')
+            if self._filter_homes and home and home not in self._filter_homes:
+                continue
+            tim = m.get('ctime', 0)
+            mid = m.get('msg_id', 0)
+            if prev_time and tim < prev_time:
+                continue
+            if prev_mid and mid <= prev_mid:
+                continue
+            m['homeName'] = home
+            m['roomName'] = hre.get('roomName')
+            msg = m
+            break
+        if msg:
+            await self.async_set_message(msg)
+            self.message = msg
+        if not msg.get('content'):
+            _LOGGER.info('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
         return msg
 
 
