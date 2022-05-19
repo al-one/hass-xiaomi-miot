@@ -30,6 +30,7 @@ from .core.miot_spec import (
     MiotProperty,
 )
 from .core.xiaomi_cloud import MiotCloud
+from .core.utils import local_zone
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -222,7 +223,7 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
             if k == 'event.15':
                 adt.update({
                     'trigger_time': tim,
-                    'trigger_at': f'{datetime.fromtimestamp(tim)}',
+                    'trigger_at': datetime.fromtimestamp(tim, local_zone()),
                 })
                 dif = time.time() - adt['trigger_time']
                 sta = dif <= (self.custom_config_integer('motion_timeout') or 60)
