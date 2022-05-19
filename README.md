@@ -21,7 +21,7 @@ This component uses the **miot** protocol to automatically integrate Xiaomi devi
 
 ```shell
 # Auto install via terminal shell
-wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | bash -
+wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | bash -
 ```
 
 > Or you can install component with [HACS](https://hacs.xyz)
