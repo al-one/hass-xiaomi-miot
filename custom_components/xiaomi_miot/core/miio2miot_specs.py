@@ -1525,7 +1525,7 @@ MIIO_TO_MIOT_SPECS = {
             }, 'default': 0},
             'prop.3.1': {'prop': 'humidity'},
             'prop.3.2': {'prop': 'aqi'},
-            'prop.3.3': {'prop': 'temp_dec'},
+            'prop.3.3': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
             'prop.3.4': {'prop': 'co2'},
             'prop.4.1': {'prop': 'f1_hour_used'},
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},

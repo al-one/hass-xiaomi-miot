@@ -507,7 +507,7 @@ DEVICE_CUSTOMIZES = {
         'target2current_position': True,
     },
     'zhimi.airfresh.*': {
-        'switch_properties': 'heater',
+        'switch_properties': 'heater,alarm',
     },
     'zhimi.airpurifier.*': {
         'sensor_properties': 'illumination,motor_speed',
@@ -517,6 +517,10 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'average_aqi_cnt,aqi_zone,sensor_state,aqi_goodh,aqi_runstate,aqi_state',
     },
     'zhimi.airpurifier.za1': {
+        'brightness_for_on': 0,
+        'brightness_for_off': 2,
+    },
+    'zhimi.airpurifier.za2': {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
     },
