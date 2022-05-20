@@ -637,6 +637,10 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
     entity_class = attrs.get('entity_class')
 
     if domain == 'sensor':
+        if entity_class in ['MiotSensorEntity']:
+            options.update({
+                'state_property': cv.string,
+            })
         options.update({
             'value_ratio': float,
             'state_class': cv.string,
@@ -662,6 +666,10 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         options.update({
             'stat_power_cost_key': cv.string,
         })
+        if entity_class in ['MiotSwitchActionSubEntity']:
+            options.update({
+                'feeding_measure': cv.positive_int,
+            })
 
     if domain == 'light' or re.search(r'light', model, re.I):
         bool2selects.extend(['color_temp_reverse'])

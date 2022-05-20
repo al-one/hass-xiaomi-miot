@@ -179,8 +179,11 @@ class MiotSwitchActionSubEntity(MiotPropertySubEntity, SwitchSubEntity):
 
     def turn_on(self, **kwargs):
         """Turn the entity on."""
-        val = None
-        if self._miot_property.value_range:
+        val = self.custom_config_integer(self._miot_property.name)
+        if val is not None:
+            # feeding_measure
+            pass
+        elif self._miot_property.value_range:
             val = int(self._miot_property.range_min() or 0)
         elif self._miot_property.value_list:
             val = self._miot_property.value_list[0].get('value')

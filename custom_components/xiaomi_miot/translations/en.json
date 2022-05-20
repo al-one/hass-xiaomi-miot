@@ -80,6 +80,7 @@
                     "sources_via_keycodes": "sources_via_keycodes",
                     "stat_power_cost_key": "stat_power_cost_key",
                     "state_class": "state_class",
+                    "state_property": "state_property",
                     "switch_properties": "switch_properties",
                     "unit_of_measurement": "unit_of_measurement",
                     "value_ratio": "value_ratio",

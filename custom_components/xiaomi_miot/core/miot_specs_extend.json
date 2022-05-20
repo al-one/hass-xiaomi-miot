@@ -73,57 +73,6 @@
     }
   ],
 
-  "dreame.vacuum.mc1808": [
-    {
-      "iid": 18,
-      "properties": [
-        {
-          "iid": 9,
-          "access": ["read", "notify"]
-        }
-      ]
-    }
-  ],
-
-  "leshow.humidifier.jsq1": [
-    {
-      "iid": 8,
-      "properties": [
-        {
-          "iid": 5,
-          "access": ["read"]
-        },
-        {
-          "iid": 6,
-          "access": ["read", "write"]
-        },
-        {
-          "iid": 7,
-          "access": ["read"]
-        }
-      ]
-    }
-  ],
-
-  "lumi.airer.acn01": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:dry_mode",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "value-list": [
-            {"value": 0, "description": "off"},
-            {"value": 1, "description": "dry"},
-            {"value": 2, "description": "winddry"}
-          ]
-        }
-      ]
-    }
-  ],
-
   "deerma.humidifier.jsq": [
     {
       "iid": 2,
@@ -205,6 +154,156 @@
           "type": "urn:miot-spec-v2:property:tank-status",
           "format": "bool",
           "access": ["read"]
+        }
+      ]
+    }
+  ],
+
+  "dreame.vacuum.mc1808": [
+    {
+      "iid": 18,
+      "properties": [
+        {
+          "iid": 9,
+          "access": ["read", "notify"]
+        }
+      ]
+    }
+  ],
+
+  "leshow.humidifier.jsq1": [
+    {
+      "iid": 8,
+      "properties": [
+        {
+          "iid": 5,
+          "access": ["read"]
+        },
+        {
+          "iid": 6,
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 7,
+          "access": ["read"]
+        }
+      ]
+    }
+  ],
+
+  "lumi.airer.acn01": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:dry_mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "off"},
+            {"value": 1, "description": "dry"},
+            {"value": 2, "description": "winddry"}
+          ]
+        }
+      ]
+    }
+  ],
+
+  "mmgg.feeder.petfeeder": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:mmgg-spec:property:pet-food-left-level",
+          "format": "uint8",
+          "access": ["read"],
+          "value-list": [
+            {"value": 0, "description": "Normal"},
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Empty"}
+          ]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:feedstatus",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:mmgg-spec:property:feed-today",
+          "format": "uint8",
+          "access": ["read"],
+          "unit": "none",
+          "value-range": [0, 255, 1]
+        },
+        {
+          "iid": 104,
+          "type": "urn:miot-spec-v2:property:desiccant-left-time",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "days",
+          "value-range": [0, 30, 1]
+        },
+        {
+          "iid": 105,
+          "type": "urn:miot-spec-v2:property:cleantime",
+          "description": "Clean Left Time",
+          "format": "uint8",
+          "access": ["read"],
+          "unit": "days",
+          "value-range": [0, 14, 1]
+        },
+        {
+          "iid": 106,
+          "type": "urn:mmgg-spec:property:doorstatus",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "none",
+          "value-range": [0, 1, 1]
+        },
+        {
+          "iid": 107,
+          "type": "urn:mmgg-spec:property:outletstatus",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "none",
+          "value-range": [0, 1, 1]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:action:reset-desiccant-life",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 200,
+      "type": "urn:miot-spec-v2:service:indicator-light",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:on",
+          "description": "Switch Status",
+          "format": "bool",
+          "access": ["read", "write"]
+        }
+      ]
+    },
+    {
+      "iid": 300,
+      "type": "urn:miot-spec-v2:service:physical-controls-locked",
+      "properties": [
+        {
+          "iid": 301,
+          "type": "urn:miot-spec-v2:property:physical-controls-locked",
+          "format": "bool",
+          "access": ["read", "write"]
         }
       ]
     }

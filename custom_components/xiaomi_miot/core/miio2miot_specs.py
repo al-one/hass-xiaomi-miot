@@ -594,6 +594,32 @@ MIIO_TO_MIOT_SPECS = {
         'chunk_properties': 1,
     },
 
+    'mmgg.feeder.petfeeder': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'getprops',
+                'values': [
+                    'food_status', 'feed_status', 'door_status', 'feed_today', 'clean_days', 'outlet_status',
+                    'dryer_days', 'weight_level', 'wifi_led', 'key_lock', 'country_code',
+                ],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.101': {'prop': 'food_status'},
+            'prop.2.102': {'prop': 'feed_status', 'setter': 'stopfeed', 'set_template': '{{ [value|int] }}'},
+            'prop.2.103': {'prop': 'feed_today'},
+            'prop.2.104': {'prop': 'dryer_days'},
+            'prop.2.105': {'prop': 'clean_days'},
+            'prop.2.106': {'prop': 'door_status'},
+            'prop.2.107': {'prop': 'outlet_status'},
+            'action.2.1': {'setter': 'outfood'},
+            'action.2.101': {'setter': 'resetdryer'},
+            'prop.200.201': {'prop': 'wifi_led', 'setter': 'wifiledon', 'set_template': '{{ [value|int] }}'},
+            'prop.300.301': {'prop': 'key_lock', 'setter': 'keylock', 'set_template': '{{ [value|int] }}'},
+        }
+    },
+
     'opple.light.bydceiling': {
         'without_props': True,
         'miio_commands': [

@@ -339,18 +339,10 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 10,
     },
     'mmgg.feeder.petfeeder': {
-        'sensor_attributes': 'feed_today',
-        'miio_commands': {
-            'getprops': [
-                'food_status', 'feed_plan', 'door_result', 'feed_today', 'clean_days', 'outlet_status',
-                'dryer_days', 'weight_level', 'wifi_led', 'key_lock', 'country_code',
-            ],
-            # 'getfeedplan1': [],
-            # 'getfeedplan2': [],
-        },
-        'miot_local_mapping': {
-            'feeding.measure': {'siid': 2, 'piid': 1},
-        },
+        'state_property': 'pet_food_left_level',
+        'button_actions': 'reset_desiccant_life',
+        'sensor_properties': 'feed_today,desiccant_left_time,cleantime',
+        'switch_properties': 'feedstatus',
     },
     'miaomiaoce.sensor_ht.t1': {
         'miot_mapping': {

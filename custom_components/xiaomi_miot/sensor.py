@@ -120,7 +120,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 entities.append(MiotSensorEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
-    async_add_entities(entities, update_before_add=True)
+    async_add_entities(entities, update_before_add=False)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
@@ -153,17 +153,18 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         self._attr_state_class = None
         self._attr_native_unit_of_measurement = None
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if prop := self.custom_config('state_property'):
+            self._prop_state = self._miot_service.get_property(prop) or self._prop_state
         if self._prop_state:
             self._attr_icon = self._prop_state.entity_icon
             self._attr_device_class = self._prop_state.device_class
             self._attr_native_unit_of_measurement = self._prop_state.unit_of_measurement
+            self._state_attrs.update({
+                'state_property': self._prop_state.full_name,
+            })
 
-        self._state_attrs.update({
-            'state_property': self._prop_state.full_name if self._prop_state else None,
-        })
-
-    async def async_added_to_hass(self):
-        await super().async_added_to_hass()
         cls = self.custom_config('state_class')
         if cls in STATE_CLASSES:
             self._attr_state_class = cls
@@ -195,6 +196,9 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
                         self._prop_state.full_name: edt.get('method'),
                     })
         self._prop_state.description_to_dict(self._state_attrs)
+
+    async def async_update_for_main_entity(self):
+        await super().async_update_for_main_entity()
 
         if self._miot_service.name in ['washer']:
             pls = self._miot_service.get_properties(
