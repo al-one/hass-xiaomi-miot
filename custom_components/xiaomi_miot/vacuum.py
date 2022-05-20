@@ -83,11 +83,16 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
         self._prop_power = miot_service.get_property('on', 'power')
         self._prop_status = miot_service.get_property('status')
-        self._prop_mode = miot_service.get_property('fan_level', 'speed_level', 'mode')
         self._act_start = miot_service.get_action('start_sweep', 'start_mop')
         self._act_pause = miot_service.get_action('pause_sweeping', 'pause')
         self._act_stop = miot_service.get_action('stop_sweeping')
         self._act_locate = miot_service.get_action('find_device', 'position')
+        self._prop_mode = miot_service.get_property('mode')
+        self._prop_fan = self._prop_mode
+        for srv in [miot_service, *miot_service.spec.get_services('sweep')]:
+            if prop := srv.get_property('fan_level', 'speed_level', 'suction_state'):
+                self._prop_fan = prop
+                break
         self._prop_battery = miot_service.get_property('battery_level')
         self._srv_battery = miot_service.spec.get_service('battery')
         if self._srv_battery:
@@ -113,7 +118,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._supported_features |= SUPPORT_STOP
         if self._act_charge:
             self._supported_features |= SUPPORT_RETURN_HOME
-        if self._prop_mode:
+        if self._prop_fan:
             self._supported_features |= SUPPORT_FAN_SPEED
         if self._prop_battery:
             self._supported_features |= SUPPORT_BATTERY
@@ -211,26 +216,26 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
     @property
     def fan_speed(self):
-        if self._prop_mode:
-            val = self._prop_mode.from_dict(self._state_attrs)
+        if self._prop_fan:
+            val = self._prop_fan.from_dict(self._state_attrs)
             try:
                 val = int(val)
             except (TypeError, ValueError):
                 val = None
             if val is not None:
-                return self._prop_mode.list_description(val)
+                return self._prop_fan.list_description(val)
         return None
 
     @property
     def fan_speed_list(self):
-        if self._prop_mode:
-            return self._prop_mode.list_description(None) or []
+        if self._prop_fan:
+            return self._prop_fan.list_description(None) or []
         return None
 
     def set_fan_speed(self, fan_speed, **kwargs):
-        if self._prop_mode:
-            val = self._prop_mode.list_value(fan_speed)
-            return self.set_property(self._prop_mode, val)
+        if self._prop_fan:
+            val = self._prop_fan.list_value(fan_speed)
+            return self.set_property(self._prop_fan, val)
         return False
 
     def send_vacuum_command(self, command, params=None, **kwargs):
