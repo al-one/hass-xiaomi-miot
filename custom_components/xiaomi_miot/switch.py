@@ -163,6 +163,7 @@ class MiotSwitchActionSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
         self._miot_action = miot_action
         self._state = False
+        self._available = True
         if miot_action.name in ['pet_food_out']:
             self._option['icon'] = 'mdi:shaker'
         self._state_attrs.update({

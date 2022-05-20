@@ -616,7 +616,12 @@ MIIO_TO_MIOT_SPECS = {
             'action.2.1': {'setter': 'outfood'},
             'action.2.101': {'setter': 'resetdryer'},
             'prop.200.201': {'prop': 'wifi_led', 'setter': 'wifiledon', 'set_template': '{{ [value|int] }}'},
-            'prop.300.301': {'prop': 'key_lock', 'setter': 'keylock', 'set_template': '{{ [value|int] }}'},
+            'prop.300.301': {
+                'prop': 'key_lock',
+                'setter': 'keylock',
+                'template': '{{ not value }}',
+                'set_template': '{{ [0 if value else 1] }}',
+            },
         }
     },
 
