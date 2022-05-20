@@ -1549,8 +1549,10 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'zhimi.airpurifier._base': {
-        'miio_props': ['motor1_speed', 'motor2_speed', 'purify_volume'],
-        'entity_attrs': ['aqi', 'motor1_speed', 'motor2_speed', 'purify_volume'],
+        # https://github.com/rytilahti/python-miio/blob/master/miio/integrations/airpurifier/zhimi/airpurifier.py
+        'chunk_properties': 15,
+        'miio_props': ['bright', 'motor1_speed', 'motor2_speed', 'purify_volume'],
+        'entity_attrs': ['aqi', 'bright', 'motor1_speed', 'motor2_speed', 'purify_volume'],
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
@@ -1565,6 +1567,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.1': {'prop': 'filter1_life'},
             'prop.5.1': {'prop': 'led', 'setter': True, 'format': 'onoff'},
             'prop.6.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
+            'prop.2.101': {'prop': 'bright'},  # illumination
+            'prop.2.102': {'prop': 'motor1_speed'},
         },
     },
     'zhimi.airpurifier.m1': {
@@ -1689,6 +1693,8 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
             'prop.7.1': {'prop': 'led', 'setter': True, 'format': 'onoff'},
+            'prop.2.103': {'prop': 'favorite_level', 'setter': 'set_level_favorite'},
+            'prop.2.104': {'prop': 'act_det', 'setter': True, 'format': 'onoff'},
         },
     },
 

@@ -727,6 +727,44 @@
     }
   ],
 
+  "zhimi.airpurifier.v7": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:illumination",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "lux",
+          "value-range": [0, 200, 1]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:motor-speed",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "rpm",
+          "value-range": [0, 3000, 1]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:favorite-fan-level",
+          "format": "uint16",
+          "access": ["read", "write"],
+          "unit": "none",
+          "value-range": [0, 17, 1]
+        },
+        {
+          "iid": 104,
+          "type": "urn:miot-spec-v2:property:auto-detect",
+          "format": "bool",
+          "access": ["read", "write"]
+        }
+      ]
+    }
+  ],
+
   "zhimi.fan.za4": [
     {
       "iid": 2,

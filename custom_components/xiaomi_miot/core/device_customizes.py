@@ -510,6 +510,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'heater',
     },
     'zhimi.airpurifier.*': {
+        'sensor_properties': 'illumination,motor_speed',
         'number_properties': 'favorite_level,favorite_fan_level',
         # https://github.com/rytilahti/python-miio/blob/31c5d740d403c6f45f1e7e0d4a8a6276684a8ecd/miio/integrations/airpurifier/zhimi/airpurifier_miot.py#L13
         'exclude_miot_services': 'button,motor_speed,filter_time,rfid,others',
