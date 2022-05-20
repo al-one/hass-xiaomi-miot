@@ -523,6 +523,9 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
     },
+    'zimi.mosq.*': {
+        'light_services': 'light_indicator',
+    },
     'zimi.plug.zncz01': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '3.2',
@@ -656,6 +659,10 @@ DEVICE_CUSTOMIZES = {
     },
     '*.microwave.*': {
         'sensor_properties': 'left_time,heat_level,cook_time',
+    },
+    '*.mosq.*': {
+        'sensor_properties': 'repellent_left_level',
+        'select_properties': 'mode',
     },
     '*.motion.*:light_strong': {
         'device_class': 'light',
