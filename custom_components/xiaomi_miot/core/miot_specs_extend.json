@@ -85,6 +85,26 @@
     }
   ],
 
+  "leshow.humidifier.jsq1": [
+    {
+      "iid": 8,
+      "properties": [
+        {
+          "iid": 5,
+          "access": ["read"]
+        },
+        {
+          "iid": 6,
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 7,
+          "access": ["read"]
+        }
+      ]
+    }
+  ],
+
   "lumi.airer.acn01": [
     {
       "iid": 2,

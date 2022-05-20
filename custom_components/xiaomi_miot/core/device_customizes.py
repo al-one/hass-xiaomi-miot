@@ -236,6 +236,9 @@ DEVICE_CUSTOMIZES = {
     },
     'leshow.humidifier.jsq1': {
         'miot_type': 'urn:miot-spec-v2:device:humidifier:0000A00E:leshow-jsq1:2',
+        'sensor_properties': 'humidifier.water_level',
+        'switch_properties': 'alarm,warm_wind_turn,turn_ovp,dry_turn,turn_off_dry_turn',
+        'number_properties': 'screen_brightness,tsms_turn_off',
     },
     'lumi.acpartner.mcn02:electric_power': {
         'value_ratio': 1,
