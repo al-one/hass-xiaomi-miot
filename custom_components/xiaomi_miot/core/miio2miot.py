@@ -201,7 +201,7 @@ class Miio2MiotHelper:
                     setter = pms.get('method', setter)
                     pms = pms.get('params', [])
             elif fmt and hasattr(mph, fmt):
-                pms = getattr(mph, fmt)(value)
+                pms = [getattr(mph, fmt)(value)]
             elif d := cfg.get('dict', {}):
                 for dk, dv in d.items():
                     if dv == value:

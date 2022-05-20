@@ -74,10 +74,10 @@ MIIO_TO_MIOT_SPECS = {
             },
         ],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': 'SetSwitch'},
+            'prop.2.1': {'prop': 'power', 'setter': 'SetSwitch', 'set_template': '{{ [value|int] }}'},
             'prop.2.2': {'prop': 'speed', 'setter': 'SetLevel'},
-            'prop.2.3': {'prop': 'lrWind', 'setter': 'SetH_Swing'},
-            'prop.2.4': {'prop': 'udWind', 'setter': 'SetV_Swing'},
+            'prop.2.3': {'prop': 'lrWind', 'setter': 'SetH_Swing', 'set_template': '{{ [value|int] }}'},
+            'prop.2.4': {'prop': 'udWind', 'setter': 'SetV_Swing', 'set_template': '{{ [value|int] }}'},
             'prop.2.5': {'prop': 'mode', 'setter': 'SetMode'},
         },
     },
