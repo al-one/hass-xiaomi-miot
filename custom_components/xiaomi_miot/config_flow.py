@@ -240,15 +240,19 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         prev_action = user_input.get('action', 'account')
         if prev_action == 'cloud':
             prev_action = 'account'
+        actions = {
+            'account': 'Add devices using Mi Account (账号集成)',
+            'token': 'Add device using host/token (局域网集成)',
+        }
+        if self.hass.data[DOMAIN].get('entities', {}):
+            actions.update({
+                'customizing_entity': 'Customizing entity (自定义实体)',
+                'customizing_device': 'Customizing device (自定义设备)',
+            })
         return self.async_show_form(
             step_id='user',
             data_schema=vol.Schema({
-                vol.Required('action', default=prev_action): vol.In({
-                    'account': 'Add devices using Mi Account (账号集成)',
-                    'token': 'Add device using host/token (局域网集成)',
-                    'customizing_entity': 'Customizing entity (自定义实体)',
-                    'customizing_device': 'Customizing device (自定义设备)',
-                }),
+                vol.Required('action', default=prev_action): vol.In(actions),
             }),
             errors=errors,
             last_step=self.context.get('last_step'),
