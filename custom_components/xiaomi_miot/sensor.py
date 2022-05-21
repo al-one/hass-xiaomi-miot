@@ -398,6 +398,8 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
 
     @property
     def native_value(self):
+        if hasattr(self, '_attr_native_value') and self._attr_native_value is not None:
+            return self._attr_native_value
         return self._attr_state
 
     @property
