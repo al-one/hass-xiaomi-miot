@@ -97,7 +97,7 @@ CUSTOM_TEMPLATES = {
                                   "{{ {"
                                   "'power': state[2:3] | int(0) == 1,"
                                   "'mode': [3,1,0,2,4][state[3:4] | int(2)],"
-                                  "'fan_level': [3,0,1,2][state[4:5] | int(3)],"
+                                  "'fan_level': [1,2,3,0][state[4:5] | int(3)],"
                                   "'vertical_swing': state[5:6] in ['0','C'],"
                                   "'target_temperature': state[6:8] | int(0,16),"
                                   "'load_power': results[2] | default(0) | float | round(2),"
