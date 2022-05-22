@@ -13,6 +13,9 @@ def set_callback_via_param_index(index=0):
 
 MIIO_TO_MIOT_SPECS = {
 
+    '090615.switch.switch01': '090615.switch.xswitch01',
+    '090615.switch.switch02': '090615.switch.xswitch02',
+    '090615.switch.switch03': '090615.switch.xswitch03',
     '090615.switch.xswitch01': {
         'without_props': True,
         'ignore_result': True,
