@@ -1529,6 +1529,45 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'zhimi.aircondition.ma1': {
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'mode', 'dict': {
+                'automode':   0,
+                'cooling':    1,
+                'arefaction': 2,
+                'heat':       3,
+                'wind':       4,
+            }, 'default': 0},
+            'prop.2.3': {
+                'prop': 'st_temp_dec',
+                'setter': 'set_temperature',
+                'template': '{{ value|default(0,true)/10.0 }}',
+                'set_template': '{{ (value*10)|int(0) }}',
+            },
+            'prop.2.4': {'prop': 'ptc', 'setter': True, 'format': 'onoff'},
+            'prop.2.5': {'prop': 'silent', 'setter': True, 'format': 'onoff'},
+            'prop.3.1': {'prop': 'speed_level', 'setter': 'set_spd_level', 'dict': {
+                5: 0,  # auto
+            }},
+            'prop.3.2': {'prop': 'vertical_swing', 'setter': 'set_vertical', 'format': 'onoff'},
+            'prop.3.3': {'prop': 'vertical_rt', 'setter': 'set_ver_pos'},
+            'prop.4.1': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
+            'prop.5.1': {
+                'prop': 'volume_level',
+                'setter': 'set_volume_sw',
+                'set_template': '{{ [5 if value else 0] }}',
+            },
+            'prop.6.1': {'prop': 'lcd_level', 'setter': 'set_lcd', 'set_template': '{{ [5 if value else 0] }}'},
+            'prop.6.2': {'prop': 'lcd_level', 'setter': 'set_lcd'},
+        },
+    },
+    'zhimi.aircondition.ma2': 'zhimi.aircondition.ma1',
+    'zhimi.aircondition.ma3': 'zhimi.aircondition.ma1',
+    'zhimi.aircondition.ma4': 'zhimi.aircondition.ma1',
+    'zhimi.aircondition.za1': 'zhimi.aircondition.ma1',
+
     'zhimi.airmonitor.v1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'aqi'},
