@@ -585,6 +585,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'temperature',
         'switch_properties': 'heating,blow,ventilation',
         'select_properties': 'link',
+        'light_services': 'light',
     },
 
     '*.aircondition.*': {
