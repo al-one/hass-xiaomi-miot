@@ -534,6 +534,9 @@ DEVICE_CUSTOMIZES = {
     },
     'zimi.plug.zncz01': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
+        'sensor_properties': 'electric_power',
+        'switch_properties': 'power_protect.on,full_power_off',
+        'select_properties': 'enable_upload_power',
         'stat_power_cost_key': '3.2',
     },
     'zimi.plug.*:electric_power': {
