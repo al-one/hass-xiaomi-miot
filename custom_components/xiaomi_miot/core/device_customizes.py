@@ -72,6 +72,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'lock_temp,cold_mode,default_mode',
         'number_properties': 'boil_point,oled_close_time',
     },
+    'cuco.light.sl4': {
+        'switch_properties': 'swich',
+        'select_properties': 'scene.mode,change_type',
+        'number_properties': 'change_speed',
+    },
     'cuco.light.sl4a': {
         'switch_properties': 'swich',
         'select_properties': 'scene.mode,change_type',
