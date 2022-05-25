@@ -2,6 +2,7 @@
 import logging
 import time
 import json
+from typing import cast
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -122,6 +123,20 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=False)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
+
+
+def datetime_with_tzinfo(value):
+    if isinstance(value, datetime):
+        pass
+    elif isinstance(value, str):
+        value = datetime.fromisoformat(value)
+    elif isinstance(value, (int, float)):
+        value = datetime.fromtimestamp(value)
+    else:
+        value = cast(datetime, value)
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=local_zone())
+    return value
 
 
 class MiotSensorEntity(MiotEntity, SensorEntity):
@@ -398,9 +413,12 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
 
     @property
     def native_value(self):
+        value = self._attr_state
         if hasattr(self, '_attr_native_value') and self._attr_native_value is not None:
-            return self._attr_native_value
-        return self._attr_state
+            value = self._attr_native_value
+        if self.device_class == DEVICE_CLASS_TIMESTAMP:
+            value = datetime_with_tzinfo(value)
+        return value
 
     @property
     def state_class(self):
