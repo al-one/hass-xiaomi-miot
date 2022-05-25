@@ -39,7 +39,8 @@ wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/in
       update_xiaomi_miot: |-
         wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | bash -
     ```
-2. Call this [`service: shell_command.update_xiaomi_miot`](https://my.home-assistant.io/redirect/developer_call_service/?service=shell_command.update_xiaomi_miot) in Developer Tools
+2. Restart HA core
+3. Call this [`service: shell_command.update_xiaomi_miot`](https://my.home-assistant.io/redirect/developer_call_service/?service=shell_command.update_xiaomi_miot) in Developer Tools
 
 
 ## Config
