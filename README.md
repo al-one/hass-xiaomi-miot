@@ -15,16 +15,31 @@ This component uses the **miot** protocol to automatically integrate Xiaomi devi
 ![hass-xiaomi-miot-configs](https://user-images.githubusercontent.com/4549099/142151697-5188ea2d-0aad-4778-8b60-b949bcc410bb.png)
 
 
-## Installing
+<a name="installing"></a>
+## Installation
 
+#### Method 1: [HACS](https://hacs.xyz)
+- First installation
+    > HACS > Integrations > ➕ EXPLORE & DOWNLOAD REPOSITORIES > `Xiaomi Miot Auto` > DOWNLOAD THIS REPOSITORY
+- Update component
+    > HACS > Integrations > `Xiaomi Miot Auto` > UPDATE / Redownload
+
+#### Method 2: Manually installation via Samba / SFTP
 > Download and copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
 
+#### Method 3: Onkey shell via SSH / Terminal & SSH add-on
 ```shell
-# Auto install via terminal shell
 wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | bash -
 ```
 
-> Or you can install component with [HACS](https://hacs.xyz)
+#### Method 4: shell_command service
+1. Copy this code to file `configuration.yaml`
+    ```yaml
+    shell_command:
+      update_xiaomi_miot: |-
+        wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | bash -
+    ```
+2. Call this [`service: shell_command.update_xiaomi_miot`](https://my.home-assistant.io/redirect/developer_call_service/?service=shell_command.update_xiaomi_miot) in Developer Tools
 
 
 ## Config

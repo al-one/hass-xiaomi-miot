@@ -34,12 +34,20 @@
 
 
 <a name="installing"></a>
-## 安装
+<a name="installation"></a>
+## 安装/更新
 
+#### 方法1: [HACS](https://hacs.xyz)
+- 首次安装
+    > HACS > 集成 > ➕ 浏览并下载存储库 > `Xiaomi Miot Auto` > 下载此存储库
+- 升级插件
+    > HACS > 集成 > `Xiaomi Miot Auto` > 更新 / 重新下载
+
+#### 方法2: 通过`Samba`或`SFTP`手动安装
 > 下载并复制`custom_components/xiaomi_miot`文件夹到HA根目录下的`custom_components`文件夹
 
+#### 方法3: 通过`SSH`或`Terminal & SSH`加载项执行一键安装命令
 ```shell
-# 执行下面的命令可以自动安装
 wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | bash -
 
 # 如果遇到下载缓慢或下载失败可以执行下面的命令
@@ -49,8 +57,16 @@ wget -q -O - https://ghproxy.com/raw.githubusercontent.com/al-one/hass-xiaomi-mi
 wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=hub.fastgit.xyz bash -
 ```
 
-> 或者通过[HACS](https://hacs.xyz)搜索`Xiaomi Miot Auto`安装
+#### 方法4: `shell_command`服务
+1. 复制下面的代码到HA配置文件`configuration.yaml`
+    ```yaml
+    shell_command:
+      update_xiaomi_miot: |-
+        wget -q -O - https://ghproxy.com/raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=ghproxy.com/github.com bash -
+    ```
+2. 在HA开发者工具中调用此服务[`service: shell_command.update_xiaomi_miot`](https://my.home-assistant.io/redirect/developer_call_service/?service=shell_command.update_xiaomi_miot)
 
+#### 视频教程
 - 📺 **[HACS安装插件及使用视频教程](https://www.bilibili.com/video/BV1hY4y1a7Gh?t=48)** (感谢[小帅同学Js](https://space.bilibili.com/230242045))
 - 📺 **[HACS安装插件视频教程](https://www.bilibili.com/video/BV17L411j73Y?t=62)** (感谢[@老明](https://space.bilibili.com/583175067))
 - 📺 **[手动安装插件视频教程](https://www.bilibili.com/video/BV1EU4y1n7VR)** (感谢[@爱运动的数码君](https://space.bilibili.com/39480347))
