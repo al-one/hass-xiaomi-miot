@@ -14,6 +14,16 @@ REPO_NAME=$(basename "$REPO_PATH")
 [ -z "$HUB_DOMAIN" ] && HUB_DOMAIN="github.com"
 ARCHIVE_URL="https://$HUB_DOMAIN/$REPO_PATH/archive/$ARCHIVE_TAG.zip"
 
+if [ "$ARCHIVE_TAG" = "latest" ]; then
+    ARCHIVE_URL="https://$HUB_DOMAIN/$REPO_PATH/releases/$ARCHIVE_TAG/download/$DOMAIN.zip"
+fi
+if [ "$DOMAIN" = "hacs" ]; then
+    if [ "$ARCHIVE_TAG" = "main" ] || [ "$ARCHIVE_TAG" = "china" ]; then
+        ARCHIVE_TAG="latest"
+    fi
+    ARCHIVE_URL="https://$HUB_DOMAIN/$REPO_PATH/releases/$ARCHIVE_TAG/download/$DOMAIN.zip"
+fi
+
 RED_COLOR='\033[0;31m'
 GREEN_COLOR='\033[0;32m'
 GREEN_YELLOW='\033[1;33m'
@@ -73,9 +83,6 @@ if [ -n "$haPath" ]; then
     info "Downloading..."
     wget -t 2 -O "$ccPath/$ARCHIVE_TAG.zip" "$ARCHIVE_URL"
 
-    info "Unpacking..."
-    unzip -o "$ccPath/$ARCHIVE_TAG.zip" -d "$ccPath" >/dev/null 2>&1
-
     if [ -d "$ccPath/$DOMAIN" ]; then
         warn "custom_components/$DOMAIN directory already exist, cleaning up..."
         rm -R "$ccPath/$DOMAIN"
@@ -85,6 +92,17 @@ if [ -n "$haPath" ]; then
     if [ ! -d "$ccPath/$REPO_NAME-$ver" ]; then
         ver=$ARCHIVE_TAG
     fi
+
+    info "Unpacking..."
+    str="/releases/"
+    if [ ${ARCHIVE_URL/${str}/} = $ARCHIVE_URL ]; then
+        unzip -o "$ccPath/$ARCHIVE_TAG.zip" -d "$ccPath" >/dev/null 2>&1
+    else
+        dir="$ccPath/$REPO_NAME-$ver/custom_components/$DOMAIN"
+        mkdir -p $dir
+        unzip -o "$ccPath/$ARCHIVE_TAG.zip" -d $dir >/dev/null 2>&1
+    fi
+
     if [ ! -d "$ccPath/$REPO_NAME-$ver" ]; then
         error "Could not find $REPO_NAME-$ver directory" false
         error "找不到文件夹: $REPO_NAME-$ver"

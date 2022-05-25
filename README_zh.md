@@ -48,13 +48,13 @@
 
 #### 方法3: 通过`SSH`或`Terminal & SSH`加载项执行一键安装命令
 ```shell
-wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | bash -
+wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | ARCHIVE_TAG=latest bash -
 
 # 如果遇到下载缓慢或下载失败可以执行下面的命令
-wget -q -O - https://ghproxy.com/raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=ghproxy.com/github.com bash -
+wget -q -O - https://ghproxy.com/raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=ghproxy.com/github.com ARCHIVE_TAG=latest bash -
 
 # 或者
-wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=hub.fastgit.xyz bash -
+wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=hub.fastgit.xyz ARCHIVE_TAG=latest bash -
 ```
 
 #### 方法4: `shell_command`服务
@@ -62,7 +62,7 @@ wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh |
     ```yaml
     shell_command:
       update_xiaomi_miot: |-
-        wget -q -O - https://ghproxy.com/raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=ghproxy.com/github.com bash -
+        wget -q -O - https://ghproxy.com/raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=ghproxy.com/github.com ARCHIVE_TAG=latest bash -
     ```
 2. 重启HA
 3. 在HA开发者工具中调用此服务[`service: shell_command.update_xiaomi_miot`](https://my.home-assistant.io/redirect/developer_call_service/?service=shell_command.update_xiaomi_miot)
