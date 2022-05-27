@@ -425,8 +425,9 @@ DEVICE_CUSTOMIZES = {
         'select_attributes': 'main_state,main_light,night_light,heat,vent,dry,natural_wind,delay_wind',
     },
     'smith.waterpuri.cxr800': {
-        'miot_type': 'urn:miot-spec-v2:device:water-purifier:0000A013:smith-cxr800:2',
-        'sensor_attributes': 'filter_life_level,rwaterconsumption,rsysstate',
+        'chunk_properties': 1,
+        'state_property': 'chanitex_wp_gs.rsysstate',
+        'sensor_properties': 'rwaterconsumption,rfilterwaterlifei,rfilterwaterlifeii,rfilterwaterlifeiii',
     },
     'shuii.humidifier.jsq002': {
         'brightness_for_on': 3,
