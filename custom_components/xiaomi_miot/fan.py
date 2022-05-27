@@ -16,8 +16,8 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
-    MiotEntity,
     MiotToggleEntity,
+    MiirToggleEntity,
     MiotPropertySubEntity,
     ToggleSubEntity,
     async_setup_config_entry,
@@ -293,13 +293,9 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         return self.set_property(self._prop_oscillate, oscillating)
 
 
-class MiirFanEntity(MiotEntity, FanEntity):
+class MiirFanEntity(MiirToggleEntity, FanEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
-        self._available = True
-
-        self._act_turn_on = miot_service.get_action('turn_on')
-        self._act_turn_off = miot_service.get_action('turn_off')
 
         self._attr_percentage = 50
         self._act_speed_up = miot_service.get_action('fan_speed_up')
@@ -320,11 +316,6 @@ class MiirFanEntity(MiotEntity, FanEntity):
                 continue
             self._attr_preset_modes.append(a.friendly_desc)
 
-    @property
-    def is_on(self):
-        """Return True if entity is on."""
-        return self._attr_is_on
-
     def turn_on(self, percentage=None, preset_mode=None, **kwargs):
         """Turn the entity on."""
         if percentage is None:
@@ -339,15 +330,7 @@ class MiirFanEntity(MiotEntity, FanEntity):
         elif act := self._miot_service.get_action(preset_mode):
             return self.call_action(act)
 
-        if not self._act_turn_on:
-            raise NotImplementedError()
-        return self.call_action(self._act_turn_on)
-
-    def turn_off(self, **kwargs):
-        """Turn the entity off."""
-        if not self._act_turn_off:
-            raise NotImplementedError()
-        return self.call_action(self._act_turn_off)
+        return super().turn_on(**kwargs)
 
     def set_percentage(self, percentage: int):
         """Set the speed of the fan, as a percentage."""

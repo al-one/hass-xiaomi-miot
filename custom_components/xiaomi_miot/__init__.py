@@ -2126,6 +2126,37 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
         return False
 
 
+class MiirToggleEntity(MiotEntity, ToggleEntity):
+    def __init__(self, miot_service=None, device=None, **kwargs):
+        super().__init__(miot_service, device, **kwargs)
+        self._available = True
+        self._miot_actions = []
+        for a in miot_service.actions.values():
+            if a.ins:
+                continue
+            self._miot_actions.append(a.friendly_desc)
+        self._attr_is_on = None
+        self._act_turn_on = miot_service.get_action('turn_on')
+        self._act_turn_off = miot_service.get_action('turn_off')
+
+    @property
+    def is_on(self):
+        """Return True if entity is on."""
+        return self._attr_is_on
+
+    def turn_on(self, **kwargs):
+        """Turn the entity on."""
+        if not self._act_turn_on:
+            raise NotImplementedError()
+        return self.call_action(self._act_turn_on)
+
+    def turn_off(self, **kwargs):
+        """Turn the entity off."""
+        if not self._act_turn_off:
+            raise NotImplementedError()
+        return self.call_action(self._act_turn_off)
+
+
 class BaseSubEntity(BaseEntity):
     def __init__(self, parent, attr, option=None, **kwargs):
         self.hass = parent.hass

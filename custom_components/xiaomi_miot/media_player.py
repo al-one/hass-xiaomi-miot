@@ -33,6 +33,7 @@ from . import (
     XIAOMI_MIIO_SERVICE_SCHEMA,
     MiotEntityInterface,
     MiotEntity,
+    MiirToggleEntity,
     MiotCloud,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -82,7 +83,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if isinstance(spec, MiotSpec):
-        for srv in spec.get_services('play_control', 'doorbell'):
+        for srv in spec.get_services(
+            'play_control', 'ir_tv_control', 'ir_projector_control',
+            'ir_box_control', 'ir_stb_control', 'doorbell',
+        ):
+            if 'miir.' in model:
+                entities.append(MiirMediaPlayerEntity(config, srv))
+                continue
             if not srv.mapping() and not srv.get_action('play'):
                 continue
             if spec.get_service('television', 'projector', 'tv_box'):
@@ -817,6 +824,70 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         return await self.hass.async_add_executor_job(
             partial(self.request_mitv_api, path, **kwargs)
         )
+
+
+class MiirMediaPlayerEntity(MiirToggleEntity, MediaPlayerEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(miot_service, config=config, logger=_LOGGER)
+
+        if self._act_turn_on:
+            self._supported_features |= SUPPORT_TURN_ON
+        if self._act_turn_off:
+            self._supported_features |= SUPPORT_TURN_OFF
+
+        self._attr_is_volume_muted = None
+        self._act_mute_on = miot_service.get_action('mute_on')
+        self._act_mute_off = miot_service.get_action('mute_off')
+        if self._act_mute_on or self._act_mute_off:
+            self._supported_features |= SUPPORT_VOLUME_MUTE
+
+        self._attr_volume_level = 0.5
+        self._act_volume_up = miot_service.get_action('volume_up')
+        self._act_volume_dn = miot_service.get_action('volume_down')
+        if self._act_volume_up or self._act_volume_dn:
+            self._supported_features |= SUPPORT_VOLUME_SET
+            self._supported_features |= SUPPORT_VOLUME_STEP
+
+        if self._miot_actions:
+            self._supported_features |= SUPPORT_SELECT_SOURCE
+            self._attr_source_list = self._miot_actions
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+
+        if act := self._miot_service.get_action('set_channel_number'):
+            prop = self._miot_service.get_property('channel_number')
+            add_numbers = self._add_entities.get('number')
+            if prop and add_numbers:
+                from .number import MiotNumberActionSubEntity
+                fnm = prop.unique_name
+                self._subs[fnm] = MiotNumberActionSubEntity(self, prop, act)
+                add_numbers([self._subs[fnm]], update_before_add=True)
+
+    def mute_volume(self, mute):
+        """Mute the volume."""
+        ret = None
+        if not mute and self._act_mute_off:
+            ret = self.call_action(self._act_mute_off)
+        elif mute and self._act_mute_on:
+            ret = self.call_action(self._act_mute_on)
+        if ret:
+            self._attr_is_volume_muted = mute
+        return ret
+
+    def set_volume_level(self, volume):
+        """Set volume level, range 0..1."""
+        if volume > self._attr_volume_level and self._act_volume_up:
+            return self.call_action(self._act_volume_up)
+        elif volume < self._attr_volume_level and self._act_volume_dn:
+            return self.call_action(self._act_volume_dn)
+        raise NotImplementedError()
+
+    def select_source(self, source):
+        """Select input source."""
+        if act := self._miot_service.get_action(source):
+            return self.call_action(act)
+        raise NotImplementedError()
 
 
 class MiotDoorbellEntity(MiotMediaPlayerEntity):

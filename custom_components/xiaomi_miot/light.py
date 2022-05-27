@@ -23,8 +23,8 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
-    MiotEntity,
     MiotToggleEntity,
+    MiirToggleEntity,
     ToggleSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -287,13 +287,9 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         return None
 
 
-class MiirLightEntity(MiotEntity, LightEntity):
+class MiirLightEntity(MiirToggleEntity, LightEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
-        self._available = True
-
-        self._act_turn_on = miot_service.get_action('turn_on')
-        self._act_turn_off = miot_service.get_action('turn_off')
 
         self._act_bright_up = miot_service.get_action('brightness_up')
         self._act_bright_dn = miot_service.get_action('brightness_down')
@@ -307,11 +303,6 @@ class MiirLightEntity(MiotEntity, LightEntity):
             if a.ins:
                 continue
             self._attr_effect_list.append(a.friendly_desc)
-
-    @property
-    def is_on(self):
-        """Return True if entity is on."""
-        return self._attr_is_on
 
     def turn_on(self, **kwargs):
         """Turn the entity on."""
@@ -327,15 +318,7 @@ class MiirLightEntity(MiotEntity, LightEntity):
         if act := self._miot_service.get_action(effect):
             return self.call_action(act)
 
-        if not self._act_turn_on:
-            raise NotImplementedError()
-        return self.call_action(self._act_turn_on)
-
-    def turn_off(self, **kwargs):
-        """Turn the entity off."""
-        if not self._act_turn_off:
-            raise NotImplementedError()
-        return self.call_action(self._act_turn_off)
+        return super().turn_on(**kwargs)
 
 
 class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
