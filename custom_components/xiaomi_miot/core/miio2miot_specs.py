@@ -1096,6 +1096,22 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'yeelink.bhf_light.v1': {
+        'extend_model': 'yeelink.bhf_light.v2',
+        'miio_specs': {
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.3.2': {'prop': 'temperature'},
+            'prop.4.2': {
+                'prop': 'swing_action',
+                'setter': 'set_swing',
+                'template': '{{ value in ["swing"] }}',
+                'set_template': '{{ ["swing" if value else "stop",0] }}',
+            },
+            'prop.4.3': {'prop': 'swing_angle', 'setter': 'set_swing', 'set_template': '{{ ["swing",value] }}'},
+            'prop.5.1': {'prop': 'temperature'},
+            'prop.5.2': {'prop': 'humidity'},
+        },
+    },
     'yeelink.bhf_light.v2': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
@@ -1107,6 +1123,7 @@ MIIO_TO_MIOT_SPECS = {
                 'drying':   4,
                 'coolwind': 5,
             }, 'default': 1},
+            'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
             'prop.4.1': {
                 'prop': 'fan_speed_idx',
                 'setter': 'set_gears_idx',
