@@ -125,19 +125,26 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         if self._prop_power:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_power.full_name]
             self._option['icon'] = self._prop_power.entity_icon or self._option.get('icon')
-        self._on_descriptions = ['On', 'Open', 'Enable', 'Enabled', 'Yes', '开']
+        self._on_descriptions = ['On', 'Open', 'Enable', 'Enabled', 'Yes', '开', '打开']
         if des := self.custom_config_list('descriptions_for_on'):
             self._on_descriptions = des
 
     @property
     def is_on(self):
+        val = self._miot_property.from_dict(self._state_attrs)
+        if self._miot_property.value_list:
+            if val is not None:
+                self._state = val in self._miot_property.list_search(*self._on_descriptions)
+        elif self._miot_property.value_range:
+            if self._miot_property.range_min() == 0 and self._miot_property.range_max() == 1:
+                self._state = val == self._miot_property.range_max()
+        elif self._miot_property.format in ['bool']:
+            self._state = val
+
         if self._miot_service.name in ['air_conditioner']:
             if self._prop_power:
                 self._state = self._state and self._prop_power.from_dict(self._state_attrs)
-        if self._miot_property.value_list:
-            val = self._miot_property.from_dict(self._state_attrs)
-            if val is not None:
-                self._state = val in self._miot_property.list_search(*self._on_descriptions)
+
         return self._state
 
     def turn_on(self, **kwargs):
@@ -146,6 +153,8 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
             ret = self._miot_property.list_first(*self._on_descriptions)
             if ret is not None:
                 val = ret
+        elif self._miot_property.value_range:
+            val = self._miot_property.range_max()
         return self.set_parent_property(val)
 
     def turn_off(self, **kwargs):
@@ -154,6 +163,8 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
             ret = self._miot_property.list_first('Off', 'Close', 'Closed', '关')
             if ret is not None:
                 val = ret
+        elif self._miot_property.value_range:
+            val = self._miot_property.range_min()
         return self.set_parent_property(val)
 
 

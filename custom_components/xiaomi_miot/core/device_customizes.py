@@ -1,5 +1,10 @@
 DEVICE_CUSTOMIZES = {
 
+    'ateai.mosq.dakuo': {
+        'switch_properties': 'dakuo_mosq_dispeller.status',
+        'select_properties': 'workmode',
+    },
+
     'bofu.curtain.bfmh': {
         'select_properties': 'motor_control',
     },
@@ -676,7 +681,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'left_time,heat_level,cook_time',
     },
     '*.mosq.*': {
-        'sensor_properties': 'repellent_left_level',
+        'sensor_properties': 'repellent_left_level,liquid_left',
         'select_properties': 'mode',
     },
     '*.motion.*:light_strong': {
