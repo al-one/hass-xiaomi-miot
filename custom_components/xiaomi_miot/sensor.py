@@ -730,6 +730,6 @@ class XiaoaiConversationSensor(MiCoordinatorEntity, BaseSensorSubEntity):
                 v.get('query')
                 for v in mls
             ],
-            'timestamp': datetime.fromtimestamp(tim / 1000) if tim else None,
+            'timestamp': datetime.fromtimestamp(tim / 1000, local_zone()) if tim else None,
         })
         return msg
