@@ -16,6 +16,7 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
+    MiotEntity,
     MiotToggleEntity,
     MiotPropertySubEntity,
     ToggleSubEntity,
@@ -69,8 +70,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if isinstance(spec, MiotSpec):
-        for srv in spec.get_services(ENTITY_DOMAIN, 'ceiling_fan', 'air_fresh', 'air_purifier', 'hood'):
-            if not srv.bool_property('on'):
+        for srv in spec.get_services(
+            ENTITY_DOMAIN, 'ceiling_fan', 'ir_fan_control',
+            'air_fresh', 'air_purifier', 'hood',
+        ):
+            if srv.name in ['ir_fan_control']:
+                entities.append(MiirFanEntity(config, srv))
+                continue
+            elif not srv.bool_property('on'):
                 continue
             elif srv.name in ['air_fresh'] and spec.name not in ['air_fresh']:
                 continue
@@ -284,6 +291,82 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
     def oscillate(self, oscillating: bool):
         return self.set_property(self._prop_oscillate, oscillating)
+
+
+class MiirFanEntity(MiotEntity, FanEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(miot_service, config=config, logger=_LOGGER)
+        self._available = True
+
+        self._act_turn_on = miot_service.get_action('turn_on')
+        self._act_turn_off = miot_service.get_action('turn_off')
+
+        self._attr_percentage = 50
+        self._act_speed_up = miot_service.get_action('fan_speed_up')
+        self._act_speed_dn = miot_service.get_action('fan_speed_down')
+        if self._act_speed_up or self._act_speed_dn:
+            self._supported_features |= SUPPORT_SET_SPEED
+
+        self._act_swing_on = miot_service.get_action('horizontal_swing_on')
+        self._act_swing_off = miot_service.get_action('horizontal_swing_off')
+        if self._act_swing_on or self._act_swing_off:
+            self._supported_features |= SUPPORT_OSCILLATE
+
+        self._supported_features |= SUPPORT_PRESET_MODE
+        self._attr_preset_mode = None
+        self._attr_preset_modes = []
+        for a in miot_service.actions.values():
+            if a.ins:
+                continue
+            self._attr_preset_modes.append(a.friendly_desc)
+
+    @property
+    def is_on(self):
+        """Return True if entity is on."""
+        return self._attr_is_on
+
+    def turn_on(self, percentage=None, preset_mode=None, **kwargs):
+        """Turn the entity on."""
+        if percentage is None:
+            pass
+        elif percentage > self._attr_percentage and self._act_speed_up:
+            return self.call_action(self._act_speed_up)
+        elif percentage < self._attr_percentage and self._act_speed_dn:
+            return self.call_action(self._act_speed_dn)
+
+        if preset_mode is None:
+            pass
+        elif act := self._miot_service.get_action(preset_mode):
+            return self.call_action(act)
+
+        if not self._act_turn_on:
+            raise NotImplementedError()
+        return self.call_action(self._act_turn_on)
+
+    def turn_off(self, **kwargs):
+        """Turn the entity off."""
+        if not self._act_turn_off:
+            raise NotImplementedError()
+        return self.call_action(self._act_turn_off)
+
+    def set_percentage(self, percentage: int):
+        """Set the speed of the fan, as a percentage."""
+        return self.turn_on(percentage=percentage)
+
+    def set_preset_mode(self, preset_mode):
+        """Set new preset mode."""
+        return self.turn_on(preset_mode=preset_mode)
+
+    def oscillate(self, oscillating):
+        """Oscillate the fan."""
+        ret = None
+        if not oscillating and self._act_swing_off:
+            ret = self.call_action(self._act_swing_off)
+        elif oscillating and self._act_swing_on:
+            ret = self.call_action(self._act_swing_on)
+        if ret:
+            self._attr_oscillating = oscillating
+        return ret
 
 
 class MiotFanSubEntity(MiotFanEntity, ToggleSubEntity):

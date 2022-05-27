@@ -315,9 +315,6 @@ class MiirLightEntity(MiotEntity, LightEntity):
 
     def turn_on(self, **kwargs):
         """Turn the entity on."""
-        if not self._act_turn_on:
-            raise NotImplementedError()
-
         bright = kwargs.get(ATTR_BRIGHTNESS)
         if bright is None:
             pass
@@ -330,6 +327,8 @@ class MiirLightEntity(MiotEntity, LightEntity):
         if act := self._miot_service.get_action(effect):
             return self.call_action(act)
 
+        if not self._act_turn_on:
+            raise NotImplementedError()
         return self.call_action(self._act_turn_on)
 
     def turn_off(self, **kwargs):
