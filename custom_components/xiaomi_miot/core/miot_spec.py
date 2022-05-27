@@ -855,6 +855,7 @@ class MiotAction(MiotSpecInstance):
     def in_list(self, lst):
         return self.name in lst \
             or self.friendly_name in lst \
+            or self.friendly_desc in lst \
             or self.unique_name in lst \
             or self.unique_prop in lst \
             or self.full_name in lst

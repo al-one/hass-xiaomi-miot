@@ -23,6 +23,7 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
+    MiotEntity,
     MiotToggleEntity,
     ToggleSubEntity,
     async_setup_config_entry,
@@ -71,8 +72,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if model.find('mrbond.airer') >= 0:
         pass
     elif isinstance(spec, MiotSpec):
-        for srv in spec.get_services(ENTITY_DOMAIN, 'light_bath_heater'):
-            if not srv.get_property('on'):
+        for srv in spec.get_services(ENTITY_DOMAIN, 'ir_light_control', 'light_bath_heater'):
+            if srv.name in ['ir_light_control']:
+                entities.append(MiirLightEntity(config, srv))
+                continue
+            elif not srv.get_property('on'):
                 continue
             elif spec.get_service('ptc_bath_heater'):
                 # only sub light
@@ -281,6 +285,58 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             if val is not None:
                 return self._prop_mode.list_description(val)
         return None
+
+
+class MiirLightEntity(MiotEntity, LightEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(miot_service, config=config, logger=_LOGGER)
+        self._available = True
+
+        self._act_turn_on = miot_service.get_action('turn_on')
+        self._act_turn_off = miot_service.get_action('turn_off')
+
+        self._act_bright_up = miot_service.get_action('brightness_up')
+        self._act_bright_dn = miot_service.get_action('brightness_down')
+        if self._act_bright_up or self._act_bright_dn:
+            self._supported_features |= SUPPORT_BRIGHTNESS
+            self._attr_brightness = 127
+
+        self._supported_features |= SUPPORT_EFFECT
+        self._attr_effect_list = []
+        for a in miot_service.actions.values():
+            if a.ins:
+                continue
+            self._attr_effect_list.append(a.friendly_desc)
+
+    @property
+    def is_on(self):
+        """Return True if entity is on."""
+        return self._attr_is_on
+
+    def turn_on(self, **kwargs):
+        """Turn the entity on."""
+        if not self._act_turn_on:
+            raise NotImplementedError()
+
+        bright = kwargs.get(ATTR_BRIGHTNESS)
+        if bright is None:
+            pass
+        elif bright > self._attr_brightness and self._act_bright_up:
+            return self.call_action(self._act_bright_up)
+        elif bright < self._attr_brightness and self._act_bright_dn:
+            return self.call_action(self._act_bright_dn)
+
+        effect = kwargs.get(ATTR_EFFECT)
+        if act := self._miot_service.get_action(effect):
+            return self.call_action(act)
+
+        return self.call_action(self._act_turn_on)
+
+    def turn_off(self, **kwargs):
+        """Turn the entity off."""
+        if not self._act_turn_off:
+            raise NotImplementedError()
+        return self.call_action(self._act_turn_off)
 
 
 class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
