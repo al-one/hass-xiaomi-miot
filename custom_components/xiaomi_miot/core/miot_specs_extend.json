@@ -171,6 +171,30 @@
     }
   ],
 
+  "dreame.vacuum.p2029": [
+    {
+      "iid": 4,
+      "actions": [
+        {
+          "iid": 1,
+          "in": [1, 10]
+        }
+      ]
+    }
+  ],
+
+  "dreame.vacuum.p2140p": [
+    {
+      "iid": 4,
+      "actions": [
+        {
+          "iid": 1,
+          "in": [1, 10]
+        }
+      ]
+    }
+  ],
+
   "leshow.humidifier.jsq1": [
     {
       "iid": 8,
