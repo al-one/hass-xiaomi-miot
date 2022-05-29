@@ -197,6 +197,10 @@ DEVICE_CUSTOMIZES = {
     'deye.derh.u20a3': {
         'target_humidity_ratio': 9.0909,
     },
+    'dmaker.fan.*': {
+        'select_properties': 'horizontal_angle',
+        'number_properties': 'off_delay_time',
+    },
     'dreame.vacuum.*': {
         'sensor_properties': 'vacuum.status',
         'exclude_miot_services': 'consumable,annoy,remote,time',

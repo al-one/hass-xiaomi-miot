@@ -277,6 +277,17 @@ MIIO_TO_MIOT_SPECS = {
         {'power': False, 'mode': 'normal', 'speed': 35, 'roll_enable': False, 'roll_angle': 140,
         'time_off': 0, 'light': True, 'beep_sound': False, 'child_lock': False}
         """
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [
+                    'power', 'mode', 'speed', 'roll_enable', 'roll_angle',
+                    'time_off', 'light', 'beep_sound', 'child_lock',
+                ],
+                'values': True,
+            },
+        ],
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': 's_power'},
             'prop.2.2': {'prop': 'roll_enable', 'setter': 's_roll'},
@@ -284,10 +295,12 @@ MIIO_TO_MIOT_SPECS = {
                 'nature': 0,
                 'normal': 1,
             }},
-            'prop.2.4': {'prop': 'speed', 'setter': 's_speed'},
+            'prop.2.4': {'prop': 'speed', 'setter': 's_speed', 'set_template': '{{ [value|int] }}'},
             'prop.3.1': {'prop': 'child_lock', 'setter': 's_lock'},
             'prop.4.1': {'prop': 'light', 'setter': 's_light'},
             'prop.5.1': {'prop': 'beep_sound', 'setter': 's_sound'},
+            'prop.2.101': {'prop': 'roll_angle', 'setter': 's_angle', 'set_template': '{{ [value|int] }}'},
+            'prop.200.201': {'prop': 'time_off', 'setter': 's_t_off', 'set_template': '{{ [value|int] }}'},
         },
     },
 
