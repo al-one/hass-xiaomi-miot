@@ -449,6 +449,16 @@ class MiotService(MiotSpecInstance):
     def bool_property(self, *args):
         return self.get_property(*args, only_format='bool')
 
+    def get_property_by_full_name(self, full_name):
+        if full_name in self.spec.specs:
+            return self.spec.specs[full_name]
+        if '.' in full_name:
+            srv, prop = f'{full_name}'.split('.', 1)
+            srv = self.spec.get_service(srv) if srv else None
+            if srv:
+                return srv.get_property(prop)
+        return self.get_property(full_name)
+
     def get_actions(self, *args):
         return [
             a

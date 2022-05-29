@@ -171,12 +171,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         if prop := self.custom_config('state_property'):
-            if '.' in prop:
-                srv, prop = f'{prop}'.split('.', 1)
-                if srv := self._miot_service.spec.get_service(srv):
-                    self._prop_state = srv.get_property(prop) or self._prop_state
-            else:
-                self._prop_state = self._miot_service.get_property(prop) or self._prop_state
+            self._prop_state = self._miot_service.get_property_by_full_name(prop) or self._prop_state
         if self._prop_state:
             self._attr_icon = self._prop_state.entity_icon
             self._attr_device_class = self._prop_state.device_class

@@ -241,6 +241,14 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'order',
         'exclude_miot_properties': 'zone_points,restrict_points,target_point',
     },
+    'ijomoo.toilet.zs320': {
+        'state_property': 'toilet_jomoo.seat_status',
+        'binary_sensor_properties': 'seat_ring,cover_plate',
+        'sensor_properties': 'fault,work_status',
+        'switch_properties': 'flushing,small_flushing',
+        'select_properties': 'work_mode,hip_water_gage,woman_water_gage,hip_nozzle_position,woman_nozzle_pos,'
+                             'seat_temperature,wind_temperature,water_temperature,auto_mode',
+    },
     'leshi.light.wy0b01': {
         'chunk_properties': 1,
         'exclude_miot_services': 'remote,default,scene',

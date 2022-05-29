@@ -111,12 +111,13 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
             self._prop_state = miot_service.get_property('submersion_state') or self._prop_state
             self._vars['device_class'] = DEVICE_CLASS_MOISTURE
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if prop := self.custom_config('state_property'):
+            self._prop_state = self._miot_service.get_property_by_full_name(prop) or self._prop_state
         self._state_attrs.update({
             'state_property': self._prop_state.full_name if self._prop_state else None,
         })
-
-    async def async_added_to_hass(self):
-        await super().async_added_to_hass()
         rev = self.custom_config_bool('reverse_state', None)
         if rev is not None:
             self._vars['reverse_state'] = rev
@@ -273,11 +274,8 @@ class MiotToiletEntity(MiotBinarySensorEntity):
                 break
         if not self._prop_state:
             self._prop_state = miot_service.get_property(
-                'mode', self._prop_state.name if self._prop_state else 'status',
+                self._prop_state.name if self._prop_state else 'status',
             )
-        self._state_attrs.update({
-            'state_property': self._prop_state.full_name if self._prop_state else None,
-        })
 
     async def async_update(self):
         await super().async_update()
