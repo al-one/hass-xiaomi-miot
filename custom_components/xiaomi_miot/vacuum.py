@@ -254,6 +254,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 class MiotRoborockVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
+        self._supported_features |= SUPPORT_PAUSE
         self._supported_features |= SUPPORT_LOCATE
 
     async def async_update(self):
@@ -282,6 +283,12 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
             return val
         return self.miio_props.get('battery')
 
+    def pause(self):
+        """Pause the cleaning task."""
+        if not self._act_pause:
+            return self.send_miio_command('app_pause')
+        return super().pause()
+
     def return_to_base(self, **kwargs):
         if self._model in ['rockrobo.vacuum.v1']:
             self.stop()
@@ -289,7 +296,9 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
 
     def clean_spot(self, **kwargs):
         """Perform a spot clean-up."""
-        return self.send_miio_command('app_spot')
+        if self._miio2miot:
+            return self.send_miio_command('app_spot')
+        return super().clean_spot()
 
     def locate(self, **kwargs):
         """Locate the vacuum cleaner."""
