@@ -120,6 +120,7 @@ MIOT_LOCAL_MODELS = [
     'ijai.vacuum.v14',
     'ijai.vacuum.v2',
     'ijai.vacuum.v3',
+    'ijomoo.toilet.zs320',
     'isa.camera.hlc7',
     'isleep.blanket.hs2001',
     'isleep.blanket.hs2205',
