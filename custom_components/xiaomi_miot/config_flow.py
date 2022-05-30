@@ -485,12 +485,12 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if last_step := self.context.get('last_step', last_step):
             doc = 'https://github.com/al-one/hass-xiaomi-miot/issues/600'
-            if in_china():
+            if in_china(self.hass):
                 tip = f'[📚 自定义选项说明文档]({doc})\n\n------\n{tip}'
             else:
                 tip = f'[❓ Need Help]({doc})\n\n------\n{tip}'
             if not options:
-                tip += f'\n\n无可用的自定义选项。' if in_china() else f'\n\nNo customizable options are available.'
+                tip += f'\n\n无可用的自定义选项。' if in_china(self.hass) else f'\n\nNo customizable options are available.'
 
             if 'bool2selects' in options:
                 options['bool2selects'] = cv.multi_select(dict(zip(bool2selects, bool2selects)))
@@ -671,6 +671,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
     if domain == 'binary_sensor' or re.search(r'motion|magnet', model, re.I):
         bool2selects.extend(['reverse_state'])
         options.update({
+            'state_property': cv.string,
             'motion_timeout': cv.positive_int,
         })
 
