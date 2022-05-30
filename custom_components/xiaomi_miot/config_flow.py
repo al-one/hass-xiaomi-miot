@@ -24,7 +24,7 @@ from . import (
     get_customize_via_entity,
     get_customize_via_model,
 )
-from .core.utils import async_analytics_track_event
+from .core.utils import in_china, async_analytics_track_event
 from .core.const import SUPPORTED_DOMAINS, CLOUD_SERVERS, CONF_XIAOMI_CLOUD
 from .core.miot_spec import MiotSpec
 from .core.xiaomi_cloud import (
@@ -425,8 +425,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 if options:
                     self.context['last_step'] = True
                     self.context['customize_key'] = entity
-                else:
-                    tip += f'\n\nNo customizable options are available.\n无可用的自定义选项。'
             elif domain := user_input.get('domain'):
                 entities = {}
                 for state in sorted(
@@ -468,8 +466,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 if options:
                     self.context['last_step'] = True
                     self.context['customize_key'] = model
-                else:
-                    tip += f'\n\nNo customizable options are available.\n无可用的自定义选项。'
             else:
                 models = {}
                 uds = {}
@@ -488,6 +484,14 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 })
 
         if last_step := self.context.get('last_step', last_step):
+            doc = 'https://github.com/al-one/hass-xiaomi-miot/issues/600'
+            if in_china():
+                tip = f'[📚 自定义选项说明文档]({doc})\n\n------\n{tip}'
+            else:
+                tip = f'[❓ Need Help]({doc})\n\n------\n{tip}'
+            if not options:
+                tip += f'\n\n无可用的自定义选项。' if in_china() else f'\n\nNo customizable options are available.'
+
             if 'bool2selects' in options:
                 options['bool2selects'] = cv.multi_select(dict(zip(bool2selects, bool2selects)))
                 customizes['bool2selects'] = [

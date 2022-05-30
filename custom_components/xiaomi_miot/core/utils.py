@@ -2,15 +2,28 @@ import re
 import locale
 import tzlocal
 from datetime import timezone
+from homeassistant.core import HomeAssistant
+from homeassistant.util.dt import get_time_zone
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 
-def local_zone():
+def local_zone(hass=None):
     try:
-        tz = tzlocal.get_localzone()
+        if isinstance(hass, HomeAssistant):
+            return get_time_zone(hass.config.time_zone)
+        return tzlocal.get_localzone()
     except KeyError:
-        tz = timezone.utc
-    return tz
+        pass
+    return timezone.utc
+
+
+def in_china(hass=None):
+    try:
+        return f'{locale.getdefaultlocale()[0]}'[:3] == 'zh_'
+    except (KeyError, Exception):
+        if isinstance(hass, HomeAssistant):
+            return hass.config.time_zone == 'Asia/Shanghai'
+    return False
 
 
 def wildcard_models(model):
