@@ -1,10 +1,8 @@
-import time
 import re
 import locale
 import tzlocal
-import requests
-from functools import partial
 from datetime import timezone
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 
 def local_zone():
@@ -38,37 +36,22 @@ def is_offline_exception(exc):
     return ret
 
 
-def analytics_track_event(event, action, label, value=0, **kwargs):
-    if True:
-        # disabled
-        return False
-    pag = f'https://miot-spec.com/s/{label}'
-    if kwargs:
-        pms = '&'.join([
-            f'{k}={v}'
-            for k, v in kwargs.items()
-            if v not in [None, '']
-        ])
-        pag = f"{pag}?{pms}"
+async def async_analytics_track_event(hass, event, action, label, value=0, **kwargs):
     pms = {
-        'id': '1280294351',
-        'lg': f'{locale.getdefaultlocale()[0]}'.lower().replace('-', '_'),
-        'ei': '|'.join([event, action, label, f'{value}', '']),
-        'p': pag,
-        't': 'Home Assistant',
-        'rnd': int(time.time() / 2.67),
+        'model': label,
+        'event': event,
+        'action': action,
+        'label': label,
+        'value': value,
+        'locale': locale.getdefaultlocale()[0],
+        **kwargs,
     }
-    url = 'https://ei.cnzz.com/stat.htm'
+    url = 'https://hacc.miot-spec.com/api/track'
     try:
-        return requests.get(url, params=pms, timeout=2)
+        session = async_get_clientsession(hass)
+        return await session.post(url, data=pms, timeout=3)
     except (Exception, ValueError):
         return False
-
-
-async def async_analytics_track_event(hass, *args, **kwargs):
-    return await hass.async_add_executor_job(
-        partial(analytics_track_event, *args, **kwargs)
-    )
 
 
 class RC4:
