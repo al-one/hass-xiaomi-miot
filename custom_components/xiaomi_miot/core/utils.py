@@ -1,9 +1,8 @@
 import re
 import locale
 import tzlocal
-from datetime import timezone
 from homeassistant.core import HomeAssistant
-from homeassistant.util.dt import get_time_zone
+from homeassistant.util.dt import DEFAULT_TIME_ZONE, get_time_zone
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 
@@ -14,15 +13,17 @@ def local_zone(hass=None):
         return tzlocal.get_localzone()
     except KeyError:
         pass
-    return timezone.utc
+    return DEFAULT_TIME_ZONE
 
 
 def in_china(hass=None):
+    if isinstance(hass, HomeAssistant):
+        if hass.config.time_zone in ['Asia/Shanghai', 'Asia/Hong_Kong']:
+            return True
     try:
         return f'{locale.getdefaultlocale()[0]}'[:3] == 'zh_'
     except (KeyError, Exception):
-        if isinstance(hass, HomeAssistant):
-            return hass.config.time_zone == 'Asia/Shanghai'
+        pass
     return False
 
 
