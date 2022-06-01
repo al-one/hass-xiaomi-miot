@@ -537,16 +537,22 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
 
     @property
     def fan_mode(self):
+        des = None
         if self._prop_fan_level:
             val = self._prop_fan_level.from_dict(self._state_attrs)
             if val is not None:
-                return self._prop_fan_level.list_description(val)
-        return None
+                des = self._prop_fan_level.list_description(val)
+            if des is not None:
+                des = f'{des}'.lower()
+        return des
 
     @property
     def fan_modes(self):
         if self._prop_fan_level:
-            return self._prop_fan_level.list_description(None) or []
+            return [
+                f'{des}'.lower()
+                for des in self._prop_fan_level.list_description(None) or []
+            ]
         return None
 
     def set_fan_mode(self, fan_mode: str):

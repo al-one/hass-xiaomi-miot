@@ -22,9 +22,10 @@ TRANSLATION_LANGUAGES = {
 
         'fan_level': {
             'auto': '自动',
-            'low': '低档',
-            'medium': '中档',
-            'high': '高档',
+            # 'low': '低档',
+            # 'medium': '中档',
+            # 'middle': '中档',
+            # 'high': '高档',
             'quiet': '静音',
             'turbo': '超强',
             'level1': '一档',
