@@ -1637,8 +1637,10 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'zhimi.airfresh.va4': {
+        'extend_model': 'zhimi.airfresh.va2',
+        'miio_props': ['average_aqi', 'use_time', 'ptc_state'],
+        'entity_attrs': ['use_time', 'ptc_state'],
         'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.3': {'prop': 'mode', 'setter': True, 'dict': {
                 'interval': 0,
                 'silent':   1,
@@ -1653,7 +1655,6 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.3': {'prop': 'temp_dec'},
             'prop.3.4': {'prop': 'humidity'},
             'prop.3.101': {'prop': 'motor1_speed'},
-            'prop.4.1': {'prop': 'f1_hour_used'},
             'prop.5.1': {'prop': 'led_level', 'setter': True},
             'prop.6.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
             'prop.7.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
