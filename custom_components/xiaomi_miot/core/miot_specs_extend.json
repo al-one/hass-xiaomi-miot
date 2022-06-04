@@ -904,7 +904,56 @@
       ]
     }
   ],
-
+  
+  "zhimi.airfresh.va4":[
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Interval"},
+            {"value": 1, "description": "Sleep"},
+            {"value": 2, "description": "Low"},
+            {"value": 3, "description": "Medium"},
+            {"value": 4, "description": "High"},
+            {"value": 5, "description": "Auto"}
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:motor1-speed",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "rpm"
+        }
+      ]
+    },
+    {
+      "iid": 5,
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:led_level",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "High"},
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Idle"}
+          ]
+        }
+      ]
+    }
+  ],
   "zhimi.airpurifier.v7": [
     {
       "iid": 2,
