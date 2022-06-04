@@ -1615,7 +1615,7 @@ MIIO_TO_MIOT_SPECS = {
 
     'zhimi.airfresh.va2': {
         'miio_props': ['average_aqi', 'motor1_speed', 'use_time'],
-        'entity_attrs': ['motor1_speed', 'use_time'],
+        'entity_attrs': ['average_aqi', 'motor1_speed', 'use_time'],
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
