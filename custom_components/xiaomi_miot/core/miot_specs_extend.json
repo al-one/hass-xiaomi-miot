@@ -905,6 +905,20 @@
     }
   ],
 
+  "zhimi.airfresh.va4":[
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:motor-speed",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "rpm"
+        }
+      ]
+    }
+  ],
   "zhimi.airpurifier.v7": [
     {
       "iid": 2,

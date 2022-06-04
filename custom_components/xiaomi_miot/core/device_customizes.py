@@ -527,6 +527,11 @@ DEVICE_CUSTOMIZES = {
     'zhimi.airfresh.*': {
         'switch_properties': 'heater,alarm',
     },
+    'zhimi.airfresh.va4': {
+        'sensor_properties': 'motor_speed',
+        'brightness_for_on': 0,
+        'brightness_for_off': 2,
+    },
     'zhimi.airpurifier.*': {
         'sensor_properties': 'illumination,motor_speed',
         'number_properties': 'favorite_level,favorite_fan_level',
