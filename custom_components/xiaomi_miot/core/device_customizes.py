@@ -341,6 +341,24 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 15,
         'motion_timeout': 60,
     },
+    'lumi.plug.v1': {
+        'sensor_properties': 'electric_power',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_type': 'stat_day',
+        'stat_power_cost_key': 'powerCost',
+    },
+    'lumi.plug.*:power_cost_today': {
+        'value_ratio': 0.001,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'lumi.plug.*:power_cost_month': {
+        'value_ratio': 0.001,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
     'lumi.sensor_gas.mcn02': {
         'chunk_properties': 1,
         'sensor_properties': 'status',
