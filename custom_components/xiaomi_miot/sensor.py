@@ -433,6 +433,25 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
         if uom := self.custom_config('unit_of_measurement'):
             self._attr_native_unit_of_measurement = uom
 
+    def update(self, data=None):
+        old_state = self._attr_state
+        super().update(data)
+
+        now = datetime.now(tz=local_zone(self.hass))
+        if self.state_class in ['total_increasing'] and old_state not in [None, '', STATE_UNKNOWN]:
+            ptm = self._extra_attrs.get('updated_time') or now
+            if now.strftime('%Y-%m-%d') == ptm.strftime('%Y-%m-%d'):
+                try:
+                    if (self._attr_state or 0) < old_state:
+                        self._attr_state = old_state
+                except (TypeError, ValueError) as exc:
+                    _LOGGER.warning(
+                        '%s: Total increasing sensor state error: %s',
+                        self.name_model, [exc, self._attr_state, old_state],
+                    )
+        if self._attr_state != old_state:
+            self._extra_attrs['updated_time'] = now
+
 
 class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
