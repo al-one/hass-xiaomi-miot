@@ -343,6 +343,7 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.plug.v1': {
         'sensor_properties': 'electric_power',
+        'select_properties': 'default_power_on_state',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_type': 'stat_day',
         'stat_power_cost_key': 'powerCost',
