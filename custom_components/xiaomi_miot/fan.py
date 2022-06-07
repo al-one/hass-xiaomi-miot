@@ -127,8 +127,11 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             self._supported_features |= SUPPORT_DIRECTION
         if self._prop_oscillate:
             self._supported_features |= SUPPORT_OSCILLATE
+
+        self._attr_preset_modes = []
         if self._prop_mode and SUPPORT_PRESET_MODE:
             self._supported_features |= SUPPORT_PRESET_MODE
+            self._attr_preset_modes = self._prop_mode.list_descriptions()
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -139,6 +142,16 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             if prop:
                 self._prop_percentage = prop
                 self._supported_features |= SUPPORT_SET_SPEED
+
+        # issues/617
+        if self.custom_config_bool('disable_preset_modes'):
+            self._supported_features &= ~SUPPORT_PRESET_MODE
+        elif dpm := self.custom_config_list('disable_preset_modes'):
+            self._attr_preset_modes = [
+                mode
+                for mode in self._attr_preset_modes
+                if mode not in dpm
+            ]
 
     def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         ret = False
@@ -167,7 +180,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
                 _LOGGER.warning('%s: Set fan speed level failed: %s', self.name_model, {
                     'speed': speed,
                     'percentage': percentage,
-                    'value':  val,
+                    'value': val,
                 })
         if preset_mode and self._prop_mode:
             val = self._prop_mode.list_first(preset_mode)
@@ -236,14 +249,6 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             if val is not None:
                 return self._prop_mode.list_description(val)
         return None
-
-    @property
-    def preset_modes(self):
-        """Return a list of available preset modes."""
-        lst = []
-        if self._prop_mode:
-            lst = self._prop_mode.list_descriptions()
-        return lst
 
     def set_preset_mode(self, preset_mode: str):
         """Set new preset mode."""
@@ -315,6 +320,17 @@ class MiirFanEntity(MiirToggleEntity, FanEntity):
             if a.ins:
                 continue
             self._attr_preset_modes.append(a.friendly_desc)
+
+    async def async_added_to_hass(self):
+        # issues/617
+        if self.custom_config_bool('disable_preset_modes'):
+            self._supported_features &= ~SUPPORT_PRESET_MODE
+        elif dpm := self.custom_config_list('disable_preset_modes'):
+            self._attr_preset_modes = [
+                mode
+                for mode in self._attr_preset_modes
+                if mode not in dpm
+            ]
 
     def turn_on(self, percentage=None, preset_mode=None, **kwargs):
         """Turn the entity on."""

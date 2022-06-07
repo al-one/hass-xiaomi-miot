@@ -693,6 +693,11 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'brightness_for_off': int,
         })
 
+    if domain == 'fan':
+        options.update({
+            'disable_preset_modes': cv.string,
+        })
+
     if domain == 'camera' or re.search(r'camera|videodoll', model, re.I):
         bool2selects.extend([
             'keep_streaming', 'use_rtsp_stream', 'use_alarm_playlist',
