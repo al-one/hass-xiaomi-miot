@@ -693,7 +693,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'brightness_for_off': int,
         })
 
-    if domain == 'fan':
+    if domain == 'fan' or re.search(r'\.fan\.', model, re.I):
         options.update({
             'disable_preset_modes': cv.string,
         })
