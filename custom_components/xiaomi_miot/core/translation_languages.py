@@ -1,6 +1,5 @@
 # https://iot.mi.com/new/doc/tools-and-resources/design/spec/description
 TRANSLATION_LANGUAGES = {
-
     'zh': {
         'off': '关闭',
         'idle': '空闲',
@@ -248,4 +247,14 @@ TRANSLATION_LANGUAGES = {
         },
     },
 
+    'en': {
+        # Vacuum reports its fan speeds in ZH. We need to have an English
+        # translation for them.
+        'sweep.suction_state': {
+            '关': 'Silent',
+            '节能': 'Standart',
+            '标准': 'Medium',
+            '强劲': 'Turbo',
+        },
+    },
 }
