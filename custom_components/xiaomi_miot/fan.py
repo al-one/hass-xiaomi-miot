@@ -146,6 +146,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         # issues/617
         if self.custom_config_bool('disable_preset_modes'):
             self._supported_features &= ~SUPPORT_PRESET_MODE
+            self._attr_preset_modes = []
         elif dpm := self.custom_config_list('disable_preset_modes'):
             self._attr_preset_modes = [
                 mode
@@ -322,9 +323,11 @@ class MiirFanEntity(MiirToggleEntity, FanEntity):
             self._attr_preset_modes.append(a.friendly_desc)
 
     async def async_added_to_hass(self):
+        await super().async_added_to_hass()
         # issues/617
         if self.custom_config_bool('disable_preset_modes'):
             self._supported_features &= ~SUPPORT_PRESET_MODE
+            self._attr_preset_modes = []
         elif dpm := self.custom_config_list('disable_preset_modes'):
             self._attr_preset_modes = [
                 mode
