@@ -830,6 +830,7 @@ class MiirMediaPlayerEntity(MiirToggleEntity, MediaPlayerEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 
+        self._attr_state = STATE_IDLE
         if self._act_turn_on:
             self._supported_features |= SUPPORT_TURN_ON
         if self._act_turn_off:
