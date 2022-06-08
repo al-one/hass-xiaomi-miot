@@ -830,7 +830,6 @@ class MiirMediaPlayerEntity(MiirToggleEntity, MediaPlayerEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 
-        self._attr_state = STATE_IDLE
         if self._act_turn_on:
             self._supported_features |= SUPPORT_TURN_ON
         if self._act_turn_off:
@@ -864,6 +863,11 @@ class MiirMediaPlayerEntity(MiirToggleEntity, MediaPlayerEntity):
                 fnm = prop.unique_name
                 self._subs[fnm] = MiotNumberActionSubEntity(self, prop, act)
                 add_numbers([self._subs[fnm]], update_before_add=True)
+
+    @property
+    def state(self):
+        """State of the player."""
+        return STATE_IDLE
 
     def mute_volume(self, mute):
         """Mute the volume."""

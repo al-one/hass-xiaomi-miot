@@ -2138,6 +2138,7 @@ class MiirToggleEntity(MiotEntity, ToggleEntity):
         self._attr_is_on = None
         self._act_turn_on = miot_service.get_action('turn_on')
         self._act_turn_off = miot_service.get_action('turn_off')
+        self._attr_should_poll = False
 
     @property
     def is_on(self):
