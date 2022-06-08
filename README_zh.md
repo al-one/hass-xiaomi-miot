@@ -384,7 +384,7 @@ logger:
 - QQ群：[198841186](https://jq.qq.com/?_wv=1027&k=lZAMn5Uo)
 - 微信群：
 
-  ![xiaomi miot weixin group](https://user-images.githubusercontent.com/4549099/152003439-d537fda6-15dd-43df-84cb-2c64c693c013.png)
+  <img src="https://user-images.githubusercontent.com/4549099/161735971-0540ce1c-eb49-4aff-8cb3-3bdad15e22f7.png" alt="xiaomi miot weixin group" width="100">
 
 
 <a name="obtain-miio-token"></a>
