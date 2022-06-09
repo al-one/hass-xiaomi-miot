@@ -295,7 +295,12 @@ MIIO_TO_MIOT_SPECS = {
                 'nature': 0,
                 'normal': 1,
             }},
-            'prop.2.4': {'prop': 'speed', 'setter': 's_speed', 'set_template': '{{ [value|int] }}'},
+            'prop.2.4': {
+                'prop': 'speed',
+                'setter': 's_speed',
+                'template': '{{ (value/25)|round }}',
+                'set_template': '{{ [(value*25)|round] }}',
+            },
             'prop.3.1': {'prop': 'child_lock', 'setter': 's_lock'},
             'prop.4.1': {'prop': 'light', 'setter': 's_light'},
             'prop.5.1': {'prop': 'beep_sound', 'setter': 's_sound'},
