@@ -1345,7 +1345,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.102': {
                 'prop': 'delayoff',
                 'setter': 'set_scene',
-                'set_template': '{{ ["auto_delay_off",props.bright|default(100),value] }}',
+                'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
             },
         },
     },
@@ -1374,6 +1374,11 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': 'set_ps',
                 'template': '{{ 2 if value|int else 1 }}',
                 'set_template': '{{ ["nightlight","on" if value == 2 else "off"] }}',
+            },
+            'prop.2.102': {
+                'prop': 'delayoff',
+                'setter': 'set_scene',
+                'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
             },
         },
     },
@@ -1492,6 +1497,11 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'bright', 'setter': True},
             'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.2.102': {
+                'prop': 'delayoff',
+                'setter': 'set_scene',
+                'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
+            },
         },
     },
     'yeelink.ven_fan.vf3': {

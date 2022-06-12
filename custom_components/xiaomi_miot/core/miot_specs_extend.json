@@ -825,6 +825,58 @@
   "yeelink.light.color6": "yeelink.light.color1",
   "yeelink.light.color7": "yeelink.light.color1",
   "yeelink.light.color8": "yeelink.light.color1",
+  "yeelink.light.ceiling1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 60, 1]
+        }
+      ]
+    }
+  ],
+  "yeelink.light.ceiling2": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling3": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling4": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling5": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling6": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling7": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling8": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling9": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling10": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling11": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling12": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling13": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling14": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling15": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling16": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling17": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling18": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 1440, 1]
+        }
+      ]
+    }
+  ],
+  "yeelink.light.ceiling19": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling20": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling21": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling22": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling23": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling24": "yeelink.light.ceiling1",
   "yeelink.light.fancl5": [
     {
       "iid": 3,
