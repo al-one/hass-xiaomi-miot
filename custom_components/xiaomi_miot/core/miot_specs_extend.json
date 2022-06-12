@@ -5,9 +5,6 @@
       "properties": [
         {
           "iid": 1,
-          "type": "urn:miot-spec-v2:property:motor-control",
-          "format": "uint8",
-          "access": ["write"],
           "value-list": [
             {"value": 0, "description": "Pause"},
             {"value": 1, "description": "Open"},
