@@ -1082,8 +1082,13 @@ class MiotEntity(MiioEntity):
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         if self._miot_service:
             if not self.cloud_only:
-                if ext := self.custom_config_list('extend_miot_specs'):
-                    # only for local mode
+                # only for local mode
+                ext = self.custom_config('extend_miot_specs')
+                if ext and isinstance(ext, str):
+                    ext = DEVICE_CUSTOMIZES.get(ext, {}).get('extend_miot_specs')
+                else:
+                    ext = self.custom_config_list('extend_miot_specs')
+                if ext and isinstance(ext, list):
                     self._miot_service.spec.extend_specs(services=ext)
                 self._miio2miot = Miio2MiotHelper.from_model(self.hass, self._model, self._miot_service.spec)
             if dic := self.custom_config_json('miot_mapping'):

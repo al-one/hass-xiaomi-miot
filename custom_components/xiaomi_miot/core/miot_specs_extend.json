@@ -801,26 +801,30 @@
         {
           "iid": 101,
           "type": "urn:miot-spec-v2:property:nl_br",
+          "description": "Nightlight Brightness",
           "format": "uint8",
           "access": ["read", "write"],
           "unit": "percentage",
           "value-range": [1, 100, 1]
-        }
-      ]
-    },
-    {
-      "iid": 200,
-      "type": "urn:miot-spec-v2:service:extend",
-      "properties": [
+        },
         {
-          "iid": 201,
-          "type": "urn:miot-spec-v2:property:delayoff",
-          "format": "string",
-          "access": ["read", "write"]
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 60, 1]
         }
       ]
     }
   ],
+  "yeelink.light.color2": "yeelink.light.color1",
+  "yeelink.light.color3": "yeelink.light.color1",
+  "yeelink.light.color4": "yeelink.light.color1",
+  "yeelink.light.color5": "yeelink.light.color1",
+  "yeelink.light.color6": "yeelink.light.color1",
+  "yeelink.light.color7": "yeelink.light.color1",
+  "yeelink.light.color8": "yeelink.light.color1",
   "yeelink.light.fancl5": [
     {
       "iid": 3,

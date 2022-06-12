@@ -1327,8 +1327,6 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.3': {'prop': 'rgb', 'setter': True},
             'prop.2.4': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
-            'prop.2.101': {'prop': 'nl_br', 'setter': True},
-            'prop.200.201': {'prop': 'delayoff'},
         },
     },
     'yeelink.light.color2': {
@@ -1343,6 +1341,12 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
             'prop.2.4': {'prop': 'rgb', 'setter': True},
             'prop.2.5': {'prop': 'color_mode'},
+            'prop.2.101': {'prop': 'nl_br', 'setter': True},
+            'prop.2.102': {
+                'prop': 'delayoff',
+                'setter': 'set_scene',
+                'set_template': '{{ ["auto_delay_off",props.bright|default(100),value] }}',
+            },
         },
     },
     'yeelink.light.color3': 'yeelink.light.color2',
