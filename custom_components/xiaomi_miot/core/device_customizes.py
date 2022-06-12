@@ -1,5 +1,10 @@
 DEVICE_CUSTOMIZES = {
 
+    'aice.motor.kzmu3': {
+        'switch_properties': 'on',
+        'button_properties': 'motor_control',
+    },
+
     'ateai.mosq.dakuo': {
         'switch_properties': 'dakuo_mosq_dispeller.status',
         'select_properties': 'workmode',

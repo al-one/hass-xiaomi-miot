@@ -66,6 +66,33 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'aice.motor.kzmu3': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': ['houseAst'],
+                'values': True,
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {
+                'prop': None,
+                'setter': True,
+                'set_template': '{{ {"method":'
+                                '"ctrl_openDoor" if value == 1 else '
+                                '"ctrl_closeDoor" if value == 2 else '
+                                '"ctrl_pauseDoor"} }}',
+            },
+            'prop.2.2': {
+                'prop': 'houseAst',
+                'setter': 'set_openHouseAst',
+                'set_template': '{{ ["on" if value else "off"] }}',
+            },
+            'prop.2.3': {'prop': None, 'template': '{{ 1 }}'},
+        },
+    },
+
     'air.fan.ca23ad9': {
         'without_props': True,
         'ignore_result': True,

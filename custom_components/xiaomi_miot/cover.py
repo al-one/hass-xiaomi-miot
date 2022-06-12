@@ -61,7 +61,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if isinstance(spec, MiotSpec):
-        for srv in spec.get_services(ENTITY_DOMAIN, 'curtain', 'airer', 'window_opener'):
+        for srv in spec.get_services(ENTITY_DOMAIN, 'curtain', 'airer', 'window_opener', 'motor_controller'):
             if not srv.get_property('motor_control'):
                 continue
             if not srv.get_property('current_position') and 'mrbond.airer' in model:
