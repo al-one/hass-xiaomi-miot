@@ -39,7 +39,7 @@ try:
         ordered_list_item_to_percentage,
         percentage_to_ordered_list_item,
     )
-except ImportError:
+except (ModuleNotFoundError, ImportError):
     SUPPORT_PRESET_MODE = None
 
     def ordered_list_item_to_percentage(ordered_list, item):

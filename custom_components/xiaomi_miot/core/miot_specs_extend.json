@@ -180,10 +180,6 @@
       "iid": 2,
       "properties": [
         {
-          "iid": 4,
-          "value-range": [0, 100, 1]
-        },
-        {
           "iid": 101,
           "type": "urn:miot-spec-v2:property:horizontal-angle",
           "format": "uint16",
@@ -195,6 +191,13 @@
             {"value": 120, "description": "120"},
             {"value": 140, "description": "140"}
           ]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:speed-level",
+          "format": "uint16",
+          "access": ["read", "write"],
+          "value-range": [0, 100, 1]
         }
       ]
     },
