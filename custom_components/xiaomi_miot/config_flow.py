@@ -368,8 +368,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         ]
         main_options = {
             'bool2selects': cv.multi_select({}),
-            'interval_seconds': cv.positive_int,
-            'chunk_properties': cv.positive_int,
+            'interval_seconds': cv.string,
+            'chunk_properties': cv.string,
             'sensor_properties': cv.string,
             'binary_sensor_properties': cv.string,
             'switch_properties': cv.string,
@@ -385,7 +385,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             'exclude_miot_services': cv.string,
             'exclude_miot_properties': cv.string,
             'main_miot_services': cv.string,
-            'cloud_delay_update': cv.positive_int,
+            'cloud_delay_update': cv.string,
         }
         options = {
             'entity_category': cv.string,
@@ -398,7 +398,11 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             for k in b2s:
                 user_input[k] = True
             entry_data.setdefault(via, {})
-            entry_data[via][customize_key] = user_input
+            entry_data[via][customize_key] = {
+                k: v
+                for k, v in user_input.items()
+                if v not in [' ', '', None, vol.UNDEFINED]
+            }
             if entry:
                 self.hass.config_entries.async_update_entry(entry, data=entry_data)
                 tip = f'```yaml\n{yaml.dump(entry_data)}\n```'
@@ -480,7 +484,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 models = sorted(models.keys())
                 schema.update({
                     vol.Required('model'): vol.In(models),
-                    vol.Optional('model_specified'): cv.string,
+                    vol.Optional('model_specified'): str,
                 })
 
         if last_step := self.context.get('last_step', last_step):
@@ -654,7 +658,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
                 'state_property': cv.string,
             })
         options.update({
-            'value_ratio': float,
+            'value_ratio': cv.string,
             'state_class': cv.string,
             'device_class': cv.string,
             'unit_of_measurement': cv.string,
@@ -665,14 +669,14 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             })
         if entity_class in ['XiaoaiConversationSensor']:
             options.update({
-                'interval_seconds': cv.positive_int,
+                'interval_seconds': cv.string,
             })
 
     if domain == 'binary_sensor' or re.search(r'motion|magnet', model, re.I):
         bool2selects.extend(['reverse_state'])
         options.update({
             'state_property': cv.string,
-            'motion_timeout': cv.positive_int,
+            'motion_timeout': cv.string,
         })
 
     if domain == 'switch' or re.search(r'plug', model, re.I):
@@ -683,14 +687,14 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         })
         if entity_class in ['MiotSwitchActionSubEntity']:
             options.update({
-                'feeding_measure': cv.positive_int,
+                'feeding_measure': cv.string,
             })
 
     if domain == 'light' or re.search(r'light', model, re.I):
         bool2selects.extend(['color_temp_reverse'])
         options.update({
-            'brightness_for_on': int,
-            'brightness_for_off': int,
+            'brightness_for_on': cv.string,
+            'brightness_for_off': cv.string,
         })
 
     if domain == 'fan' or re.search(r'\.fan\.', model, re.I):
@@ -704,8 +708,8 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'use_motion_stream', 'sub_motion_stream',
         ])
         options.update({
-            'video_attribute': int,
-            'motion_stream_slice': int,
+            'video_attribute': cv.string,
+            'motion_stream_slice': cv.string,
         })
 
     if domain == 'climate' or re.search(r'aircondition|acpartner', model, re.I):
@@ -719,8 +723,8 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'disable_target_position', 'target2current_position',
         ])
         options.update({
-            'closed_position': cv.positive_int,
-            'deviated_position': cv.positive_int,
+            'closed_position': cv.string,
+            'deviated_position': cv.string,
             'open_texts': cv.string,
             'close_texts': cv.string,
         })
@@ -732,7 +736,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'bind_xiaoai': cv.string,
             'sources_via_apps': cv.string,
             'sources_via_keycodes': cv.string,
-            'screenshot_compress': cv.positive_int,
+            'screenshot_compress': cv.string,
             'television_name': cv.string,
             'mitv_lan_host': cv.string,
         })
@@ -742,8 +746,8 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
 
     if 'yeelink.' in model:
         options.update({
-            'yeelight_smooth_on': cv.positive_int,
-            'yeelight_smooth_off': cv.positive_int,
+            'yeelight_smooth_on': cv.string,
+            'yeelight_smooth_off': cv.string,
         })
 
     return options
