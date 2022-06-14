@@ -154,7 +154,9 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 'Working', 'Busy',
             ):
                 return STATE_CLEANING
-            elif val in self._prop_status.list_search('Idle', 'Sleep', 'Charging', 'Fullcharge'):
+            elif val in self._prop_status.list_search('Idle', 'Sleep'):
+                return STATE_IDLE
+            elif val in self._prop_status.list_search('Charging', 'Fullcharge'):
                 return STATE_DOCKED
             elif val in self._prop_status.list_search('Go Charging'):
                 return STATE_RETURNING
