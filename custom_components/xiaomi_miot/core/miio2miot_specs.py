@@ -827,6 +827,60 @@ MIIO_TO_MIOT_SPECS = {
     'roborock.vacuum.a09': 'roborock.vacuum.t6',
     'roborock.vacuum.a10': 'roborock.vacuum.t6',
     'roborock.vacuum.a11': 'roborock.vacuum.t6',
+    'roborock.vacuum.a14': {
+        'extend_model': 'roborock.vacuum.t6',
+        'miio_commands': [
+            {
+                'method': 'get_status',
+                'template': '{{ results.0 | default({}) }}',
+            },
+            {
+                'method': 'get_consumable',
+                'template': '{{ results.0 | default({}) }}',
+            },
+            {
+                'method': 'get_custom_mode',
+                'values': ['fan_mode'],
+            },
+            {
+                'method': 'get_water_box_custom_mode',
+                'values': ['water_level'],
+            },
+            {
+                'method': 'get_mop_mode',
+                'values': ['mop_mode'],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.2': {'prop': 'error_code'},
+            'prop.2.4': {'prop': 'fan_mode', 'setter': 'set_custom_mode'},
+            'prop.2.102': {'prop': 'water_level', 'setter': 'set_water_box_custom_mode'},
+            'prop.2.103': {'prop': 'mop_mode', 'setter': 'set_mop_mode'},
+            # 'action.2.4': {'setter': 'app_start'},  # start-mop
+            # 'action.2.5': {'setter': 'app_start'},  # start-sweep-mop
+            'action.2.6': {
+                'setter': 'app_segment_clean',
+                'set_template': '{% set ids = params[0]|default("")|string %}'
+                                '{% set arr = ids|from_json if ids[0:1] == "[" else ids.split(",") %}'
+                                '{{ arr }}',
+            },
+            'prop.9.2': {'prop': 'main_brush_work_time', 'template': '{{ (100-value/3600*300)|round }}'},
+            'prop.10.2': {'prop': 'side_brush_work_time', 'template': '{{ (100-value/3600*200)|round }}'},
+            'prop.11.1': {'prop': 'filter_work_time', 'template': '{{ (100-value/3600*150)|round }}'},
+        },
+    },
+    'roborock.vacuum.a15': 'roborock.vacuum.a14',
+    'roborock.vacuum.a19': 'roborock.vacuum.a14',
+    'roborock.vacuum.a23': 'roborock.vacuum.a14',
+    'roborock.vacuum.a26': 'roborock.vacuum.a14',
+    'roborock.vacuum.a27': 'roborock.vacuum.a14',
+    'roborock.vacuum.a29': 'roborock.vacuum.a14',
+    'roborock.vacuum.a30': 'roborock.vacuum.a14',
+    'roborock.vacuum.a34': 'roborock.vacuum.a14',
+    'roborock.vacuum.a37': 'roborock.vacuum.a14',
+    'roborock.vacuum.a38': 'roborock.vacuum.a14',
+    'roborock.vacuum.a40': 'roborock.vacuum.a14',
+    'roborock.vacuum.a46': 'roborock.vacuum.a14',
     'roborock.vacuum.c1': 'rockrobo.vacuum.v1',
     'roborock.vacuum.e2': 'rockrobo.vacuum.v1',
     'roborock.vacuum.p5': 'roborock.vacuum.a08',

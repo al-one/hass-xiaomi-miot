@@ -391,6 +391,49 @@
     }
   ],
 
+  "roborock.vacuum.a14": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:water-level",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 200, "description": "Off"},
+            {"value": 201, "description": "Level1"},
+            {"value": 202, "description": "Level2"},
+            {"value": 203, "description": "Level3"},
+            {"value": 204, "description": "Custom"}
+          ]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:mop-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 300, "description": "Standard"},
+            {"value": 301, "description": "Deep"},
+            {"value": 302, "description": "Custom"}
+          ]
+        }
+      ]
+    }
+  ],
+  "roborock.vacuum.a15": "roborock.vacuum.a14",
+  "roborock.vacuum.a19": "roborock.vacuum.a14",
+  "roborock.vacuum.a23": "roborock.vacuum.a14",
+  "roborock.vacuum.a26": "roborock.vacuum.a14",
+  "roborock.vacuum.a27": "roborock.vacuum.a14",
+  "roborock.vacuum.a29": "roborock.vacuum.a14",
+  "roborock.vacuum.a30": "roborock.vacuum.a14",
+  "roborock.vacuum.a34": "roborock.vacuum.a14",
+  "roborock.vacuum.a37": "roborock.vacuum.a14",
+  "roborock.vacuum.a38": "roborock.vacuum.a14",
+  "roborock.vacuum.a40": "roborock.vacuum.a14",
+  "roborock.vacuum.a46": "roborock.vacuum.a14",
   "rockrobo.vacuum.v1": [
     {
       "iid": 2,

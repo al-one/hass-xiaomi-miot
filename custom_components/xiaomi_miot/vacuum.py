@@ -32,6 +32,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
+    DeviceException,
     MIOT_LOCAL_MODELS,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -258,6 +259,16 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         super().__init__(config, miot_service)
         self._supported_features |= SUPPORT_PAUSE
         self._supported_features |= SUPPORT_LOCATE
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if self.miot_device:
+            try:
+                rooms = self.send_miio_command('get_room_mapping')
+                if rooms and rooms != 'unknown_method':
+                    self._state_attrs['room_mapping'] = rooms
+            except (DeviceException, Exception):
+                pass
 
     async def async_update(self):
         await super().async_update()

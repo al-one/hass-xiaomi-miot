@@ -430,8 +430,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'numleds,pixel_per_step,fade_delay,step_delay,stair_travel_time',
     },
     'roborock.vacuum.*': {
-        'sensor_attributes': 'props:clean_area,props:clean_time',
+        'sensor_attributes': 'props:clean_area,props:clean_time,brush_life_level',
         'sensor_properties': 'vacuum.status',
+        'select_properties': 'water_level,mop_mode',
     },
     'roborock.vacuum.*:props:clean_area': {
         'value_ratio': 0.000001,
