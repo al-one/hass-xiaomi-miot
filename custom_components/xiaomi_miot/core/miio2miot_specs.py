@@ -864,9 +864,9 @@ MIIO_TO_MIOT_SPECS = {
                                 '{% set arr = ids|from_json if ids[0:1] == "[" else ids.split(",") %}'
                                 '{{ arr }}',
             },
-            'prop.9.2': {'prop': 'main_brush_work_time', 'template': '{{ (100-value/3600*300)|round }}'},
-            'prop.10.2': {'prop': 'side_brush_work_time', 'template': '{{ (100-value/3600*200)|round }}'},
-            'prop.11.1': {'prop': 'filter_work_time', 'template': '{{ (100-value/3600*150)|round }}'},
+            'prop.9.2': {'prop': 'main_brush_work_time', 'template': '{{ 100-(value/(36*300))|round }}'},
+            'prop.10.2': {'prop': 'side_brush_work_time', 'template': '{{ 100-(value/(36*200))|round }}'},
+            'prop.11.1': {'prop': 'filter_work_time', 'template': '{{ 100-(value/(36*150))|round }}'},
         },
     },
     'roborock.vacuum.a15': 'roborock.vacuum.a14',

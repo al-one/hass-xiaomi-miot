@@ -264,7 +264,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         await super().async_added_to_hass()
         if self.miot_device:
             try:
-                rooms = self.send_miio_command('get_room_mapping')
+                rooms = self.miot_device.send('get_room_mapping')
                 if rooms and rooms != 'unknown_method':
                     self._state_attrs['room_mapping'] = rooms
             except (DeviceException, Exception):
