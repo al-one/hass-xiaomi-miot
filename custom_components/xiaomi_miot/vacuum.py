@@ -90,8 +90,8 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         self._act_locate = miot_service.get_action('find_device', 'position')
         self._prop_mode = miot_service.get_property('mode')
         self._prop_fan = self._prop_mode
-        for srv in [miot_service, *miot_service.spec.get_services('sweep')]:
-            if prop := srv.get_property('fan_level', 'speed_level', 'suction_state'):
+        for srv in [miot_service, *miot_service.spec.get_services('sweep', 'clean')]:
+            if prop := srv.get_property('fan_level', 'speed_level', 'suction_state', 'mode'):
                 self._prop_fan = prop
                 break
         self._prop_battery = miot_service.get_property('battery_level')
