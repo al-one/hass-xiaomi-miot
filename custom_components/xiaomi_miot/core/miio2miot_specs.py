@@ -852,6 +852,7 @@ MIIO_TO_MIOT_SPECS = {
             },
         ],
         'miio_specs': {
+            'prop.2.1': {'prop': 'state'},
             'prop.2.2': {'prop': 'error_code'},
             'prop.2.4': {'prop': 'fan_mode', 'setter': 'set_custom_mode'},
             'prop.2.102': {'prop': 'water_level', 'setter': 'set_water_box_custom_mode'},

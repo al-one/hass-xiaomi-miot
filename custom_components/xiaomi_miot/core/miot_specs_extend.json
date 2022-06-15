@@ -396,6 +396,17 @@
       "iid": 2,
       "properties": [
         {
+          "iid": 4,
+          "value-list": [
+            {"value": 101, "description": "Silent"},
+            {"value": 102, "description": "Basic"},
+            {"value": 103, "description": "Strong"},
+            {"value": 104, "description": "Full Speed"},
+            {"value": 105, "description": "Mop Only"},
+            {"value": 106, "description": "Custom"}
+          ]
+        },
+        {
           "iid": 102,
           "type": "urn:miot-spec-v2:property:water-level",
           "format": "uint8",
