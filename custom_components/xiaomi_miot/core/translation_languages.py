@@ -248,11 +248,15 @@ TRANSLATION_LANGUAGES = {
     },
 
     'en': {
-        # Vacuum reports its fan speeds in ZH. We need to have an English
-        # translation for them.
+        'clean.mode': {
+            '安静': 'Silent',
+            '标准': 'Standard',
+            '中档': 'Medium',
+            '强力': 'Turbo',
+        },
         'sweep.suction_state': {
             '关': 'Silent',
-            '节能': 'Standart',
+            '节能': 'Standard',
             '标准': 'Medium',
             '强劲': 'Turbo',
         },
