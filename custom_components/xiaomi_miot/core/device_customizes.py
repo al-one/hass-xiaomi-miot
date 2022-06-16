@@ -645,6 +645,7 @@ DEVICE_CUSTOMIZES = {
     },
 
     '*.aircondition.*': {
+        'sensor_properties': 'electricity.electricity',
         'fan_services': 'air_fresh',
     },
     '*.airer.*': {
