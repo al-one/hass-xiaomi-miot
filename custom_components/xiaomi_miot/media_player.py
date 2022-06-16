@@ -473,6 +473,8 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 pse = srv.get_property('silent_execution')
                 if execute and pse:
                     sil = not silent
+                    if self.model in ['xiaomi.wifispeaker.l05c']:
+                        sil = silent
                     if pse.value_list:
                         sil = pse.list_value('On' if silent else 'Off')
                         if sil is None:
