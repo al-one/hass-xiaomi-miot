@@ -485,7 +485,9 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 self.logger.warning('%s does not have action: %s', self.name_model, anm)
         elif self._message_router:
             act = self._message_router.get_action('post')
-            if act and execute:
+            if act:
+                if not execute:
+                    text = f'跟我说 {text}'
                 return self.call_action(act, [text], **kwargs)
         else:
             self.logger.error('%s does not have service: %s', self.name_model, 'intelligent_speaker/message_router')
