@@ -396,6 +396,32 @@
       "iid": 2,
       "properties": [
         {
+          "iid": 1,
+          "value-list": [
+            {"value": 1, "description": "Starting"},
+            {"value": 2, "description": "Charger Disconnected"},
+            {"value": 3, "description": "Idle"},
+            {"value": 4, "description": "Remote Control"},
+            {"value": 5, "description": "Sweeping"},
+            {"value": 6, "description": "Go Charging"},
+            {"value": 7, "description": "Manual Mode"},
+            {"value": 8, "description": "Charging"},
+            {"value": 9, "description": "Charging Problem"},
+            {"value": 10, "description": "Paused"},
+            {"value": 11, "description": "Spot Sweeping"},
+            {"value": 12, "description": "Error"},
+            {"value": 13, "description": "Shutting Down"},
+            {"value": 14, "description": "Updating"},
+            {"value": 15, "description": "Go Charging"},
+            {"value": 16, "description": "Goto Target"},
+            {"value": 17, "description": "Select Sweeping"},
+            {"value": 18, "description": "Zone Sweeping"},
+            {"value": 22, "description": "Emptying Bin"},
+            {"value": 100, "description": "Charging Completed"},
+            {"value": 101, "description": "Device Offline"}
+          ]
+        },
+        {
           "iid": 4,
           "value-list": [
             {"value": 101, "description": "Silent"},
