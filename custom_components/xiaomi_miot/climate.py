@@ -556,6 +556,8 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
         return None
 
     def set_fan_mode(self, fan_mode: str):
+        if not self.is_on and HVAC_MODE_FAN_ONLY in self._hvac_modes:
+            self.set_hvac_mode(HVAC_MODE_FAN_ONLY)
         if self._prop_fan_level:
             val = self._prop_fan_level.list_value(fan_mode)
             return self.set_property(self._prop_fan_level, val)
