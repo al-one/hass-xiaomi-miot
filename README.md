@@ -248,14 +248,15 @@ service: xiaomi_miot.get_properties
 data:
   entity_id: camera.isa_hlc7_1ab7
   mapping:
-    power:
-      siid: 2
+    - siid: 2
       piid: 1
-    night:
-      siid: 2
-      piid: 3
-  throw: true # throw result to HA notifications
+    - siid: 3
+      piid: 2
+  update_entity: true # Update to entity state attributes
+  throw: true # Throw result to HA notifications
 ```
+
+> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.got_miot_properties`
 
 #### [`xiaomi_miot.call_action`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.call_action)
 ```yaml
@@ -270,6 +271,8 @@ data:
   throw: true # throw result to HA notifications
 ```
 
+> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.call_miot_action`
+
 #### [`xiaomi_miot.send_command`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.send_command)
 ```yaml
 service: xiaomi_miot.send_command
@@ -280,6 +283,8 @@ data:
     - on
   throw: true # throw result to HA notifications
 ```
+
+> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.send_miio_command`
 
 #### [`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token)
 ```yaml
@@ -304,6 +309,21 @@ service: xiaomi_miot.xiaoai_wakeup
 data:
   entity_id: media_player.xiaoai_lx04_xxxx
 ```
+
+#### [`xiaomi_miot.request_xiaomi_api`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.request_xiaomi_api)
+```yaml
+service: xiaomi_miot.request_xiaomi_api
+data:
+  entity_id: sensor.your_entity_id
+  api: /v2/plugin/fetch_plugin
+  data:
+    latest_req:
+      api_version: 10070
+      plugins:
+        - model: brand.device.model
+```
+
+> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.request_xiaomi_api`
 
 > [More services](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/services.yaml)
 
