@@ -498,7 +498,8 @@ DEVICE_CUSTOMIZES = {
                              'key_ten,key_eleven,key_twelve,key_thirteen,key_fourteen,key_fifteen,key_sixteen',
     },
     'xiaomi.aircondition.mt6': {
-        'exclude_miot_services': 'iot_linkage,machine_state',
+        'exclude_miot_services': 'iot_linkage,machine_state,screen_show',
+        'exclude_miot_properties': 'enhance.timer,humidity_range,filter_core_rest,sleep_diy_sign',
     },
     'xiaomi.tv.*': {
         'auto_cloud': True,
