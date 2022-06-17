@@ -112,8 +112,9 @@ SERVICE_TO_METHOD_BASE = {
         'method': 'async_get_properties',
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
-                vol.Required('mapping'): dict,
-                vol.Optional('throw', default=True): cv.boolean,
+                vol.Required('mapping'): vol.Any(dict, list),
+                vol.Optional('update_entity', default=False): cv.boolean,
+                vol.Optional('throw', default=False): cv.boolean,
             },
         ),
     },
@@ -1691,13 +1692,26 @@ class MiotEntity(MiioEntity):
         if attrs:
             self.update_attrs(attrs)
 
-    def get_properties(self, mapping: dict, throw=True, **kwargs):
+    def get_properties(self, mapping, update_entity=False, throw=False, **kwargs):
         results = []
+        if isinstance(mapping, list):
+            new_mapping = {}
+            for p in mapping:
+                siid = p['siid']
+                piid = p['piid']
+                pkey = self._miot_service.spec.unique_prop(siid, piid=piid)
+                prop = self._miot_service.spec.specs.get(pkey)
+                if not isinstance(prop, MiotProperty):
+                    continue
+                new_mapping[prop.full_name] = p
+            mapping = new_mapping
+        if not mapping or not isinstance(mapping, dict):
+            return
         try:
-            if self.miot_cloud:
-                results = self.miot_cloud.get_properties_for_mapping(self.miot_did, mapping)
-            elif self.miot_device:
+            if self._local_state:
                 results = self.miot_device.get_properties_for_mapping(mapping=mapping)
+            elif self.miot_cloud:
+                results = self.miot_cloud.get_properties_for_mapping(self.miot_did, mapping)
         except (ValueError, DeviceException) as exc:
             self.logger.error(
                 '%s: Got exception while get properties: %s, mapping: %s, miio: %s',
@@ -1706,10 +1720,8 @@ class MiotEntity(MiioEntity):
             if throw:
                 raise exc
             return
-        attrs = {
-            prop['did']: prop['value'] if prop['code'] == 0 else None
-            for prop in results
-        }
+        result = MiotResults(results, mapping)
+        attrs = result.to_attributes(self._state_attrs)
         self.hass.bus.async_fire(f'{DOMAIN}.got_miot_properties', {
             ATTR_ENTITY_ID: self.entity_id,
             'mapping': mapping,
@@ -1717,6 +1729,10 @@ class MiotEntity(MiioEntity):
             'result': results,
         })
         self.logger.info('%s: Get miot properties: %s', self.name_model, results)
+
+        if attrs and update_entity:
+            self.update_attrs(attrs, update_subs=True)
+            self.async_write_ha_state()
         if throw:
             persistent_notification.create(
                 self.hass,
