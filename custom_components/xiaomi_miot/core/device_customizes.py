@@ -457,6 +457,9 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.016666,
         'unit_of_measurement': 'min',
     },
+    'roidmi.vacuum.v60': {
+        'exclude_miot_services': 'custom,map',
+    },
     'roidmi.vacuum.*': {
         'exclude_miot_services': 'custom',
     },
