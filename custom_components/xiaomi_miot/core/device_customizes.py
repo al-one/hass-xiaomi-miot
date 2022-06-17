@@ -261,6 +261,9 @@ DEVICE_CUSTOMIZES = {
     'leshi.light.wyfan': {
         'chunk_properties': 3,
     },
+    'leshi.switch.v002': {
+        'exclude_miot_services': 'scenes,remote',
+    },
     'leshow.humidifier.jsq1': {
         'miot_type': 'urn:miot-spec-v2:device:humidifier:0000A00E:leshow-jsq1:2',
         'sensor_properties': 'humidifier.water_level',
