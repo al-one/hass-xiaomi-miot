@@ -209,6 +209,7 @@ DEVICE_CUSTOMIZES = {
     'dreame.vacuum.*': {
         'sensor_properties': 'vacuum.status',
         'exclude_miot_services': 'consumable,annoy,remote,time',
+        'exclude_miot_properties': 'delete_timer,clean_info,map_view,frame_info',
     },
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
