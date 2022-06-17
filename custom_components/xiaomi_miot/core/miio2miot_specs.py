@@ -112,6 +112,32 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'bj352.waterpuri.s100cm': {
+        'without_props': True,
+        'entity_attrs': ['PureWasteRatio', 'HeatingStatus', 'TotalPureWater', 'TotalWasteWater', 'error_code'],
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [],
+                'values': [
+                    'RawWaterTDS', 'FinishedWaterTDS', 'WaterTemperature', 'PureWasteRatio', 'HeatingStatus',
+                    'WorkStatus', 'TotalPureWater', 'TotalWasteWater', 'FilterLifeTimePercent1', 'FilterLifeTimeDays1',
+                    'FilterLifeTimePercent2', 'FilterLifeTimeDays2', 'OneTimeProducedWater', 'error_code',
+                ],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'RawWaterTDS'},
+            'prop.2.2': {'prop': 'FinishedWaterTDS'},
+            'prop.3.1': {'prop': 'FilterLifeTimePercent1'},
+            'prop.3.2': {'prop': 'FilterLifeTimeDays1'},
+            'prop.4.1': {'prop': 'FilterLifeTimePercent2'},
+            'prop.4.2': {'prop': 'FilterLifeTimeDays2'},
+            'prop.5.1': {'prop': 'WorkStatus', 'template': '{{ 2 if value|int(0) in [1,2] else 1 }}'},
+            'prop.5.2': {'prop': 'WaterTemperature'},
+        },
+    },
+
     'cgllc.airmonitor.s1': {
         'without_props': True,
         'miio_commands': [
