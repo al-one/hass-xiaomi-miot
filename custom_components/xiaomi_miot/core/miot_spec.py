@@ -234,7 +234,11 @@ class MiotSpec(MiotSpecInstance):
             return None
         fnm = f'{DOMAIN}/instances.json'
         store = Store(hass, 1, fnm)
-        cached = await store.async_load() or {}
+        try:
+            cached = await store.async_load() or {}
+        except ValueError:
+            await store.async_remove()
+            cached = {}
         now = int(time.time())
         dat = {}
         if not use_remote:
@@ -287,7 +291,11 @@ class MiotSpec(MiotSpecInstance):
         if platform.system() == 'Windows':
             fnm = fnm.replace(':', '_')
         store = Store(hass, 1, fnm)
-        cached = await store.async_load() or {}
+        try:
+            cached = await store.async_load() or {}
+        except ValueError:
+            await store.async_remove()
+            cached = {}
         dat = cached
         ptm = dat.pop('_updated_time', 0)
         now = int(time.time())

@@ -246,7 +246,11 @@ class MiotCloud(micloud.MiCloud):
         now = time.time()
         cds = []
         dvs = []
-        dat = await store.async_load() or {}
+        try:
+            dat = await store.async_load() or {}
+        except ValueError:
+            await store.async_remove()
+            dat = {}
         if isinstance(dat, dict):
             cds = dat.get('devices') or []
             if not renew and dat.get('update_time', 0) > (now - 86400):
@@ -502,7 +506,11 @@ class MiotCloud(micloud.MiCloud):
         if self.sid != 'xiaomiio':
             fnm = f'xiaomi_miot/auth-{uid}-{self.default_server}-{self.sid}.json'
         store = Store(self.hass, 1, fnm)
-        old = await store.async_load() or {}
+        try:
+            old = await store.async_load() or {}
+        except ValueError:
+            await store.async_remove()
+            old = {}
         if save:
             cfg = self.to_config()
             cfg.pop(CONF_PASSWORD, None)
