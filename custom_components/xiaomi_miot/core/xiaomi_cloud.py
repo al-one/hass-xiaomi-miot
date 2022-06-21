@@ -189,7 +189,11 @@ class MiotCloud(micloud.MiCloud):
                 _LOGGER.error('Request xiaomi api: %s %s timeout, exception: %s', api, data, exc)
         except (TypeError, ValueError):
             rdt = None
-        if not rdt or rdt.get('code'):
+        code = rdt.get('code') if rdt else None
+        if code == 3:
+            self._logout()
+            _LOGGER.warning('Unauthorized while executing request to %s, logged out.', api)
+        elif code or not rdt:
             fun = _LOGGER.info if rdt else _LOGGER.warning
             fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp)
         return rdt
