@@ -436,6 +436,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,rgb_order',
         'number_properties': 'numleds,pixel_per_step,fade_delay,step_delay,stair_travel_time',
     },
+    'qushui.bed.001': {
+        'chunk_properties': 1,
+    },
     'roborock.vacuum.*': {
         'sensor_attributes': 'props:clean_area,props:clean_time,brush_life_level',
         'sensor_properties': 'vacuum.status',
