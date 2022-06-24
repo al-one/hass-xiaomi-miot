@@ -206,6 +206,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'horizontal_angle',
         'number_properties': 'off_delay_time',
     },
+    'dreame.vacuum.p2008': {
+        'miot_type': 'urn:miot-spec-v2:device:vacuum:0000A006:dreame-p2008:2',
+    },
     'dreame.vacuum.*': {
         'sensor_properties': 'vacuum.status',
         'exclude_miot_services': 'consumable,annoy,remote,time',
