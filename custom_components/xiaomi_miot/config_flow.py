@@ -138,7 +138,8 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
         elif 'ZoneInfoNotFoundError' in err:
             errors['base'] = 'tzinfo_error'
         hass.data[DOMAIN]['placeholders'] = {'tip': f'⚠️ {err}'}
-        _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', mic.username, exc)
+        unm = mic.username if mic else user_input.get(CONF_USERNAME)
+        _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', unm, exc)
     if not errors:
         user_input['devices'] = dvs
         persistent_notification.dismiss(hass, f'{DOMAIN}-login')
