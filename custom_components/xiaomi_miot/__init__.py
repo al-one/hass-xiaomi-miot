@@ -2125,7 +2125,7 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
         super().__init__(miot_service, device, **kwargs)
         self._prop_power = None
         if miot_service:
-            self._prop_power = miot_service.bool_property('on', 'power', 'switch')
+            self._prop_power = miot_service.get_property('on', 'power', 'switch')
 
     @property
     def is_on(self):
@@ -2135,12 +2135,18 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
 
     def turn_on(self, **kwargs):
         if self._prop_power:
-            return self.set_property(self._prop_power, True)
+            val = True
+            if self._prop_power.value_range:
+                val = self._prop_power.range_max() or 1
+            return self.set_property(self._prop_power, val)
         return False
 
     def turn_off(self, **kwargs):
         if self._prop_power:
-            return self.set_property(self._prop_power, False)
+            val = True
+            if self._prop_power.value_range:
+                val = self._prop_power.range_min() or 0
+            return self.set_property(self._prop_power, val)
         act = self._miot_service.get_action('stop_working', 'power_off')
         if act:
             return self.miot_action(self._miot_service.iid, act.iid)
