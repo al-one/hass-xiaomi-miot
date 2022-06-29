@@ -8,6 +8,7 @@ from homeassistant.components.climate import (
     ClimateEntity,
 )
 from homeassistant.components.climate.const import *
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
     DOMAIN,
@@ -707,7 +708,7 @@ class ClimateModeSubEntity(MiotModesSubEntity):
         return self.call_parent('set_fan_mode', preset_mode)
 
 
-class MiirClimateEntity(BaseClimateEntity):
+class MiirClimateEntity(BaseClimateEntity, RestoreEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._available = True
@@ -763,6 +764,15 @@ class MiirClimateEntity(BaseClimateEntity):
         if self._fan_modes:
             self._supported_features |= SUPPORT_FAN_MODE
             self._attr_fan_modes = list(self._fan_modes.keys())
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+
+        if hasattr(self, 'async_get_last_state'):
+            if state := await self.async_get_last_state():
+                self._attr_hvac_mode = state.state
+        if self._attr_hvac_mode not in self._hvac_modes:
+            self._attr_hvac_mode = None
 
     async def async_update(self):
         self.update_bind_sensor()
