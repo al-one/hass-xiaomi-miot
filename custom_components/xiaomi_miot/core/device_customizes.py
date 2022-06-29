@@ -1,5 +1,9 @@
 DEVICE_CUSTOMIZES = {
 
+    '090615.curtain.*': {
+        'exclude_miot_properties': 'motor_control',
+    },
+
     'aice.motor.kzmu3': {
         'switch_properties': 'on',
         'button_properties': 'motor_control',
@@ -245,6 +249,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'uv',
         'select_properties': 'mode,dryer',
         'number_properties': 'drying_time',
+        'exclude_miot_properties': 'motor_control',
         'disable_target_position': True,
         'cover_position_mapping': {
             0: 50,
