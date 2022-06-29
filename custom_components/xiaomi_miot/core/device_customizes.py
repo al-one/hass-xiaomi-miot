@@ -202,6 +202,12 @@ DEVICE_CUSTOMIZES = {
     'deye.derh.u20a3': {
         'target_humidity_ratio': 9.0909,
     },
+    'dmaker.airp.*': {
+        'main_miot_services': 'air_purifier',
+        'switch_properties': 'anion',
+        'number_select_properties': 'horizontal_swing_included_angle',
+        'button_actions': 'loop_mode',
+    },
     'dmaker.fan.*': {
         'select_properties': 'horizontal_angle',
         'number_properties': 'off_delay_time',
