@@ -1,9 +1,18 @@
+import os
 import re
+import json
 import locale
 import tzlocal
 from homeassistant.core import HomeAssistant
 from homeassistant.util.dt import DEFAULT_TIME_ZONE, get_time_zone
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+
+def get_manifest(field=None, default=None):
+    manifest = {}
+    with open(f'{os.path.dirname(__file__)}/../manifest.json') as fil:
+        manifest = json.load(fil) or {}
+    return manifest.get(field, default) if field else manifest
 
 
 def local_zone(hass=None):
@@ -50,7 +59,7 @@ def is_offline_exception(exc):
     return ret
 
 
-async def async_analytics_track_event(hass, event, action, label, value=0, **kwargs):
+async def async_analytics_track_event(hass: HomeAssistant, event, action, label, value=0, **kwargs):
     pms = {
         'model': label,
         'event': event,
@@ -58,6 +67,8 @@ async def async_analytics_track_event(hass, event, action, label, value=0, **kwa
         'label': label,
         'value': value,
         'locale': locale.getdefaultlocale()[0],
+        'tz': hass.config.time_zone,
+        'ver': get_manifest('version', ''),
         **kwargs,
     }
     url = 'https://hacc.miot-spec.com/api/track'
