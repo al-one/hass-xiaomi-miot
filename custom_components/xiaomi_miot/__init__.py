@@ -2143,7 +2143,7 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
 
     def turn_off(self, **kwargs):
         if self._prop_power:
-            val = True
+            val = False
             if self._prop_power.value_range:
                 val = self._prop_power.range_min() or 0
             return self.set_property(self._prop_power, val)
