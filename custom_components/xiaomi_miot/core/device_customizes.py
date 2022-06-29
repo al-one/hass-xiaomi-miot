@@ -235,6 +235,7 @@ DEVICE_CUSTOMIZES = {
         'cover_position_mapping': {},
     },
     'hyd.airer.*': {
+        'main_miot_services': 'airer',
         'switch_properties': 'uv',
         'select_properties': 'mode,dryer',
         'number_properties': 'drying_time',
