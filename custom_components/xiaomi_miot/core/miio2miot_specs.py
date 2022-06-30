@@ -496,6 +496,7 @@ MIIO_TO_MIOT_SPECS = {
                 'large_fan':  3,
             }, 'default': 0},
             'prop.3.2': {'prop': 'ver_swing', 'setter': True, 'format': 'onoff'},
+            'prop.5.1':{'prop': 'load_power'},
         },
     },
 
