@@ -635,7 +635,7 @@ class MiotProperty(MiotSpecInstance):
             vde = v.get('description')
             if des is None:
                 rls.append(val)
-            elif des == vde or des == self.get_translation(vde):
+            elif des in [vde, f'{vde}'.lower(), self.get_translation(vde)]:
                 return val
         return rls if des is None else None
 
