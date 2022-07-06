@@ -63,7 +63,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entities = []
     if isinstance(spec, MiotSpec):
         svs = spec.get_services(ENTITY_DOMAIN, 'camera_control', 'video_doorbell')
-        if not svs and spec.name in ['video_doorbell'] and spec.services:
+        if not svs and spec.name in ['lock', 'video_doorbell'] and spec.services:
             srv = None
             if spec.name in ['video_doorbell']:
                 # loock.cateye.v02
