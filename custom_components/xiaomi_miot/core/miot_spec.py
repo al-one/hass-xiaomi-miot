@@ -206,7 +206,7 @@ class MiotSpec(MiotSpecInstance):
         return None
 
     def first_service(self):
-        for s in self.services.values():
+        for s in self.get_services():
             return s
         return None
 
