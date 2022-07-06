@@ -68,9 +68,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             if spec.name in ['video_doorbell']:
                 # loock.cateye.v02
                 srv = spec.get_service('p2p_stream') or spec.first_service
-            if model in ['lumi.lock.bmcn05']:
+            if model in ['lumi.lock.bmcn05', 'loock.lock.t1pro']:
                 srv = spec.first_service
-            if srv:
+            if isinstance(srv, MiotService):
                 entities.append(MiotCameraEntity(hass, config, srv))
         for srv in svs:
             entities.append(MiotCameraEntity(hass, config, srv))
