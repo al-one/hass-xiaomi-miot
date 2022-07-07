@@ -53,19 +53,22 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class MiotNumberEntity(MiotEntity, NumberEntity):
+    _attr_native_value = 0
+    _attr_native_unit_of_measurement = None
+
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
-        self._attr_value = 0
-
-    def set_value(self, value):
-        """Set new value."""
-        raise NotImplementedError()
 
 
 class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
+    _attr_native_value = 0
+
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
-        self._attr_value = 0
+        self._attr_native_max_value = self._miot_property.range_max()
+        self._attr_native_min_value = self._miot_property.range_min()
+        self._attr_native_step = self._miot_property.range_step()
+        self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
         self._is_restore = False
 
     async def async_added_to_hass(self):
@@ -77,13 +80,13 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
                 state = restored.last_states[self.entity_id].state
                 val = self.cast_value(state.state)
                 if val is not None:
-                    self._attr_value = val
+                    self._attr_native_value = val
 
     def update(self, data=None):
         super().update(data)
         val = self.native_value
         if val is not None:
-            self._attr_value = val
+            self._attr_native_value = val
 
     @property
     def native_value(self):
@@ -99,26 +102,15 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
             val = default
         return val
 
-    def set_value(self, value):
+    def set_native_value(self, value):
         """Set new value."""
         if self._miot_property.is_integer:
             value = int(value)
         return self.set_parent_property(value)
 
-    @property
-    def min_value(self):
-        """Return the minimum value."""
-        return self._miot_property.range_min()
-
-    @property
-    def max_value(self):
-        """Return the maximum value."""
-        return self._miot_property.range_max()
-
-    @property
-    def step(self):
-        """Return the increment/decrement step."""
-        return self._miot_property.range_step()
+    def set_value(self, value):
+        """Set new value."""
+        return self.set_native_value(value)
 
 
 class MiotNumberActionSubEntity(MiotNumberSubEntity):
@@ -131,18 +123,13 @@ class MiotNumberActionSubEntity(MiotNumberSubEntity):
 
     def update(self, data=None):
         self._available = True
-        self._attr_value = 0
-
-    @property
-    def value(self):
-        """Return the entity value to represent the entity state."""
-        return self._attr_value
+        self._attr_native_value = 0
 
     def set_value(self, value: float):
         """Set new value."""
         val = int(value)
         ret = self.call_parent('call_action', self._miot_action, [val])
         if ret:
-            self._attr_value = val
+            self._attr_native_value = val
             self.async_write_ha_state()
         return ret
