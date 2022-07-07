@@ -356,8 +356,9 @@ DEVICE_CUSTOMIZES = {
     'lumi.ctrl_neutral1.*': {
         'cloud_delay_update': 10,
     },
-    'lumi.ctrl_neutral2.*': {
+    'lumi.ctrl_neutral2.v1': {
         'cloud_delay_update': 10,
+        'exclude_miot_properties': 'name,mode',
     },
     'lumi.motion.bmgl01': {
         'use_ble_object': True,
