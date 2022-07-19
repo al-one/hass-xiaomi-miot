@@ -67,8 +67,8 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
         self._attr_native_max_value = self._miot_property.range_max()
         self._attr_native_min_value = self._miot_property.range_min()
         self._attr_native_step = self._miot_property.range_step()
-        self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
         self._attr_native_value = 0
+        self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
         self._is_restore = False
 
     async def async_added_to_hass(self):
@@ -95,7 +95,7 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
 
     @property
     def value(self):
-        val = self.cast_value(val)
+        val = self.cast_value(self.native_value)
         if val is None:
             return val
         if hasattr(self, '_convert_to_state_value'):
