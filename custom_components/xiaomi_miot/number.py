@@ -91,11 +91,16 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
     @property
     def native_value(self):
         val = self._miot_property.from_dict(self._state_attrs)
-        return self.cast_value(val)
+        return val
 
     @property
     def value(self):
-        return self.native_value
+        val = self.cast_value(val)
+        if val is None:
+            return val
+        if hasattr(self, '_convert_to_state_value'):
+            val = self._convert_to_state_value(val, round)
+        return val
 
     def cast_value(self, val, default=None):
         try:
