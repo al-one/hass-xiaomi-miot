@@ -93,12 +93,6 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
         val = self._miot_property.from_dict(self._state_attrs)
         return self.cast_value(val)
 
-    def set_native_value(self, value):
-        """Set new value."""
-        if self._miot_property.is_integer:
-            value = int(value)
-        return self.set_parent_property(value)
-
     @property
     def value(self):
         return self.native_value
@@ -111,6 +105,12 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
         except (TypeError, ValueError):
             val = default
         return val
+
+    def set_native_value(self, value):
+        """Set new value."""
+        if self._miot_property.is_integer:
+            value = int(value)
+        return self.set_parent_property(value)
 
     def set_value(self, value):
         """Set new value."""
