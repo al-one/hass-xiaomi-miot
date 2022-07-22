@@ -32,6 +32,23 @@
     }
   ],
 
+  "chuangmi.plug.v1": [
+    {
+      "iid": 200,
+      "type": "urn:miot-spec-v2:service:switch",
+      "description": "USB Switch Status",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:on",
+          "description": "Switch Status",
+          "format": "bool",
+          "access": ["read", "write"]
+        }
+      ]
+    }
+  ],
+
   "chunmi.cooker.eh1": [
     {
       "iid": 2,
