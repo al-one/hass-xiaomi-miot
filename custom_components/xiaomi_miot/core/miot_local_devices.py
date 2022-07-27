@@ -40,6 +40,7 @@ MIOT_LOCAL_MODELS = [
     'chunmi.microwave.n20l02',
     'chunmi.pre_cooker.dylg5',
     'chunmi.pre_cooker.mini1',
+    'chunmi.cooker.wy3',
     'chunmi.waterpuri.600f2',
     'chunmi.waterpuri.600j6',
     'chunmi.waterpuri.800f3',
