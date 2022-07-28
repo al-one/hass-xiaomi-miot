@@ -34,6 +34,7 @@ MIOT_LOCAL_MODELS = [
     'chuangmi.camera.039a01',
     'chuangmi.plug.212a01',
     'chuangmi.vacuum.hmi707',
+    'chunmi.cooker.wy3',
     'chunmi.health_pot.a1',
     'chunmi.ihcooker.slim',
     'chunmi.ihcooker.v2',
