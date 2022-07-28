@@ -1541,7 +1541,7 @@ MIIO_TO_MIOT_SPECS = {
     },
     'yeelink.light.ceiling17': 'yeelink.light.ceiling16',
     'yeelink.light.ceiling18': 'yeelink.light.ceiling6',
-    'yeelink.light.ceiling19': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling19': 'yeelink.light.ceiling10',
     'yeelink.light.ceiling20': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling21': {
         'extend_model': 'yeelink.light.ceiling6',
