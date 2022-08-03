@@ -309,6 +309,24 @@
     }
   ],
 
+  "midea.aircondition.v1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:temperature",
+          "format": "float",
+          "access": ["read"],
+          "unit": "celsius",
+          "value-range": [-30, 100, 0.1]
+        }
+      ]
+    }
+  ],
+  "midea.aircondition.xa1": "midea.aircondition.v1",
+  "midea.aircondition.xa2": "midea.aircondition.v1",
+
   "mmgg.feeder.petfeeder": [
     {
       "iid": 2,

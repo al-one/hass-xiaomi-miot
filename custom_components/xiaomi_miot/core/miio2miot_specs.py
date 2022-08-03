@@ -579,6 +579,65 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'midea.aircondition.v1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto': 0,
+                'cold': 1,
+                'dehumidifier': 2,
+                'hot': 3,
+                'wind': 4,
+            }},
+            'prop.2.3': {'prop': 'temp', 'setter': True},
+            'prop.2.101': {'prop': 'temp_indoor'},
+            'prop.3.1': {
+                'prop': 'wind_speed',
+                'setter': True,
+                'dict': {
+                    0: 0,
+                    20: 1,
+                    60: 2,
+                    100: 3,
+                },
+                'template': '{{ '
+                            '1 if value <= 40 else '
+                            '2 if value <= 60 else '
+                            '3 if value >= 80 else '
+                            '0 }}',
+            },
+            'prop.3.2': {'prop': 'wind_up_down', 'setter': True, 'format': 'onoff'},
+        },
+    },
+    'midea.aircondition.xa1': {
+        'miio_specs': {
+            'prop.2.2': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.1': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto': 1,
+                'hot': 2,
+                'cold': 3,
+                'dehumidifier': 4,
+                'wind': 5,
+            }},
+            'prop.2.3': {'prop': 'temp', 'setter': True},
+            'prop.2.101': {'prop': 'temp_indoor'},
+            'prop.3.1': {'prop': 'wind_up_down', 'setter': True, 'format': 'onoff'},
+            'prop.3.2': {
+                'prop': 'wind_speed',
+                'setter': True,
+                'dict': {
+                    20: 1,
+                    40: 2,
+                    60: 3,
+                    80: 4,
+                    100: 5,
+                },
+            },
+            'prop.4.1': {'prop': 'screen_display', 'setter': True, 'format': 'onoff'},
+        },
+    },
+    'midea.aircondition.xa2': 'midea.aircondition.xa1',
+
     'mijia.camera.v3': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
