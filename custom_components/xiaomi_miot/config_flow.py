@@ -667,6 +667,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         if entity_class in ['MihomeMessageSensor']:
             options.update({
                 'filter_home': cv.string,
+                'exclude_type': cv.string,
             })
         if entity_class in ['XiaoaiConversationSensor']:
             options.update({

@@ -566,6 +566,7 @@ class WaterPurifierYunmiSubEntity(BaseSubEntity):
 
 class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
     _filter_homes = None
+    _exclude_types = None
 
     def __init__(self, hass, cloud: MiotCloud):
         self.hass = hass
@@ -593,6 +594,7 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
         await super().async_added_to_hass()
         self.hass.data[DOMAIN]['entities'][self.entity_id] = self
         self._filter_homes = self.custom_config_list('filter_home') or []
+        self._exclude_types = list(map(lambda x: int(x), self.custom_config_list('exclude_type', [13]) or []))
         if sec := self.custom_config_integer('interval_seconds'):
             self.coordinator.update_interval = timedelta(seconds=sec)
 
@@ -603,6 +605,7 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
             self._attr_extra_state_attributes.update(state.attributes)
 
         self._attr_extra_state_attributes['filter_homes'] = self._filter_homes
+        self._attr_extra_state_attributes['exclude_types'] = self._exclude_types
         await self.coordinator.async_config_entry_first_refresh()
 
     async def async_will_remove_from_hass(self):
@@ -617,9 +620,12 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
             return
         if old := self._attr_native_value:
             self._attr_extra_state_attributes['prev_message'] = old
-        tit = msg.get('title')
-        if con := msg.get('content'):
-            self._attr_native_value = f'{con}: {tit}'
+        con = msg.get('content')
+        if tit := msg.get('title'):
+            if con:
+                self._attr_native_value = f'{con}: {tit}'
+            else:
+                self._attr_native_value = tit
             logger = _LOGGER.info if old != self._attr_native_value else _LOGGER.debug
             logger('New xiaomi message for %s: %s', self.cloud.user_id, self._attr_native_value)
         tim = msg.get('ctime')
@@ -654,6 +660,9 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
             hre = m.get('params', {}).get('body', {}).get('homeRoomExtra', {})
             home = hre.get('homeName')
             if self._filter_homes and home and home not in self._filter_homes:
+                continue
+            typ = m.get('type', 0)
+            if self._exclude_types and typ in self._exclude_types:
                 continue
             tim = m.get('ctime', 0)
             mid = m.get('msg_id', 0)
