@@ -668,7 +668,7 @@ DEVICE_CUSTOMIZES = {
     },
     'zinguo.switch.b5m': {
         'main_miot_services': 'switch-2',
-        'sensor_attributes': 'temperature',
+        'sensor_properties': 'temperature',
         'switch_properties': 'heating,blow,ventilation',
         'select_properties': 'link',
         'light_services': 'light',
