@@ -30,8 +30,14 @@ ACCOUNT_BASE = 'https://account.xiaomi.com'
 
 class MiotCloud(micloud.MiCloud):
     def __init__(self, hass, username, password, country=None, sid=None):
-        super().__init__(username, password)
+        try:
+            super().__init__(username, password)
+        except (FileNotFoundError, KeyError):
+            self.timezone = 'GMT+00:00'
+
         self.hass = hass
+        self.username = username
+        self.password = password
         self.default_server = country or 'cn'
         self.sid = sid or 'xiaomiio'
         self.client_id = self.agent_id
