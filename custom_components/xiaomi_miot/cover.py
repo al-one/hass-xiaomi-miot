@@ -64,9 +64,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(ENTITY_DOMAIN, 'curtain', 'airer', 'window_opener', 'motor_controller'):
             if not srv.get_property('motor_control'):
                 continue
-            if not srv.get_property('current_position') and 'mrbond.airer' in model:
-                # mrbond.airer.m1s
-                # mrbond.airer.m1pro
+            if model in ['mrbond.airer.m1s', 'mrbond.airer.m1pro']:
                 entities.append(MrBondAirerProEntity(config))
             else:
                 entities.append(MiotCoverEntity(config, srv))

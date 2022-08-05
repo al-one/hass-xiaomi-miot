@@ -69,7 +69,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     model = str(config.get(CONF_MODEL) or '')
     spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
-    if model.find('mrbond.airer') >= 0:
+    if model in ['mrbond.airer.m1s', 'mrbond.airer.m1pro']:
         pass
     elif isinstance(spec, MiotSpec):
         for srv in spec.get_services(ENTITY_DOMAIN, 'ir_light_control', 'light_bath_heater'):
