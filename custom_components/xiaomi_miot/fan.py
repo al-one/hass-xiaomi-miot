@@ -278,16 +278,32 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
     def set_direction(self, direction):
         num = int(self._state_attrs.get(self._prop_direction.full_name) or 0)
-        for v in self._prop_direction.value_list:
-            n = int(v.get('value') or -1)
-            if n < 0:
-                continue
+        if self._prop_direction.value_range:
+            step = self._prop_direction.range_step()
+            rmax = self._prop_direction.range_max()
+            rmin = self._prop_direction.range_min()
+            if step < 10:
+                step = 10
             if direction == DIRECTION_REVERSE:
-                if n < num:
-                    num = n
-            else:
-                if n > num:
-                    num = n
+                step = 0 - step
+            num += step
+            if num > rmax:
+                num = rmax
+            if num < rmin:
+                num = rmin
+        else:
+            for v in self._prop_direction.value_list:
+                n = int(v.get('value', -1))
+                if n < 0:
+                    continue
+                if direction == DIRECTION_REVERSE:
+                    if n < num:
+                        num = n
+                        break
+                else:
+                    if n > num:
+                        num = n
+                        break
         _LOGGER.debug('%s: Setting direction: %s(%s)', self.name_model, direction, num)
         return self.set_property(self._prop_direction, num)
 
