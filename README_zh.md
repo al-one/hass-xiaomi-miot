@@ -420,3 +420,9 @@ logger:
   2. 打开米家APP > 我的 > 实验室功能
   3. 打开`Write custom log files`和`Enable app's debug mode`
   4. 重启APP后在`vevs/logs/misc/devices.txt`文件中找到token
+
+
+## 鸣谢
+
+- [PyCharm](https://www.jetbrains.com/pycharm/)
+- [Dler](https://dler.best/auth/register?affid=130833)
