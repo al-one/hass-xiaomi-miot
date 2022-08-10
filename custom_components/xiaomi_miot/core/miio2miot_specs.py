@@ -234,7 +234,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {'prop': 'status', 'template': '{{ 9 if value == "finish" else value }}'},
             'prop.2.2': {'prop': 'temp'},
             'prop.2.3': {'prop': 'akw'},
-            'prop.2.101': {'prop': 'menu'},
+            'prop.2.101': {'prop': 'menu', 'template': '{{ value|string }}'},
             'prop.2.102': {'prop': 't_left'},
             'action.2.1': {'setter': 'cancel_cooking'},
         },
