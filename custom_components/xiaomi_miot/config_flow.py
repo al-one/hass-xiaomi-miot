@@ -406,6 +406,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             }
             if entry:
                 self.hass.config_entries.async_update_entry(entry, data=entry_data)
+                await self.hass.config_entries.async_reload(entry.entry_id)
                 tip = f'```yaml\n{yaml.dump(entry_data)}\n```'
                 return self.async_abort(
                     reason='config_saved',
