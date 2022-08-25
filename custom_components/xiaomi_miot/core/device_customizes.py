@@ -519,6 +519,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'key_one,key_two,key_three,key_four,key_five,key_six,key_seven,key_eight,key_nine,'
                              'key_ten,key_eleven,key_twelve,key_thirteen,key_fourteen,key_fifteen,key_sixteen',
     },
+    'xiaomi.aircondition.mt0': {
+        'exclude_miot_services': 'iot_linkage,machine_state,screen_show',
+        'exclude_miot_properties': 'enhance.timer,humidity_range,filter_core_rest,sleep_diy_sign',
+    },
     'xiaomi.aircondition.mt6': {
         'exclude_miot_services': 'iot_linkage,machine_state,screen_show',
         'exclude_miot_properties': 'enhance.timer,humidity_range,filter_core_rest,sleep_diy_sign',
