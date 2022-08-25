@@ -20,17 +20,17 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Miio2MiotHelper:
-    def __init__(self, hass, config: dict, miot_spec: MiotSpec):
+    def __init__(self, hass, config: dict, miot_spec: MiotSpec, from_model=None):
         self.hass = hass
         if ext := config.get('extend_model'):
             if m2m := Miio2MiotHelper.from_model(hass, ext, miot_spec):
-                sps = m2m.config.get('miio_specs', {})
+                sps = {**m2m.config.get('miio_specs', {})}
                 sps.update(config.get('miio_specs', {}))
                 config = {**m2m.config, **config, 'miio_specs': sps}
         self.config = config
         self.miot_spec = miot_spec
         self.specs = config.get('miio_specs', {})
-        self.model = config.get('model', None)
+        self.model = from_model or config.get('model', None)
         self.miio_props = []
         for k, v in self.specs.items():
             if p := v.get('prop'):
@@ -39,13 +39,15 @@ class Miio2MiotHelper:
         self.miio_props_values = {}
 
     @staticmethod
-    def from_model(hass, model, miot_spec):
+    def from_model(hass, model, miot_spec, from_model=None):
+        if not from_model:
+            from_model = model
         cfg = MIIO_TO_MIOT_SPECS.get(model) or {}
         if isinstance(cfg, str):
-            return Miio2MiotHelper.from_model(hass, cfg, miot_spec)
+            return Miio2MiotHelper.from_model(hass, cfg, miot_spec, from_model)
         if cfg:
             cfg.setdefault('model', model)
-            return Miio2MiotHelper(hass, cfg, miot_spec)
+            return Miio2MiotHelper(hass, cfg, miot_spec, from_model)
         return None
 
     def extend_miio_props(self, props: list):
