@@ -1,6 +1,7 @@
 """Config flow to configure Xiaomi Miot."""
 import logging
 import re
+import copy
 import requests
 import voluptuous as vol
 
@@ -353,7 +354,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         via = self.context.get('customizing_via') or 'customizing_entity'
         self.context['customizing_via'] = via
         entry = await self.async_set_unique_id(f'{DOMAIN}-customizes')
-        entry_data = dict(entry.data) if entry else {}
+        entry_data = copy.deepcopy(dict(entry.data) if entry else {})
         customizes = {}
         errors = {}
         schema = {}
