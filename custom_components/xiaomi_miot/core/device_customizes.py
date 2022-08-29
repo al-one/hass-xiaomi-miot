@@ -205,6 +205,10 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'voltage',
         'unit_of_measurement': 'V',
     },
+    'cuco.switch.*': {
+        'main_miot_services': 'switch-2',
+        'exclude_miot_services': 'setting,wireless_switch',
+    },
     'deerma.humidifier.jsq5': {
         'chunk_properties': 4,
     },
