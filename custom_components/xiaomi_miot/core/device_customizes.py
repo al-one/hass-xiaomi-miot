@@ -122,6 +122,12 @@ DEVICE_CUSTOMIZES = {
             'indicator_light.on': {'siid': 3, 'piid': 1},
         },
     },
+    'cuco.plug.cp2:power_cost_today': {
+        'value_ratio': 0.001,
+    },
+    'cuco.plug.cp2:power_cost_month': {
+        'value_ratio': 0.001,
+    },
     'cuco.plug.cp2a': {
         'main_miot_services': 'switch-2',
     },
@@ -144,6 +150,9 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '10.1',
+    },
+    'cuco.plug.cp5pro:electric_current': {
+        'unit_of_measurement': 'A',
     },
     'cuco.plug.cp5pro:power_cost_today': {
         'value_ratio': 1,
