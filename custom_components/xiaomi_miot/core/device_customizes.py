@@ -735,6 +735,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,desk_control',
         'number_properties': 'altitude,target_height,stand_height,sit_height,target_position',
     },
+    '*.dishwasher.*': {
+        'sensor_properties': 'temperature,left_time,door_state,soft_water_salt,tds',
+        'switch_properties': 'on,dryer,auto_dryer',
+        'select_properties': 'mode',
+        'button_actions': 'start_wash,pause,stop_washing',
+    },
     '*.door.*': {},
     '*.dry.*': {
         'sensor_properties': 'temperature,left_time',

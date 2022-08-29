@@ -52,8 +52,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entities = []
     if isinstance(spec, MiotSpec):
         for srv in spec.get_services(
-            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet', 'ir_aircondition_control',
-            'thermostat', 'heater', 'ptc_bath_heater', 'dishwasher',
+            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
+            'ir_aircondition_control', 'thermostat', 'heater', 'ptc_bath_heater',
         ):
             if srv.name in ['ir_aircondition_control']:
                 entities.append(MiirClimateEntity(config, srv))
