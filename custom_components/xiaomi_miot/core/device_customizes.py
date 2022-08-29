@@ -728,6 +728,13 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'altitude,target_height,stand_height,sit_height,target_position',
     },
     '*.door.*': {},
+    '*.dry.*': {
+        'sensor_properties': 'temperature,left_time',
+        'switch_properties': 'on,uv',
+        'select_properties': 'mode,drying_level',
+        'number_properties': 'drying_time,delaytime',
+        'button_actions': 'start_drying,pause',
+    },
     '*.f_washer.*': {
         'sensor_properties': 'left_time,water',
         'switch_properties': 'on',

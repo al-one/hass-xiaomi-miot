@@ -238,7 +238,7 @@ xiaomi_miot:
 - 🗣️ [小爱音箱](https://home.miot-spec.com/s/wifispeaker) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-885989099)
 - 🎮️ [万能遥控器](https://home.miot-spec.com/s/chuangmi.remote) [❓️](https://github.com/al-one/hass-xiaomi-miot/commit/fbcc8063783e53b9480574536a034d338634f4e8#commitcomment-56563663)
 - 🔐 [智能门锁](https://home.miot-spec.com/s/lock) / 🚪 [智慧门](https://home.miot-spec.com/s/door)
-- 👕 [洗衣机](https://home.miot-spec.com/s/washer) / [冰箱](https://home.miot-spec.com/s/fridge)
+- 👕 [洗衣机](https://home.miot-spec.com/s/washer) / [干衣机](https://home.miot-spec.com/s/dry) / [冰箱](https://home.miot-spec.com/s/fridge)
 - 🚰 [净水器](https://home.miot-spec.com/s/waterpuri) / [饮水机](https://home.miot-spec.com/s/kettle)
 - ♻️ [空气净化器](https://home.miot-spec.com/s/airpurifier) / [新风机](https://home.miot-spec.com/s/airfresh)
 - 🌡 [温湿度传感器](https://home.miot-spec.com/s/sensor_ht) / [水侵传感器](https://home.miot-spec.com/s/flood) / [烟雾传感器](https://home.miot-spec.com/s/sensor_smoke)
