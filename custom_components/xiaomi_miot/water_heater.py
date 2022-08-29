@@ -44,7 +44,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if isinstance(spec, MiotSpec):
-        for srv in spec.get_services(ENTITY_DOMAIN, 'kettle'):
+        for srv in spec.get_services(ENTITY_DOMAIN, 'kettle', 'water_dispenser'):
             if not srv.get_property('mode', 'target_temperature'):
                 continue
             entities.append(MiotWaterHeaterEntity(config, srv))

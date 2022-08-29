@@ -596,6 +596,10 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'speed_level,clamp_strength',
         'target2current_position': True,
     },
+    'yunmi.ysj.*': {
+        'switch_properties': 'icing,child_lock,drink_remind,switch_button,buzzer_enable',
+        'number_properties': 'store_timeout',
+    },
     'zhimi.airfresh.*': {
         'switch_properties': 'heater,alarm',
     },
