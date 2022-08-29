@@ -515,6 +515,12 @@ DEVICE_CUSTOMIZES = {
     'suittc.airrtc.wk168': {
         'switch_properties': 'on',
     },
+    'topwit.bhf_light.rz01': {
+        'main_miot_services': 'light-2',
+        'sensor_properties': 'temperature',
+        'switch_properties': 'heating,blow,ventilation',
+        'number_properties': 'ventilation_cnt_down',
+    },
     'viomi.vacuum.*': {
         'sensor_attributes': 'miio.s_area,miio.s_time',
         'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life',
