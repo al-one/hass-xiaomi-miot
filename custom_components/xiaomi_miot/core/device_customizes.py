@@ -735,6 +735,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'drying_time,delaytime',
         'button_actions': 'start_drying,pause',
     },
+    '*.dryer.*': {},
     '*.f_washer.*': {
         'sensor_properties': 'left_time,water',
         'switch_properties': 'on',
@@ -845,4 +846,5 @@ DEVICE_CUSTOMIZES = {
 
 DEVICE_CUSTOMIZES.update({
     '*.door.*': DEVICE_CUSTOMIZES.get('*.lock.*') or {},
+    '*.dryer.*': DEVICE_CUSTOMIZES.get('*.dry.*') or {},
 })
