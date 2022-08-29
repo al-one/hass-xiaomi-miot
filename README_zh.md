@@ -266,6 +266,16 @@ xiaomi_miot:
 - 🌐 [路由器](https://home.miot-spec.com/s/router) / 🖨 [打印机](https://home.miot-spec.com/s/printer)
 
 
+<a name="unsupported-devices"></a>
+### Unsupported devices
+
+> 本插件使用轮询的方式获取设备状态，因此无法实时监听部分设备的事件
+
+- 无线场景开关类 (如: [lumi.sensor_switch.v1](https://home.miot-spec.com/s/lumi.sensor_switch.v1) / [lumi.remote.b686opcn01](https://home.miot-spec.com/s/lumi.remote.b686opcn01))
+- 人体传感器类 (如: [lumi.sensor_motion.v1](https://home.miot-spec.com/s/lumi.sensor_motion.v1))
+- 门窗传感器类 (如: [lumi.sensor_magnet.v1](https://home.miot-spec.com/s/lumi.sensor_magnet.v1))
+
+
 <a name="services"></a>
 ## 服务
 

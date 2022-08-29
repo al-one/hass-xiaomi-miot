@@ -221,6 +221,15 @@ This component has added support for configuration reloading (to avoid having to
 - 🌐 [router](https://home.miot-spec.com/s/router) / 🖨 [printer](https://home.miot-spec.com/s/printer)
 
 
+### Unsupported devices
+
+> This component uses the polling method to obtain the device state, so it cannot listen the events of some devices in real time.
+
+- Wireless Switch (like: [lumi.sensor_switch.v1](https://home.miot-spec.com/s/lumi.sensor_switch.v1) / [lumi.remote.b686opcn01](https://home.miot-spec.com/s/lumi.remote.b686opcn01))
+- Motion Sensor (like: [lumi.sensor_motion.v1](https://home.miot-spec.com/s/lumi.sensor_motion.v1))
+- Window and Door Sensor (like: [lumi.sensor_magnet.v1](https://home.miot-spec.com/s/lumi.sensor_magnet.v1))
+
+
 ## Services
 
 #### [`xiaomi_miot.set_property`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.set_property)
