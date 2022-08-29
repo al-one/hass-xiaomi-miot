@@ -267,7 +267,7 @@ xiaomi_miot:
 
 
 <a name="unsupported-devices"></a>
-### Unsupported devices
+### 不支持的设备
 
 > 本插件使用轮询的方式获取设备状态，因此无法实时监听部分设备的事件
 
