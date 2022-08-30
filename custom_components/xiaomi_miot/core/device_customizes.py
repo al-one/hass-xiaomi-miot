@@ -123,10 +123,10 @@ DEVICE_CUSTOMIZES = {
         },
     },
     'cuco.plug.cp2:power_cost_today': {
-        'value_ratio': 0.001,
+        'value_ratio': 0.01,
     },
     'cuco.plug.cp2:power_cost_month': {
-        'value_ratio': 0.001,
+        'value_ratio': 0.01,
     },
     'cuco.plug.cp2a': {
         'main_miot_services': 'switch-2',
