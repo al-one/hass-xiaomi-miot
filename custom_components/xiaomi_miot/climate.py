@@ -66,10 +66,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class SwingModes(Enum):
-    Off = 0
-    Vertical = 1
-    Horizontal = 2
-    Steric = 3
+    off = 0
+    vertical = 1
+    horizontal = 2
+    both = 3
 
 
 class BaseClimateEntity(MiotEntity, ClimateEntity):
