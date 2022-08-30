@@ -269,6 +269,7 @@ MIIO_TO_MIOT_SPECS = {
             'action.2.101': {'setter': 'set_func', 'set_template': '{{ ["end030307"] }}'},
         },
     },
+    'chunmi.ihcooker.v1': 'chunmi.ihcooker.chefnic',
     'chunmi.microwave.n23l01': {
         'without_props': True,
         'miio_commands': [
