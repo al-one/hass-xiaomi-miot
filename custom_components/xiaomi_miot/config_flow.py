@@ -1,11 +1,14 @@
 """Config flow to configure Xiaomi Miot."""
 import logging
+import re
+import copy
 import requests
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import *
-from homeassistant.core import callback
+from homeassistant.core import callback, split_entity_id
+from homeassistant.util import yaml
 from homeassistant.components import persistent_notification
 from homeassistant.helpers.device_registry import format_mac
 import homeassistant.helpers.config_validation as cv
@@ -19,9 +22,11 @@ from . import (
     DEFAULT_NAME,
     DEFAULT_CONN_MODE,
     init_integration_data,
+    get_customize_via_entity,
+    get_customize_via_model,
 )
-from .core.utils import async_analytics_track_event
-from .core.const import CLOUD_SERVERS
+from .core.utils import in_china, async_analytics_track_event
+from .core.const import SUPPORTED_DOMAINS, CLOUD_SERVERS, CONF_XIAOMI_CLOUD
 from .core.miot_spec import MiotSpec
 from .core.xiaomi_cloud import (
     MiotCloud,
@@ -134,7 +139,8 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
         elif 'ZoneInfoNotFoundError' in err:
             errors['base'] = 'tzinfo_error'
         hass.data[DOMAIN]['placeholders'] = {'tip': f'⚠️ {err}'}
-        _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', mic.username, exc)
+        unm = mic.username if mic else user_input.get(CONF_USERNAME)
+        _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', unm, exc)
     if not errors:
         user_input['devices'] = dvs
         persistent_notification.dismiss(hass, f'{DOMAIN}-login')
@@ -213,7 +219,13 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None, via_did
 class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(entry: config_entries.ConfigEntry):
+        return OptionsFlowHandler(entry)
+
     async def async_step_user(self, user_input=None):
+        self.context['last_step'] = False
         init_integration_data(self.hass)
         errors = {}
         if user_input is None:
@@ -222,20 +234,30 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             action = user_input.get('action')
             if action in ['account', 'cloud']:
                 return await self.async_step_cloud()
+            elif action in ['customizing_entity', 'customizing_device']:
+                self.context['customizing_via'] = action
+                return await self.async_step_customizing()
             else:
                 return await self.async_step_token()
         prev_action = user_input.get('action', 'account')
         if prev_action == 'cloud':
             prev_action = 'account'
+        actions = {
+            'account': 'Add devices using Mi Account (账号集成)',
+            'token': 'Add device using host/token (局域网集成)',
+        }
+        if self.hass.data[DOMAIN].get('entities', {}):
+            actions.update({
+                'customizing_entity': 'Customizing entity (自定义实体)',
+                'customizing_device': 'Customizing device (自定义设备)',
+            })
         return self.async_show_form(
             step_id='user',
             data_schema=vol.Schema({
-                vol.Required('action', default=prev_action): vol.In({
-                    'account': 'Add devices using Mi Account (账号集成)',
-                    'token': 'Add device using host/token (局域网集成)',
-                }),
+                vol.Required('action', default=prev_action): vol.In(actions),
             }),
             errors=errors,
+            last_step=self.context.get('last_step'),
         )
 
     async def async_step_token(self, user_input=None):
@@ -327,28 +349,179 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             description_placeholders=self.hass.data[DOMAIN].pop('placeholders', None),
         )
 
-    async def async_step_zeroconf(self, discovery_info):
-        name = discovery_info.get('name')
-        host = discovery_info.get('host')
-        mac_address = discovery_info.get('properties', {}).get('mac')
-        if not name or not host or not mac_address:
-            return self.async_abort(reason='not_xiaomi_miio')
-        if not name.startswith('xiaomi'):
-            _LOGGER.debug('Device %s discovered with host %s, not xiaomi device', name, host)
-            return self.async_abort(reason='not_xiaomi_miio')
-        unique_id = format_mac(mac_address)
-        await self.async_set_unique_id(unique_id)
-        self._abort_if_unique_id_configured({CONF_HOST: host})
-        # pylint: disable=no-member # https://github.com/PyCQA/pylint/issues/3167
-        self.context.update({
-            'title_placeholders': {'name': f'{name}({host})'}
-        })
-        return await self.async_step_user()
+    async def async_step_customizing(self, user_input=None):
+        tip = ''
+        via = self.context.get('customizing_via') or 'customizing_entity'
+        self.context['customizing_via'] = via
+        entry = await self.async_set_unique_id(f'{DOMAIN}-customizes')
+        entry_data = copy.deepcopy(dict(entry.data) if entry else {})
+        customizes = {}
+        errors = {}
+        schema = {}
+        user_input = user_input or {}
+        bool2selects = [
+            'auto_cloud',
+            'ignore_offline',
+            'miot_local',
+            'miot_cloud',
+            'miot_cloud_write',
+            'miot_cloud_action',
+            'check_lan',
+        ]
+        main_options = {
+            'bool2selects': cv.multi_select({}),
+            'interval_seconds': cv.string,
+            'chunk_properties': cv.string,
+            'sensor_properties': cv.string,
+            'binary_sensor_properties': cv.string,
+            'switch_properties': cv.string,
+            'number_properties': cv.string,
+            'select_properties': cv.string,
+            'cover_properties': cv.string,
+            'sensor_attributes': cv.string,
+            'binary_sensor_attributes': cv.string,
+            'button_actions': cv.string,
+            'button_properties': cv.string,
+            'light_services': cv.string,
+            'fan_services': cv.string,
+            'exclude_miot_services': cv.string,
+            'exclude_miot_properties': cv.string,
+            'main_miot_services': cv.string,
+            'cloud_delay_update': cv.string,
+        }
+        options = {
+            'entity_category': cv.string,
+        }
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(entry: config_entries.ConfigEntry):
-        return OptionsFlowHandler(entry)
+        last_step = self.context.pop('last_step', False)
+        customize_key = self.context.pop('customize_key', None)
+        if last_step and customize_key:
+            b2s = user_input.pop('bool2selects', None) or []
+            for k in b2s:
+                user_input[k] = True
+            entry_data.setdefault(via, {})
+            entry_data[via][customize_key] = {
+                k: v
+                for k, v in user_input.items()
+                if v not in [' ', '', None, vol.UNDEFINED]
+            }
+            if entry:
+                self.hass.config_entries.async_update_entry(entry, data=entry_data)
+                await self.hass.config_entries.async_reload(entry.entry_id)
+                tip = f'```yaml\n{yaml.dump(entry_data)}\n```'
+                return self.async_abort(
+                    reason='config_saved',
+                    description_placeholders={'tip': tip},
+                )
+            return self.async_create_entry(title='Xiaomi: Customizes', data=entry_data)
+
+        elif via == 'customizing_entity':
+            if entity := user_input.get('entity'):
+                customizes = entry_data.get(via, {}).get(entity) or {}
+                ent = self.hass.data[DOMAIN].get('entities', {}).get(entity)
+                model = ent.model or ''
+                for k, v in (get_customize_via_entity(ent) or {}).items():
+                    customizes.setdefault(k, v)
+                state = self.hass.states.get(entity)
+                tip = f'{state.name}\n{entity}'
+                if model:
+                    tip += f'\n[{model}](https://home.miot-spec.com/spec/{model})'
+                if not hasattr(ent, 'parent_entity'):
+                    options = {**main_options, **options}
+                get_customize_options(self.hass, options, bool2selects, entity_id=entity, model=model)
+                if options:
+                    self.context['last_step'] = True
+                    self.context['customize_key'] = entity
+            elif domain := user_input.get('domain'):
+                entities = {}
+                for state in sorted(
+                        self.hass.states.async_all(domain),
+                        key=lambda item: item.entity_id,
+                ):
+                    entity = state.entity_id
+                    ent = self.hass.data[DOMAIN].get('entities', {}).get(entity)
+                    if not ent:
+                        continue
+                    if user_input.get('only_main_entity') and hasattr(ent, 'parent_entity'):
+                        continue
+                    entities[entity] = f'{state.name} ({entity})'
+                if entities:
+                    schema.update({
+                        vol.Required('entity'): vol.In(entities),
+                    })
+                else:
+                    tip = f'None entities in `{domain}`'
+            else:
+                schema.update({
+                    vol.Required('domain', default=user_input.get('domain', vol.UNDEFINED)): vol.In(SUPPORTED_DOMAINS),
+                    vol.Optional('only_main_entity', default=user_input.get('only_main_entity', True)): cv.boolean,
+                })
+
+        elif via == 'customizing_device':
+            model = user_input.get('model_specified') or user_input.get('model')
+            if model:
+                customizes = entry_data.get(via, {}).get(model) or {}
+                for k, v in (get_customize_via_model(model) or {}).items():
+                    customizes.setdefault(k, v)
+                if '*' in model or ':' in model:
+                    tip = model
+                else:
+                    tip = f'[{model}](https://home.miot-spec.com/spec/{model})'
+                if ':' not in model:
+                    options = {**main_options, **options}
+                get_customize_options(self.hass, options, bool2selects, model=model)
+                if options:
+                    self.context['last_step'] = True
+                    self.context['customize_key'] = model
+            else:
+                models = {}
+                uds = {}
+                for v in self.hass.data[DOMAIN].values():
+                    if isinstance(v, dict):
+                        v = v.get(CONF_XIAOMI_CLOUD)
+                    if isinstance(v, MiotCloud):
+                        mic = v
+                        if mic.user_id not in uds:
+                            uds[mic.user_id] = await mic.async_get_devices_by_key('model') or {}
+                            models.update(uds[mic.user_id])
+                models = sorted(models.keys())
+                schema.update({
+                    vol.Required('model'): vol.In(models),
+                    vol.Optional('model_specified'): str,
+                })
+
+        if last_step := self.context.get('last_step', last_step):
+            doc = 'https://github.com/al-one/hass-xiaomi-miot/issues/600'
+            if in_china(self.hass):
+                tip = f'[📚 自定义选项说明文档]({doc})\n\n------\n{tip}'
+            else:
+                tip = f'[❓ Need Help]({doc})\n\n------\n{tip}'
+            if not options:
+                tip += f'\n\n无可用的自定义选项。' if in_china(self.hass) else f'\n\nNo customizable options are available.'
+
+            if 'bool2selects' in options:
+                options['bool2selects'] = cv.multi_select(dict(zip(bool2selects, bool2selects)))
+                customizes['bool2selects'] = [
+                    k
+                    for k in bool2selects
+                    if customizes.get(k)
+                ]
+            schema.update({
+                vol.Optional(k, default=customizes.get(k, vol.UNDEFINED), description=k): v
+                for k, v in options.items()
+            })
+            customizes.pop('bool2selects', None)
+            customizes.pop('extend_miot_specs', None)
+            if customizes:
+                tip += f'\n```yaml\n{yaml.dump(customizes)}\n```'
+
+        return self.async_show_form(
+            step_id='customizing',
+            data_schema=vol.Schema(schema),
+            errors=errors,
+            description_placeholders={'tip': tip},
+            last_step=last_step,
+        )
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
@@ -356,8 +529,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
-        if CONF_USERNAME in self.config_entry.data:
+        data = self.config_entry.data
+        if CONF_USERNAME in data:
             return await self.async_step_cloud()
+
+        if 'customizing_entity' in data or 'customizing_device' in data:
+            tip = f'```yaml\n{yaml.dump(dict(data))}\n```'
+            return self.async_abort(
+                reason='show_customizes',
+                description_placeholders={'tip': tip},
+            )
+
         return await self.async_step_user()
 
     async def async_step_user(self, user_input=None):
@@ -462,3 +644,114 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             errors=errors,
             description_placeholders=self.hass.data[DOMAIN].pop('placeholders', None),
         )
+
+
+def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model=''):  # noqa
+    entity = None
+    domain = ''
+    if entity_id:
+        entity = hass.data[DOMAIN].get('entities', {}).get(entity_id)
+        domain, _ = split_entity_id(entity_id)
+    attrs = entity.extra_state_attributes if entity else {}
+    entity_class = attrs.get('entity_class')
+
+    if domain == 'sensor':
+        if entity_class in ['MiotSensorEntity']:
+            options.update({
+                'state_property': cv.string,
+            })
+        options.update({
+            'value_ratio': cv.string,
+            'state_class': cv.string,
+            'device_class': cv.string,
+            'unit_of_measurement': cv.string,
+        })
+        if entity_class in ['MihomeMessageSensor']:
+            options.update({
+                'filter_home': cv.string,
+                'exclude_type': cv.string,
+            })
+        if entity_class in ['XiaoaiConversationSensor']:
+            options.update({
+                'interval_seconds': cv.string,
+            })
+
+    if domain == 'binary_sensor' or re.search(r'motion|magnet', model, re.I):
+        bool2selects.extend(['reverse_state'])
+        options.update({
+            'state_property': cv.string,
+            'motion_timeout': cv.string,
+        })
+
+    if domain == 'switch' or re.search(r'plug', model, re.I):
+        options.update({
+            'descriptions_for_on': cv.string,
+            'stat_power_cost_key': cv.string,
+            'stat_power_cost_type': cv.string,
+        })
+        if entity_class in ['MiotSwitchActionSubEntity']:
+            options.update({
+                'feeding_measure': cv.string,
+            })
+
+    if domain == 'light' or re.search(r'light', model, re.I):
+        bool2selects.extend(['color_temp_reverse'])
+        options.update({
+            'brightness_for_on': cv.string,
+            'brightness_for_off': cv.string,
+        })
+
+    if domain == 'fan' or re.search(r'\.fan\.', model, re.I):
+        options.update({
+            'disable_preset_modes': cv.string,
+        })
+
+    if domain == 'camera' or re.search(r'camera|videodoll', model, re.I):
+        bool2selects.extend([
+            'keep_streaming', 'use_rtsp_stream', 'use_alarm_playlist',
+            'use_motion_stream', 'sub_motion_stream',
+        ])
+        options.update({
+            'video_attribute': cv.string,
+            'motion_stream_slice': cv.string,
+        })
+
+    if domain == 'climate' or re.search(r'aircondition|acpartner', model, re.I):
+        options.update({
+            'bind_sensor': cv.string,
+        })
+
+    if domain == 'cover' or re.search(r'airer|curtain|wopener', model, re.I):
+        bool2selects.extend([
+            'motor_reverse', 'auto_position_reverse', 'position_reverse',
+            'disable_target_position', 'target2current_position',
+        ])
+        options.update({
+            'closed_position': cv.string,
+            'deviated_position': cv.string,
+            'open_texts': cv.string,
+            'close_texts': cv.string,
+        })
+
+    if domain == 'media_player' or re.search(r'\.tv\.|tvbox|projector', model, re.I):
+        bool2selects.extend(['turn_off_screen', 'xiaoai_silent'])
+        options.update({
+            'miot_did': cv.string,
+            'bind_xiaoai': cv.string,
+            'sources_via_apps': cv.string,
+            'sources_via_keycodes': cv.string,
+            'screenshot_compress': cv.string,
+            'television_name': cv.string,
+            'mitv_lan_host': cv.string,
+        })
+
+    if domain == 'number':
+        bool2selects.extend(['restore_state'])
+
+    if 'yeelink.' in model:
+        options.update({
+            'yeelight_smooth_on': cv.string,
+            'yeelight_smooth_off': cv.string,
+        })
+
+    return options

@@ -15,16 +15,32 @@ This component uses the **miot** protocol to automatically integrate Xiaomi devi
 ![hass-xiaomi-miot-configs](https://user-images.githubusercontent.com/4549099/142151697-5188ea2d-0aad-4778-8b60-b949bcc410bb.png)
 
 
-## Installing
+<a name="installing"></a>
+## Installation
 
+#### Method 1: [HACS](https://hacs.xyz)
+- First installation
+    > HACS > Integrations > ➕ EXPLORE & DOWNLOAD REPOSITORIES > `Xiaomi Miot Auto` > DOWNLOAD THIS REPOSITORY
+- Update component
+    > HACS > Integrations > `Xiaomi Miot Auto` > UPDATE / Redownload
+
+#### Method 2: Manually installation via Samba / SFTP
 > Download and copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
 
+#### Method 3: Onkey shell via SSH / Terminal & SSH add-on
 ```shell
-# Auto install via terminal shell
-wget -q -O - https://cdn.jsdelivr.net/gh/al-one/hass-xiaomi-miot/install.sh | bash -
+wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | ARCHIVE_TAG=latest bash -
 ```
 
-> Or you can install component with [HACS](https://hacs.xyz)
+#### Method 4: shell_command service
+1. Copy this code to file `configuration.yaml`
+    ```yaml
+    shell_command:
+      update_xiaomi_miot: |-
+        wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | ARCHIVE_TAG=latest bash -
+    ```
+2. Restart HA core
+3. Call this [`service: shell_command.update_xiaomi_miot`](https://my.home-assistant.io/redirect/developer_call_service/?service=shell_command.update_xiaomi_miot) in Developer Tools
 
 
 ## Config
@@ -161,8 +177,8 @@ xiaomi_miot:
 ```
 
 ### YAML configuration reloading
-Starting from the v0.4.16 version, the component has added support for configuration reloading (to avoid having to restart [HomeAssistant](https://www.home-assistant.io) instance after a YAML configuration change):
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Settings > [🖥️ Server Controls](https://my.home-assistant.io/redirect/server_controls) > YAML configuration reloading > 🔍 Look for `Xiaomi Miot Auto` (almost at the bottom of the list)
+This component has added support for configuration reloading (to avoid having to restart [HomeAssistant](https://www.home-assistant.io) instance after a YAML configuration change):
+> [🔨 Developer tools](https://my.home-assistant.io/redirect/developer_states) > [YAML Configuration](https://my.home-assistant.io/redirect/server_controls) > YAML configuration reloading > 🔍 Look for `Xiaomi Miot Auto` (almost at the bottom of the list)
 
 
 ## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)
@@ -177,7 +193,7 @@ Starting from the v0.4.16 version, the component has added support for configura
 - 🗣️ [intelligent-speaker](https://home.miot-spec.com/s/wifispeaker) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-885989099)
 - 🎮️ [ir-remote-control](https://home.miot-spec.com/s/chuangmi.remote) [❓️](https://github.com/al-one/hass-xiaomi-miot/commit/fbcc8063783e53b9480574536a034d338634f4e8#commitcomment-56563663)
 - 🔐 [lock](https://home.miot-spec.com/s/lock) / 🚪 [door](https://home.miot-spec.com/s/door)
-- 👕 [washer](https://home.miot-spec.com/s/washer) / [fridge](https://home.miot-spec.com/s/fridge)
+- 👕 [washer](https://home.miot-spec.com/s/washer) / [dryer](https://home.miot-spec.com/s/dry) / [fridge](https://home.miot-spec.com/s/fridge)
 - 🚰 [water-purifier](https://home.miot-spec.com/s/waterpuri) / [kettle](https://home.miot-spec.com/s/kettle)
 - ♻️ [air-purifier](https://home.miot-spec.com/s/airpurifier) / [air-fresh](https://home.miot-spec.com/s/airfresh)
 - 🌡 [temperature-humidity-sensor](https://home.miot-spec.com/s/sensor_ht) / [submersion-sensor](https://home.miot-spec.com/s/flood) / [smoke-sensor](https://home.miot-spec.com/s/sensor_smoke)
@@ -203,6 +219,15 @@ Starting from the v0.4.16 version, the component has added support for configura
 - 🚶 [motion-sensor](https://home.miot-spec.com/s/motion) / 🧲 [magnet-sensor](https://home.miot-spec.com/s/magnet) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-909031222)
 - 📳 [vibration-sensor](https://home.miot-spec.com/s/vibration)
 - 🌐 [router](https://home.miot-spec.com/s/router) / 🖨 [printer](https://home.miot-spec.com/s/printer)
+
+
+### Unsupported devices
+
+> This component uses the polling method to obtain the device state, so it cannot listen the events of some devices in real time.
+
+- Wireless Switch (like: [lumi.sensor_switch.v1](https://home.miot-spec.com/s/lumi.sensor_switch.v1) / [lumi.remote.b686opcn01](https://home.miot-spec.com/s/lumi.remote.b686opcn01))
+- Motion Sensor (like: [lumi.sensor_motion.v1](https://home.miot-spec.com/s/lumi.sensor_motion.v1))
+- Window and Door Sensor (like: [lumi.sensor_magnet.v1](https://home.miot-spec.com/s/lumi.sensor_magnet.v1))
 
 
 ## Services
@@ -232,14 +257,15 @@ service: xiaomi_miot.get_properties
 data:
   entity_id: camera.isa_hlc7_1ab7
   mapping:
-    power:
-      siid: 2
+    - siid: 2
       piid: 1
-    night:
-      siid: 2
-      piid: 3
-  throw: true # throw result to HA notifications
+    - siid: 3
+      piid: 2
+  update_entity: true # Update to entity state attributes
+  throw: true # Throw result to HA notifications
 ```
+
+> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.got_miot_properties`
 
 #### [`xiaomi_miot.call_action`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.call_action)
 ```yaml
@@ -254,6 +280,8 @@ data:
   throw: true # throw result to HA notifications
 ```
 
+> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.call_miot_action`
+
 #### [`xiaomi_miot.send_command`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.send_command)
 ```yaml
 service: xiaomi_miot.send_command
@@ -264,6 +292,8 @@ data:
     - on
   throw: true # throw result to HA notifications
 ```
+
+> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.send_miio_command`
 
 #### [`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token)
 ```yaml
@@ -289,6 +319,21 @@ data:
   entity_id: media_player.xiaoai_lx04_xxxx
 ```
 
+#### [`xiaomi_miot.request_xiaomi_api`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.request_xiaomi_api)
+```yaml
+service: xiaomi_miot.request_xiaomi_api
+data:
+  entity_id: sensor.your_entity_id
+  api: /v2/plugin/fetch_plugin
+  data:
+    latest_req:
+      api_version: 10070
+      plugins:
+        - model: brand.device.model
+```
+
+> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.request_xiaomi_api`
+
 > [More services](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/services.yaml)
 
 
@@ -308,7 +353,7 @@ logger:
     custom_components.xiaomi_miot: debug
 ```
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Settings > [✍️ Logs](https://my.home-assistant.io/redirect/logs)
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > [⚙️ System](https://my.home-assistant.io/redirect/system_dashboard) > [✍️ Logs](https://my.home-assistant.io/redirect/logs)
 
 
 ## Obtain miio token

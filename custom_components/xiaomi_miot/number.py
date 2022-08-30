@@ -6,6 +6,7 @@ from homeassistant.components.number import (
     DOMAIN as ENTITY_DOMAIN,
     NumberEntity,
 )
+from homeassistant.helpers.restore_state import RestoreEntity, RestoreStateData
 
 from . import (
     DOMAIN,
@@ -52,77 +53,92 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class MiotNumberEntity(MiotEntity, NumberEntity):
+
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
-
-    @property
-    def value(self):
-        """Return the entity value to represent the entity state."""
-        return 0
-
-    def set_value(self, value: float):
-        """Set new value."""
-        raise NotImplementedError()
+        self._attr_native_value = 0
+        self._attr_native_unit_of_measurement = None
 
 
-class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity):
+class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
+
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property, option)
+        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
+        self._attr_native_max_value = self._miot_property.range_max()
+        self._attr_native_min_value = self._miot_property.range_min()
+        self._attr_native_step = self._miot_property.range_step()
+        self._attr_native_value = 0
+        self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
+        self._is_restore = False
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self._is_restore = self.custom_config_bool('restore_state')
+        if self._is_restore:
+            restored = await RestoreStateData.async_get_instance(self.hass)
+            if restored and self.entity_id in restored.last_states:
+                state = restored.last_states[self.entity_id].state
+                val = self.cast_value(state.state)
+                if val is not None:
+                    self._attr_native_value = val
+
+    def update(self, data=None):
+        super().update(data)
+        val = self.native_value
+        if val is not None:
+            self._attr_native_value = val
 
     @property
-    def value(self):
-        """Return the entity value to represent the entity state."""
+    def native_value(self):
         val = self._miot_property.from_dict(self._state_attrs)
-        try:
-            val = float(val)
-        except (TypeError, ValueError):
-            val = 0
         return val
 
-    def set_value(self, value: float):
+    @property
+    def value(self):
+        val = self.cast_value(self.native_value)
+        if val is None:
+            return val
+        if hasattr(self, '_convert_to_state_value'):
+            val = self._convert_to_state_value(val, round)
+        return val
+
+    def cast_value(self, val, default=None):
+        try:
+            val = round(float(val), 6)
+            if self._miot_property.is_integer:
+                val = int(val)
+        except (TypeError, ValueError):
+            val = default
+        return val
+
+    def set_native_value(self, value):
         """Set new value."""
         if self._miot_property.is_integer:
             value = int(value)
         return self.set_parent_property(value)
 
-    @property
-    def min_value(self):
-        """Return the minimum value."""
-        return self._miot_property.range_min()
-
-    @property
-    def max_value(self):
-        """Return the maximum value."""
-        return self._miot_property.range_max()
-
-    @property
-    def step(self):
-        """Return the increment/decrement step."""
-        return self._miot_property.range_step()
+    def set_value(self, value):
+        """Set new value."""
+        return self.set_native_value(value)
 
 
 class MiotNumberActionSubEntity(MiotNumberSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, miot_action: MiotAction, option=None):
         super().__init__(parent, miot_property, option)
         self._miot_action = miot_action
-        self._value = 0
-        self.update_attrs({
+        self._state_attrs.update({
             'miot_action': miot_action.full_name,
-        }, update_parent=False)
+        })
 
     def update(self, data=None):
         self._available = True
-        self._value = 0
-
-    @property
-    def value(self):
-        """Return the entity value to represent the entity state."""
-        return self._value
+        self._attr_native_value = 0
 
     def set_value(self, value: float):
         """Set new value."""
         val = int(value)
         ret = self.call_parent('call_action', self._miot_action, [val])
         if ret:
-            self._value = val
+            self._attr_native_value = val
+            self.async_write_ha_state()
         return ret

@@ -10,10 +10,12 @@ from homeassistant.components.light import (
     SUPPORT_COLOR_TEMP,
     SUPPORT_COLOR,
     SUPPORT_EFFECT,
+    SUPPORT_TRANSITION,
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
     ATTR_EFFECT,
+    ATTR_TRANSITION,
 )
 from homeassistant.util import color
 
@@ -22,6 +24,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotToggleEntity,
+    MiirToggleEntity,
     ToggleSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -66,13 +69,17 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     model = str(config.get(CONF_MODEL) or '')
     spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
-    if model.find('mrbond.airer') >= 0:
+    if model in ['mrbond.airer.m1s', 'mrbond.airer.m1pro']:
         pass
     elif isinstance(spec, MiotSpec):
-        for srv in spec.get_services(ENTITY_DOMAIN, 'light_bath_heater'):
-            if not srv.get_property('on'):
+        for srv in spec.get_services(ENTITY_DOMAIN, 'ir_light_control', 'light_bath_heater'):
+            if srv.name in ['ir_light_control']:
+                entities.append(MiirLightEntity(config, srv))
                 continue
-            elif srv.name in ['light_bath_heater'] and spec.get_service('ptc_bath_heater'):
+            elif not srv.get_property('on'):
+                continue
+            elif spec.get_service('ptc_bath_heater'):
+                # only sub light
                 continue
             entities.append(MiotLightEntity(config, srv))
     for entity in entities:
@@ -117,6 +124,9 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             self._attr_supported_color_modes.add(COLOR_MODE_HS)
         if self._prop_mode:
             self._supported_features |= SUPPORT_EFFECT
+        self._is_yeelight = 'yeelink.' in f'{self.model}'
+        if self._is_yeelight:
+            self._supported_features |= SUPPORT_TRANSITION
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -138,10 +148,20 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
 
     def turn_on(self, **kwargs):
         ret = False
+        trs = kwargs.get(ATTR_TRANSITION)
+        if trs is not None:
+            trs *= 1000
+        else:
+            trs = self._vars.get('yeelight_smooth_on')
+        if not (self._is_yeelight and self._local_state):
+            # only yeelight in local mode
+            trs = None
+
         if not self.is_on:
-            if (num := self._vars.get('yeelight_smooth_on')) and self._local_state:
-                if ret := self.send_miio_command('set_power', ['on', 'smooth', num]):
-                    self._vars['delay_update'] = num / 1000
+            if trs:
+                trs = int(trs)
+                if ret := self.send_miio_command('set_power', ['on', 'smooth', trs]):
+                    self._vars['delay_update'] = trs / 1000
             elif (bri := self._vars.get('brightness_for_on')) is not None:
                 ret = self.set_property(self._prop_brightness, bri)
             else:
@@ -150,41 +170,61 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         if self._prop_brightness and ATTR_BRIGHTNESS in kwargs:
             brightness = kwargs[ATTR_BRIGHTNESS]
             per = brightness / 255
-            val = per * 100
             if self._prop_brightness.value_range:
                 val = per * self._prop_brightness.range_max()
-            _LOGGER.debug('%s: Setting light brightness: %s %s%%', self.name_model, brightness, per * 100)
-            ret = self.set_property(self._prop_brightness, int(val))
+            else:
+                val = per * 100
+            val = int(val)
+            self.logger.debug('%s: Setting light brightness: %s %s%%', self.name_model, brightness, val)
+            if trs:
+                ret = self.send_miio_command('set_bright', [val, 'smooth', trs])
+            else:
+                ret = self.set_property(self._prop_brightness, val)
 
         if self._prop_color_temp and ATTR_COLOR_TEMP in kwargs:
             mired = kwargs[ATTR_COLOR_TEMP]
             color_temp = self.translate_mired(mired)
             if self._vars.get('color_temp_reverse'):
                 color_temp = self._vars.get('color_temp_sum') - color_temp
-            _LOGGER.debug('%s: Setting light color temperature: %s mireds, %s ct', self.name_model, mired, color_temp)
-            ret = self.set_property(self._prop_color_temp, color_temp)
+            self.logger.debug('%s: Setting light color temperature: %s mireds, %s ct', self.name_model, mired, color_temp)
+            if trs:
+                ret = self.send_miio_command('set_ct_abx', [color_temp, 'smooth', trs])
+            else:
+                ret = self.set_property(self._prop_color_temp, color_temp)
 
         if self._prop_color and ATTR_HS_COLOR in kwargs:
             rgb = color.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
             num = rgb_to_int(rgb)
-            _LOGGER.debug('%s: Setting light color: %s', self.name_model, rgb)
+            self.logger.debug('%s: Setting light color: %s', self.name_model, rgb)
             ret = self.set_property(self._prop_color, num)
 
         if self._prop_mode and ATTR_EFFECT in kwargs:
-            val = self._prop_mode.list_value(kwargs[ATTR_EFFECT])
-            _LOGGER.debug('%s: Setting light effect: %s(%s)', self.name_model, kwargs[ATTR_EFFECT], val)
+            mode = kwargs[ATTR_EFFECT]
+            val = self._prop_mode.list_value(mode)
+            self.logger.debug('%s: Setting light effect: %s(%s)', self.name_model, mode, val)
             ret = self.set_property(self._prop_mode, val)
 
         return ret
 
     def turn_off(self, **kwargs):
-        if (num := self._vars.get('yeelight_smooth_off')) and self._local_state:
-            if ret := self.send_miio_command('set_power', ['off', 'smooth', num]):
-                self._vars['delay_update'] = num / 1000
+        trs = kwargs.get(ATTR_TRANSITION)
+        if trs is not None:
+            trs *= 1000
+        else:
+            trs = self._vars.get('yeelight_smooth_off')
+        if not (self._is_yeelight and self._local_state):
+            # only yeelight in local mode
+            trs = None
+
+        if trs:
+            trs = int(trs)
+            if ret := self.send_miio_command('set_power', ['off', 'smooth', trs]):
+                self._vars['delay_update'] = trs / 1000
         elif (bri := self._vars.get('brightness_for_off')) is not None:
             ret = self.set_property(self._prop_brightness, bri)
         else:
             ret = super().turn_off()
+        self.logger.info('%s: Turn off light result: %s, transition: %s', self.name_model, ret, trs)
         return ret
 
     @property
@@ -247,6 +287,40 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         return None
 
 
+class MiirLightEntity(MiirToggleEntity, LightEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(miot_service, config=config, logger=_LOGGER)
+
+        self._act_bright_up = miot_service.get_action('brightness_up')
+        self._act_bright_dn = miot_service.get_action('brightness_down')
+        if self._act_bright_up or self._act_bright_dn:
+            self._supported_features |= SUPPORT_BRIGHTNESS
+            self._attr_brightness = 127
+
+        self._supported_features |= SUPPORT_EFFECT
+        self._attr_effect_list = []
+        for a in miot_service.actions.values():
+            if a.ins:
+                continue
+            self._attr_effect_list.append(a.friendly_desc)
+
+    def turn_on(self, **kwargs):
+        """Turn the entity on."""
+        bright = kwargs.get(ATTR_BRIGHTNESS)
+        if bright is None:
+            pass
+        elif bright > self._attr_brightness and self._act_bright_up:
+            return self.call_action(self._act_bright_up)
+        elif bright < self._attr_brightness and self._act_bright_dn:
+            return self.call_action(self._act_bright_dn)
+
+        effect = kwargs.get(ATTR_EFFECT)
+        if act := self._miot_service.get_action(effect):
+            return self.call_action(act)
+
+        return super().turn_on(**kwargs)
+
+
 class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
     def __init__(self, parent, miot_service: MiotService, option=None):
         parent_power = None
@@ -270,7 +344,8 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
             **parent.miot_config,
             'name': f'{parent.device_name}',
         }, miot_service, device=parent.miot_device)
-        self.entity_id = miot_service.generate_entity_id(self)
+
+        self.entity_id = miot_service.generate_entity_id(self, domain=ENTITY_DOMAIN)
         self._prop_power = prop_power
         if parent_power:
             self._prop_power = parent_power

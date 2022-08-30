@@ -32,6 +32,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
+    DeviceException,
     MIOT_LOCAL_MODELS,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -83,11 +84,16 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
         self._prop_power = miot_service.get_property('on', 'power')
         self._prop_status = miot_service.get_property('status')
-        self._prop_mode = miot_service.get_property('fan_level', 'speed_level', 'mode')
         self._act_start = miot_service.get_action('start_sweep', 'start_mop')
         self._act_pause = miot_service.get_action('pause_sweeping', 'pause')
         self._act_stop = miot_service.get_action('stop_sweeping')
         self._act_locate = miot_service.get_action('find_device', 'position')
+        self._prop_mode = miot_service.get_property('mode')
+        self._prop_fan = self._prop_mode
+        for srv in [miot_service, *miot_service.spec.get_services('sweep', 'clean')]:
+            if prop := srv.get_property('fan_level', 'speed_level', 'suction_state', 'mode'):
+                self._prop_fan = prop
+                break
         self._prop_battery = miot_service.get_property('battery_level')
         self._srv_battery = miot_service.spec.get_service('battery')
         if self._srv_battery:
@@ -113,7 +119,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._supported_features |= SUPPORT_STOP
         if self._act_charge:
             self._supported_features |= SUPPORT_RETURN_HOME
-        if self._prop_mode:
+        if self._prop_fan:
             self._supported_features |= SUPPORT_FAN_SPEED
         if self._prop_battery:
             self._supported_features |= SUPPORT_BATTERY
@@ -145,17 +151,19 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 pass
             elif val in self._prop_status.list_search(
                 'Cleaning', 'Sweeping', 'Mopping', 'Sweeping and Mopping',
-                'Part Sweeping', 'Zone Sweeping', 'Select Sweeping',
-                'Working', 'Busy',
+                'Part Sweeping', 'Zone Sweeping', 'Select Sweeping', 'Spot Sweeping', 'Goto Target',
+                'Starting', 'Working', 'Busy',
             ):
                 return STATE_CLEANING
-            elif val in self._prop_status.list_search('Idle', 'Sleep', 'Charging', 'Fullcharge'):
+            elif val in self._prop_status.list_search('Idle', 'Sleep'):
+                return STATE_IDLE
+            elif val in self._prop_status.list_search('Charging', 'Charging Completed', 'Fullcharge'):
                 return STATE_DOCKED
             elif val in self._prop_status.list_search('Go Charging'):
                 return STATE_RETURNING
             elif val in self._prop_status.list_search('Paused'):
                 return STATE_PAUSED
-            elif val in self._prop_status.list_search('Error'):
+            elif val in self._prop_status.list_search('Error', 'Charging Problem'):
                 return STATE_ERROR
             else:
                 return self._prop_status.list_description(val)
@@ -211,26 +219,26 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
     @property
     def fan_speed(self):
-        if self._prop_mode:
-            val = self._prop_mode.from_dict(self._state_attrs)
+        if self._prop_fan:
+            val = self._prop_fan.from_dict(self._state_attrs)
             try:
                 val = int(val)
             except (TypeError, ValueError):
                 val = None
             if val is not None:
-                return self._prop_mode.list_description(val)
+                return self._prop_fan.list_description(val)
         return None
 
     @property
     def fan_speed_list(self):
-        if self._prop_mode:
-            return self._prop_mode.list_description(None) or []
+        if self._prop_fan:
+            return self._prop_fan.list_description(None) or []
         return None
 
     def set_fan_speed(self, fan_speed, **kwargs):
-        if self._prop_mode:
-            val = self._prop_mode.list_value(fan_speed)
-            return self.set_property(self._prop_mode, val)
+        if self._prop_fan:
+            val = self._prop_fan.list_value(fan_speed)
+            return self.set_property(self._prop_fan, val)
         return False
 
     def send_vacuum_command(self, command, params=None, **kwargs):
@@ -249,7 +257,18 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 class MiotRoborockVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
+        self._supported_features |= SUPPORT_PAUSE
         self._supported_features |= SUPPORT_LOCATE
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if self.miot_device:
+            try:
+                rooms = self.miot_device.send('get_room_mapping')
+                if rooms and rooms != 'unknown_method':
+                    self._state_attrs['room_mapping'] = rooms
+            except (DeviceException, Exception):
+                pass
 
     async def async_update(self):
         await super().async_update()
@@ -285,6 +304,12 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
             return val
         return self.miio_props.get('battery')
 
+    def pause(self):
+        """Pause the cleaning task."""
+        if not self._act_pause:
+            return self.send_miio_command('app_pause')
+        return super().pause()
+
     def return_to_base(self, **kwargs):
         if self._model in ['rockrobo.vacuum.v1']:
             self.stop()
@@ -292,7 +317,9 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
 
     def clean_spot(self, **kwargs):
         """Perform a spot clean-up."""
-        return self.send_miio_command('app_spot')
+        if self._miio2miot:
+            return self.send_miio_command('app_spot')
+        return super().clean_spot()
 
     def locate(self, **kwargs):
         """Locate the vacuum cleaner."""

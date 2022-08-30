@@ -8,6 +8,7 @@ from homeassistant.components.climate import (
     ClimateEntity,
 )
 from homeassistant.components.climate.const import *
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
     DOMAIN,
@@ -51,8 +52,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entities = []
     if isinstance(spec, MiotSpec):
         for srv in spec.get_services(
-            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet', 'ir_aircondition_control',
-            'thermostat', 'heater', 'ptc_bath_heater', 'water_dispenser', 'dishwasher',
+            ENTITY_DOMAIN, 'air_conditioner', 'air_condition_outlet',
+            'ir_aircondition_control', 'thermostat', 'heater', 'ptc_bath_heater',
         ):
             if srv.name in ['ir_aircondition_control']:
                 entities.append(MiirClimateEntity(config, srv))
@@ -65,10 +66,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class SwingModes(Enum):
-    Off = 0
-    Vertical = 1
-    Horizontal = 2
-    Steric = 3
+    off = 0
+    vertical = 1
+    horizontal = 2
+    both = 3
 
 
 class BaseClimateEntity(MiotEntity, ClimateEntity):
@@ -235,7 +236,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 self._update_sub_entities(p, None, 'switch')
 
             if self._miot_service.name in ['ptc_bath_heater']:
-                self._update_sub_entities(None, ['light_bath_heater'], domain='light')
+                self._update_sub_entities(None, ['light', 'light_bath_heater'], domain='light')
 
             if self._miot_service.get_action('start_wash'):
                 pnm = 'action_wash'
@@ -537,19 +538,27 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
 
     @property
     def fan_mode(self):
+        des = None
         if self._prop_fan_level:
             val = self._prop_fan_level.from_dict(self._state_attrs)
             if val is not None:
-                return self._prop_fan_level.list_description(val)
-        return None
+                des = self._prop_fan_level.list_description(val)
+            if des is not None:
+                des = f'{des}'.lower()
+        return des
 
     @property
     def fan_modes(self):
         if self._prop_fan_level:
-            return self._prop_fan_level.list_description(None) or []
+            return [
+                f'{des}'.lower()
+                for des in self._prop_fan_level.list_description(None) or []
+            ]
         return None
 
     def set_fan_mode(self, fan_mode: str):
+        if not self.is_on and HVAC_MODE_FAN_ONLY in self._hvac_modes:
+            self.set_hvac_mode(HVAC_MODE_FAN_ONLY)
         if self._prop_fan_level:
             val = self._prop_fan_level.list_value(fan_mode)
             return self.set_property(self._prop_fan_level, val)
@@ -699,7 +708,7 @@ class ClimateModeSubEntity(MiotModesSubEntity):
         return self.call_parent('set_fan_mode', preset_mode)
 
 
-class MiirClimateEntity(BaseClimateEntity):
+class MiirClimateEntity(BaseClimateEntity, RestoreEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._available = True
@@ -755,6 +764,15 @@ class MiirClimateEntity(BaseClimateEntity):
         if self._fan_modes:
             self._supported_features |= SUPPORT_FAN_MODE
             self._attr_fan_modes = list(self._fan_modes.keys())
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+
+        if hasattr(self, 'async_get_last_state'):
+            if state := await self.async_get_last_state():
+                self._attr_hvac_mode = state.state
+        if self._attr_hvac_mode not in self._hvac_modes:
+            self._attr_hvac_mode = None
 
     async def async_update(self):
         self.update_bind_sensor()

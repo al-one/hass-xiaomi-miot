@@ -30,8 +30,14 @@ ACCOUNT_BASE = 'https://account.xiaomi.com'
 
 class MiotCloud(micloud.MiCloud):
     def __init__(self, hass, username, password, country=None, sid=None):
-        super().__init__(username, password)
+        try:
+            super().__init__(username, password)
+        except (FileNotFoundError, KeyError):
+            self.timezone = 'GMT+00:00'
+
         self.hass = hass
+        self.username = username
+        self.password = password
         self.default_server = country or 'cn'
         self.sid = sid or 'xiaomiio'
         self.client_id = self.agent_id
@@ -166,27 +172,36 @@ class MiotCloud(micloud.MiCloud):
         if data is not None:
             params['data'] = self.json_encode(data)
         raw = kwargs.pop('raw', self.sid != 'xiaomiio')
-        if raw:
-            rsp = self.request_raw(api, data, method, **kwargs)
-        elif crypt:
-            rsp = self.request_rc4_api(api, params, method, **kwargs)
-        else:
-            rsp = self.request(self.get_api_url(api), params, **kwargs)
+        rsp = None
         try:
+            if raw:
+                rsp = self.request_raw(api, data, method, **kwargs)
+            elif crypt:
+                rsp = self.request_rc4_api(api, params, method, **kwargs)
+            else:
+                rsp = self.request(self.get_api_url(api), params, **kwargs)
             rdt = json.loads(rsp)
             if debug:
                 _LOGGER.debug(
                     'Request miot api: %s %s result: %s',
                     api, data, rsp,
                 )
+            self.attrs['timeouts'] = 0
+        except requests.exceptions.Timeout as exc:
+            rdt = None
+            self.attrs.setdefault('timeouts', 0)
+            self.attrs['timeouts'] += 1
+            if 5 < self.attrs['timeouts'] <= 10:
+                _LOGGER.error('Request xiaomi api: %s %s timeout, exception: %s', api, data, exc)
         except (TypeError, ValueError):
             rdt = None
-        if not rdt or rdt.get('code'):
+        code = rdt.get('code') if rdt else None
+        if code == 3:
+            self._logout()
+            _LOGGER.warning('Unauthorized while executing request to %s, logged out.', api)
+        elif code or not rdt:
             fun = _LOGGER.info if rdt else _LOGGER.warning
-            fun(
-                'Request miot api: %s %s failed, result: %s',
-                api, data, rsp,
-            )
+            fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp)
         return rdt
 
     async def async_get_device(self, mac=None, host=None):
@@ -237,7 +252,11 @@ class MiotCloud(micloud.MiCloud):
         now = time.time()
         cds = []
         dvs = []
-        dat = await store.async_load() or {}
+        try:
+            dat = await store.async_load() or {}
+        except ValueError:
+            await store.async_remove()
+            dat = {}
         if isinstance(dat, dict):
             cds = dat.get('devices') or []
             if not renew and dat.get('update_time', 0) > (now - 86400):
@@ -493,7 +512,11 @@ class MiotCloud(micloud.MiCloud):
         if self.sid != 'xiaomiio':
             fnm = f'xiaomi_miot/auth-{uid}-{self.default_server}-{self.sid}.json'
         store = Store(self.hass, 1, fnm)
-        old = await store.async_load() or {}
+        try:
+            old = await store.async_load() or {}
+        except ValueError:
+            await store.async_remove()
+            old = {}
         if save:
             cfg = self.to_config()
             cfg.pop(CONF_PASSWORD, None)
@@ -587,7 +610,8 @@ class MiotCloud(micloud.MiCloud):
                 _LOGGER.warning('Unauthorized while executing request to %s, logged out.', url)
             rsp = response.text
             if not rsp or 'error' in rsp or 'invalid' in rsp:
-                _LOGGER.warning('Error while executing request to %s: %s', url, rsp or response.status_code)
+                log = _LOGGER.info if 'remote/ubus' in url else _LOGGER.warning
+                log('Error while executing request to %s: %s', url, rsp or response.status_code)
             return rsp
         except requests.exceptions.HTTPError as exc:
             _LOGGER.warning('Error while executing request to %s: %s', url, exc)

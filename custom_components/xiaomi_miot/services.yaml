@@ -39,13 +39,19 @@ get_properties:
           integration: xiaomi_miot
     mapping:
       description: Mapping for properties.
-      example: "{'power': {'siid': 2, 'piid': 1}}"
+      example: '[{"siid": 2, "piid": 1}, {"siid": 3, "piid": 1}]'
       required: true
       selector:
         object:
+    update_entity:
+      description: Update to entity state attributes.
+      default: false
+      example: true
+      selector:
+        boolean:
     throw:
       description: Throw properties.
-      default: true
+      default: false
       example: true
       selector:
         boolean:

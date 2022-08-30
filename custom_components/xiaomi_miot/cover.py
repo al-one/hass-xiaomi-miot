@@ -61,12 +61,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if isinstance(spec, MiotSpec):
-        for srv in spec.get_services(ENTITY_DOMAIN, 'curtain', 'airer', 'window_opener'):
+        for srv in spec.get_services(ENTITY_DOMAIN, 'curtain', 'airer', 'window_opener', 'motor_controller'):
             if not srv.get_property('motor_control'):
                 continue
-            if not srv.get_property('current_position') and 'mrbond.airer' in model:
-                # mrbond.airer.m1s
-                # mrbond.airer.m1pro
+            if model in ['mrbond.airer.m1s', 'mrbond.airer.m1pro']:
                 entities.append(MrBondAirerProEntity(config))
             else:
                 entities.append(MiotCoverEntity(config, srv))
@@ -100,7 +98,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         if self._prop_target_position:
-            if not self.custom_config('disable_target_position'):
+            if not self.custom_config_bool('disable_target_position'):
                 self._supported_features |= SUPPORT_SET_POSITION
             else:
                 self._prop_target_position = None
@@ -264,7 +262,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
 class MiotCoverSubEntity(MiotPropertySubEntity, CoverEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property, option)
+        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
         self._prop_status = self._option.get('status_property')
         if self._prop_status:
             self._option['keys'] = [*(self._option.get('keys') or []), self._prop_status.full_name]

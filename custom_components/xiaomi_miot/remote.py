@@ -86,10 +86,14 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         mic = self.miot_cloud
         irs = []
         if did and isinstance(mic, MiotCloud):
-            dls = await mic.async_get_devices() or []
-            for d in dls:
-                if did != d.get('parent_id'):
-                    continue
+            rdt = await mic.async_request_api('v2/irdevice/controllers', {'parent_id': did}) or {}
+            rds = (rdt.get('result') or {}).get('controllers') or []
+            if not rdt:
+                dls = await mic.async_get_devices() or []
+                for d in dls:
+                    if did == d.get('parent_id'):
+                        rds.append(d)
+            for d in rds:
                 ird = d.get('did')
                 rdt = await mic.async_request_api('v2/irdevice/controller/keys', {'did': ird}) or {}
                 kys = (rdt.get('result') or {}).get('keys', {})

@@ -1,4 +1,20 @@
 {
+  "aice.motor.kzmu3": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "value-list": [
+            {"value": 0, "description": "Pause"},
+            {"value": 1, "description": "Open"},
+            {"value": 2, "description": "Close"}
+          ]
+        }
+      ]
+    }
+  ],
+
   "chuangmi.plug.hmi208": [
     {
       "iid": 2,
@@ -11,6 +27,23 @@
           "access": ["read"],
           "unit": "celsius",
           "value-range": [-40, 125, 0.1]
+        }
+      ]
+    }
+  ],
+
+  "chuangmi.plug.v1": [
+    {
+      "iid": 200,
+      "type": "urn:miot-spec-v2:service:switch",
+      "description": "USB Switch Status",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:on",
+          "description": "Switch Status",
+          "format": "bool",
+          "access": ["read", "write"]
         }
       ]
     }
@@ -72,37 +105,7 @@
       ]
     }
   ],
-
-  "dreame.vacuum.mc1808": [
-    {
-      "iid": 18,
-      "properties": [
-        {
-          "iid": 9,
-          "access": ["read", "notify"]
-        }
-      ]
-    }
-  ],
-
-  "lumi.airer.acn01": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:dry_mode",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "value-list": [
-            {"value": 0, "description": "off"},
-            {"value": 1, "description": "dry"},
-            {"value": 2, "description": "winddry"}
-          ]
-        }
-      ]
-    }
-  ],
+  "chunmi.ihcooker.v1": "chunmi.ihcooker.chefnic",
 
   "deerma.humidifier.jsq": [
     {
@@ -190,6 +193,320 @@
     }
   ],
 
+  "dmaker.fan.p5": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:horizontal-angle",
+          "format": "uint16",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 30, "description": "30"},
+            {"value": 60, "description": "60"},
+            {"value": 90, "description": "90"},
+            {"value": 120, "description": "120"},
+            {"value": 140, "description": "140"}
+          ]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:speed-level",
+          "format": "uint16",
+          "access": ["read", "write"],
+          "value-range": [0, 100, 1]
+        }
+      ]
+    },
+    {
+      "iid": 200,
+      "type": "urn:dmaker-spec:service:off-delay-time",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:dmaker-spec:property:off-delay-time",
+          "format": "uint16",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 720, 1]
+        }
+      ]
+    }
+  ],
+
+  "dreame.vacuum.mc1808": [
+    {
+      "iid": 18,
+      "properties": [
+        {
+          "iid": 9,
+          "access": ["read", "notify"]
+        }
+      ]
+    }
+  ],
+
+  "dreame.vacuum.p2029": [
+    {
+      "iid": 4,
+      "actions": [
+        {
+          "iid": 1,
+          "in": [1, 10]
+        }
+      ]
+    }
+  ],
+
+  "dreame.vacuum.p2140p": [
+    {
+      "iid": 4,
+      "actions": [
+        {
+          "iid": 1,
+          "in": [1, 10]
+        }
+      ]
+    }
+  ],
+
+  "leshow.humidifier.jsq1": [
+    {
+      "iid": 8,
+      "properties": [
+        {
+          "iid": 5,
+          "access": ["read"]
+        },
+        {
+          "iid": 6,
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 7,
+          "access": ["read"]
+        }
+      ]
+    }
+  ],
+
+  "lumi.airer.acn01": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:dry_mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "off"},
+            {"value": 1, "description": "dry"},
+            {"value": 2, "description": "winddry"}
+          ]
+        }
+      ]
+    }
+  ],
+
+  "midea.aircondition.v1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:temperature",
+          "format": "float",
+          "access": ["read"],
+          "unit": "celsius",
+          "value-range": [-30, 100, 0.1]
+        }
+      ]
+    }
+  ],
+  "midea.aircondition.xa1": "midea.aircondition.v1",
+  "midea.aircondition.xa2": "midea.aircondition.v1",
+
+  "mmgg.feeder.petfeeder": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:mmgg-spec:property:pet-food-left-level",
+          "format": "uint8",
+          "access": ["read"],
+          "value-list": [
+            {"value": 0, "description": "Normal"},
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Empty"}
+          ]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:feedstatus",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 103,
+          "type": "urn:mmgg-spec:property:feed-today",
+          "format": "uint8",
+          "access": ["read"],
+          "unit": "none",
+          "value-range": [0, 255, 1]
+        },
+        {
+          "iid": 104,
+          "type": "urn:miot-spec-v2:property:desiccant-left-time",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "days",
+          "value-range": [0, 30, 1]
+        },
+        {
+          "iid": 105,
+          "type": "urn:miot-spec-v2:property:cleantime",
+          "description": "Clean Left Time",
+          "format": "uint8",
+          "access": ["read"],
+          "unit": "days",
+          "value-range": [0, 14, 1]
+        },
+        {
+          "iid": 106,
+          "type": "urn:mmgg-spec:property:doorstatus",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "none",
+          "value-range": [0, 1, 1]
+        },
+        {
+          "iid": 107,
+          "type": "urn:mmgg-spec:property:outletstatus",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "none",
+          "value-range": [0, 1, 1]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:action:reset-desiccant-life",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 200,
+      "type": "urn:miot-spec-v2:service:indicator-light",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:on",
+          "description": "Switch Status",
+          "format": "bool",
+          "access": ["read", "write"]
+        }
+      ]
+    },
+    {
+      "iid": 300,
+      "type": "urn:miot-spec-v2:service:physical-controls-locked",
+      "properties": [
+        {
+          "iid": 301,
+          "type": "urn:miot-spec-v2:property:physical-controls-locked",
+          "format": "bool",
+          "access": ["read", "write"]
+        }
+      ]
+    }
+  ],
+
+  "roborock.vacuum.a14": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "value-list": [
+            {"value": 1, "description": "Starting"},
+            {"value": 2, "description": "Charger Disconnected"},
+            {"value": 3, "description": "Idle"},
+            {"value": 4, "description": "Remote Control"},
+            {"value": 5, "description": "Sweeping"},
+            {"value": 6, "description": "Go Charging"},
+            {"value": 7, "description": "Manual Mode"},
+            {"value": 8, "description": "Charging"},
+            {"value": 9, "description": "Charging Problem"},
+            {"value": 10, "description": "Paused"},
+            {"value": 11, "description": "Spot Sweeping"},
+            {"value": 12, "description": "Error"},
+            {"value": 13, "description": "Shutting Down"},
+            {"value": 14, "description": "Updating"},
+            {"value": 15, "description": "Go Charging"},
+            {"value": 16, "description": "Goto Target"},
+            {"value": 17, "description": "Select Sweeping"},
+            {"value": 18, "description": "Zone Sweeping"},
+            {"value": 22, "description": "Emptying Bin"},
+            {"value": 100, "description": "Charging Completed"},
+            {"value": 101, "description": "Device Offline"}
+          ]
+        },
+        {
+          "iid": 4,
+          "value-list": [
+            {"value": 101, "description": "Silent"},
+            {"value": 102, "description": "Basic"},
+            {"value": 103, "description": "Strong"},
+            {"value": 104, "description": "Full Speed"},
+            {"value": 105, "description": "Mop Only"},
+            {"value": 106, "description": "Custom"}
+          ]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:water-level",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 200, "description": "Off"},
+            {"value": 201, "description": "Level1"},
+            {"value": 202, "description": "Level2"},
+            {"value": 203, "description": "Level3"},
+            {"value": 204, "description": "Custom"}
+          ]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:mop-mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 300, "description": "Standard"},
+            {"value": 301, "description": "Deep"},
+            {"value": 302, "description": "Custom"}
+          ]
+        }
+      ]
+    }
+  ],
+  "roborock.vacuum.a15": "roborock.vacuum.a14",
+  "roborock.vacuum.a19": "roborock.vacuum.a14",
+  "roborock.vacuum.a23": "roborock.vacuum.a14",
+  "roborock.vacuum.a26": "roborock.vacuum.a14",
+  "roborock.vacuum.a27": "roborock.vacuum.a14",
+  "roborock.vacuum.a29": "roborock.vacuum.a14",
+  "roborock.vacuum.a30": "roborock.vacuum.a14",
+  "roborock.vacuum.a34": "roborock.vacuum.a14",
+  "roborock.vacuum.a37": "roborock.vacuum.a14",
+  "roborock.vacuum.a38": "roborock.vacuum.a14",
+  "roborock.vacuum.a40": "roborock.vacuum.a14",
+  "roborock.vacuum.a46": "roborock.vacuum.a14",
   "rockrobo.vacuum.v1": [
     {
       "iid": 2,
@@ -623,26 +940,136 @@
         {
           "iid": 101,
           "type": "urn:miot-spec-v2:property:nl_br",
+          "description": "Nightlight Brightness",
           "format": "uint8",
           "access": ["read", "write"],
           "unit": "percentage",
           "value-range": [1, 100, 1]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 60, 1]
+        }
+      ]
+    }
+  ],
+  "yeelink.light.color2": "yeelink.light.color1",
+  "yeelink.light.color3": "yeelink.light.color1",
+  "yeelink.light.color4": "yeelink.light.color1",
+  "yeelink.light.color5": "yeelink.light.color1",
+  "yeelink.light.color6": "yeelink.light.color1",
+  "yeelink.light.color7": "yeelink.light.color1",
+  "yeelink.light.color8": "yeelink.light.color1",
+  "yeelink.light.ceiling1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 60, 1]
+        }
+      ]
+    }
+  ],
+  "yeelink.light.ceiling2": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling3": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling4": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling5": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling6": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling7": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling8": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling9": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling10": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 60, 1]
         }
       ]
     },
     {
       "iid": 200,
-      "type": "urn:miot-spec-v2:service:extend",
+      "type": "urn:miot-spec-v2:service:light",
+      "description": "Ambient Light",
       "properties": [
         {
           "iid": 201,
-          "type": "urn:miot-spec-v2:property:delayoff",
-          "format": "string",
+          "type": "urn:miot-spec-v2:property:on",
+          "description": "Switch Status",
+          "format": "bool",
           "access": ["read", "write"]
+        },
+        {
+          "iid": 202,
+          "type": "urn:miot-spec-v2:property:brightness",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [1, 100, 1]
+        },
+        {
+          "iid": 203,
+          "type": "urn:miot-spec-v2:property:color-temperature",
+          "description": "Color Temperature",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "kelvin",
+          "value-range": [1700, 6500, 1]
+        },
+        {
+          "iid": 204,
+          "type": "urn:miot-spec-v2:property:color",
+          "description": "Color",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "rgb",
+          "value-range": [1, 16777215, 1]
         }
       ]
     }
   ],
+  "yeelink.light.ceiling11": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling12": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling13": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling14": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling15": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling16": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling17": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling18": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 1440, 1]
+        }
+      ]
+    }
+  ],
+  "yeelink.light.ceiling19": "yeelink.light.ceiling10",
+  "yeelink.light.ceiling20": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling21": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling22": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling23": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling24": "yeelink.light.ceiling1",
   "yeelink.light.fancl5": [
     {
       "iid": 3,
@@ -669,6 +1096,8 @@
       ]
     }
   ],
+  "yeelink.light.panel1": "yeelink.light.ceiling1",
+  "yeelink.light.panel3": "yeelink.light.ceiling1",
 
   "yunmi.waterpuri.lx5": [
     {
@@ -722,6 +1151,58 @@
           "access": ["read", "write"],
           "unit": "kg",
           "value-range": [3, 13, 2]
+        }
+      ]
+    }
+  ],
+
+  "zhimi.airfresh.va4":[
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:motor-speed",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "rpm"
+        }
+      ]
+    }
+  ],
+  "zhimi.airpurifier.v7": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:illumination",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "lux",
+          "value-range": [0, 200, 1]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:motor-speed",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "rpm",
+          "value-range": [0, 3000, 1]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:favorite-fan-level",
+          "format": "uint16",
+          "access": ["read", "write"],
+          "unit": "none",
+          "value-range": [0, 17, 1]
+        },
+        {
+          "iid": 104,
+          "type": "urn:miot-spec-v2:property:auto-detect",
+          "format": "bool",
+          "access": ["read", "write"]
         }
       ]
     }

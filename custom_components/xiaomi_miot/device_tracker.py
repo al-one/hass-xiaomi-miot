@@ -47,8 +47,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 entities.append(XiaoxunWatchTrackerEntity(config, srv))
             elif srv.get_property('latitude', 'longitude'):
                 entities.append(MiotTrackerEntity(config, srv))
-    if not entities and 'xiaoxun.watch.' in model:
+    if not entities and ('xiaoxun.watch.' in model or 'xiaoxun.tracker.' in model):
         # xiaoxun.watch.sw763
+        # xiaoxun.tracker.v1
         entities.append(XiaoxunWatchTrackerEntity(config))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity

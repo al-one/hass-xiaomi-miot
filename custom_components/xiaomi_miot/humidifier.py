@@ -83,7 +83,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         await super().async_update()
         if not self._available:
             return
-        if self._prop_water_level:
+        if self._prop_water_level and self._prop_water_level.writeable:
             self._update_sub_entities(
                 [self._prop_water_level.name],
                 domain='number_select',

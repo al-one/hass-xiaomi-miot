@@ -13,6 +13,9 @@ def set_callback_via_param_index(index=0):
 
 MIIO_TO_MIOT_SPECS = {
 
+    '090615.switch.switch01': '090615.switch.xswitch01',
+    '090615.switch.switch02': '090615.switch.xswitch02',
+    '090615.switch.switch03': '090615.switch.xswitch03',
     '090615.switch.xswitch01': {
         'without_props': True,
         'ignore_result': True,
@@ -63,27 +66,94 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'aice.motor.kzmu3': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': ['houseAst'],
+                'values': True,
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {
+                'prop': None,
+                'setter': True,
+                'set_template': '{{ {"method":'
+                                '"ctrl_openDoor" if value == 1 else '
+                                '"ctrl_closeDoor" if value == 2 else '
+                                '"ctrl_pauseDoor"} }}',
+            },
+            'prop.2.2': {
+                'prop': 'houseAst',
+                'setter': 'set_openHouseAst',
+                'set_template': '{{ ["on" if value else "off"] }}',
+            },
+            'prop.2.3': {'prop': None, 'template': '{{ 1 }}'},
+        },
+    },
+
+    'air.fan.ca23ad9': {
+        'without_props': True,
+        'ignore_result': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': ['on'],
+                'values': ['power', 'mode', 'speed', 'lrWind', 'udWind', 'onTime', 'offTime'],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': 'SetSwitch', 'set_template': '{{ [value|int] }}'},
+            'prop.2.2': {'prop': 'speed', 'setter': 'SetLevel'},
+            'prop.2.3': {'prop': 'lrWind', 'setter': 'SetH_Swing', 'set_template': '{{ [value|int] }}'},
+            'prop.2.4': {'prop': 'udWind', 'setter': 'SetV_Swing', 'set_template': '{{ [value|int] }}'},
+            'prop.2.5': {'prop': 'mode', 'setter': 'SetMode'},
+        },
+    },
+
+    'bj352.waterpuri.s100cm': {
+        'without_props': True,
+        'entity_attrs': ['PureWasteRatio', 'HeatingStatus', 'TotalPureWater', 'TotalWasteWater', 'error_code'],
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [],
+                'values': [
+                    'RawWaterTDS', 'FinishedWaterTDS', 'WaterTemperature', 'PureWasteRatio', 'HeatingStatus',
+                    'WorkStatus', 'TotalPureWater', 'TotalWasteWater', 'FilterLifeTimePercent1', 'FilterLifeTimeDays1',
+                    'FilterLifeTimePercent2', 'FilterLifeTimeDays2', 'OneTimeProducedWater', 'error_code',
+                ],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'RawWaterTDS'},
+            'prop.2.2': {'prop': 'FinishedWaterTDS'},
+            'prop.3.1': {'prop': 'FilterLifeTimePercent1'},
+            'prop.3.2': {'prop': 'FilterLifeTimeDays1'},
+            'prop.4.1': {'prop': 'FilterLifeTimePercent2'},
+            'prop.4.2': {'prop': 'FilterLifeTimeDays2'},
+            'prop.5.1': {'prop': 'WorkStatus', 'template': '{{ 2 if value|int(0) in [1,2] else 1 }}'},
+            'prop.5.2': {'prop': 'WaterTemperature'},
+        },
+    },
+
     'cgllc.airmonitor.s1': {
         'without_props': True,
         'miio_commands': [
             {
                 'method': 'get_value',
-                'params': [
-                    'aqi', 'pm25', 'co2', 'tvoc', 'humidity', 'temperature',
-                    'tvoc_unit', 'temperature_unit', 'battery', 'battery_state',
-                ],
+                'params': ['aqi', 'pm25', 'co2', 'tvoc', 'humidity', 'temperature', 'tvoc_unit', 'temperature_unit'],
                 'template': '{{ results | default({},true) }}',
             },
         ],
-        'entity_attrs': ['tvoc_unit', 'temperature_unit', 'battery_state'],
+        'entity_attrs': ['aqi', 'tvoc_unit', 'temperature_unit'],
         'miio_specs': {
             'prop.2.1': {'prop': 'humidity'},
             'prop.2.2': {'prop': 'pm25'},
             'prop.2.3': {'prop': 'temperature'},
             'prop.2.4': {'prop': 'co2'},
             'prop.2.5': {'prop': 'tvoc'},
-            'prop.3.1': {'prop': 'battery'},
-            'prop.3.2': {'prop': 'battery_state', 'template': '{{ 1 if value == "charging" else 2 }}'},
         },
     },
 
@@ -120,6 +190,11 @@ MIIO_TO_MIOT_SPECS = {
                 'set_template': '{{ {"method": "set_on" if value else "set_off"} }}',
             },
             'prop.3.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
+            'prop.200.201': {
+                'prop': 'usb_on',
+                'setter': True,
+                'set_template': '{{ {"method": "set_usb_on" if value else "set_usb_off"} }}',
+            },
         },
     },
     'chuangmi.plug.v3': {
@@ -154,7 +229,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {'prop': 'status', 'template': '{{ 9 if value == "finish" else value }}'},
             'prop.2.2': {'prop': 'temp'},
             'prop.2.3': {'prop': 'akw'},
-            'prop.2.101': {'prop': 'menu'},
+            'prop.2.101': {'prop': 'menu', 'template': '{{ value|string }}'},
             'prop.2.102': {'prop': 't_left'},
             'action.2.1': {'setter': 'cancel_cooking'},
         },
@@ -194,6 +269,7 @@ MIIO_TO_MIOT_SPECS = {
             'action.2.101': {'setter': 'set_func', 'set_template': '{{ ["end030307"] }}'},
         },
     },
+    'chunmi.ihcooker.v1': 'chunmi.ihcooker.chefnic',
     'chunmi.microwave.n23l01': {
         'without_props': True,
         'miio_commands': [
@@ -246,6 +322,45 @@ MIIO_TO_MIOT_SPECS = {
         'extend_model': 'deerma.humidifier.jsq1',
         'miio_specs': {
             'prop.3.3': {'prop': 'HumiSet_Value', 'setter': 'Set_HumiValue'},
+        },
+    },
+
+    'dmaker.fan.p5': {
+        """
+        https://github.com/rytilahti/python-miio/blob/31c5d740d403c6f45f1e7e0d4a8a6276684a8ecd/miio/integrations/fan/dmaker/fan.py#L28
+        {'power': False, 'mode': 'normal', 'speed': 35, 'roll_enable': False, 'roll_angle': 140,
+        'time_off': 0, 'light': True, 'beep_sound': False, 'child_lock': False}
+        """
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [
+                    'power', 'mode', 'speed', 'roll_enable', 'roll_angle',
+                    'time_off', 'light', 'beep_sound', 'child_lock',
+                ],
+                'values': True,
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': 's_power'},
+            'prop.2.2': {'prop': 'roll_enable', 'setter': 's_roll'},
+            'prop.2.3': {'prop': 'mode', 'setter': 's_mode', 'dict': {
+                'nature': 0,
+                'normal': 1,
+            }},
+            'prop.2.4': {
+                'prop': 'speed',
+                'setter': 's_speed',
+                'template': '{{ (value/25)|round }}',
+                'set_template': '{{ [(value*25)|round] }}',
+            },
+            'prop.3.1': {'prop': 'child_lock', 'setter': 's_lock'},
+            'prop.4.1': {'prop': 'light', 'setter': 's_light'},
+            'prop.5.1': {'prop': 'beep_sound', 'setter': 's_sound'},
+            'prop.2.101': {'prop': 'roll_angle', 'setter': 's_angle', 'set_template': '{{ [value|int] }}'},
+            'prop.2.102': {'prop': 'speed', 'setter': 's_speed', 'set_template': '{{ [value|int] }}'},
+            'prop.200.201': {'prop': 'time_off', 'setter': 's_t_off', 'set_template': '{{ [value|int] }}'},
         },
     },
 
@@ -382,6 +497,7 @@ MIIO_TO_MIOT_SPECS = {
                 'large_fan':  3,
             }, 'default': 0},
             'prop.3.2': {'prop': 'ver_swing', 'setter': True, 'format': 'onoff'},
+            'prop.5.1': {'prop': 'load_power'},
         },
     },
 
@@ -458,6 +574,65 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {'prop': 'light', 'setter': 'toggle_light', 'format': 'onoff'},
         },
     },
+
+    'midea.aircondition.v1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto': 0,
+                'cold': 1,
+                'dehumidifier': 2,
+                'hot': 3,
+                'wind': 4,
+            }},
+            'prop.2.3': {'prop': 'temp', 'setter': True},
+            'prop.2.101': {'prop': 'temp_indoor'},
+            'prop.3.1': {
+                'prop': 'wind_speed',
+                'setter': True,
+                'dict': {
+                    0: 0,
+                    20: 1,
+                    60: 2,
+                    100: 3,
+                },
+                'template': '{{ '
+                            '1 if value <= 40 else '
+                            '2 if value <= 60 else '
+                            '3 if value >= 80 else '
+                            '0 }}',
+            },
+            'prop.3.2': {'prop': 'wind_up_down', 'setter': True, 'format': 'onoff'},
+        },
+    },
+    'midea.aircondition.xa1': {
+        'miio_specs': {
+            'prop.2.2': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.1': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto': 1,
+                'hot': 2,
+                'cold': 3,
+                'dehumidifier': 4,
+                'wind': 5,
+            }},
+            'prop.2.3': {'prop': 'temp', 'setter': True},
+            'prop.2.101': {'prop': 'temp_indoor'},
+            'prop.3.1': {'prop': 'wind_up_down', 'setter': True, 'format': 'onoff'},
+            'prop.3.2': {
+                'prop': 'wind_speed',
+                'setter': True,
+                'dict': {
+                    20: 1,
+                    40: 2,
+                    60: 3,
+                    80: 4,
+                    100: 5,
+                },
+            },
+            'prop.4.1': {'prop': 'screen_display', 'setter': True, 'format': 'onoff'},
+        },
+    },
+    'midea.aircondition.xa2': 'midea.aircondition.xa1',
 
     'mijia.camera.v3': {
         'miio_specs': {
@@ -553,6 +728,37 @@ MIIO_TO_MIOT_SPECS = {
     'minij.washer.v14': {
         'extend_model': 'minij.washer.v5',
         'chunk_properties': 1,
+    },
+
+    'mmgg.feeder.petfeeder': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'getprops',
+                'values': [
+                    'food_status', 'feed_status', 'door_status', 'feed_today', 'clean_days', 'outlet_status',
+                    'dryer_days', 'weight_level', 'wifi_led', 'key_lock', 'country_code',
+                ],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.101': {'prop': 'food_status'},
+            'prop.2.102': {'prop': 'feed_status', 'setter': 'stopfeed', 'set_template': '{{ [value|int] }}'},
+            'prop.2.103': {'prop': 'feed_today'},
+            'prop.2.104': {'prop': 'dryer_days'},
+            'prop.2.105': {'prop': 'clean_days'},
+            'prop.2.106': {'prop': 'door_status'},
+            'prop.2.107': {'prop': 'outlet_status'},
+            'action.2.1': {'setter': 'outfood'},
+            'action.2.101': {'setter': 'resetdryer'},
+            'prop.200.201': {'prop': 'wifi_led', 'setter': 'wifiledon', 'set_template': '{{ [value|int] }}'},
+            'prop.300.301': {
+                'prop': 'key_lock',
+                'setter': 'keylock',
+                'template': '{{ not value }}',
+                'set_template': '{{ [0 if value else 1] }}',
+            },
+        }
     },
 
     'opple.light.bydceiling': {
@@ -708,6 +914,61 @@ MIIO_TO_MIOT_SPECS = {
     'roborock.vacuum.a09': 'roborock.vacuum.t6',
     'roborock.vacuum.a10': 'roborock.vacuum.t6',
     'roborock.vacuum.a11': 'roborock.vacuum.t6',
+    'roborock.vacuum.a14': {
+        'extend_model': 'roborock.vacuum.t6',
+        'miio_commands': [
+            {
+                'method': 'get_status',
+                'template': '{{ results.0 | default({}) }}',
+            },
+            {
+                'method': 'get_consumable',
+                'template': '{{ results.0 | default({}) }}',
+            },
+            {
+                'method': 'get_custom_mode',
+                'values': ['fan_mode'],
+            },
+            {
+                'method': 'get_water_box_custom_mode',
+                'values': ['water_level'],
+            },
+            {
+                'method': 'get_mop_mode',
+                'values': ['mop_mode'],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'state'},
+            'prop.2.2': {'prop': 'error_code'},
+            'prop.2.4': {'prop': 'fan_mode', 'setter': 'set_custom_mode'},
+            'prop.2.102': {'prop': 'water_level', 'setter': 'set_water_box_custom_mode'},
+            'prop.2.103': {'prop': 'mop_mode', 'setter': 'set_mop_mode'},
+            # 'action.2.4': {'setter': 'app_start'},  # start-mop
+            # 'action.2.5': {'setter': 'app_start'},  # start-sweep-mop
+            'action.2.6': {
+                'setter': 'app_segment_clean',
+                'set_template': '{% set ids = params[0]|default("")|string %}'
+                                '{% set arr = ids|from_json if ids[0:1] == "[" else ids.split(",") %}'
+                                '{{ arr }}',
+            },
+            'prop.9.2': {'prop': 'main_brush_work_time', 'template': '{{ 100-(value/(36*300))|round }}'},
+            'prop.10.2': {'prop': 'side_brush_work_time', 'template': '{{ 100-(value/(36*200))|round }}'},
+            'prop.11.1': {'prop': 'filter_work_time', 'template': '{{ 100-(value/(36*150))|round }}'},
+        },
+    },
+    'roborock.vacuum.a15': 'roborock.vacuum.a14',
+    'roborock.vacuum.a19': 'roborock.vacuum.a14',
+    'roborock.vacuum.a23': 'roborock.vacuum.a14',
+    'roborock.vacuum.a26': 'roborock.vacuum.a14',
+    'roborock.vacuum.a27': 'roborock.vacuum.a14',
+    'roborock.vacuum.a29': 'roborock.vacuum.a14',
+    'roborock.vacuum.a30': 'roborock.vacuum.a14',
+    'roborock.vacuum.a34': 'roborock.vacuum.a14',
+    'roborock.vacuum.a37': 'roborock.vacuum.a14',
+    'roborock.vacuum.a38': 'roborock.vacuum.a14',
+    'roborock.vacuum.a40': 'roborock.vacuum.a14',
+    'roborock.vacuum.a46': 'roborock.vacuum.a14',
     'roborock.vacuum.c1': 'rockrobo.vacuum.v1',
     'roborock.vacuum.e2': 'rockrobo.vacuum.v1',
     'roborock.vacuum.p5': 'roborock.vacuum.a08',
@@ -1023,6 +1284,22 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'yeelink.bhf_light.v1': {
+        'extend_model': 'yeelink.bhf_light.v2',
+        'miio_specs': {
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.3.2': {'prop': 'temperature'},
+            'prop.4.2': {
+                'prop': 'swing_action',
+                'setter': 'set_swing',
+                'template': '{{ value in ["swing"] }}',
+                'set_template': '{{ ["swing" if value else "stop",0] }}',
+            },
+            'prop.4.3': {'prop': 'swing_angle', 'setter': 'set_swing', 'set_template': '{{ ["swing",value] }}'},
+            'prop.5.1': {'prop': 'temperature'},
+            'prop.5.2': {'prop': 'humidity'},
+        },
+    },
     'yeelink.bhf_light.v2': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
@@ -1034,6 +1311,7 @@ MIIO_TO_MIOT_SPECS = {
                 'drying':   4,
                 'coolwind': 5,
             }, 'default': 1},
+            'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
             'prop.4.1': {
                 'prop': 'fan_speed_idx',
                 'setter': 'set_gears_idx',
@@ -1219,8 +1497,6 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.3': {'prop': 'rgb', 'setter': True},
             'prop.2.4': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
-            'prop.2.101': {'prop': 'nl_br', 'setter': True},
-            'prop.200.201': {'prop': 'delayoff'},
         },
     },
     'yeelink.light.color2': {
@@ -1235,6 +1511,12 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
             'prop.2.4': {'prop': 'rgb', 'setter': True},
             'prop.2.5': {'prop': 'color_mode'},
+            'prop.2.101': {'prop': 'nl_br', 'setter': True},
+            'prop.2.102': {
+                'prop': 'delayoff',
+                'setter': 'set_scene',
+                'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
+            },
         },
     },
     'yeelink.light.color3': 'yeelink.light.color2',
@@ -1263,6 +1545,11 @@ MIIO_TO_MIOT_SPECS = {
                 'template': '{{ 2 if value|int else 1 }}',
                 'set_template': '{{ ["nightlight","on" if value == 2 else "off"] }}',
             },
+            'prop.2.102': {
+                'prop': 'delayoff',
+                'setter': 'set_scene',
+                'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
+            },
         },
     },
     'yeelink.light.ceiling3': 'yeelink.light.ceiling1',
@@ -1287,7 +1574,15 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.ceiling7': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling8': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling9': 'yeelink.light.ceiling6',
-    'yeelink.light.ceiling10': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling10': {
+        'extend_model': 'yeelink.light.ceiling6',
+        'miio_specs': {
+            'prop.200.201': {'prop': 'bg_power', 'setter': 'bg_set_power', 'format': 'onoff'},
+            'prop.200.202': {'prop': 'bg_bright', 'setter': 'bg_set_bright'},
+            'prop.200.203': {'prop': 'bg_ct', 'setter': 'bg_set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.200.204': {'prop': 'bg_rgb', 'setter': 'bg_set_rgb'},
+        },
+    },
     'yeelink.light.ceiling11': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling12': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling13': 'yeelink.light.ceiling6',
@@ -1301,7 +1596,7 @@ MIIO_TO_MIOT_SPECS = {
     },
     'yeelink.light.ceiling17': 'yeelink.light.ceiling16',
     'yeelink.light.ceiling18': 'yeelink.light.ceiling6',
-    'yeelink.light.ceiling19': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling19': 'yeelink.light.ceiling10',
     'yeelink.light.ceiling20': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling21': {
         'extend_model': 'yeelink.light.ceiling6',
@@ -1380,6 +1675,11 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'bright', 'setter': True},
             'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.2.102': {
+                'prop': 'delayoff',
+                'setter': 'set_scene',
+                'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
+            },
         },
     },
     'yeelink.ven_fan.vf3': {
@@ -1459,6 +1759,45 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'zhimi.aircondition.ma1': {
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'mode', 'dict': {
+                'automode':   0,
+                'cooling':    1,
+                'arefaction': 2,
+                'heat':       3,
+                'wind':       4,
+            }, 'default': 0},
+            'prop.2.3': {
+                'prop': 'st_temp_dec',
+                'setter': 'set_temperature',
+                'template': '{{ value|default(0,true)/10.0 }}',
+                'set_template': '{{ (value*10)|int(0) }}',
+            },
+            'prop.2.4': {'prop': 'ptc', 'setter': True, 'format': 'onoff'},
+            'prop.2.5': {'prop': 'silent', 'setter': True, 'format': 'onoff'},
+            'prop.3.1': {'prop': 'speed_level', 'setter': 'set_spd_level', 'dict': {
+                5: 0,  # auto
+            }},
+            'prop.3.2': {'prop': 'vertical_swing', 'setter': 'set_vertical', 'format': 'onoff'},
+            'prop.3.3': {'prop': 'vertical_rt', 'setter': 'set_ver_pos'},
+            'prop.4.1': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
+            'prop.5.1': {
+                'prop': 'volume_level',
+                'setter': 'set_volume_sw',
+                'set_template': '{{ [5 if value else 0] }}',
+            },
+            'prop.6.1': {'prop': 'lcd_level', 'setter': 'set_lcd', 'set_template': '{{ [5 if value else 0] }}'},
+            'prop.6.2': {'prop': 'lcd_level', 'setter': 'set_lcd'},
+        },
+    },
+    'zhimi.aircondition.ma2': 'zhimi.aircondition.ma1',
+    'zhimi.aircondition.ma3': 'zhimi.aircondition.ma1',
+    'zhimi.aircondition.ma4': 'zhimi.aircondition.ma1',
+    'zhimi.aircondition.za1': 'zhimi.aircondition.ma1',
+
     'zhimi.airmonitor.v1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'aqi'},
@@ -1473,7 +1812,7 @@ MIIO_TO_MIOT_SPECS = {
 
     'zhimi.airfresh.va2': {
         'miio_props': ['average_aqi', 'motor1_speed', 'use_time'],
-        'entity_attrs': ['motor1_speed', 'use_time'],
+        'entity_attrs': ['average_aqi', 'motor1_speed', 'use_time'],
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
@@ -1481,12 +1820,12 @@ MIIO_TO_MIOT_SPECS = {
                 'silent':   1,
                 'interval': 2,
                 'low':      3,
-                'medium':   4,
+                'middle':   4,
                 'strong':   5,
             }, 'default': 0},
             'prop.3.1': {'prop': 'humidity'},
             'prop.3.2': {'prop': 'aqi'},
-            'prop.3.3': {'prop': 'temp_dec'},
+            'prop.3.3': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
             'prop.3.4': {'prop': 'co2'},
             'prop.4.1': {'prop': 'f1_hour_used'},
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
@@ -1496,22 +1835,33 @@ MIIO_TO_MIOT_SPECS = {
     },
     'zhimi.airfresh.va4': {
         'extend_model': 'zhimi.airfresh.va2',
+        'miio_props': ['average_aqi', 'use_time'],
+        'entity_attrs': ['average_aqi', 'use_time'],
         'miio_specs': {
             'prop.2.3': {'prop': 'mode', 'setter': True, 'dict': {
                 'interval': 0,
                 'silent':   1,
                 'low':      2,
-                'medium':   3,
+                'middle':   3,
                 'strong':   4,
                 'auto':     5,
             }, 'default': 5},
             'prop.2.4': {'prop': 'ptc_state', 'setter': True, 'format': 'onoff'},
-            'prop.3.3': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
+            'prop.3.1': {'prop': 'aqi'},
+            'prop.3.2': {'prop': 'co2'},
+            'prop.3.3': {'prop': 'temp_dec'},
+            'prop.3.4': {'prop': 'humidity'},
+            'prop.3.101': {'prop': 'motor1_speed'},
+            'prop.5.1': {'prop': 'led_level', 'setter': True},
+            'prop.6.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
+            'prop.7.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
         },
     },
     'zhimi.airpurifier._base': {
-        'miio_props': ['motor1_speed', 'motor2_speed', 'purify_volume'],
-        'entity_attrs': ['aqi', 'motor1_speed', 'motor2_speed', 'purify_volume'],
+        # https://github.com/rytilahti/python-miio/blob/master/miio/integrations/airpurifier/zhimi/airpurifier.py
+        'chunk_properties': 15,
+        'miio_props': ['bright', 'motor1_speed', 'motor2_speed', 'purify_volume'],
+        'entity_attrs': ['aqi', 'bright', 'motor1_speed', 'motor2_speed', 'purify_volume'],
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
@@ -1526,6 +1876,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.1': {'prop': 'filter1_life'},
             'prop.5.1': {'prop': 'led', 'setter': True, 'format': 'onoff'},
             'prop.6.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
+            'prop.2.101': {'prop': 'bright'},  # illumination
+            'prop.2.102': {'prop': 'motor1_speed'},
         },
     },
     'zhimi.airpurifier.m1': {
@@ -1541,7 +1893,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.3': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
             'prop.4.2': {'prop': 'f1_hour_used'},
             'prop.5.2': {'prop': 'led_b', 'setter': True},
-            'prop.8.1': {'prop': 'favorite_level', 'setter': True},
+            'prop.8.1': {'prop': 'favorite_level', 'setter': 'set_level_favorite'},
         },
     },
     'zhimi.airpurifier.m2': 'zhimi.airpurifier.m1',
@@ -1584,7 +1936,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.6.2': {'prop': 'led_b', 'setter': True},
             'prop.7.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
             'prop.8.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
-            'prop.9.1': {'prop': 'favorite_level', 'setter': True},
+            'prop.9.1': {'prop': 'favorite_level', 'setter': 'set_level_favorite'},
         },
     },
     'zhimi.airpurifier.v1': {
@@ -1650,6 +2002,8 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
             'prop.7.1': {'prop': 'led', 'setter': True, 'format': 'onoff'},
+            'prop.2.103': {'prop': 'favorite_level', 'setter': 'set_level_favorite'},
+            'prop.2.104': {'prop': 'act_det', 'setter': True, 'format': 'onoff'},
         },
     },
 

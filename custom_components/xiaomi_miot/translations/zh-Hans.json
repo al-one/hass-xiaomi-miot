@@ -1,6 +1,6 @@
 {
     "config": {
-        "flow_title": "Xiaomi Miot: {name}",
+        "flow_title": "Xiaomi Miot Auto",
         "step": {
             "user": {
                 "title": "选择操作",
@@ -41,6 +41,18 @@
                     "filter_did": "筛选设备",
                     "did_list": "设备列表"
                 }
+            },
+            "customizing": {
+                "title": "自定义实体 / 设备",
+                "description": "{tip}",
+                "data": {
+                    "domain": "选择实体类型",
+                    "entity": "选择实体",
+                    "model": "选择设备型号",
+                    "model_specified": "指定设备型号 (可选)",
+                    "only_main_entity": "仅主(父)实体",
+                    "bool2selects": "自定义选项"
+                }
             }
         },
         "error": {
@@ -51,6 +63,7 @@
             "none_devices": "该小米账户下没有设备"
         },
         "abort": {
+            "config_saved": "配置已保存\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
             "already_configured": "该设备已经配置过",
             "not_xiaomi_miio": "该设备不支持miio/miot协议"
         }
@@ -99,6 +112,9 @@
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备"
+        },
+        "abort": {
+            "show_customizes": "[![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n请再次添加[`Xiaomi Miot Auto`](/_my_redirect/config_flow_start?domain=xiaomi_miot)集成来修改自定义选项\n{tip}"
         }
     },
     "system_health": {

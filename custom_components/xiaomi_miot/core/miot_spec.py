@@ -1,5 +1,5 @@
 import logging
-import requests
+import asyncio
 import platform
 import random
 import time
@@ -7,6 +7,7 @@ import re
 
 from homeassistant.const import *
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     DOMAIN,
@@ -193,23 +194,23 @@ class MiotSpec(MiotSpecInstance):
         return [
             s
             for s in self.services.values()
-            if s.name not in excludes and (not args or s.name in args or s.desc_name in args)
+            if not s.in_list(excludes) and (not args or s.in_list(args))
         ]
 
     def get_service(self, *args):
         for a in args:
             for s in self.services.values():
-                if a not in [s.name, s.desc_name]:
+                if not s.in_list([a]):
                     continue
                 return s
         return None
 
     def first_service(self):
-        for s in self.services.values():
+        for s in self.get_services():
             return s
         return None
 
-    def generate_entity_id(self, entity, suffix=None):
+    def generate_entity_id(self, entity, suffix=None, domain=None):
         mod = f'{self.type}::::'.split(':')[5]
         if not mod:
             return None
@@ -218,7 +219,9 @@ class MiotSpec(MiotSpecInstance):
         if suffix:
             eid = f'{eid}_{suffix}'
         eid = re.sub(r'\W+', '_', eid).lower()
-        return f'{DOMAIN}.{eid}'
+        if not domain:
+            domain = DOMAIN
+        return f'{domain}.{eid}'
 
     @staticmethod
     async def async_from_model(hass, model, use_remote=False):
@@ -229,10 +232,13 @@ class MiotSpec(MiotSpecInstance):
     async def async_get_model_type(hass, model, use_remote=False):
         if not model:
             return None
-        url = 'https://miot-spec.org/miot-spec-v2/instances?status=all'
         fnm = f'{DOMAIN}/instances.json'
         store = Store(hass, 1, fnm)
-        cached = await store.async_load() or {}
+        try:
+            cached = await store.async_load() or {}
+        except ValueError:
+            await store.async_remove()
+            cached = {}
         now = int(time.time())
         dat = {}
         if not use_remote:
@@ -242,8 +248,8 @@ class MiotSpec(MiotSpecInstance):
                 dat = {}
         if not dat:
             try:
-                res = await hass.async_add_executor_job(requests.get, url)
-                dat = res.json() or {}
+                url = '/miot-spec-v2/instances?status=all'
+                dat = await MiotSpec.async_download_miot_spec(hass, url, tries=3, timeout=60)
                 if dat:
                     sdt = {
                         '_updated_time': now,
@@ -264,7 +270,7 @@ class MiotSpec(MiotSpecInstance):
                         'Renew miot spec instances: %s, count: %s, model: %s',
                         fnm, len(sdt) - 1, model,
                     )
-            except (TypeError, ValueError, requests.exceptions.ConnectionError) as exc:
+            except (TypeError, ValueError, BaseException) as exc:
                 if not cached:
                     raise exc
                 dat = cached
@@ -281,32 +287,36 @@ class MiotSpec(MiotSpecInstance):
 
     @staticmethod
     async def async_from_type(hass, typ):
-        url = f'https://miot-spec.org/miot-spec-v2/instance?type={typ}'
         fnm = f'{DOMAIN}/{typ}.json'
         if platform.system() == 'Windows':
             fnm = fnm.replace(':', '_')
         store = Store(hass, 1, fnm)
-        cached = await store.async_load() or {}
+        try:
+            cached = await store.async_load() or {}
+        except ValueError:
+            await store.async_remove()
+            cached = {}
         dat = cached
         ptm = dat.pop('_updated_time', 0)
         now = int(time.time())
-        day = 2
+        ttl = 60
         if dat.get('services'):
-            day = random.randint(30, 50)
-        if dat and now - ptm > 86400 * day:
+            ttl = 86400 * random.randint(30, 50)
+        if dat and now - ptm > ttl:
             dat = {}
         if not dat.get('type'):
             try:
-                res = await hass.async_add_executor_job(requests.get, url)
-                dat = res.json() or {}
+                url = f'/miot-spec-v2/instance?type={typ}'
+                dat = await MiotSpec.async_download_miot_spec(hass, url, tries=3)
                 dat['_updated_time'] = now
                 await store.async_save(dat)
-            except (TypeError, ValueError, requests.exceptions.ConnectionError) as exc:
+            except (TypeError, ValueError, BaseException) as exc:
                 if cached:
                     dat = cached
                 else:
                     dat = {
                         'type': typ or 'unknown',
+                        'exception': f'{exc}',
                         '_updated_time': now,
                     }
                     await store.async_save(dat)
@@ -332,6 +342,33 @@ class MiotSpec(MiotSpecInstance):
             return None
         return f'{typ}.{siid}.{iid}'
 
+    @staticmethod
+    async def async_download_miot_spec(hass, path, tries=1, timeout=30):
+        session = async_get_clientsession(hass)
+        hosts = [
+            'https://miot-spec.org',
+            'https://spec.miot-spec.com',
+        ]
+        exception = None
+        while tries > 0:
+            for host in hosts:
+                url = f'{host}{path}'
+                try:
+                    request = await session.get(url=url, timeout=timeout)
+                    if request.status == 200:
+                        return await request.json() or {}
+                    raise UserWarning(f'Got status code {request.status} when trying to request {url}')
+                except asyncio.TimeoutError as exc:
+                    exception = exc
+                    _LOGGER.warning('Timeout when trying to request %s', url)
+                except BaseException as exc:
+                    exception = exc
+                    _LOGGER.warning('Got exception %s when trying to request %s', exc, url)
+            tries -= 1
+            await asyncio.sleep(1)
+        if exception:
+            raise exception
+
 
 # https://miot-spec.org/miot-spec-v2/spec/services
 class MiotService(MiotSpecInstance):
@@ -347,10 +384,18 @@ class MiotService(MiotSpecInstance):
         self.actions = {}
         self.extend_specs(properties=dat.get('properties') or [], actions=dat.get('actions') or [])
 
+    def in_list(self, lst):
+        return self.name in lst \
+            or self.friendly_desc in lst \
+            or self.unique_name in lst \
+            or self.unique_prop in lst \
+            or self.desc_name in lst
+
     def extend_specs(self, properties: list, actions: list):
         for p in properties:
             iid = int(p.get('iid') or 0)
             if old := self.properties.get(iid):
+                self.spec.services_properties.pop(old.full_name, None)
                 p = {**old.raw, **p}
             prop = MiotProperty(p, self)
             if not prop.name:
@@ -382,10 +427,7 @@ class MiotService(MiotSpecInstance):
                 continue
             if not p.readable and not p.writeable:
                 continue
-            if p.name in excludes \
-                    or p.full_name in excludes \
-                    or p.friendly_name in excludes \
-                    or p.unique_prop in excludes:
+            if p.in_list(excludes):
                 continue
             dat[p.full_name] = {
                 'siid': self.iid,
@@ -397,7 +439,7 @@ class MiotService(MiotSpecInstance):
         return [
             p
             for p in self.properties.values()
-            if p.name in args or p.full_name in args or p.desc_name in args
+            if p.in_list(args) or not args
         ]
 
     def get_property(self, *args, only_format=None):
@@ -405,7 +447,7 @@ class MiotService(MiotSpecInstance):
             only_format = only_format if isinstance(only_format, list) else [only_format]
         for a in args:
             for p in self.properties.values():
-                if a not in [p.name, p.desc_name]:
+                if not p.in_list([a]):
                     continue
                 if only_format and p.format not in only_format:
                     continue
@@ -415,16 +457,26 @@ class MiotService(MiotSpecInstance):
     def bool_property(self, *args):
         return self.get_property(*args, only_format='bool')
 
+    def get_property_by_full_name(self, full_name):
+        if full_name in self.spec.specs:
+            return self.spec.specs[full_name]
+        if '.' in full_name:
+            srv, prop = f'{full_name}'.split('.', 1)
+            srv = self.spec.get_service(srv) if srv else None
+            if srv:
+                return srv.get_property(prop)
+        return self.get_property(full_name)
+
     def get_actions(self, *args):
         return [
             a
             for a in self.actions.values()
-            if a.name in args or a.full_name in args
+            if a.in_list(args) or not args
         ]
 
     def get_action(self, *args):
         for a in self.actions.values():
-            if a.name in args:
+            if a.in_list(args):
                 return a
         return None
 
@@ -445,8 +497,8 @@ class MiotService(MiotSpecInstance):
     def unique_prop(self, **kwargs):
         return self.spec.unique_prop(self.iid, **kwargs)
 
-    def generate_entity_id(self, entity):
-        return self.spec.generate_entity_id(entity, self.description)
+    def generate_entity_id(self, entity, domain=None):
+        return self.spec.generate_entity_id(entity, self.desc_name, domain)
 
     @property
     def translation_keys(self):
@@ -487,13 +539,17 @@ class MiotProperty(MiotSpecInstance):
                 self.full_name = self.name
             else:
                 self.full_name = self.friendly_name
+
             if service.name_count > 1:
                 self.full_name = f'{service.unique_name}.{self.name}'
             if self.full_name in service.spec.services_properties:
                 self.full_name = f'{service.unique_name}.{self.desc_name}'
             if self.full_name in service.spec.services_properties:
                 self.full_name = self.unique_name
-            if not (self.readable or self.writeable):
+
+            if self.full_name in ['battery.battery_level']:
+                self.full_name = self.name
+            elif not (self.readable or self.writeable):
                 self.full_name = self.name
             elif len(self.full_name) >= 32:
                 # miot did length must less than 32
@@ -502,6 +558,14 @@ class MiotProperty(MiotSpecInstance):
                 'siid': self.siid,
                 'piid': self.iid,
             }
+
+    def in_list(self, lst):
+        return self.name in lst \
+            or self.desc_name in lst \
+            or self.friendly_name in lst \
+            or self.unique_name in lst \
+            or self.unique_prop in lst \
+            or self.full_name in lst
 
     @property
     def short_desc(self):
@@ -527,8 +591,8 @@ class MiotProperty(MiotSpecInstance):
     def writeable(self):
         return 'write' in self.access
 
-    def generate_entity_id(self, entity):
-        eid = self.service.spec.generate_entity_id(entity, self.desc_name)
+    def generate_entity_id(self, entity, domain=None):
+        eid = self.service.spec.generate_entity_id(entity, self.desc_name, domain)
         eid = re.sub(r'_(\d(?:_|$))', r'\1', eid)  # issue#153
         return eid
 
@@ -571,7 +635,7 @@ class MiotProperty(MiotSpecInstance):
             vde = v.get('description')
             if des is None:
                 rls.append(val)
-            elif des == vde or des == self.get_translation(vde):
+            elif des in [vde, f'{vde}'.lower(), self.get_translation(vde)]:
                 return val
         return rls if des is None else None
 
@@ -653,7 +717,7 @@ class MiotProperty(MiotSpecInstance):
             'uint8', 'uint16', 'uint32', 'uint64',
         ]:
             return True
-        if self.value_list or self.value_range:
+        if self.value_list:
             return True
         return False
 
@@ -707,8 +771,9 @@ class MiotProperty(MiotSpecInstance):
             'temperature': DEVICE_CLASS_TEMPERATURE,
             'relative_humidity': DEVICE_CLASS_HUMIDITY,
             'humidity': DEVICE_CLASS_HUMIDITY,
+            'charging_state': None,
             'battery_level': DEVICE_CLASS_BATTERY,
-            'battery': DEVICE_CLASS_BATTERY,
+            '.battery': DEVICE_CLASS_BATTERY,
             'illumination': DEVICE_CLASS_ILLUMINANCE,
             'voltage': DEVICE_CLASS_VOLTAGE,
             'electric_current': DEVICE_CLASS_CURRENT,
@@ -800,9 +865,18 @@ class MiotAction(MiotSpecInstance):
         self.unique_name = f'{service.unique_name}.{self.name}-{self.iid}'
         self.unique_prop = self.service.unique_prop(aiid=self.iid)
         self.full_name = f'{service.name}.{self.name}'
+        self.friendly_name = f'{service.name}.{self.name}'
         self.friendly_desc = self.get_translation(self.description or self.name)
         self.ins = dat.get('in') or []
         self.out = dat.get('out') or []
+
+    def in_list(self, lst):
+        return self.name in lst \
+            or self.friendly_name in lst \
+            or self.friendly_desc in lst \
+            or self.unique_name in lst \
+            or self.unique_prop in lst \
+            or self.full_name in lst
 
     def in_params_from_attrs(self, dat: dict, with_piid=True):
         pms = []

@@ -3,6 +3,5 @@
   "content_in_root": false,
   "zip_release": true,
   "filename": "xiaomi_miot.zip",
-  "render_readme": true,
-  "iot_class": ["Local Polling", "Cloud Polling"]
+  "render_readme": true
 }
