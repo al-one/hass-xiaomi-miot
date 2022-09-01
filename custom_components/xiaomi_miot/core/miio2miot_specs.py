@@ -1611,8 +1611,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.5': {'prop': 'smart_switch'},
         },
     },
-    'yeelink.light.ceiling22': 'yeelink.light.ceiling21',
-    'yeelink.light.ceiling23': 'yeelink.light.ceiling21',
+    'yeelink.light.ceiling22': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling23': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling24': 'yeelink.light.ceiling16',
     'yeelink.light.lamp2': 'yeelink.light.ceiling16',
     'yeelink.light.lamp3': {
