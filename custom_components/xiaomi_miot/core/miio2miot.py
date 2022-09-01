@@ -92,8 +92,12 @@ class Miio2MiotHelper:
                     if isinstance(pdt, dict):
                         dic.update(pdt)
                 elif kls:
-                    if len(kls) == len(vls):
-                        dic.update(dict(zip(kls, vls)))
+                    i = 0
+                    for k in kls:
+                        if i >= len(vls):
+                            break
+                        dic[k] = vls[i]
+                        i += 1
         if tpl := self.config.get('miio_template'):
             tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
             tpl = cv.template(tpl)
@@ -140,7 +144,7 @@ class Miio2MiotHelper:
                                 'step': prop.range_step(),
                                 'description': prop.list_description(val) if prop.value_list else None,
                             })
-                    
+
                         elif fmt and hasattr(mph, fmt):
                             val = getattr(mph, fmt)(val)
 
