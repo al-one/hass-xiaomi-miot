@@ -34,12 +34,10 @@
 
   "chuangmi.plug.v1": [
     {
-      "iid": 200,
-      "type": "urn:miot-spec-v2:service:switch",
-      "description": "USB Switch Status",
+      "iid": 2,
       "properties": [
         {
-          "iid": 201,
+          "iid": 101,
           "type": "urn:miot-spec-v2:property:temperature",
           "format": "float",
           "access": ["read"],

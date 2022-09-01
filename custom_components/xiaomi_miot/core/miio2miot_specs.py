@@ -194,7 +194,7 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': True,
                 'set_template': '{{ {"method": "set_usb_on" if value else "set_usb_off"} }}',
             },
-            'prop.200.201': {'prop': 'temperature'},
+            'prop.2.101': {'prop': 'temperature'},
             'prop.300.301': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
     },
