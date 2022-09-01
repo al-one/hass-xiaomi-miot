@@ -1600,7 +1600,7 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.ceiling19': 'yeelink.light.ceiling10',
     'yeelink.light.ceiling20': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling21': {
-        'extend_model': 'yeelink.light.ceiling6',
+        'extend_model': 'yeelink.light.ceiling22',
         'miio_specs': {
             'prop.2.4': {
                 'prop': 'nl_br',
@@ -1608,11 +1608,15 @@ MIIO_TO_MIOT_SPECS = {
                 'template': '{{ 1 if value|int else 0 }}',
                 'set_template': '{{ ["nightlight","on" if value == 1 else "off"] }}',
             },
+        },
+    },
+    'yeelink.light.ceiling22': {
+        'extend_model': 'yeelink.light.ceiling6',
+        'miio_specs': {
             'prop.2.5': {'prop': 'smart_switch'},
         },
     },
-    'yeelink.light.ceiling22': 'yeelink.light.ceiling6',
-    'yeelink.light.ceiling23': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling23': 'yeelink.light.ceiling22',
     'yeelink.light.ceiling24': 'yeelink.light.ceiling16',
     'yeelink.light.lamp2': 'yeelink.light.ceiling16',
     'yeelink.light.lamp3': {
