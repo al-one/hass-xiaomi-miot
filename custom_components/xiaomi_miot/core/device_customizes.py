@@ -33,6 +33,9 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': 'prop.5.1',
     },
+    'chuangmi.plug.v1': {
+        'miot_type': 'urn:miot-spec-v2:device:outlet:0000A002:chuangmi-v1:1',
+    },
     'chuangmi.plug.v3': {
         'sensor_attributes': 'electric_power,prop_cal_day.power_cost:today,prop_cal_day.power_cost:month',
         'miio_cloud_records': 'prop_cal_day.power_cost:31',

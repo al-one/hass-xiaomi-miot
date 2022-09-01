@@ -40,6 +40,20 @@
       "properties": [
         {
           "iid": 201,
+          "type": "urn:miot-spec-v2:property:temperature",
+          "format": "float",
+          "access": ["read"],
+          "unit": "celsius",
+          "value-range": [-40, 125, 0.1]
+        }
+      ]
+    },
+    {
+      "iid": 300,
+      "type": "urn:miot-spec-v2:service:indicator-light",
+      "properties": [
+        {
+          "iid": 301,
           "type": "urn:miot-spec-v2:property:on",
           "description": "Switch Status",
           "format": "bool",

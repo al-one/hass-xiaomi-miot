@@ -189,12 +189,13 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': True,
                 'set_template': '{{ {"method": "set_on" if value else "set_off"} }}',
             },
-            'prop.3.1': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
-            'prop.200.201': {
+            'prop.3.1': {
                 'prop': 'usb_on',
                 'setter': True,
                 'set_template': '{{ {"method": "set_usb_on" if value else "set_usb_off"} }}',
             },
+            'prop.200.201': {'prop': 'temperature'},
+            'prop.300.301': {'prop': 'wifi_led', 'setter': True, 'format': 'onoff'},
         },
     },
     'chuangmi.plug.v3': {
