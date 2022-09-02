@@ -164,6 +164,7 @@ SERVICE_TO_METHOD_BASE = {
                 vol.Optional('method', default='POST'): cv.string,
                 vol.Optional('crypt', default=True): cv.boolean,
                 vol.Optional('sid', default=None): vol.Any(cv.string, None),
+                vol.Optional('throw', default=False): cv.boolean,
             },
         ),
     },
@@ -2110,12 +2111,13 @@ class MiotEntity(MiioEntity):
             'data': dat,
             'result': result,
         })
-        persistent_notification.async_create(
-            self.hass,
-            f'{result}',
-            f'Xiaomi Api: {api}',
-            f'{DOMAIN}-debug',
-        )
+        if kwargs.get('throw'):
+            persistent_notification.async_create(
+                self.hass,
+                f'{result}',
+                f'Xiaomi Api: {api}',
+                f'{DOMAIN}-debug',
+            )
         _LOGGER.debug('Xiaomi Api %s: %s', api, result)
         return result
 
