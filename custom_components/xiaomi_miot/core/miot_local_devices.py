@@ -175,7 +175,7 @@ MIOT_LOCAL_MODELS = [
     'mibx2.fridge.v1',
     'mibx2.washer.v3',
     'mibx2.washer.v5',
-    'mibx2.washer.v7',
+    # 'mibx2.washer.v7',  # -9999
     'midjd6.fridge.610',
     'midjd6.fridge.v1',
     'mijia.vacuum.v1',
