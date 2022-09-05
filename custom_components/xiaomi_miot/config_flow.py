@@ -748,6 +748,9 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
     if domain == 'number':
         bool2selects.extend(['restore_state'])
 
+    if domain == 'device_tracker':
+        bool2selects.extend(['disable_location_name'])
+
     if 'yeelink.' in model:
         options.update({
             'yeelight_smooth_on': cv.string,

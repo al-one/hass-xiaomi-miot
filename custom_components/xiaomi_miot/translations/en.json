@@ -68,6 +68,7 @@
                     "descriptions_for_on": "descriptions_for_on",
                     "deviated_position": "deviated_position",
                     "device_class": "device_class",
+                    "disable_location_name": "disable_location_name",
                     "disable_preset_modes": "disable_preset_modes",
                     "entity_category": "entity_category",
                     "exclude_miot_properties": "exclude_miot_properties",
