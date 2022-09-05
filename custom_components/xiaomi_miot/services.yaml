@@ -354,7 +354,7 @@ request_xiaomi_api:
               value: i.mi.com
     throw:
       description: Throw result.
-      default: false
-      example: false
+      default: true
+      example: true
       selector:
         boolean:
