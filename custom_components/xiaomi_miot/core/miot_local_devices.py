@@ -1,9 +1,9 @@
 MIOT_LOCAL_MODELS = [
-    '090615.curtain.kcz82d',
-    '090615.curtain.ptx82',
-    '090615.curtain.sidt82',
-    '090615.curtain.ykgc82',
-    '090615.curtain.zsdj82',
+    # '090615.curtain.kcz82d',  # -4004
+    # '090615.curtain.ptx82',  # -4004
+    # '090615.curtain.sidt82',  # -4004
+    # '090615.curtain.ykgc82',  # -4004
+    # '090615.curtain.zsdj82',  # -4004
     '17216.massage.j6261a',
     'ateai.mosq.dakuo',
     'aupu.bhf_light.s368m',
