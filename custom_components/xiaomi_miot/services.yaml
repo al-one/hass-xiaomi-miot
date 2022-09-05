@@ -352,3 +352,9 @@ request_xiaomi_api:
               value: micoapi
             - label: i.mi.com
               value: i.mi.com
+    throw:
+      description: Throw result.
+      default: true
+      example: true
+      selector:
+        boolean:
