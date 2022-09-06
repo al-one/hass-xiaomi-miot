@@ -439,6 +439,31 @@
     }
   ],
 
+  "ows.towel_w.mj1x0": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "value-list": [
+            {"value": 0, "description": "Dry"},
+            {"value": 1, "description": "Warn"},
+            {"value": 2, "description": "Antifreeze"},
+            {"value": 3, "description": "Programming"}
+          ]
+        },
+        {
+          "iid": 101,
+          "type": "urn:viomi-spec:property:dry-time",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "hours",
+          "value-range": [1, 24, 1]
+        }
+      ]
+    }
+  ],
+
   "roborock.vacuum.a14": [
     {
       "iid": 2,

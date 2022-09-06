@@ -835,6 +835,7 @@ MIIO_TO_MIOT_SPECS = {
                                 '} }}',
             },
             'prop.2.4': {'prop': 'tempsurf', 'template': '{{ value|int(0)/2 }}'},
+            'prop.2.101': {'prop': 'drytime', 'setter': True},
         },
     },
 
