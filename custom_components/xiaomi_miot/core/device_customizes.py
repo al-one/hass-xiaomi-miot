@@ -446,6 +446,11 @@ DEVICE_CUSTOMIZES = {
         'miio_cloud_props_template': 'mxiang_cateye_cloud_props',
         'miio_event_human_visit_details_template': 'mxiang_cateye_human_visit_details',
     },
+    'ows.towel_w.mj1x0': {
+        'sensor_properties': 'temperature',
+        'select_properties': 'mode',
+        'number_properties': 'target_temperature',
+    },
     'philips.light.cbulb': {
         'miot_cloud_write': True,
         'miot_local_mapping': {

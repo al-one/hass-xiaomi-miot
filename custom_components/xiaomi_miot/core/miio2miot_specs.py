@@ -809,6 +809,35 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'ows.towel_w.mj1x0': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_props',
+                'values': [
+                    'power', 'mode', 'tempdry', 'tempheat', 'drytime',
+                    'temprog', 'tempsurf', 'tempind', 'percent', 'errflag',
+                ],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'set_template': '{{ [value|int(0)] }}'},
+            'prop.2.2': {'prop': 'mode', 'setter': True},
+            'prop.2.3': {
+                'prop': 'tempheat',
+                'setter': True,
+                'template': '{{ [props.tempdry,value,value,props.temprog][props.mode]|default(value)/2 }}',
+                'set_template': '{{ {"method": '
+                                '"set_tempdry" if props.mode == 0 else '
+                                '"set_tempheat" if props.mode == 1 else '
+                                '"set_temprog",'
+                                '"params": [value * 2],'
+                                '} }}',
+            },
+            'prop.2.4': {'prop': 'tempsurf', 'template': '{{ value|int(0)/2 }}'},
+        },
+    },
+
     'philips.light.bulb': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
