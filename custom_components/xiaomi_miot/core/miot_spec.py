@@ -658,7 +658,9 @@ class MiotProperty(MiotSpecInstance):
         return rls if val is None else None
 
     def list_descriptions(self, max_length=200):
-        if self.value_range:
+        if self.value_list:
+            pass
+        elif self.value_range:
             lst = []
             cur = self.range_min()
             rmx = self.range_max()
