@@ -449,7 +449,7 @@ DEVICE_CUSTOMIZES = {
     'ows.towel_w.mj1x0': {
         'sensor_properties': 'temperature',
         'select_properties': 'mode',
-        'number_properties': 'target_temperature',
+        'number_properties': 'target_temperature,dry_time',
     },
     'philips.light.cbulb': {
         'miot_cloud_write': True,
