@@ -649,6 +649,8 @@ class MiotProperty(MiotSpecInstance):
                 rls.append(str(des))
             elif val == v.get('value'):
                 return des
+        if rls and val is None:
+            return rls
         if self.value_range:
             if val is None:
                 # range to list
@@ -659,7 +661,7 @@ class MiotProperty(MiotSpecInstance):
 
     def list_descriptions(self, max_length=200):
         if self.value_list:
-            pass
+            return self.list_description(None)
         elif self.value_range:
             lst = []
             cur = self.range_min()
@@ -674,7 +676,7 @@ class MiotProperty(MiotSpecInstance):
                 lst.append(f'{cur}')
                 cur += stp
             return lst
-        return self.list_description(None)
+        return []
 
     def list_search(self, *args, **kwargs):
         rls = []
