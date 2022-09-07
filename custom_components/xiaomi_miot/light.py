@@ -78,9 +78,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 continue
             elif not srv.get_property('on'):
                 continue
-            elif spec.get_service('ptc_bath_heater'):
-                # only sub light
-                continue
+            elif ptc := spec.get_service('ptc_bath_heater'):
+                if spec.get_service('switch') or ptc.get_property('on', 'mode', 'target_temperature'):
+                    # only sub light
+                    continue
             entities.append(MiotLightEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
