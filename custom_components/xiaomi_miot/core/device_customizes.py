@@ -631,6 +631,11 @@ DEVICE_CUSTOMIZES = {
                                    'motor_strong,motor_high,motor_med,motor_med_l,motor_low,motor_silent,'
                                    'motor_favorite,motor_set_speed',
     },
+    'zhimi.airpurifier.mb4': {
+        'sensor_properties': 'motor_speed_rpm',
+        'switch_properties': 'alarm',
+        'number_properties': 'favorite_speed,aqi_updata_heartbeat,brightness',
+    },
     'zhimi.airpurifier.za1': {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
