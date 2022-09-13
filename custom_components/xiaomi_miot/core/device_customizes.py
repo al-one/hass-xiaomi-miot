@@ -150,12 +150,10 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '2.2',
     },
     'cuco.plug.cp5pro': {
-        'sensor_properties': 'voltage,electric_current',
+        'main_miot_services': 'switch-2',
+        'exclude_miot_services': 'power_consumption,device_setting,use_ele_alert',  # issues/763
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '10.1',
-    },
-    'cuco.plug.cp5pro:electric_current': {
-        'unit_of_measurement': 'A',
     },
     'cuco.plug.cp5pro:power_cost_today': {
         'value_ratio': 1,
@@ -168,9 +166,6 @@ DEVICE_CUSTOMIZES = {
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
-    },
-    'cuco.plug.cp5pro:voltage': {
-        'value_ratio': 1,
     },
     'cuco.plug.sp5': {
         'main_miot_services': 'switch-2',
