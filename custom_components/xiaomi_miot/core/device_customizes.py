@@ -433,6 +433,9 @@ DEVICE_CUSTOMIZES = {
             # 'battery.battery_level': {'siid': 3, 'piid': 1},  # -704002000
         },
     },
+    'miaomiaoce.sensor_ht.t6': {
+        'exclude_miot_services': 'battery',
+    },
     'midr.rv_mirror.*': {
         'miio_cloud_props': 'Status,Position',
         'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
