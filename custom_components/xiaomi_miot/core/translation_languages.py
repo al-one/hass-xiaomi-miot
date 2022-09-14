@@ -167,6 +167,14 @@ TRANSLATION_LANGUAGES = {
             'speaker volume': '音量',
         },
 
+        'sweep.suction_state': {
+            'medium': '中档',
+            'silent': '安静',
+            'slient': '安静',
+            'standard': '标准',
+            'turbo': '强力',
+        },
+
         'television': {
             'input control': '输入源',
             'tv input control': '输入源',
@@ -255,6 +263,7 @@ TRANSLATION_LANGUAGES = {
             '强力': 'Turbo',
         },
         'sweep.suction_state': {
+            'slient': 'Silent',
             '关': 'Silent',
             '节能': 'Standard',
             '标准': 'Medium',
