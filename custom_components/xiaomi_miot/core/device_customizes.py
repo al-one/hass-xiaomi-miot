@@ -270,8 +270,8 @@ DEVICE_CUSTOMIZES = {
     },
     'ijai.vacuum.*': {
         'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life',
-        'switch_properties': 'vacuum.on,alarm',
-        'select_properties': 'mode,sweep_type',
+        'switch_properties': 'vacuum.on,repeat_state,alarm',
+        'select_properties': 'mode,sweep_type,water_state',
         'exclude_miot_services': 'order',
         'exclude_miot_properties': 'zone_points,restrict_points,target_point',
     },
