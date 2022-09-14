@@ -227,6 +227,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'horizontal_angle',
         'number_properties': 'off_delay_time',
     },
+    'dooya.curtain.*': {
+        'exclude_miot_properties': 'fault',
+    },
     'dreame.vacuum.p2008': {
         'miot_type': 'urn:miot-spec-v2:device:vacuum:0000A006:dreame-p2008:2',
     },
