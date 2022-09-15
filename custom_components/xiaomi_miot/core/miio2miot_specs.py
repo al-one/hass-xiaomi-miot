@@ -1814,6 +1814,11 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.4': {'prop': 'ptc', 'setter': True, 'format': 'onoff'},
             'prop.2.5': {'prop': 'silent', 'setter': True, 'format': 'onoff'},
             'prop.3.1': {'prop': 'speed_level', 'setter': 'set_spd_level', 'dict': {
+                0: 1,
+                1: 2,
+                2: 3,
+                3: 4,
+                4: 5,
                 5: 0,  # auto
             }},
             'prop.3.2': {'prop': 'vertical_swing', 'setter': 'set_vertical', 'format': 'onoff'},
