@@ -186,13 +186,13 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'W',
     },
     'cuco.plug.*:power_cost_today': {
-        'value_ratio': 0.001,
+        'value_ratio': 0.01,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
     'cuco.plug.*:power_cost_month': {
-        'value_ratio': 0.001,
+        'value_ratio': 0.01,
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
