@@ -1,9 +1,10 @@
 MIOT_LOCAL_MODELS = [
     # '090615.curtain.kcz82d',  # -4004
-    # '090615.curtain.ptx82',  # -4004
+    # '090615.curtain.ptx82',   # -4004
     # '090615.curtain.sidt82',  # -4004
     # '090615.curtain.ykgc82',  # -4004
     # '090615.curtain.zsdj82',  # -4004
+    '1245.airfresh.super2',
     '17216.massage.j6261a',
     'ateai.mosq.dakuo',
     'aupu.bhf_light.s368m',
@@ -20,6 +21,7 @@ MIOT_LOCAL_MODELS = [
     'beihao.airer.airer3',
     'bj352.airp.y106cm',
     'bj352.waterpuri.k10',
+    'bofu.curtain.bfmh',
     'careli.fryer.maf01',
     'careli.fryer.maf02',
     'careli.fryer.maf03',
@@ -30,6 +32,7 @@ MIOT_LOCAL_MODELS = [
     'chuangmi.camera.039a01',
     'chuangmi.plug.212a01',
     'chuangmi.vacuum.hmi707',
+    'chunmi.cooker.eh3',
     'chunmi.cooker.wy3',
     'chunmi.cooker.zwz02',
     'chunmi.health_pot.a1',
@@ -45,7 +48,7 @@ MIOT_LOCAL_MODELS = [
     'coc.dryer.fdpsm',
     # 'cubee.airrtc.th123e',  # issues/282
     # 'cubee.airrtc.th123w',  # issues/213
-    'cubee.airrtc.th125t',
+    # 'cubee.airrtc.th125t',  # -4004
     'cuco.light.sl4',
     'cuco.light.sl4a',
     'cuco.plug.co1',
@@ -57,6 +60,7 @@ MIOT_LOCAL_MODELS = [
     'cuco.plug.cp5d',
     'cuco.plug.cp5pro',
     'cuco.plug.sp5',
+    'cuco.plug.v3',
     'deerma.humidifier.jsq3',
     'deerma.humidifier.jsq4',
     'deerma.humidifier.jsq5',
@@ -86,6 +90,7 @@ MIOT_LOCAL_MODELS = [
     'dooya.curtain.m1',
     'dooya.curtain.m2',
     'dooya.curtain.m5',
+    'dreame.fan.p2018',
     'dreame.vacuum.mb1808',
     'dreame.vacuum.mc1808',
     'dreame.vacuum.md1808',
@@ -101,6 +106,7 @@ MIOT_LOCAL_MODELS = [
     'dreame.vacuum.p2114o',
     'dreame.vacuum.p2140',
     'dreame.vacuum.p2140a',
+    'dreame.vacuum.p2140o',
     'dreame.vacuum.p2140p',
     'dreame.vacuum.p2148o',
     'dreame.vacuum.p2149o',
@@ -114,6 +120,7 @@ MIOT_LOCAL_MODELS = [
     'dreame.vacuum.r2205',
     'dreame.vacuum.r2216o',
     'dreame.vacuum.r2228',
+    'dreame.vacuum.r2228o',
     'dreame.vacuum.r2233',
     'fawad.airrtc.30011',
     'fawad.airrtc.30012',
@@ -136,7 +143,6 @@ MIOT_LOCAL_MODELS = [
     'hyd.airer.znlyj3',
     'hyd.airer.znlyj4',
     'ijai.vacuum.v1',
-
     'ijai.vacuum.v10',
     'ijai.vacuum.v13',
     'ijai.vacuum.v14',
@@ -150,6 +156,7 @@ MIOT_LOCAL_MODELS = [
     'isleep.blanket.hs2001',
     'isleep.blanket.hs2205',
     'julun.switch.jlsw01',
+    'kejia.airer.krq',
     'kejia.airer.mznpro',
     'leishi.light.eps112',
     'leishi.light.eps118',
@@ -176,6 +183,7 @@ MIOT_LOCAL_MODELS = [
     'mibx2.washer.v3',
     'mibx2.washer.v5',
     # 'mibx2.washer.v7',  # -9999
+    'mibx5.washer.v6',
     'midjd6.fridge.610',
     'midjd6.fridge.v1',
     'mijia.vacuum.v1',
@@ -183,6 +191,7 @@ MIOT_LOCAL_MODELS = [
     'mijia.vacuum.v3',
     'minij.washer.v17',
     'minij.washer.v20',
+    'mmgg.feeder.fi1',
     'mmgg.feeder.inland',
     'mmgg.pet_waterer.s1',
     'morfun.kettle.mf809',
@@ -193,6 +202,7 @@ MIOT_LOCAL_MODELS = [
     'nbczwl.airer.airer',
     'nnleaf.light.strips',
     'noc196.light.mdyctd',
+    'novo.curtain.n21',
     'nwt.derh.312en',
     'nwt.derh.330ef',
     'opple.bhf_light.acmoto',
@@ -200,6 +210,7 @@ MIOT_LOCAL_MODELS = [
     'opple.light.tablgt',
     'ows.tow_w.mjj20a',
     'ows.tow_w.mjjs1',
+    'philips.light.bceil1',
     # 'philips.light.bulb',  # issues/254
     # 'philips.light.cbulb',  # miio2miot
     'philips.light.dlight',
@@ -363,6 +374,7 @@ MIOT_LOCAL_MODELS = [
     'zhimi.airp.mb5',
     'zhimi.airp.mb5a',
     'zhimi.airp.mp4',
+    'zhimi.airp.mp4a',
     'zhimi.airp.rmb1',
     'zhimi.airp.va2',
     'zhimi.airp.vb4',
