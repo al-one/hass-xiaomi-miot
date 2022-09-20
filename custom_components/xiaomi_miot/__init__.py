@@ -1807,7 +1807,7 @@ class MiotEntity(MiioEntity):
                 ]
             elif isinstance(mcw, MiotCloud):
                 results = mcw.set_props([pms])
-                dly = self.custom_config_integer('cloud_delay_update', 5)
+                dly = self.custom_config_integer('cloud_delay_update', 6)
             else:
                 results = self.miot_device.send('set_properties', [pms])
             ret = MiotResults(results).first

@@ -429,11 +429,8 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 10,
     },
 
-    'mmgg.feeder.petfeeder': {
-        'state_property': 'pet_food_left_level',
-        'button_actions': 'reset_desiccant_life',
-        'sensor_properties': 'feed_today,desiccant_left_time,cleantime',
-        'switch_properties': 'feedstatus',
+    'mijia.light.*': {
+        'cloud_delay_update': 7,
     },
     'miaomiaoce.sensor_ht.t1': {
         'miot_mapping': {
@@ -448,6 +445,12 @@ DEVICE_CUSTOMIZES = {
     'midr.rv_mirror.*': {
         'miio_cloud_props': 'Status,Position',
         'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
+    },
+    'mmgg.feeder.petfeeder': {
+        'state_property': 'pet_food_left_level',
+        'button_actions': 'reset_desiccant_life',
+        'sensor_properties': 'feed_today,desiccant_left_time,cleantime',
+        'switch_properties': 'feedstatus',
     },
     'mxiang.cateye.*': {
         'miio_cloud_props': 'battery_level,is_can_open_video',
@@ -594,6 +597,9 @@ DEVICE_CUSTOMIZES = {
     'yeelink.bhf_light.v6': {
         'select_properties': 'heat_mode,cold_mode,vent_mode',
     },
+    'yeelink.light.dn2grp': {
+        'cloud_delay_update': 7,
+    },
     'yeelink.light.fancl5': {
         'number_properties': 'fan_speed_std,fan_speed_rec,dl_brightness,nl_brightness',
     },
@@ -605,6 +611,9 @@ DEVICE_CUSTOMIZES = {
     },
     'yeelink.light.stripa': {
         'chunk_properties': 2,
+    },
+    'yeelink.light.virtual': {
+        'cloud_delay_update': 7,
     },
     'yeelink.light.*': {
         'main_miot_services': 'light-2',
