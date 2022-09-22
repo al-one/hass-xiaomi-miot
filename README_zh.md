@@ -37,11 +37,11 @@
 <a name="installation"></a>
 ## 安装/更新
 
-#### 方法1: [HACS](https://hacs.xyz)
+#### 方法1: [HACS](https://github.com/hacs-china/integration)
 - 首次安装
-    > HACS > 集成 > ➕ 浏览并下载存储库 > `Xiaomi Miot Auto` > 下载此存储库
+    > HACS > 集成 > ➕ 浏览并下载存储库 > [`Xiaomi Miot Auto`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > 下载此存储库
 - 升级插件
-    > HACS > 集成 > `Xiaomi Miot Auto` > 更新 / 重新下载
+    > HACS > 集成 > [`Xiaomi Miot Auto`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > 更新 / 重新下载
 
 #### 方法2: 通过`Samba`或`SFTP`手动安装
 > 下载并复制`custom_components/xiaomi_miot`文件夹到HA根目录下的`custom_components`文件夹

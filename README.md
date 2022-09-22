@@ -20,9 +20,9 @@ This component uses the **miot** protocol to automatically integrate Xiaomi devi
 
 #### Method 1: [HACS](https://hacs.xyz)
 - First installation
-    > HACS > Integrations > ➕ EXPLORE & DOWNLOAD REPOSITORIES > `Xiaomi Miot Auto` > DOWNLOAD THIS REPOSITORY
+    > HACS > Integrations > ➕ EXPLORE & DOWNLOAD REPOSITORIES > [`Xiaomi Miot Auto`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > DOWNLOAD THIS REPOSITORY
 - Update component
-    > HACS > Integrations > `Xiaomi Miot Auto` > UPDATE / Redownload
+    > HACS > Integrations > [`Xiaomi Miot Auto`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > UPDATE / Redownload
 
 #### Method 2: Manually installation via Samba / SFTP
 > Download and copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
