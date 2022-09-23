@@ -369,6 +369,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
             raise NotImplementedError()
         _LOGGER.debug('%s: Send command: %s %s', self.name_model, command, params)
         if command == 'app_zoned_clean':
+            # params: [[x1, y2, x2, y1, repeats]]
             rpt = 1
             lst = []
             for z in params or []:

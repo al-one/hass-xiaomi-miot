@@ -92,6 +92,8 @@ class Miio2MiotHelper:
                     if isinstance(pdt, dict):
                         dic.update(pdt)
                 elif kls:
+                    if isinstance(vls, dict):
+                        vls = list(vls.values())
                     i = 0
                     for k in kls:
                         if i >= len(vls):
