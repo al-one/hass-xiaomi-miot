@@ -316,6 +316,14 @@ DEVICE_CUSTOMIZES = {
     'lumi.acpartner.mcn04': {
         'chunk_properties': 7,
         'miio_cloud_props': [],
+        'stat_power_cost_type': 'stat_day_v3',
+        'stat_power_cost_key': '7.1',
+    },
+    'lumi.acpartner.mcn04:power_cost_today': {
+        'value_ratio': 1,
+    },
+    'lumi.acpartner.mcn04:power_cost_month': {
+        'value_ratio': 1,
     },
     'lumi.acpartner.*': {
         'sensor_attributes': 'electric_power,power_cost_today,power_cost_month',
