@@ -216,7 +216,6 @@ MIOT_LOCAL_MODELS = [
     'philips.light.dlight',
     # 'philips.light.downlight',  # miio2miot
     'philips.light.sceils',
-    'philips.light.sread1',
     'philips.light.sread3',
     'philips.light.strip2',
     'philips.light.strip3',
