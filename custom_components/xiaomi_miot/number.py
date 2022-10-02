@@ -93,15 +93,6 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
         val = self._miot_property.from_dict(self._state_attrs)
         return val
 
-    @property
-    def value(self):
-        val = self.cast_value(self.native_value)
-        if val is None:
-            return val
-        if hasattr(self, '_convert_to_state_value'):
-            val = self._convert_to_state_value(val, round)
-        return val
-
     def cast_value(self, val, default=None):
         try:
             val = round(float(val), 6)
@@ -117,10 +108,6 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
             value = int(value)
         return self.set_parent_property(value)
 
-    def set_value(self, value):
-        """Set new value."""
-        return self.set_native_value(value)
-
 
 class MiotNumberActionSubEntity(MiotNumberSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, miot_action: MiotAction, option=None):
@@ -134,7 +121,7 @@ class MiotNumberActionSubEntity(MiotNumberSubEntity):
         self._available = True
         self._attr_native_value = 0
 
-    def set_value(self, value: float):
+    def set_native_value(self, value):
         """Set new value."""
         val = int(value)
         ret = self.call_parent('call_action', self._miot_action, [val])
