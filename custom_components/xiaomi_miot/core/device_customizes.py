@@ -107,6 +107,8 @@ DEVICE_CUSTOMIZES = {
     },
     'cuco.plug.cp1m': {
         'chunk_properties': 1,
+        'exclude_miot_services': 'setting,cyc',  # issues/836
+        'exclude_miot_properties': 'power_consumption,voltage,electric_current',
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
