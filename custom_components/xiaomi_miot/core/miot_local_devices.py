@@ -27,6 +27,7 @@ MIOT_LOCAL_MODELS = [
     'careli.fryer.maf03',
     'careli.fryer.maf04',
     'careli.fryer.maf07',
+    'cgllc.airm.cgd1st',
     'cgllc.airm.cgdn1',
     'chuangmi.camera.026c02',
     'chuangmi.camera.039a01',
@@ -135,6 +136,7 @@ MIOT_LOCAL_MODELS = [
     'galime.curtain.gp72',
     'gerwin.curtain.gm25xm',
     'gerwin.curtain.gm35xm',
+    'hannto.printer.lager',
     'hddz.blanket.zndrt',
     'hfjh.fishbowl.v2',
     'huayi.light.fanwy',
@@ -158,6 +160,7 @@ MIOT_LOCAL_MODELS = [
     'julun.switch.jlsw01',
     'kejia.airer.krq',
     'kejia.airer.mznpro',
+    'ksmb.treadmill.m1v1',
     'leishi.light.eps112',
     'leishi.light.eps118',
     'leshi.light.wy0b01',
@@ -180,6 +183,7 @@ MIOT_LOCAL_MODELS = [
     'miaomiaoce.airm.air01',
     'miaomiaoce.blanket.s02',
     'mibx2.fridge.v1',
+    'mibx2.washer.v1',
     'mibx2.washer.v3',
     'mibx2.washer.v5',
     # 'mibx2.washer.v7',  # -9999
@@ -211,6 +215,7 @@ MIOT_LOCAL_MODELS = [
     'ows.tow_w.mjj20a',
     'ows.tow_w.mjjs1',
     'philips.light.bceil1',
+    'philips.light.bceil2',
     # 'philips.light.bulb',  # issues/254
     # 'philips.light.cbulb',  # miio2miot
     'philips.light.dlight',
@@ -349,9 +354,11 @@ MIOT_LOCAL_MODELS = [
     'yeelink.light.mono6',
     'yeelink.light.monoa',
     'yeelink.light.monob',
+    'yeelink.light.strip8',
     'yeelink.light.stripa',
     'yeelink.switch.sw1',
     'yeelink.ven_fan.vf3',
+    'yeelink.ven_fan.vf5',
     'yh1209.airer.public',
     'ymt.flowerpot.v1',
     'yuemee.sensor_gas.56712',
@@ -402,5 +409,6 @@ MIOT_LOCAL_MODELS = [
     'zhimi.vacuum.w2',
     'zhimi.vacuum.wa1',
     'zhimi.vacuum.xa1',
+    'zhimi.vacuum.xa3',
     'zinguo.switch.b5m',
 ]
