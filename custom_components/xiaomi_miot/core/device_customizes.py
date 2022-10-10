@@ -739,6 +739,9 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
     },
+    'zhimi.airp.mb4a': {
+        'number_properties': 'favorite_speed',
+    },
     'zhimi.airpurifier.*': {
         'sensor_properties': 'illumination,motor_speed',
         'number_properties': 'favorite_level,favorite_fan_level',
