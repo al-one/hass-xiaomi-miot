@@ -243,6 +243,15 @@ DEVICE_CUSTOMIZES = {
         'number_select_properties': 'horizontal_swing_included_angle',
         'button_actions': 'loop_mode',
     },
+    'dmaker.fan.p11': {
+        'percentage_property': 'prop.2.6',  # issues/838
+    },
+    'dmaker.fan.p15': {
+        'percentage_property': 'prop.2.6',
+    },
+    'dmaker.fan.p33': {
+        'percentage_property': 'prop.2.6',
+    },
     'dmaker.fan.*': {
         'select_properties': 'horizontal_angle',
         'number_properties': 'off_delay_time',
