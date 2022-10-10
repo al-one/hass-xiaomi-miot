@@ -148,6 +148,10 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
+    'cuco.plug.cp5d': {
+        'main_miot_services': 'switch-2',
+        'exclude_miot_services': 'indicator_light',  # issues/836
+    },
     'cuco.plug.cp5pro': {
         'main_miot_services': 'switch-2',
         'exclude_miot_services': 'power_consumption,device_setting,use_ele_alert',  # issues/763
