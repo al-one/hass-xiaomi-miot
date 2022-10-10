@@ -628,6 +628,14 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'ventilation_cnt_down',
     },
 
+    'viomi.hood.v1': {
+        'main_miot_services': 'hood-2',
+        'number_properties': 'off_delay_time',
+        'miio_properties': [
+            'cruise', 'link', 'holiday', 'leftBtn', 'rightBtn', 'batLife',
+            'workRemind', 'offLight', 'offTime', 'isBound', 'isLink',
+        ],
+    },
     'viomi.vacuum.*': {
         'sensor_attributes': 'miio.s_area,miio.s_time',
         'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life',

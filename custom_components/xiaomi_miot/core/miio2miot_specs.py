@@ -1174,6 +1174,19 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.3': {'prop': 'RCSet', 'setter': 'setRCSet', 'format': 'onoff'},
         },
     },
+    'viomi.hood.v1': {
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': 'setPower', 'set_template': '{{ [value|int] }}'},
+            'prop.2.2': {'prop': 'offDetime', 'setter': 'setOffTime'},
+            'prop.3.1': {'prop': 'wind', 'setter': 'setWind', 'dict': {
+                0: 1,
+                1: 2,
+                2: 3,
+            }},
+            'prop.4.1': {'prop': 'light', 'setter': 'setLight', 'set_template': '{{ [value|int] }}'},
+        },
+    },
     'viomi.vacuum.v7': {
         'miio_props': [
             'run_state', 'mode', 'err_state', 'battary_life', 'box_type', 'mop_type', 's_time', 's_area',
