@@ -410,7 +410,6 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
         kwargs.setdefault('domain', ENTITY_DOMAIN)
         self._attr_state_class = None
         super().__init__(parent, attr, option, **kwargs)
-        self._attr_native_unit_of_measurement = self._attr_unit_of_measurement
 
     @property
     def native_value(self):
@@ -458,7 +457,6 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
         self._attr_state_class = miot_property.state_class
-        self._attr_native_unit_of_measurement = self._attr_unit_of_measurement
 
         self._prop_battery = None
         for s in self._miot_service.spec.get_services('battery', self._miot_service.name):
