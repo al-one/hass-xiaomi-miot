@@ -519,7 +519,40 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,rgb_order',
         'number_properties': 'numleds,pixel_per_step,fade_delay,step_delay,stair_travel_time',
     },
-
+    'qmi.plug.2a1c1': {
+        'main_miot_services': 'switch-2',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '3.1',
+    },
+    'qmi.plug.2a1c1:electric_power': {
+        'unit_of_measurement': 'W',
+    },
+    'qmi.plug.2a1c1:electric_current': {
+        'value_ratio': 0.001,
+        'unit_of_measurement': 'A',
+    },
+    'qmi.plug.2a1c1:voltage': {
+        'value_ratio': 0.001,
+        'unit_of_measurement': 'V',
+    },
+    'qmi.plug.2a1c1:power_consumption': {
+        'value_ratio': 1,
+        'state_class': "total_increasing",
+        'device_class': "energy",
+        'unit_of_measurement': "kWh",
+    },
+    'qmi.plug.2a1c1:power_cost_today': {
+        'value_ratio': 1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'qmi.plug.2a1c1:power_cost_month': {
+        'value_ratio': 1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
     'qushui.bed.001': {
         'chunk_properties': 1,
     },
