@@ -628,6 +628,11 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'ventilation_cnt_down',
     },
 
+    'viomi.airer.vch110': {
+        'sensor_properties': 'status',
+        'select_properties': 'dryer,swing_mode',
+        'number_properties': 'drying_time',
+    },
     'viomi.hood.v1': {
         'main_miot_services': 'hood-2',
         'number_properties': 'off_delay_time',
