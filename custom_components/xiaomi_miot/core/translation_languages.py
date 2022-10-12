@@ -269,6 +269,11 @@ TRANSLATION_LANGUAGES = {
             '标准': 'Medium',
             '强劲': 'Turbo',
         },
+        'sweep.water_state': {
+            '低': 'Low',
+            '中': 'Medium',
+            '高': 'High',
+        },
     },
 
     'pl': {
