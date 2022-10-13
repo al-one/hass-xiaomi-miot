@@ -630,6 +630,7 @@ DEVICE_CUSTOMIZES = {
 
     'viomi.airer.vch110': {
         'sensor_properties': 'status',
+        'switch_properties': '',
         'select_properties': 'dryer,swing_mode',
         'number_properties': 'drying_time',
     },
