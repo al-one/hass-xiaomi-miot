@@ -676,8 +676,8 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
         if msg:
             await self.async_set_message(msg)
             self.message = msg
-        if not msg.get('content'):
-            _LOGGER.info('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
+        if not mls:
+            _LOGGER.warning('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
         return msg
 
 
