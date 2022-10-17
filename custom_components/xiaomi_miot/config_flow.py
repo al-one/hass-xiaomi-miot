@@ -346,7 +346,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id='cloud_filter',
             data_schema=schema,
             errors=errors,
-            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', None),
+            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', {'tip': ''}),
         )
 
     async def async_step_customizing(self, user_input=None):
@@ -642,7 +642,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id='cloud_filter',
             data_schema=schema,
             errors=errors,
-            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', None),
+            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', {'tip': ''}),
         )
 
 
