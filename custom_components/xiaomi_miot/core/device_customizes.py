@@ -707,6 +707,7 @@ DEVICE_CUSTOMIZES = {
     },
     'yeelink.light.*': {
         'main_miot_services': 'light-2',
+        'switch_properties': 'bg_on',
     },
     'yeelink.switch.sw1': {
         'miot_mapping': {
