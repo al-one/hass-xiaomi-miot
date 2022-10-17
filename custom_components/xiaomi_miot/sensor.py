@@ -484,8 +484,9 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
         if val is not None:
             svd = self.custom_config_number('value_ratio') or 0
             if svd:
-                val = float(val) * svd
-            val = round(val, 3)
+                val = round(float(val) * svd, 3)
+            elif self.device_class in [DEVICE_CLASS_HUMIDITY, DEVICE_CLASS_TEMPERATURE]:
+                val = round(float(val), 3)
         return val
 
 
