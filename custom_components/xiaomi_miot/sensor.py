@@ -484,8 +484,8 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
         if val is not None:
             svd = self.custom_config_number('value_ratio') or 0
             if svd:
-                val = round(float(val) * svd, 3)
-        return val
+                val = float(val) * svd
+        return round(val, 3)
 
 
 class WaterPurifierYunmiEntity(MiioEntity, Entity):
