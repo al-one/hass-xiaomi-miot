@@ -1,5 +1,11 @@
 DEVICE_CUSTOMIZES = {
 
+    '090615.curtain.wsdml1': {
+        'switch_properties': 'on,wake_up_mode',
+        'select_properties': 'curtain-2.mode-5,default_open_position',
+        'number_properties': 'curtain-2.mode-10,default_close_position',
+    },
+
     '090615.curtain.*': {
         'exclude_miot_properties': 'motor_control',
     },
