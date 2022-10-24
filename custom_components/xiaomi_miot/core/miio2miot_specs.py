@@ -839,28 +839,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
-    'philips.light.sread1': {
-        'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright', 'setter': True},
-        },
-    },
-    'philips.light.sread2': {
-        'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright', 'setter': True},
-            'prop.2.3': {'prop': 'scene_num', 'setter': True, 'dict': {
-                'None': 0,
-                'Child Reading': 1,
-                'Adult Reading': 2,
-                'Computer': 3,
-            }},
-            'prop.3.2': {'prop': 'ambstatus', 'setter': True, 'format': 'onoff'},
-            'prop.3.3': {'prop': 'ambvalue', 'setter': True},
-            'prop.3.4': {'prop': 'notifystatus', 'setter': True, 'format': 'onoff'},
-            'prop.3.5': {'prop': 'eyecare', 'setter': True, 'format': 'onoff'},
-        },
-    },
+    'philips.light.bceiling1': 'philips.light.downlight',
     'philips.light.bulb': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
@@ -917,6 +896,28 @@ MIIO_TO_MIOT_SPECS = {
                                 '{"method": "apply_fixed_scene","params": [5]} }}',
             },
             'prop.2.6': {'prop': 'sta', 'template': '{{ 2 if value == 0 else 1 }}'},
+        },
+    },
+    'philips.light.sread1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+        },
+    },
+    'philips.light.sread2': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'scene_num', 'setter': True, 'dict': {
+                'None': 0,
+                'Child Reading': 1,
+                'Adult Reading': 2,
+                'Computer': 3,
+            }},
+            'prop.3.2': {'prop': 'ambstatus', 'setter': True, 'format': 'onoff'},
+            'prop.3.3': {'prop': 'ambvalue', 'setter': True},
+            'prop.3.4': {'prop': 'notifystatus', 'setter': True, 'format': 'onoff'},
+            'prop.3.5': {'prop': 'eyecare', 'setter': True, 'format': 'onoff'},
         },
     },
 
