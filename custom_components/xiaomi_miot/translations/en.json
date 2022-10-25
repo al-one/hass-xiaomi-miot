@@ -161,7 +161,7 @@
         },
         "error": {
             "cannot_connect": "Failed to connect the device",
-            "cannot_login": "Failed to login the xiaomi cloud account, please check password. If you always fail to login, login to mi.com in the same environment as the current network and try again.",
+            "cannot_login": "Mi account login failed, please check the account password. If the login fails after several attempts, please use another device under the same LAN as the HA host to login the Xiaomi official website (mi.com) and try again.",
             "cannot_reach": "Unable to access Xiaomi API",
             "tzinfo_error": "See: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "None devices in the xiaomi cloud account"
