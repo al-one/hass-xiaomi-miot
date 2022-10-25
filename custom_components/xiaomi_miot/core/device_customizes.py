@@ -331,6 +331,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'work_mode,hip_water_gage,woman_water_gage,hip_nozzle_position,woman_nozzle_pos,'
                              'seat_temperature,wind_temperature,water_temperature,auto_mode',
     },
+    'izq.sensor_occupy.24': {
+        'interval_seconds': 15,
+        'sensor_properties': 'illumination,distance,has_someone_duration,no_one_duration',
+        'number_properties': 'no_one_determine_time',
+    },
 
     'leshi.light.wy0b01': {
         'chunk_properties': 1,
