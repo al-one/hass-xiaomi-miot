@@ -568,6 +568,7 @@ class WaterPurifierYunmiSubEntity(BaseSubEntity):
 class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
     _filter_homes = None
     _exclude_types = None
+    _has_none_message = False
 
     def __init__(self, hass, cloud: MiotCloud):
         self.hass = hass
@@ -675,11 +676,14 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
             m['roomName'] = hre.get('roomName')
             msg = m
             break
+        if not mls:
+            if not self._has_none_message:
+                _LOGGER.warning('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
+            self._has_none_message = True
         if msg:
             await self.async_set_message(msg)
             self.message = msg
-        if not mls:
-            _LOGGER.warning('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
+            self._has_none_message = False
         return msg
 
 
