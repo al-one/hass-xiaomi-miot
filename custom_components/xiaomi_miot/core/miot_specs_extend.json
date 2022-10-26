@@ -207,31 +207,6 @@
 
   "dmaker.fan.p5": [
     {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:horizontal-angle",
-          "format": "uint16",
-          "access": ["read", "write"],
-          "value-list": [
-            {"value": 30, "description": "30"},
-            {"value": 60, "description": "60"},
-            {"value": 90, "description": "90"},
-            {"value": 120, "description": "120"},
-            {"value": 140, "description": "140"}
-          ]
-        },
-        {
-          "iid": 102,
-          "type": "urn:miot-spec-v2:property:speed-level",
-          "format": "uint16",
-          "access": ["read", "write"],
-          "value-range": [0, 100, 1]
-        }
-      ]
-    },
-    {
       "iid": 200,
       "type": "urn:dmaker-spec:service:off-delay-time",
       "properties": [

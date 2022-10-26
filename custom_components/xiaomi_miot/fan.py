@@ -104,7 +104,10 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             if not self._prop_speed:
                 self._prop_speed = self._fan_control.get_property('fan_level')
             if not self._prop_direction:
-                self._prop_direction = self._fan_control.get_property('horizontal_angle', 'vertical_angle')
+                self._prop_direction = self._fan_control.get_property(
+                    'horizontal_swing_included_angle', 'horizontal_angle',
+                    'vertical_swing_included_angle', 'vertical_angle',
+                )
             if not self._prop_oscillate:
                 self._prop_oscillate = self._fan_control.get_property('horizontal_swing', 'vertical_swing')
 
