@@ -642,11 +642,19 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'ventilation_cnt_down',
     },
 
-    'viomi.airer.vch110': {
+    'viomi.airer.xy108': {
+        'switch_properties': 'dryer',
+    },
+    'viomi.airer.*': {
         'sensor_properties': 'status',
         'switch_properties': '',
         'select_properties': 'dryer,swing_mode',
         'number_properties': 'drying_time',
+        'cover_position_mapping': {
+            0: 50,   # Normal
+            1: 100,  # Rising-limit
+            2: 0,    # Descent-limit
+        },
     },
     'viomi.hood.v1': {
         'main_miot_services': 'hood-2',
