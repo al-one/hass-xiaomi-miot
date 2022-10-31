@@ -53,6 +53,8 @@ def is_offline_exception(exc):
     err = f'{exc}'
     ret = 'Unable to discover the device' in err
     if not ret:
+        ret = 'No response from the device' in err
+    if not ret:
         ret = 'OSError: [Errno 64] Host is down' in err
     if not ret:
         ret = 'OSError: [Errno 65] No route to host' in err
