@@ -160,6 +160,18 @@ DEVICE_CUSTOMIZES = {
         'main_miot_services': 'switch-2',
         'exclude_miot_services': 'indicator_light',  # issues/836
     },
+    'cuco.plug.cp5prd': {
+        'main_miot_services': 'switch-2',
+        'exclude_miot_services': 'power_consumption,device_setting,use_ele_alert',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '10.1',
+    },
+    'cuco.plug.cp5prd:power_cost_today': {
+        'value_ratio': 1,
+    },
+    'cuco.plug.cp5prd:power_cost_month': {
+        'value_ratio': 1,
+    },
     'cuco.plug.cp5pro': {
         'main_miot_services': 'switch-2',
         'exclude_miot_services': 'power_consumption,device_setting,use_ele_alert',  # issues/763
@@ -168,15 +180,9 @@ DEVICE_CUSTOMIZES = {
     },
     'cuco.plug.cp5pro:power_cost_today': {
         'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'cuco.plug.cp5pro:power_cost_month': {
         'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'cuco.plug.sp5': {
         'main_miot_services': 'switch-2',
