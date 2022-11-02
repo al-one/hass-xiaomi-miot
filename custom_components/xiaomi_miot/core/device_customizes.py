@@ -783,6 +783,14 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'brightness,temperature_display_unit',
         'number_properties': 'favorite_speed,favorite_level',
     },
+    'zhimi.airp.sa4': {
+        'switch_properties': 'alarm',
+        'number_properties': 'air_purifier_favorite.fan_level,aqi_updata_heartbeat',
+        'light_services': 'screen',
+        'brightness_for_on': 0,
+        'brightness_for_off': 2,
+        'button_actions': 'reset_filter_life',
+    },
     'zhimi.airpurifier.*': {
         'sensor_properties': 'illumination,motor_speed',
         'number_properties': 'favorite_level,favorite_fan_level',
