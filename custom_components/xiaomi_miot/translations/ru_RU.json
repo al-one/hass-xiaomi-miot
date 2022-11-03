@@ -3,7 +3,7 @@
         "flow_title": "Xiaomi Miot Auto",
         "step": {
             "user": {
-                "title": "Выберите дейвствие",
+                "title": "Выберите действие",
                 "data": {
                     "action": "Действие"
                 }
