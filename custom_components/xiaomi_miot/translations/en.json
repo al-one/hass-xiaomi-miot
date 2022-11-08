@@ -51,6 +51,7 @@
                     "model": "Select device model",
                     "model_specified": "Specified device model (Optional)",
                     "only_main_entity": "Only main (parent) entities",
+                    "reset_customizes": "Reset to default customizes",
 
                     "binary_sensor_attributes": "binary_sensor_attributes",
                     "binary_sensor_properties": "binary_sensor_properties",
@@ -116,7 +117,7 @@
             "none_devices": "None devices in the xiaomi cloud account"
         },
         "abort": {
-            "config_saved": "Configuration saved\n{tip}\n\nSome customizable options require [reload integration](/developer-tools/yaml) to take effect.",
+            "config_saved": "Configuration saved! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nSome customizable options require [reload integration](/developer-tools/yaml) to take effect.",
             "already_configured": "Device is already configured",
             "not_xiaomi_miio": "Not a Xiaomi miio/miot device."
         }

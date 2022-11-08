@@ -397,6 +397,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         last_step = self.context.pop('last_step', False)
         customize_key = self.context.pop('customize_key', None)
         if last_step and customize_key:
+            reset = user_input.pop('reset_customizes', None)
             b2s = user_input.pop('bool2selects', None) or []
             for k in b2s:
                 user_input[k] = True
@@ -406,6 +407,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 for k, v in user_input.items()
                 if v not in [' ', '', None, vol.UNDEFINED]
             }
+            if reset:
+                entry_data[via].pop(customize_key, None)
             if entry:
                 self.hass.config_entries.async_update_entry(entry, data=entry_data)
                 await self.hass.config_entries.async_reload(entry.entry_id)
@@ -510,6 +513,9 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             schema.update({
                 vol.Optional(k, default=customizes.get(k, vol.UNDEFINED), description=k): v
                 for k, v in options.items()
+            })
+            schema.update({
+                vol.Optional('reset_customizes', default=False): cv.boolean,
             })
             customizes.pop('bool2selects', None)
             customizes.pop('extend_miot_specs', None)

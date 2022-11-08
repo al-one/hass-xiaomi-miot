@@ -51,6 +51,7 @@
                     "model": "Seleziona modello dispositivo",
                     "model_specified": "Modello dispositivo specificato (opzionale)",
                     "only_main_entity": "Solo entità principali (parent)",
+                    "reset_customizes": "Ripristina le opzioni predefinite",
                     "bool2selects": "Presonalizza opzioni"
                 }
             }
@@ -63,7 +64,7 @@
             "none_devices": "Nessun dispositivo nell'account xiaomi cloud"
         },
         "abort": {
-            "config_saved": "Configurazione salvata\n{tip}\n\nAlcune opzioni di personalizzazione richiedono [reload integration](/developer-tools/yaml) per avere effetto.",
+            "config_saved": "Configurazione salvata! [Personalizza di nuovo](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlcune opzioni di personalizzazione richiedono [reload integration](/developer-tools/yaml) per avere effetto.",
             "already_configured": "Il dispositivo è già configurato",
             "not_xiaomi_miio": "Non è un dispositivo Xiaomi miio/miot."
         }

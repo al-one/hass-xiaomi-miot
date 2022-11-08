@@ -51,6 +51,7 @@
                     "model": "选择设备型号",
                     "model_specified": "指定设备型号 (可选)",
                     "only_main_entity": "仅主(父)实体",
+                    "reset_customizes": "重置为默认自定义",
                     "bool2selects": "自定义选项"
                 }
             }
@@ -63,7 +64,7 @@
             "none_devices": "该小米账户下没有设备"
         },
         "abort": {
-            "config_saved": "配置已保存\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
+            "config_saved": "配置已保存！[再次自定义](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
             "already_configured": "该设备已经配置过",
             "not_xiaomi_miio": "该设备不支持miio/miot协议"
         }
