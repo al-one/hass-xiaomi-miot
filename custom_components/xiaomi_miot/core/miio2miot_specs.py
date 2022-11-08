@@ -1388,6 +1388,18 @@ MIIO_TO_MIOT_SPECS = {
             },
         },
     },
+    'yeelink.bhf_light.v3': {
+        'extend_model': 'yeelink.bhf_light.v2',
+        'miio_specs': {
+            'prop.2.3': {'prop': 'bh_mode', 'dict': {
+                'bh_off':   5,
+                'warmwind': 1,
+                'venting':  2,
+                'drying':   3,
+                'coolwind': 4,
+            }, 'default': 5},
+        },
+    },
     'yeelink.bhf_light.v5': {
         'miio_template': 'yeelink_bhf_light_v5_miio_props',
         'miio_specs': {

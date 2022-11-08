@@ -818,6 +818,52 @@
     }
   ],
 
+  "yeelink.bhf_light.v3": [
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:ptc-bath-heater",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 1, "description": "Idle"},
+            {"value": 2, "description": "Heat"},
+            {"value": 3, "description": "Ventilate"},
+            {"value": 4, "description": "Dry"},
+            {"value": 5, "description": "Fan"}
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:stop-working",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 4,
+      "type": "urn:miot-spec-v2:service:fan-control",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:fan-level",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Medium"},
+            {"value": 3, "description": "High"}
+          ]
+        }
+      ]
+    }
+  ],
   "yeelink.bhf_light.v5": [
     {
       "iid": 3,
