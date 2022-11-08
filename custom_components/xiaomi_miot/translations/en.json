@@ -25,7 +25,7 @@
                     "captcha": "Captcha",
                     "server_country": "Server location of MiCloud",
                     "conn_mode": "Connection mode for device",
-                    "filter_models": "Filter devices via model/WiFi (Advanced)"
+                    "filter_models": "Filter devices via model/home/WiFi (Advanced)"
                 }
             },
             "cloud_filter": {
@@ -34,6 +34,8 @@
                 "data": {
                     "filter_model": "Filter Device Model",
                     "model_list": "Device Model List",
+                    "filter_home_id": "Filter Home",
+                    "home_id_list": "Home List",
                     "filter_ssid": "Filter WiFi SSID",
                     "ssid_list": "WiFi SSID List",
                     "filter_bssid": "Filter WiFi BSSID",
@@ -151,6 +153,8 @@
                 "data": {
                     "filter_model": "Filter Device Model",
                     "model_list": "Device Model List",
+                    "filter_home_id": "Filter Home",
+                    "home_id_list": "Home List",
                     "filter_ssid": "Filter WiFi SSID",
                     "ssid_list": "WiFi SSID List",
                     "filter_bssid": "Filter WiFi BSSID",

@@ -25,7 +25,7 @@
                     "captcha": "验证码",
                     "server_country": "小米服务器",
                     "conn_mode": "设备连接模式",
-                    "filter_models": "通过型号/WiFi筛选设备 (高级模式，新手勿选)"
+                    "filter_models": "通过型号/家庭/WiFi筛选设备 (高级模式，新手勿选)"
                 }
             },
             "cloud_filter": {
@@ -34,6 +34,8 @@
                 "data": {
                     "filter_model": "筛选设备型号",
                     "model_list": "设备型号列表",
+                    "filter_home_id": "筛选家庭",
+                    "home_id_list": "家庭列表",
                     "filter_ssid": "筛选 WiFi SSID",
                     "ssid_list": "WiFi SSID 列表",
                     "filter_bssid": "筛选 WiFi BSSID",
@@ -98,6 +100,8 @@
                 "data": {
                     "filter_model": "筛选设备型号",
                     "model_list": "设备型号列表",
+                    "filter_home_id": "筛选家庭",
+                    "home_id_list": "家庭列表",
                     "filter_ssid": "筛选 WiFi SSID",
                     "ssid_list": "WiFi SSID 列表",
                     "filter_bssid": "筛选 WiFi BSSID",

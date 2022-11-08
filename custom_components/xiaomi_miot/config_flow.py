@@ -157,16 +157,20 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None, via_did
     else:
         grp = {}
         vls = {}
-        fls = ['did'] if via_did else ['model', 'ssid', 'bssid']
+        fls = ['did'] if via_did else ['model', 'home_id', 'ssid', 'bssid']
         for d in dvs:
             for f in fls:
                 v = d.get(f)
+                if not grp:
+                    _LOGGER.warning('get_cloud_filter_schema: %s', d)
                 if v is None:
                     continue
                 grp.setdefault(v, 0)
                 grp[v] += 1
                 vls.setdefault(f, {})
                 des = '<empty>' if v == '' else v
+                if f == 'home_id':
+                    des = d.get('home_name') or des
                 if f in ['did']:
                     if MiotCloud.is_hide(d):
                         continue

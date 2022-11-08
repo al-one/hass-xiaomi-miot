@@ -25,7 +25,7 @@
                     "captcha": "Captcha",
                     "server_country": "Posizione server MiCloud",
                     "conn_mode": "Modalità di connessione del dispostivo",
-                    "filter_models": "Filtra dispositivi per modello/WiFi (Avanzato)"
+                    "filter_models": "Filtra dispositivi per modello/famiglia/WiFi (Avanzato)"
                 }
             },
             "cloud_filter": {

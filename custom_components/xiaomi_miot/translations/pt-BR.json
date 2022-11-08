@@ -24,7 +24,7 @@
                     "password": "Senha",
                     "server_country": "Região da MiCloud",
                     "conn_mode": "Modo de conexão com o dispositivo",
-                    "filter_models": "Filtro de dispositivo via model/WiFi"
+                    "filter_models": "Filtro de dispositivo via model/home/WiFi (Advanced)"
                 }
             },
             "cloud_filter": {

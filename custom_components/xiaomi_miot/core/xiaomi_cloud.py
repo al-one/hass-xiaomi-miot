@@ -293,7 +293,7 @@ class MiotCloud(micloud.MiCloud):
         dat = {}
         if filters is None:
             filters = {}
-        fls = ['ssid', 'bssid', 'model', 'did']
+        fls = ['ssid', 'bssid', 'home_id', 'model', 'did']
         dvs = await self.async_get_devices(renew=renew) or []
         for d in dvs:
             if not isinstance(d, dict):
