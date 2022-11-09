@@ -1372,13 +1372,24 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
-            'prop.3.1': {'prop': 'bh_mode', 'dict': {
-                'bh_off':   1,  # stop_bath_heater
-                'warmwind': 2,
-                'venting':  3,
-                'drying':   4,
-                'coolwind': 5,
-            }, 'default': 1},
+            'prop.3.1': {
+                'prop': 'bh_mode',
+                'setter': True,
+                'dict': {
+                    'bh_off':   1,  # stop_bath_heater
+                    'warmwind': 2,
+                    'venting':  3,
+                    'drying':   4,
+                    'coolwind': 5,
+                },
+                'default': 1,
+                'set_template': '{{ '
+                                '["warmwind", 2] if value == 2 else '
+                                '["venting", 0] if value == 3 else '
+                                '["drying", 0] if value == 4 else '
+                                '["coolwind", 0] if value == 5 else '
+                                '["bh_off", 0] }}',
+            },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
             'prop.4.1': {
                 'prop': 'fan_speed_idx',
