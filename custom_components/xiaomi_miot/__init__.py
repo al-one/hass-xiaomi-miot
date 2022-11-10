@@ -450,16 +450,10 @@ async def async_setup_component_services(hass):
     async def async_get_token(call):
         nam = call.data.get('name')
         kwd = f'{nam}'.strip().lower()
-        cls = []
-        for k, v in hass.data[DOMAIN].items():
-            if isinstance(v, dict):
-                v = v.get(CONF_XIAOMI_CLOUD)
-            if isinstance(v, MiotCloud):
-                cls.append(v)
         cnt = 0
         lst = []
         dls = {}
-        for cld in cls:
+        for cld in MiotCloud.all_clouds(hass):
             dvs = await cld.async_get_devices() or []
             for d in dvs:
                 if not isinstance(d, dict):
@@ -490,9 +484,30 @@ async def async_setup_component_services(hass):
 
     hass.services.async_register(
         DOMAIN, 'get_token', async_get_token,
-        schema=XIAOMI_MIIO_SERVICE_SCHEMA.extend(
-        {
+        schema=XIAOMI_MIIO_SERVICE_SCHEMA.extend({
             vol.Required('name', default=''): cv.string,
+        }),
+    )
+
+    async def async_renew_devices(call):
+        nam = call.data.get('username')
+        for cld in MiotCloud.all_clouds(hass):
+            if nam and str(nam) not in [cld.user_id, cld.username]:
+                continue
+            dvs = await cld.async_renew_devices()
+            cnt = len(dvs)
+            hass.bus.async_fire(f'{DOMAIN}.renew_devices', {
+                CONF_USERNAME: cld.username,
+                'user_id': cld.user_id,
+                'device_count': cnt,
+            })
+            _LOGGER.info('Renew xiaomi devices for %s. Got %s devices.', cld.username, cnt)
+        return True
+
+    hass.services.async_register(
+        DOMAIN, 'renew_devices', async_renew_devices,
+        schema=vol.Schema({
+            vol.Optional('username', default=''): cv.string,
         }),
     )
 

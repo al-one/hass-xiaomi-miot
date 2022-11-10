@@ -19,16 +19,13 @@ def async_register(hass: HomeAssistant, register: system_health.SystemHealthRegi
 async def system_health_info(hass):
     """Get info for the info page."""
     mic = None
+    uas = {}
     uds = {}
     all_devices = {}
-    for v in hass.data[DOMAIN].values():
-        if isinstance(v, dict):
-            v = v.get(CONF_XIAOMI_CLOUD)
-        if isinstance(v, MiotCloud):
-            mic = v
-            if mic.user_id not in uds:
-                uds[mic.user_id] = await mic.async_get_devices_by_key('did') or {}
-                all_devices.update(uds[mic.user_id])
+    for mic in MiotCloud.all_clouds(hass):
+        uas[mic.user_id] = mic
+        uds[mic.unique_id] = await mic.async_get_devices_by_key('did') or {}
+        all_devices.update(uds[mic.unique_id])
 
     api = mic.get_api_url('') if mic else 'https://api.io.mi.com'
     api_spec = 'https://miot-spec.org/miot-spec-v2/spec/services'
@@ -39,7 +36,7 @@ async def system_health_info(hass):
         'can_reach_spec': system_health.async_check_can_reach_url(
             hass, api_spec, 'https://home.miot-spec.com/?cant-reach',
         ),
-        'logged_accounts': len(uds),
+        'logged_accounts': len(uas),
         'total_devices': len(all_devices),
     }
 

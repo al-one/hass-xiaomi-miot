@@ -319,6 +319,15 @@ data:
   entity_id: media_player.xiaoai_lx04_xxxx
 ```
 
+#### [`xiaomi_miot.renew_devices`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.renew_devices)
+```yaml
+service: xiaomi_miot.renew_devices
+data:
+  username: 80001234 # Xiaomi Account ID / Email / Phone
+```
+
+> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.renew_devices`
+
 #### [`xiaomi_miot.request_xiaomi_api`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.request_xiaomi_api)
 ```yaml
 service: xiaomi_miot.request_xiaomi_api

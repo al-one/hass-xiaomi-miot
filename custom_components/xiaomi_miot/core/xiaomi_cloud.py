@@ -13,7 +13,7 @@ from homeassistant.const import *
 from homeassistant.helpers.storage import Store
 from homeassistant.components import persistent_notification
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_XIAOMI_CLOUD
 from .utils import RC4
 from micloud import miutils
 from micloud.micloudexception import MiCloudException
@@ -671,3 +671,13 @@ class MiotCloud(micloud.MiCloud):
     @staticmethod
     def decrypt_data(pwd, data):
         return RC4(base64.b64decode(pwd)).init1024().crypt(base64.b64decode(data))
+
+    @staticmethod
+    def all_clouds(hass):
+        cls = {}
+        for k, v in hass.data[DOMAIN].items():
+            if isinstance(v, dict):
+                v = v.get(CONF_XIAOMI_CLOUD)
+            if isinstance(v, MiotCloud):
+                cls[v.unique_id] = v
+        return list(cls.values())

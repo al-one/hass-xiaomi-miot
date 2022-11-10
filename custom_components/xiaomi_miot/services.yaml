@@ -279,6 +279,15 @@ get_device_data:
             - week
             - month
 
+renew_devices:
+  description: Renew xiaomi devices.
+  fields:
+    username:
+      description: Xiaomi Account ID / Email / Phone.
+      required: false
+      selector:
+        text:
+
 get_token:
   description: Get xiaomi device token.
   fields:
