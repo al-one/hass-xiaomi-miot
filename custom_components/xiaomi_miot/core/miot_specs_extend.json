@@ -714,18 +714,13 @@
       ]
     }
   ],
-  "viomi.waterheater.u7": "viomi.waterheater.u8",
-  "viomi.waterheater.u8": [
+  "viomi.waterheater.u7": [
     {
       "iid": 2,
       "properties": [
         {
-          "iid": 3,
-          "access": ["read", "notify"]
-        },
-        {
-          "iid": 5,
-          "access": ["read", "write", "notify"]
+          "iid": 4,
+          "access": ["read", "write"]
         },
         {
           "iid": 102,
@@ -752,11 +747,59 @@
     },
     {
       "iid": 200,
-      "type": "urn:miot-spec-v2:service:cruise-appointmen",
+      "type": "urn:miot-spec-v2:service:custom",
       "properties": [
         {
           "iid": 201,
-          "type": "urn:miot-spec-v2:property:on",
+          "type": "urn:miot-spec-v2:property:preheating",
+          "format": "bool",
+          "access": ["read", "write"]
+        }
+      ]
+    }
+  ],
+  "viomi.waterheater.u8": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 3,
+          "access": ["read"]
+        },
+        {
+          "iid": 5,
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+              {"value": 0, "description": "Custom"},
+              {"value": 1, "description": "Children"},
+              {"value": 2, "description": "Comfortable"},
+              {"value": 3, "description": "Old Man"},
+              {"value": 4, "description": "Kitchen"}
+          ]
+        },
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:water-velocity",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "L/min",
+          "value-range": [0, 255, 1]
+        }
+      ]
+    },
+    {
+      "iid": 200,
+      "type": "urn:miot-spec-v2:service:custom",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:preheating",
           "format": "bool",
           "access": ["read", "write"]
         }
@@ -784,7 +827,7 @@
           "iid": 103,
           "type": "urn:miot-spec-v2:property:water-velocity",
           "format": "uint8",
-          "access": ["read", "notify"],
+          "access": ["read"],
           "unit": "L/min",
           "value-range": [0, 255, 1]
         }
@@ -792,13 +835,13 @@
     },
     {
       "iid": 200,
-      "type": "urn:miot-spec-v2:service:cruise-appointmen",
+      "type": "urn:miot-spec-v2:service:custom",
       "properties": [
         {
           "iid": 201,
-          "type": "urn:miot-spec-v2:property:on",
+          "type": "urn:miot-spec-v2:property:preheating",
           "format": "bool",
-          "access": ["read", "write", "notify"]
+          "access": ["read", "write"]
         }
       ]
     }
