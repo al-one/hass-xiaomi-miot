@@ -111,13 +111,22 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         if self._prop_brightness:
             self._supported_features |= SUPPORT_BRIGHTNESS
             self._attr_supported_color_modes.add(COLOR_MODE_BRIGHTNESS)
+        self._is_percentage_color_temp = None
         if self._prop_color_temp:
             self._supported_features |= SUPPORT_COLOR_TEMP
             self._attr_supported_color_modes.add(COLOR_MODE_COLOR_TEMP)
-            self._vars['color_temp_min'] = self._prop_color_temp.range_min() or 3000
-            self._vars['color_temp_max'] = self._prop_color_temp.range_max() or 5700
-            self._attr_min_mireds = self.translate_mired(self._vars['color_temp_max'])
-            self._attr_max_mireds = self.translate_mired(self._vars['color_temp_min'])
+            self._is_percentage_color_temp = self._prop_color_temp.unit in ['percentage', '%']
+            if self._is_percentage_color_temp:
+                # issues/870
+                self._vars['color_temp_min'] = self._prop_color_temp.range_min()
+                self._vars['color_temp_max'] = self._prop_color_temp.range_max()
+                self._attr_min_mireds = self._vars['color_temp_min']
+                self._attr_max_mireds = self._vars['color_temp_max']
+            else:
+                self._vars['color_temp_min'] = self._prop_color_temp.range_min() or 3000
+                self._vars['color_temp_max'] = self._prop_color_temp.range_max() or 5700
+                self._attr_min_mireds = self.translate_mired(self._vars['color_temp_max'])
+                self._attr_max_mireds = self.translate_mired(self._vars['color_temp_min'])
             self._vars['color_temp_sum'] = self._vars['color_temp_min'] + self._vars['color_temp_max']
             self._vars['mireds_sum'] = self._attr_min_mireds + self._attr_max_mireds
         if self._prop_color:
@@ -267,10 +276,9 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         return self.translate_mired(num)
 
     def translate_mired(self, num):
-        if prop := self._prop_color_temp:
-            if prop.unit in ['percentage', '%']:
-                # issues/870
-                return 100 - num
+        if self._is_percentage_color_temp:
+            # issues/870
+            return num
         try:
             return round(1000000 / num)
         except TypeError:
