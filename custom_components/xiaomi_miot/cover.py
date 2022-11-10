@@ -204,7 +204,12 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
                 continue
             if p.range_min() <= pos <= p.range_max():
                 return self.set_miot_property(srv.iid, p.iid, pos)
-        raise NotImplementedError()
+        cur = self.current_cover_position
+        if pos > cur:
+            return self.open_cover()
+        if pos < cur:
+            return self.close_cover()
+        return False
 
     @property
     def is_closed(self):
