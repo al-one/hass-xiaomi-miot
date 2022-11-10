@@ -298,6 +298,7 @@ DEVICE_CUSTOMIZES = {
     },
 
     'era.diffuser.ws01': {
+        'chunk_properties': 1,
         'select_properties': 'mode,fan_level,scene',
         'number_properties': 'worktime,sleeptime',
     },
