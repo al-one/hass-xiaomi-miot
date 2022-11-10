@@ -1299,6 +1299,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.103': {'prop': 'velocity'},
         },
     },
+    'viomi.waterheater.u7': 'viomi.waterheater.u8',
     'viomi.waterheater.u8': {
         # ["washStatus","velocity","waterTemp","targetTemp","errStatus","preHeatTime1","preHeatTime2","isPreHeatNow"]
         # [2          ,    4      ,     44    ,       44   ,      0    ,  "0-6-10"   ,   "0-16-22"   ,   0]
