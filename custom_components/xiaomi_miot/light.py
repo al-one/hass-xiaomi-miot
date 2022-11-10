@@ -266,8 +266,11 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             num = self._vars.get('color_temp_sum') - num
         return self.translate_mired(num)
 
-    @staticmethod
-    def translate_mired(num):
+    def translate_mired(self, num):
+        if prop := self._prop_color_temp:
+            if prop.unit in ['percentage', '%']:
+                # issues/870
+                return 100 - num
         try:
             return round(1000000 / num)
         except TypeError:
