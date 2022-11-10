@@ -297,6 +297,11 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'delete_timer,clean_info,map_view,frame_info',
     },
 
+    'era.diffuser.ws01': {
+        'select_properties': 'mode,fan_level,scene',
+        'number_properties': 'worktime,sleeptime',
+    },
+
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
     },

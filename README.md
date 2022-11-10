@@ -206,7 +206,7 @@ This component has added support for configuration reloading (to avoid having to
 - 🦠 [steriliser](https://home.miot-spec.com/s/steriliser)
 - 🪟 [curtain](https://home.miot-spec.com/s/curtain) / [window-opener](https://home.miot-spec.com/s/wopener) / [airer](https://home.miot-spec.com/s/airer)
 - 🧹 [vacuum](https://home.miot-spec.com/s/vacuum) / [mopping-machine](https://home.miot-spec.com/s/.mop)
-- 💦 [humidifier](https://home.miot-spec.com/s/humidifier) / [dehumidifier](https://home.miot-spec.com/s/derh)
+- 💦 [humidifier](https://home.miot-spec.com/s/humidifier) / [dehumidifier](https://home.miot-spec.com/s/derh) / [diffuser](https://home.miot-spec.com/s/diffuser)
 - 🍃 [air-monitor](https://home.miot-spec.com/s/airmonitor) / 🪴 [plant-monitor](https://home.miot-spec.com/s/plantmonitor)
 - 🛏 [bed](https://home.miot-spec.com/s/bed) / [blanket](https://home.miot-spec.com/s/blanket) / 😴 [sleep-monitor](https://home.miot-spec.com/s/lunar)
 - 💆 [massager](https://home.miot-spec.com/s/massage) / [magic-touch](https://home.miot-spec.com/s/magic_touch)

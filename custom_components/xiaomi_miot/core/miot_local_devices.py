@@ -134,6 +134,7 @@ MIOT_LOCAL_MODELS = [
     'dreame.vacuum.r2228o',
     'dreame.vacuum.r2233',
     'e11035.airer.t10l',
+    'era.diffuser.ws01',
     'fawad.airrtc.30011',
     'fawad.airrtc.30012',
     'fawad.airrtc.40011',

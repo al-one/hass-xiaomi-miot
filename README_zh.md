@@ -251,7 +251,7 @@ xiaomi_miot:
 - 🦠 [消毒柜](https://home.miot-spec.com/s/steriliser)
 - 🪟 [窗帘电机](https://home.miot-spec.com/s/curtain) / [开窗器](https://home.miot-spec.com/s/wopener) / [晾衣机](https://home.miot-spec.com/s/airer)
 - 🧹 [扫地/扫拖机器人](https://home.miot-spec.com/s/vacuum) / [擦地机](https://home.miot-spec.com/s/.mop)
-- 💦 [加湿器](https://home.miot-spec.com/s/humidifier) / [除湿器](https://home.miot-spec.com/s/derh)
+- 💦 [加湿器](https://home.miot-spec.com/s/humidifier) / [除湿器](https://home.miot-spec.com/s/derh) / [除味器](https://home.miot-spec.com/s/diffuser)
 - 🍃 [空气检测仪](https://home.miot-spec.com/s/airmonitor) / 🪴 [植物监测仪](https://home.miot-spec.com/s/plantmonitor)
 - 🛏 [电动床](https://home.miot-spec.com/s/bed) / [电热毯/水暖床垫](https://home.miot-spec.com/s/blanket) / 😴 [睡眠监测仪](https://home.miot-spec.com/s/lunar)
 - 💆 [按摩椅](https://home.miot-spec.com/s/massage) / [按摩仪](https://home.miot-spec.com/s/magic_touch)
