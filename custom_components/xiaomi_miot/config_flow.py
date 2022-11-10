@@ -618,6 +618,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, DEFAULT_CONN_MODE)):
                 vol.In(CONN_MODES),
             vol.Optional('renew_devices', default=user_input.get('renew_devices', False)): bool,
+            vol.Optional('disable_message', default=user_input.get('disable_message', False)): bool,
         })
         return self.async_show_form(
             step_id='cloud',
@@ -640,6 +641,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             cfg = prev_input['xiaomi_cloud'].to_config() or {}
             cfg.update({
                 CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
+                'disable_message': prev_input.get('disable_message'),
                 **(user_input or {}),
             })
             self.hass.config_entries.async_update_entry(

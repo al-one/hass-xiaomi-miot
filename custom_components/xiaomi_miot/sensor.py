@@ -61,7 +61,8 @@ SERVICE_TO_METHOD = {}
 async def async_setup_entry(hass, config_entry, async_add_entities):
     cfg = hass.data[DOMAIN].get(config_entry.entry_id) or {}
     mic = cfg.get(CONF_XIAOMI_CLOUD)
-    if isinstance(mic, MiotCloud) and mic.user_id:
+    config_data = config_entry.data or {}
+    if isinstance(mic, MiotCloud) and mic.user_id and not config_data.get('disable_message'):
         hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
         if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
             entity = MihomeMessageSensor(hass, mic)
