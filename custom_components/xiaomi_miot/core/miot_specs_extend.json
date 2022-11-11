@@ -14,6 +14,47 @@
       ]
     }
   ],
+  "ainice.motion.bt": [
+    {
+      "iid": 2,
+      "properties": [
+        {"iid": 2, "type": "urn:miot-spec-v2:property:bt-name", "description": "BT Name"},
+        {"iid": 3, "type": "urn:miot-spec-v2:property:bt-code", "description": "BT Code"},
+        {"iid": 4, "type": "urn:miot-spec-v2:property:online-status", "description": "Online Status"},
+        {"iid": 5, "type": "urn:miot-spec-v2:property:motion-state", "description": "Motion State"},
+        {"iid": 6, "type": "urn:miot-spec-v2:property:offline-timeout", "description": "Offline Timeout"},
+        {"iid": 7, "type": "urn:miot-spec-v2:property:motion-timeout", "description": "Motion Timeout"},
+        {"iid": 8, "type": "urn:miot-spec-v2:property:online-level", "description": "Online Level"},
+        {"iid": 9, "type": "urn:miot-spec-v2:property:offline-level", "description": "Offline Level"},
+        {"iid": 10, "type": "urn:miot-spec-v2:property:online-duration", "description": "Online Duration"},
+        {"iid": 11, "type": "urn:miot-spec-v2:property:offline-duration", "description": "Offline Duration"},
+        {"iid": 12, "type": "urn:miot-spec-v2:property:gesture-enabled", "description": "Gesture Enabled"},
+        {"iid": 13, "type": "urn:miot-spec-v2:property:gesture-switch", "description": "Gesture Switch"},
+        {"iid": 14, "type": "urn:miot-spec-v2:property:ble-in-threshold", "description": "Ble In Threshold"},
+        {"iid": 15, "type": "urn:miot-spec-v2:property:ble-out-threshold", "description": "Ble Out Threshold"},
+        {"iid": 16, "type": "urn:miot-spec-v2:property:ble-near", "description": "Ble Near"},
+        {"iid": 17, "type": "urn:miot-spec-v2:property:ble-far-timeout", "description": "Ble Far Timeout"},
+        {"iid": 18, "type": "urn:miot-spec-v2:property:light-off", "description": "Indicator Light Off"},
+        {"iid": 21, "type": "urn:miot-spec-v2:property:motion-status", "description": "Motion Status"},
+        {"iid": 23, "type": "urn:miot-spec-v2:property:ble-far-timeout", "description": "Ble Far Timeout"},
+        {"iid": 24, "type": "urn:miot-spec-v2:property:bt-status", "description": "BT1 Status"},
+        {"iid": 25, "type": "urn:miot-spec-v2:property:bt-status", "description": "BT2 Status"},
+        {"iid": 26, "type": "urn:miot-spec-v2:property:bt-status", "description": "BT3 Status"},
+        {"iid": 27, "type": "urn:miot-spec-v2:property:bt-status", "description": "BT4 Status"},
+        {"iid": 28, "type": "urn:miot-spec-v2:property:bt-status", "description": "BT5 Status"},
+        {"iid": 29, "type": "urn:miot-spec-v2:property:bt-status", "description": "BT6 Status"},
+        {"iid": 30, "type": "urn:miot-spec-v2:property:bt-status", "description": "BT7 Status"},
+        {"iid": 31, "type": "urn:miot-spec-v2:property:bt1-config", "description": "BT1 Config"},
+        {"iid": 32, "type": "urn:miot-spec-v2:property:bt2-config", "description": "BT2 Config"},
+        {"iid": 33, "type": "urn:miot-spec-v2:property:bt3-config", "description": "BT3 Config"},
+        {"iid": 34, "type": "urn:miot-spec-v2:property:bt4-config", "description": "BT4 Config"},
+        {"iid": 35, "type": "urn:miot-spec-v2:property:bt5-config", "description": "BT5 Config"},
+        {"iid": 36, "type": "urn:miot-spec-v2:property:bt6-config", "description": "BT6 Config"},
+        {"iid": 37, "type": "urn:miot-spec-v2:property:bt7-config", "description": "BT7 Config"},
+        {"iid": 38, "type": "urn:miot-spec-v2:property:bt-level", "description": "BT Level"}
+      ]
+    }
+  ],
 
   "chuangmi.plug.hmi208": [
     {

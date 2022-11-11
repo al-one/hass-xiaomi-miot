@@ -14,6 +14,16 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on',
         'button_properties': 'motor_control',
     },
+    'ainice.motion.bt': {
+        'miot_type': 'urn:miot-spec-v2:device:motion-sensor:0000A014:ainice-bt:2',
+        'state_property': 'motion_sensor.motion_status',
+        'binary_sensor_properties': 'motion_status,online_status,ble_near,bt_status',
+        'sensor_properties': 'motion_state',
+        'switch_properties': 'gesture_enabled,gesture_switch',
+        'select_properties': 'bt_level',
+        'number_properties': 'offline_timeout,motion_timeout,online_level,offline_level,online_duration,'
+                             'offline_duration,ble_in_threshold,ble_out_threshold,ble_far_timeout',
+    },
     'ateai.mosq.dakuo': {
         'switch_properties': 'dakuo_mosq_dispeller.status',
         'select_properties': 'workmode',

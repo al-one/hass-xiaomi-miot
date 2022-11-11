@@ -7,6 +7,7 @@ MIOT_LOCAL_MODELS = [
     '090615.gateway.ktvrf',
     '1245.airfresh.super2',
     '17216.massage.j6261a',
+    'ainice.motion.bt',
     'ateai.mosq.dakuo',
     'aupu.bhf_light.s368m',
     'babai.airer.lyj01',
