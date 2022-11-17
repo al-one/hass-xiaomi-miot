@@ -95,9 +95,6 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
-    'chunmi.health_pot.a1': {
-        'miot_local': True,
-    },
     'chunmi.ysj.*': {
         'sensor_properties': 'water_dispenser.status,filter_life_level,home_temp,clean_precent',
         'switch_properties': 'winter_mode,cold_keep,cup_check',
