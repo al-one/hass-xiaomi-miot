@@ -440,6 +440,8 @@ async def async_reload_integration_config(hass, config):
     dcs = config.get('device_customizes')
     if dcs and isinstance(dcs, dict):
         for m, cus in dcs.items():
+            if not isinstance(cus, dict):
+                continue
             DEVICE_CUSTOMIZES.setdefault(m, {})
             DEVICE_CUSTOMIZES[m].update(cus)
     return config
