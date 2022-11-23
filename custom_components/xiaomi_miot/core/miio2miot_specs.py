@@ -1645,7 +1645,15 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.ceiling3': 'yeelink.light.ceiling1',
-    'yeelink.light.ceiling4': 'yeelink.light.ceiling1',
+    'yeelink.light.ceiling4': {
+        'extend_model': 'yeelink.light.ceiling1',
+        'miio_specs': {
+            'prop.200.201': {'prop': 'bg_power', 'setter': 'bg_set_power', 'format': 'onoff'},
+            'prop.200.202': {'prop': 'bg_bright', 'setter': 'bg_set_bright'},
+            'prop.200.203': {'prop': 'bg_ct', 'setter': 'bg_set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.200.204': {'prop': 'bg_rgb', 'setter': 'bg_set_rgb'},
+        },
+    },
     'yeelink.light.ceiling5': {
         'extend_model': 'yeelink.light.ceiling1',
         'miio_specs': {

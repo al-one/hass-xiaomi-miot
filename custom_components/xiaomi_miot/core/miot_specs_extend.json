@@ -1124,13 +1124,7 @@
   ],
   "yeelink.light.ceiling2": "yeelink.light.ceiling1",
   "yeelink.light.ceiling3": "yeelink.light.ceiling1",
-  "yeelink.light.ceiling4": "yeelink.light.ceiling1",
-  "yeelink.light.ceiling5": "yeelink.light.ceiling1",
-  "yeelink.light.ceiling6": "yeelink.light.ceiling1",
-  "yeelink.light.ceiling7": "yeelink.light.ceiling1",
-  "yeelink.light.ceiling8": "yeelink.light.ceiling1",
-  "yeelink.light.ceiling9": "yeelink.light.ceiling1",
-  "yeelink.light.ceiling10": [
+  "yeelink.light.ceiling4": [
     {
       "iid": 2,
       "properties": [
@@ -1185,6 +1179,12 @@
       ]
     }
   ],
+  "yeelink.light.ceiling5": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling6": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling7": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling8": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling9": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling10": "yeelink.light.ceiling4",
   "yeelink.light.ceiling11": "yeelink.light.ceiling1",
   "yeelink.light.ceiling12": "yeelink.light.ceiling1",
   "yeelink.light.ceiling13": "yeelink.light.ceiling1",
@@ -1207,7 +1207,7 @@
       ]
     }
   ],
-  "yeelink.light.ceiling19": "yeelink.light.ceiling10",
+  "yeelink.light.ceiling19": "yeelink.light.ceiling4",
   "yeelink.light.ceiling20": "yeelink.light.ceiling1",
   "yeelink.light.ceiling21": "yeelink.light.ceiling1",
   "yeelink.light.ceiling22": "yeelink.light.ceiling1",
