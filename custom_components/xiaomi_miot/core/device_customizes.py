@@ -612,6 +612,12 @@ DEVICE_CUSTOMIZES = {
     'qushui.bed.001': {
         'chunk_properties': 1,
     },
+    'qushui.blanket.mj1': {
+        'sensor_properties': 'fault,water_level,a_temperature,b_temperature',
+        'switch_properties': 'alarm,antifreezing_switch,ab_sleep_switch,anti_scald_switch',
+        'select_properties': 'mode,water_level',
+        'number_properties': 'target_temperature,timer',
+    },
 
     'roborock.vacuum.*': {
         'sensor_attributes': 'props:clean_area,props:clean_time,brush_life_level',
