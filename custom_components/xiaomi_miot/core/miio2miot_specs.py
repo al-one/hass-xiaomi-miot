@@ -1709,6 +1709,14 @@ MIIO_TO_MIOT_SPECS = {
     },
     'yeelink.light.ceiling23': 'yeelink.light.ceiling22',
     'yeelink.light.ceiling24': 'yeelink.light.ceiling16',
+    'yeelink.light.lamp1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.2.4': {'prop': 'color_mode'},
+        },
+    },
     'yeelink.light.lamp2': 'yeelink.light.ceiling16',
     'yeelink.light.lamp3': {
         'miio_specs': {
@@ -2212,7 +2220,11 @@ MIIO_TO_MIOT_SPECS = {
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
         },
     },
-
+    'qmi.powerstrip.v1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+        },
+    },
     'zimi.powerstrip.v2': {
         'miio_props': ['current', 'mode', 'power_price'],
         'miio_specs': {
