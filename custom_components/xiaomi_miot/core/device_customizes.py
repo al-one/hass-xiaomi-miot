@@ -677,6 +677,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': '',
         'select_properties': 'dryer,swing_mode',
         'number_properties': 'drying_time',
+        'position_reverse': False,
         'cover_position_mapping': {
             0: 50,   # Normal
             1: 100,  # Rising-limit
