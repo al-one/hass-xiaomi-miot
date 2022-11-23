@@ -17,7 +17,8 @@ DEVICE_CUSTOMIZES = {
     'ainice.motion.bt': {
         'miot_type': 'urn:miot-spec-v2:device:motion-sensor:0000A014:ainice-bt:2',
         'state_property': 'motion_sensor.motion_status',
-        'binary_sensor_properties': 'motion_status,online_status,ble_near,bt_status',
+        'interval_seconds': 5,
+        'binary_sensor_properties': 'online_status,ble_near,bt_status',
         'sensor_properties': 'motion_state',
         'switch_properties': 'gesture_enabled,gesture_switch',
         'select_properties': 'bt_level',
