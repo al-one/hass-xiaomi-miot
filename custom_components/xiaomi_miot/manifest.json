@@ -1,7 +1,7 @@
 {
   "name": "Xiaomi Miot Auto",
   "domain": "xiaomi_miot",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "config_flow": true,
   "iot_class": "cloud_polling",
   "documentation": "https://github.com/al-one/hass-xiaomi-miot",
