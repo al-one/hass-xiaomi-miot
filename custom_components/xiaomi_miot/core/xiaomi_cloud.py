@@ -1,6 +1,8 @@
 import logging
 import json
 import time
+import string
+import random
 import base64
 import hashlib
 import micloud
@@ -26,6 +28,7 @@ except (ModuleNotFoundError, ImportError):
 
 _LOGGER = logging.getLogger(__name__)
 ACCOUNT_BASE = 'https://account.xiaomi.com'
+UA = "Android-7.1.1-1.0.0-ONEPLUS A3010-136-%s APP/xiaomi.smarthome APPV/62830"
 
 
 class MiotCloud(micloud.MiCloud):
@@ -40,7 +43,9 @@ class MiotCloud(micloud.MiCloud):
         self.password = password
         self.default_server = country or 'cn'
         self.sid = sid or 'xiaomiio'
+        self.agent_id = self.get_random_string(16)
         self.client_id = self.agent_id
+        self.useragent = UA % self.client_id
         self.http_timeout = int(hass.data[DOMAIN].get('config', {}).get('http_timeout') or 10)
         self.login_times = 0
         self.attrs = {}
@@ -377,6 +382,8 @@ class MiotCloud(micloud.MiCloud):
         response = self.session.get(
             f'{ACCOUNT_BASE}/pass/serviceLogin',
             params={'sid': self.sid, '_json': 'true'},
+            headers={'User-Agent': self.useragent},
+            cookies={'sdkVersion': '3.8.6', 'deviceId': self.client_id},
         )
         try:
             auth = json.loads(response.text.replace('&&&START&&&', '')) or {}
@@ -395,12 +402,13 @@ class MiotCloud(micloud.MiCloud):
             '_sign': kwargs.get('_sign') or '',
         }
         params = {'_json': 'true'}
-        cookies = {}
+        headers = {'User-Agent': self.useragent}
+        cookies = {'sdkVersion': '3.8.6', 'deviceId': self.client_id}
         if captcha:
             post['captCode'] = captcha
             params['_dc'] = int(time.time() * 1000)
             cookies['ick'] = self.attrs.pop('captchaIck', '')
-        response = self.session.post(url, data=post, params=params, cookies=cookies)
+        response = self.session.post(url, data=post, params=params, headers=headers, cookies=cookies)
         auth = json.loads(response.text.replace('&&&START&&&', '')) or {}
         code = auth.get('code')
         # 20003 InvalidUserNameException
@@ -421,12 +429,12 @@ class MiotCloud(micloud.MiCloud):
                 if ntf[:4] != 'http':
                     ntf = f'{ACCOUNT_BASE}{ntf}'
                 self.attrs['notificationUrl'] = ntf
+            _LOGGER.error('Xiaomi serviceLoginAuth2: %s', [url, params, post, headers, cookies])
             raise MiCloudAccessDenied(f'Login to xiaomi error: {response.text}')
         self.user_id = str(auth.get('userId', ''))
         self.cuser_id = auth.get('cUserId')
         self.ssecurity = auth.get('ssecurity')
         self.pass_token = auth.get('passToken')
-        self.client_id = response.cookies.get('deviceId') or self.client_id
         if self.sid != 'xiaomiio':
             sign = f'nonce={auth.get("nonce")}&{auth.get("ssecurity")}'
             sign = hashlib.sha1(sign.encode()).digest()
@@ -437,7 +445,11 @@ class MiotCloud(micloud.MiCloud):
 
     def _login_step3(self, location):
         self.session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
-        response = self.session.get(location)
+        response = self.session.get(
+            location,
+            headers={'User-Agent': self.useragent},
+            cookies={'sdkVersion': '3.8.6', 'deviceId': self.client_id},
+        )
         service_token = response.cookies.get('serviceToken')
         if service_token:
             self.service_token = service_token
@@ -490,7 +502,10 @@ class MiotCloud(micloud.MiCloud):
             config.update(sdt)
             mic.service_token = config.get('service_token')
             mic.ssecurity = config.get('ssecurity')
-            mic.client_id = config.get('device_id')
+            did = config.get('device_id') or ''
+            if did and len(did) <= 32:
+                mic.client_id = did
+                mic.useragent = UA % did
         if login is None:
             if not mic.service_token:
                 login = True
@@ -681,3 +696,8 @@ class MiotCloud(micloud.MiCloud):
             if isinstance(v, MiotCloud):
                 cls[v.unique_id] = v
         return list(cls.values())
+
+    @staticmethod
+    def get_random_string(length):
+        seq = string.ascii_uppercase + string.digits
+        return ''.join((random.choice(seq) for _ in range(length)))
