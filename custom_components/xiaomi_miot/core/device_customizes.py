@@ -784,6 +784,10 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'rinse',
         'switch_properties': 'light_mode',
     },
+    'yunmi.waterpuri.s20': {
+        'sensor_properties': 'water_purifier.temperature,current_team,flow_in,flow_out',
+        'switch_properties': 'child_lock',
+    },
     'yyunyi.wopener.yypy24': {
         'switch_properties': 'motor_reverse',
         'select_properties': 'mode',
@@ -1073,6 +1077,9 @@ DEVICE_CUSTOMIZES = {
     '*.waterheater.*': {
         'sensor_properties': 'water_velocity',
         'switch_properties': 'water_heater.on,preheating,cruise_press',
+    },
+    '*.waterpuri.*': {
+        'sensor_properties': 'water_purifier.temperature',
     },
 
 }
