@@ -7,6 +7,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util.dt import DEFAULT_TIME_ZONE, get_time_zone
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .translation_languages import TRANSLATION_LANGUAGES
+
 
 def get_manifest(field=None, default=None):
     manifest = {}
@@ -47,6 +49,24 @@ def wildcard_models(model):
         wil,
         re.sub(r'^[^.]+\.', '*.', wil),
     ]
+
+
+def get_translation(key, keys=None):
+    dic = get_translations(*(keys or []))
+    val = dic.get(key, key)
+    if isinstance(val, str):
+        return val
+    return key
+
+
+def get_translations(*keys):
+    dic = {
+        **TRANSLATION_LANGUAGES,
+        **(TRANSLATION_LANGUAGES.get('_globals', {})),
+    }
+    for k in keys:
+        dic.update(TRANSLATION_LANGUAGES.get(k) or {})
+    return dic
 
 
 def is_offline_exception(exc):

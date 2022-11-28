@@ -74,6 +74,15 @@ TRANSLATION_LANGUAGES = {
             'battery charging state': '充电状态',
         },
 
+        'door_state': {
+            'open': '开门',
+            'close': '关门',
+            'close_timeout': '超时未关',
+            'knock': '敲门',
+            'breaking': '撬门',
+            'stuck': '门卡住',
+        },
+
         'fan.mode': {
             'basic': '标准',
             'basic wind': '标准风',
@@ -122,6 +131,32 @@ TRANSLATION_LANGUAGES = {
             'entertainment': '娱乐模式',
             'lighting': '照明',
             'night light': '夜灯',
+        },
+
+        'lock_method': {
+            'bluetooth': '蓝牙',
+            'password': '密码',
+            'biological': '生物',
+            'key': '钥匙',
+            'turntable': '转盘',
+            'nfc': 'NFC',
+            'one-time password': '一次性密码',
+            'two-step verification': '双重认证',
+            'coercion': '胁迫',
+            'homekit': 'Homekit',
+            'manual': '人工',
+            'automatic': '自动',
+        },
+        'lock_action': {
+            'outside_unlock': '门外开锁',
+            'lock': '上锁',
+            'anti_lock_on': '开启反锁',
+            'anti_lock_off': '解除反锁',
+            'inside_unlock': '门内开锁',
+            'lock_inside': '门内上锁',
+            'child_lock_on': '开启童锁',
+            'child_lock_off': '关闭童锁',
+            'lock_outside': '门外上锁',
         },
 
         'magnet_sensor': {

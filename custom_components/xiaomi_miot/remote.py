@@ -22,8 +22,8 @@ from . import (
     MiotEntity,
     async_setup_config_entry,
     bind_services_to_entries,
-    TRANSLATION_LANGUAGES,
 )
+from .core.utils import get_translations
 from .core.miot_spec import (
     MiotSpec,
 )
@@ -74,11 +74,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         token = config.get(CONF_TOKEN)
         self._device = ChuangmiIr(host, token)
         self._attr_should_poll = False
-        self._translations = {
-            **TRANSLATION_LANGUAGES,
-            **(TRANSLATION_LANGUAGES.get('_globals', {})),
-            **(TRANSLATION_LANGUAGES.get('ir_devices', {})),
-        }
+        self._translations = get_translations('ir_devices')
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()

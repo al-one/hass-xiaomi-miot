@@ -37,7 +37,7 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
 )
-from .core.utils import local_zone
+from .core.utils import local_zone, get_translation
 
 try:
     # hass 2021.4.0b0+
@@ -207,7 +207,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         if self._miot_service.name in ['lock'] and self._prop_state.full_name not in self._state_attrs:
             if how := self._state_attrs.get('lock_method'):
                 await self.async_update_attrs({
-                    self._prop_state.full_name: how,
+                    self._prop_state.full_name: get_translation(how, ['lock_method']),
                 })
             elif edt := self._state_attrs.get('event.11', {}):
                 if isinstance(edt, dict):
@@ -419,6 +419,7 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
         value = self._attr_state
         if hasattr(self, '_attr_native_value') and self._attr_native_value is not None:
             value = self._attr_native_value
+        value = get_translation(value, [self._attr])
         if self.device_class == DEVICE_CLASS_TIMESTAMP:
             value = datetime_with_tzinfo(value)
         return value
