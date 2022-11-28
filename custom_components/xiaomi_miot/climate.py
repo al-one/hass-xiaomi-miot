@@ -194,7 +194,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
             if fst and len(self._hvac_modes) <= 1:
                 self._hvac_modes[HVAC_MODE_AUTO] = {
                     'list':  [fst.get('description')],
-                    'value': [fst.get('value')],
+                    'value': fst.get('value'),
                 }
         if self._preset_modes:
             self._supported_features |= SUPPORT_PRESET_MODE
