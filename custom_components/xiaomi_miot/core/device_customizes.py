@@ -311,6 +311,13 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'worktime,sleeptime',
     },
 
+    'fawad.airrtc.40011': {
+        'chunk_properties': 1,
+        'switch_properties': 'target_temper_eco,target_temper_out,target_temper_in,target_temper_sleep',
+        'number_properties': 'hot_switch_status,screen_lock_enable,power_hold,schedule_enable,antifreeze_set',
+        'exclude_miot_properties': 'timer_info,monday_timer,tuesday_timer,wednesday_timer,'
+                                   'thursday_timer,friday_timer,saturday_timer',
+    },
     'fawad.airrtc.*': {
         'exclude_miot_services': 'thermostat_vrf',
     },
