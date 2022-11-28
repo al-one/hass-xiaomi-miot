@@ -70,6 +70,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 srv = spec.get_service('p2p_stream') or spec.first_service()
             elif model in [
                 'lumi.lock.bmcn05',
+                'lumi.lock.mcn002',
                 'lumi.lock.wbmcn1',
                 'loock.lock.t1pro',
             ]:
