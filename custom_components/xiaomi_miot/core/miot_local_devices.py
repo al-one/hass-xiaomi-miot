@@ -50,9 +50,10 @@ MIOT_LOCAL_MODELS = [
     'chunmi.waterpuri.800f3',
     'chunmi.ysj.tsa1',
     'coc.dryer.fdpsm',
-    # 'cubee.airrtc.th123e',  # issues/282
-    # 'cubee.airrtc.th123w',  # issues/213
-    # 'cubee.airrtc.th125t',  # -4004
+    'cubee.airrtc.th123a',
+    'cubee.airrtc.th123e',
+    'cubee.airrtc.th123w',
+    'cubee.airrtc.th125t',
     'cuco.light.sl4',
     'cuco.light.sl4a',
     'cuco.plug.co1',

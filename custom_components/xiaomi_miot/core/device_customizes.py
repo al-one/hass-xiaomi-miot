@@ -102,6 +102,10 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'lock_temp,cold_mode,default_mode',
         'number_properties': 'boil_point,oled_close_time',
     },
+    'cubee.airrtc.*': {
+        'chunk_properties': 1,
+        'exclude_miot_services': 'heatold',
+    },
     'cuco.light.sl4': {
         'switch_properties': 'swich',
         'select_properties': 'scene.mode,change_type',
