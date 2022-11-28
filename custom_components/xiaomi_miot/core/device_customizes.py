@@ -939,7 +939,9 @@ DEVICE_CUSTOMIZES = {
         'main_miot_services': 'ptc_bath_heater',
     },
     '*.blanket.*': {
+        'sensor_properties': 'temperature',
         'select_properties': 'mode,heat_level,water_level',
+        'number_properties': 'target_temperature',
     },
     '*.camera.*': {
         'miot_cloud_action': True,
