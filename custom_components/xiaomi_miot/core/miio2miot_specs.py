@@ -160,12 +160,12 @@ MIIO_TO_MIOT_SPECS = {
     'chuangmi.camera.ipc019': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'flip', 'template': '{{ 0 if value in ["off"] else 180 }}'},
-            'prop.2.3': {'prop': 'night_mode'},
-            'prop.2.4': {'prop': 'watermark', 'format': 'onoff'},
-            'prop.2.5': {'prop': 'wdr', 'format': 'onoff'},
-            'prop.2.6': {'prop': 'full_color', 'format': 'onoff'},
-            'prop.2.7': {'prop': 'motion_record', 'dict': {
+            'prop.2.2': {'prop': 'flip', 'setter': True, 'template': '{{ 0 if value in ["off"] else 180 }}'},
+            'prop.2.3': {'prop': 'night_mode', 'setter': True},
+            'prop.2.4': {'prop': 'watermark', 'setter': True, 'format': 'onoff'},
+            'prop.2.5': {'prop': 'wdr', 'setter': True, 'format': 'onoff'},
+            'prop.2.6': {'prop': 'full_color', 'setter': True, 'format': 'onoff'},
+            'prop.2.7': {'prop': 'motion_record', 'setter': True, 'dict': {
                 'stop': 1,
                 'off': 2,
                 'on': 3,
