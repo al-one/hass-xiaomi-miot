@@ -157,6 +157,23 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'chuangmi.camera.ipc019': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'flip', 'template': '{{ 0 if value in ["off"] else 180 }}'},
+            'prop.2.3': {'prop': 'night_mode'},
+            'prop.2.4': {'prop': 'watermark', 'format': 'onoff'},
+            'prop.2.5': {'prop': 'wdr', 'format': 'onoff'},
+            'prop.2.6': {'prop': 'full_color', 'format': 'onoff'},
+            'prop.2.7': {'prop': 'motion_record', 'dict': {
+                'stop': 1,
+                'off': 2,
+                'on': 3,
+            }, 'default': 1},
+            'action.3.1': {'setter': 'sd_format'},
+            'action.3.2': {'setter': 'sd_umount'},
+        },
+    },
     'chuangmi.plug.hmi205': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
