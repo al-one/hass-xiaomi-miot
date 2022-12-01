@@ -565,16 +565,6 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,dry_time',
     },
 
-    'philips.light.cbulb': {
-        'miot_cloud_write': True,
-        'miot_local_mapping': {
-            'light.on': {'siid': 2, 'piid': 1},
-            'light.mode': {'siid': 2, 'piid': 2},
-            'light.brightness': {'siid': 2, 'piid': 3},
-            'light.color': {'siid': 2, 'piid': 4},
-            'light.color_temperature': {'siid': 2, 'piid': 5},
-        },
-    },
     'philips.light.strip3': {
         'switch_properties': 'mitv_rhythm,acousto_optic_rhythm',
         'select_properties': 'rhythm_sensitivity,rhythm_animation',
