@@ -144,6 +144,11 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
                 if dur is None:
                     dur = 60
                 ret = val <= dur
+            elif self._prop_state.value_list:
+                # linp.magnet.m1
+                if des := self._prop_state.list_description(val):
+                    des = f'{des}'.lower()
+                return des in ['open', 'opened']
             else:
                 ret = val
         if self._vars.get('reverse_state'):
