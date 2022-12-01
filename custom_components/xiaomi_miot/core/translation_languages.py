@@ -557,4 +557,250 @@ TRANSLATION_LANGUAGES = {
             'water heater': 'podgrzewacz wody',
         },
     },
+    'hu': {
+        'off': 'Kikapcsolva',
+        'idle': 'Tétlen',
+        'busy': 'Elfoglalt',
+        'pause': 'Szünetel',
+        'fault': 'Hibás',
+
+        '_globals': {
+            'mode': 'Mód',
+            'switch status': 'Kapcsoló állapota',
+            'battery level': 'Akkumulátor szintje',
+            'target temperature': 'Célhőmérséklet',
+            'temperature': 'Hőmérséklet',
+            'relative humidity': 'Relatív páratartalom',
+            'illumination': 'Megvilágítás',
+            'indicator light': 'Jelzőfény',
+            'physical control locked': 'Fizikai vezérlés zárolva',
+        },
+
+        'fan_level': {
+            'auto': 'auto',
+            # 'low': 'alacsony',
+            # 'medium': 'közepes',
+            # 'middle': 'közepes',
+            # 'high': 'magas',
+            'quiet': 'halk',
+            'turbo': 'turbó',
+            'level1': 'szint1',
+            'level2': 'szint2',
+            'level3': 'szint3',
+            'level4': 'szint4',
+            'level5': 'szint5',
+            'level6': 'szint6',
+            'level7': 'szint7',
+        },
+
+        'mode': {
+            'auto': 'auto',
+            'basic': 'alap',
+            'low': 'alacsony',
+            'medium': 'közepes',
+            'high': 'magas',
+            'sleep': 'alvó',
+            'smart': 'okos',
+            'favorite': 'kedvenc',
+        },
+
+        'air_conditioner': {
+            'air conditioner': 'légkondícionáló',
+        },
+
+        'air_conditioner.mode': {
+            'cool': 'hűtés',
+            'dry': 'szárítás',
+            'fan': 'ventilátor',
+            'heat': 'fűtés',
+        },
+
+        'air_fresh.mode': {
+            'auto': 'auto',
+            'interval': 'időszakos',
+            'smart': 'okos',
+            'silent': 'csendes',
+            'strong': 'erős',
+            'none': 'egyik sem',
+            'sleep': 'alvó',
+            'favorite': 'kedvenc',
+        },
+
+        'battery': {
+            'battery battery level': 'akkumulátorszint',
+            'battery charging state': 'akkumulátor töltés állapota',
+        },
+
+        'fan.mode': {
+            'basic': 'alap',
+            'basic wind': 'alap fújás',
+            'straight wind': 'egyenes fújás',
+            'natural wind': 'természetes szél',
+            'energy saving': 'energiatakarékos',
+            'none': 'brak',
+            'baby': 'bébi',
+            'smart': 'okos',
+            'sleep': 'alvó',
+            'strong': 'erős',
+            'circular wind': 'körkörös fújás',
+        },
+
+        'ir_aircondition_control': {
+            'ir aircondition control': 'infravörös légkondícionáló vezérlés',
+            'mode for ir': 'infravörös módja',
+            'temperature for ir': 'infravörös hőmérséklet',
+            'turn on': 'bekapcsolás',
+            'turn off': 'kikapcsolás',
+            'fan speed down': 'ventilátor sebesség fel',
+            'fan speed up': 'ventilátor sebesség le',
+            'temperature down': 'hőmérséklet fel',
+            'temperature up': 'hőmérséklet le',
+        },
+        'ir_aircondition_control.ir_mode': {
+            'auto': 'auto',
+            'cool': 'hűtés',
+            'dry': 'szárítás',
+            'fan': 'ventilátor',
+            'heat': 'fűtés',
+        },
+
+        'light': {
+            'light': 'fény',
+        },
+        'light.mode': {
+            'day': 'nappal',
+            'night': 'éjszaka',
+            'color': 'szín',
+            'warmth': 'meleg',
+            'tv': 'televízió',
+            'reading': 'olvasás',
+            'computer': 'számítógép',
+            'hospitality': 'vendégszeretet',
+            'entertainment': 'szórakozás',
+            'lighting': 'villámlás',
+            'night light': 'éjjelifény',
+        },
+
+        'magnet_sensor': {
+            'magnet sensor': 'mégneses érzékelő',
+        },
+
+        'motion_sensor': {
+            'motion sensor': 'mozgásérzékelő',
+            'motion sensor illumination': 'mozgásérzékelő fényerősség',
+        },
+
+        'physical_control_locked': {
+            'physical control locked': 'fizikai vezérlés zárolva',
+        },
+
+        'play_control': {
+            'play control': 'lejátszásvezérlés',
+            'keycodes': 'kulcskódok',
+        },
+
+        'power_consumption': {
+            'power consumption': 'enegriafogyasztás',
+            'power consumption electric power': 'teljesítmény',
+            'power consumption electric current': 'áramerősség',
+            'power consumption electric voltage': 'feszültség',
+        },
+
+        'ptc_bath_heater': {
+            'ptc bath heater': 'fürdőszobai hősugárzó',
+        },
+        'ptc_bath_heater.mode': {
+            'fan': 'ventilátor',
+            'heat': 'fűtés',
+            'ventilate': 'szellőzés',
+            'dry': 'szárítás',
+            'defog': 'párátlanítás',
+            'quick heat': 'gyors fűtés',
+            'quick defog': 'gyors párátlanítás',
+        },
+
+        'speaker': {
+            'speaker': 'hangszóró',
+            'speaker volume': 'hangszóró hangereje',
+        },
+
+        'television': {
+            'input control': 'bevitel vezérlés',
+            'tv input control': 'TV bevitel vezérlés',
+        },
+
+        'temperature_humidity_sensor': {
+            'temperature humidity sensor temperature': 'hőmérséklet',
+            'temperature humidity sensor relative humidity': 'páratartalom',
+            'temperature humidity sensor atmospheric pressure': 'légnyomás',
+        },
+
+        'vacuum': {
+            'robot cleaner': 'robotporszívó',
+            'robot cleaner status': 'állapot',
+        },
+
+        'vacuum.mode': {
+            'basic': 'alap',
+            'silent': 'csendes',
+            'standard': 'alapértelmezett',
+            'strong': 'erős',
+            'turbo': 'turbó',
+            'full speed': 'maximális sebesség',
+        },
+
+        'washer': {
+            'drying level': 'szárítási szint',
+            'rinsh times': 'öblítések száma',
+            'spin speed': 'centrifuga sebesség',
+            'target water level': 'cél víz szint',
+        },
+        'washer.mode': {
+            'baby care': 'babaápolás',
+            'boiling': 'kifőzés',
+            'color protection': 'színvédelem',
+            'cotton': 'gyapot',
+            'daily wash': 'napi mosás',
+            'delicate wash': 'finom mosás',
+            'down coat': 'pehelykabát',
+            'drum clean': 'dobtisztítás',
+            'drum dry': 'szekrényszáraz',
+            'dry air wash': 'száraz levegős mosás',
+            'dry timing': 'szárítási idő',
+            'dry': 'szárítás',
+            'gold wash': 'gold wash',
+            'heavy wash': 'nehéz szennyeződés',
+            'intensive': 'intenzív',
+            'jacket': 'dzseki',
+            'jeans': 'farmer',
+            'mite removal': 'atka eltávolító',
+            'quick wash dry': 'gyors mosás és szárítás',
+            'quick wash': 'gyors mosás',
+            'rinse spin': 'centrifugálás öblítéssel',
+            'rinse': 'öblítés',
+            'shirt': 'póló',
+            'silk': 'selyem',
+            'soak wash': 'áztatásos mosás',
+            'sock': 'zokni',
+            'spin': 'kötött',
+            'sportswear': 'sportruházat',
+            'super quick': 'szupergyors',
+            'synthetic': 'szintetikus',
+            'towel': 'törölköző',
+            'underwear': 'fehérnamű',
+            'user define': 'egyéni beállítás',
+            'wash dry': 'mosás és szárítás',
+            'wool': 'gyapjú',
+        },
+        'washer.drying_level': {
+            'moist': 'nedves',
+            'normal': 'normál',
+            'extra': 'extra',
+            'none': 'egyik sem',
+        },
+
+        'water_heater': {
+            'water heater': 'vízforraló',
+        },
+    },
 }
