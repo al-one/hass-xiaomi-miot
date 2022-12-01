@@ -407,6 +407,11 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_type': 'stat_day_v3',
         'stat_power_cost_key': '7.1',
     },
+    'lumi.acpartner.mcn04:power_consumption': {
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
     'lumi.acpartner.mcn04:power_cost_today': {
         'value_ratio': 1,
     },
