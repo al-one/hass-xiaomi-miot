@@ -7,18 +7,22 @@ body:
     attributes:
       label: Device model
       placeholder: brand.device.model
+      description: |
+        > [⚙️ Settings > Devices & Services > Devices](https://my.home-assistant.io/redirect/devices)
 
   - type: input
     attributes:
       label: Component version
       placeholder: 0.7.x
+      description: |
+        > [⚙️ Settings > System > Repairs > Three Dots in Upper Right > System information](https://my.home-assistant.io/redirect/system_health)
 
   - type: input
     attributes:
       label: HA core version
       placeholder: 2022.12.x
       description: |
-        > [⚙️ Settings](https://my.home-assistant.io/redirect/config) > [ℹ️️ About](https://my.home-assistant.io/redirect/info)
+        > [⚙️ Settings > ℹ️️ About](https://my.home-assistant.io/redirect/info)
 
   - type: dropdown
     attributes:
@@ -37,12 +41,11 @@ body:
     attributes:
       label: Entity attributes
       description: |
-        > [🔨 Developer tools](https://my.home-assistant.io/redirect/developer_states) > [ℹ️ State](https://my.home-assistant.io/redirect/developer_states) > 🔍 Filter (Entity with most attributes)
+        > [🔨 Developer tools > ℹ️ State](https://my.home-assistant.io/redirect/developer_states) > 🔍 Filter (Entity with most attributes)
       render: yaml
 
   - type: textarea
     attributes:
       label: Home Assistant Logs
       description: |
-        > [⚙️ Settings](https://my.home-assistant.io/redirect/config) > [⚙️ System](https://my.home-assistant.io/redirect/system_dashboard) > [✍️ Logs](https://my.home-assistant.io/redirect/logs)
-      render: txt
+        > [⚙️ Settings > System > ✍️ Logs](https://my.home-assistant.io/redirect/logs)
