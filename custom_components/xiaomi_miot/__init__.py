@@ -2186,6 +2186,11 @@ class MiirToggleEntity(MiotEntity, ToggleEntity):
         self._act_turn_off = miot_service.get_action('turn_off')
         self._attr_should_poll = False
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if self.is_main_entity:
+            await self.async_update_for_main_entity()
+
     @property
     def is_on(self):
         """Return True if entity is on."""
