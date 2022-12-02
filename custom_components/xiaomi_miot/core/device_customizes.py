@@ -582,6 +582,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,rgb_order',
         'number_properties': 'numleds,pixel_per_step,fade_delay,step_delay,stair_travel_time',
     },
+    'qdhkl.aircondition.b23': {
+        'cloud_delay_update': 8,
+    },
     'qmi.plug.2a1c1': {
         'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
