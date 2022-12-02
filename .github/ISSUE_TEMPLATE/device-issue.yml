@@ -15,7 +15,7 @@ body:
       label: Component version
       placeholder: 0.7.x
       description: |
-        > [⚙️ Settings > System > Repairs > Three Dots in Upper Right > System information](https://my.home-assistant.io/redirect/system_health)
+        > [⚙️ Settings > System > Repairs > Three Dots in Upper Right > System information](https://my.home-assistant.io/redirect/system_health) > `Xiaomi Miot Auto`
 
   - type: input
     attributes:
@@ -25,6 +25,8 @@ body:
         > [⚙️ Settings > ℹ️️ About](https://my.home-assistant.io/redirect/info)
 
   - type: dropdown
+    validations:
+      required: true
     attributes:
       label: Integrated mode
       options:
@@ -48,4 +50,4 @@ body:
     attributes:
       label: Home Assistant Logs
       description: |
-        > [⚙️ Settings > System > ✍️ Logs](https://my.home-assistant.io/redirect/logs)
+        > [⚙️ Settings > System > ✍️ Logs](https://my.home-assistant.io/redirect/logs) > 🔍 Filter `miot`
