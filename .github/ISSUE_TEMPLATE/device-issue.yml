@@ -5,30 +5,33 @@ body:
     validations:
       required: true
     attributes:
-      label: Device model
+      label: Device model / 设备型号
       placeholder: brand.device.model
       description: |
         > [⚙️ Settings > Devices & Services > Devices](https://my.home-assistant.io/redirect/devices)
+        > [⚙️ 配置 > 设备与服务 > 设备](https://my.home-assistant.io/redirect/devices)
 
   - type: input
     attributes:
-      label: Component version
+      label: Component version / 插件版本
       placeholder: 0.7.x
       description: |
         > [⚙️ Settings > System > Repairs > Three Dots in Upper Right > System information](https://my.home-assistant.io/redirect/system_health) > `Xiaomi Miot Auto`
+        > [⚙️ 配置 > 系统 > 修复 > 右上角三个点 > 系统信息](https://my.home-assistant.io/redirect/system_health) > `Xiaomi Miot Auto`
 
   - type: input
     attributes:
-      label: HA core version
+      label: HA core version / HA版本
       placeholder: 2022.12.x
       description: |
         > [⚙️ Settings > ℹ️️ About](https://my.home-assistant.io/redirect/info)
+        > [⚙️ 配置 > ℹ️️ 关于](https://my.home-assistant.io/redirect/info)
 
   - type: dropdown
     validations:
       required: true
     attributes:
-      label: Integrated mode
+      label: Integrated mode / 集成方式
       options:
         - Automatic (自动模式)
         - Local (本地模式)
@@ -37,17 +40,21 @@ body:
 
   - type: textarea
     attributes:
-      label: The problem
+      label: The problem / 问题详情
 
   - type: textarea
+    validations:
+      required: true
     attributes:
-      label: Entity attributes
+      label: Entity attributes / 实体属性
       description: |
         > [🔨 Developer tools > ℹ️ State](https://my.home-assistant.io/redirect/developer_states) > 🔍 Filter (Entity with most attributes)
-      render: yaml
+        > [🔨 开发者工具 > ℹ️ 状态](https://my.home-assistant.io/redirect/developer_states) > 🔍 筛选 (属性最多的实体)
+        > 如果没有实体，请填写`无实体`
 
   - type: textarea
     attributes:
-      label: Home Assistant Logs
+      label: Home Assistant Logs / 系统日志
       description: |
         > [⚙️ Settings > System > ✍️ Logs](https://my.home-assistant.io/redirect/logs) > 🔍 Filter `miot`
+        > [⚙️ 配置 > 系统 > ✍️ 日志](https://my.home-assistant.io/redirect/logs) > 🔍 筛选 `miot`
