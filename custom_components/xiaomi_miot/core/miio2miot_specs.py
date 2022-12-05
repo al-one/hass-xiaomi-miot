@@ -1862,6 +1862,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.5.2': {'prop': 'f2_usedflow'},
         },
     },
+    'yunmi.waterpuri.lx7': 'yunmi.waterpuri.lx5',
 
     'yyunyi.wopener.yypy24': {
         'chunk_properties': 1,
