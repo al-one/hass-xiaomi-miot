@@ -670,6 +670,11 @@ DEVICE_CUSTOMIZES = {
         'select_attributes': 'main_state,main_light,night_light,heat,vent,dry,natural_wind,delay_wind',
     },
 
+    'smith.blanket.cxma1': {
+        'sensor_properties': 'fault,temperature',
+        'select_properties': 'water_level,quilt_dry',
+        'number_properties': 'target_temperature,countdown_time',
+    },
     'smith.waterpuri.cxr800': {
         'chunk_properties': 1,
         'state_property': 'chanitex_wp_gs.rsysstate',
