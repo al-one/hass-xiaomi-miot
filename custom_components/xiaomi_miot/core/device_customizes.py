@@ -267,10 +267,13 @@ DEVICE_CUSTOMIZES = {
 
     'deerma.humidifier.jsq5': {
         'chunk_properties': 4,
+        'exclude_miot_services': None,
+        'binary_sensor_properties': 'water_shortage_fault,the_tank_filed',
     },
     'deerma.humidifier.*': {
         'chunk_properties': 6,
         'exclude_miot_services': 'custom',
+        'switch_properties': 'alarm',
     },
     'deye.derh.u20a3': {
         'target_humidity_ratio': 9.0909,
