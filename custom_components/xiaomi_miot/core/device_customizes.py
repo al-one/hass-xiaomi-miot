@@ -537,11 +537,7 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 7,
     },
     'miaomiaoce.sensor_ht.t1': {
-        'miot_mapping': {
-            'temperature-2-1': {'siid': 2, 'piid': 1},
-            'relative_humidity-2-2': {'siid': 2, 'piid': 2},
-            # 'battery.battery_level': {'siid': 3, 'piid': 1},  # -704002000
-        },
+        'exclude_miot_services': 'battery',  # -704002000
     },
     'miaomiaoce.sensor_ht.t6': {
         'exclude_miot_services': 'battery',
