@@ -552,6 +552,12 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'feed_today,desiccant_left_time,cleantime',
         'switch_properties': 'feedstatus',
     },
+    'mmgg.pet_waterer.wi11': {
+        'button_actions': 'reset_filter_life,reset_cotton_life,reset_clean_time',
+        'binary_sensor_properties': 'no_water_flag,pump_block_flag,lid_up_flag',
+        'sensor_properties': 'filter_left_time,cotton_left_time,remain_clean_time,no_water_time',
+        'select_properties': 'mode',
+    },
     'mxiang.cateye.*': {
         'miio_cloud_props': 'battery_level,is_can_open_video',
         'miio_cloud_records': 'event.human_visit_details:1',

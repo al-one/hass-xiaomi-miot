@@ -214,6 +214,7 @@ MIOT_LOCAL_MODELS = [
     'mmgg.feeder.fi1',
     'mmgg.feeder.inland',
     'mmgg.pet_waterer.s1',
+    'mmgg.pet_waterer.wi11',
     'morfun.kettle.mf809',
     'morfun.ysj.mf208',
     'mrbond.airer.m2',
