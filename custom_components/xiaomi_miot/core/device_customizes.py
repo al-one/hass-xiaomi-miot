@@ -161,6 +161,14 @@ DEVICE_CUSTOMIZES = {
     'cuco.plug.cp2a': {
         'main_miot_services': 'switch-2',
     },
+    'cuco.plug.cp2d': {
+        'chunk_properties': 1,
+        'exclude_miot_services': 'indicator_light,physical_controls_locked,other_setting',
+        'exclude_miot_properties': 'power_consumption,electric_current,voltage',
+        'sensor_properties': 'electric_power',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '2.2',
+    },
     'cuco.plug.cp4': {
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
