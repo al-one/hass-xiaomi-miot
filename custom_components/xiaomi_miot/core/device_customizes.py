@@ -561,6 +561,13 @@ DEVICE_CUSTOMIZES = {
         'miio_cloud_props': 'Status,Position',
         'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
     },
+    'mmgg.feeder.fi1': {
+        'chunk_properties': 1,
+        'state_property': 'pet_food_left_level',
+        'button_actions': 'reset_desiccant_life',
+        'binary_sensor_properties': 'outletstatus,doorstatus',
+        'sensor_properties': 'outfood_num,desiccant_left_time,cleantime',
+    },
     'mmgg.feeder.petfeeder': {
         'state_property': 'pet_food_left_level',
         'button_actions': 'reset_desiccant_life',
