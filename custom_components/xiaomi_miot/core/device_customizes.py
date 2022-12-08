@@ -576,6 +576,12 @@ DEVICE_CUSTOMIZES = {
     'novo.curtain.n21': {
         'select_properties': 'motor_control',
     },
+    'nwt.derh.wdh318efw1': {
+        'binary_sensor_properties': 'tank_full',
+    },
+    'nwt.derh.wdh318efw1:tank_full': {
+        'device_class': 'problem',
+    },
 
     'ows.towel_w.mj1x0': {
         'sensor_properties': 'temperature',
@@ -616,9 +622,9 @@ DEVICE_CUSTOMIZES = {
     },
     'qmi.plug.2a1c1:power_consumption': {
         'value_ratio': 1,
-        'state_class': "total_increasing",
-        'device_class': "energy",
-        'unit_of_measurement': "kWh",
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
     },
     'qmi.plug.2a1c1:power_cost_today': {
         'value_ratio': 1,
