@@ -167,7 +167,8 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'power_consumption,electric_current,voltage',
         'sensor_properties': 'electric_power',
         'sensor_attributes': 'power_cost_today,power_cost_month',
-        'stat_power_cost_key': '2.2',
+        'stat_power_cost_type': 'stat_day_v3',
+        'stat_power_cost_key': '3.1',
     },
     'cuco.plug.cp4': {
         'sensor_properties': 'power,voltage,electric_current',
