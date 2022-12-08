@@ -170,6 +170,12 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_type': 'stat_day_v3',
         'stat_power_cost_key': '3.1',
     },
+    'cuco.plug.cp2d:power_cost_today': {
+        'value_ratio': 0.01,
+    },
+    'cuco.plug.cp2d:power_cost_month': {
+        'value_ratio': 0.01,
+    },
     'cuco.plug.cp4': {
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
