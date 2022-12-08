@@ -455,6 +455,28 @@
     }
   ],
 
+  "nwt.derh.wdh318efw1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:target-humidity",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [40, 60, 10]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:tank-full",
+          "format": "bool",
+          "access": ["read"]
+        }
+      ]
+    }
+  ],
+
   "ows.towel_w.mj1x0": [
     {
       "iid": 2,

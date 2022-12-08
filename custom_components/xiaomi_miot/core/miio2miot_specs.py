@@ -780,6 +780,32 @@ MIIO_TO_MIOT_SPECS = {
         }
     },
 
+    'nwt.derh.wdh318efw1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'on_off', 'setter': 'set_power', 'format': 'onoff'},
+            'prop.2.2': {
+                'prop': 'mode',
+                'setter': True,
+                'dict': {
+                    'auto': 0,
+                    'on': 1,
+                    'dry_cloth': 2,
+                },
+                'set_template': '{{ '
+                                '["on"] if value == 1 else '
+                                '["dry_cloth"] if value == 2 else '
+                                '{"method": "set_auto","params": [props.auto]} }}',
+            },
+            'prop.2.3': {'prop': 'fan_st', 'setter': True},
+            'prop.2.101': {'prop': 'auto', 'setter': True},
+            'prop.2.102': {'prop': 'tank_full', 'format': 'onoff'},
+            'prop.3.1': {'prop': 'humidity'},
+            'prop.4.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
+            'prop.5.1': {'prop': 'led', 'setter': True, 'format': 'onoff'},
+            'prop.6.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
+        },
+    },
+
     'opple.light.bydceiling': {
         'without_props': True,
         'miio_commands': [
