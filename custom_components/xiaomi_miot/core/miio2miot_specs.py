@@ -781,6 +781,7 @@ MIIO_TO_MIOT_SPECS = {
     },
 
     'nwt.derh.wdh318efw1': {
+        'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'on_off', 'setter': 'set_power', 'format': 'onoff'},
             'prop.2.2': {
