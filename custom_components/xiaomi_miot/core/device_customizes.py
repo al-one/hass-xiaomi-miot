@@ -656,6 +656,7 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
     },
     'qushui.blanket.mj1': {
+        'chunk_properties': 1,
         'sensor_properties': 'fault,water_level,a_temperature,b_temperature',
         'switch_properties': 'alarm,antifreezing_switch,ab_sleep_switch,anti_scald_switch',
         'select_properties': 'mode,water_level',
