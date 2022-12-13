@@ -155,6 +155,7 @@ MIOT_LOCAL_MODELS = [
     'hddz.blanket.zndrt',
     'hfjh.fishbowl.v2',
     'huayi.light.fanwy',
+    'hyd.airer.pro',
     'hyd.airer.znlyj1',
     'hyd.airer.znlyj2',
     'hyd.airer.znlyj3',
@@ -179,6 +180,7 @@ MIOT_LOCAL_MODELS = [
     'leishi.light.eps112',
     'leishi.light.eps118',
     'leshi.light.wy0b01',
+    'leishi.light.wy0a06',
     'leshi.light.wyfan',
     'leshow.heater.bs1s',
     'leshow.heater.bs3',
@@ -237,6 +239,7 @@ MIOT_LOCAL_MODELS = [
     # 'philips.light.cbulb',  # miio2miot
     'philips.light.dlight',
     # 'philips.light.downlight',  # miio2miot
+    'philips.light.sceilm',
     'philips.light.sceils',
     'philips.light.sread3',
     'philips.light.strip2',
@@ -306,6 +309,7 @@ MIOT_LOCAL_MODELS = [
     'viomi.waterheater.u24',
     'viomi.waterheater.u27',
     'viomi.waterheater.u34',
+    'viomi.waterheater.u39',
     'viomi.waterheater.u42',
     'viomi.waterheater.u43',
     'xiaomi.aircondition.c12',
