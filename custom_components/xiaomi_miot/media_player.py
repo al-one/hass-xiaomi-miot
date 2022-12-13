@@ -105,6 +105,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
+    _attr_state = None
+
     def __init__(self, miot_service: MiotService):
         self._miot_service = miot_service
         self._prop_state = miot_service.get_property('playing_state')
@@ -179,6 +181,8 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
                 des = self._prop_state.list_description(sta)
                 if des is not None:
                     return des
+        if self._attr_state is not None:
+            return self._attr_state
         if self.available:
             return STATE_IDLE
         return STATE_UNAVAILABLE
@@ -197,11 +201,13 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
     @property
     def volume_level(self):
         if self._prop_volume:
-            try:
-                return round(self._prop_volume.from_dict(self._state_attrs) or 0) / 100
-            except (TypeError, ValueError):
-                pass
-        return None
+            val = self._prop_volume.from_dict(self._state_attrs)
+            if val is not None:
+                try:
+                    return round(val or 0) / 100
+                except (TypeError, ValueError):
+                    pass
+        return self._attr_volume_level
 
     def set_volume_level(self, volume):
         if self._prop_volume:
@@ -395,8 +401,23 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                         song = await self.async_get_media_detail(song) or {}
                         self._vars['latest_song'] = song
                 song.update(playing)
+
+                if (sta := info.get('status')) is not None:
+                    self._attr_state = {0: STATE_IDLE, 1: STATE_PLAYING, 2: STATE_PAUSED}.get(sta)
+                if (typ := info.get('media_type')) is not None:
+                    self._attr_media_content_type = {3: MEDIA_TYPE_MUSIC, 13: MEDIA_TYPE_VIDEO}.get(typ)
+                else:
+                    self._attr_media_content_type = song.get('audioType')
+                self._attr_volume_level = info.get('volume')
+                if self._attr_volume_level is not None:
+                    self._attr_volume_level = self._attr_volume_level / 100
+                self._attr_repeat = {
+                    0: REPEAT_MODE_ONE,
+                    1: REPEAT_MODE_ALL,
+                    3: REPEAT_MODE_OFF,  # random
+                }.get(info.get('loop_type'), REPEAT_MODE_OFF)
+
                 self._attr_media_content_id = mid
-                self._attr_media_content_type = song.get('audioType')
                 self._attr_media_title = song.get('title') or song.get('name')
                 self._attr_media_artist = song.get('artist') or song.get('artistName')
                 self._attr_media_album_name = song.get('album') or song.get('albumName')
@@ -404,13 +425,8 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 self._attr_media_image_remotely_accessible = False
                 self._attr_media_duration = int(song['duration'] / 1000) if 'duration' in song else None
                 self._attr_media_position = int(song['position'] / 1000) if 'position' in song else None
-                self._attr_repeat = {
-                    0: REPEAT_MODE_ONE,
-                    1: REPEAT_MODE_ALL,
-                    3: REPEAT_MODE_OFF,  # random
-                }.get(info.get('loop_type'), REPEAT_MODE_OFF)
-                if not self._attr_media_title:
-                    self.logger.info('%s: Got empty media info: %s', self.name_model, song)
+            if not self._attr_state:
+                self.logger.info('%s: Got empty media info: %s', self.name_model, result)
         except (TypeError, ValueError, Exception) as exc:
             self.logger.warning(
                 '%s: Got exception while fetch xiaoai playing status: %s',
