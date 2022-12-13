@@ -1162,7 +1162,7 @@
     },
     {
       "iid": 200,
-      "type": "urn:miot-spec-v2:service:light",
+      "type": "urn:miot-spec-v2:service:ambient-light",
       "description": "Ambient Light",
       "properties": [
         {
