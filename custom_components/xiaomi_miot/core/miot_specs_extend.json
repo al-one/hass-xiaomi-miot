@@ -1289,12 +1289,35 @@
           "type": "urn:miot-spec-v2:property:tds_warn_thd",
           "format": "uint16",
           "access": ["read", "write"],
-          "value-range": [5, 50, 5]
+          "value-range": [5, 100, 5]
+        },
+        {
+          "iid": 111,
+          "type": "urn:miot-spec-v2:property:filter-remaining",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "percentage"
+        },
+        {
+          "iid": 112,
+          "type": "urn:miot-spec-v2:property:filter-remaining",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "percentage"
+        },
+        {
+          "iid": 113,
+          "type": "urn:miot-spec-v2:property:filter-remaining",
+          "format": "uint16",
+          "access": ["read"],
+          "unit": "percentage"
         }
       ]
     }
   ],
   "yunmi.waterpuri.lx7": "yunmi.waterpuri.lx5",
+  "yunmi.waterpuri.lx9": "yunmi.waterpuri.lx5",
+  "yunmi.waterpuri.lx11": "yunmi.waterpuri.lx5",
 
   "yyunyi.wopener.yypy24": [
     {

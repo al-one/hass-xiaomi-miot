@@ -1879,13 +1879,25 @@ MIIO_TO_MIOT_SPECS = {
 
     'yunmi.waterpuri.lx5': {
         'chunk_properties': 1,
-        'miio_props': ['run_status', 'f1_totalflow', 'f2_totalflow'],
-        'entity_attrs': ['run_status', 'f1_totalflow', 'f2_totalflow'],
+        'miio_props': ['run_status', 'f1_totalflow', 'f1_totaltime', 'f2_totalflow', 'f2_totaltime'],
+        'entity_attrs': ['run_status', 'f1_totalflow', 'f1_totaltime', 'f2_totalflow', 'f2_totaltime'],
         'miio_specs': {
             'prop.2.1': {'prop': 'temperature'},
             'prop.2.101': {'prop': 'rinse'},
             'prop.2.102': {'prop': 'lightMode', 'setter': True},
             'prop.2.103': {'prop': 'tds_warn_thd', 'setter': True},
+            'prop.2.111': {
+                'prop': 'f1_totaltime',
+                'template': '{{ (100 - 100 * props.f1_usedtime / value) | round(1) }}',
+            },
+            'prop.2.112': {
+                'prop': 'f2_totaltime',
+                'template': '{{ (100 - 100 * props.f2_usedtime / value) | round(1) }}',
+            },
+            'prop.2.113': {
+                'prop': 'f3_totaltime',
+                'template': '{{ (100 - 100 * props.f3_usedtime / value) | round(1) }}',
+            },
             'prop.3.1': {'prop': 'tds_in'},
             'prop.3.2': {'prop': 'tds_out'},
             'prop.4.1': {'prop': 'f1_usedtime'},
@@ -1895,6 +1907,42 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yunmi.waterpuri.lx7': 'yunmi.waterpuri.lx5',
+    'yunmi.waterpuri.lx9': {
+        'extend_model': 'yunmi.waterpuri.lx5',
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': ['all'],
+                'values': [
+                    'run_status',
+                    'f1_totalflow', 'f1_totaltime', 'f1_usedflow', 'f1_usedtime',
+                    'f2_totalflow', 'f2_totaltime', 'f2_usedflow', 'f2_usedtime',
+                    'tds_in', 'tds_out', 'rinse', 'temperature', 'tds_warn_thd',
+                    'f3_totalflow', 'f3_totaltime', 'f3_usedflow', 'f3_usedtime',
+                ],
+            },
+            {
+                'method': 'get_prop',
+                'params': ['lightMode'],
+                'values': True,
+            },
+        ],
+        'entity_attrs': [
+            'run_status',
+            'f1_totalflow', 'f1_totaltime',
+            'f2_totalflow', 'f2_totaltime',
+            'f3_totalflow', 'f3_totaltime',
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'tds_in'},
+            'prop.2.2': {'prop': 'tds_out'},
+            'prop.3.1': {'prop': 'temperature'},
+            'prop.6.1': {'prop': 'f3_usedtime'},
+            'prop.6.2': {'prop': 'f3_usedflow'},
+        },
+    },
+    'yunmi.waterpuri.lx11': 'yunmi.waterpuri.lx9',
 
     'yyunyi.wopener.yypy24': {
         'chunk_properties': 1,
