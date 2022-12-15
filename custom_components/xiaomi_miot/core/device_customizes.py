@@ -104,7 +104,9 @@ DEVICE_CUSTOMIZES = {
     },
     'cubee.airrtc.*': {
         'chunk_properties': 1,
-        'exclude_miot_services': 'heatold',
+        'switch_properties': 'childlock',
+        'select_properties': 'tempactivate,tempcomp',
+        'exclude_miot_properties': 'fault,sensortype,tempfloor,maxsettemp,minsettemp',
     },
     'cuco.light.sl4': {
         'switch_properties': 'swich',
