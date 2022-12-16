@@ -1894,10 +1894,6 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'f2_totaltime',
                 'template': '{{ (100 - 100 * props.f2_usedtime / value) | round(1) }}',
             },
-            'prop.2.113': {
-                'prop': 'f3_totaltime',
-                'template': '{{ (100 - 100 * props.f3_usedtime / value) | round(1) }}',
-            },
             'prop.3.1': {'prop': 'tds_in'},
             'prop.3.2': {'prop': 'tds_out'},
             'prop.4.1': {'prop': 'f1_usedtime'},
@@ -1937,6 +1933,10 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'tds_in'},
             'prop.2.2': {'prop': 'tds_out'},
+            'prop.2.113': {
+                'prop': 'f3_totaltime',
+                'template': '{{ (100 - 100 * props.f3_usedtime / value) | round(1) }}',
+            },
             'prop.3.1': {'prop': 'temperature'},
             'prop.6.1': {'prop': 'f3_usedtime'},
             'prop.6.2': {'prop': 'f3_usedflow'},
