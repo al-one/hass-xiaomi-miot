@@ -290,6 +290,296 @@ TRANSLATION_LANGUAGES = {
         },
     },
 
+    'ru': {
+        'off': 'Выключенный',
+        'idle': 'Бездействующий',
+        'busy': 'Занятый',
+        'pause': 'Пауза',
+        'fault': 'Неисправный',
+
+        '_globals': {
+            'mode': 'Режим',
+            'switch status': 'Статус переключателя',
+            'battery level': 'Уровень заряда батареи',
+            'target temperature': 'Целевая температура',
+            'temperature': 'Температура',
+            'relative humidity': 'Относительная влажность',
+            'illumination': 'Освещение',
+            'indicator light': 'Световой индикатор',
+            'physical control locked': 'Физический контроль заблокирован',
+        },
+
+        'fan_level': {
+            'auto': 'авто',
+            # 'low': 'низкий',
+            # 'medium': 'средний',
+            # 'middle': 'середина',
+            # 'high': 'высокий',
+            'quiet': 'тихий',
+            'turbo': 'турбо',
+            'level1': '1-й уровень',
+            'level2': '2-й уровень',
+            'level3': '3-й уровень',
+            'level4': '4-й уровень',
+            'level5': '5-й уровень',
+            'level6': '6-й уровень',
+            'level7': '7-й уровень',
+        },
+
+        'mode': {
+            'auto': 'авто',
+            'basic': 'базовый',
+            'low': 'низкий',
+            'medium': 'средний',
+            'high': 'высокий',
+            'sleep': 'спящий',
+            'smart': 'умный',
+            'favorite': 'любимый',
+        },
+
+        'air_conditioner': {
+            'air conditioner': 'кондиционер',
+        },
+
+        'air_conditioner.mode': {
+            'cool': 'охлаждение',
+            'dry': 'осушение',
+            'fan': 'вентиляция',
+            'heat': 'отопление',
+        },
+
+        'air_fresh.mode': {
+            'auto': 'авто',
+            'interval': 'интервал',
+            'smart': 'умный',
+            'silent': 'тихий',
+            'strong': 'сильный',
+            'none': 'никакой',
+            'sleep': 'спящий',
+            'favorite': 'любимый',
+        },
+
+        'battery': {
+            'battery battery level': 'уровень заряда батареи',
+            'battery charging state': 'состояние зарядки аккумулятора',
+        },
+
+        'door_state': {
+            'open': 'открыта',
+            'close': 'закрыта',
+            'close_timeout': 'тайм-аут_закрытия',
+            'knock': 'стук',
+            'breaking': 'нарушение',
+            'stuck': 'застрявший',
+        },
+
+        'fan.mode': {
+            'basic': 'базовый',
+            'basic wind': 'базовая скорость вентилятора',
+            'straight wind': 'ровная скорость вентилятора',
+            'natural wind': 'естественная скорость вентилятора',
+            'energy saving': 'сохранение энергии',
+            'none': 'никакой',
+            'baby': 'ребенок',
+            'smart': 'умный',
+            'sleep': 'спящий',
+            'strong': 'сильный',
+            'circular wind': 'круговая скорость вентилятора',
+        },
+
+        'ir_aircondition_control': {
+            'ir aircondition control': 'управление кондиционером',
+            'mode for ir': 'режим',
+            'temperature for ir': 'температура',
+            'turn on': 'включить',
+            'turn off': 'выключить',
+            'fan speed down': 'понизить скорость вентилятора-',
+            'fan speed up': 'увеличить скорость вентилятора+',
+            'temperature down': 'понизить температуру-',
+            'temperature up': 'увеличить температуру+',
+        },
+        'ir_aircondition_control.ir_mode': {
+            'auto': 'авто',
+            'cool': 'охлаждение',
+            'dry': 'осушение',
+            'fan': 'вентиляция',
+            'heat': 'отопление',
+        },
+
+        'light': {
+            'light': 'свет',
+        },
+        'light.mode': {
+            'day': 'день',
+            'night': 'ночь',
+            'color': 'цвет',
+            'warmth': 'теплый',
+            'tv': 'телевизор',
+            'reading': 'чтение',
+            'computer': 'компьютер',
+            'hospitality': 'гостеприимство',
+            'entertainment': 'развлечения',
+            'lighting': 'освещение',
+            'night light': 'ночной свет',
+        },
+
+        'lock_method': {
+            'bluetooth': 'bluetooth',
+            'password': 'пароль',
+            'biological': 'биологический',
+            'key': 'ключ',
+            'turntable': 'поворотный круг',
+            'nfc': 'NFC',
+            'one-time password': 'одноразовый пароль',
+            'two-step verification': 'двухэтапная проверка',
+            'coercion': 'сдерживание',
+            'homekit': 'Homekit',
+            'manual': 'руководство',
+            'automatic': 'автоматический',
+        },
+        'lock_action': {
+            'outside_unlock': 'внешняя разблокировка',
+            'lock': 'замок',
+            'anti_lock_on': 'антиблокировка включена',
+            'anti_lock_off': 'антиблокировочное отключение',
+            'inside_unlock': 'разблокировать внутри',
+            'lock_inside': 'замок внутри',
+            'child_lock_on': 'блокировка от детей включена',
+            'child_lock_off': 'блокировка от детей выключена',
+            'lock_outside': 'замок снаружи',
+        },
+
+        'magnet_sensor': {
+            'magnet sensor': 'магнитный датчик',
+        },
+
+        'motion_sensor': {
+            'motion sensor': 'датчик движения',
+            'motion sensor illumination': 'подсветка датчика движения',
+        },
+
+        'physical_control_locked': {
+            'physical control locked': 'Физический контроль заблокирован',
+        },
+
+        'play_control': {
+            'play control': 'контроль',
+            'keycodes': 'коды клавиш',
+        },
+
+        'power_consumption': {
+            'power consumption': 'потребляемая мощность',
+            'power consumption electric power': 'потребляемая электрическая мощность',
+            'power consumption electric current': 'потребляемый электрический ток',
+            'power consumption electric voltage': 'потребляемое электрическое напряжение',
+        },
+
+        'ptc_bath_heater': {
+            'ptc bath heater': 'нагреватель для ванны',
+        },
+        'ptc_bath_heater.mode': {
+            'fan': 'вентилятор',
+            'heat': 'отопление',
+            'ventilate': 'вентиляция',
+            'dry': 'осушение',
+            'defog': 'устранение запотевания',
+            'quick heat': 'быстрый нагрев',
+            'quick defog': 'быстрое устранение запотевания',
+        },
+
+        'speaker': {
+            'speaker': 'динамик',
+            'speaker volume': 'громкость динамика',
+        },
+
+        'sweep.suction_state': {
+            'medium': 'средний',
+            'silent': 'тихий',
+            'slient': 'тихий',
+            'standard': 'стандартный',
+            'turbo': 'турбо',
+        },
+
+        'television': {
+            'input control': 'управление входом',
+            'tv input control': 'управление входом телевизора',
+        },
+
+        'temperature_humidity_sensor': {
+            'temperature humidity sensor temperature': 'температура датчик влажности',
+            'temperature humidity sensor relative humidity': 'относительная влажность датчика температуры',
+            'temperature humidity sensor atmospheric pressure': 'атмосферное давление датчика температуры влажности',
+        },
+
+        'vacuum': {
+            'robot cleaner': 'робот-пылесос',
+            'robot cleaner status': 'статус робота-пылесоса',
+        },
+
+        'vacuum.mode': {
+            'basic': 'базовый',
+            'silent': 'тихий',
+            'standard': 'стандартный',
+            'strong': 'сильный',
+            'turbo': 'турбо',
+            'full speed': 'максимальная скорость',
+        },
+
+        'washer': {
+            'drying level': 'уровень сушки',
+            'rinsh times': 'время полоскания',
+            'spin speed': 'скорость отжима',
+            'target water level': 'целевой уровень воды',
+        },
+        'washer.mode': {
+            'baby care': 'забота о ребенке',
+            'boiling': 'кипячение',
+            'color protection': 'защита цвета',
+            'cotton': 'хлопок',
+            'daily wash': 'ежедневная стирка',
+            'delicate wash': 'деликатная стирка',
+            'down coat': 'пуховик',
+            'drum clean': 'очистка барабана',
+            'drum dry': 'сушка в барабане',
+            'dry air wash': 'сушка воздухом',
+            'dry timing': 'время сушки',
+            'dry': 'сушить',
+            'gold wash': 'золотая стирка',
+            'heavy wash': 'крупная стирка',
+            'intensive': 'интенсивный',
+            'jacket': 'куртка',
+            'jeans': 'джинсы',
+            'mite removal': 'удаление клеща',
+            'quick wash dry': 'быстрая сухая стирка',
+            'quick wash': 'быстрая стирка',
+            'rinse spin': 'режим полоскания',
+            'rinse': 'полоскать',
+            'shirt': 'рубашка',
+            'silk': 'шелк',
+            'soak wash': 'замочить',
+            'sock': 'носок',
+            'spin': 'вращение',
+            'sportswear': 'спортивная одежда',
+            'super quick': 'супер быстро',
+            'synthetic': 'синтетический',
+            'towel': 'полотенце',
+            'underwear': 'нижнее белье',
+            'user define': 'определяемые пользователем',
+            'wash dry': 'вымыть и высушить',
+            'wool': 'шерсть',
+        },
+        'washer.drying_level': {
+            'moist': 'влажный',
+            'normal': 'обычный',
+            'extra': 'дополнительный',
+            'none': 'ничего',
+        },
+
+        'water_heater': {
+            'water heater': 'водонагреватель',
+        },
+    },
+    
     'en': {
         'clean.mode': {
             '安静': 'Silent',
