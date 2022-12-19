@@ -428,7 +428,7 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.acpartner.mcn04': {
         'chunk_properties': 7,
-        'switch_properties': 'quick_cool_enable',
+        'switch_properties': 'quick_cool_enable,indicator_light',
         'select_properties': 'ac_mode',
         'miio_cloud_props': [],
         'stat_power_cost_type': 'stat_day_v3',
