@@ -290,6 +290,296 @@ TRANSLATION_LANGUAGES = {
         },
     },
 
+    'el': {
+        'off': 'Κλειστή',
+        'idle': 'Αδρανής',
+        'busy': 'Σε λειτουργία',
+        'pause': 'Σε παύση',
+        'fault': 'Σφάλμα',
+
+        '_globals': {
+            'mode': 'Λειτουργία',
+            'switch status': 'Διακόπτες',
+            'battery level': 'Επίπεδο μπαταρίας',
+            'target temperature': 'Θερμοκρασία-στόχος',
+            'temperature': 'Θερμοκρασία',
+            'relative humidity': 'Σχετική υγρασία',
+            'illumination': 'Φωτισμός',
+            'indicator light': 'Ενδεικτική λυχνία',
+            'physical control locked': 'Φυσικός έλεγχος κλειδωμένος',
+        },
+
+        'fan_level': {
+            'auto': 'Αυτόματο',
+            # 'low': '低档',
+            # 'medium': '中档',
+            # 'middle': '中档',
+            # 'high': '高档',
+            'quiet': 'Ήσυχο',
+            'turbo': 'Τούρμπο',
+            'level1': 'Επίπεδο 1',
+            'level2': 'Επίπεδο 2',
+            'level3': 'Επίπεδο 3',
+            'level4': 'Επίπεδο 4',
+            'level5': 'Επίπεδο 5',
+            'level6': 'Επίπεδο 6',
+            'level7': 'Επίπεδο 7',
+        },
+
+        'mode': {
+            'auto': 'Αυτόματη',
+            'basic': 'Βασική',
+            'low': 'Χαμηλή',
+            'medium': 'Μεσαία',
+            'high': 'Υψηλή',
+            'sleep': 'Ύπνος',
+            'smart': 'Έξυπνη',
+            'favorite': 'Αγαπημένη',
+        },
+
+        'air_conditioner': {
+            'air conditioner': 'Κλιματισμός',
+        },
+
+        'air_conditioner.mode': {
+            'cool': 'Ψύξη',
+            'dry': 'Αφύγρανση',
+            'fan': 'Ανεμιστήρας',
+            'heat': 'Θέρμανση',
+        },
+
+        'air_fresh.mode': {
+            'auto': 'Αυτόματη',
+            'interval': 'Διαλείπουσα',
+            'smart': 'Έξυπνη',
+            'silent': 'Ήσυχη',
+            'strong': 'Έντονη',
+            'none': 'Καμία',
+            'sleep': 'Ύπνος',
+            'favorite': 'Αγαπημένη',
+        },
+
+        'battery': {
+            'battery battery level': 'Επίπεδο μπαταρίας',
+            'battery charging state': 'Κατάσταση φόρτισης μπαταρίας',
+        },
+
+        'door_state': {
+            'open': 'Ανοιχτή',
+            'close': 'Κλειστή',
+            'close_timeout': 'Χρονικό όριο κλεισίματος',
+            'knock': 'Χτύπημα',
+            'breaking': 'Σπάσιμο',
+            'stuck': 'Κόλλησε',
+        },
+
+        'fan.mode': {
+            'basic': 'Βασική',
+            'basic wind': 'Βασικός άνεμος',
+            'straight wind': 'Δυνατός άνεμος',
+            'natural wind': 'Φυσικός άνεμος',
+            'energy saving': 'Εξοικονόμηση ενέργειας',
+            'none': 'Καμία',
+            'baby': 'Μωρό',
+            'smart': 'Έξυπνη',
+            'sleep': 'Ύπνος',
+            'strong': 'Δυνατή',
+            'circular wind': 'Κυκλικός άνεμος',
+        },
+
+        'ir_aircondition_control': {
+            'ir aircondition control': 'Υπέρυθρος έλεγχος κλιματισμού',
+            'mode for ir': 'Λειτουργία υπέρθυθρων',
+            'temperature for ir': 'θερμοκρασία-στόχος',
+            'turn on': 'Ενεργοποίηση',
+            'turn off': 'Απενεργοποίηση',
+            'fan speed down': 'Ταχύτητα ανεμιστήρα -',
+            'fan speed up': 'Ταχύτητα ανεμιστήρα +',
+            'temperature down': 'Θερμοκρασία -',
+            'temperature up': 'Θερμοκρασία +',
+        },
+        'ir_aircondition_control.ir_mode': {
+            'auto': 'Αυτόματο',
+            'cool': 'Ψύξη',
+            'dry': 'Αφύγρανση',
+            'fan': 'Ανεμιστήρας',
+            'heat': 'Θέρμανση',
+        },
+
+        'light': {
+            'light': 'Φωτισμός',
+        },
+        'light.mode': {
+            'day': 'Ημέρα',
+            'night': 'Νύχτα',
+            'color': 'Χρώμα',
+            'warmth': 'Κορεσμός',
+            'tv': 'Τηλεόραση',
+            'reading': 'Διάβασμα',
+            'computer': 'Υπολογιστής',
+            'hospitality': 'Φιλοξενία',
+            'entertainment': 'Διασκέδαση',
+            'lighting': 'Φωτισμός',
+            'night light': 'Φωτισμός νυχτός',
+        },
+
+        'lock_method': {
+            'bluetooth': 'Bluetooth',
+            'password': 'Κωδικός πρόσβασης',
+            'biological': 'Βιομετρικά',
+            'key': 'Κλειδί',
+            'turntable': 'Με περιστρεφή',
+            'nfc': 'NFC',
+            'one-time password': 'Κωδικός πρόσβασης μίας χρήσης',
+            'two-step verification': 'Διπλή διαπίστευση',
+            'coercion': 'Εξαναγκασμός',
+            'homekit': 'Homekit',
+            'manual': 'Χειροκίνητη',
+            'automatic': 'Αυτόματη',
+        },
+        'lock_action': {
+            'outside_unlock': 'Ξεκλείδωμα εξωτερικής πόρτας',
+            'lock': 'Κλείδωμα',
+            'anti_lock_on': 'Ενεργοποίηση αντίστροφης κλειδαριάς',
+            'anti_lock_off': 'Απενεργοποίηση αντίστροφης κλειδαριάς',
+            'inside_unlock': 'Ξεκλείδωμα από μέσα',
+            'lock_inside': 'Κλείδωμα μέσα',
+            'child_lock_on': 'Ενεργοποίηση παιδικού κλειδώματος',
+            'child_lock_off': 'Απενεργοποίηση παιδικού κλειδώματος',
+            'lock_outside': 'Κλείδωμα εξωτερικής πόρτας',
+        },
+
+        'magnet_sensor': {
+            'magnet sensor': 'Αισθητήρες θυρών και παραθύρων',
+        },
+
+        'motion_sensor': {
+            'motion sensor': 'Ανίχνευση κίνησης',
+            'motion sensor illumination': 'Ανίχνευση φωτισμού',
+        },
+
+        'physical_control_locked': {
+            'physical control locked': 'Κλείδωμα φυσικού ελέγχου',
+        },
+
+        'play_control': {
+            'play control': 'Έλεγχος αναπαραγωγής',
+            'keycodes': 'Κωδικοί κλειδιών',
+        },
+
+        'power_consumption': {
+            'power consumption': 'Κατανάλωση ενέργειας',
+            'power consumption electric power': 'Κατανάλωση ηλεκτρικής ενέργειας',
+            'power consumption electric current': 'Κατανάλωση ηλεκτρικού ρεύματος',
+            'power consumption electric voltage': 'Κατανάλωση ηλεκτρικής τάσης',
+        },
+
+        'ptc_bath_heater': {
+            'ptc bath heater': 'Θερμαντήρας μπάνιου ptc',
+        },
+        'ptc_bath_heater.mode': {
+            'fan': 'Ανεμιστήρας',
+            'heat': 'Θέρμανση',
+            'ventilate': 'Εξαερισμός',
+            'dry': 'Αφύγρανση',
+            'defog': 'Αποθαμβωτικό',
+            'quick heat': 'Γρήγορη ζέστη',
+            'quick defog': 'Γρήγορο αποθαμβωτικό',
+        },
+
+        'speaker': {
+            'speaker': 'Ήχος',
+            'speaker volume': 'Ένταση ήχου',
+        },
+
+        'sweep.suction_state': {
+            'medium': 'Μεσαίο',
+            'silent': 'Ήσυχο',
+            'slient': 'Ήσυχο',
+            'standard': 'Κανονικό',
+            'turbo': 'Τούρμπο',
+        },
+
+        'television': {
+            'input control': 'Πηγή εισόδου',
+            'tv input control': 'Πηγή εισόδου τηλεόρασης',
+        },
+
+        'temperature_humidity_sensor': {
+            'temperature humidity sensor temperature': 'Θερμοκρασία',
+            'temperature humidity sensor relative humidity': 'Υγρασία',
+            'temperature humidity sensor atmospheric pressure': 'Ατμοσφαιρική πίεση',
+        },
+
+        'vacuum': {
+            'robot cleaner': 'Σκούπα δαπέδου',
+            'robot cleaner status': 'Κατάσταση σκούπας',
+        },
+
+        'vacuum.mode': {
+            'basic': 'Βασική',
+            'silent': 'Ήσυχη',
+            'standard': 'Κανονική',
+            'strong': 'Δυνατή',
+            'turbo': 'Τούρμπο',
+            'full speed': 'Πλήρης ταχύτητα',
+        },
+
+        'washer': {
+            'drying level': 'Επίπεδο στεγνώματος',
+            'rinsh times': 'Αριθμός ξεβγάλματος',
+            'spin speed': 'Ταχύτητα περιστροφής',
+            'target water level': 'Στάθμη νερού',
+        },
+        'washer.mode': {
+            'baby care': 'Βρεφικό πλύσιμο',
+            'boiling': 'Πλύσιμο σε υψηλή θερμοκρασία',
+            'color protection': 'Πλύση προστασίας χρώματος',
+            'cotton': 'Βαμβάκι και λινό πλύσιμο',
+            'daily wash': 'Καθημερινό πλύσιμο',
+            'delicate wash': 'Απαλό πλύσιμο',
+            'down coat': 'Πουπουλένιο μπουφάν',
+            'drum clean': 'Καθαρισμός κάδου',
+            'drum dry': 'Στέγνωμα κάδου',
+            'dry air wash': 'Πλύσιμο με αέρα',
+            'dry timing': 'Χρόνος στεγνώματος',
+            'dry': 'Στέγνωμα',
+            'gold wash': 'Πλύσιμο χρυσού',
+            'heavy wash': 'Ισχυρό πλύσιμο',
+            'intensive': 'Εντατικό',
+            'jacket': 'Μπουφάν',
+            'jeans': 'Τζιν',
+            'mite removal': 'Αφαίρεση ακάρεων',
+            'quick wash dry': 'Γρήγορο πλύσιμο και στέγνωμα',
+            'quick wash': 'Γρήγορο πλύσιμο',
+            'rinse spin': 'Λεύκανση και ξέβγαλμα',
+            'rinse': 'Ενιαίο ξέβγαλμα',
+            'shirt': 'Πουκάμισα',
+            'silk': 'Μετάξι',
+            'soak wash': 'Πλύσιμο με μούλιασμα',
+            'sock': 'Κάλτσες',
+            'spin': 'Στύψιμο',
+            'sportswear': 'Αθλητικά ρούχα',
+            'super quick': 'Σούπερ γρήγορο πλύσιμο',
+            'synthetic': 'Συνθετικά',
+            'towel': 'Πετσέτες',
+            'underwear': 'Εσώρουχα',
+            'user define': 'Προσαρμογή',
+            'wash dry': 'Πλύσιμο + Στέγνωμα',
+            'wool': 'Μαλλί',
+        },
+        'washer.drying_level': {
+            'moist': 'Ελαφρώς υγρό',
+            'normal': 'Κανονικό',
+            'extra': 'Έξτρα',
+            'none': 'Καθόλου',
+        },
+
+        'water_heater': {
+            'water heater': 'Θερμοσίφωνας νερού',
+        },
+    },
+
     'ru': {
         'off': 'Выключенный',
         'idle': 'Бездействующий',
@@ -579,7 +869,7 @@ TRANSLATION_LANGUAGES = {
             'water heater': 'водонагреватель',
         },
     },
-    
+
     'en': {
         'clean.mode': {
             '安静': 'Silent',
