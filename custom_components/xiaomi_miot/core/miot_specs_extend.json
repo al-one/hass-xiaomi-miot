@@ -1294,6 +1294,7 @@
         {
           "iid": 111,
           "type": "urn:miot-spec-v2:property:filter-remaining",
+          "description": "Filter 1 remaining",
           "format": "uint16",
           "access": ["read"],
           "unit": "percentage"
@@ -1301,6 +1302,7 @@
         {
           "iid": 112,
           "type": "urn:miot-spec-v2:property:filter-remaining",
+          "description": "Filter C2 remaining",
           "format": "uint16",
           "access": ["read"],
           "unit": "percentage"
@@ -1308,6 +1310,7 @@
         {
           "iid": 113,
           "type": "urn:miot-spec-v2:property:filter-remaining",
+          "description": "Filter RO remaining",
           "format": "uint16",
           "access": ["read"],
           "unit": "percentage"
