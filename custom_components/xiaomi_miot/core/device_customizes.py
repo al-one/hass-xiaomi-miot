@@ -393,6 +393,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'work_mode,hip_water_gage,woman_water_gage,hip_nozzle_position,woman_nozzle_pos,'
                              'seat_temperature,wind_temperature,water_temperature,auto_mode',
     },
+    'isleep.blanket.hs220': {
+        'sensor_properties': 'fault,temperature,water_level',
+        'select_properties': 'mode,sleep_level',
+        'switch_properties': 'low_temperature,screen_switch,key_tone,automatic_shutdown,fast_heating',
+    },
     'izq.sensor_occupy.24': {
         'interval_seconds': 15,
         'sensor_properties': 'illumination,distance,has_someone_duration,no_one_duration',
