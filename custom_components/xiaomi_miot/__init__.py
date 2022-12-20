@@ -1465,7 +1465,7 @@ class MiotEntity(MiioEntity):
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
-            for d in ['button']:
+            for d in ['button', 'text']:
                 als = self.custom_config_list(f'{d}_actions') or []
                 if als:
                     self._update_sub_entities(None, '*', domain=d, actions=als)
@@ -1970,6 +1970,7 @@ class MiotEntity(MiioEntity):
         add_numbers = self._add_entities.get('number')
         add_selects = self._add_entities.get('select')
         add_buttons = self._add_entities.get('button')
+        add_texts = self._add_entities.get('text')
         exclude_services = self._state_attrs.get('exclude_miot_services') or []
         for s in sls:
             if s.name in exclude_services:
@@ -2026,6 +2027,10 @@ class MiotEntity(MiioEntity):
                         from .button import MiotButtonActionSubEntity
                         self._subs[fnm] = MiotButtonActionSubEntity(self, p, option=opt)
                         add_buttons([self._subs[fnm]])
+                    elif add_texts and domain == 'text':
+                        from .text import MiotTextActionSubEntity
+                        self._subs[fnm] = MiotTextActionSubEntity(self, p, option=opt)
+                        add_texts([self._subs[fnm]])
                 elif add_buttons and domain == 'button' and p.value_list:
                     from .button import MiotButtonSubEntity
                     nls = []

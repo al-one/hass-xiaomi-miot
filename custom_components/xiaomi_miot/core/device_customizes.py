@@ -786,6 +786,7 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.tv.*': {
         'auto_cloud': True,
         'number_properties': 'speaker.volume',
+        'text_actions': 'message_router.post',
     },
     'xiaomi.tvbox.*': {
         'auto_cloud': True,
@@ -793,6 +794,10 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.watch.*': {
         'sensor_properties': 'current_step_count,current_distance',
+    },
+    'xiaomi.wifispeaker.*': {
+        'button_actions': 'wake_up,play_music',
+        'text_actions': 'play_text,execute_text_directive',
     },
 
     'yeelink.bhf_light.v5': {

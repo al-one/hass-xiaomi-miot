@@ -77,7 +77,7 @@ except (ModuleNotFoundError, ImportError):
     DOMAIN_BUTTON = None
 
 try:
-    # hass 2022.12
+    # hass 2021.12
     from homeassistant.helpers.entity import EntityCategory
     ENTITY_CATEGORY_VIA_ENUM = True
 except (ModuleNotFoundError, ImportError):
@@ -86,3 +86,10 @@ except (ModuleNotFoundError, ImportError):
         DIAGNOSTIC = 'diagnostic'
         SYSTEM = 'system'
     ENTITY_CATEGORY_VIA_ENUM = False
+
+try:
+    # hass 2022.12
+    from homeassistant.components.text import DOMAIN as DOMAIN_TEXT
+    SUPPORTED_DOMAINS.append(DOMAIN_TEXT)
+except (ModuleNotFoundError, ImportError):
+    DOMAIN_TEXT = None
