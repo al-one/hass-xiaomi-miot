@@ -145,6 +145,8 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
             if self._prop_power:
                 self._state = self._state and self._prop_power.from_dict(self._state_attrs)
 
+        if self._reverse_state and self._state is not None:
+            return not self._state
         return self._state
 
     def turn_on(self, **kwargs):
@@ -155,6 +157,8 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
                 val = ret
         elif self._miot_property.value_range:
             val = self._miot_property.range_max()
+        if self._reverse_state:
+            val = not val
         return self.set_parent_property(val)
 
     def turn_off(self, **kwargs):
@@ -165,6 +169,8 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
                 val = ret
         elif self._miot_property.value_range:
             val = self._miot_property.range_min()
+        if self._reverse_state:
+            val = not val
         return self.set_parent_property(val)
 
 

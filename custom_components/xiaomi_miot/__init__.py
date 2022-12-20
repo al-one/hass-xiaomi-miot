@@ -2145,23 +2145,34 @@ class MiotEntity(MiioEntity):
 
 
 class MiotToggleEntity(MiotEntity, ToggleEntity):
+    _reverse_state = None
+
     def __init__(self, miot_service=None, device=None, **kwargs):
         super().__init__(miot_service, device, **kwargs)
         self._prop_power = None
         if miot_service:
             self._prop_power = miot_service.get_property('on', 'power', 'switch')
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self._reverse_state = self.custom_config_bool('reverse_state', None)
+
     @property
     def is_on(self):
+        val = None
         if self._prop_power:
-            return not not self._state_attrs.get(self._prop_power.full_name)
-        return None
+            val = not not self._state_attrs.get(self._prop_power.full_name)
+            if self._reverse_state:
+                val = not val
+        return val
 
     def turn_on(self, **kwargs):
         if self._prop_power:
             val = True
             if self._prop_power.value_range:
                 val = self._prop_power.range_max() or 1
+            elif self._reverse_state:
+                val = not val
             return self.set_property(self._prop_power, val)
         return False
 
@@ -2170,6 +2181,8 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
             val = False
             if self._prop_power.value_range:
                 val = self._prop_power.range_min() or 0
+            elif self._reverse_state:
+                val = not val
             return self.set_property(self._prop_power, val)
         act = self._miot_service.get_action('stop_working', 'power_off')
         if act:
