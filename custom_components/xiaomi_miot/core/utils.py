@@ -65,7 +65,10 @@ def get_translations(*keys):
         **(TRANSLATION_LANGUAGES.get('_globals', {})),
     }
     for k in keys:
-        dic.update(TRANSLATION_LANGUAGES.get(k) or {})
+        tls = TRANSLATION_LANGUAGES.get(k)
+        if not isinstance(tls, dict):
+            continue
+        dic.update(tls)
     return dic
 
 
