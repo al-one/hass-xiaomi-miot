@@ -920,6 +920,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'screen.brightness',
         'number_properties': 'speed_level',
     },
+    'zimi.mosq.v2': {
+        'attributes_template': '{{ {"light_indicator.on": not (data["light_indicator.on"] | default(true))} }}',
+    },
     'zimi.mosq.*': {
         'light_services': 'light_indicator',
     },
