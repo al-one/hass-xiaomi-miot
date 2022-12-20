@@ -56,7 +56,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         else:
             for srv in spec.get_services(
                 ENTITY_DOMAIN, 'outlet', 'massager', 'towel_rack', 'diffuser', 'fish_tank',
-                'pet_drinking_fountain', 'mosquito_dispeller', 'electric_blanket',
+                'pet_drinking_fountain', 'mosquito_dispeller', 'electric_blanket', 'foot_bath',
             ):
                 if not srv.get_property('on'):
                     continue

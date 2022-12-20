@@ -1054,6 +1054,12 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,pump_flux,target_feeding_measure,'
                              'ambient_light_custom.stream,ambient_light_custom.speed',
     },
+    '*.foot_bath.*': {
+        'sensor_properties': 'temperature,left_time,fold_status,water_level_status',
+        'switch_properties': 'foot_massage,constant_temperature_heating',
+        'select_properties': 'heat_level,motor_control',
+        'number_properties': 'target_time,target_temperature',
+    },
     '*.heater.*': {
         'switch_properties': 'heater.on',
         'number_properties': 'countdown_time',
