@@ -785,6 +785,7 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.tv.*': {
         'auto_cloud': True,
+        'switch_properties': 'is_on',
         'number_properties': 'speaker.volume',
         'text_actions': 'message_router.post',
     },

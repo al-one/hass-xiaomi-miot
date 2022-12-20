@@ -538,19 +538,28 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         self._api_key = '881fd5a8c94b4945b46527b07eca2431'
         self._hmac_key = '2840d5f0d078472dbc5fb78e39da123e'
         self._state_attrs['6095_state'] = True
-        self._keycodes = [
-            'power',
-            'home',
-            'menu',
-            'enter',
-            'back',
-            'up',
-            'down',
-            'left',
-            'right',
-            'volumeup',
-            'volumedown',
-        ]
+        self._keycode_actions = {
+            'power': 'turn_off',
+            'home': 'press_home',
+            'menu': 'press_menu',
+            'enter': 'press_ok',
+            'back': 'press_back',
+            'up': 'press_up',
+            'down': 'press_down',
+            'left': 'press_left',
+            'right': 'press_right',
+            'volumeup': 'press_volume_up',
+            'volumedown': 'press_volume_down',
+        }
+        self._remote_ctrl = self._miot_service.spec.get_service('remote_control')
+        if self._remote_ctrl:
+            self._keycode_actions.update({
+                'settings': 'press_settings',
+                'play': 'press_play',
+                'pause': 'press_pause',
+                'play_pause': 'press_play_pause',
+            })
+        self._keycodes = list(self._keycode_actions.keys())
         self._apps = {}
         self._supported_features |= SUPPORT_PLAY_MEDIA
 
@@ -781,6 +790,10 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         return self.request_mitv_api('controller', params=pms)
 
     def press_key(self, key, **kwargs):
+        if self._remote_ctrl:
+            act = self._keycode_actions.get(key) or key
+            if act := self._remote_ctrl.get_action(act):
+                return self.call_action(act)
         pms = {
             'action': 'keyevent',
             'keycode': key,
