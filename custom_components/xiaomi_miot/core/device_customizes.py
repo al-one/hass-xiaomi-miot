@@ -921,11 +921,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'screen.brightness',
         'number_properties': 'speed_level',
     },
-    'zimi.mosq.v2': {
-        'attributes_template': '{{ {"light_indicator.on": not (data["light_indicator.on"] | default(true))} }}',
+    'zimi.mosq.v2:light_indicator.on': {
+        'reverse_state': True,
     },
     'zimi.mosq.*': {
-        'light_services': 'light_indicator',
+        'switch_properties': 'light_indicator.on',
     },
     'zimi.plug.zncz01': {
         'sensor_attributes': 'power_cost_today,power_cost_month',

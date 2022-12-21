@@ -2358,6 +2358,7 @@ class BaseSubEntity(BaseEntity):
             if hasattr(self, '_miot_property'):
                 prop = getattr(self, '_miot_property')
                 if prop:
+                    mar.append(f'{mod}:{prop.full_name}')
                     mar.append(f'{mod}:{prop.name}')
         return mar
 
