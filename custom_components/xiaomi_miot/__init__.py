@@ -1037,7 +1037,7 @@ class MiioEntity(BaseEntity):
 
     def update_attrs(self, attrs: dict, update_parent=False, update_subs=True):
         self._state_attrs.update(attrs or {})
-        if self.hass and self.platform:
+        if self.hass and self.platform and update_subs:
             tps = cv.ensure_list(self.custom_config('attributes_template'))
             for tpl in tps:
                 if not tpl:
@@ -2429,9 +2429,10 @@ class BaseSubEntity(BaseEntity):
     def set_parent_property(self, val, prop):
         ret = self.call_parent('set_property', prop, val)
         if ret:
+            key = prop.full_name if isinstance(prop, MiotProperty) else prop
             self.update_attrs({
-                prop: val,
-            })
+                key: val,
+            }, update_parent=False)
         return ret
 
 
