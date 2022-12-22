@@ -798,7 +798,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'current_step_count,current_distance',
     },
     'xiaomi.wifispeaker.*': {
-        'switch_properties': 'on,sleep_mode,no_disturb',
+        'switch_properties': 'sleep_mode,no_disturb',
         'button_actions': 'wake_up,play_music,tv_switchon,stop_alarm',
         'text_actions': 'play_text,execute_text_directive',
     },
