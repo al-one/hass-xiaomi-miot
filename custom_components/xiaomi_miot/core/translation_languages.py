@@ -311,10 +311,10 @@ TRANSLATION_LANGUAGES = {
 
         'fan_level': {
             'auto': 'Αυτόματο',
-            # 'low': '低档',
-            # 'medium': '中档',
-            # 'middle': '中档',
-            # 'high': '高档',
+            'low': 'Χαμηλό',
+            'medium': 'Mέτριο',
+            'middle': 'Μεσαίο',
+            'high': 'Υψηλό',
             'quiet': 'Ήσυχο',
             'turbo': 'Τούρμπο',
             'level1': 'Επίπεδο 1',
@@ -498,6 +498,12 @@ TRANSLATION_LANGUAGES = {
             'slient': 'Ήσυχο',
             'standard': 'Κανονικό',
             'turbo': 'Τούρμπο',
+        },
+
+        'sweep.water_state': {
+            '低': 'Χαμηλή',
+            '中': 'Μεσαία',
+            '高': 'Υψηλή',
         },
 
         'television': {
