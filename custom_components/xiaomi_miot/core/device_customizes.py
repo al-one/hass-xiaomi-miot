@@ -585,9 +585,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'feedstatus',
     },
     'mmgg.pet_waterer.wi11': {
-        'button_actions': 'reset_filter_life,reset_cotton_life,reset_clean_time',
         'binary_sensor_properties': 'no_water_flag,pump_block_flag,lid_up_flag',
-        'sensor_properties': 'filter_left_time,cotton_left_time,remain_clean_time,no_water_time',
+        'button_actions': 'reset_filter_life,reset_clean_time',
+        'sensor_properties': 'remain_clean_time,fault,filter_left_time,no_water_time',
         'select_properties': 'mode',
     },
     'mxiang.cateye.*': {
