@@ -311,9 +311,9 @@ TRANSLATION_LANGUAGES = {
 
         'fan_level': {
             'auto': 'Αυτόματο',
-            'low': 'Χαμηλό',
-            'medium': 'Mέτριο',
-            'middle': 'Μεσαίο',
+            # 'low': 'Χαμηλό',
+            # 'medium': 'Mέτριο',
+            # 'middle': 'Μεσαίο',
             'high': 'Υψηλό',
             'quiet': 'Ήσυχο',
             'turbo': 'Τούρμπο',
