@@ -914,7 +914,6 @@ DEVICE_CUSTOMIZES = {
     'zhimi.heater.na1': {
         'switch_properties': 'return_to_middle,alarm',
         'number_properties': 'countdown_time',
-        'sensor_properties': 'fault',
     },
     'zhimi.heater.nb1': {
         'brightness_for_on': 0,
