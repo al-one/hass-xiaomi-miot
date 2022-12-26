@@ -770,6 +770,26 @@ DEVICE_CUSTOMIZES = {
     'viomi.vacuum.*:miio.s_time': {
         'unit_of_measurement': 'min',
     },
+
+    'viomi.vacuum.v18': {
+        'sensor_properties': 'vacuum.status,fault,door_state,hypa_life,hypa_hours,main_brush_life,main_brush_hours,side_brush_life,side_brush_hours,clean_area,clean_start_time,clean_use_time,mop_life,mop_hours',
+        'switch_properties': 'repeat_state,remember_state,dust_collection',
+        'select_properties': 'vacuum.sweep_type,vacuum.wdr_mode,water_grade,viomi_vacuum.mop_route',
+        'number_properties': 'mute',
+        'exclude_miot_services': 'order,map,voice',
+        'exclude_miot_properties': 'direction,stream_address,zone_points,restrict_points,clean_room_mode,consumable_index,clean_room_oper,clean_room_ids,cur_map_url,cur_map_id,time_zone,has_map,has_newmap,cur_lang',
+    },
+
+    'viomi.vacuum.v18:clean_area': {
+        'unit_of_measurement': '㎡',
+    },
+
+    'viomi.vacuum.v18:clean_use_time': {
+        'value_ratio': 0.0166667,
+        'unit_of_measurement': 'min',
+        'device_class': 'duration',
+    },
+    
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
     },

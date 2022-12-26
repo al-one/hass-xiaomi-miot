@@ -871,12 +871,14 @@ TRANSLATION_LANGUAGES = {
     },
 
     'en': {
+
         'clean.mode': {
             '安静': 'Silent',
             '标准': 'Standard',
             '中档': 'Medium',
             '强力': 'Turbo',
         },
+
         'sweep.suction_state': {
             'slient': 'Silent',
             '关': 'Silent',
@@ -884,10 +886,48 @@ TRANSLATION_LANGUAGES = {
             '标准': 'Medium',
             '强劲': 'Turbo',
         },
+
         'sweep.water_state': {
             '低': 'Low',
             '中': 'Medium',
             '高': 'High',
+        },
+
+        'vacuum': {
+            'Wide Dynamic Range Mode': 'Working Mode',    
+        },
+
+        'viomi_vacuum': {
+            '1挡': 'Level 1',
+            '2挡': 'Level 2',
+            '3挡': 'Level 3',
+            'dust-collection': 'Dust Collection',
+            'door-state': 'Dust Bin State',
+            '出水量大小': 'Mop Water Volume',
+            '边刷剩余寿命百分比': 'Side Brush Life',
+            '边刷剩余寿命小时': 'Side Brush Hours',
+            '主刷剩余寿命百分比': 'Main Brush Life',
+            '主刷剩余寿命小时': 'Main Brush Hours',
+            '拖布剩余寿命百分比': 'Mop Life',
+            '拖布剩余寿命小时': 'Mop Hours',
+            'hypa_hours': 'Dust Box Filter Hours',
+            'hypa_life': 'Dust Box Filter Life',
+            '清扫使用时间，单位秒': 'Cleaning time',
+            '清扫总面积，单位m2': 'Cleaned area',
+            '清扫开始时间，时间戳，单位秒': 'Cleaning start time, timestamp, in seconds',
+            'Y字形': 'Y-shaped',
+            '弓字形': 'S-shaped',
+        },
+
+        'vacuum.door_state': {
+            '2': 'Removed',
+            '3': 'Installed', 
+        },
+
+        'vacuum.wdr_mode': {
+            '0': 'Vacuum',
+            '1': 'Vacuum & Mop',
+            '2': 'Mop',
         },
     },
 
