@@ -911,6 +911,10 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
     },
+    'zhimi.heater.na1': {
+        'switch_properties': 'return_to_middle,alarm',
+        'number_properties': 'countdown_time',
+    },
     'zhimi.heater.nb1': {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
