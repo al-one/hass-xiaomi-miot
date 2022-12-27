@@ -742,32 +742,20 @@
       ]
     }
   ],
-
   "viomi.vacuum.v18": [
-    { "iid": 2,
+    {
+      "iid": 2,
       "properties": [
-        {"iid":17,"description":"Volume"}
+        {"iid": 17, "description": "Volume"}
       ]
     },
     {
-    "iid":4,
+      "iid": 4,
       "properties": [
-        {
-          "iid":1,
-          "description":"Repeat Cleaning"
-        },
-        {
-          "iid":3,
-          "description":"Remember State"
-        },
-        {
-            "iid":6,
-            "description":"Mopping Mode"
-        },
-        {
-          "iid":41,
-          "description":"Dust Collection"
-        }
+        {"iid": 1, "description": "Repeat Cleaning"},
+        {"iid": 3, "description": "Remember State"},
+        {"iid": 6, "description": "Mopping Mode"},
+        {"iid": 41, "description": "Dust Collection"}
       ]
     }
   ],
