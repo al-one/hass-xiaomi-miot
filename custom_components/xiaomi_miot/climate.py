@@ -168,6 +168,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        self._vars['turn_on_hvac'] = self.custom_config('turn_on_hvac')
         if self._prop_mode:
             mvs = []
             dls = []
@@ -351,7 +352,9 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
             for mk, mv in self._hvac_modes.items():
                 if acm == mv.get('value'):
                     return mk
-        elif self._prop_power:
+        if self._prop_power:
+            if mod := self._vars.get('turn_on_hvac'):
+                return mod
             return HVAC_MODE_AUTO
         return None
 
@@ -364,7 +367,9 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                     continue
                 hms.append(mk)
         elif self._prop_power:
-            hms.append(HVAC_MODE_AUTO)
+            mod = self._vars.get('turn_on_hvac') or HVAC_MODE_AUTO
+            if mod and mod not in hms:
+                hms.append(mod)
         if HVAC_MODE_OFF not in hms:
             hms.append(HVAC_MODE_OFF)
         return hms
@@ -411,6 +416,8 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
             return self.turn_off()
         if not self.is_on:
             self.turn_on(without_modes=True)
+        if self._prop_power and mode == self._vars.get('turn_on_hvac'):
+            return True
         if not self._prop_mode:
             return False
         val = self._hvac_modes.get(mode, {}).get('value')

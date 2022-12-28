@@ -728,6 +728,7 @@ DEVICE_CUSTOMIZES = {
     },
     'suittc.airrtc.wk168': {
         'switch_properties': 'on',
+        'turn_on_hvac': 'heat',
     },
 
     'topwit.bhf_light.rz01': {
