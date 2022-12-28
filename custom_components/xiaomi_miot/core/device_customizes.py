@@ -106,7 +106,7 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
         'switch_properties': 'childlock',
         'select_properties': 'tempactivate,tempcomp',
-        'exclude_miot_properties': 'fault,sensortype,tempfloor,maxsettemp,minsettemp',
+        'exclude_miot_properties': 'fault,sensortype,maxsettemp,minsettemp',
     },
     'cuco.light.sl4': {
         'switch_properties': 'swich',
