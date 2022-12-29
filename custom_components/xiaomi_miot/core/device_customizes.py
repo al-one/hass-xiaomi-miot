@@ -806,6 +806,12 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'wake_up,play_music,tv_switchon,stop_alarm',
         'text_actions': 'play_text,execute_text_directive',
     },
+    'xwhzp.diffuser.xwxfj': {
+        'sensor_properties': 'fragrance_liquid_left_level',
+        'switch_properties': 'anion',
+        'select_properties': 'mode',
+        'number_properties': 'fragrance_out_time,countdown_time,countdown,scent_mix_level,brightness,color',
+    },
 
     'yeelink.bhf_light.v5': {
         'select_properties': 'heat_mode,cold_mode,vent_mode',
