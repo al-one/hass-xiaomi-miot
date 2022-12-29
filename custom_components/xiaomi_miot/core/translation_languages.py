@@ -889,9 +889,6 @@ TRANSLATION_LANGUAGES = {
             '中': 'Medium',
             '高': 'High',
         },
-        'vacuum': {
-            'Wide Dynamic Range Mode': 'Working Mode',    
-        },
         'viomi_vacuum': {
             '1挡': 'Level 1',
             '2挡': 'Level 2',
