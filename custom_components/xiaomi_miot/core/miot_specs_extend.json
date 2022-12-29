@@ -767,7 +767,7 @@
         },
         {"iid": 13, "description": "Mop Type"},
         {"iid": 15, "description": "Clean Time"},
-        {"iid": 17, "description": "Clean Area", 'unit': '㎡'},
+        {"iid": 17, "description": "Clean Area", "unit": "㎡"},
         {"iid": 17, "description": "Volume"}
       ]
     },
