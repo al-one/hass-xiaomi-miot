@@ -918,17 +918,6 @@ TRANSLATION_LANGUAGES = {
             'Y字形': 'Y-shaped',
             '弓字形': 'S-shaped',
         },
-
-        'vacuum.door_state': {
-            '2': 'Removed',
-            '3': 'Installed', 
-        },
-
-        'vacuum.wdr_mode': {
-            '0': 'Vacuum',
-            '1': 'Vacuum & Mop',
-            '2': 'Mop',
-        },
     },
 
     'pl': {
