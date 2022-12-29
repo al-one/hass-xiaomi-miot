@@ -871,14 +871,12 @@ TRANSLATION_LANGUAGES = {
     },
 
     'en': {
-
         'clean.mode': {
             '安静': 'Silent',
             '标准': 'Standard',
             '中档': 'Medium',
             '强力': 'Turbo',
         },
-
         'sweep.suction_state': {
             'slient': 'Silent',
             '关': 'Silent',
@@ -886,17 +884,14 @@ TRANSLATION_LANGUAGES = {
             '标准': 'Medium',
             '强劲': 'Turbo',
         },
-
         'sweep.water_state': {
             '低': 'Low',
             '中': 'Medium',
             '高': 'High',
         },
-
         'vacuum': {
             'Wide Dynamic Range Mode': 'Working Mode',    
         },
-
         'viomi_vacuum': {
             '1挡': 'Level 1',
             '2挡': 'Level 2',
