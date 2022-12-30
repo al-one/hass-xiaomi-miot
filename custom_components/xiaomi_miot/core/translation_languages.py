@@ -500,6 +500,12 @@ TRANSLATION_LANGUAGES = {
             'turbo': 'Τούρμπο',
         },
 
+        'sweep.water_state': {
+            '低': 'Χαμηλή',
+            '中': 'Μεσαία',
+            '高': 'Υψηλή',
+        },
+
         'television': {
             'input control': 'Πηγή εισόδου',
             'tv input control': 'Πηγή εισόδου τηλεόρασης',

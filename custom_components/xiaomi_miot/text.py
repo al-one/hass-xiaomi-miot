@@ -1,5 +1,6 @@
 """Support text entity for Xiaomi Miot."""
 import logging
+import time
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.components.text import (
@@ -100,9 +101,15 @@ class MiotTextActionSubEntity(BaseSubEntity, TextEntity):
 
     def set_value(self, value):
         """Change the value."""
-        params = [value]
         if self._miot_action.name in ['execute_text_directive']:
-            params.append(self.custom_config_bool('silent_execution', False))
+            silent = self.custom_config_integer('silent_execution', 0)
+            ret = self.call_parent('intelligent_speaker', value, True, silent)
+        else:
+            ret = self.call_parent('call_action', self._miot_action, [value])
 
-        self._attr_native_value = value
-        return self.call_parent('call_action', self._miot_action, params)
+        if ret:
+            self._attr_native_value = value
+            self.async_write_ha_state()
+            time.sleep(0.5)
+            self._attr_native_value = ''
+        return ret

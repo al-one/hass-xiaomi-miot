@@ -730,9 +730,10 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'motion_stream_slice': cv.string,
         })
 
-    if domain == 'climate' or re.search(r'aircondition|acpartner', model, re.I):
+    if domain == 'climate' or re.search(r'aircondition|acpartner|airrtc', model, re.I):
         options.update({
             'bind_sensor': cv.string,
+            'turn_on_hvac': cv.string,
         })
 
     if domain == 'cover' or re.search(r'airer|curtain|wopener', model, re.I):

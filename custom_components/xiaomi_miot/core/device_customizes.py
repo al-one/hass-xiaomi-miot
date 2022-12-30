@@ -106,7 +106,7 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
         'switch_properties': 'childlock',
         'select_properties': 'tempactivate,tempcomp',
-        'exclude_miot_properties': 'fault,sensortype,tempfloor,maxsettemp,minsettemp',
+        'exclude_miot_properties': 'fault,sensortype,maxsettemp,minsettemp',
     },
     'cuco.light.sl4': {
         'switch_properties': 'swich',
@@ -728,6 +728,7 @@ DEVICE_CUSTOMIZES = {
     },
     'suittc.airrtc.wk168': {
         'switch_properties': 'on',
+        'turn_on_hvac': 'heat',
     },
 
     'topwit.bhf_light.rz01': {
@@ -824,6 +825,12 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'sleep_mode,no_disturb',
         'button_actions': 'wake_up,play_music,tv_switchon,stop_alarm',
         'text_actions': 'play_text,execute_text_directive',
+    },
+    'xwhzp.diffuser.xwxfj': {
+        'sensor_properties': 'fragrance_liquid_left_level',
+        'switch_properties': 'anion',
+        'select_properties': 'mode',
+        'number_properties': 'fragrance_out_time,countdown_time,countdown,scent_mix_level,brightness,color',
     },
 
     'yeelink.bhf_light.v5': {
