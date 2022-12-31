@@ -826,8 +826,6 @@
     },
     {
       "iid": 4,
-      "type":"urn:viomi-spec:service:viomi-vacuum:00007801:viomi-v47:1",
-      "description":"Viomi",
       "properties": [
         {"iid": 1, "description": "Repeat Cleaning"},
         {"iid": 3, "description": "Remember State"},
