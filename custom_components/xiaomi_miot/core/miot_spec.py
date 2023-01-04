@@ -772,7 +772,7 @@ class MiotProperty(MiotSpecInstance):
         ret = None
         name = self.full_name
         props = {
-            'atmospheric_pressure': SensorDeviceClass.ATMOSPHERIC_PRESSURE,
+            'atmospheric_pressure': SensorDeviceClass.PRESSURE,
             'temperature': SensorDeviceClass.TEMPERATURE,
             'relative_humidity': SensorDeviceClass.HUMIDITY,
             'humidity': SensorDeviceClass.HUMIDITY,
