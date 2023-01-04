@@ -270,12 +270,11 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         )
         self._update_sub_entities(
             [
-                'mode', 'mode_time', 'hardness', 'start_pause', 'leg_pillow', 'rl_control',
+                'mode_time', 'start_pause', 'leg_pillow', 'rl_control',
                 'heat_level', 'heat_time', 'heat_zone', 'intensity_mode', 'massage_strength',
             ],
             [
-                'bed', 'backrest_control', 'leg_rest_control', 'massage_mattress',
-                'fridge',
+                'bed', 'backrest_control', 'leg_rest_control', 'massage_mattress', 'fridge',
             ],
             domain='fan',
         )

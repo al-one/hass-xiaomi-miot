@@ -257,6 +257,7 @@ MIOT_LOCAL_MODELS = [
     'qushui.blanket.mj1',
     'qushui.bed.001',
     'qushui.bed.003',
+    'qushui.bed.007',
     'qushui.bed.dt4',
     'roidmi.vacuum.v60',
     'roidmi.vacuum.v66',

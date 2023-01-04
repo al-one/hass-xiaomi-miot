@@ -669,6 +669,12 @@ DEVICE_CUSTOMIZES = {
     'qushui.bed.001': {
         'chunk_properties': 1,
     },
+    'qushui.bed.*': {
+        'chunk_properties': 1,
+        'switch_properties': 'ai_on',
+        'select_properties': 'mode,hardness,memory_one,memory_two,sleep_lock',
+        'number_properties': 'lumbar_angle,backrest_angle,leg_rest_angle',
+    },
     'qushui.blanket.mj1': {
         'chunk_properties': 1,
         'sensor_properties': 'fault,water_level,a_temperature,b_temperature',
