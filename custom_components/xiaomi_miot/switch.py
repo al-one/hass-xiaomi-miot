@@ -6,8 +6,7 @@ from homeassistant.const import *  # noqa: F401
 from homeassistant.components.switch import (
     DOMAIN as ENTITY_DOMAIN,
     SwitchEntity,
-    DEVICE_CLASS_SWITCH,
-    DEVICE_CLASS_OUTLET,
+    SwitchDeviceClass,
 )
 
 from . import (
@@ -74,10 +73,12 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
 
     @property
     def device_class(self):
+        if cls := self.get_device_class(SwitchDeviceClass):
+            return cls
         typ = f'{self._model} {self._miot_service.spec.type}'
-        if typ.find('outlet') >= 0:
-            return DEVICE_CLASS_OUTLET
-        return DEVICE_CLASS_SWITCH
+        if 'outlet' in typ or '.plug.' in typ:
+            return SwitchDeviceClass.OUTLET
+        return SwitchDeviceClass.SWITCH
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -282,7 +283,7 @@ class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_SWITCH
+        return SwitchDeviceClass.SWITCH
 
     @property
     def all_status(self):
@@ -375,7 +376,7 @@ class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_SWITCH
+        return SwitchDeviceClass.SWITCH
 
     async def async_update(self):
         await super().async_update()

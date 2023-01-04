@@ -6,6 +6,7 @@ import time
 import re
 
 from homeassistant.const import *
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -771,33 +772,24 @@ class MiotProperty(MiotSpecInstance):
         ret = None
         name = self.full_name
         props = {
-            'atmospheric_pressure': DEVICE_CLASS_PRESSURE,
-            'temperature': DEVICE_CLASS_TEMPERATURE,
-            'relative_humidity': DEVICE_CLASS_HUMIDITY,
-            'humidity': DEVICE_CLASS_HUMIDITY,
+            'atmospheric_pressure': SensorDeviceClass.ATMOSPHERIC_PRESSURE,
+            'temperature': SensorDeviceClass.TEMPERATURE,
+            'relative_humidity': SensorDeviceClass.HUMIDITY,
+            'humidity': SensorDeviceClass.HUMIDITY,
             'charging_state': None,
-            'battery_level': DEVICE_CLASS_BATTERY,
-            '.battery': DEVICE_CLASS_BATTERY,
-            'illumination': DEVICE_CLASS_ILLUMINANCE,
-            'voltage': DEVICE_CLASS_VOLTAGE,
-            'electric_current': DEVICE_CLASS_CURRENT,
-            'electric_power': DEVICE_CLASS_POWER,
+            'battery_level': SensorDeviceClass.BATTERY,
+            '.battery': SensorDeviceClass.BATTERY,
+            'illumination': SensorDeviceClass.ILLUMINANCE,
+            'voltage': SensorDeviceClass.VOLTAGE,
+            'electric_current': SensorDeviceClass.CURRENT,
+            'electric_power': SensorDeviceClass.POWER,
+            'co2_density': SensorDeviceClass.CO2,
+            'co_density': SensorDeviceClass.CO,
+            'co2': SensorDeviceClass.CO2,
+            'pm2_5_density': SensorDeviceClass.PM25,
+            'pm25': SensorDeviceClass.PM25,
+            'pm10': SensorDeviceClass.PM10,
         }
-        vls = vars()
-        if 'DEVICE_CLASS_CO2' in vls:
-            # v2021.4
-            props.update({
-                'co2_density': 'carbon_dioxide',
-                'co_density': 'carbon_monoxide',
-                'co2': 'carbon_dioxide',
-            })
-        if 'DEVICE_CLASS_PM25' in vls:
-            # v2021.9
-            props.update({
-                'pm2_5_density': 'pm25',
-                'pm25': 'pm25',
-                'pm10': 'pm10',
-            })
         if self.name in props:
             ret = props[self.name]
         else:

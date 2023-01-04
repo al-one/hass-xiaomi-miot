@@ -5,6 +5,7 @@ from homeassistant.const import *  # noqa: F401
 from homeassistant.components.humidifier import (
     DOMAIN as ENTITY_DOMAIN,
     HumidifierEntity,
+    HumidifierDeviceClass,
 )
 from homeassistant.components.humidifier.const import *
 
@@ -101,10 +102,12 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
 
     @property
     def device_class(self):
+        if cls := self.get_device_class(HumidifierDeviceClass):
+            return cls
         typ = f'{self._model} {self._miot_service.spec.type}'
-        if typ.find(DEVICE_CLASS_DEHUMIDIFIER) >= 0:
-            return DEVICE_CLASS_DEHUMIDIFIER
-        return DEVICE_CLASS_HUMIDIFIER
+        if HumidifierDeviceClass.DEHUMIDIFIER.value in typ or '.derh.' in typ:
+            return HumidifierDeviceClass.DEHUMIDIFIER
+        return HumidifierDeviceClass.HUMIDIFIER
 
     @property
     def target_humidity(self):

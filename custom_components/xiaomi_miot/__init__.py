@@ -662,6 +662,7 @@ class MiotDevice(MiotDeviceBase):
 class BaseEntity(Entity):
     _config = None
     _model = None
+    _attr_device_class = None
     _attr_entity_category = None
 
     async def async_added_to_hass(self):
@@ -682,6 +683,18 @@ class BaseEntity(Entity):
             # for v2021.11
             cat = cat.value
         return cat
+
+    def get_device_class(self, enum):
+        cls = self._attr_device_class
+        if isinstance(cls, enum):
+            return cls
+        if isinstance(cls, str):
+            try:
+                cls = EntityCategory(cls)
+            except (KeyError, ValueError):
+                cls = None
+            return cls
+        return None
 
     @property
     def model(self):

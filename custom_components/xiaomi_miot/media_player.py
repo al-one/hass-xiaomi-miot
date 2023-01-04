@@ -15,9 +15,7 @@ from homeassistant.const import *  # noqa: F401
 from homeassistant.components.media_player import (
     DOMAIN as ENTITY_DOMAIN,
     MediaPlayerEntity,
-    DEVICE_CLASS_TV,
-    DEVICE_CLASS_SPEAKER,
-    DEVICE_CLASS_RECEIVER,
+    MediaPlayerDeviceClass,
 )
 from homeassistant.components.media_player.const import *
 from homeassistant.components.homekit.const import EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED
@@ -31,6 +29,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     XIAOMI_MIIO_SERVICE_SCHEMA,
+    BaseEntity,
     MiotEntityInterface,
     MiotEntity,
     MiirToggleEntity,
@@ -104,7 +103,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
+class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
     _attr_state = None
 
     def __init__(self, miot_service: MiotService):
@@ -158,13 +157,15 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface):
 
     @property
     def device_class(self):
+        if cls := self.get_device_class(MediaPlayerDeviceClass):
+            return cls
         typ = f'{self._model} {self._miot_service.spec.type}'
-        if typ.find('speaker') >= 0:
-            return DEVICE_CLASS_SPEAKER
-        if typ.find('receiver') >= 0:
-            return DEVICE_CLASS_RECEIVER
-        if typ.find('tv') >= 0 or typ.find('television') >= 0:
-            return DEVICE_CLASS_TV
+        if 'speaker' in typ:
+            return MediaPlayerDeviceClass.SPEAKER
+        if 'receiver' in typ:
+            return MediaPlayerDeviceClass.RECEIVER
+        if 'television' in typ or '.tv.' in typ:
+            return MediaPlayerDeviceClass.TV
         return None
 
     @property
@@ -565,7 +566,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_TV
+        return MediaPlayerDeviceClass.TV
 
     @property
     def mitv_name(self):

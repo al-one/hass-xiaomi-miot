@@ -9,12 +9,11 @@ from homeassistant.core import callback
 from homeassistant.components.cover import (
     DOMAIN as ENTITY_DOMAIN,
     CoverEntity,
+    CoverDeviceClass,
     SUPPORT_OPEN,
     SUPPORT_CLOSE,
     SUPPORT_STOP,
     SUPPORT_SET_POSITION,
-    DEVICE_CLASS_CURTAIN,
-    DEVICE_CLASS_WINDOW,
     ATTR_POSITION,
 )
 from homeassistant.helpers.event import async_track_utc_time_change
@@ -124,11 +123,13 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
 
     @property
     def device_class(self):
+        if cls := self.get_device_class(CoverDeviceClass):
+            return cls
         typ = f'{self._model} {self._miot_service.spec.type}'
-        if typ.find('curtain') >= 0:
-            return DEVICE_CLASS_CURTAIN
-        if typ.find('window_opener') >= 0:
-            return DEVICE_CLASS_WINDOW
+        if 'curtain' in typ:
+            return CoverDeviceClass.CURTAIN
+        if 'window_opener' in typ:
+            return CoverDeviceClass.WINDOW
         return None
 
     async def async_update(self):
@@ -364,7 +365,6 @@ class MiioCoverEntity(MiioEntity, CoverEntity):
     def __init__(self, name, device, **kwargs):
         kwargs.setdefault('logger', _LOGGER)
         super().__init__(name, device, **kwargs)
-        self._device_class = None
         self._position = None
         self._set_position = None
         self._unsub_listener_cover = None
@@ -389,10 +389,6 @@ class MiioCoverEntity(MiioEntity, CoverEntity):
     @property
     def is_opening(self):
         return self._is_opening
-
-    @property
-    def device_class(self):
-        return self._device_class
 
     def open_cover(self, **kwargs):
         pass

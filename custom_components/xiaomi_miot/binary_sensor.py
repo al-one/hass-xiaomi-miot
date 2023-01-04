@@ -9,9 +9,7 @@ from homeassistant.const import *  # noqa: F401
 from homeassistant.components.binary_sensor import (
     DOMAIN as ENTITY_DOMAIN,
     BinarySensorEntity,
-    DEVICE_CLASS_MOTION,
-    DEVICE_CLASS_DOOR,
-    DEVICE_CLASS_MOISTURE,
+    BinarySensorDeviceClass,
 )
 
 from . import (
@@ -94,7 +92,7 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
             if self._prop_state.name in ['illumination']:
                 # cgllc.motion.cgpr1
                 self._prop_state = None
-            self._vars['device_class'] = DEVICE_CLASS_MOTION
+            self._attr_device_class = BinarySensorDeviceClass.MOTION
             if self._prop_state is None:
                 srv = miot_service.spec.get_service('nobody_time')
                 if srv:
@@ -105,11 +103,11 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
             if self._prop_state and self._prop_state.name in ['contact_state']:
                 # https://github.com/al-one/hass-xiaomi-miot/issues/270
                 self._vars['reverse_state'] = True
-            self._vars['device_class'] = DEVICE_CLASS_DOOR
+            self._attr_device_class = BinarySensorDeviceClass.DOOR
 
         if miot_service.name in ['submersion_sensor']:
             self._prop_state = miot_service.get_property('submersion_state') or self._prop_state
-            self._vars['device_class'] = DEVICE_CLASS_MOISTURE
+            self._attr_device_class = BinarySensorDeviceClass.MOISTURE
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -164,7 +162,7 @@ class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
 
     @property
     def device_class(self):
-        return self._vars.get('device_class') or super().device_class
+        return self.get_device_class(BinarySensorDeviceClass)
 
 
 class BleBinarySensorEntity(MiotBinarySensorEntity):

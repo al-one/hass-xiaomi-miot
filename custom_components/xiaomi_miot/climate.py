@@ -8,6 +8,7 @@ from homeassistant.components.climate import (
     ClimateEntity,
 )
 from homeassistant.components.climate.const import *
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
@@ -91,9 +92,9 @@ class BaseClimateEntity(MiotEntity, ClimateEntity):
             if num is not None:
                 cls = sta.attributes.get(ATTR_DEVICE_CLASS)
                 unit = sta.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
-                if cls == DEVICE_CLASS_TEMPERATURE or unit in [TEMP_CELSIUS, TEMP_KELVIN, TEMP_FAHRENHEIT]:
+                if cls == SensorDeviceClass.TEMPERATURE.value or unit in [TEMP_CELSIUS, TEMP_KELVIN, TEMP_FAHRENHEIT]:
                     ext[ATTR_CURRENT_TEMPERATURE] = self.hass.config.units.temperature(num, unit)
-                elif cls == DEVICE_CLASS_HUMIDITY:
+                elif cls == SensorDeviceClass.HUMIDITY.value:
                     ext[ATTR_CURRENT_HUMIDITY] = num
         if ext:
             self.update_attrs(ext)
