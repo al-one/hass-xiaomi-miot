@@ -348,6 +348,7 @@ DEVICE_CUSTOMIZES = {
     'fengmi.projector.*': {
         'auto_cloud': True,
         'number_properties': 'speaker.volume',
+        'text_actions': 'message_router.post',
     },
 
     'galime.curtain.*': {
