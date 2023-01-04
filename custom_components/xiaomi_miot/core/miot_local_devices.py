@@ -225,6 +225,7 @@ MIOT_LOCAL_MODELS = [
     'mrbond.airer.m2',
     'mrbond.airer.m2pro',
     'msj.f_washer.m1pro',
+    'msj.f_washer.m2',
     'nbczwl.airer.airer',
     'nnleaf.light.strips',
     'noc196.light.mdyctd',
