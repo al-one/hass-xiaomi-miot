@@ -80,6 +80,7 @@ MIOT_LOCAL_MODELS = [
     'deerma.humidifier.jsqm',
     'deerma.humidifier.jsqs',
     'deerma.humidifier.rz300',
+    'degree.lunar.smh013',
     'deye.derh.u20a3',
     'deye.derh.z12a3',
     'dmaker.airp.swift',

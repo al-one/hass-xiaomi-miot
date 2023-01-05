@@ -292,6 +292,13 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'custom',
         'switch_properties': 'alarm',
     },
+    'degree.lunar.smh013': {
+        'exclude_miot_properties': 'search_report,set_sleep_time,user_info,user_info_down,set_sleep_time_down,'
+                                   'fast_update_switch,linkage_sleepstage,linkage_warning,gen_report,'
+                                   'search_report_today',
+        'sensor_properties': 'realtime_heart_rate,realtime_breath_rate,realtime_sleepstage',
+        'switch_properties': 'fast_update_switch',
+    },
     'deye.derh.u20a3': {
         'target_humidity_ratio': 9.0909,
     },
