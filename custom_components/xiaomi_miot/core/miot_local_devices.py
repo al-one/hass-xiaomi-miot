@@ -24,6 +24,7 @@ MIOT_LOCAL_MODELS = [
     'beihao.airer.airer3',
     'bj352.airp.y106cm',
     'bj352.waterpuri.k10',
+    'bkrobo.chair.bc03',
     'bofu.curtain.bfmh',
     'careli.fryer.maf01',
     'careli.fryer.maf02',

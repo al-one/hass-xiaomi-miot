@@ -30,6 +30,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'workmode',
     },
 
+    'bkrobo.chair.*': {
+        'sensor_properties': 'sit_state,power_state,recharge',
+        'switch_properties': 'on,setcheck',
+        'select_properties': 'fillair_in_waist,alarm_set,model',
+        'number_properties': 'preferred_waist,pressure_default',
+    },
     'bofu.curtain.bfmh': {
         'select_properties': 'motor_control',
     },
@@ -1048,6 +1054,11 @@ DEVICE_CUSTOMIZES = {
     },
     '*.cateye.*': {
         'use_motion_stream': True,
+    },
+    '*.chair.*': {
+        'binary_sensor_properties': 'seating_state',
+        'switch_properties': 'on',
+        'select_properties': 'mode',
     },
     '*.cooker.*': {
         'sensor_properties': 'temperature,left_time',
