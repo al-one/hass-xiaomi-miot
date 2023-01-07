@@ -392,6 +392,16 @@ DEVICE_CUSTOMIZES = {
         },
     },
 
+    'ijai.vacuum.v1': {
+        'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life,cleaning_area',
+        'switch_properties': 'vacuum.on,repeat_state,alarm,pet_recognize',
+        'select_properties': 'mode,sweep_type,water_state,mop_route',
+        'exclude_miot_services': 'order',
+        'exclude_miot_properties': 'zone_points,restrict_points,target_point',
+    },
+    'ijai.vacuum.v1:cleaning_area': {
+        'unit_of_measurement': '㎡',
+    },
     'ijai.vacuum.*': {
         'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life',
         'switch_properties': 'vacuum.on,repeat_state,alarm',
