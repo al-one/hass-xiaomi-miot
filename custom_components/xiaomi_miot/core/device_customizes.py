@@ -330,6 +330,12 @@ DEVICE_CUSTOMIZES = {
         'number_select_properties': 'horizontal_swing_included_angle,horizontal_angle',
         'number_properties': 'off_delay_time',
     },
+    'dmaker.humidifier.*': {
+        'button_actions': 'loop_mode',
+        'sensor_properties': 'fault,water_level,fan_dry_time',
+        'switch_properties': 'over_wet_protect,screen.on',
+        'number_properties': 'off_delay_time',
+    },
     'dooya.curtain.*': {
         'exclude_miot_properties': 'fault',
     },
