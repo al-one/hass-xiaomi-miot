@@ -603,6 +603,16 @@ TRANSLATION_LANGUAGES = {
             'illumination': 'Освещение',
             'indicator light': 'Световой индикатор',
             'physical control locked': 'Физический контроль заблокирован',
+            'alarm': 'сигнализация',
+            'sweep hypa-life': 'ресурс фильтра',
+            'sweep mop-life': 'ресурс тряпки',
+            'sweep main-brush-life': 'ресурс основной щетки',
+            'sweep side-brush-life': 'ресурс боковой щетки',
+            'sweep repeat-state': 'двойная уборка',
+            'sweep water_state': 'смачивание',
+            'sweep cleaning_area': 'площадь уборки',
+            'sweep pet-recognize': 'распознование животных',
+            'sweep mop-route': 'тип влажной уборки',
         },
 
         'fan_level': {
@@ -788,14 +798,6 @@ TRANSLATION_LANGUAGES = {
             'speaker volume': 'громкость динамика',
         },
 
-        'sweep.suction_state': {
-            'medium': 'средний',
-            'silent': 'тихий',
-            'slient': 'тихий',
-            'standard': 'стандартный',
-            'turbo': 'турбо',
-        },
-
         'television': {
             'input control': 'управление входом',
             'tv input control': 'управление входом телевизора',
@@ -810,8 +812,20 @@ TRANSLATION_LANGUAGES = {
         'vacuum': {
             'robot cleaner': 'робот-пылесос',
             'robot cleaner status': 'статус робота-пылесоса',
+            'robot cleaner mode': 'режим уборки',
+            'robot cleaner sweep type': 'тип уборки',
         },
-
+        'vacuum.status': {
+            'sleep': 'Сон',
+            'idle': 'Ожидание',
+            'paused': 'На паузе',
+            'go charging': 'Едет на зарядку',
+            'charging': 'Заряжается',
+            'sweeping': 'Сухая уборка',
+            'sweeping and mopping': 'Сухая и влажная уборки', 
+            'mopping': 'Влажная уборка',
+            'upgrading': 'Обновление',
+        },
         'vacuum.mode': {
             'basic': 'базовый',
             'silent': 'тихий',
@@ -819,6 +833,46 @@ TRANSLATION_LANGUAGES = {
             'strong': 'сильный',
             'turbo': 'турбо',
             'full speed': 'максимальная скорость',
+            'sweep': 'Сухая',
+            'sweep and mop': 'Сухая и влажная',
+            'mop': 'Влажная',
+        },
+        'vacuum.sweep_type': {
+            'Global': 'Глобальная',
+            'Mop': 'Влажная',
+            'Edge': 'Периметр',
+            'Area': 'Зона',
+            'Point': 'Точка',
+            'Remote': 'Удаленное управление',
+            'Explore': 'Обследование',
+            'Room': 'Комната',
+            'Floor': 'Этаж',
+        },
+        'sweep.water_state': {
+            '低': 'Низкое',
+            '中': 'Среднее',
+            '高': 'Высокое',
+        },
+        'sweep.mop_route': {
+            'Y 字': 'Улучшенная',
+            '弓字': 'Обычная',
+        },
+        'sweep.suction_state': {
+            'medium': 'средний',
+            '标准': 'Средняя',
+            'silent': 'тихий',
+            'slient': 'тихий',
+            '关': 'Тихая',
+            'standard': 'стандартный',
+            '节能': 'Стандартная',
+            'turbo': 'турбо',
+            '强劲': 'Турбо',
+        },
+        'clean.mode': {
+            '安静': 'Тихий',
+            '标准': 'Стандартный',
+            '中档': 'Средний',
+            '强力': 'Турбо',
         },
 
         'washer': {
