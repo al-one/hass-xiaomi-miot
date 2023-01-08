@@ -68,6 +68,7 @@
                     "closed_position": "closed_position",
                     "cloud_delay_update": "cloud_delay_update",
                     "cover_properties": "cover_properties",
+                    "current_temp_property": "current_temp_property",
                     "descriptions_for_on": "descriptions_for_on",
                     "deviated_position": "deviated_position",
                     "device_class": "device_class",

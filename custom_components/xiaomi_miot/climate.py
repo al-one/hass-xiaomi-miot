@@ -170,6 +170,11 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         self._vars['turn_on_hvac'] = self.custom_config('turn_on_hvac')
+
+        if prop := self.custom_config('current_temp_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_temperature = prop
+
         if self._prop_mode:
             mvs = []
             dls = []
@@ -198,6 +203,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                     'list':  [fst.get('description')],
                     'value': fst.get('value'),
                 }
+
         if self._preset_modes:
             self._supported_features |= SUPPORT_PRESET_MODE
 

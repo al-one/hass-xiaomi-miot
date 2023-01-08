@@ -734,6 +734,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         options.update({
             'bind_sensor': cv.string,
             'turn_on_hvac': cv.string,
+            'current_temp_property': cv.string,
         })
 
     if domain == 'cover' or re.search(r'airer|curtain|wopener', model, re.I):

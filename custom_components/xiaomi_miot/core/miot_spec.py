@@ -211,6 +211,12 @@ class MiotSpec(MiotSpecInstance):
             return s
         return None
 
+    def get_property(self, *args, only_format=None):
+        for srv in self.services.values():
+            if p := srv.get_property(*args, only_format=only_format):
+                return p
+        return None
+
     def generate_entity_id(self, entity, suffix=None, domain=None):
         mod = f'{self.type}::::'.split(':')[5]
         if not mod:
