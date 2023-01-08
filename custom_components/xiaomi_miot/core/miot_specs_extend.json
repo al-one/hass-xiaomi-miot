@@ -619,6 +619,18 @@
     }
   ],
 
+  "suittc.airrtc.wk168": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "value-list": []
+        }
+      ]
+    }
+  ],
+
   "tinymu.toiletlid.v1": [
     {
       "iid": 3,

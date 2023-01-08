@@ -367,7 +367,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 if mv.get('value') is None:
                     continue
                 hms.append(mk)
-        elif self._prop_power:
+        if self._prop_power:
             mod = self._vars.get('turn_on_hvac') or HVAC_MODE_AUTO
             if mod and mod not in hms:
                 hms.append(mod)
