@@ -29,6 +29,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'dakuo_mosq_dispeller.status',
         'select_properties': 'workmode',
     },
+    'aupu.bhf_light.s368m': {
+        'switch_properties': 'onoff.on',
+    },
 
     'bkrobo.chair.*': {
         'sensor_properties': 'sit_state,power_state,recharge',
