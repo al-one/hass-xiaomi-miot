@@ -603,16 +603,6 @@ TRANSLATION_LANGUAGES = {
             'illumination': 'Освещение',
             'indicator light': 'Световой индикатор',
             'physical control locked': 'Физический контроль заблокирован',
-            'alarm': 'сигнализация',
-            'sweep hypa-life': 'ресурс фильтра',
-            'sweep mop-life': 'ресурс тряпки',
-            'sweep main-brush-life': 'ресурс основной щетки',
-            'sweep side-brush-life': 'ресурс боковой щетки',
-            'sweep repeat-state': 'двойная уборка',
-            'sweep water_state': 'смачивание',
-            'sweep cleaning_area': 'площадь уборки',
-            'sweep pet-recognize': 'распознование животных',
-            'sweep mop-route': 'тип влажной уборки',
         },
 
         'fan_level': {
@@ -815,6 +805,10 @@ TRANSLATION_LANGUAGES = {
             'robot cleaner mode': 'режим уборки',
             'robot cleaner sweep type': 'тип уборки',
         },
+        'alarm': {
+            'alarm': 'Подать сигнал',
+            'alarm volume': 'Громкость',
+        },
         'vacuum.status': {
             'sleep': 'Сон',
             'idle': 'Ожидание',
@@ -848,6 +842,22 @@ TRANSLATION_LANGUAGES = {
             'Room': 'Комната',
             'Floor': 'Этаж',
         },
+        'sweep': {
+            'sweep door-state': 'конейнер',
+            'sweep cloth-state': 'тряпка',
+            'sweep hypa-life': 'ресурс фильтра',
+            'sweep mop-life': 'ресурс тряпки',
+            'sweep main-brush-life': 'ресурс основной щетки',
+            'sweep side-brush-life': 'ресурс боковой щетки',
+            'sweep repeat-state': 'двойная уборка',
+            'sweep water_state': 'смачивание тряпки',
+            'sweep cleaning_area': 'площадь уборки',
+            'sweep cleaning_time': 'время уборки',
+            'sweep pet-recognize': 'распознование животных',
+            'sweep mop-route': 'тип влажной уборки',
+            'sweep ai_recognize': 'распознование AI',
+            'sweep dirt-recognize': 'распознование грязи',            
+        },
         'sweep.water_state': {
             '低': 'Низкое',
             '中': 'Среднее',
@@ -867,6 +877,16 @@ TRANSLATION_LANGUAGES = {
             '节能': 'Стандартная',
             'turbo': 'турбо',
             '强劲': 'Турбо',
+        },
+        'sweep.door_state': {
+            '无': 'Извлечен',
+            '尘盒': 'Для мусора',
+            '水箱': 'Для воды',
+            '二合一水箱': 'Совмещенный',
+        },
+        'sweep.cloth_state': {
+            '没装': 'отсутсвует',
+            '装了': 'установлена',
         },
         'clean.mode': {
             '安静': 'Тихий',
