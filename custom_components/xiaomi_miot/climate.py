@@ -171,6 +171,8 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
         await super().async_added_to_hass()
         self._vars['turn_on_hvac'] = self.custom_config('turn_on_hvac')
 
+        if self.custom_config_bool('ignore_fan_switch'):
+            self._prop_fan_power = None
         if prop := self.custom_config('current_temp_property'):
             if prop := self._miot_service.spec.get_property(prop):
                 self._prop_temperature = prop

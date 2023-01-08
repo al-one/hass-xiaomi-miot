@@ -30,7 +30,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'workmode',
     },
     'aupu.bhf_light.s368m': {
-        'switch_properties': 'onoff.on',
+        'ignore_fan_switch': True,
+        'switch_properties': 'fan_control.on,onoff.on',
+        'select_properties': 'mode',
     },
 
     'bkrobo.chair.*': {

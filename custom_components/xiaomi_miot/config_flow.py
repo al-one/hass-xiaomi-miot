@@ -731,6 +731,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         })
 
     if domain == 'climate' or re.search(r'aircondition|acpartner|airrtc', model, re.I):
+        bool2selects.extend(['ignore_fan_switch'])
         options.update({
             'bind_sensor': cv.string,
             'turn_on_hvac': cv.string,
