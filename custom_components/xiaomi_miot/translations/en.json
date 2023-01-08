@@ -101,6 +101,7 @@
                     "state_property": "state_property",
                     "switch_properties": "switch_properties",
                     "television_name": "television_name",
+                    "turn_on_hvac": "turn_on_hvac",
                     "unit_of_measurement": "unit_of_measurement",
                     "value_ratio": "value_ratio",
                     "video_attribute": "video_attribute",
