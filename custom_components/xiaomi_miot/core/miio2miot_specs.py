@@ -571,8 +571,7 @@ MIIO_TO_MIOT_SPECS = {
             }, 'default': 3},
             'prop.2.4': {
                 'prop': 'dry_status',
-                'format': 'bool',
-                'template': '{{ False if "off" in props.dry_status else True}}',
+                'template': '{{ value != "off" }}',
                 'setter': 'control_device',
                 'set_template': '{{ '
                                 '["start_hotdry",90] if value else '
