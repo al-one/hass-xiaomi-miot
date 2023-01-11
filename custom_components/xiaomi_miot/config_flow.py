@@ -161,8 +161,6 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None, via_did
         for d in dvs:
             for f in fls:
                 v = d.get(f)
-                if not grp:
-                    _LOGGER.warning('get_cloud_filter_schema: %s', d)
                 if v is None:
                     continue
                 grp.setdefault(v, 0)
