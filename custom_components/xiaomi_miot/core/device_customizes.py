@@ -136,6 +136,13 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
         'exclude_miot_services': 'indicator_light',
     },
+    'cuco.plug.cp1d': {
+        'chunk_properties': 1,
+        'exclude_miot_services': 'indicator_light',
+        'miot_mapping': {
+            'switch.on': {'siid': 2, 'piid': 1},
+        },
+    },
     'cuco.plug.cp1m': {
         'chunk_properties': 1,
         'exclude_miot_services': 'setting,cyc',  # issues/836
