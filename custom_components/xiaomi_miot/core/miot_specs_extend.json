@@ -881,7 +881,7 @@
       ]
     }
   ],
-  "viomi.waterheater.u12": [
+  "viomi.waterheater.u11": [
     {
       "iid": 2,
       "properties": [
@@ -921,6 +921,7 @@
       ]
     }
   ],
+  "viomi.waterheater.u12": "viomi.waterheater.u11",
 
   "xiaomi.wifispeaker.x08c": [
     {

@@ -1386,6 +1386,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'viomi.waterheater.u8': 'viomi.waterheater.u7',
+    'viomi.waterheater.u11': 'viomi.waterheater.u7',
     'viomi.waterheater.u12': 'viomi.waterheater.u7',
 
     'xjx.toilet.pro': {
