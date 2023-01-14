@@ -297,14 +297,17 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'setting,wireless_switch',
     },
 
+    'deerma.humidifier.jsq4': {
+        'exclude_miot_services': None,
+    },
     'deerma.humidifier.jsq5': {
         'chunk_properties': 4,
         'exclude_miot_services': None,
-        'binary_sensor_properties': 'water_shortage_fault,the_tank_filed',
     },
     'deerma.humidifier.*': {
         'chunk_properties': 6,
         'exclude_miot_services': 'custom',
+        'binary_sensor_properties': 'water_shortage_fault,the_tank_filed',
         'switch_properties': 'alarm',
     },
     'degree.lunar.smh013': {
