@@ -471,5 +471,6 @@ MIOT_LOCAL_MODELS = [
     'zhimi.vacuum.wa1',
     'zhimi.vacuum.xa1',
     'zhimi.vacuum.xa3',
+    'zhimi.toilet.pa2',
     'zinguo.switch.b5m',
 ]

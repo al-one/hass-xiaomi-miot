@@ -990,6 +990,14 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'screen.brightness',
         'number_properties': 'speed_level',
     },
+    'zhimi.toilet.*': {
+        'sensor_properties': 'cover_circle_status,current_water_temp,current_seat_temp,flush_status,'
+                             'radar_sensor_status',
+        'switch_properties': 'pir_switch,leave_auto_flushing,off_seat_close_cover',
+        'select_properties': 'water_temperature,wind_temperature',
+        'button_actions': 'flushing,open_cover_circle,close_cover_circle,stoving,hip_washing,women_washing,'
+                          'move_back_and_forth,hot_cold_massage,nozzle_cleaning',
+    },
     'zimi.mosq.v2:light_indicator.on': {
         'reverse_state': True,
     },
