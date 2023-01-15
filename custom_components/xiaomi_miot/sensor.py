@@ -297,6 +297,8 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
 
     @property
     def native_value(self):
+        if not self._prop_state:
+            return None
         key = f'{self._prop_state.full_name}_desc'
         if key in self._state_attrs:
             return f'{self._state_attrs[key]}'.lower()
