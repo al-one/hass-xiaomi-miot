@@ -60,7 +60,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 continue
             if srv.name in ['toilet']:
                 entities.append(MiotToiletEntity(config, srv))
-            elif srv.name in ['seat'] and spec.name in ['toilet'] and not spec.get_service('toilet'):
+            elif srv.name in ['seat'] and spec.name in ['toilet']:
+                if spec.get_service('toilet'):
+                    continue
                 # tinymu.toiletlid.v1
                 entities.append(MiotToiletEntity(config, srv))
             elif 'blt.' in did:
