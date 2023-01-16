@@ -861,6 +861,13 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'wake_up,play_music,tv_switchon,stop_alarm',
         'text_actions': 'play_text,execute_text_directive',
     },
+    'xjx.toilet.relaxp': {
+        'sensor_properties': 'status',
+        'switch_properties': 'status_seatheat,status_led,auto_led,switch_bubble,status_seat,status_cover,'
+                             'auto_seat_close,auto_cover_close,status_selfclean',
+        'select_properties': 'seat_temp',
+        'button_actions': 'stop_working',
+    },
     'xwhzp.diffuser.xwxfj': {
         'sensor_properties': 'fragrance_liquid_left_level',
         'switch_properties': 'anion',

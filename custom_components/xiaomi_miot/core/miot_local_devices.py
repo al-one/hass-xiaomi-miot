@@ -386,6 +386,7 @@ MIOT_LOCAL_MODELS = [
     'xiaomi.tv.z2oh1',
     'xiaomi.tvbox.4prob1',
     'xinyue.blanket.n1918',
+    'xjx.toilet.relaxp',
     'yeelink.bhf_light.v6',
     'yeelink.controller.v2',
     'yeelink.curtain.ctmt1',
