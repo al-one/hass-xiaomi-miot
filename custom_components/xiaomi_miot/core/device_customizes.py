@@ -991,7 +991,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'speed_level',
     },
     'zhimi.toilet.*': {
-        'sensor_properties': 'cover_circle_status,current_water_temp,current_seat_temp,flush_status,'
+        'sensor_properties': 'status,cover_circle_status,current_water_temp,current_seat_temp,flush_status,'
                              'radar_sensor_status',
         'switch_properties': 'pir_switch,leave_auto_flushing,off_seat_close_cover',
         'select_properties': 'water_temperature,wind_temperature',
