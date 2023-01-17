@@ -417,14 +417,22 @@ DEVICE_CUSTOMIZES = {
     },
 
     'ijai.vacuum.v1': {
-        'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life,cleaning_area',
-        'switch_properties': 'vacuum.on,repeat_state,alarm,pet_recognize',
+        'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life,cleaning_area,door_state,cloth_state,cleaning_time',
+        'switch_properties': 'vacuum.on,repeat_state,alarm,pet_recognize,dirt_recognize,ai_recognize',
         'select_properties': 'mode,sweep_type,water_state,mop_route',
         'exclude_miot_services': 'order',
         'exclude_miot_properties': 'zone_points,restrict_points,target_point',
+        'number_properties': 'alarm.volume',
     },
     'ijai.vacuum.v1:cleaning_area': {
         'unit_of_measurement': '㎡',
+    },
+    'ijai.vacuum.v1:alarm.volume': {
+        'unit_of_measurement': ' ',
+    },
+    'ijai.vacuum.v1:cleaning_time': {
+        'unit_of_measurement': 'min',
+        'device_class': 'duration',
     },
     'ijai.vacuum.*': {
         'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life',
