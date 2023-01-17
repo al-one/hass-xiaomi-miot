@@ -321,10 +321,16 @@ DEVICE_CUSTOMIZES = {
         'target_humidity_ratio': 9.0909,
     },
     'dmaker.airp.*': {
-        'main_miot_services': 'air_purifier',
-        'switch_properties': 'anion',
+        'switch_properties': 'air_purifier.on,anion',
         'number_select_properties': 'horizontal_swing_included_angle',
         'button_actions': 'loop_mode',
+    },
+    'dmaker.airpurifier.f20': {
+        'sensor_properties': 'moto_control',
+    },
+    'dmaker.airpurifier.*': {
+        'switch_properties': 'air_purifier.on,screen.on,alarm',
+        'number_properties': 'favorite_speed,moto_hz',
     },
     'dmaker.fan.p5': {
         'percentage_property': 'prop.2.6',
@@ -1084,6 +1090,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'air_conditioner.on',
     },
     '*.airpurifier.*': {
+        'main_miot_services': 'air_purifier',
         'switch_properties': 'air_purifier.on',
         'sensor_properties': 'relative_humidity,pm2_5_density,temperature,filter_life_level',
     },
