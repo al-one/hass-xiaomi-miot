@@ -2264,7 +2264,7 @@ class BaseSubEntity(BaseEntity):
         self._option['domain'] = kwargs.get('domain')
         self.generate_entity_id()
         self._supported_features = int(self._option.get('supported_features', 0))
-        self._attr_entity_category = self._option.get('entity_category')
+        self._attr_entity_category = self.custom_config('entity_category', self._option.get('entity_category'))
         self._attr_native_unit_of_measurement = self._option.get('unit')
         self._extra_attrs = {
             'entity_class': self.__class__.__name__,
@@ -2384,8 +2384,6 @@ class BaseSubEntity(BaseEntity):
         self._option['device_class'] = self.custom_config('device_class', self.device_class)
         if uom := self.custom_config('unit_of_measurement'):
             self._attr_native_unit_of_measurement = uom
-        if hasattr(self, 'entity_category'):
-            self._attr_entity_category = self.custom_config('entity_category', self.entity_category)
 
     def update_from_parent(self):
         self.update()
