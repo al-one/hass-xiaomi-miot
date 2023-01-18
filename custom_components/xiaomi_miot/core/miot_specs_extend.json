@@ -754,6 +754,100 @@
       ]
     }
   ],
+  "viomi.vacuum.v18": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:fault:00000009:viomi-v37:1",
+          "description": "Device Fault",
+          "format": "uint32",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {"value": 0, "description": "No Error"},
+            {"value": 1, "description": "Low Battery Find Charge"},
+            {"value": 2, "description": "Low Bat Need Poweroff"},
+            {"value": 3, "description": "Wheel Trap"},
+            {"value": 4, "description": "Collision Error"},
+            {"value": 5, "description": "Tile Do Task"},
+            {"value": 6, "description": "Lidar Point Err"},
+            {"value": 7, "description": "Front Wall Err"},
+            {"value": 8, "description": "Along Wall Err"},
+            {"value": 9, "description": "Mid Brush Err"},
+            {"value": 10, "description": "Side Brush Err"},
+            {"value": 11, "description": "Fan Err"},
+            {"value": 12, "description": "Lidar Cover"},
+            {"value": 13, "description": "Garbage Full"},
+            {"value": 14, "description": "Garbage Out"},
+            {"value": 15, "description": "Garbage Full Out"},
+            {"value": 16, "description": "Trapped"},
+            {"value": 17, "description": "Pick Up"},
+            {"value": 18, "description": "Garbage Out"},
+            {"value": 19, "description": "Insufficient Water Please Add"},
+            {"value": 20, "description": "Cannot Arrive"},
+            {"value": 21, "description": "Start From Forbid"},
+            {"value": 22, "description": "Drop"},
+            {"value": 23, "description": "Kit Water Pump"},
+            {"value": 24, "description": "Find Charge Failed"},
+            {"value": 25, "description": "No Mop Clean"},
+            {"value": 26, "description": "Low Battery Cant Clean"},
+            {"value": 27, "description": "Dust Bag Not In Place"},
+            {"value": 28, "description": "Dust Collector Fan Failure"},
+            {"value": 29, "description": "Dust Dag Is Full"},
+            {"value": 30, "description": "Wait Dust End To Clean"},
+            {"value": 31, "description": "Clean End Take Mop"},
+            {"value": 32, "description": "Left Tire Lock"},
+            {"value": 33, "description": "Right Tire Lock"},
+            {"value": 34, "description": "Air Flue  Blocking"}
+          ]
+        },
+        {
+          "iid": 11,
+          "description": "Clean Mode",
+          "value-list": [
+            {"value": 0, "description": "Vacuum"},
+            {"value": 1, "description": "Vacuum & Mop"},
+            {"value": 2, "description": "Mop"}
+          ]
+        },
+        {
+          "iid": 12,
+          "description": "Water Box",
+          "value-list": [
+            {"value": 0, "description": "0"},
+            {"value": 1, "description": "1"},
+            {"value": 2, "description": "Removed"},
+            {"value": 3, "description": "Installed"}
+          ]
+        },
+        {
+          "iid": 13, 
+          "description": "Mop Holder", 
+          "type": "urn:miot-spec-v2:property:mop-state:0000007C:viomi-v18:1",
+          "value-list": [
+            {"value": 0, "description": "Removed"},
+            {"value": 1, "description": "Installed"}
+          ]
+        },
+        {"iid": 17, "description": "Volume"}
+      ]
+    },
+    {
+      "iid": 4,
+      "properties": [
+        {"iid": 1, "description": "Repeat Cleaning"},
+        {"iid": 3, "description": "Remember State"},
+        {"iid": 6, "description": "Mopping Mode"},
+        {"iid": 26, "description": "Clean Time", "unit": "s"},
+        {"iid": 27, "description": "Clean Area", "unit": "㎡"},
+        {"iid": 41, "description": "Dust Collection"}
+      ]
+    }
+  ],
 
   "viomi.waterheater.e1": [
     {
