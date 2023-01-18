@@ -232,7 +232,7 @@ DEVICE_CUSTOMIZES = {
     },
     'cuco.plug.v3:electric_power': {
         'unit_of_measurement': 'W',
-    },    
+    },
     'cuco.plug.v3:power_cost_today': {
         'value_ratio': 0.01,
         'state_class': 'total_increasing',
@@ -244,7 +244,7 @@ DEVICE_CUSTOMIZES = {
         'state_class': 'total_increasing',
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
-    },    
+    },
     'cuco.plug.*': {
         'main_miot_services': 'switch-2',
     },
@@ -761,6 +761,22 @@ DEVICE_CUSTOMIZES = {
             'workRemind', 'offLight', 'offTime', 'isBound', 'isLink',
         ],
     },
+
+    'viomi.vacuum.v18': {
+        'sensor_properties': 'vacuum.status,fault,door_state,mop_state,hypa_life,hypa_hours,'
+                             'main_brush_life,main_brush_hours,side_brush_life,side_brush_hours,'
+                             'clean_area,clean_use_time,mop_life,mop_hours',
+        'switch_properties': 'repeat_state,remember_state,dust_collection',
+        'select_properties': 'vacuum.sweep_type,vacuum.wdr_mode,water_grade,viomi_vacuum.mop_route',
+        'number_properties': 'mute',
+        'exclude_miot_services': 'order,map,voice',
+        'exclude_miot_properties': 'direction,stream_address,zone_points,restrict_points,clean_room_mode,'
+                                   'consumable_index,clean_room_oper,clean_room_ids,cur_map_url,cur_map_id,'
+                                   'time_zone,has_map,has_newmap,cur_lang',
+    },
+    'viomi.vacuum.v18:clean_use_time': {
+        'device_class': 'duration',
+    },
     'viomi.vacuum.*': {
         'sensor_attributes': 'miio.s_area,miio.s_time',
         'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life',
@@ -771,20 +787,6 @@ DEVICE_CUSTOMIZES = {
     'viomi.vacuum.*:miio.s_time': {
         'unit_of_measurement': 'min',
     },
-
-    'viomi.vacuum.v18': {
-        'sensor_properties': 'vacuum.status,fault,door_state,mop_state,hypa_life,hypa_hours,main_brush_life,main_brush_hours,side_brush_life,side_brush_hours,clean_area,clean_use_time,mop_life,mop_hours',
-        'switch_properties': 'repeat_state,remember_state,dust_collection',
-        'select_properties': 'vacuum.sweep_type,vacuum.wdr_mode,water_grade,viomi_vacuum.mop_route',
-        'number_properties': 'mute',
-        'exclude_miot_services': 'order,map,voice',
-        'exclude_miot_properties': 'direction,stream_address,zone_points,restrict_points,clean_room_mode,consumable_index,clean_room_oper,clean_room_ids,cur_map_url,cur_map_id,time_zone,has_map,has_newmap,cur_lang',
-    },
-
-    'viomi.vacuum.v18:clean_use_time': {
-        'device_class': 'duration',
-    },
-    
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
     },
