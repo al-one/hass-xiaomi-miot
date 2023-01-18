@@ -1121,6 +1121,7 @@ DEVICE_CUSTOMIZES = {
     },
     '*.bhf_light.*': {
         'main_miot_services': 'ptc_bath_heater',
+        'number_properties': 'off_delay_time',
     },
     '*.blanket.*': {
         'sensor_properties': 'temperature',

@@ -1425,6 +1425,11 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.2.101': {
+                'prop': 'delayoff',
+                'setter': 'set_scene',
+                'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
+            },
             'prop.3.1': {
                 'prop': 'bh_mode',
                 'setter': True,
@@ -1444,6 +1449,7 @@ MIIO_TO_MIOT_SPECS = {
                                 '["bh_off", 0] }}',
             },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
+            'prop.3.102': {'prop': 'bh_delayoff', 'setter': 'bath_4modes_cron_start'},
             'prop.4.1': {
                 'prop': 'fan_speed_idx',
                 'setter': 'set_gears_idx',

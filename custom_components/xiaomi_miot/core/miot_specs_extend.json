@@ -1032,6 +1032,34 @@
     }
   ],
 
+  "yeelink.bhf_light.v2": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 120, 1]
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 120, 1]
+        }
+      ]
+    }
+  ],
   "yeelink.bhf_light.v3": [
     {
       "iid": 3,
