@@ -984,6 +984,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'brightness,temperature_display_unit',
         'number_properties': 'favorite_speed,favorite_level',
     },
+    'zhimi.airp.mb5a': {
+        'sensor_properties': 'moto_speed_rpm,filter_used_debug',
+        'switch_properties': 'anion,alarm',
+        'select_properties': 'brightness,temperature_display_unit',
+        'number_properties': 'favorite_speed,favorite_level',
+    },
     'zhimi.airp.sa4': {
         'switch_properties': 'alarm',
         'number_properties': 'air_purifier_favorite.fan_level,aqi_updata_heartbeat',
