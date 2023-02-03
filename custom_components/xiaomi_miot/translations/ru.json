@@ -35,9 +35,10 @@
                     "filter_model": "Режим фильтрации по устройствам",
                     "model_list": "Список модели устройств",
                     "filter_ssid": "Фильтр WiFi SSID",
+                    "home_id_list": "Домашний список",
                     "ssid_list": "Список WiFi SSID",
                     "filter_bssid": "Фильтр WiFi BSSID",
-                    "bssid_list": "СписокWiFi BSSID",
+                    "bssid_list": "Список WiFi BSSID",
                     "filter_did": "Фильтр устройств",
                     "did_list": "Список устройств"
                 }
@@ -89,7 +90,8 @@
                     "captcha": "Captcha",
                     "server_country": "Регион сервера MiCloud",
                     "conn_mode": "Режим подключения устройств",
-                    "renew_devices": "Заставлять устройства обновляться"
+                    "renew_devices": "Заставлять устройства обновляться",
+                    "disable_message": "Выключить датчик уведомлений от Mi Home"
                 }
             },
             "cloud_filter": {
