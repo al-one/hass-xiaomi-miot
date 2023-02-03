@@ -491,6 +491,7 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 1,
     },
     'lumi.acpartner.mcn04': {
+        'auto_cloud': True,
         'chunk_properties': 7,
         'switch_properties': 'quick_cool_enable,indicator_light',
         'select_properties': 'ac_mode',
