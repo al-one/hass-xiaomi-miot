@@ -6,15 +6,13 @@ import time
 import re
 
 from homeassistant.const import *
-from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     DOMAIN,
     TRANSLATION_LANGUAGES,
-    STATE_CLASS_MEASUREMENT,
-    STATE_CLASS_TOTAL_INCREASING,
     EntityCategory,
 )
 
@@ -765,9 +763,14 @@ class MiotProperty(MiotSpecInstance):
     @property
     def state_class(self):
         names = {
-            'tds_in': STATE_CLASS_MEASUREMENT,
-            'tds_out': STATE_CLASS_MEASUREMENT,
-            'filter_used_flow': STATE_CLASS_TOTAL_INCREASING,
+            'electric_power': SensorStateClass.MEASUREMENT,
+            'electric_current': SensorStateClass.MEASUREMENT,
+            'power_consumption': SensorStateClass.TOTAL_INCREASING,
+            'temperature': SensorStateClass.MEASUREMENT,
+            'humidity': SensorStateClass.MEASUREMENT,
+            'tds_in': SensorStateClass.MEASUREMENT,
+            'tds_out': SensorStateClass.MEASUREMENT,
+            'filter_used_flow': SensorStateClass.TOTAL_INCREASING,
         }
         if self.name in names:
             return names[self.name]
