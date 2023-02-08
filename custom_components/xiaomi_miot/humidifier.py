@@ -2,12 +2,13 @@
 import logging
 
 from homeassistant.const import *  # noqa: F401
+from homeassistant.components.humidifier.const import *
 from homeassistant.components.humidifier import (
     DOMAIN as ENTITY_DOMAIN,
     HumidifierEntity,
+    HumidifierEntityFeature,  # v2022.5
     HumidifierDeviceClass,
 )
-from homeassistant.components.humidifier.const import *
 
 from . import (
     DOMAIN,
@@ -74,7 +75,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         self._mode_props = list(filter(lambda x: x, self._mode_props))
         if self._mode_props:
             self._humidifier_mode = self._mode_props.pop(0)
-            self._supported_features = SUPPORT_MODES
+            self._supported_features = HumidifierEntityFeature.MODES
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()

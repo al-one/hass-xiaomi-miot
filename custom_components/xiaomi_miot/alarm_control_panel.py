@@ -2,11 +2,12 @@
 import logging
 
 from homeassistant.const import *  # noqa: F401
+from homeassistant.components.alarm_control_panel.const import *
 from homeassistant.components.alarm_control_panel import (
     DOMAIN as ENTITY_DOMAIN,
     AlarmControlPanelEntity,
+    AlarmControlPanelEntityFeature,  # v2022.5
 )
-from homeassistant.components.alarm_control_panel.const import *
 
 from . import (
     DOMAIN,
@@ -57,13 +58,13 @@ class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
         self._prop_mode = miot_service.get_property('arming_mode')
         if self._prop_mode:
             if self._prop_mode.list_value('home_arming') is not None:
-                self._supported_features |= SUPPORT_ALARM_ARM_HOME
+                self._supported_features |= AlarmControlPanelEntityFeature.ARM_HOME
             if self._prop_mode.list_value('away_arming') is not None:
-                self._supported_features |= SUPPORT_ALARM_ARM_AWAY
+                self._supported_features |= AlarmControlPanelEntityFeature.ARM_AWAY
             if self._prop_mode.list_value('sleep_arming') is not None:
-                self._supported_features |= SUPPORT_ALARM_ARM_NIGHT
+                self._supported_features |= AlarmControlPanelEntityFeature.ARM_NIGHT
             if self._is_mgl03:
-                self._supported_features |= SUPPORT_ALARM_TRIGGER
+                self._supported_features |= AlarmControlPanelEntityFeature.TRIGGER
 
     @property
     def state(self):

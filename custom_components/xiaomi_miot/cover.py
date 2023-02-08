@@ -9,11 +9,8 @@ from homeassistant.core import callback
 from homeassistant.components.cover import (
     DOMAIN as ENTITY_DOMAIN,
     CoverEntity,
+    CoverEntityFeature,  # v2022.5
     CoverDeviceClass,
-    SUPPORT_OPEN,
-    SUPPORT_CLOSE,
-    SUPPORT_STOP,
-    SUPPORT_SET_POSITION,
     ATTR_POSITION,
 )
 from homeassistant.helpers.event import async_track_utc_time_change
@@ -38,8 +35,7 @@ from .core.miot_spec import (
 from .light import LightSubEntity
 from .fan import (
     FanSubEntity,
-    SUPPORT_SET_SPEED,
-    SUPPORT_PRESET_MODE,
+    FanEntityFeature,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -92,17 +88,17 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         self._target2current = False
         self._open_texts = []
         self._close_texts = []
-        self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
+        self._supported_features = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         if self._prop_target_position:
             if not self.custom_config_bool('disable_target_position'):
-                self._supported_features |= SUPPORT_SET_POSITION
+                self._supported_features |= CoverEntityFeature.SET_POSITION
             else:
                 self._prop_target_position = None
         if self._prop_motor_control.list_first('Pause', 'Stop') is not None:
-            self._supported_features |= SUPPORT_STOP
+            self._supported_features |= CoverEntityFeature.STOP
 
         self._target2current = self.custom_config_bool('target2current_position')
         if self._target2current and self._prop_target_position:
@@ -277,15 +273,16 @@ class MiotCoverSubEntity(MiotPropertySubEntity, CoverEntity):
         self._value_close = self._miot_property.list_first('Close', 'Down', 'All-down')
         self._value_stop = self._miot_property.list_first('Pause', 'Stop')
         if self._value_open is not None:
-            self._supported_features |= SUPPORT_OPEN
+            self._supported_features |= CoverEntityFeature.OPEN
         if self._value_close is not None:
-            self._supported_features |= SUPPORT_CLOSE
+            self._supported_features |= CoverEntityFeature.CLOSE
         if self._value_stop is not None:
-            self._supported_features |= SUPPORT_STOP
+            self._supported_features |= CoverEntityFeature.STOP
         if self._prop_target_position:
-            self._supported_features |= SUPPORT_SET_POSITION
+            self._supported_features |= CoverEntityFeature.SET_POSITION
         if self._miot_property.value_range:
-            self._supported_features |= SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_SET_POSITION
+            self._supported_features |= CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
+            self._supported_features |= CoverEntityFeature.SET_POSITION
 
     @property
     def current_cover_position(self):
@@ -430,7 +427,7 @@ class MrBondAirerProEntity(MiioCoverEntity):
         self._device = MiioDevice(host, token)
         super().__init__(name, device=self._device, config=config)
         self._motor_reverse = False
-        self._supported_features = SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_STOP
+        self._supported_features = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE | CoverEntityFeature.STOP
         self._props = ['dry', 'led', 'motor', 'drytime', 'airer_location']
         self._vars.update({
             'motor_open': 1,
@@ -589,7 +586,7 @@ class MrBondAirerProLightEntity(LightSubEntity):
 class MrBondAirerProDryEntity(FanSubEntity):
     def __init__(self, parent: MrBondAirerProEntity, attr='dry', option=None):
         super().__init__(parent, attr, option)
-        self._supported_features = SUPPORT_PRESET_MODE or SUPPORT_SET_SPEED
+        self._supported_features = FanEntityFeature.PRESET_MODE
 
     def update(self, data=None):
         super().update()

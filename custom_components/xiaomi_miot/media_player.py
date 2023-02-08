@@ -12,12 +12,13 @@ from functools import partial
 from urllib.parse import urlencode, urlparse, parse_qsl
 
 from homeassistant.const import *  # noqa: F401
+from homeassistant.components.media_player.const import *
 from homeassistant.components.media_player import (
     DOMAIN as ENTITY_DOMAIN,
     MediaPlayerEntity,
+    MediaPlayerEntityFeature,  # v2022.5
     MediaPlayerDeviceClass,
 )
-from homeassistant.components.media_player.const import *
 from homeassistant.components.homekit.const import EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED
 from homeassistant.core import HassJob
 from homeassistant.util.dt import utcnow
@@ -129,27 +130,27 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
                 self._act_turn_off = act
 
         if miot_service.get_action('play'):
-            self._supported_features |= SUPPORT_PLAY
+            self._supported_features |= MediaPlayerEntityFeature.PLAY
         if miot_service.get_action('pause'):
-            self._supported_features |= SUPPORT_PAUSE
+            self._supported_features |= MediaPlayerEntityFeature.PAUSE
         if miot_service.get_action('previous'):
-            self._supported_features |= SUPPORT_PREVIOUS_TRACK
+            self._supported_features |= MediaPlayerEntityFeature.PREVIOUS_TRACK
         if miot_service.get_action('next'):
-            self._supported_features |= SUPPORT_NEXT_TRACK
+            self._supported_features |= MediaPlayerEntityFeature.NEXT_TRACK
         if miot_service.get_action('stop'):
-            self._supported_features |= SUPPORT_STOP
+            self._supported_features |= MediaPlayerEntityFeature.STOP
         if self._prop_input:
-            self._supported_features |= SUPPORT_SELECT_SOURCE
+            self._supported_features |= MediaPlayerEntityFeature.SELECT_SOURCE
             self._attr_source_list = self._prop_input.list_descriptions()
         if self._prop_volume:
-            self._supported_features |= SUPPORT_VOLUME_SET
-            self._supported_features |= SUPPORT_VOLUME_STEP
+            self._supported_features |= MediaPlayerEntityFeature.VOLUME_SET
+            self._supported_features |= MediaPlayerEntityFeature.VOLUME_STEP
         if self._prop_mute:
-            self._supported_features |= SUPPORT_VOLUME_MUTE
+            self._supported_features |= MediaPlayerEntityFeature.VOLUME_MUTE
         if self._act_turn_on:
-            self._supported_features |= SUPPORT_TURN_ON
+            self._supported_features |= MediaPlayerEntityFeature.TURN_ON
         if self._act_turn_off:
-            self._supported_features |= SUPPORT_TURN_OFF
+            self._supported_features |= MediaPlayerEntityFeature.TURN_OFF
 
     @property
     def supported_features(self):
@@ -560,7 +561,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             })
         self._keycodes = list(self._keycode_actions.keys())
         self._apps = {}
-        self._supported_features |= SUPPORT_PLAY_MEDIA
+        self._supported_features |= MediaPlayerEntityFeature.PLAY_MEDIA
 
     @property
     def device_class(self):
@@ -863,25 +864,25 @@ class MiirMediaPlayerEntity(MiirToggleEntity, MediaPlayerEntity):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 
         if self._act_turn_on:
-            self._supported_features |= SUPPORT_TURN_ON
+            self._supported_features |= MediaPlayerEntityFeature.TURN_ON
         if self._act_turn_off:
-            self._supported_features |= SUPPORT_TURN_OFF
+            self._supported_features |= MediaPlayerEntityFeature.TURN_OFF
 
         self._attr_is_volume_muted = None
         self._act_mute_on = miot_service.get_action('mute_on')
         self._act_mute_off = miot_service.get_action('mute_off')
         if self._act_mute_on or self._act_mute_off:
-            self._supported_features |= SUPPORT_VOLUME_MUTE
+            self._supported_features |= MediaPlayerEntityFeature.VOLUME_MUTE
 
         self._attr_volume_level = 0.5
         self._act_volume_up = miot_service.get_action('volume_up')
         self._act_volume_dn = miot_service.get_action('volume_down')
         if self._act_volume_up or self._act_volume_dn:
-            self._supported_features |= SUPPORT_VOLUME_SET
-            self._supported_features |= SUPPORT_VOLUME_STEP
+            self._supported_features |= MediaPlayerEntityFeature.VOLUME_SET
+            self._supported_features |= MediaPlayerEntityFeature.VOLUME_STEP
 
         if self._miot_actions:
-            self._supported_features |= SUPPORT_SELECT_SOURCE
+            self._supported_features |= MediaPlayerEntityFeature.SELECT_SOURCE
             self._attr_source_list = self._miot_actions
 
     async def async_added_to_hass(self):

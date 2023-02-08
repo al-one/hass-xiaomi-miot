@@ -3,11 +3,12 @@ import logging
 from enum import Enum
 
 from homeassistant.const import *  # noqa: F401
+from homeassistant.components.climate.const import *
 from homeassistant.components.climate import (
     DOMAIN as ENTITY_DOMAIN,
     ClimateEntity,
+    ClimateEntityFeature,  # v2022.5
 )
-from homeassistant.components.climate.const import *
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.restore_state import RestoreEntity
 
@@ -27,8 +28,7 @@ from .core.miot_spec import (
 )
 from .fan import (
     MiotModesSubEntity,
-    SUPPORT_SET_SPEED as SUPPORT_SET_SPEED_FAN,
-    SUPPORT_PRESET_MODE as SUPPORT_PRESET_MODE_FAN,
+    FanEntityFeature,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -144,15 +144,15 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 self._prop_fan_level = miot_service.get_property('heat_level', 'water_level')
 
         if self._prop_target_temp:
-            self._supported_features |= SUPPORT_TARGET_TEMPERATURE
+            self._supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE
         if self._prop_target_humi:
-            self._supported_features |= SUPPORT_TARGET_HUMIDITY
+            self._supported_features |= ClimateEntityFeature.TARGET_HUMIDITY
         if self.fan_modes or (self._prop_mode and self._prop_mode.list_first('Fan') is not None):
-            self._supported_features |= SUPPORT_FAN_MODE
+            self._supported_features |= ClimateEntityFeature.FAN_MODE
         if self._prop_horizontal_swing or self._prop_vertical_swing:
-            self._supported_features |= SUPPORT_SWING_MODE
+            self._supported_features |= ClimateEntityFeature.SWING_MODE
         if self._prop_heater and miot_service.name in ['air_conditioner', 'air_condition_outlet']:
-            self._supported_features |= SUPPORT_AUX_HEAT
+            self._supported_features |= ClimateEntityFeature.AUX_HEAT
 
         self._power_modes = []
         if miot_service.get_property('heat_level'):
@@ -207,7 +207,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 }
 
         if self._preset_modes:
-            self._supported_features |= SUPPORT_PRESET_MODE
+            self._supported_features |= ClimateEntityFeature.PRESET_MODE
 
     async def async_update(self):
         await super().async_update()
@@ -675,7 +675,7 @@ class ClimateModeSubEntity(MiotModesSubEntity):
 
         self._supported_features = 0
         if self.speed_list:
-            self._supported_features |= SUPPORT_PRESET_MODE_FAN or SUPPORT_SET_SPEED_FAN
+            self._supported_features |= FanEntityFeature.PRESET_MODE
 
     def update(self, data=None):
         super().update(data)
@@ -759,7 +759,7 @@ class MiirClimateEntity(BaseClimateEntity, RestoreEntity):
         self._attr_target_temperature_step = 1
         self._prop_temperature = miot_service.get_property('ir_temperature')
         if self._prop_temperature:
-            self._supported_features |= SUPPORT_TARGET_TEMPERATURE
+            self._supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE
             self._attr_temperature_unit = self._prop_temperature.unit_of_measurement
             self._attr_target_temperature_step = self._prop_temperature.range_step() or 1
             self._attr_max_temp = self._prop_temperature.range_max() or DEFAULT_MAX_TEMP
@@ -778,7 +778,7 @@ class MiirClimateEntity(BaseClimateEntity, RestoreEntity):
         if self._act_fan_up:
             self._fan_modes[self._act_fan_up.friendly_desc] = self._act_fan_up
         if self._fan_modes:
-            self._supported_features |= SUPPORT_FAN_MODE
+            self._supported_features |= ClimateEntityFeature.FAN_MODE
             self._attr_fan_modes = list(self._fan_modes.keys())
 
     async def async_added_to_hass(self):

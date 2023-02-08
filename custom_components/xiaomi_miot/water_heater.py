@@ -6,8 +6,7 @@ from homeassistant.const import *  # noqa: F401
 from homeassistant.components.water_heater import (
     DOMAIN as ENTITY_DOMAIN,
     WaterHeaterEntity,
-    SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_OPERATION_MODE,
+    WaterHeaterEntityFeature,  # v2022.5
 )
 
 from . import (
@@ -69,9 +68,9 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         self._prev_target_temp = None
 
         if self._prop_target_temp:
-            self._supported_features |= SUPPORT_TARGET_TEMPERATURE
+            self._supported_features |= WaterHeaterEntityFeature.TARGET_TEMPERATURE
         if self._prop_modes:
-            self._supported_features |= SUPPORT_OPERATION_MODE
+            self._supported_features |= WaterHeaterEntityFeature.OPERATION_MODE
 
     async def async_update(self):
         await super().async_update()

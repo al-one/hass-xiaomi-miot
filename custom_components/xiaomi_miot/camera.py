@@ -17,8 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.components.camera import (
     DOMAIN as ENTITY_DOMAIN,
     Camera,
-    SUPPORT_ON_OFF,
-    SUPPORT_STREAM,
+    CameraEntityFeature,  # v2022.5
     STATE_RECORDING,
     STATE_STREAMING,
 )
@@ -179,7 +178,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         BaseCameraEntity.__init__(self, hass)
         if self._prop_power:
-            self._supported_features |= SUPPORT_ON_OFF
+            self._supported_features |= CameraEntityFeature.ON_OFF
         if miot_service:
             self._prop_motion_tracking = miot_service.get_property('motion_tracking')
             self._is_doorbell = miot_service.name in ['video_doorbell'] or '.lock.' in self._model
@@ -205,7 +204,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 self._prop_expiration_time = srv.get_property('expiration_time')
                 break
         if self._prop_stream_address:
-            self._supported_features |= SUPPORT_STREAM
+            self._supported_features |= CameraEntityFeature.STREAM
             self._sub_motion_stream = True
         elif self._miot_service.name in ['camera_control'] or self._is_doorbell:
             if self.custom_config_bool('use_motion_stream'):
@@ -306,7 +305,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             else:
                 _LOGGER.warning('%s: camera events is empty. %s', self.name_model, rdt)
         if adt:
-            self._supported_features |= SUPPORT_STREAM
+            self._supported_features |= CameraEntityFeature.STREAM
             await self.async_update_attrs(adt)
             if self._motion_enable:
                 await self.async_update_attrs(self.motion_event_attributes)
@@ -573,7 +572,7 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
         super().__init__(parent, 'motion_event', option, domain=ENTITY_DOMAIN)
         BaseCameraEntity.__init__(self, hass)
         self._available = True
-        self._supported_features |= SUPPORT_STREAM
+        self._supported_features |= CameraEntityFeature.STREAM
 
     @property
     def state(self):

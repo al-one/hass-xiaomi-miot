@@ -5,9 +5,7 @@ from homeassistant.const import *  # noqa: F401
 from homeassistant.components.fan import (
     DOMAIN as ENTITY_DOMAIN,
     FanEntity,
-    SUPPORT_SET_SPEED,
-    SUPPORT_DIRECTION,
-    SUPPORT_OSCILLATE,
+    FanEntityFeature,  # v2022.5
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
 )
@@ -28,34 +26,17 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
 )
+from homeassistant.util.percentage import (  # v2021.3
+    ordered_list_item_to_percentage,
+    percentage_to_ordered_list_item,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
-
-try:
-    # hass 2021.3.0b0+
-    from homeassistant.components.fan import SUPPORT_PRESET_MODE
-    from homeassistant.util.percentage import (
-        ordered_list_item_to_percentage,
-        percentage_to_ordered_list_item,
-    )
-except (ModuleNotFoundError, ImportError):
-    SUPPORT_PRESET_MODE = None
-
-    def ordered_list_item_to_percentage(ordered_list, item):
-        raise NotImplementedError()
-
-    def percentage_to_ordered_list_item(ordered_list, percentage):
-        raise NotImplementedError()
-
-try:
-    # hass 2022.4.0b0+
-    from homeassistant.components.fan import SPEED_OFF, OFF_SPEED_VALUES
-except ImportError:
-    SPEED_OFF = 'off'
-    OFF_SPEED_VALUES = [SPEED_OFF, None]
-
 SERVICE_TO_METHOD = {}
+
+SPEED_OFF = 'off'
+OFF_SPEED_VALUES = [SPEED_OFF, None]
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -122,18 +103,18 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
                 break
 
         if self._prop_speed or self._prop_percentage:
-            self._supported_features |= SUPPORT_SET_SPEED
+            self._supported_features |= FanEntityFeature.SET_SPEED
             if self._prop_speed and self._prop_percentage:
                 if self._prop_speed.unique_name == self._prop_percentage.unique_name:
                     self._prop_speed = None
         if self._prop_direction:
-            self._supported_features |= SUPPORT_DIRECTION
+            self._supported_features |= FanEntityFeature.DIRECTION
         if self._prop_oscillate:
-            self._supported_features |= SUPPORT_OSCILLATE
+            self._supported_features |= FanEntityFeature.OSCILLATE
 
         self._attr_preset_modes = []
-        if self._prop_mode and SUPPORT_PRESET_MODE:
-            self._supported_features |= SUPPORT_PRESET_MODE
+        if self._prop_mode:
+            self._supported_features |= FanEntityFeature.PRESET_MODE
             self._attr_preset_modes = self._prop_mode.list_descriptions()
 
     async def async_added_to_hass(self):
@@ -144,11 +125,11 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
                 prop = self._miot_service.get_property(per)
             if prop:
                 self._prop_percentage = prop
-                self._supported_features |= SUPPORT_SET_SPEED
+                self._supported_features |= FanEntityFeature.SET_SPEED
 
         # issues/617
         if self.custom_config_bool('disable_preset_modes'):
-            self._supported_features &= ~SUPPORT_PRESET_MODE
+            self._supported_features &= ~FanEntityFeature.PRESET_MODE
             self._attr_preset_modes = []
         elif dpm := self.custom_config_list('disable_preset_modes'):
             self._attr_preset_modes = [
@@ -326,14 +307,14 @@ class MiirFanEntity(MiirToggleEntity, FanEntity):
         self._act_speed_up = miot_service.get_action('fan_speed_up')
         self._act_speed_dn = miot_service.get_action('fan_speed_down')
         if self._act_speed_up or self._act_speed_dn:
-            self._supported_features |= SUPPORT_SET_SPEED
+            self._supported_features |= FanEntityFeature.SET_SPEED
 
         self._act_swing_on = miot_service.get_action('horizontal_swing_on')
         self._act_swing_off = miot_service.get_action('horizontal_swing_off')
         if self._act_swing_on or self._act_swing_off:
-            self._supported_features |= SUPPORT_OSCILLATE
+            self._supported_features |= FanEntityFeature.OSCILLATE
 
-        self._supported_features |= SUPPORT_PRESET_MODE
+        self._supported_features |= FanEntityFeature.PRESET_MODE
         self._attr_preset_mode = None
         self._attr_preset_modes = []
         for a in miot_service.actions.values():
@@ -345,7 +326,7 @@ class MiirFanEntity(MiirToggleEntity, FanEntity):
         await super().async_added_to_hass()
         # issues/617
         if self.custom_config_bool('disable_preset_modes'):
-            self._supported_features &= ~SUPPORT_PRESET_MODE
+            self._supported_features &= ~FanEntityFeature.PRESET_MODE
             self._attr_preset_modes = []
         elif dpm := self.custom_config_list('disable_preset_modes'):
             self._attr_preset_modes = [
@@ -492,9 +473,9 @@ class MiotModesSubEntity(MiotPropertySubEntity, FanSubEntity):
         if self._prop_power:
             self._option['keys'] = [self._prop_power.full_name, *(self._option.get('keys') or [])]
         if self._miot_property.value_range and self.modes_count > 20:
-            self._supported_features |= SUPPORT_SET_SPEED
+            self._supported_features |= FanEntityFeature.SET_SPEED
         else:
-            self._supported_features |= SUPPORT_PRESET_MODE or SUPPORT_SET_SPEED
+            self._supported_features |= FanEntityFeature.PRESET_MODE
 
     @property
     def icon(self):
@@ -589,7 +570,7 @@ class MiotModesSubEntity(MiotPropertySubEntity, FanSubEntity):
     @property
     def preset_modes(self):
         """Return a list of available preset modes."""
-        if self._supported_features & SUPPORT_PRESET_MODE:
+        if self._supported_features & FanEntityFeature.PRESET_MODE:
             return self._miot_property.list_descriptions()
         return None
 

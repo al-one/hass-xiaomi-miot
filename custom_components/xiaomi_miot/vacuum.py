@@ -7,20 +7,7 @@ from homeassistant.const import *  # noqa: F401
 from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
     StateVacuumEntity,
-    SUPPORT_TURN_ON,
-    SUPPORT_TURN_OFF,
-    SUPPORT_PAUSE,
-    SUPPORT_STOP,
-    SUPPORT_RETURN_HOME,
-    SUPPORT_FAN_SPEED,
-    SUPPORT_BATTERY,
-    SUPPORT_STATUS,
-    SUPPORT_SEND_COMMAND,
-    SUPPORT_LOCATE,
-    SUPPORT_CLEAN_SPOT,
-    SUPPORT_MAP,
-    SUPPORT_STATE,
-    SUPPORT_START,
+    VacuumEntityFeature,  # v2022.5
     STATE_CLEANING,
     STATE_DOCKED,
     STATE_RETURNING,
@@ -109,25 +96,25 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 break
 
         if self._prop_power:
-            self._supported_features |= SUPPORT_TURN_ON
-            self._supported_features |= SUPPORT_TURN_OFF
+            self._supported_features |= VacuumEntityFeature.TURN_ON
+            self._supported_features |= VacuumEntityFeature.TURN_OFF
         if self._act_start:
-            self._supported_features |= SUPPORT_START
+            self._supported_features |= VacuumEntityFeature.START
         if self._act_pause:
-            self._supported_features |= SUPPORT_PAUSE
+            self._supported_features |= VacuumEntityFeature.PAUSE
         if self._act_stop:
-            self._supported_features |= SUPPORT_STOP
+            self._supported_features |= VacuumEntityFeature.STOP
         if self._act_charge:
-            self._supported_features |= SUPPORT_RETURN_HOME
+            self._supported_features |= VacuumEntityFeature.RETURN_HOME
         if self._prop_fan:
-            self._supported_features |= SUPPORT_FAN_SPEED
+            self._supported_features |= VacuumEntityFeature.FAN_SPEED
         if self._prop_battery:
-            self._supported_features |= SUPPORT_BATTERY
+            self._supported_features |= VacuumEntityFeature.BATTERY
         if self._prop_status:
-            self._supported_features |= SUPPORT_STATUS
-            self._supported_features |= SUPPORT_STATE
+            self._supported_features |= VacuumEntityFeature.STATUS
+            self._supported_features |= VacuumEntityFeature.STATE
         if self._act_locate:
-            self._supported_features |= SUPPORT_LOCATE
+            self._supported_features |= VacuumEntityFeature.LOCATE
 
     async def async_update(self):
         await super().async_update()
@@ -257,8 +244,8 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 class MiotRoborockVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
-        self._supported_features |= SUPPORT_PAUSE
-        self._supported_features |= SUPPORT_LOCATE
+        self._supported_features |= VacuumEntityFeature.PAUSE
+        self._supported_features |= VacuumEntityFeature.LOCATE
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -330,7 +317,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
 class MiotViomiVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
-        self._supported_features |= SUPPORT_LOCATE
+        self._supported_features |= VacuumEntityFeature.LOCATE
         self._miio_props = [
             'run_state', 'mode', 'err_state', 'battary_life', 'box_type', 'mop_type', 's_time', 's_area',
             'suction_grade', 'water_grade', 'remember_map', 'has_map', 'is_mop', 'has_newmap',
