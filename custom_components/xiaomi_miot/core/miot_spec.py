@@ -763,11 +763,15 @@ class MiotProperty(MiotSpecInstance):
     @property
     def state_class(self):
         names = {
+            'battery_level': SensorStateClass.MEASUREMENT,
             'electric_power': SensorStateClass.MEASUREMENT,
             'electric_current': SensorStateClass.MEASUREMENT,
             'power_consumption': SensorStateClass.TOTAL_INCREASING,
             'temperature': SensorStateClass.MEASUREMENT,
             'humidity': SensorStateClass.MEASUREMENT,
+            'co2_density': SensorStateClass.MEASUREMENT,
+            'co_density': SensorStateClass.MEASUREMENT,
+            'pm2_5_density': SensorStateClass.MEASUREMENT,
             'tds_in': SensorStateClass.MEASUREMENT,
             'tds_out': SensorStateClass.MEASUREMENT,
             'filter_used_flow': SensorStateClass.TOTAL_INCREASING,
