@@ -1,0 +1,135 @@
+{
+  "config": {
+    "flow_title": "Xiaomi Miot Auto",
+    "step": {
+      "user": {
+        "title": "Vybrat akci",
+        "data": {
+          "action": "Akce"
+        }
+      },
+      "token": {
+        "description": "Konfigurovat informace o zařízení.\n{tip}",
+        "data": {
+          "host": "Místní IP",
+          "token": "Token",
+          "name": "Název zařízení",
+          "scan_interval": "Interval aktualizace stavu (v sekundách)"
+        }
+      },
+      "cloud": {
+        "description": "Konfigurace cloudového účtu Xiaomi.\n",
+        "data": {
+          "username": "ID účtu / e-mail Xiaomi",
+          "password": "Heslo",
+          "captcha": "Captcha",
+          "server_country": "Umístění serveru MiCloud",
+          "conn_mode": "Režim připojení zařízení",
+          "filter_models": "Filtrace zařízení přes model/domácnost/WiFi (pokročilé)"
+        }
+      },
+      "cloud_filter": {
+        "title": "Filtrovat cloudová zařízení",
+        "description": "Můžete zahrnout, nebo vyloučit zařízení a integrovat pouze zařízení, která chcete.\n{tip}",
+        "data": {
+          "filter_model": "Model filtrovaného zařízení",
+          "model_list": "Seznam modelů zařízení",
+          "filter_home_id": "Filtr Domů",
+          "home_id_list": "Domácí seznam",
+          "filter_ssid": "Filtr WiFi SSID",
+          "ssid_list": "Seznam WiFi SSID",
+          "filter_bssid": "Filtr WiFi BSSID",
+          "bssid_list": "Seznam WiFi BSSID",
+          "filter_did": "Filtrované zařízení",
+          "did_list": "Seznam zařízení"
+        }
+      },
+      "customizing": {
+        "title": "Přizpůsobení entit / zařízení",
+        "description": "{tip}",
+        "data": {
+          "domain": "Vybrat doménu entity",
+          "entity": "Vybrat entitu",
+          "model": "Vybrat model zařízení",
+          "model_specified": "Zadaný model zařízení (volitelné)",
+          "only_main_entity": "Pouze hlavní (nadřazené) entity",
+          "reset_customizes": "Obnovit výchozí přizpůsobení",
+          "bool2selects": "Přizpůsobte možnosti"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Připojení zařízení se nezdařilo",
+      "cannot_login": "Přihlášení k účtu Mi se nezdařilo, zkontrolujte prosím heslo účtu. Pokud se přihlášení po několika pokusech nezdaří, použijte k přihlášení na oficiální webové stránky Xiaomi (mi.com) jiné zařízení ve stejné síti LAN jako hostitel HA a zkuste to znovu.",
+      "cannot_reach": "Nelze získat přístup k Xiaomi API",
+      "tzinfo_error": "Viz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+      "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi"
+    },
+    "abort": {
+      "config_saved": "Konfigurace uložena! [Přizpůsobit znovu](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nNěkteré přizpůsobitelné možnosti vyžadují [obnovení integrace](/developer-tools/yaml), aby se projevily.",
+      "already_configured": "Zařízení je již nakonfigurováno",
+      "not_xiaomi_miio": "Nejedná se o zařízení Xiaomi miio/miot."
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "Xiaomi Miot",
+        "description": "Konfigurovat informace o zařízení.",
+        "data": {
+          "host": "Místní IP",
+          "token": "Token",
+          "scan_interval": "Interval aktualizace stavu (v sekundách)",
+          "miot_cloud": "Povolit miot cloud (konfigurace účtu v YAML)"
+        }
+      },
+      "cloud": {
+        "description": "Konfigurace cloudového účtu Xiaomi.\n{tip}",
+        "data": {
+          "username": "ID účtu / e-mail Xiaomi",
+          "password": "Heslo",
+          "captcha": "Captcha",
+          "server_country": "Umístění serveru MiCloud",
+          "conn_mode": "Režim připojení pro zařízení",
+          "renew_devices": "Vynutit obnovení zařízení",
+          "disable_message": "Deaktivovat senzor upozornění Mihome"
+        }
+      },
+      "cloud_filter": {
+        "title": "Filtrovat zařízení v cloudu",
+        "description": "Můžete zahrnout nebo vyloučit zařízení a integrovat pouze ta, která chcete. Pokud v režimu vyloučení nezaškrtnete žádnou možnost v seznamu, je to ekvivalentní zahrnutí všech možností.\n{tip}",
+        "data": {
+          "filter_model": "Model filtrovaného zařízení",
+          "model_list": "Seznam modelů zařízení",
+          "filter_home_id": "Filtr Domů",
+          "home_id_list": "Domácí seznam",
+          "filter_ssid": "Filtr WiFi SSID",
+          "ssid_list": "Seznam WiFi SSID",
+          "filter_bssid": "Filtr WiFi BSSID",
+          "bssid_list": "Seznam WiFi BSSID",
+          "filter_did": "Filtrovat zařízení",
+          "did_list": "Seznam zařízení"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Připojení zařízení se nezdařilo",
+      "cannot_login": "Přihlášení k účtu Mi se nezdařilo, zkontrolujte heslo účtu. ",
+      "cannot_reach": "Nelze získat přístup k Xiaomi API",
+      "tzinfo_error": "Viz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+      "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi"
+    },
+    "abort": {
+      "show_customizes": "[![Přidat novou integraci](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n{tip}"
+    }
+  },
+  "system_health": {
+    "info": {
+      "component_version": "Verze komponenty",
+      "can_reach_server": "Dosažení Xiaomi API Serveru",
+      "can_reach_spec": "Dosažení MIoT-Spec Serveru",
+      "logged_accounts": "Přihlášené účty",
+      "total_devices": "Celkový počet zařízení MiHome"
+    }
+  }
+}
