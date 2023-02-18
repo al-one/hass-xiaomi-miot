@@ -982,6 +982,9 @@ DEVICE_CUSTOMIZES = {
     'zhimi.airfresh.*': {
         'switch_properties': 'heater,alarm',
     },
+    'zhimi.airfresh.ua1': {
+        'exclude_miot_services': 'custom_serveice',
+    },
     'zhimi.airfresh.va4': {
         'sensor_properties': 'motor_speed',
         'brightness_for_on': 0,
