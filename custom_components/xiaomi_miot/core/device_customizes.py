@@ -354,6 +354,11 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'over_wet_protect,screen.on',
         'number_properties': 'off_delay_time',
     },
+    'dooya.curtain.c1': {
+        'chunk_properties': 1,
+        'sensor_properties': 'status',
+        'switch_properties': 'mode',
+    },
     'dooya.curtain.*': {
         'exclude_miot_properties': 'fault',
     },
