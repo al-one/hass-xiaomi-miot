@@ -3,6 +3,7 @@ import logging
 import time
 from enum import Enum
 from functools import partial
+from datetime import timedelta
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.core import callback
@@ -40,6 +41,7 @@ from .fan import (
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
+SCAN_INTERVAL = timedelta(seconds=60)
 
 SERVICE_TO_METHOD = {}
 

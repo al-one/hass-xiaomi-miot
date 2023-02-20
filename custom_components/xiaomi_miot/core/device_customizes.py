@@ -677,6 +677,7 @@ DEVICE_CUSTOMIZES = {
     },
 
     'novo.curtain.n21': {
+        'exclude_miot_properties': 'fault',
         'select_properties': 'motor_control',
     },
     'nwt.derh.wdh318efw1': {
