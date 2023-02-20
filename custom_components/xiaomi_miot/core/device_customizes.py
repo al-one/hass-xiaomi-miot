@@ -925,6 +925,9 @@ DEVICE_CUSTOMIZES = {
     'yeelink.bhf_light.v6': {
         'select_properties': 'heat_mode,cold_mode,vent_mode',
     },
+    'yeelink.bhf_light.v11': {
+        'exclude_miot_services': 'yl_bath_heater',
+    },
     'yeelink.light.dn2grp': {
         'cloud_delay_update': 7,
     },
