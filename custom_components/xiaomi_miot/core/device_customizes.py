@@ -470,6 +470,12 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'no_one_determine_time',
     },
 
+    'leishi.light.*': {
+        'exclude_miot_services': 'scenes,scene,scens,remote',
+        'exclude_miot_properties': 'default.user_save,professional_setting.delay',
+        'switch_properties': 'flex_switch',
+        'select_properties': 'default.default',
+    },
     'leshi.light.wy0b01': {
         'chunk_properties': 1,
         'exclude_miot_services': 'remote,default,scene',
