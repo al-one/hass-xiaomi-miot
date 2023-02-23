@@ -131,5 +131,80 @@
             "logged_accounts": "已登录的账户数量",
             "total_devices": "米家设备总数量"
         }
+    },
+    "entity": {
+        "sensor": {
+            "lock": {
+                "state": {
+                    "bluetooth": "蓝牙",
+                    "password": "密码",
+                    "biological": "生物",
+                    "key": "钥匙",
+                    "turntable": "转盘",
+                    "nfc": "NFC",
+                    "one-time password": "一次性密码",
+                    "two-step verification": "双重认证",
+                    "coercion": "胁迫",
+                    "homekit": "Homekit",
+                    "manual": "人工",
+                    "automatic": "自动"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "门外开锁",
+                    "lock": "上锁",
+                    "anti_lock_on": "开启反锁",
+                    "anti_lock_off": "解除反锁",
+                    "inside_unlock": "门内开锁",
+                    "lock_inside": "门内上锁",
+                    "child_lock_on": "开启童锁",
+                    "child_lock_off": "关闭童锁",
+                    "lock_outside": "门外上锁"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "开门",
+                    "close": "关门",
+                    "close_timeout": "超时未关",
+                    "knock": "敲门",
+                    "breaking": "撬门",
+                    "stuck": "卡住"
+                }
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "自动",
+                            "low": "低档",
+                            "medium": "中档",
+                            "middle": "中档",
+                            "high": "高档",
+                            "quiet": "静音",
+                            "turbo": "超强",
+                            "level1": "一档",
+                            "level2": "二档",
+                            "level3": "三档",
+                            "level4": "四档",
+                            "level5": "五档",
+                            "level6": "六档",
+                            "level7": "七档"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "关闭",
+                            "vertical": "垂直",
+                            "horizontal": "水平",
+                            "both": "立体"
+                        }
+                    }
+                }
+            }
+        }
     }
 }

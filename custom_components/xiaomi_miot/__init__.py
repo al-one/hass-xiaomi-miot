@@ -664,6 +664,7 @@ class BaseEntity(Entity):
     _model = None
     _attr_device_class = None
     _attr_entity_category = None
+    _attr_translation_key = None
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -1149,6 +1150,7 @@ class MiotEntity(MiioEntity):
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self.entity_id = self._miot_service.generate_entity_id(self)
             self._state_attrs['miot_type'] = self._miot_service.spec.type
+            self._attr_translation_key = self._miot_service.name
         if not self.entity_id and self._model:
             mls = f'{self._model}..'.split('.')
             mac = re.sub(r'[\W_]+', '', self.unique_mac)
@@ -2267,6 +2269,7 @@ class BaseSubEntity(BaseEntity):
         self._supported_features = int(self._option.get('supported_features', 0))
         self._attr_entity_category = self.custom_config('entity_category', self._option.get('entity_category'))
         self._attr_native_unit_of_measurement = self._option.get('unit')
+        self._attr_translation_key = self.custom_config('translation_key') or attr
         self._extra_attrs = {
             'entity_class': self.__class__.__name__,
             'parent_entity_id': parent.entity_id,
@@ -2473,6 +2476,7 @@ class MiotPropertySubEntity(BaseSubEntity):
             self._attr_native_unit_of_measurement = miot_property.unit_of_measurement
         if self._attr_entity_category is None:
             self._attr_entity_category = miot_property.entity_category
+        self._attr_translation_key = self.custom_config('translation_key') or miot_property.friendly_name
         self._extra_attrs.update({
             'service_description': miot_property.service.description or miot_property.service.name,
             'property_description': miot_property.description or miot_property.name,
