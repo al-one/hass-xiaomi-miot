@@ -1163,6 +1163,7 @@ class MiotEntity(MiioEntity):
         if not self._miot_service:
             return
         self._vars['ignore_offline'] = self.custom_config_bool('ignore_offline')
+        self.logger.debug('%s: Added to hass: %s', self.name_model, [self.custom_config()])
 
     @property
     def miot_device(self):
