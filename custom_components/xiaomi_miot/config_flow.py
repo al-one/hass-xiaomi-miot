@@ -485,14 +485,19 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 for v in self.hass.data[DOMAIN].values():
                     if isinstance(v, dict):
                         v = v.get(CONF_XIAOMI_CLOUD)
+                        if mod := v.get('miio_info', {}).get(CONF_MODEL):
+                            models.append(mod)
                     if isinstance(v, MiotCloud):
                         mic = v
                         if mic.user_id not in uds:
                             uds[mic.user_id] = await mic.async_get_devices_by_key('model') or {}
                             models.update(uds[mic.user_id])
-                models = sorted(models.keys())
+                if models:
+                    models = sorted(models.keys())
+                    schema.update({
+                        vol.Required('model'): vol.In(models),
+                    })
                 schema.update({
-                    vol.Required('model'): vol.In(models),
                     vol.Optional('model_specified'): str,
                 })
 
