@@ -2239,12 +2239,14 @@ MIIO_TO_MIOT_SPECS = {
                 'silent':   1,
                 'favorite': 2,
             }, 'default': 0},
+            'prop.6.1': {'prop': 'volume', 'setter': True, 'set_template': '{{ [100 if value else 0] }}'},
         },
     },
     'zhimi.airpurifier.v7': {
         'extend_model': 'zhimi.airpurifier.m1',
         'miio_specs': {
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
+            'prop.6.1': {'prop': 'volume', 'setter': True, 'set_template': '{{ [100 if value else 0] }}'},
             'prop.7.1': {'prop': 'led', 'setter': True, 'format': 'onoff'},
             'prop.2.103': {'prop': 'favorite_level', 'setter': 'set_level_favorite'},
             'prop.2.104': {'prop': 'act_det', 'setter': True, 'format': 'onoff'},
