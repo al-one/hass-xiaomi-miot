@@ -969,6 +969,14 @@ DEVICE_CUSTOMIZES = {
             'extension.rc_list':   {'siid': 4, 'piid': 3},
         },
     },
+    'yunmi.kettle.*': {
+        'button_actions': 'stop_work',
+        'binary_sensor_properties': 'kettle_lifting',
+        'sensor_properties': 'warming_time',
+        'switch_properties': 'auto_keep_warm,keep_warm_reminder,custom_knob_temp,'
+                             'lift_remember_temp,boiling_reminder,no_disturb',
+        'number_properties': 'keep_warm_temperature,keep_warm_time',
+    },
     'yunmi.waterpuri.*': {
         'number_properties': 'tds_warn_thd',
         'sensor_properties': 'rinse,filter_remaining',
