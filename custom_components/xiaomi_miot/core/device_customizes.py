@@ -1143,6 +1143,7 @@ DEVICE_CUSTOMIZES = {
 
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
+        'switch_properties': 'air_conditioner.on,alarm.alarm',
         'fan_services': 'air_fresh',
     },
     '*.airer.*': {
