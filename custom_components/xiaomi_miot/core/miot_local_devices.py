@@ -429,6 +429,7 @@ MIOT_LOCAL_MODELS = [
     'yh1209.airer.public',
     'ymt.flowerpot.v1',
     'yuemee.sensor_gas.56712',
+    'yunmi.kettle.v19',
     'yunmi.waterpuri.f1',
     'yunmi.waterpuri.f7',
     'yunmi.waterpuri.lx14',
