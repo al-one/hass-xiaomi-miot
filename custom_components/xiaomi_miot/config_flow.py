@@ -370,6 +370,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             'miot_cloud_write',
             'miot_cloud_action',
             'check_lan',
+            'unreadable_properties',
         ]
         main_options = {
             'bool2selects': cv.multi_select({}),

@@ -1132,7 +1132,11 @@ class MiotEntity(MiioEntity):
                     self._state_attrs['exclude_miot_services'] = ems
                 if eps := self.custom_config_list('exclude_miot_properties') or []:
                     self._state_attrs['exclude_miot_properties'] = eps
-                self._miot_mapping = miot_service.mapping(excludes=eps) or {}
+                urp = self.custom_config_bool('unreadable_properties')
+                self._miot_mapping = miot_service.mapping(
+                    excludes=eps,
+                    unreadable_properties=urp,
+                ) or {}
                 ism = True
                 if mms := self.custom_config_list('main_miot_services') or []:
                     if self._miot_service.in_list(mms):
@@ -1144,6 +1148,7 @@ class MiotEntity(MiioEntity):
                     ext = self._miot_service.spec.services_mapping(
                         excludes=ems,
                         exclude_properties=eps,
+                        unreadable_properties=urp,
                     ) or {}
                     self._miot_mapping = {**self._miot_mapping, **ext, **self._miot_mapping}
                 self._vars['is_main_entity'] = ism
