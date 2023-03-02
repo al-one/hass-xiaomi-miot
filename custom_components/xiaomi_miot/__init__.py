@@ -1332,6 +1332,8 @@ class MiotEntity(MiioEntity):
         elif not self.miot_device:
             use_local = False
         use_cloud = not use_local and self.miot_cloud
+        if not self.miot_device:
+            use_cloud = self.xiaomi_cloud
         if not (mapping or local_mapping):
             use_local = False
             use_cloud = False
