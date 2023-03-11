@@ -582,6 +582,18 @@
   "roborock.vacuum.a38": "roborock.vacuum.a14",
   "roborock.vacuum.a40": "roborock.vacuum.a14",
   "roborock.vacuum.a46": "roborock.vacuum.a14",
+  "roborock.vacuum.a50": "roborock.vacuum.a14",
+  "roborock.vacuum.a51": "roborock.vacuum.a14",
+  "roborock.vacuum.a52": "roborock.vacuum.a14",
+  "roborock.vacuum.a62": "roborock.vacuum.a14",
+  "roborock.vacuum.a64": "roborock.vacuum.a14",
+  "roborock.vacuum.a65": "roborock.vacuum.a14",
+  "roborock.vacuum.a66": "roborock.vacuum.a14",
+  "roborock.vacuum.a69": "roborock.vacuum.a14",
+  "roborock.vacuum.a70": "roborock.vacuum.a14",
+  "roborock.vacuum.a74": "roborock.vacuum.a14",
+  "roborock.vacuum.a75": "roborock.vacuum.a14",
+  "roborock.vacuum.a76": "roborock.vacuum.a14",
   "rockrobo.vacuum.v1": [
     {
       "iid": 2,
