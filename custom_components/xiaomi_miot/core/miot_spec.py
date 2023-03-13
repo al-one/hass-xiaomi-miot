@@ -9,6 +9,7 @@ from homeassistant.const import *
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
     DOMAIN,
@@ -242,7 +243,7 @@ class MiotSpec(MiotSpecInstance):
         store = Store(hass, 1, fnm)
         try:
             cached = await store.async_load() or {}
-        except ValueError:
+        except (ValueError, HomeAssistantError):
             await store.async_remove()
             cached = {}
         now = int(time.time())
@@ -299,7 +300,7 @@ class MiotSpec(MiotSpecInstance):
         store = Store(hass, 1, fnm)
         try:
             cached = await store.async_load() or {}
-        except ValueError:
+        except (ValueError, HomeAssistantError):
             await store.async_remove()
             cached = {}
         dat = cached
