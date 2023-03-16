@@ -975,6 +975,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'warming_time',
         'switch_properties': 'auto_keep_warm,keep_warm_reminder,custom_knob_temp,'
                              'lift_remember_temp,boiling_reminder,no_disturb',
+        'select_properties': 'target_mode',
         'number_properties': 'keep_warm_temperature,keep_warm_time',
         'exclude_miot_services': 'knob_setting,local_timing',
     },
