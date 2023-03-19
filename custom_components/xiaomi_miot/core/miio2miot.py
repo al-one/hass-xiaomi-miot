@@ -252,7 +252,7 @@ class Miio2MiotHelper:
                 if isinstance(pms, dict) and 'method' in pms:
                     setter = pms.get('method', setter)
                     pms = pms.get('params', [])
-        pms = cv.ensure_list(pms)
+            pms = cv.ensure_list(pms)
         if not setter:
             _LOGGER.warning('%s: Call miio method via miot action failed: %s', self.model, [key, setter, cfg])
             return None

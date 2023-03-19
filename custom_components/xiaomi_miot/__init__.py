@@ -1909,7 +1909,7 @@ class MiotEntity(MiioEntity):
             mca = self.xiaomi_cloud
         try:
             if m2m and self._miio2miot.has_setter(siid, aiid=aiid):
-                result = self._miio2miot.call_action(self.miot_device, siid, aiid, pms)
+                result = self._miio2miot.call_action(self.miot_device, siid, aiid, params)
             elif isinstance(mca, MiotCloud):
                 result = mca.do_action(pms)
                 dly = self.custom_config_integer('cloud_delay_update', 5)
