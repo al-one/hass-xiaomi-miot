@@ -1011,7 +1011,7 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_off': 2,
     },
     'zhimi.airp.cpa4': {
-        'button_actions': 'reset_filter_life',
+        'chunk_properties': 1,
         'number_properties': 'favorite_level',
         'exclude_miot_properties': 'country_code',
     },
