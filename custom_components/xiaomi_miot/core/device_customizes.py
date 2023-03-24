@@ -1010,6 +1010,9 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
     },
+    'zhimi.airp.cpa4': {
+        'number_properties': 'favorite_level',
+    },
     'zhimi.airp.mb4a': {
         'number_properties': 'favorite_speed',
     },
