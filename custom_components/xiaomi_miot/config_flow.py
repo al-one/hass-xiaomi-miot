@@ -485,9 +485,9 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 uds = {}
                 for v in self.hass.data[DOMAIN].values():
                     if isinstance(v, dict):
-                        v = v.get(CONF_XIAOMI_CLOUD)
                         if mod := v.get('miio_info', {}).get(CONF_MODEL):
                             models.append(mod)
+                        v = v.get(CONF_XIAOMI_CLOUD)
                     if isinstance(v, MiotCloud):
                         mic = v
                         if mic.user_id not in uds:
