@@ -22,6 +22,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from .core.coord_transform import gcj02_to_wgs84, bd09_to_wgs84
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -82,9 +83,22 @@ class MiotTrackerEntity(MiotEntity, TrackerEntity):
             self._attr_longitude = prop.from_dict(self._state_attrs)
         if prop := self._miot_service.get_property('current_address'):
             self._attr_location_name = prop.from_dict(self._state_attrs)
+        await self.transform_coord()
 
         for p in self._miot_service.get_properties('driving_status'):
             self._update_sub_entities(p, None, 'binary_sensor')
+
+    async def transform_coord(self, default=None):
+        if not (self._attr_latitude or self._attr_longitude):
+            return
+        typ = self.custom_config('coord_type') or default
+        if not typ:
+            return
+        typ = f'{typ}'.lower()
+        if typ == 'gcj02':
+            self._attr_longitude, self._attr_latitude = gcj02_to_wgs84(self._attr_longitude, self._attr_latitude)
+        if typ == 'bd09':
+            self._attr_longitude, self._attr_latitude = bd09_to_wgs84(self._attr_longitude, self._attr_latitude)
 
     @property
     def should_poll(self):
@@ -180,6 +194,7 @@ class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
         self._attr_longitude = float(gps[0])
         self._attr_location_name = loc.get('desc')
         self._attr_location_accuracy = int(loc.get('radius') or 0)
+        await self.transform_coord(default='gcj02')
         tim = loc.get('timestamp', '')
         self.update_attrs({
             'timestamp': f'{tim[0:4]}-{tim[4:6]}-{tim[6:8]} {tim[8:10]}:{tim[10:12]}:{tim[12:14]}',

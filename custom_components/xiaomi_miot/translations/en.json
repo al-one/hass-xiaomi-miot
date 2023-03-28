@@ -67,6 +67,7 @@
                     "close_texts": "close_texts",
                     "closed_position": "closed_position",
                     "cloud_delay_update": "cloud_delay_update",
+                    "coord_type": "coord_type",
                     "cover_properties": "cover_properties",
                     "current_temp_property": "current_temp_property",
                     "descriptions_for_on": "descriptions_for_on",

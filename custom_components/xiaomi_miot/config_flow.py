@@ -769,7 +769,10 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
     if domain == 'number':
         bool2selects.extend(['restore_state'])
 
-    if domain == 'device_tracker':
+    if domain == 'device_tracker' or re.search(r'watch', model, re.I):
+        options.update({
+            'coord_type': cv.string,
+        })
         bool2selects.extend(['disable_location_name'])
 
     if domain == 'text' and re.search(r'execute_text_directive', entity_id, re.I):
