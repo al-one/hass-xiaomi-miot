@@ -693,6 +693,11 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'problem',
     },
 
+    'opple.light.yrtd': {
+        'switch_properties': 'night_light,time_display,wake_up_at_night,voice',
+        'select_properties': 'study_time',
+        'number_properties': 'love_bright,love_color',
+    },
     'ows.towel_w.mj1x0': {
         'sensor_properties': 'temperature',
         'select_properties': 'mode',
