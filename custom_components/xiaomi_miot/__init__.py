@@ -1501,9 +1501,9 @@ class MiotEntity(MiioEntity):
                 [
                     'temperature', 'indoor_temperature', 'relative_humidity', 'humidity',
                     'pm2_5_density', 'pm10_density', 'co2_density', 'tvoc_density', 'hcho_density',
-                    'air_quality', 'air_quality_index', 'illumination', 'motion_state', 'motion_detection',
+                    'air_quality', 'air_quality_index', 'illumination', 'motion_state',
                 ],
-                ['environment', 'illumination_sensor', 'motion_detection'],
+                ['environment', 'illumination_sensor'],
                 domain='sensor',
             )
             self._update_sub_entities(

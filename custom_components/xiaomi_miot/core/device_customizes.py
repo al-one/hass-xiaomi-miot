@@ -455,6 +455,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'work_mode,hip_water_gage,woman_water_gage,hip_nozzle_position,woman_nozzle_pos,'
                              'seat_temperature,wind_temperature,water_temperature,auto_mode',
     },
+    'isa.camera.hlc7': {
+        'select_properties': 'night_shot,recording_mode,detection_sensitivity',
+        'switch_properties': 'on,time_watermark,motion_detection',
+        'number_properties': 'image_rollover,alarm_interval',
+    },
     'isleep.blanket.hs2205': {
         'chunk_properties': 1,
     },

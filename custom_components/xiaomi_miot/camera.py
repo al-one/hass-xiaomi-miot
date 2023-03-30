@@ -180,7 +180,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if self._prop_power:
             self._supported_features |= CameraEntityFeature.ON_OFF
         if miot_service:
-            self._prop_motion_tracking = miot_service.get_property('motion_tracking')
+            self._prop_motion_tracking = miot_service.bool_property('motion_detection', 'motion_tracking')
             self._is_doorbell = miot_service.name in ['video_doorbell'] or '.lock.' in self._model
 
     async def async_added_to_hass(self):
