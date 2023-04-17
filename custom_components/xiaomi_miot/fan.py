@@ -92,6 +92,11 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
             if not self._prop_oscillate:
                 self._prop_oscillate = self._fan_control.get_property('horizontal_swing', 'vertical_swing')
 
+        self._custom_service = miot_service.spec.get_service('custom_service')
+        if self._custom_service:
+            if not self._prop_speed:
+                self._prop_speed = self._custom_service.get_property('favorite_level')
+                
         self._prop_percentage = None
         for s in miot_service.spec.get_services():
             for p in s.get_properties('speed_level', 'wind_speed', 'fan_level'):
