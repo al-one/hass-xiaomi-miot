@@ -1049,8 +1049,9 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'reset_filter_life',
     },
     'zhimi.airpurifier.*': {
-        'sensor_properties': 'illumination,motor_speed',
+        'speed_property': 'favorite_level,favorite_fan_level',
         'number_properties': 'favorite_level,favorite_fan_level',
+        'sensor_properties': 'illumination,motor_speed',
         # https://github.com/rytilahti/python-miio/blob/31c5d740d403c6f45f1e7e0d4a8a6276684a8ecd/miio/integrations/airpurifier/zhimi/airpurifier_miot.py#L13
         'exclude_miot_services': 'button,filter_time,rfid,others',
         'exclude_miot_properties': 'average_aqi_cnt,aqi_zone,sensor_state,aqi_goodh,aqi_runstate,aqi_state,'

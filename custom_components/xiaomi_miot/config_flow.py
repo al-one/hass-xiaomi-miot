@@ -719,9 +719,11 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'brightness_for_off': cv.string,
         })
 
-    if domain == 'fan' or re.search(r'\.fan\.', model, re.I):
+    if domain == 'fan' or re.search(r'\.fan\.|airpurifier|airfresh', model, re.I):
         options.update({
             'disable_preset_modes': cv.string,
+            'speed_property': cv.string,
+            'percentage_property': cv.string,
         })
 
     if domain == 'camera' or re.search(r'camera|videodoll', model, re.I):
