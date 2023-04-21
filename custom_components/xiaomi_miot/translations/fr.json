@@ -1,0 +1,135 @@
+{
+    "config": {
+        "flow_title": "Xiaomi Miot Auto",
+        "step": {
+            "user": {
+                "title": "Sélectionner une action",
+                "data": {
+                    "action": "Action"
+                }
+            },
+            "token": {
+                "description": "Configurer les informations de l'appareil.",
+                "data": {
+                    "host": "IP locale",
+                    "token": "Jeton",
+                    "name": "Nom de l'appareil",
+                    "scan_interval": "Intervalle de mise à jour (en secondes)"
+                }
+            },
+            "cloud": {
+                "description": "Configurer le compte cloud Xiaomi.\n{tip}",
+                "data": {
+                    "username": "ID / e-mail du compte Xiaomi",
+                    "password": "Mot de passe",
+                    "captcha": "Captcha",
+                    "server_country": "Emplacement du serveur MiCloud",
+                    "conn_mode": "Mode de connexion pour l'appareil",
+                    "filter_models": "Filtrer les appareils par modèle/maison/Wi-Fi (Avancé)"
+                }
+            },
+            "cloud_filter": {
+                "title": "Filtrer les appareils du cloud",
+                "description": "Vous pouvez inclure ou exclure des appareils pour n'intégrer que les appareils que vous souhaitez. En mode exclusion, si vous ne cochez aucune option dans la liste, cela équivaut à inclure toutes les options.\n{tip}",
+                "data": {
+                    "filter_model": "Filtrer par modèle d'appareil",
+                    "model_list": "Liste des modèles d'appareil",
+                    "filter_home_id": "Filtrer par maison",
+                    "home_id_list": "Liste des maisons",
+                    "filter_ssid": "Filtrer par SSID Wi-Fi",
+                    "ssid_list": "Liste des SSID Wi-Fi",
+                    "filter_bssid": "Filtrer par BSSID Wi-Fi",
+                    "bssid_list": "Liste des BSSID Wi-Fi",
+                    "filter_did": "Filtrer par appareil",
+                    "did_list": "Liste des appareils"
+                }
+            },
+            "customizing": {
+                "title": "Personnaliser les entités / appareils",
+                "description": "{tip}",
+                "data": {
+                    "domain": "Sélectionner le domaine de l'entité",
+                    "entity": "Sélectionner l'entité",
+                    "model": "Sélectionner le modèle de l'appareil",
+                    "model_specified": "Modèle d'appareil spécifié (facultatif)",
+                    "only_main_entity": "Uniquement les entités principales (parent)",
+                    "reset_customizes": "Réinitialiser les personnalisations par défaut",
+                    "bool2selects": "Options de personnalisation"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Impossible de se connecter à l'appareil",
+            "cannot_login": "Impossible de se connecter au compte Cloud Xiaomi, veuillez vérifier le mot de passe. Si vous n'arrivez pas à vous connecter, connectez-vous sur mi.com dans le même environnement que le réseau actuel et réessayez.",
+            "cannot_reach": "Impossible d'accéder à l'API Xiaomi",
+            "tzinfo_error": "Voir : https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Aucun appareil dans le compte Xiaomi Cloud"
+        },
+        "abort": {
+            "config_saved": "Configuration enregistrée ! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nCertaines options personnalisables nécessitent un [rechargement de l'intégration ](/developer-tools/yaml) pour prendre effet.",
+            "already_configured": "L'appareil est déjà configuré",
+            "not_xiaomi_miio": "Pas un appareil Xiaomi miio/miot."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "Configurer les informations de l'appareil.",
+                "data": {
+                    "host": "Adresse IP locale",
+                    "token": "Jeton",
+                    "scan_interval": "Intervalle de mise à jour (secondes)",
+                    "miot_cloud": "Activer le cloud miot (Configurer le compte dans YAML)"
+                }
+            },
+            "cloud": {
+                "description": "Configurer le compte cloud Xiaomi.\n{tip}",
+                "data": {
+                    "username": "Identifiant du compte Xiaomi / Email",
+                    "password": "Mot de passe",
+                    "captcha": "Captcha",
+                    "server_country": "Emplacement du serveur MiCloud",
+                    "conn_mode": "Mode de connexion pour l'appareil",
+                    "renew_devices": "Forcer la mise à jour des appareils",
+                    "disable_message": "Désactiver le capteur de notification Mihome"
+                }
+            },
+            "cloud_filter": {
+                "title": "Filtrer les appareils du cloud",
+                "description": "Vous pouvez inclure ou exclure les appareils pour n'intégrer que les appareils que vous souhaitez. En mode exclusion, si vous ne cochez aucune option dans la liste, cela équivaut à inclure toutes les options.\n{tip}",
+                "data": {
+                    "filter_model": "Filtrer le modèle d'appareil",
+                    "model_list": "Liste des modèles d'appareils",
+                    "filter_home_id": "Filtrer le domicile",
+                    "home_id_list": "Liste des domiciles",
+                    "filter_ssid": "Filtrer le SSID WiFi",
+                    "ssid_list": "Liste des SSID WiFi",
+                    "filter_bssid": "Filtrer le BSSID WiFi",
+                    "bssid_list": "Liste des BSSID WiFi",
+                    "filter_did": "Filtrer l'appareil",
+                    "did_list": "Liste des appareils"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Impossible de se connecter à l'appareil",
+            "cannot_login": "Échec de connexion au compte Xiaomi, veuillez vérifier le mot de passe. Si la connexion échoue plusieurs fois, connectez-vous au site web de mi.com sur un autre appareil du même réseau local que celui de HA et essayez à nouveau.",
+            "cannot_reach": "Impossible d'accéder à l'API Xiaomi",
+            "tzinfo_error": "Voir: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Aucun appareil dans le compte cloud Xiaomi"
+        },
+        "abort": {
+            "show_customizes": "[![Ajouter une nouvelle intégration](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Ajouter une nouvelle intégration](/_my_redirect/config_flow_start?domain=xiaomi_miot) pour modifier la personnalisation.\n{tip}"
+        }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "Version de composant",
+            "can_reach_server": "Connexion serveur Xiaomi API",
+            "can_reach_spec": "Connexion serveur MIoT-Spec",
+            "logged_accounts": "Comptes connectés",
+            "total_devices": "Total appareils MiHome"
+        }
+    }
+}
