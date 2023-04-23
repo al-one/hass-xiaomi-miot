@@ -25,6 +25,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'offline_timeout,motion_timeout,online_level,offline_level,online_duration,'
                              'offline_duration,ble_in_threshold,ble_out_threshold,ble_far_timeout',
     },
+    'air.fan.ca23ad9': {
+        'unreadable_properties': True,  # issues/1097
+    },
     'ateai.mosq.dakuo': {
         'switch_properties': 'dakuo_mosq_dispeller.status',
         'select_properties': 'workmode',
