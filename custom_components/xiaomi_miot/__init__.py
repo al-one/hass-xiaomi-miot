@@ -1841,6 +1841,8 @@ class MiotEntity(MiioEntity):
         mcw = self.miot_cloud_write
         if self.custom_config_bool('auto_cloud') and not self._local_state:
             mcw = self.xiaomi_cloud
+        if not self.miot_device:
+            mcw = self.xiaomi_cloud
         try:
             if m2m and self._miio2miot.has_setter(siid, piid=piid):
                 results = [
