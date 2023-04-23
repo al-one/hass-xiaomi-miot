@@ -6,6 +6,7 @@ MIOT_LOCAL_MODELS = [
     # '090615.curtain.ykgc82',  # -4004
     # '090615.curtain.zsdj82',  # -4004
     '090615.gateway.ktvrf',
+    '090615.plug.plus01',
     '1245.airfresh.super2',
     '17216.massage.j6261a',
     '17216.massage.jp3209',

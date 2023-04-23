@@ -5,9 +5,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'curtain-2.mode-5,default_open_position',
         'number_properties': 'curtain-2.mode-10,default_close_position',
     },
-
     '090615.curtain.*': {
         'exclude_miot_properties': 'motor_control',
+    },
+    '090615.plug.plus01': {
+        'exclude_miot_properties': 'fault,mode,name,status',
+        'chunk_properties': 1,
     },
 
     'aice.motor.kzmu3': {
