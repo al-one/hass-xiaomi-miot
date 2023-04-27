@@ -9,8 +9,8 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'motor_control',
     },
     '090615.plug.plus01': {
-        'exclude_miot_properties': 'fault,mode,name,status',
         'chunk_properties': 1,
+        'exclude_miot_properties': 'fault,mode,name,status,temperature',
     },
 
     'aice.motor.kzmu3': {
