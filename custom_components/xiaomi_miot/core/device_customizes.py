@@ -729,6 +729,7 @@ DEVICE_CUSTOMIZES = {
     },
     'qdhkl.aircondition.b23': {
         'cloud_delay_update': 8,
+        'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:qdhkl-b23:2',
     },
     'qmi.plug.2a1c1': {
         'main_miot_services': 'switch-2',
