@@ -2,6 +2,15 @@
     "config": {
         "flow_title": "Xiaomi Miot Auto",
         "step": {
+            "servicetoken": {
+                "description": "Config device token.",
+                "data": {
+                    "ssecurity": "Security",
+                    "location": "Location",
+                    "userId": "User Id",
+                    "server_country": "Server Country"
+                }
+            },
             "user": {
                 "title": "Select Action",
                 "data": {
@@ -124,7 +133,7 @@
             "none_devices": "None devices in the xiaomi cloud account"
         },
         "abort": {
-            "config_saved": "Configuration saved! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_device_miot).\n{tip}\n\nSome customizable options require [reload integration](/developer-tools/yaml) to take effect.",
+            "config_saved": "Configuration saved! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nSome customizable options require [reload integration](/developer-tools/yaml) to take effect.",
             "already_configured": "Device is already configured",
             "not_xiaomi_miio": "Not a Xiaomi miio/miot device."
         }
@@ -178,7 +187,7 @@
             "none_devices": "None devices in the xiaomi cloud account"
         },
         "abort": {
-            "show_customizes": "[![Add new integration](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_device_miot)\n[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_device_miot) to modify customization.\n{tip}"
+            "show_customizes": "[![Add new integration](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_miot) to modify customization.\n{tip}"
         }
     },
     "system_health": {

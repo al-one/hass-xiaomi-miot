@@ -7,7 +7,7 @@ send_command:
       required: true
       selector:
         entity:
-          integration: xiaomi_device_miot
+          integration: xiaomi_miot
     method:
       description: Method of the command.
       example: set_power
@@ -36,7 +36,7 @@ get_properties:
       required: true
       selector:
         entity:
-          integration: xiaomi_device_miot
+          integration: xiaomi_miot
     mapping:
       description: Mapping for properties.
       example: '[{"siid": 2, "piid": 1}, {"siid": 3, "piid": 1}]'
@@ -65,7 +65,7 @@ set_property:
       required: true
       selector:
         entity:
-          integration: xiaomi_device_miot
+          integration: xiaomi_miot
     field:
       description: Field of property.
       example: air_conditioner.on
@@ -88,7 +88,7 @@ set_miot_property:
       required: true
       selector:
         entity:
-          integration: xiaomi_device_miot
+          integration: xiaomi_miot
     siid:
       description: Miot service ID.
       example: 2
@@ -123,7 +123,7 @@ call_action:
       required: true
       selector:
         entity:
-          integration: xiaomi_device_miot
+          integration: xiaomi_miot
     siid:
       description: Miot service ID.
       example: 3
@@ -163,7 +163,7 @@ intelligent_speaker:
       required: true
       selector:
         entity:
-          integration: xiaomi_device_miot
+          integration: xiaomi_miot
           domain: media_player
     text:
       description: Text content.
@@ -199,7 +199,7 @@ xiaoai_wakeup:
       required: true
       selector:
         entity:
-          integration: xiaomi_device_miot
+          integration: xiaomi_miot
           domain: media_player
     text:
       description: Text content for weak up.
@@ -222,7 +222,7 @@ get_device_data:
       required: true
       selector:
         entity:
-          integration: xiaomi_device_miot
+          integration: xiaomi_miot
     type:
       description: Data type.
       default: prop
@@ -306,7 +306,7 @@ get_bindkey:
       required: true
       selector:
         entity:
-          integration: xiaomi_device_miot
+          integration: xiaomi_miot
     did:
       description: Xiaomi device ID.
       selector:
@@ -321,7 +321,7 @@ request_xiaomi_api:
       required: true
       selector:
         entity:
-          integration: xiaomi_device_miot
+          integration: xiaomi_miot
     api:
       description: Xiaomi API path.
       example: /home/device_list

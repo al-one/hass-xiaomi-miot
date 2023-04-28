@@ -1,8 +1,8 @@
 {
-  "name": "Xiaomi Device Miot",
+  "name": "Xiaomi Miot Auto",
   "content_in_root": false,
   "zip_release": true,
-  "filename": "xiaomi_device_miot.zip",
+  "filename": "xiaomi_miot.zip",
   "render_readme": true,
   "homeassistant": "2022.7.0"
 }

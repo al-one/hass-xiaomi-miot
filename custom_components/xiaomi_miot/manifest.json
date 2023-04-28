@@ -1,6 +1,6 @@
 {
-  "domain": "xiaomi_device_miot",
-  "name": "Xiaomi Device Miot",
+  "domain": "xiaomi_miot",
+  "name": "Xiaomi Miot Auto",
   "after_dependencies": ["homekit"],
   "codeowners": ["@al-one"],
   "config_flow": true,
