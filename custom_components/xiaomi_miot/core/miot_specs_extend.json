@@ -1557,6 +1557,27 @@
         }
       ]
     }
+  ],
+
+  "qdhkl.aircondition.b23": [
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:fan-control",
+      "properties": [
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:fan-level",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Auto"},
+            {"value": 1, "description": "High"},
+            {"value": 2, "description": "Medium"},
+            {"value": 4, "description": "Low"}
+          ]
+        }
+      ]
+    }
   ]
 
 }
