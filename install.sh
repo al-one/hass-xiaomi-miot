@@ -5,7 +5,7 @@
 # wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | DOMAIN=hacs REPO_PATH=hacs-china/integration ARCHIVE_TAG=main bash -
 set -e
 
-[ -z "$DOMAIN" ] && DOMAIN="xiaomi_miot"
+[ -z "$DOMAIN" ] && DOMAIN="xiaomi_device_miot"
 [ -z "$REPO_PATH" ] && REPO_PATH="al-one/hass-xiaomi-miot"
 REPO_NAME=$(basename "$REPO_PATH")
 
