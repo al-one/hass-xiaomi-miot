@@ -32,7 +32,7 @@ UA = "Android-7.1.1-1.0.0-ONEPLUS A3010-136-%s APP/xiaomi.smarthome APPV/62830"
 
 
 class MiotCloud(micloud.MiCloud):
-    def __init__(self, hass, username, password, country=None, sid=None):
+    def __init__(self, hass, username = None, password = None, country=None, sid=None, service_token = None, userId=None, ssecurity = None):
         try:
             super().__init__(username, password)
         except (FileNotFoundError, KeyError):
@@ -49,6 +49,9 @@ class MiotCloud(micloud.MiCloud):
         self.http_timeout = int(hass.data[DOMAIN].get('config', {}).get('http_timeout') or 10)
         self.login_times = 0
         self.attrs = {}
+        self.service_token = service_token
+        self.user_id = userId
+        self.ssecurity = ssecurity
 
     @property
     def unique_id(self):
