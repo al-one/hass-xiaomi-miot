@@ -338,6 +338,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'air_purifier.on,screen.on,alarm',
         'number_properties': 'favorite_speed,moto_hz',
     },
+    'dmaker.fan.1e': {
+        'button_actions': 'toggle_mode,loop_gear',
+        'number_properties': 'off_delay_time,speed_level',
+    },
     'dmaker.fan.p5': {
         'percentage_property': 'prop.2.6',
     },
@@ -351,6 +355,7 @@ DEVICE_CUSTOMIZES = {
         'percentage_property': 'prop.2.6',
     },
     'dmaker.fan.*': {
+        'switch_properties': 'alarm',
         'number_select_properties': 'horizontal_swing_included_angle,horizontal_angle',
         'number_properties': 'off_delay_time',
     },
