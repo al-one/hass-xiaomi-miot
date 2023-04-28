@@ -8,7 +8,8 @@
                     "ssecurity": "Security",
                     "location": "Location",
                     "userId": "User Id",
-                    "server_country": "Server Country"
+                    "server_country": "Server Country",
+                    "serviceToken": "serviceToken"
                 }
             },
             "user": {

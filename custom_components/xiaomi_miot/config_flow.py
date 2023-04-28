@@ -409,7 +409,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             })
         schema.update({
             vol.Required('userId', default=user_input.get('userId', vol.UNDEFINED)): str,
-            vol.Required('location', default=user_input.get('location', vol.UNDEFINED)): str,
+            vol.Required('serviceToken', default=user_input.get('serviceToken', vol.UNDEFINED)): str,
             vol.Required('ssecurity', default=user_input.get('ssecurity', vol.UNDEFINED)): str,
             vol.Required('server_country', default=user_input.get('server_country', 'cn')):
                 vol.In(CLOUD_SERVERS),
