@@ -51,6 +51,7 @@ CONN_MODES = {
     'auto': 'Automatic (自动模式)',
     'local': 'Local (本地模式)',
     'cloud': 'Cloud (云端模式)',
+    'accesstoken': 'Accesstoken (云端模式)',
 }
 
 
@@ -103,6 +104,68 @@ async def check_miio_device(hass, user_input, errors):
                 pass
     return user_input
 
+async def check_xiaomi_token(hass, user_input, errors, renew_devices=False):
+    dvs = []
+    mic = MiotCloud(
+        hass,
+        "tanntan97@gmail.com",
+        "Tanntan1997",
+        user_input["server_country"]
+    )
+    try:
+        await mic.async_token(user_input)
+        if not await mic.async_check_auth(False):
+                raise MiCloudException('Login failed')
+        user_input['xiaomi_cloud'] = mic
+        dvs = await mic.async_get_devices(renew=renew_devices) or []
+
+        if renew_devices:
+            await MiotSpec.async_get_model_type(hass, 'xiaomi.miot.auto', use_remote=True)
+    except (MiCloudException, MiCloudAccessDenied, Exception) as exc:
+        err = f'{exc}'
+        errors['base'] = 'cannot_login'
+        if isinstance(exc, MiCloudAccessDenied) and mic:
+            if url := mic.attrs.pop('notificationUrl', None):
+                err = f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!\n' \
+                      f'本次登陆小米账号需要安全验证，[点击这里]({url})继续！你需要在与HA宿主机同局域网的设备下完成安全验证，' \
+                      '如果你使用的是云服务器，将无法验证通过。'
+                persistent_notification.create(
+                    hass,
+                    err,
+                    f'Login to Xiaomi: {mic.username}',
+                    f'{DOMAIN}-login',
+                )
+            elif url := mic.attrs.pop('captchaImg', None):
+                err = f'Captcha:\n![captcha](data:image/jpeg;base64,{url})'
+                user_input['xiaomi_cloud'] = mic
+                user_input['captchaIck'] = mic.attrs.get('captchaIck')
+        if isinstance(exc, requests.exceptions.ConnectionError):
+            errors['base'] = 'cannot_reach'
+        elif 'ZoneInfoNotFoundError' in err:
+            errors['base'] = 'tzinfo_error'
+        hass.data[DOMAIN]['placeholders'] = {'tip': f'⚠️ {err}'}
+        unm = mic.username if mic else user_input.get(CONF_USERNAME)
+        _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', unm, exc)
+    if not errors:
+        user_input['devices'] = dvs
+        persistent_notification.dismiss(hass, f'{DOMAIN}-login')
+    return user_input
+
+    
+        # mic.login_times = 0
+        
+        # # await mic.async_login(captcha=user_input.get('captcha'))
+
+        # if not await mic.async_check_auth(False):
+        #     raise MiCloudException('Login failed')
+        
+        # user_input['xiaomi_cloud'] = mic
+        # dvs = await mic.async_get_devices(renew=renew_devices) or []
+
+        # if renew_devices:
+        #     await MiotSpec.async_get_model_type(hass, 'xiaomi.miot.auto', use_remote=True)
+
+    
 
 async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
     dvs = []
@@ -110,13 +173,17 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
     try:
         mic = await MiotCloud.from_token(hass, user_input, login=False)
         mic.login_times = 0
+
         await mic.async_login(captcha=user_input.get('captcha'))
+
         if not await mic.async_check_auth(False):
             raise MiCloudException('Login failed')
         user_input['xiaomi_cloud'] = mic
         dvs = await mic.async_get_devices(renew=renew_devices) or []
+
         if renew_devices:
             await MiotSpec.async_get_model_type(hass, 'xiaomi.miot.auto', use_remote=True)
+
     except (MiCloudException, MiCloudAccessDenied, Exception) as exc:
         err = f'{exc}'
         errors['base'] = 'cannot_login'
@@ -240,6 +307,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             elif action in ['customizing_entity', 'customizing_device']:
                 self.context['customizing_via'] = action
                 return await self.async_step_customizing()
+            elif action in ['accesstoken']:
+                return await self.async_step_servicetoken()
             else:
                 return await self.async_step_token()
         prev_action = user_input.get('action', 'account')
@@ -248,6 +317,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         actions = {
             'account': 'Add devices using Mi Account (账号集成)',
             'token': 'Add device using host/token (局域网集成)',
+            'accesstoken': 'Add device using accesstoken (局域网集成)',
         }
         if self.hass.data[DOMAIN].get('entities', {}):
             actions.update({
@@ -317,6 +387,38 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         })
         return self.async_show_form(
             step_id='cloud',
+            data_schema=vol.Schema(schema),
+            errors=errors,
+            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', {'tip': ''}),
+        )
+    
+    async def async_step_servicetoken(self, user_input=None):
+        # pylint: disable=invalid-name
+        self.CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+        errors = {}
+        if user_input is None:
+            user_input = {}
+        else:
+            await check_xiaomi_token(self.hass, user_input, errors, renew_devices=True)
+            if not errors:
+                return await self.async_step_cloud_filter(user_input)
+        schema = {}
+        if user_input.get('captchaIck'):
+            schema.update({
+                vol.Required('captcha', default=''): str,
+            })
+        schema.update({
+            vol.Required('userId', default=user_input.get('userId', vol.UNDEFINED)): str,
+            vol.Required('location', default=user_input.get('location', vol.UNDEFINED)): str,
+            vol.Required('ssecurity', default=user_input.get('ssecurity', vol.UNDEFINED)): str,
+            vol.Required('server_country', default=user_input.get('server_country', 'cn')):
+                vol.In(CLOUD_SERVERS),
+            vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, 'auto')):
+                vol.In(CONN_MODES),
+            vol.Optional('filter_models', default=user_input.get('filter_models', False)): bool,
+        })
+        return self.async_show_form(
+            step_id='servicetoken',
             data_schema=vol.Schema(schema),
             errors=errors,
             description_placeholders=self.hass.data[DOMAIN].pop('placeholders', {'tip': ''}),
