@@ -110,8 +110,8 @@ async def check_xiaomi_token(hass, user_input, errors, renew_devices=False):
         hass,
         "tanntan97@gmail.com",
         "tanntan",
-        "xiaomiio",
         user_input['server_country'],
+        "xiaomiio",
         user_input['serviceToken'],
         user_input['userId'],
         user_input['ssecurity']
