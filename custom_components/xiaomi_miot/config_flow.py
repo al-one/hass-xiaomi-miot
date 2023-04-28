@@ -109,14 +109,14 @@ async def check_xiaomi_token(hass, user_input, errors, renew_devices=False):
     mic = MiotCloud(
         hass,
         "tanntan97@gmail.com",
-        "Tanntan1997",
-        user_input["server_country"]
+        "tanntan",
+        "sg"
     )
     try:
         await mic.async_token(user_input)
         # if not await mic.async_check_auth(False):
         #         raise MiCloudException('Login failed')
-        # user_input['xiaomi_cloud'] = mic
+        user_input['xiaomi_cloud'] = mic
         dvs = await mic.async_get_devices(renew=renew_devices) or []
 
         if renew_devices:
@@ -889,3 +889,4 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         })
 
     return options
+

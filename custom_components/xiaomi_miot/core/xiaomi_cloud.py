@@ -41,7 +41,7 @@ class MiotCloud(micloud.MiCloud):
         self.hass = hass
         self.username = username
         self.password = password
-        self.default_server = country or 'cn'
+        self.default_server = country or 'sg'
         self.sid = sid or 'xiaomiio'
         self.agent_id = self.get_random_string(16)
         self.client_id = self.agent_id
@@ -252,7 +252,7 @@ class MiotCloud(micloud.MiCloud):
     async def async_get_devices(self, renew=False):
         if not self.user_id:
             return None
-        fnm = f'xiaomi_miot/devices-{self.user_id}-{self.default_server}.json'
+        fnm = f'xiaomi_miot/devices-{self.user_id}-sg.json'
         store = Store(self.hass, 1, fnm)
         now = time.time()
         cds = []
@@ -504,7 +504,7 @@ class MiotCloud(micloud.MiCloud):
             'device_id': self.client_id,
         }
     async def login_token(self, user_input):
-        self._init_session()
+        # self._init_session()
         self.ssecurity = user_input['ssecurity']
         self.service_token = user_input['serviceToken']
         self.user_id = user_input['userId']
