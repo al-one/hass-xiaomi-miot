@@ -508,6 +508,7 @@ class MiotCloud(micloud.MiCloud):
         self.ssecurity = user_input['ssecurity']
         self.service_token = user_input['serviceToken']
         self.user_id = user_input['userId']
+        self.default_server = user_input['server_country']
         # self.session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
         
         # response = await self.session.get(

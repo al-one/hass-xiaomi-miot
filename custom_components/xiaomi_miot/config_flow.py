@@ -114,9 +114,9 @@ async def check_xiaomi_token(hass, user_input, errors, renew_devices=False):
     )
     try:
         await mic.async_token(user_input)
-        if not await mic.async_check_auth(False):
-                raise MiCloudException('Login failed')
-        user_input['xiaomi_cloud'] = mic
+        # if not await mic.async_check_auth(False):
+        #         raise MiCloudException('Login failed')
+        # user_input['xiaomi_cloud'] = mic
         dvs = await mic.async_get_devices(renew=renew_devices) or []
 
         if renew_devices:
