@@ -739,6 +739,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'numleds,pixel_per_step,fade_delay,step_delay,stair_travel_time',
     },
     'qdhkl.aircondition.b23': {
+        'local_delay_update': 8,
         'cloud_delay_update': 8,
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:qdhkl-b23:2',
     },

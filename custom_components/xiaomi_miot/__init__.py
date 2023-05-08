@@ -1853,6 +1853,7 @@ class MiotEntity(MiioEntity):
                 dly = self.custom_config_integer('cloud_delay_update', 6)
             else:
                 results = self.miot_device.send('set_properties', [pms])
+                dly = self.custom_config_integer('local_delay_update', 1)
             ret = MiotResults(results).first
         except (DeviceException, MiCloudException) as exc:
             self.logger.warning('%s: Set miot property %s failed: %s', self.name_model, pms, exc)
@@ -1919,6 +1920,7 @@ class MiotEntity(MiioEntity):
                 if not kwargs.get('force_params'):
                     pms['in'] = action.in_params(params or [])
                 result = self.miot_device.send('action', pms)
+                dly = self.custom_config_integer('local_delay_update', 1)
             eno = dict(result or {}).get('code', eno)
         except (DeviceException, MiCloudException) as exc:
             self.logger.warning('%s: Call miot action %s failed: %s', self.name_model, pms, exc)
