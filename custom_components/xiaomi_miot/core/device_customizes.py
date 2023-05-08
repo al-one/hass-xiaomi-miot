@@ -370,6 +370,11 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'status',
         'switch_properties': 'mode',
     },
+    'dooya.curtain.m1': {
+        'chunk_properties': 1,
+        'sensor_properties': 'status',
+        'switch_properties': 'mode',
+    },
     'dooya.curtain.*': {
         'exclude_miot_properties': 'fault',
     },
