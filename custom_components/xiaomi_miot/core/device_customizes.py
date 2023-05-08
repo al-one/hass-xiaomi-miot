@@ -704,6 +704,7 @@ DEVICE_CUSTOMIZES = {
     },
 
     'novo.curtain.n21': {
+        'chunk_properties': 1,
         'exclude_miot_properties': 'fault',
         'select_properties': 'motor_control',
     },
