@@ -247,6 +247,7 @@ MIOT_LOCAL_MODELS = [
     'lumi.curtain.hmcn01',
     'lumi.curtain.mcn005',
     'lumi.sensor_gas.mcn02',
+    'mate.airfresh.a1',
     'mate.humidifier.cs01',
     'miaomiaoce.airm.air01',
     'miaomiaoce.airm.air02',
