@@ -5,9 +5,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'curtain-2.mode-5,default_open_position',
         'number_properties': 'curtain-2.mode-10,default_close_position',
     },
-
     '090615.curtain.*': {
         'exclude_miot_properties': 'motor_control',
+    },
+    '090615.plug.plus01': {
+        'chunk_properties': 1,
+        'exclude_miot_properties': 'fault,mode,name,status,temperature',
     },
 
     'aice.motor.kzmu3': {
@@ -24,6 +27,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'bt_level',
         'number_properties': 'offline_timeout,motion_timeout,online_level,offline_level,online_duration,'
                              'offline_duration,ble_in_threshold,ble_out_threshold,ble_far_timeout',
+    },
+    'air.fan.ca23ad9': {
+        'unreadable_properties': True,  # issues/1097
     },
     'ateai.mosq.dakuo': {
         'switch_properties': 'dakuo_mosq_dispeller.status',
@@ -332,6 +338,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'air_purifier.on,screen.on,alarm',
         'number_properties': 'favorite_speed,moto_hz',
     },
+    'dmaker.fan.1e': {
+        'button_actions': 'toggle_mode,loop_gear',
+        'number_properties': 'off_delay_time,speed_level',
+    },
     'dmaker.fan.p5': {
         'percentage_property': 'prop.2.6',
     },
@@ -345,6 +355,7 @@ DEVICE_CUSTOMIZES = {
         'percentage_property': 'prop.2.6',
     },
     'dmaker.fan.*': {
+        'switch_properties': 'alarm',
         'number_select_properties': 'horizontal_swing_included_angle,horizontal_angle',
         'number_properties': 'off_delay_time',
     },
@@ -358,6 +369,11 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
         'sensor_properties': 'status',
         'switch_properties': 'mode',
+    },
+    'dooya.curtain.m1': {
+        'chunk_properties': 1,
+        'sensor_properties': 'status',
+        'switch_properties': 'mode,motor_reverse',
     },
     'dooya.curtain.*': {
         'exclude_miot_properties': 'fault',
@@ -688,6 +704,7 @@ DEVICE_CUSTOMIZES = {
     },
 
     'novo.curtain.n21': {
+        'chunk_properties': 1,
         'exclude_miot_properties': 'fault',
         'select_properties': 'motor_control',
     },
@@ -723,6 +740,7 @@ DEVICE_CUSTOMIZES = {
     },
     'qdhkl.aircondition.b23': {
         'cloud_delay_update': 8,
+        'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:qdhkl-b23:2',
     },
     'qmi.plug.2a1c1': {
         'main_miot_services': 'switch-2',
@@ -1049,8 +1067,9 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'reset_filter_life',
     },
     'zhimi.airpurifier.*': {
-        'sensor_properties': 'illumination,motor_speed',
+        'speed_property': 'favorite_level,favorite_fan_level',
         'number_properties': 'favorite_level,favorite_fan_level',
+        'sensor_properties': 'illumination,motor_speed',
         # https://github.com/rytilahti/python-miio/blob/31c5d740d403c6f45f1e7e0d4a8a6276684a8ecd/miio/integrations/airpurifier/zhimi/airpurifier_miot.py#L13
         'exclude_miot_services': 'button,filter_time,rfid,others',
         'exclude_miot_properties': 'average_aqi_cnt,aqi_zone,sensor_state,aqi_goodh,aqi_runstate,aqi_state,'

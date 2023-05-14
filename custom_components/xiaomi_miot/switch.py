@@ -152,6 +152,8 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
 
     def turn_on(self, **kwargs):
         val = True
+        if self._miot_property.value_range:
+            val = self._miot_property.range_max()
         if self._miot_property.value_list:
             ret = self._miot_property.list_first(*self._on_descriptions)
             if ret is not None:
@@ -164,6 +166,8 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
 
     def turn_off(self, **kwargs):
         val = False
+        if self._miot_property.value_range:
+            val = self._miot_property.range_min()
         if self._miot_property.value_list:
             ret = self._miot_property.list_first('Off', 'Close', 'Closed', '关')
             if ret is not None:
