@@ -125,6 +125,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'tempactivate,tempcomp',
         'exclude_miot_properties': 'fault,sensortype,maxsettemp,minsettemp',
     },
+    'cuco.acpartner.cp6': {
+        'switch_properties': 'air_conditioner.on',
+    },
     'cuco.light.sl4': {
         'switch_properties': 'swich',
         'select_properties': 'scene.mode,change_type',
