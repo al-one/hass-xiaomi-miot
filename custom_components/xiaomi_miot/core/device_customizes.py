@@ -1036,6 +1036,8 @@ DEVICE_CUSTOMIZES = {
     },
     'zhimi.airfresh.ua1': {
         'exclude_miot_services': 'custom_serveice',
+        'brightness_for_on': 100,
+        'brightness_for_off': 1,
     },
     'zhimi.airfresh.va4': {
         'sensor_properties': 'motor_speed',
