@@ -107,4 +107,11 @@ class MiotButtonActionSubEntity(BaseSubEntity, ButtonEntity):
 
     def press(self):
         """Press the button."""
-        return self.call_parent('call_action', self._miot_action)
+        pms = []
+        for pid in self._miot_action.ins:
+            prop = self._miot_action.service.properties.get(pid)
+            val = self.custom_config(prop.name)
+            if prop.is_integer and val is not None:
+                val = int(val)
+            pms.append(val)
+        return self.call_parent('call_action', self._miot_action, pms)

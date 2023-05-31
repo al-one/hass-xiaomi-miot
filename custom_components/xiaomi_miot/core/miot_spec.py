@@ -725,6 +725,7 @@ class MiotProperty(MiotSpecInstance):
             return self.value_range[2]
         return None
 
+    @property
     def is_integer(self):
         if self.format in [
             'int8', 'int16', 'int32', 'int64',
