@@ -17,5 +17,5 @@
     "python-miio>=0.5.6",
     "micloud>=0.3"
   ],
-  "version": "0.7.8"
+  "version": "0.7.9"
 }
