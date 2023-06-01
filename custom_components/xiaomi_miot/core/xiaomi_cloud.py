@@ -512,27 +512,7 @@ class MiotCloud(micloud.MiCloud):
         self.service_token = user_input['serviceToken']
         self.user_id = user_input['userId']
         self.default_server = user_input['server_country']
-        # self.session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
         
-        # response = await self.session.get(
-        #     user_input['location'],
-        #     headers={'User-Agent': self.useragent},
-        #     cookies={'sdkVersion': '3.8.6', 'deviceId': self.client_id},
-        # )
-        # self.user_id = str(user_input.get('userId', ''))
-        # self.ssecurity = user_input.get('ssecurity')
-        
-        # service_token = response.cookies.get('serviceToken')
-        # if service_token:
-        #     self.service_token = service_token
-        # else:
-        #     err = {
-        #         'location': user_input['location'],
-        #         'status_code': response.status_code,
-        #         'cookies': response.cookies.get_dict(),
-        #         'response': response.text,
-        #     }
-        #     raise MiCloudAccessDenied(f'Login to xiaomi error: {err}')
         return (0, True)
 
     @staticmethod
