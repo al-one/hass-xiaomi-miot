@@ -849,6 +849,7 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_off': 1,
     },
     'suittc.airrtc.wk168': {
+        'sensor_properties': 'temperature',
         'switch_properties': 'on',
         'turn_on_hvac': 'heat',
     },
