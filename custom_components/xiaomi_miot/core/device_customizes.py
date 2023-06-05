@@ -358,9 +358,9 @@ DEVICE_CUSTOMIZES = {
         'percentage_property': 'prop.2.6',
     },
     'dmaker.fan.*': {
-        'switch_properties': 'alarm',
-        'number_select_properties': 'horizontal_swing,horizontal_swing_included_angle,horizontal_angle,'
-                                    'vertical_swing,vertical_swing_included_angle,vertical_angle',
+        'switch_properties': 'alarm,horizontal_swing,vertical_swing',
+        'number_select_properties': 'horizontal_swing_included_angle,horizontal_angle,'
+                                    'vertical_swing_included_angle,vertical_angle',
         'number_properties': 'off_delay_time',
     },
     'dmaker.humidifier.*': {
