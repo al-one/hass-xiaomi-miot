@@ -1097,8 +1097,8 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_off': 2,
     },
     'zhimi.fan.*': {
-        'switch_properties': 'anion,alarm',
-        'number_properties': 'horizontal_angle,off_delay',
+        'switch_properties': 'anion,alarm,horizontal_swing,vertical_swing',
+        'number_properties': 'horizontal_angle,vertical_angle,off_delay',
     },
     'zhimi.heater.na1': {
         'switch_properties': 'return_to_middle,alarm',
