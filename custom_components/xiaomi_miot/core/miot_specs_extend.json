@@ -338,6 +338,23 @@
     }
   ],
 
+  "lumi.motion.bmgl01": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:illumination",
+          "unit": "lx",
+          "value-list": [
+            {"value": 1, "description": "0"},
+            {"value": 2, "description": "100"}
+          ]
+        }
+      ]
+    }
+  ],
+
   "midea.aircondition.v1": [
     {
       "iid": 2,
