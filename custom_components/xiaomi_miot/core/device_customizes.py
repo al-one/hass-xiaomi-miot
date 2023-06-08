@@ -654,6 +654,12 @@ DEVICE_CUSTOMIZES = {
     'lumi.sensor_wleak.*': {
         'time_start_offset': -86400 * 365,
     },
+    'lumi.switch.acn032': {
+        'sensor_properties': 'electric_power',
+        'switch_properties': 'screen.on,mute,no_disturb',
+        'select_properties': 'volume',
+        'number_properties': 'brightness,auto_screen_off_time',
+    },
     'lumi.switch.*': {
         'cloud_delay_update': 10,
     },
