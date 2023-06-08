@@ -5,8 +5,8 @@ from homeassistant.const import *  # noqa: F401
 from homeassistant.components.number import (
     DOMAIN as ENTITY_DOMAIN,
     NumberEntity,
+    RestoreNumber,
 )
-from homeassistant.helpers.restore_state import RestoreEntity, RestoreStateData
 
 from . import (
     DOMAIN,
@@ -60,7 +60,7 @@ class MiotNumberEntity(MiotEntity, NumberEntity):
         self._attr_native_unit_of_measurement = None
 
 
-class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
+class MiotNumberSubEntity(MiotPropertySubEntity, RestoreNumber):
 
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
@@ -75,12 +75,8 @@ class MiotNumberSubEntity(MiotPropertySubEntity, NumberEntity, RestoreEntity):
         await super().async_added_to_hass()
         self._is_restore = self.custom_config_bool('restore_state')
         if self._is_restore:
-            restored = await RestoreStateData.async_get_instance(self.hass)
-            if restored and self.entity_id in restored.last_states:
-                state = restored.last_states[self.entity_id].state
-                val = self.cast_value(state.state)
-                if val is not None:
-                    self._attr_native_value = val
+            if restored := await self.async_get_last_number_data():
+                self._attr_native_value = restored.native_value
 
     def update(self, data=None):
         super().update(data)
