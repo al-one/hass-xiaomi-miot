@@ -345,8 +345,6 @@
         {
           "iid": 1,
           "type": "urn:miot-spec-v2:property:illumination",
-          "format": "bool",
-          "access": ["read"],
           "unit": "lx",
           "value-list": [
             {"value": 1, "description": "0"},
