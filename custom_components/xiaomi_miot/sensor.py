@@ -14,7 +14,7 @@ from homeassistant.components.sensor import (
     DOMAIN as ENTITY_DOMAIN,
     SensorDeviceClass,
 )
-from homeassistant.helpers.restore_state import RestoreEntity, RestoreStateData
+from homeassistant.helpers.restore_state import RestoreEntity, RestoredExtraData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from miio.waterpurifier_yunmi import WaterPurifierYunmi
 
@@ -615,11 +615,9 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
         if sec := self.custom_config_integer('interval_seconds'):
             self.coordinator.update_interval = timedelta(seconds=sec)
 
-        restored = await RestoreStateData.async_get_instance(self.hass)
-        if restored and self.entity_id in restored.last_states:
-            state = restored.last_states[self.entity_id].state
-            self._attr_native_value = state.state
-            self._attr_extra_state_attributes.update(state.attributes)
+        if restored := await self.async_get_last_extra_data():
+            self._attr_native_value = restored.as_dict().get('state')
+            self._attr_extra_state_attributes.update(restored.as_dict().get('attrs', {}))
 
         self._attr_extra_state_attributes['filter_homes'] = self._filter_homes
         self._attr_extra_state_attributes['exclude_types'] = self._exclude_types
@@ -631,6 +629,14 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
         """
         await super().async_will_remove_from_hass()
         self.hass.data[DOMAIN]['accounts'].get(self.cloud.user_id, {}).pop('messenger', None)
+
+    @property
+    def extra_restore_state_data(self):
+        """Return entity specific state data to be restored."""
+        return RestoredExtraData({
+            'state': self.native_value,
+            'attrs': self._attr_extra_state_attributes,
+        })
 
     async def async_set_message(self, msg):
         if msg == self.message:
