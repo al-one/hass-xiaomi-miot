@@ -371,7 +371,7 @@ data:
 ```yaml
 service: xiaomi_miot.renew_devices
 data:
-  username: 80001234 # 小米账号ID/登陆邮箱/手机号
+  username: 80001234 # 小米账号ID/登录邮箱/手机号
 ```
 
 > 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.renew_devices`

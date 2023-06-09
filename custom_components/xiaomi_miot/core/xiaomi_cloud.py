@@ -152,7 +152,7 @@ class MiotCloud(micloud.MiCloud):
                 self.hass,
                 f'Xiaomi account: {self.user_id} auth failed, '
                 'Please update option for this integration to refresh token.\n'
-                f'小米账号：{self.user_id} 登陆失效，请重新保存集成选项以更新登陆信息。',
+                f'小米账号：{self.user_id} 登录失效，请重新保存集成选项以更新登录信息。',
                 'Xiaomi Miot Warning',
                 nid,
             )
