@@ -419,7 +419,7 @@ def bind_services_to_entries(hass, services):
             await getattr(ent, fun)(**params)
             update_tasks.append(ent.async_update_ha_state(True))
         if update_tasks:
-            await asyncio.wait(update_tasks)
+            await asyncio.gather(*update_tasks)
 
     for srv, obj in services.items():
         schema = obj.get('schema', XIAOMI_MIIO_SERVICE_SCHEMA)
