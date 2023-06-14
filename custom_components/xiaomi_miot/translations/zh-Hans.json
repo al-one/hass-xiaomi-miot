@@ -192,7 +192,10 @@
                             "level4": "四档",
                             "level5": "五档",
                             "level6": "六档",
-                            "level7": "七档"
+                            "level7": "七档",
+                            "level8": "八档",
+                            "leve7": "七档",
+                            "leve8": "八档"
                         }
                     },
                     "swing_mode": {
