@@ -60,15 +60,15 @@
         },
         "error": {
             "cannot_connect": "连接设备失败",
-            "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登陆失败，请在与当前网络相同的环境下登陆小米官网(mi.com)后重试",
+            "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登录失败，请在与当前网络相同的环境下登录小米官网(mi.com)后重试",
             "cannot_reach": "无法访问小米API接口",
-            "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "tzinfo_error": "你的 Hass 环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备"
         },
         "abort": {
             "config_saved": "配置已保存！[再次自定义](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
             "already_configured": "该设备已经配置过",
-            "not_xiaomi_miio": "该设备不支持miio/miot协议"
+            "not_xiaomi_miio": "该设备不支持 miio/miot 协议"
         }
     },
     "options": {
@@ -77,7 +77,7 @@
                 "title": "Xiaomi Miot",
                 "description": "配置设备信息",
                 "data": {
-                    "host": "设备IP",
+                    "host": "设备 IP",
                     "token": "Token",
                     "scan_interval": "更新状态频率(秒)",
                     "miot_cloud": "开启云端模式(请先配置账户密码)"
@@ -114,7 +114,7 @@
         },
         "error": {
             "cannot_connect": "连接设备失败",
-            "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登陆失败，请使用与HA宿主机同一局域网下的其他设备登录小米官网(mi.com)后重试",
+            "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登录失败，请使用与HA宿主机同一局域网下的其他设备登录小米官网(mi.com)后重试",
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备"

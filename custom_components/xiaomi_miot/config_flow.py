@@ -123,7 +123,7 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
         if isinstance(exc, MiCloudAccessDenied) and mic:
             if url := mic.attrs.pop('notificationUrl', None):
                 err = f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!\n' \
-                      f'本次登陆小米账号需要安全验证，[点击这里]({url})继续！你需要在与HA宿主机同局域网的设备下完成安全验证，' \
+                      f'本次登录小米账号需要安全验证，[点击这里]({url})继续！你需要在与HA宿主机同局域网的设备下完成安全验证，' \
                       '如果你使用的是云服务器，将无法验证通过。'
                 persistent_notification.create(
                     hass,

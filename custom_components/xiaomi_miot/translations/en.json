@@ -117,16 +117,16 @@
             }
         },
         "error": {
-            "cannot_connect": "Failed to connect the device",
-            "cannot_login": "Failed to login the xiaomi cloud account, please check password. If you always fail to login, login to mi.com in the same environment as the current network and try again.",
-            "cannot_reach": "Unable to access Xiaomi API",
-            "tzinfo_error": "See: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "None devices in the xiaomi cloud account"
+            "cannot_connect": "Failed to connect to the device",
+            "cannot_login": "Failed to login to the Xiaomi account. Please check your account credentials. If login attempts fail multiple times, please try logging in again on the Xiaomi official website (mi.com) using the same network environment.",
+            "cannot_reach": "Unable to access the Xiaomi API interface",
+            "tzinfo_error": "There seems to be an issue with your Hass environment. Please refer to: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "No devices found under this Xiaomi account"
         },
         "abort": {
-            "config_saved": "Configuration saved! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nSome customizable options require [reload integration](/developer-tools/yaml) to take effect.",
-            "already_configured": "Device is already configured",
-            "not_xiaomi_miio": "Not a Xiaomi miio/miot device."
+            "config_saved": "Configuration saved! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nSome custom options may require [reloading the integration](/developer-tools/yaml) to take effect.",
+            "already_configured": "This device has already been configured.",
+            "not_xiaomi_miio": "This device does not support the miio/miot protocol."
         }
     },
     "options": {
@@ -135,10 +135,10 @@
                 "title": "Xiaomi Miot",
                 "description": "Config device info.",
                 "data": {
-                    "host": "Local IP",
+                    "host": "Device IP",
                     "token": "Token",
-                    "scan_interval": "Update state interval (seconds)",
-                    "miot_cloud": "Enable miot cloud (Config account in YAML)"
+                    "scan_interval": "Status update interval (seconds)",
+                    "miot_cloud": "Enable miot cloud (Config account in YAML first)"
                 }
             },
             "cloud": {
@@ -171,11 +171,11 @@
             }
         },
         "error": {
-            "cannot_connect": "Failed to connect the device",
-            "cannot_login": "Mi account login failed, please check the account password. If the login fails after several attempts, please use another device under the same LAN as the HA host to login the Xiaomi official website (mi.com) and try again.",
-            "cannot_reach": "Unable to access Xiaomi API",
-            "tzinfo_error": "See: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "None devices in the xiaomi cloud account"
+            "cannot_connect": "Failed to connect to the device",
+            "cannot_login": "Failed to login to the Xiaomi account. Please check your account credentials. If login attempts fail multiple times, please try logging in again on the Xiaomi official website (mi.com) using the same network environment.",
+            "cannot_reach": "Unable to access the Xiaomi API interface",
+            "tzinfo_error": "There seems to be an issue with your Hass environment. Please refer to: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "No devices found under this Xiaomi account"
         },
         "abort": {
             "show_customizes": "[![Add new integration](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_miot) to modify customization.\n{tip}"
@@ -183,11 +183,86 @@
     },
     "system_health": {
         "info": {
-            "component_version": "Component Version",
-            "can_reach_server": "Reach Xiaomi API Server",
+            "component_version": "Custom component version",
+            "can_reach_server": "Reach Xiaomi API server",
             "can_reach_spec": "Reach MIoT-Spec Server",
-            "logged_accounts": "Logged Accounts",
-            "total_devices": "Total MiHome Devices"
+            "logged_accounts": "Number of logged-in accounts",
+            "total_devices": "Total number of MiHome devices"
+        }
+    },
+    "entity": {
+        "sensor": {
+            "lock": {
+                "state": {
+                    "bluetooth": "Bluetooth",
+                    "password": "Password",
+                    "biological": "Biological",
+                    "key": "Key",
+                    "turntable": "Turntable",
+                    "nfc": "NFC",
+                    "one-time password": "One-time Password",
+                    "two-step verification": "Two-step Verification",
+                    "coercion": "Coercion",
+                    "homekit": "Homekit",
+                    "manual": "Manual",
+                    "automatic": "Automatic"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "Unlock from outside",
+                    "lock": "Lock",
+                    "anti_lock_on": "Enable anti-lock",
+                    "anti_lock_off": "Disable anti-lock",
+                    "inside_unlock": "Unlock from inside",
+                    "lock_inside": "Lock from inside",
+                    "child_lock_on": "Enable child lock",
+                    "child_lock_off": "Disable child lock",
+                    "lock_outside": "Lock from outside"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "Open",
+                    "close": "Close",
+                    "close_timeout": "Close timeout",
+                    "knock": "Knock",
+                    "breaking": "Break-in",
+                    "stuck": "Stuck"
+                }
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "Auto",
+                            "low": "Low",
+                            "medium": "Medium",
+                            "middle": "Medium",
+                            "high": "High",
+                            "quiet": "Quiet",
+                            "turbo": "Turbo",
+                            "level1": "Level 1",
+                            "level2": "Level 2",
+                            "level3": "Level 3",
+                            "level4": "Level 4",
+                            "level5": "Level 5",
+                            "level6": "Level 6",
+                            "level7": "Level 7"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "Off",
+                            "vertical": "Vertical",
+                            "horizontal": "Horizontal",
+                            "both": "Both"
+                        }
+                    }
+                }
+            }
         }
     }
 }
