@@ -680,9 +680,10 @@ DEVICE_CUSTOMIZES = {
     'mmgg.feeder.fi1': {
         'chunk_properties': 1,
         'state_property': 'pet_food_left_level',
-        'button_actions': 'reset_desiccant_life',
-        'binary_sensor_properties': 'outletstatus,doorstatus',
-        'sensor_properties': 'outfood_num,desiccant_left_time,cleantime',
+        'button_actions': 'reset_desiccant_life,resetclean,pet_food_out',
+        'sensor_properties': 'desiccant_left_time,cleantime,fault,outletstatus,doorstatus',
+        'number_properties': 'key_stat,indicator_light.on',
+        'exclude_miot_properties': 'outfood_num,outfood_id,contrycode,feddplan_string,factory_result',
     },
     'mmgg.feeder.petfeeder': {
         'state_property': 'pet_food_left_level',
