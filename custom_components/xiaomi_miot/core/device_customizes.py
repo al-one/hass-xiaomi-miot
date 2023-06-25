@@ -61,6 +61,15 @@ DEVICE_CUSTOMIZES = {
     'cgllc.airm.cgdn1': {
         'exclude_miot_services': 'mac,settings',
     },
+    'cgllc.airm.cgd1st': {
+        'exclude_miot_services': 'mac,settings',
+    },
+    'cgllc.airm.cgd1st:voltage': {
+        'value_ratio': 0.001,
+        'state_class': 'measurement',
+        'device_class': 'voltage',
+        'unit_of_measurement': 'V',
+    },
     'chuangmi.camera.v6': {
         'use_alarm_playlist': True,
     },
