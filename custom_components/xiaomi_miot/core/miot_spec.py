@@ -791,24 +791,27 @@ class MiotProperty(MiotSpecInstance):
         ret = None
         name = self.full_name
         props = {
-            'atmospheric_pressure': SensorDeviceClass.PRESSURE,
-            'temperature': SensorDeviceClass.TEMPERATURE,
-            'relative_humidity': SensorDeviceClass.HUMIDITY,
-            'humidity': SensorDeviceClass.HUMIDITY,
             'charging_state': None,
-            'battery_level': SensorDeviceClass.BATTERY,
-            '.battery': SensorDeviceClass.BATTERY,
-            'illumination': SensorDeviceClass.ILLUMINANCE,
-            'voltage': SensorDeviceClass.VOLTAGE,
-            'electric_current': SensorDeviceClass.CURRENT,
-            'electric_power': SensorDeviceClass.POWER,
-            'co2_density': SensorDeviceClass.CO2,
-            'co_density': SensorDeviceClass.CO,
-            'co2': SensorDeviceClass.CO2,
-            'pm2_5_density': SensorDeviceClass.PM25,
-            'pm25': SensorDeviceClass.PM25,
-            'pm10': SensorDeviceClass.PM10,
         }
+        if self.value_range:
+            props.update({
+                'atmospheric_pressure': SensorDeviceClass.PRESSURE,
+                'temperature': SensorDeviceClass.TEMPERATURE,
+                'relative_humidity': SensorDeviceClass.HUMIDITY,
+                'humidity': SensorDeviceClass.HUMIDITY,
+                'battery_level': SensorDeviceClass.BATTERY,
+                '.battery': SensorDeviceClass.BATTERY,
+                'illumination': SensorDeviceClass.ILLUMINANCE,
+                'voltage': SensorDeviceClass.VOLTAGE,
+                'electric_current': SensorDeviceClass.CURRENT,
+                'electric_power': SensorDeviceClass.POWER,
+                'co2_density': SensorDeviceClass.CO2,
+                'co_density': SensorDeviceClass.CO,
+                'co2': SensorDeviceClass.CO2,
+                'pm2_5_density': SensorDeviceClass.PM25,
+                'pm25': SensorDeviceClass.PM25,
+                'pm10': SensorDeviceClass.PM10,
+            })
         if self.name in props:
             ret = props[self.name]
         else:
