@@ -61,6 +61,12 @@ DEVICE_CUSTOMIZES = {
     'cgllc.airm.cgdn1': {
         'exclude_miot_services': 'mac,settings',
     },
+    'cgllc.airm.cgdn1:voltage': {
+        'value_ratio': 0.001,
+        'state_class': 'measurement',
+        'device_class': 'voltage',
+        'unit_of_measurement': 'V',
+    },
     'cgllc.airm.cgd1st': {
         'exclude_miot_services': 'mac,settings',
     },
