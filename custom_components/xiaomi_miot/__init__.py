@@ -1933,6 +1933,7 @@ class MiotEntity(MiioEntity):
                 'did': did,
                 'siid': siid,
                 'aiid': aiid,
+                'params': params,
                 'result': result,
             })
             self._vars['delay_update'] = dly
