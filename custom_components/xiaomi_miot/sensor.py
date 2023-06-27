@@ -65,10 +65,22 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     config_data = config_entry.data or {}
     if isinstance(mic, MiotCloud) and mic.user_id and not config_data.get('disable_message'):
         hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
+
         if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
             entity = MihomeMessageSensor(hass, mic)
             hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
             async_add_entities([entity], update_before_add=False)
+
+        homes = await mic.async_get_homes()
+        for home in homes:
+            home_id = home.get('id')
+            if hass.data[DOMAIN]['accounts'][mic.user_id].get(f'scene_history_{home_id}'):
+                continue
+
+            entity = MihomeSceneHistorySensor(hass, mic, home_id, home.get('uid'))
+            hass.data[DOMAIN]['accounts'][mic.user_id][f'scene_history_{home_id}'] = entity
+            async_add_entities([entity], update_before_add=False)
+
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
@@ -706,6 +718,111 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
             self.message = msg
             self._has_none_message = False
         return msg
+
+
+class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
+    _has_none_message = False
+
+    def __init__(self, hass, cloud: MiotCloud, home_id, owner_user_id):
+        self.hass = hass
+        self.cloud = cloud
+        self.home_id = int(home_id)
+        self.owner_user_id = int(owner_user_id)
+        self.message = {}
+        self.entity_id = f'{ENTITY_DOMAIN}.mi_{cloud.user_id}_{home_id}_scene_history'
+        self._attr_unique_id = f'{DOMAIN}-mihome-scene-history-{cloud.user_id}_{home_id}'
+        self._attr_name = f'Xiaomi {cloud.user_id}_{home_id} Scene History'
+        self._attr_icon = 'mdi:message'
+        self._attr_should_poll = False
+        self._attr_native_value = None
+        self._attr_extra_state_attributes = {
+            'entity_class': self.__class__.__name__,
+        }
+        self.coordinator = DataUpdateCoordinator(
+            hass,
+            _LOGGER,
+            name=self._attr_unique_id,
+            update_method=self.fetch_latest_message,
+            update_interval=timedelta(seconds=5),
+        )
+        super().__init__(self.coordinator)
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self.hass.data[DOMAIN]['entities'][self.entity_id] = self
+        if sec := self.custom_config_integer('interval_seconds'):
+            self.coordinator.update_interval = timedelta(seconds=sec)
+
+        if restored := await self.async_get_last_extra_data():
+            self._attr_native_value = restored.as_dict().get('state')
+            self._attr_extra_state_attributes.update(restored.as_dict().get('attrs', {}))
+
+        await self.coordinator.async_config_entry_first_refresh()
+
+    async def async_will_remove_from_hass(self):
+        """Run when entity will be removed from hass.
+        To be extended by integrations.
+        """
+        await super().async_will_remove_from_hass()
+        self.hass.data[DOMAIN]['accounts'].get(self.cloud.user_id, {}).pop(f'scene_history_{self.home_id}', None)
+
+    @property
+    def extra_restore_state_data(self):
+        """Return entity specific state data to be restored."""
+        return RestoredExtraData({
+            'state': self.native_value,
+            'attrs': self._attr_extra_state_attributes,
+        })
+
+    def trim_message(self, msg):
+        return {
+            "from": msg.get('from'),
+            "name": msg.get('name'),
+            "timestamp": msg.get('time'),
+            "scene_id": msg.get('userSceneId'),
+            "targets": msg.get('msg', []),
+        }
+
+    async def async_set_message(self, msg):
+        if msg == self.message:
+            return
+        self.message = msg
+
+        trimed = self.trim_message(msg)
+        old = self._attr_native_value or {}
+        self._attr_native_value = trimed.get('name')
+        _LOGGER.debug('New xiaomi scene history for %s: %s', self.cloud.user_id, self._attr_native_value)
+        self._attr_extra_state_attributes.update({**trimed, 'prev_value': old.get('name'), 'prev_scene_id': old.get('scene_id')})
+
+    async def fetch_latest_message(self):
+        res = await self.cloud.async_request_api('scene/history', data={
+            "home_id": self.home_id,
+            "uid": int(self.cloud.user_id),
+            "owner_uid": self.owner_user_id,
+            "command": "history",
+            "limit": 15,
+        }) or {}
+
+        messages = (res.get('result') or {}).get('history') or []
+        if not messages:
+            if not self._has_none_message:
+                _LOGGER.warning('Get xiaomi scene history for %s failed: %s', self.cloud.user_id, res)
+
+            self._has_none_message = True
+            return {}
+
+        messages.sort(key=lambda x: x.get('time', 0), reverse=False)
+        prev_timestamp = self._attr_extra_state_attributes.get('timestamp') or 0
+        for msg in messages:
+            ts = msg.get('time', 0)
+            if ts and ts < prev_timestamp:
+                continue
+
+            await self.async_set_message(msg)
+            self._has_none_message = False
+            return msg
+
+        return {}
 
 
 class XiaoaiConversationSensor(MiCoordinatorEntity, BaseSensorSubEntity):
