@@ -754,8 +754,9 @@ class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity)
             self.coordinator.update_interval = timedelta(seconds=sec)
 
         if restored := await self.async_get_last_extra_data():
-            self._attr_native_value = restored.as_dict().get('state')
-            self._attr_extra_state_attributes.update(restored.as_dict().get('attrs', {}))
+            restored_dict = restored.as_dict()
+            self._attr_native_value = restored_dict.get('state')
+            self._attr_extra_state_attributes.update(restored_dict.get('attrs', {}))
 
         await self.coordinator.async_config_entry_first_refresh()
 
@@ -775,11 +776,13 @@ class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity)
         })
 
     def trim_message(self, msg):
+        ts = msg.get('time')
         return {
             "from": msg.get('from'),
             "name": msg.get('name'),
-            "timestamp": msg.get('time'),
-            "scene_id": msg.get('userSceneId'),
+            "ts": ts,
+            'timestamp': datetime.fromtimestamp(ts, local_zone()) if ts else None,
+            "scene_id": str(msg.get('userSceneId')),
             "targets": msg.get('msg', []),
         }
 
@@ -788,11 +791,11 @@ class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity)
             return
         self.message = msg
 
-        trimed = self.trim_message(msg)
-        old = self._attr_native_value or {}
-        self._attr_native_value = trimed.get('name')
-        _LOGGER.debug('New xiaomi scene history for %s: %s', self.cloud.user_id, self._attr_native_value)
-        self._attr_extra_state_attributes.update({**trimed, 'prev_value': old.get('name'), 'prev_scene_id': old.get('scene_id')})
+        self._attr_native_value = msg.get('name')
+        _LOGGER.debug('New xiaomi scene history for %s %d: %s', self.cloud.user_id, self.home_id, self._attr_native_value)
+
+        old = self._attr_extra_state_attributes or {}
+        self._attr_extra_state_attributes = {**msg, 'prev_value': old.get('name'), 'prev_scene_id': old.get('scene_id')}
 
     async def fetch_latest_message(self):
         res = await self.cloud.async_request_api('scene/history', data={
@@ -803,19 +806,22 @@ class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity)
             "limit": 15,
         }) or {}
 
-        messages = (res.get('result') or {}).get('history') or []
+        messages = [self.trim_message(msg) for msg in (res.get('result') or {}).get('history') or []]
         if not messages:
             if not self._has_none_message:
-                _LOGGER.warning('Get xiaomi scene history for %s failed: %s', self.cloud.user_id, res)
+                _LOGGER.warning('Get xiaomi scene history for %s %d failed: %s', self.cloud.user_id, self.home_id, res)
 
             self._has_none_message = True
             return {}
 
-        messages.sort(key=lambda x: x.get('time', 0), reverse=False)
-        prev_timestamp = self._attr_extra_state_attributes.get('timestamp') or 0
+        prev_timestamp = self._attr_extra_state_attributes.get('ts') or 0
+        messages.sort(key=lambda x: x.get('ts', 0), reverse=False)
+        _LOGGER.warning('Get xiaomi scene history for %s %d success: prev_timestamp= %d messages= %s,', self.cloud.user_id, self.home_id, prev_timestamp, messages)
         for msg in messages:
-            ts = msg.get('time', 0)
+            ts = msg.get('ts', 0)
             if ts and ts < prev_timestamp:
+                continue
+            if self.message and self.message == msg:
                 continue
 
             await self.async_set_message(msg)
