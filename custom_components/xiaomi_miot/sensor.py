@@ -4,7 +4,7 @@ import time
 import json
 from typing import cast
 from datetime import datetime, timedelta
-from functools import partial
+from functools import partial, cmp_to_key
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.helpers.entity import (
@@ -797,6 +797,19 @@ class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity)
             "targets": msg.get('msg', []),
         }
 
+    @staticmethod
+    def _cmp_message(a, b):
+        a_ts, b_ts = a.get('ts', 0), b.get('ts', 0)
+        if a_ts != b_ts:
+            return a_ts - b_ts
+        
+        a_scene_id, b_scene_id = a.get('scene_id', 0), b.get('scene_id', 0)
+        if a_scene_id < b_scene_id:
+            return -1
+        if a_scene_id > b_scene_id:
+            return 1
+        return 0
+
     async def async_set_message(self, msg):
         self._attr_native_value = msg.get('name')
         _LOGGER.debug('New xiaomi scene history for %s %d: %s', self.cloud.user_id, self.home_id, self._attr_native_value)
@@ -823,16 +836,13 @@ class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity)
 
         prev_timestamp = self._attr_extra_state_attributes.get('ts') or 0
         prev_scene_id = self._attr_extra_state_attributes.get('scene_id') or ''
-        messages.sort(key=lambda x: x.get('ts', 0), reverse=False)
+        messages.sort(key=cmp_to_key(self._cmp_message), reverse=False)
         _LOGGER.debug(
             'Get xiaomi scene history for %s %d success: prev_timestamp= %d prev_scene_id= %s messages= %s,',
             self.cloud.user_id, self.home_id, prev_timestamp, prev_scene_id, messages,
         )
         for msg in messages:
-            ts = msg.get('ts', 0)
-            if ts and ts < prev_timestamp:
-                continue
-            if prev_scene_id == msg.get('scene_id', ''):
+            if self._cmp_message(msg, self._attr_extra_state_attributes) <= 0:
                 continue
 
             await self.async_set_message(msg)
