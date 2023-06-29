@@ -821,7 +821,7 @@ class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity)
         prev_timestamp = self._attr_extra_state_attributes.get('ts') or 0
         prev_scene_id = self._attr_extra_state_attributes.get('scene_id') or ''
         messages.sort(key=lambda x: x.get('ts', 0), reverse=False)
-        _LOGGER.warning(
+        _LOGGER.debug(
             'Get xiaomi scene history for %s %d success: prev_timestamp= %d prev_scene_id= %s messages= %s,',
             self.cloud.user_id, self.home_id, prev_timestamp, prev_scene_id, messages,
         )
