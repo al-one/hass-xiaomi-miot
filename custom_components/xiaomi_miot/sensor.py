@@ -63,23 +63,26 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     cfg = hass.data[DOMAIN].get(config_entry.entry_id) or {}
     mic = cfg.get(CONF_XIAOMI_CLOUD)
     config_data = config_entry.data or {}
-    if isinstance(mic, MiotCloud) and mic.user_id and not config_data.get('disable_message'):
-        hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
 
-        if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
-            entity = MihomeMessageSensor(hass, mic)
-            hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
-            async_add_entities([entity], update_before_add=False)
+    if isinstance(mic, MiotCloud) and mic.user_id:
+        if not config_data.get('disable_message'):
+            hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
 
-        homes = await mic.async_get_homes()
-        for home in homes:
-            home_id = home.get('id')
-            if hass.data[DOMAIN]['accounts'][mic.user_id].get(f'scene_history_{home_id}'):
-                continue
+            if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
+                entity = MihomeMessageSensor(hass, mic)
+                hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
+                async_add_entities([entity], update_before_add=False)
 
-            entity = MihomeSceneHistorySensor(hass, mic, home_id, home.get('uid'))
-            hass.data[DOMAIN]['accounts'][mic.user_id][f'scene_history_{home_id}'] = entity
-            async_add_entities([entity], update_before_add=False)
+        if not config_data.get('disable_scene_history'):
+            homes = await mic.async_get_homes()
+            for home in homes:
+                home_id = home.get('id')
+                if hass.data[DOMAIN]['accounts'][mic.user_id].get(f'scene_history_{home_id}'):
+                    continue
+
+                entity = MihomeSceneHistorySensor(hass, mic, home_id, home.get('uid'))
+                hass.data[DOMAIN]['accounts'][mic.user_id][f'scene_history_{home_id}'] = entity
+                async_add_entities([entity], update_before_add=False)
 
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
