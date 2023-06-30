@@ -177,11 +177,18 @@ DEVICE_CUSTOMIZES = {
     },
     'cuco.plug.cp1md': {
         'chunk_properties': 1,
-        'exclude_miot_services': 'setting,cyc',
-        'exclude_miot_properties': 'power_consumption',
-        'sensor_properties': 'power-consumption,voltage,electric_current',
+        'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
+        'miot_mapping': {
+            'switch.on': {'siid': 2, 'piid': 1},
+            'switch.electric_current': {'siid': 2, 'piid': 4},
+            'switch.physical-controls-locked': {'siid': 6, 'piid': 1},
+            'switch.power': {'siid': 4, 'piid': 2},
+        },
+    },
+    'cuco.plug.cp1md:power': {
+        'value_ratio': 1,
     },
     'cuco.plug.cp2': {
         'chunk_properties': 1,
