@@ -682,6 +682,11 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 10,
     },
 
+    'mibx5.washer.*': {
+        'sensor_properties': 'fault,left_time,door_state,run_status,detergent_left_level',
+        'switch_properties': 'sleep_mode,steam_sterilization,detergent_self_delivery',
+        'select_properties': 'soak_time,reservation_wash_status,reservation_left_time,detergent_self_delivery_level',
+    },
     'mijia.light.*': {
         'cloud_delay_update': 7,
     },
