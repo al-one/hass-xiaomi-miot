@@ -726,6 +726,14 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'remain_clean_time,fault,filter_left_time,no_water_time',
         'select_properties': 'mode',
     },
+    'mrbond.airer.m53pro': {
+        'position_reverse': False,
+        'sensor_properties': 'fault,left_time',
+        'select_properties': 'dryer,drying_level',
+        'switch_properties': '',
+        'fan_properties': '',
+        'chunk_properties': 1,
+    },
     'msj.f_washer.m2': {
         'chunk_properties': 1,
         'button_actions': 'start_wash,pause,drain,pause_drain',

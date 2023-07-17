@@ -287,6 +287,7 @@ MIOT_LOCAL_MODELS = [
     'morfun.ysj.mf208',
     'mrbond.airer.m2',
     'mrbond.airer.m2pro',
+    'mrbond.airer.m53pro',
     'msj.dishwasher.v1',
     'msj.f_washer.m1pro',
     'msj.f_washer.m2',
