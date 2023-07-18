@@ -1787,6 +1787,19 @@ MIIO_TO_MIOT_SPECS = {
     },
     'yeelink.light.ceiling23': 'yeelink.light.ceiling22',
     'yeelink.light.ceiling24': 'yeelink.light.ceiling16',
+    'yeelink.light.ceil27': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {
+                'prop': 'nl_br',
+                'setter': 'set_ps',
+                'template': '{{ 1 if value|int else 0 }}',
+                'set_template': '{{ ["nightlight","on" if value == 1 else "off"] }}',
+            },
+            'prop.2.3': {'prop': 'bright', 'setter': True},
+            'prop.2.5': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
+        },
+    },
     'yeelink.light.lamp1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
