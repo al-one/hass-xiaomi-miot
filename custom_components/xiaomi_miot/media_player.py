@@ -551,6 +551,8 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             'volumeup': 'press_volume_up',
             'volumedown': 'press_volume_down',
         }
+        self._speaker_mode = self._miot_service.spec.get_service('speaker_mode')
+        self._speaker_mode_switch = self._speaker_mode.bool_property('is_on') if self._speaker_mode else None
         self._remote_ctrl = self._miot_service.spec.get_service('remote_control')
         if self._remote_ctrl:
             self._keycode_actions.update({
@@ -710,6 +712,8 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         if self._local_state and self._state_attrs.get('6095_state'):
             # tv is on
             pass
+        elif self._speaker_mode_switch:
+            self.set_property(self._speaker_mode_switch, True)
         elif xai := self.bind_xiaoai:
             nam = self.mitv_name
             txt = f'{nam}亮屏' if self._local_state else f'打开{nam}'
@@ -724,7 +728,9 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
     def turn_off(self):
         if self.custom_config_bool('turn_off_screen'):
             act = self._message_router.get_action('post') if self._message_router else None
-            if xai := self.bind_xiaoai:
+            if self._speaker_mode_switch:
+                return self.set_property(self._speaker_mode_switch, False)
+            elif xai := self.bind_xiaoai:
                 return self.hass.services.call(DOMAIN, 'intelligent_speaker', {
                     'entity_id': xai.entity_id,
                     'text': f'{self.mitv_name}熄屏',

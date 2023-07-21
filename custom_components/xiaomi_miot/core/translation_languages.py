@@ -288,6 +288,24 @@ TRANSLATION_LANGUAGES = {
         'water_heater': {
             'water heater': '热水器',
         },
+        'airer': {
+            'airer': '晾衣架',
+            'dryer': '干燥功能',
+            'drying_level': '烘干级别',
+            'left_time': '剩余时间',
+            'fault': '设备故障',
+        },
+        'airer.dryer': {
+            'Air Drying': '风干',
+            'Hot Air Drying': '烘干',
+        },
+        'airer.fault': {
+            'No Faults': '无故障',
+            'Obstruction': '遇阻',
+            'Overweight': '超重',
+            'Overheat': '过热',
+            'Motor Failure': '电机故障',
+        },
     },
 
     'el': {

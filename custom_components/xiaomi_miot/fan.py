@@ -142,7 +142,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
     def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         ret = False
-        if not self.is_on:
+        if not self.is_on and percentage != 0:
             ret = self.set_property(self._prop_power, True)
         if self._prop_percentage:
             if not percentage and speed:
@@ -226,6 +226,8 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
     def set_percentage(self, percentage: int):
         """Set the speed of the fan, as a percentage."""
+        if percentage == 0:
+            return self.turn_off()
         return self.turn_on(percentage=percentage)
 
     @property
