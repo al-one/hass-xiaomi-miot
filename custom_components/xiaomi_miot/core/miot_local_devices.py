@@ -465,6 +465,7 @@ MIOT_LOCAL_MODELS = [
     'yeelink.controller.v2',
     'yeelink.curtain.ctmt1',
     'yeelink.light.ceil26',
+    'yeelink.light.ceil27',
     'yeelink.light.ceil29',
     'yeelink.light.ceil31',
     'yeelink.light.ceil34',
