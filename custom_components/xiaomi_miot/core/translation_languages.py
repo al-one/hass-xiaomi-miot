@@ -20,7 +20,7 @@ TRANSLATION_LANGUAGES = {
         },
 
         'fan_level': {
-            'auto': '自动',
+            # 'auto': '自动',
             # 'low': '低档',
             # 'medium': '中档',
             # 'middle': '中档',
