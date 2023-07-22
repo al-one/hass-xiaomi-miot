@@ -713,7 +713,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             # tv is on
             pass
         elif self._speaker_mode_switch:
-            self.set_property(self._speaker_mode_switch, True)
+            self.set_property(self._speaker_mode_switch, False)
         elif xai := self.bind_xiaoai:
             nam = self.mitv_name
             txt = f'{nam}亮屏' if self._local_state else f'打开{nam}'
@@ -729,7 +729,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         if self.custom_config_bool('turn_off_screen'):
             act = self._message_router.get_action('post') if self._message_router else None
             if self._speaker_mode_switch:
-                return self.set_property(self._speaker_mode_switch, False)
+                return self.set_property(self._speaker_mode_switch, True)
             elif xai := self.bind_xiaoai:
                 return self.hass.services.call(DOMAIN, 'intelligent_speaker', {
                     'entity_id': xai.entity_id,
