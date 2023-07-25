@@ -219,6 +219,7 @@ MIOT_LOCAL_MODELS = [
     'isa.camera.hlc8',
     'isa.camera.hlc9a',
     'isa.camera.panjd1',
+    'izq.sensor_occupy.solo',
     'isleep.blanket.hs2001',
     'isleep.blanket.hs2205',
     'julun.switch.jlsw01',

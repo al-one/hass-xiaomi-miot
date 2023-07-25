@@ -512,7 +512,12 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'illumination,distance,has_someone_duration,no_one_duration',
         'number_properties': 'no_one_determine_time',
     },
-
+    'izq.sensor_occupy.solo': {
+        'sensor_properties': 'occupancy_status,illumination',
+        'number_properties': 'bio_sensitive',
+        'switch_properties': 'indicator_light,shadow_tracking',
+        'button_actions': 'led_toggle,find_device'
+    },
     'leishi.light.*': {
         'exclude_miot_services': 'scenes,scene,scens,remote',
         'exclude_miot_properties': 'default.user_save,professional_setting.delay',
