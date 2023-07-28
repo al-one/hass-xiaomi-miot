@@ -400,6 +400,13 @@ DEVICE_CUSTOMIZES = {
     'dooya.curtain.*': {
         'exclude_miot_properties': 'fault',
     },
+    'dreame.light.r2229': {
+        'sensor_properties': 'interaction_gesture',
+        'switch_properties': 'timer_delay_switch,interaction_switch,flow_switch,lighting_switch',
+        'select_properties': 'personality',
+        'number_properties': 'timer_delay_value',
+        'descriptions_for_on': 'On,Opened,Opend',
+    },
     'dreame.vacuum.p2008': {
         'miot_type': 'urn:miot-spec-v2:device:vacuum:0000A006:dreame-p2008:2',
     },

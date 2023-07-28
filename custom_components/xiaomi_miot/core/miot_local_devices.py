@@ -135,6 +135,7 @@ MIOT_LOCAL_MODELS = [
     'dooya.curtain.m7',
     'dreame.fan.l2146',
     'dreame.fan.p2018',
+    'dreame.light.r2229',
     'dreame.vacuum.mb1808',
     'dreame.vacuum.mc1808',
     'dreame.vacuum.md1808',
