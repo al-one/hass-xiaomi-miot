@@ -400,6 +400,13 @@ DEVICE_CUSTOMIZES = {
     'dooya.curtain.*': {
         'exclude_miot_properties': 'fault',
     },
+    'dreame.light.r2229': {
+        'sensor_properties': 'interaction_gesture',
+        'switch_properties': 'timer_delay_switch,interaction_switch,flow_switch,lighting_switch',
+        'select_properties': 'personality',
+        'number_properties': 'timer_delay_value',
+        'descriptions_for_on': 'On,Opened,Opend',
+    },
     'dreame.vacuum.p2008': {
         'miot_type': 'urn:miot-spec-v2:device:vacuum:0000A006:dreame-p2008:2',
     },
@@ -512,7 +519,12 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'illumination,distance,has_someone_duration,no_one_duration',
         'number_properties': 'no_one_determine_time',
     },
-
+    'izq.sensor_occupy.solo': {
+        'sensor_properties': 'occupancy_status,illumination',
+        'number_properties': 'bio_sensitive',
+        'switch_properties': 'indicator_light,shadow_tracking',
+        'button_actions': 'led_toggle,find_device'
+    },
     'leishi.light.*': {
         'exclude_miot_services': 'scenes,scene,scens,remote',
         'exclude_miot_properties': 'default.user_save,professional_setting.delay',
