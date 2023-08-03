@@ -1,0 +1,210 @@
+{
+  "config": {
+    "flow_title": "Xiaomi Miot Auto",
+    "step": {
+      "user": {
+        "title": "Seleccionar Acción",
+        "data": {
+          "action": "Acción"
+        }
+      },
+      "token": {
+        "description": "Configurar información del dispositivo.",
+        "data": {
+          "host": "IP Local",
+          "token": "Token",
+          "name": "Nombre del dispositivo",
+          "scan_interval": "Intervalo de actualización del estado (segundos)"
+        }
+      },
+      "cloud": {
+        "description": "Configurar cuenta en la nube de Xiaomi.\n{tip}",
+        "data": {
+          "username": "ID de cuenta / Email de Xiaomi",
+          "password": "Contraseña",
+          "captcha": "Captcha",
+          "server_country": "Ubicación del servidor de MiCloud",
+          "conn_mode": "Modo de conexión para el dispositivo",
+          "filter_models": "Filtrar dispositivos por modelo/hogar/WiFi (Avanzado)"
+        }
+      },
+      "cloud_filter": {
+        "title": "Filtrar dispositivos en la nube",
+        "description": "Puedes incluir o excluir dispositivos para integrar solo los que desees. En el modo de exclusión, si no seleccionas ninguna opción en la lista, será equivalente a incluir todas las opciones.\n{tip}",
+        "data": {
+          "filter_model": "Filtrar modelo de dispositivo",
+          "model_list": "Lista de modelos de dispositivo",
+          "filter_home_id": "Filtrar hogar",
+          "home_id_list": "Lista de hogares",
+          "filter_ssid": "Filtrar SSID de WiFi",
+          "ssid_list": "Lista de SSID de WiFi",
+          "filter_bssid": "Filtrar BSSID de WiFi",
+          "bssid_list": "Lista de BSSID de WiFi",
+          "filter_did": "Filtrar dispositivo",
+          "did_list": "Lista de dispositivos"
+        }
+      },
+      "customizing": {
+        "title": "Personalizar entidades / dispositivos",
+        "description": "{tip}",
+        "data": {
+          "domain": "Seleccionar dominio de la entidad",
+          "entity": "Seleccionar entidad",
+          "model": "Seleccionar modelo de dispositivo",
+          "model_specified": "Especificar modelo de dispositivo (Opcional)",
+          "only_main_entity": "Solo entidades principales (padre)",
+          "reset_customizes": "Restaurar personalizaciones predeterminadas",
+          "bool2selects": "Opciones personalizadas"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se pudo conectar al dispositivo",
+      "cannot_login": "No se pudo iniciar sesión en la cuenta de Xiaomi. Por favor, verifica tus credenciales de cuenta. Si los intentos de inicio de sesión fallan varias veces, intenta iniciar sesión nuevamente en el sitio web oficial de Xiaomi (mi.com) usando el mismo entorno de red.",
+      "cannot_reach": "No se puede acceder a la interfaz de la API de Xiaomi",
+      "tzinfo_error": "Parece que hay un problema con tu entorno de Hass. Por favor, consulta: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+      "none_devices": "No se encontraron dispositivos bajo esta cuenta de Xiaomi"
+    },
+    "abort": {
+      "config_saved": "¡Configuración guardada! [Personalizar de nuevo](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlgunas opciones personalizadas pueden requerir [recargar la integración](/developer-tools/yaml) para que surtan efecto.",
+      "already_configured": "Este dispositivo ya ha sido configurado.",
+      "not_xiaomi_miio": "Este dispositivo no es compatible con el protocolo miio/miot."
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "Xiaomi Miot",
+        "description": "Configurar información del dispositivo.",
+        "data": {
+          "host": "IP del dispositivo",
+          "token": "Token",
+          "scan_interval": "Intervalo de actualización de estado (segundos)",
+          "miot_cloud": "Habilitar la nube de MIoT (Configurar la cuenta en YAML primero)"
+        }
+      },
+      "cloud": {
+        "description": "Configurar cuenta en la nube de Xiaomi.\n{tip}",
+        "data": {
+          "username": "ID de cuenta / Email de Xiaomi",
+          "password": "Contraseña",
+          "captcha": "Captcha",
+          "server_country": "Ubicación del servidor de MiCloud",
+          "conn_mode": "Modo de conexión para el dispositivo",
+          "renew_devices": "Forzar renovación de dispositivos",
+          "disable_message": "Desactivar el sensor de notificaciones de MiHome"
+        }
+      },
+      "cloud_filter": {
+        "title": "Filtrar dispositivos en la nube",
+        "description": "Puedes incluir o excluir dispositivos para integrar solo los que desees. En el modo de exclusión, si no seleccionas ninguna opción en la lista, será equivalente a incluir todas las opciones.\n{tip}",
+        "data": {
+          "filter_model": "Filtrar modelo de dispositivo",
+          "model_list": "Lista de modelos de dispositivo",
+          "filter_home_id": "Filtrar hogar",
+          "home_id_list": "Lista de hogares",
+          "filter_ssid": "Filtrar SSID de WiFi",
+          "ssid_list": "Lista de SSID de WiFi",
+          "filter_bssid": "Filtrar BSSID de WiFi",
+          "bssid_list": "Lista de BSSID de WiFi",
+          "filter_did": "Filtrar dispositivo",
+          "did_list": "Lista de dispositivos"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se pudo conectar al dispositivo",
+      "cannot_login": "No se pudo iniciar sesión en la cuenta de Xiaomi. Por favor, verifica tus credenciales de cuenta. Si los intentos de inicio de sesión fallan varias veces, intenta iniciar sesión nuevamente en el sitio web oficial de Xiaomi (mi.com) usando el mismo entorno de red.",
+      "cannot_reach": "No se puede acceder a la interfaz de la API de Xiaomi",
+      "tzinfo_error": "Parece que hay un problema con tu entorno de Hass. Por favor, consulta: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+      "none_devices": "No se encontraron dispositivos bajo esta cuenta de Xiaomi"
+    },
+    "abort": {
+      "show_customizes": "[![Agregar nueva integración](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Agregar una nueva integración](/_my_redirect/config_flow_start?domain=xiaomi_miot) para modificar la personalización.\n{tip}"
+    }
+  },
+  "system_health": {
+    "info": {
+      "component_version": "Versión del componente personalizado",
+      "can_reach_server": "Acceso al servidor de la API de Xiaomi",
+      "can_reach_spec": "Acceso al servidor MIoT-Spec",
+      "logged_accounts": "Número de cuentas iniciadas de sesión",
+      "total_devices": "Número total de dispositivos MiHome"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "lock": {
+        "state": {
+          "bluetooth": "Bluetooth",
+          "password": "Contraseña",
+          "biological": "Biológico",
+          "key": "Llave",
+          "turntable": "Plataforma giratoria",
+          "nfc": "NFC",
+          "one_time_password": "Contraseña de un solo uso",
+          "two_step_verification": "Verificación de dos pasos",
+          "coercion": "Coacción",
+          "homekit": "Homekit",
+          "manual": "Manual",
+          "automatic": "Automático"
+        }
+      },
+      "lock_action": {
+        "state": {
+          "outside_unlock": "Desbloquear desde el exterior",
+          "lock": "Bloquear",
+          "anti_lock_on": "Activar bloqueo anti-cierre",
+          "anti_lock_off": "Desactivar bloqueo anti-cierre",
+          "inside_unlock": "Desbloquear desde el interior",
+          "lock_inside": "Bloquear desde el interior",
+          "child_lock_on": "Activar bloqueo para niños",
+          "child_lock_off": "Desactivar bloqueo para niños",
+          "lock_outside": "Bloquear desde el exterior"
+        }
+      },
+      "door_state": {
+        "state": {
+          "open": "Abierto",
+          "close": "Cerrado",
+          "close_timeout": "Tiempo de espera para cerrar",
+          "knock": "Golpe",
+          "breaking": "Intento de intrusión",
+          "stuck": "Atascado"
+        }
+      }
+    },
+    "climate": {
+      "air_conditioner": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Automático",
+              "low": "Bajo",
+              "medium": "Medio",
+              "middle": "Medio",
+              "high": "Alto",
+              "quiet": "Silencioso",
+              "turbo": "Turbo",
+              "level1": "Nivel 1",
+              "level2": "Nivel 2",
+              "level3": "Nivel 3",
+              "level4": "Nivel 4",
+              "level5": "Nivel 5",
+              "level6": "Nivel 6",
+              "level7": "Nivel 7"
+            }
+          },
+          "swing_mode": {
+            "state": {
+              "off": "Desactivado",
+              "vertical": "Vertical",
+              "horizontal": "Horizontal",
+              "both": "Ambos"
+            }
+          }
+        }
+      }
+    }
+  }
+}
