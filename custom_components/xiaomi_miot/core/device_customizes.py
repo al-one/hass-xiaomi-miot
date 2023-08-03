@@ -183,8 +183,8 @@ DEVICE_CUSTOMIZES = {
         'miot_mapping': {
             'switch.on': {'siid': 2, 'piid': 1},
             'switch.electric_current': {'siid': 2, 'piid': 4},
-            'switch.physical-controls-locked': {'siid': 6, 'piid': 1},
             'switch.power': {'siid': 4, 'piid': 2},
+            'physical_controls_locked': {'siid': 6, 'piid': 1},
         },
     },
     'cuco.plug.cp1md:power': {
