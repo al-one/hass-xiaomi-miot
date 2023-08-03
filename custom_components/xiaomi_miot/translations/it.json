@@ -131,5 +131,80 @@
             "logged_accounts": "Accaount Loggati",
             "total_devices": "Dispositivi MiHome Totali"
         }
+    },
+    "entity": {
+        "sensor": {
+            "lock": {
+                "state": {
+                    "bluetooth": "Bluetooth",
+                    "password": "Password",
+                    "biological": "Biologica",
+                    "key": "Chiave",
+                    "turntable": "Giradischi",
+                    "nfc": "NFC",
+                    "one_time_password": "Password monouso",
+                    "two_step_verification": "Verifica in due passaggi",
+                    "coercion": "Coercizione",
+                    "homekit": "Homekit",
+                    "manual": "Manuale",
+                    "automatic": "Automatica"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "Sblocco dall'esterno",
+                    "lock": "Blocca",
+                    "anti_lock_on": "Attiva anti-lock",
+                    "anti_lock_off": "Disattiva anti-lock",
+                    "inside_unlock": "Sblocco dall'interno",
+                    "lock_inside": "Blocco dall'interno",
+                    "child_lock_on": "Attiva blocco bambini",
+                    "child_lock_off": "Disattiva blocco bambini",
+                    "lock_outside": "Blocco dall'esterno"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "Aperta",
+                    "close": "Chiusa",
+                    "close_timeout": "Chiusura timeout",
+                    "knock": "Bussata",
+                    "breaking": "Tentativo di effrazione",
+                    "stuck": "Bloccata"
+                }
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "Auto",
+                            "low": "Bassa",
+                            "medium": "Media",
+                            "middle": "Media",
+                            "high": "Alta",
+                            "quiet": "Silenziosa",
+                            "turbo": "Turbo",
+                            "level1": "Livello 1",
+                            "level2": "Livello 2",
+                            "level3": "Livello 3",
+                            "level4": "Livello 4",
+                            "level5": "Livello 5",
+                            "level6": "Livello 6",
+                            "level7": "Livello 7"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "Spento",
+                            "vertical": "Verticale",
+                            "horizontal": "Orizontale",
+                            "both": "Entrambi"
+                        }
+                    }
+                }
+            }
+        }
     }
 }
