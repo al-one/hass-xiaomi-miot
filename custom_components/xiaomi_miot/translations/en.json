@@ -264,5 +264,43 @@
                 }
             }
         }
+    },
+    "services": {
+        "send_command": {
+            "name": "Send miio command"
+        },
+        "get_properties": {
+            "name": "Get miot properties"
+        },
+        "set_property": {
+            "name": "Set miot property"
+        },
+        "set_miot_property": {
+            "name": "Set miot property by siid/piid"
+        },
+        "call_action": {
+            "name": "Call miot action"
+        },
+        "intelligent_speaker": {
+            "name": "Intelligent speaker for XiaoAi"
+        },
+        "xiaoai_wakeup": {
+            "name": "Wake up the XiaoAi speaker"
+        },
+        "get_device_data": {
+            "name": "Get xiaomi device data"
+        },
+        "renew_devices": {
+            "name": "Renew xiaomi devices"
+        },
+        "get_token": {
+            "name": "Get xiaomi device token"
+        },
+        "get_bindkey": {
+            "name": "Get bindkey for ble device"
+        },
+        "request_xiaomi_api": {
+            "name": "Request xiaomi API"
+        }
     }
 }
