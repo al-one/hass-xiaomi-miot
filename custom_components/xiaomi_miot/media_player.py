@@ -68,6 +68,14 @@ SERVICE_TO_METHOD = {
             },
         ),
     },
+    'intelligent_speaker_play_by_url': {
+        'method': 'async_intelligent_speaker_play_by_url',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
+            {
+                vol.Required('url', default=''): vol.Any(cv.string, None),
+            },
+        ),
+    },
 }
 
 
@@ -373,6 +381,22 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 self.xiaoai_device = d
                 break
         return self.xiaoai_device
+
+    async def async_intelligent_speaker_play_by_url(self, url):
+        if not self.xiaoai_device:
+            return
+        aid = self.xiaoai_device.get('deviceID')
+        self.update_attrs({
+            'xiaoai_id': aid,
+        })
+        api = 'https://api2.mina.mi.com/remote/ubus'
+        dat = {
+            'deviceId': aid,
+            'path': 'mediaplayer',
+            'method': 'player_play_url',
+            'message': json.dumps({"url": url, "type": 1, "media": "app_ios"}),
+        }
+        return await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
 
     async def async_update_play_status(self, now=None):
         if not self.xiaoai_device:
