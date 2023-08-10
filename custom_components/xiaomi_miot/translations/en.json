@@ -267,39 +267,51 @@
     },
     "services": {
         "send_command": {
+            "name": "Send command",
             "description": "Send miio command"
         },
         "get_properties": {
+            "name": "Get properties",
             "description": "Get miot properties"
         },
         "set_property": {
+            "name": "Set property",
             "description": "Set miot property"
         },
         "set_miot_property": {
+            "name": "Set miot property",
             "description": "Set miot property by siid/piid"
         },
         "call_action": {
+            "name": "Call action",
             "description": "Call miot action"
         },
         "intelligent_speaker": {
+            "name": "Intelligent speaker",
             "description": "Intelligent speaker for XiaoAi"
         },
         "xiaoai_wakeup": {
-            "description": "Wake up the XiaoAi speaker"
+            "name": "XiaoAi Wakeup",
+            "description": "Wakeup the XiaoAi speaker"
         },
         "get_device_data": {
-            "description": "Get xiaomi device data"
+            "name": "Get device data",
+            "description": "Get xiaomi device data from cloud"
         },
         "renew_devices": {
-            "description": "Renew xiaomi devices"
+            "name": "Renew devices",
+            "description": "Renew cached xiaomi devices"
         },
         "get_token": {
+            "name": "Get token",
             "description": "Get xiaomi device token"
         },
         "get_bindkey": {
+            "name": "Get bindkey",
             "description": "Get bindkey for ble device"
         },
         "request_xiaomi_api": {
+            "name": "Request xiaomi API",
             "description": "Request xiaomi API"
         }
     }

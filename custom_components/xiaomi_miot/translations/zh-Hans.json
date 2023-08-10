@@ -248,7 +248,7 @@
             "description": "获取MIoT属性"
         },
         "set_property": {
-            "description": "设置MIoT属性"
+            "description": "设置MIoT属性(通过属性名)"
         },
         "set_miot_property": {
             "description": "设置MIoT属性(通过siid/piid)"
@@ -269,7 +269,7 @@
             "description": "刷新设备列表"
         },
         "get_token": {
-            "description": "获取米家设备token"
+            "description": "获取米家设备令牌(token)"
         },
         "get_bindkey": {
             "description": "获取蓝牙设备bindkey"
