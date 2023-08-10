@@ -242,40 +242,40 @@
     },
     "services": {
         "send_command": {
-            "name": "发送miio命令"
+            "description": "发送miio命令"
         },
         "get_properties": {
-            "name": "获取MIoT属性"
+            "description": "获取MIoT属性"
         },
         "set_property": {
-            "name": "设置MIoT属性"
+            "description": "设置MIoT属性"
         },
         "set_miot_property": {
-            "name": "设置MIoT属性(通过siid/piid)"
+            "description": "设置MIoT属性(通过siid/piid)"
         },
         "call_action": {
-            "name": "执行MIoT动作"
+            "description": "执行MIoT动作"
         },
         "intelligent_speaker": {
-            "name": "小爱TTS及执行语音命令"
+            "description": "小爱TTS及执行语音命令"
         },
         "xiaoai_wakeup": {
-            "name": "唤醒小爱音箱"
+            "description": "唤醒小爱音箱"
         },
         "get_device_data": {
-            "name": "获取设备信息"
+            "description": "获取设备信息"
         },
         "renew_devices": {
-            "name": "刷新设备列表"
+            "description": "刷新设备列表"
         },
         "get_token": {
-            "name": "获取米家设备token"
+            "description": "获取米家设备token"
         },
         "get_bindkey": {
-            "name": "获取蓝牙设备bindkey"
+            "description": "获取蓝牙设备bindkey"
         },
         "request_xiaomi_api": {
-            "name": "请求小米云端接口"
+            "description": "请求小米云端接口"
         }
     }
 }
