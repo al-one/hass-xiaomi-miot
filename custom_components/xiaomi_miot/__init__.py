@@ -84,6 +84,7 @@ SERVICE_TO_METHOD_BASE = {
                 vol.Required('method'): cv.string,
                 vol.Optional('params', default=[]): cv.ensure_list,
                 vol.Optional('throw', default=False): cv.boolean,
+                vol.Optional('return_result', default=True): cv.boolean,
             },
         ),
     },
@@ -385,7 +386,8 @@ def init_integration_data(hass):
 
 
 def bind_services_to_entries(hass, services):
-    async def async_service_handler(service):
+    async def async_service_handler(service) -> ServiceResponse:
+        result = None
         method = services.get(service.service)
         fun = method['method']
         params = {
@@ -416,14 +418,21 @@ def bind_services_to_entries(hass, services):
             if not hasattr(ent, fun):
                 _LOGGER.warning('Call service failed: Entity %s have no method: %s', ent.entity_id, fun)
                 continue
-            await getattr(ent, fun)(**params)
+            result = await getattr(ent, fun)(**params)
             update_tasks.append(ent.async_update_ha_state(True))
         if update_tasks:
             await asyncio.gather(*update_tasks)
+        if not isinstance(result, dict):
+            result = {'result': result}
+        return result
 
     for srv, obj in services.items():
-        schema = obj.get('schema', XIAOMI_MIIO_SERVICE_SCHEMA)
-        hass.services.async_register(DOMAIN, srv, async_service_handler, schema=schema)
+        kws = {
+            'schema': obj.get('schema', XIAOMI_MIIO_SERVICE_SCHEMA),
+        }
+        if SupportsResponse:
+            kws['supports_response'] = SupportsResponse.OPTIONAL
+        hass.services.async_register(DOMAIN, srv, async_service_handler, **kws)
 
 
 async def async_reload_integration_config(hass, config):
@@ -449,7 +458,7 @@ async def async_reload_integration_config(hass, config):
 
 async def async_setup_component_services(hass):
 
-    async def async_get_token(call):
+    async def async_get_token(call) -> ServiceResponse:
         nam = call.data.get('name')
         kwd = f'{nam}'.strip().lower()
         cnt = 0
@@ -482,13 +491,19 @@ async def async_setup_component_services(hass):
         persistent_notification.async_create(
             hass, msg, 'Miot device', f'{DOMAIN}-debug',
         )
-        return lst
+        return {
+            'list': lst,
+        }
 
-    hass.services.async_register(
-        DOMAIN, 'get_token', async_get_token,
-        schema=XIAOMI_MIIO_SERVICE_SCHEMA.extend({
+    kws = {
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend({
             vol.Required('name', default=''): cv.string,
         }),
+    }
+    if SupportsResponse:
+        kws['supports_response'] = SupportsResponse.OPTIONAL,
+    hass.services.async_register(
+        DOMAIN, 'get_token', async_get_token, **kws,
     )
 
     async def async_renew_devices(call):
@@ -960,9 +975,6 @@ class MiioEntity(BaseEntity):
             'params': params,
             'result': result,
         })
-        ret = result == self._success_result
-        if not ret:
-            self.logger.info('%s: Send miio command: %s(%s) failed, result: %s', self.name_model, method, params, result)
         if kwargs.get('throw'):
             persistent_notification.create(
                 self.hass,
@@ -970,6 +982,11 @@ class MiioEntity(BaseEntity):
                 'Miio command result',
                 f'{DOMAIN}-debug',
             )
+        ret = result == self._success_result
+        if kwargs.get('return_result'):
+            return result
+        elif not ret:
+            self.logger.info('%s: Send miio command: %s(%s) failed, result: %s', self.name_model, method, params, result)
         return ret
 
     def send_command(self, method, params=None, **kwargs):

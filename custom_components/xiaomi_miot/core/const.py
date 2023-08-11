@@ -1,8 +1,10 @@
+from __future__ import annotations
 from enum import Enum
 
 from .device_customizes import DEVICE_CUSTOMIZES  # noqa
 from .miot_local_devices import MIOT_LOCAL_MODELS  # noqa
 from .translation_languages import TRANSLATION_LANGUAGES  # noqa
+from homeassistant.util.json import JsonObjectType
 
 DOMAIN = 'xiaomi_miot'
 DEFAULT_NAME = 'Xiaomi Miot'
@@ -81,3 +83,10 @@ try:
     SUPPORTED_DOMAINS.append(DOMAIN_TEXT)
 except (ModuleNotFoundError, ImportError):
     DOMAIN_TEXT = None
+
+try:
+    # hass 2023.7
+    from homeassistant.core import ServiceResponse, SupportsResponse
+except (ModuleNotFoundError, ImportError):
+    SupportsResponse = None
+    ServiceResponse = JsonObjectType | None
