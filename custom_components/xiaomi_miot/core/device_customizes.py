@@ -1,7 +1,7 @@
 DEVICE_CUSTOMIZES = {
 
     '090615.aircondition.ktf': {
-        'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:090615-ktf:2',
+        'current_temp_property': 'setmode.roomtemp',
     },
     '090615.curtain.wsdml1': {
         'switch_properties': 'on,wake_up_mode',
