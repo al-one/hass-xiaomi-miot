@@ -246,6 +246,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         super().__init__(config, miot_service)
         self._supported_features |= VacuumEntityFeature.PAUSE
         self._supported_features |= VacuumEntityFeature.LOCATE
+        self._supported_features |= VacuumEntityFeature.SEND_COMMAND
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -318,6 +319,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(config, miot_service)
         self._supported_features |= VacuumEntityFeature.LOCATE
+        self._supported_features |= VacuumEntityFeature.SEND_COMMAND
         self._miio_props = [
             'run_state', 'mode', 'err_state', 'battary_life', 'box_type', 'mop_type', 's_time', 's_area',
             'suction_grade', 'water_grade', 'remember_map', 'has_map', 'is_mop', 'has_newmap',
