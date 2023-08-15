@@ -209,6 +209,38 @@
                 }
             }
         },
+        "fan": {
+            "fan": {
+                "state_attributes": {
+                    "preset_modes": {
+                        "state": {
+                            "Basic Wind": "标准风",
+                            "Straight Wind": "直吹风",
+                            "Natural Wind": "自然风",
+                            "Circular Wind": "循环风",
+                            "Baby": "婴儿",
+                            "Sleep": "睡眠",
+                            "Smart": "智能"
+                        }
+                    }
+                }
+            }
+        },
+        "light": {
+            "light": {
+                "state_attributes": {
+                    "effect_list": {
+                        "state": {
+                            "Day": "日光",
+                            "Night": "夜光",
+                            "Color": "彩光",
+                            "Scene": "场景",
+                            "Music": "音乐"
+                        }
+                    }
+                }
+            }
+        },
         "select": {
             "fan_control.fan_level": {
                 "state": {
