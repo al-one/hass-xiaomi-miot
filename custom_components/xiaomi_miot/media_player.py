@@ -495,7 +495,8 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             'message': json.dumps({'url': media_id, 'type': 1, 'media': 'app_ios'}),
         }
         rdt = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
-        self.logger.info('%s: Play media: %s', self.name_model, [dat, rdt])
+        logger = rdt.get('code') and self.logger.warning or self.logger.info
+        logger('%s: Play media: %s', self.name_model, [dat, rdt])
 
     def intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         if srv := self._intelligent_speaker:
