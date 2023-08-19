@@ -487,12 +487,17 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         if not self.xiaoai_device:
             return
         aid = self.xiaoai_device.get('deviceID')
+        typ = {
+            'music': 1,
+            'voice': 1,
+            'tts': 1,
+        }.get(media_type, media_type)
         api = 'https://api2.mina.mi.com/remote/ubus'
         dat = {
             'deviceId': aid,
             'path': 'mediaplayer',
             'method': 'player_play_url',
-            'message': json.dumps({'url': media_id, 'type': 1, 'media': 'app_ios'}),
+            'message': json.dumps({'url': media_id, 'type': typ, 'media': 'app_ios'}),
         }
         rdt = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
         logger = rdt.get('code') and self.logger.warning or self.logger.info
