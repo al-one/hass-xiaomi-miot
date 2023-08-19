@@ -455,10 +455,10 @@ DEVICE_CUSTOMIZES = {
     },
     'hfjh.fishbowl.m100': {
         'light_services': 'light',
-        'sensor_properties': 'water_pump_status,filter_life_level,alarm.alarm',
+        'sensor_properties': 'temperature,water_pump_status,filter_life_level,alarm.alarm',
         'switch_properties': 'water_pump,feed_protect_on,no_disturb,light_status_on,pump_status_on,temperature_warn_on',
         'select_properties': 'pump_flux,light_status_mode,light_status_flow,pump_status_flux,flow_speed_level',
-        'number_properties': 'temperature,repeat_cycle,light_status_bright,temperature_warn_min,temperature_warn_max',
+        'number_properties': 'repeat_cycle,light_status_bright,temperature_warn_min,temperature_warn_max',
     },
     'hmpace.bracelet.*': {
         'sensor_properties': 'current_step_count,current_distance',
