@@ -16,7 +16,7 @@ send_command:
         text:
     params:
       description: Params for the method.
-      example: ["on"]
+      example: ['on']
       required: true
       selector:
         object:
@@ -212,24 +212,6 @@ xiaoai_wakeup:
       example: false
       selector:
         boolean:
-
-intelligent_speaker_play_by_url:
-  description: Play music by url on Xiaoai speaker / 让小爱音箱播放链接中的歌曲
-  fields:
-    entity_id:
-      description: ID of the xiaoai entity.
-      example: media_player.xiaoai_x08c
-      required: true
-      selector:
-        entity:
-          integration: xiaomi_miot
-          domain: media_player
-    url:
-      description: URL of music.
-      example: https://example.com/example.mp3
-      required: true
-      selector:
-        text:
 
 get_device_data:
   description: Get xiaomi device data from cloud.
