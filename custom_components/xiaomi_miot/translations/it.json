@@ -206,5 +206,55 @@
                 }
             }
         }
+    },
+    "services": {
+        "send_command": {
+            "name": "Invia comando",
+            "description": "Invia comando miio"
+        },
+        "get_properties": {
+            "name": "Ottieni proprietà",
+            "description": "Ottieni proprietà miot"
+        },
+        "set_property": {
+            "name": "Imposta proprietà",
+            "description": "Imposta proprietà miot"
+        },
+        "set_miot_property": {
+            "name": "Imposta proprietà miot",
+            "description": "Imposta proprietà miot tramite siid/piid"
+        },
+        "call_action": {
+            "name": "Chiamata azione",
+            "description": "Chiama azione miot"
+        },
+        "intelligent_speaker": {
+            "name": "Altoparlante intelligente",
+            "description": "Altoparlante intelligente per XiaoAi"
+        },
+        "xiaoai_wakeup": {
+            "name": "Sveglia XiaoAi",
+            "description": "Sveglia l'altoparlante XiaoAi"
+        },
+        "get_device_data": {
+            "name": "Ottieni dati del dispositivo",
+            "description": "Ottieni dati del dispositivo Xiaomi dal cloud"
+        },
+        "renew_devices": {
+            "name": "Rinnova dispositivi",
+            "description": "Rinnova dispositivi Xiaomi in cache"
+        },
+        "get_token": {
+            "name": "Ottieni token",
+            "description": "Ottieni token del dispositivo Xiaomi"
+        },
+        "get_bindkey": {
+            "name": "Ottieni bindkey",
+            "description": "Ottieni bindkey per dispositivo BLE"
+        },
+        "request_xiaomi_api": {
+            "name": "Richiedi API Xiaomi",
+            "description": "Richiedi API Xiaomi"
+        }
     }
 }
