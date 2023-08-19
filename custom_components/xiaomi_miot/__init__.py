@@ -464,6 +464,7 @@ async def async_setup_component_services(hass):
         cnt = 0
         lst = []
         dls = {}
+        beaconkey = None
         for cld in MiotCloud.all_clouds(hass):
             dvs = await cld.async_get_devices() or []
             for d in dvs:
@@ -476,13 +477,17 @@ async def async_setup_component_services(hass):
                 dip = d.get('localip') or ''
                 dmd = d.get('model') or ''
                 if kwd in dnm.lower() or kwd == dip or kwd in dmd:
-                    lst.append({
+                    row = {
                         'did': did,
                         CONF_NAME: dnm,
                         CONF_HOST: dip,
                         CONF_MODEL: dmd,
                         CONF_TOKEN: d.get('token'),
-                    })
+                    }
+                    if not beaconkey and 'blt.' in did:
+                        beaconkey = await cld.async_get_beaconkey(did)
+                        row['beaconkey'] = (beaconkey or {}).get('beaconkey')
+                    lst.append(row)
                 dls[did] = 1
                 cnt += 1
         if not lst:
@@ -2149,8 +2154,7 @@ class MiotEntity(MiioEntity):
         mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
-        dat = {'did': did or self.miot_did, 'pdid': 1}
-        result = await mic.async_request_api('v2/device/blt_get_beaconkey', dat)
+        result = await mic.async_get_beaconkey(did or self.miot_did)
         persistent_notification.async_create(
             self.hass,
             f'{result}',
@@ -2161,7 +2165,7 @@ class MiotEntity(MiioEntity):
             raise Warning(f'Xiaomi device bindkey for {self.name}: {result}')
         else:
             _LOGGER.warning('%s: Xiaomi device bindkey/beaconkey: %s', self.name_model, result)
-        return (result or {}).get('beaconkey')
+        return result
 
     async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=True, **kwargs):
         mic = self.xiaomi_cloud
