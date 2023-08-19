@@ -68,14 +68,6 @@ SERVICE_TO_METHOD = {
             },
         ),
     },
-    'intelligent_speaker_play_by_url': {
-        'method': 'async_intelligent_speaker_play_by_url',
-        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
-            {
-                vol.Required('url', default=''): vol.Any(cv.string, None),
-            },
-        ),
-    },
 }
 
 
@@ -382,22 +374,6 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 break
         return self.xiaoai_device
 
-    async def async_intelligent_speaker_play_by_url(self, url):
-        if not self.xiaoai_device:
-            return
-        aid = self.xiaoai_device.get('deviceID')
-        self.update_attrs({
-            'xiaoai_id': aid,
-        })
-        api = 'https://api2.mina.mi.com/remote/ubus'
-        dat = {
-            'deviceId': aid,
-            'path': 'mediaplayer',
-            'method': 'player_play_url',
-            'message': json.dumps({"url": url, "type": 1, "media": "app_ios"}),
-        }
-        return await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
-
     async def async_update_play_status(self, now=None):
         if not self.xiaoai_device:
             return
@@ -505,6 +481,20 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         if self._act_turn_off:
             return self.call_action(self._act_turn_off)
         return False
+
+    async def async_play_media(self, media_type, media_id, **kwargs):
+        if not self.xiaoai_device:
+            return
+        aid = self.xiaoai_device.get('deviceID')
+        api = 'https://api2.mina.mi.com/remote/ubus'
+        dat = {
+            'deviceId': aid,
+            'path': 'mediaplayer',
+            'method': 'player_play_url',
+            'message': json.dumps({'url': media_id, 'type': 1, 'media': 'app_ios'}),
+        }
+        rdt = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
+        self.logger.info('%s: Play media: %s', self.name_model, [dat, rdt])
 
     def intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         if srv := self._intelligent_speaker:
@@ -765,7 +755,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 return self.call_action(act, ['熄屏'])
         return super().turn_off()
 
-    def play_media(self, media_type, media_id, **kwargs):
+    async def async_play_media(self, media_type, media_id, **kwargs):
         """Play a piece of media."""
         tim = str(int(time.time() * 1000))
         pms = {
@@ -776,9 +766,8 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             'ts': tim,
             'sign': hashlib.md5(f'mitvsignsalt{media_id}{self._api_key}{tim[-5:]}'.encode()).hexdigest(),
         }
-        rdt = self.request_mitv_api('controller', params=pms)
+        rdt = await self.async_request_mitv_api('controller', params=pms)
         self.logger.info('%s: Play media: %s', self.name_model, [pms, rdt])
-        return not not rdt
 
     @property
     def source(self):
