@@ -329,6 +329,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         self.xiaoai_device = None
         if self._intelligent_speaker:
             self._state_attrs[ATTR_ATTRIBUTION] = 'Support TTS through service'
+        self._supported_features |= MediaPlayerEntityFeature.PLAY_MEDIA
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
