@@ -740,6 +740,18 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'feed_today,desiccant_left_time,cleantime',
         'switch_properties': 'feedstatus',
     },
+    'mmgg.litter_box.lbc1': {
+        'binary_sensor_properties': 'warehouse_uninstall,cover_open,roller_uninstall,device_dump,'
+                                    'cat_enter_state,cat_near_state,enter_time_too_long',
+        'sensor_properties': 'usage_count,trash_can_status,cat_weight,toilet_time,cat_id,cleaning_times,'
+                             'cat_litter_left_stat,cat_litter_left_level,warehouse_overweight,cat_toilet_flag,'
+                             'deodorant_left_time,roller_overload_flag',
+        'switch_properties': 'auto_cleanup,stool_mode,auto_screen_off,no_disturb',
+        'select_properties': 'cat_litter_type',
+        'number_properties': 'auto_clean_interval',
+        'button_actions': 'start_clean,weight_calibrate,start_smooth_litter,start_dump_litter,cancer_clean,'
+                          'reset_deodorant_life',
+    },
     'mmgg.pet_waterer.wi11': {
         'binary_sensor_properties': 'no_water_flag,pump_block_flag,lid_up_flag',
         'button_actions': 'reset_filter_life,reset_clean_time',
@@ -1353,6 +1365,11 @@ DEVICE_CUSTOMIZES = {
     '*.light.*': {
         'number_properties': 'off_delay_time',
         'switch_properties': 'init_power_opt,fan_init_power_opt',
+    },
+    '*.litter_box.*': {
+        'sensor_properties': 'usage_count,trash_can_status',
+        'switch_properties': 'auto_cleanup',
+        'button_actions': 'start_clean',
     },
     '*.lock.*': {
         'sensor_attributes': 'door_state,lock_action,lock_key_id,timestamp',
