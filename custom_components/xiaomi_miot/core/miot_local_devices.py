@@ -359,6 +359,7 @@ MIOT_LOCAL_MODELS = [
     'qdhkl.gateway.sm',
     'qmdq88.dishwasher.p116',
     'qmdq88.dishwasher.s1',
+    'qmi.plug.tw02',
     'qmi.plug.2a1c1',
     'qmi.plug.psv1',
     'qshui.blanket.d1',
