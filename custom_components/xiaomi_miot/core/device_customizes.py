@@ -823,6 +823,41 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 8,
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:qdhkl-b23:2',
     },
+    'qmi.plug.tw02': {
+        'main_miot_services': 'switch-2',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'sensor_properties': 'switch.temperature',
+        'stat_power_cost_key': '4.1',
+    },
+    'qmi.plug.tw02:electric_power': {
+        'unit_of_measurement': 'W',
+    },
+    'qmi.plug.tw02:electric_current': {
+        'value_ratio': 0.001,
+        'unit_of_measurement': 'A',
+    },
+    'qmi.plug.tw02:voltage': {
+        'value_ratio': 1,
+        'unit_of_measurement': 'V',
+    },
+    'qmi.plug.tw02:power_consumption': {
+        'value_ratio': 1,
+        'state_class': "total_increasing",
+        'device_class': "energy",
+        'unit_of_measurement': "kWh",
+    },
+    'qmi.plug.tw02:power_cost_today': {
+        'value_ratio': 1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'qmi.plug.tw02:power_cost_month': {
+        'value_ratio': 1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },    
     'qmi.plug.2a1c1': {
         'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
