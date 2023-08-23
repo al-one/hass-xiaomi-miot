@@ -9,15 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout the repository
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.5.3
+
       - name: 🏃 Hassfest validation
         uses: home-assistant/actions/hassfest@master
 
   validate-hacs:
     runs-on: ubuntu-latest
+    name: With HACS Action
     steps:
       - name: 📥 Checkout the repository
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.5.3
+
       - name: 🏃 HACS validation
         uses: hacs/action@main
         with:
@@ -25,13 +28,14 @@ jobs:
           ignore: hacs
 
   validate-homeassistant:
+    name: With Home Assistant
     strategy:
       matrix:
-        channel: [stable, beta, dev]
+        channel: [stable, beta, "2022.11.0"]
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout the repository
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.5.3
 
       - name: 🛠️ Home Assistant configuration
         run: |
