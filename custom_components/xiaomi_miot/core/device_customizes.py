@@ -861,6 +861,7 @@ DEVICE_CUSTOMIZES = {
     'qmi.plug.2a1c1': {
         'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
+        'sensor_properties': 'switch.temperature',
         'stat_power_cost_key': '3.1',
     },
     'qmi.plug.2a1c1:electric_power': {
