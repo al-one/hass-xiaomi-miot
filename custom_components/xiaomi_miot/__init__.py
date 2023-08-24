@@ -2283,7 +2283,7 @@ class BaseSubEntity(BaseEntity):
         self._unique_id = f'{parent.unique_id}-{attr}'
         self._name = f'{parent.name} {attr}'
         self._state = STATE_UNKNOWN
-        self._attr_state = STATE_UNKNOWN
+        self._attr_state = None
         self._available = False
         self._parent = parent
         self._attr = attr

@@ -249,7 +249,7 @@ class MiotCloud(micloud.MiCloud):
                     }
         return rdt
 
-    async def async_get_devices(self, renew=False):
+    async def async_get_devices(self, renew=False, return_all=False):
         if not self.user_id:
             return None
         fnm = f'xiaomi_miot/devices-{self.user_id}-{self.default_server}.json'
@@ -289,6 +289,8 @@ class MiotCloud(micloud.MiCloud):
                     raise exc
                 dvs = cds
                 _LOGGER.warning('Get xiaomi devices filed: %s, use cached %s devices.', exc, len(cds))
+        if return_all:
+            return dat
         return dvs
 
     async def async_renew_devices(self):
@@ -324,6 +326,10 @@ class MiotCloud(micloud.MiCloud):
             if k:
                 dat[k] = d
         return dat
+
+    async def async_get_homerooms(self, renew=False):
+        dat = await self.async_get_devices(renew=renew, return_all=True) or {}
+        return dat.get('homes') or []
 
     async def async_get_beaconkey(self, did):
         dat = {'did': did or self.miot_did, 'pdid': 1}
