@@ -1434,13 +1434,25 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.bhf_light.v2': {
+        'miio_props': ['light_mode', 'nl_br'],
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.2.2': {
+                'prop': 'bright',
+                'setter': True,
+                'set_template': '{{ [value,"smooth",500] }}',
+                'template': '{{ value if props.light_mode != "nightlight" else props.nl_br|default(value)|int }}',
+            },
             'prop.2.101': {
                 'prop': 'delayoff',
                 'setter': 'set_scene',
                 'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
+            },
+            'prop.2.103': {
+                'prop': 'light_mode',
+                'setter': 'set_power',
+                'set_template': '{{ ["on","smooth",500,value] }}',
+                'template': '{{ 5 if props.light_mode == "nightlight" else 1 }}',
             },
             'prop.3.1': {
                 'prop': 'bh_mode',
