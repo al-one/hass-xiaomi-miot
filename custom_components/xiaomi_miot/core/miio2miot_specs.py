@@ -1732,9 +1732,15 @@ MIIO_TO_MIOT_SPECS = {
     },
     'yeelink.light.ceiling6': {
         'extend_model': 'yeelink.mirror.bm1',
+        'miio_props': ['nl_br'],
         'miio_specs': {
+            'prop.2.2': {
+                'prop': 'bright',
+                'setter': True,
+                'template': '{{ value if props.nl_br|int == 0 else props.nl_br|default(value)|int }}',
+            },
             'prop.2.4': {
-                'prop': 'nl_br',
+                'prop': 'active_mode',
                 'setter': 'set_ps',
                 'template': '{{ 2 if value|int else 1 }}',
                 'set_template': '{{ ["nightlight","on" if value == 2 else "off"] }}',
