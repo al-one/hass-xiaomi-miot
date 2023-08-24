@@ -260,6 +260,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
 
     async def async_update(self):
         await super().async_update()
+
         if not self._available:
             return
         if self._miio2miot:
@@ -272,7 +273,14 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
             adt['clean_time'] = round(props['clean_time'] / 60, 1)
         if adt:
             await self.async_update_attrs(adt)
-
+        pnm = 'vacuum_map'
+        add_camera = self._add_entities.get('camera')
+        if pnm in self._subs:
+            self._subs[pnm].update()
+        elif add_camera:
+            from .camera import XiaomiMapCameraEntity
+            self._subs[pnm] = XiaomiMapCameraEntity(self)
+            add_camera([self._subs[pnm]], update_before_add=True)
     @property
     def miio_props(self):
         return self._state_attrs.get('props') or {}
@@ -334,6 +342,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
         await super().async_update()
         if not self._available:
             return
+            
         if self._miio2miot:
             await self.hass.async_add_executor_job(partial(self.update_miio_props, self._miio_props))
         props = self._state_attrs or {}
@@ -344,6 +353,15 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
             adt['clean_time'] = props['miio.s_time']
         if adt:
             await self.async_update_attrs(adt)
+            
+        add_camera = self._add_entities.get('camera')
+        pnm = 'vacuum_map'
+        if pnm in self._subs:
+            self._subs[pnm].update()
+        elif add_camera:
+            from .camera import ViomiMapCameraEntity
+            self._subs[pnm] = ViomiMapCameraEntity(self)
+            add_camera([self._subs[pnm]], update_before_add=True)
 
     def locate(self, **kwargs):
         """Locate the vacuum cleaner."""
