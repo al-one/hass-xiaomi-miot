@@ -1732,25 +1732,7 @@ MIIO_TO_MIOT_SPECS = {
     },
     'yeelink.light.ceiling6': {
         'extend_model': 'yeelink.mirror.bm1',
-        'miio_specs': {
-            'prop.2.4': {
-                'prop': 'nl_br',
-                'setter': 'set_ps',
-                'template': '{{ 2 if value|int else 1 }}',
-                'set_template': '{{ ["nightlight","on" if value == 2 else "off"] }}',
-            },
-        },
-    },
-    'yeelink.light.ceiling7': 'yeelink.light.ceiling6',
-    'yeelink.light.ceiling8': {
-        'extend_model': 'yeelink.mirror.bm1',
-        'miio_commands': [
-            {
-                'method': 'get_prop',
-                'params': ['nl_br'],
-                'values': True,
-            },
-        ],
+        'miio_props': ['nl_br'],
         'miio_specs': {
             'prop.2.2': {
                 'prop': 'bright',
@@ -1765,6 +1747,8 @@ MIIO_TO_MIOT_SPECS = {
             },
         },
     },
+    'yeelink.light.ceiling7': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling8': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling9': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling10': {
         'extend_model': 'yeelink.light.ceiling6',
@@ -1776,9 +1760,9 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.ceiling11': 'yeelink.light.ceiling6',
-    'yeelink.light.ceiling12': 'yeelink.light.ceiling8',
-    'yeelink.light.ceiling13': 'yeelink.light.ceiling8',
-    'yeelink.light.ceiling14': 'yeelink.light.ceiling8',
+    'yeelink.light.ceiling12': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling13': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling14': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling15': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling16': {
         'extend_model': 'yeelink.light.ceiling2',
