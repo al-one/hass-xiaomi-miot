@@ -1441,7 +1441,7 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'bright',
                 'setter': True,
                 'set_template': '{{ [value,"smooth",500] }}',
-                'template': '{{ value if props.light_mode == "daylight" else props.nl_br|default(value)|int }}',
+                'template': '{{ value if props.light_mode != "nightlight" else props.nl_br|default(value)|int }}',
             },
             'prop.2.101': {
                 'prop': 'delayoff',
@@ -1451,7 +1451,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.103': {
                 'prop': 'light_mode',
                 'setter': 'set_power',
-                'set_template': '{{ ["on", "smooth", 500, 5 if value == 5 else 1 ] }}',
+                'set_template': '{{ ["on","smooth",500,value] }}',
+                'template': '{{ 5 if props.light_mode == "nightlight" else 1 }}',
             },
             'prop.3.1': {
                 'prop': 'bh_mode',
