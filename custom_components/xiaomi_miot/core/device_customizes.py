@@ -386,6 +386,10 @@ DEVICE_CUSTOMIZES = {
     'dmaker.fan.p33': {
         'percentage_property': 'prop.2.6',
     },
+    'dmaker.fan.p45': {
+        'percentage_property': 'speed_level',
+        'button_actions': 'turn_left,turn_right',
+    },
     'dmaker.fan.*': {
         'switch_properties': 'alarm,horizontal_swing,vertical_swing',
         'number_select_properties': 'horizontal_swing_included_angle,horizontal_angle,'
