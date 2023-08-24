@@ -467,6 +467,17 @@ DEVICE_CUSTOMIZES = {
     'hmpace.bracelet.*': {
         'sensor_properties': 'current_step_count,current_distance',
     },
+    'htcx.alarm.dt210': {
+        'state_property': 'comm_fault',
+        'button_actions': 'reset,clear_e_quantity',
+        'binary_sensor_properties': 'over_voltage_alarm,under_voltage_alarm,over_current_alarm,leakage_alarm,'
+                                    'live_line_ot_alarm,null_line_ot_alarm',
+        'sensor_properties': 'active_power,electric_quantity,voltage,electricity,residual_current,'
+                             'live_line_temp,null_line_temp,line_frequency,phase_angle',
+        'number_properties': 'overvolt_threshold,undervol_threshold,over_current_thresh,overcurrent_delay,'
+                             'residual_current_thr,temp_threshold,data_cycle',
+        'switch_properties': 'alarm_shielding,silent_mode,line_exchange',
+    },
     'hyd.airer.lyjpro': {
         'cover_position_mapping': {},
     },
