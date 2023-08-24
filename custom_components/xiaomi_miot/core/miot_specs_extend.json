@@ -1084,8 +1084,8 @@
           "format": "uint8",
           "access": ["read", "write"],
           "value-list": [
-            {"value": 1, "description": "daylight"},
-            {"value": 5, "description": "nightlight"}
+            {"value": 1, "description": "Day"},
+            {"value": 5, "description": "Night"}
           ]
         }
       ]
