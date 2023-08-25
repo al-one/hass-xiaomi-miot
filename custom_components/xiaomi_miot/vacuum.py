@@ -297,9 +297,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
                         cloud_rooms[room['id']] = room
                 for r in rooms:
                     room = cloud_rooms.get(r[1])
-                    if not room:
-                        continue
-                    r.append(room['name'])
+                    r.append(room['name'] if room else r[0])
                 self._state_attrs['room_mapping'] = rooms
                 return rooms
         except (DeviceException, Exception):
