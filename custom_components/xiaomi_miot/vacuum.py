@@ -251,21 +251,22 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        rooms = await self.get_room_mapping()
+        rooms = await self.get_room_mapping() or []
 
-        if add_selects := self._add_entities.get('select'):
-            from .select import SelectSubEntity
-            sub = 'segments'
-            options = [
-                r[2]
-                for r in rooms
-                if len(r) >= 3
-            ]
-            self._subs[sub] = SelectSubEntity(self, sub, option={
-                'options': options,
-                'select_option': self.start_clean_segment,
-            })
-            add_selects([self._subs[sub]], update_before_add=False)
+        if add_buttons := self._add_entities.get('button'):
+            from .button import ButtonSubEntity
+            for r in rooms:
+                if len(r) < 3:
+                    continue
+                rid = r[0]
+                sub = f'segment_{rid}'
+                self._subs[sub] = ButtonSubEntity(self, sub, option={
+                    'name': f'{self.device_name} {r[2]}',
+                    'press_action': self.start_clean_segment,
+                    'press_kwargs': {'segment': rid},
+                    'state_attrs': {'room_id': r[1]},
+                })
+                add_buttons([self._subs[sub]], update_before_add=False)
 
 
     async def async_update(self):
@@ -355,8 +356,9 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         if not segments:
             self.return_to_base()
             return False
-        self.pause()
-        time.sleep(0.5)
+        if self.state == STATE_CLEANING:
+            self.pause()
+            time.sleep(1)
         return self.send_miio_command('app_segment_clean', [{'segments': segments, 'repeat': repeat}])
 
 
