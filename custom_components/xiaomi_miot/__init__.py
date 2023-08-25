@@ -464,7 +464,7 @@ async def async_setup_component_services(hass):
         cnt = 0
         lst = []
         dls = {}
-        beaconkey = None
+        beaconkey = miio_info = None
         for cld in MiotCloud.all_clouds(hass):
             dvs = await cld.async_get_devices() or []
             for d in dvs:
@@ -476,17 +476,29 @@ async def async_setup_component_services(hass):
                 dnm = f"{d.get('name') or ''}"
                 dip = d.get('localip') or ''
                 dmd = d.get('model') or ''
-                if kwd in dnm.lower() or kwd == dip or kwd in dmd:
+                tok = d.get('token') or ''
+                if kwd in [did, dip] or kwd in dnm.lower() or kwd in dmd:
                     row = {
                         'did': did,
                         CONF_NAME: dnm,
                         CONF_HOST: dip,
                         CONF_MODEL: dmd,
-                        CONF_TOKEN: d.get('token'),
+                        CONF_TOKEN: tok,
                     }
                     if not beaconkey and 'blt.' in did:
                         beaconkey = await cld.async_get_beaconkey(did)
                         row['beaconkey'] = (beaconkey or {}).get('beaconkey')
+                        row.pop(CONF_TOKEN, None)
+                    elif dip and tok:
+                        row['miio_cmd'] = f'miiocli device --ip {dip} --token {tok} info'
+                        if not miio_info:
+                            try:
+                                device = MiioDevice(dip, tok)
+                                miio_info = await hass.async_add_executor_job(device.info)
+                                miio_info = dict(miio_info.raw or {})
+                            except DeviceException as exc:
+                                miio_info = {'error': str(exc)}
+                            row['miio_info'] = miio_info
                     lst.append(row)
                 dls[did] = 1
                 cnt += 1
