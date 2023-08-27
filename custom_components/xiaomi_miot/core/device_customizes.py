@@ -76,6 +76,11 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'voltage',
         'unit_of_measurement': 'V',
     },
+    'chuangmi.camera.051a01': {
+        'switch_properties': 'on,time_watermark,motion_tracking,motion_detection,wdr_mode,glimmer_full_color,'
+                             'face_switch,babycry_switch,pet_switch,gesture_switch,cruise_switch,smart_care_switch,'
+                             'key_call_switch',
+    },
     'chuangmi.camera.v6': {
         'use_alarm_playlist': True,
     },
@@ -1363,6 +1368,10 @@ DEVICE_CUSTOMIZES = {
     },
     '*.camera.*': {
         'miot_cloud_action': True,
+        'sensor_properties': 'memory_card_management.status,storage_free_space,storage_used_space',
+        'select_properties': 'night_shot,recording_mode,detection_sensitivity',
+        'switch_properties': 'on,time_watermark,motion_tracking,motion_detection,wdr_mode,glimmer_full_color',
+        'number_properties': 'image_rollover,alarm_interval',
     },
     '*.cateye.*': {
         'use_motion_stream': True,
