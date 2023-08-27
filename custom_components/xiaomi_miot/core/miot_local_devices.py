@@ -246,6 +246,7 @@ MIOT_LOCAL_MODELS = [
     'isa.light.camsl1',
     'isleep.blanket.hs2205',
     'izq.sensor_occupy.solo',
+    'izq.sensor_occupy.trio',
     'isleep.blanket.hs2001',
     'isleep.blanket.hs2205',
     'julun.switch.jlsw01',
