@@ -1441,7 +1441,8 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'bright',
                 'setter': True,
                 'set_template': '{{ [value,"smooth",500] }}',
-                'template': '{{ value if props.light_mode != "nightlight" else props.nl_br|default(value)|int }}',
+                'template': '{% set nlb = props.nl_br|default(0)|int(0) %}'
+                            '{{ nlb if props.light_mode == "nightlight" else value }}',
             },
             'prop.2.101': {
                 'prop': 'delayoff',
@@ -1749,7 +1750,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.2': {
                 'prop': 'bright',
                 'setter': True,
-                'template': '{{ value if props.nl_br|int == 0 else props.nl_br|default(value)|int }}',
+                'template': '{% set nlb = props.nl_br|default(0)|int(0) %}{{ nlb if nlb else value }}',
             },
             'prop.2.4': {
                 'prop': 'active_mode',
@@ -1823,7 +1824,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.3': {
                 'prop': 'bright',
                 'setter': True,
-                'template': '{{ value if props.active_mode|int == 0 else props.nl_br|default(value)|int }}',
+                'template': '{% set nlb = props.nl_br|default(0)|int(0) %}'
+                            '{{ nlb if props.active_mode|int(0) == 1 else value }}',
             },
             'prop.2.5': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
         },
