@@ -1,5 +1,5 @@
-from __future__ import annotations
 from enum import Enum
+from typing import Union
 
 from .device_customizes import DEVICE_CUSTOMIZES  # noqa
 from .miot_local_devices import MIOT_LOCAL_MODELS  # noqa
@@ -94,4 +94,4 @@ try:
     from homeassistant.core import ServiceResponse, SupportsResponse
 except (ModuleNotFoundError, ImportError):
     SupportsResponse = None
-    ServiceResponse = JsonObjectType | None
+    ServiceResponse = Union[dict, None]
