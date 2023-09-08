@@ -746,6 +746,7 @@ class MiotProperty(MiotSpecInstance):
             'kelvin': TEMP_KELVIN,
             'percentage': PERCENTAGE,
             'lux': LIGHT_LUX,
+            'watt': POWER_WATT,
             'μg/m3': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
             'mg/m3': CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
             'p/m3': CONCENTRATION_PARTS_PER_CUBIC_METER,
