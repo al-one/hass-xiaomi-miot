@@ -299,6 +299,27 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
+    'cuco.plug.wp5m': {
+        'main_miot_services': 'switch-2',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '3.1',
+        'chunk_properties': 1,
+    },
+    'cuco.plug.wp5m:electric_power': {
+        'unit_of_measurement': 'W',
+    },
+    'cuco.plug.wp5m:power_cost_today': {
+        'value_ratio': 0.01,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'cuco.plug.wp5m:power_cost_month': {
+        'value_ratio': 0.01,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },    
     'cuco.plug.*': {
         'main_miot_services': 'switch-2',
     },
