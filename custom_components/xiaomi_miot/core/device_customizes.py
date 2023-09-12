@@ -879,6 +879,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'sensor_properties': 'switch.temperature',
         'stat_power_cost_key': '4.1',
+        'exclude_miot_services': 'simulation',
     },
     'qmi.plug.tw02:electric_power': {
         'unit_of_measurement': 'W',
