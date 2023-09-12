@@ -1098,6 +1098,10 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'iot_linkage,machine_state,screen_show',
         'exclude_miot_properties': 'enhance.timer,humidity_range,filter_core_rest,sleep_diy_sign',
     },
+    'xiaomi.aircondition.*': {
+        'exclude_miot_services': 'iot_linkage,machine_state,flag_bit',
+        'exclude_miot_properties': 'enhance.timer',
+    },
     'xiaomi.tv.*': {
         'auto_cloud': True,
         'switch_properties': 'is_on',
