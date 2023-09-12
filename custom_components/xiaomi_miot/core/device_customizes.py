@@ -1144,6 +1144,7 @@ DEVICE_CUSTOMIZES = {
     'yeelink.bhf_light.v10': {
         'chunk_properties': 1,
         'exclude_miot_services': 'yl_bath_heater',
+        'exclude_miot_properties': 'ptc_bath_heater.mode',
     },
     'yeelink.bhf_light.v11': {
         'exclude_miot_services': 'yl_bath_heater',
