@@ -106,6 +106,7 @@ MIOT_LOCAL_MODELS = [
     'cuco.plug.p8amd',
     'cuco.plug.sp5',
     'cuco.plug.v3',
+    'cuco.plug.wp5m',
     'cykj.hood.jyj22',
     'daolai.light.xd340',
     'dayang.mosq.qqtq4',
