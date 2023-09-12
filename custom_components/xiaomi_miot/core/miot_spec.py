@@ -747,6 +747,7 @@ class MiotProperty(MiotSpecInstance):
             'percentage': PERCENTAGE,
             'lux': LIGHT_LUX,
             'watt': POWER_WATT,
+            'pascal': PRESSURE_PA,
             'μg/m3': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
             'mg/m3': CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
             'p/m3': CONCENTRATION_PARTS_PER_CUBIC_METER,
@@ -755,16 +756,18 @@ class MiotProperty(MiotSpecInstance):
             'current_step_count': 'steps',
             'heart_rate': 'bpm',
             'power_consumption': ENERGY_WATT_HOUR,
+            'electric_current': ELECTRIC_CURRENT_AMPERE,
+            'voltage': ELECTRIC_POTENTIAL_VOLT,
             'pm2_5_density': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
             'tds_in': CONCENTRATION_PARTS_PER_MILLION,
             'tds_out': CONCENTRATION_PARTS_PER_MILLION,
         }
-        if name in names:
+        if unit in aliases:
+            unit = aliases[unit]
+        elif name in names:
             unit = names[name]
         elif not unit or unit in ['none', 'null']:
             unit = None
-        elif unit in aliases:
-            unit = aliases[unit]
         return unit
 
     @property
