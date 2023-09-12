@@ -1368,6 +1368,10 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'link',
         'light_services': 'light',
     },
+    'cuco.plug.p8amd': {
+        'switch_properties': 'usb_switch.on,light,light_mode,switch',
+        'main_miot_services': 'switch-2',
+    },
 
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
