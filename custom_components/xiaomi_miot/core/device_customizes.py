@@ -406,8 +406,8 @@ DEVICE_CUSTOMIZES = {
         'percentage_property': 'prop.2.6',
     },
     'dmaker.fan.p28': {
-        'percentage_property': 'prop.3.1',
-        'button_properties': 'swing_updown_manual,swing_lr_manual',
+        'percentage_property': 'speed_level',
+        'button_properties': 'swing_updown_manual,swing_lr_manual,back_to_center',
     },
     'dmaker.fan.p33': {
         'percentage_property': 'prop.2.6',

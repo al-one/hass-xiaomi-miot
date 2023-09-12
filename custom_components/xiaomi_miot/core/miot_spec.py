@@ -726,6 +726,10 @@ class MiotProperty(MiotSpecInstance):
         return None
 
     @property
+    def is_bool(self):
+        return self.format == 'bool'
+
+    @property
     def is_integer(self):
         if self.format in [
             'int8', 'int16', 'int32', 'int64',
