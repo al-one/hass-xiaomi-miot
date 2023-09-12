@@ -493,9 +493,10 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
 
     @property
     def native_value(self):
-        key = f'{self._miot_property.full_name}_desc'
-        if key in self._state_attrs:
-            return f'{self._state_attrs[key]}'.lower()
+        if not self._attr_native_unit_of_measurement:
+            key = f'{self._miot_property.full_name}_desc'
+            if key in self._state_attrs:
+                return f'{self._state_attrs[key]}'.lower()
         val = self._miot_property.from_dict(self._state_attrs)
         if val is not None:
             svd = self.custom_config_number('value_ratio') or 0
