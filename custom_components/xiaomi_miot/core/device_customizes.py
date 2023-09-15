@@ -253,7 +253,9 @@ DEVICE_CUSTOMIZES = {
     },
     'cuco.plug.cp5prd': {
         'main_miot_services': 'switch-2',
-        'exclude_miot_services': 'power_consumption,device_setting,use_ele_alert',
+        'exclude_miot_services': 'device_setting,use_ele_alert',
+        'exclude_miot_properties': 'power_consumption,electric_current,voltage,temperature_high_ai,temperature_high_ci,'
+                                   'indicator_light.mode,start_time,end_time,data_values',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '10.1',
     },
