@@ -834,6 +834,13 @@ DEVICE_CUSTOMIZES = {
         'miio_event_human_visit_details_template': 'mxiang_cateye_human_visit_details',
     },
 
+    'nineam.desk.hoo01': {
+        'state_property': 'standing_desk.moving_status',
+        'sensor_properties': 'current_height,fault',
+        'switch_properties': 'on,lock_status',
+        'select_properties': 'mode,desk_control',
+        'number_properties': 'target_height,stand_height,sit_height,interval',
+    },
     'novo.curtain.n21': {
         'chunk_properties': 1,
         'exclude_miot_properties': 'fault',

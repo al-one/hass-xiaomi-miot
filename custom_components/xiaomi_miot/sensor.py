@@ -111,8 +111,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             elif srv.name in ['illumination_sensor']:
                 if spec.name not in ['illumination_sensor']:
                     continue
-            elif srv.name in ['pet_feeder']:
+            elif srv.name in ['pet_feeder', 'table']:
                 # no readable properties in mmgg.feeder.petfeeder
+                # nineam.desk.hoo01
                 pass
             elif not srv.mapping():
                 continue
