@@ -268,7 +268,21 @@
     "services": {
         "send_command": {
             "name": "Send command",
-            "description": "Send miio command"
+            "description": "Send miio command",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID"
+                },
+                "method": {
+                    "name": "Miio method"
+                },
+                "params": {
+                    "name": "Miio params"
+                },
+                "throw": {
+                    "name": "Throw result"
+                }
+            }
         },
         "get_properties": {
             "name": "Get properties",
