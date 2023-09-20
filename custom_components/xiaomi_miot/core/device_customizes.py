@@ -20,6 +20,11 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on',
         'button_properties': 'motor_control',
     },
+    'aimore.light.cw3201': {
+        'switch_properties': 'flex_switch',
+        'select_properties': 'default_power_on_state',
+        'number_properties': 'jianbian,countdown',
+    },
     'ainice.motion.bt': {
         'miot_type': 'urn:miot-spec-v2:device:motion-sensor:0000A014:ainice-bt:2',
         'state_property': 'motion_sensor.motion_status',
