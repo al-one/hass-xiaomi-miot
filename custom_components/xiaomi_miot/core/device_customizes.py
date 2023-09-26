@@ -406,6 +406,11 @@ DEVICE_CUSTOMIZES = {
     'dmaker.fan.p5': {
         'percentage_property': 'prop.2.6',
     },
+    'dmaker.fan.p5c': {
+        'percentage_property': 'speed_level',
+        'button_actions': 'turn_left,turn_right,toggle_mode,loop_gear',
+        'number_properties': 'off_delay_time',
+    },
     'dmaker.fan.p11': {
         'percentage_property': 'prop.2.6',  # issues/838
     },
