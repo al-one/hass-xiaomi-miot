@@ -268,51 +268,255 @@
     "services": {
         "send_command": {
             "name": "Send command",
-            "description": "Send miio command"
+            "description": "Send miio command",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Method",
+                    "description": ""
+                },
+                "params": {
+                    "name": "Params",
+                    "description": ""
+                },
+                "throw": {
+                    "name": "Throw",
+                    "description": "Throw result to HA notifications"
+                }
+            }
         },
         "get_properties": {
             "name": "Get properties",
-            "description": "Get miot properties"
+            "description": "Get miot properties",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "mapping": {
+                    "name": "Mapping",
+                    "description": ""
+                },
+                "update_entity": {
+                    "name": "Update entity",
+                    "description": ""
+                },
+                "throw": {
+                    "name": "Throw",
+                    "description": "Throw result to HA notifications"
+                }
+            }
         },
         "set_property": {
             "name": "Set property",
-            "description": "Set miot property"
+            "description": "Set miot property",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "field": {
+                    "name": "Field",
+                    "description": ""
+                },
+                "value": {
+                    "name": "Value",
+                    "description": ""
+                }
+            }
         },
         "set_miot_property": {
             "name": "Set miot property",
-            "description": "Set miot property by siid/piid"
+            "description": "Set miot property by siid/piid",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "piid": {
+                    "name": "",
+                    "description": ""
+                },
+                "value": {
+                    "name": "",
+                    "description": ""
+                }
+            }
         },
         "call_action": {
             "name": "Call action",
-            "description": "Call miot action"
+            "description": "Call miot action",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "aiid": {
+                    "name": "",
+                    "description": ""
+                },
+                "params": {
+                    "name": "",
+                    "description": ""
+                },
+                "throw": {
+                    "name": "Throw",
+                    "description": "Throw result to HA notifications"
+                }
+            }
         },
         "intelligent_speaker": {
             "name": "Intelligent speaker",
-            "description": "Intelligent speaker for XiaoAi"
+            "description": "Intelligent speaker for XiaoAi",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": "Xiaoai Entity ID"
+                },
+                "text": {
+                    "name": "Text",
+                    "description": ""
+                },
+                "execute": {
+                    "name": "Execute",
+                    "description": ""
+                },
+                "silent": {
+                    "name": "Silent",
+                    "description": ""
+                },
+                "throw": {
+                    "name": "Throw",
+                    "description": "Throw result to HA notifications"
+                }
+            }
         },
         "xiaoai_wakeup": {
             "name": "XiaoAi Wakeup",
-            "description": "Wakeup the XiaoAi speaker"
+            "description": "Wakeup the XiaoAi speaker",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": "Xiaoai Entity ID"
+                },
+                "text": {
+                    "name": "Text",
+                    "description": ""
+                }
+            }
         },
         "get_device_data": {
             "name": "Get device data",
-            "description": "Get xiaomi device data from cloud"
+            "description": "Get xiaomi device data from cloud",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "type": {
+                    "name": "Type",
+                    "description": ""
+                },
+                "key": {
+                    "name": "Key",
+                    "description": ""
+                },
+                "time_start": {
+                    "name": "Time start",
+                    "description": ""
+                },
+                "time_end": {
+                    "name": "Time end",
+                    "description": ""
+                },
+                "limit": {
+                    "name": "Limit",
+                    "description": ""
+                },
+                "group": {
+                    "name": "Group",
+                    "description": ""
+                }
+            }
         },
         "renew_devices": {
             "name": "Renew devices",
-            "description": "Renew cached xiaomi devices"
+            "description": "Renew cached xiaomi devices",
+            "fields": {
+                "username": {
+                    "name": "Username",
+                    "description": ""
+                }
+            }
         },
         "get_token": {
             "name": "Get token",
-            "description": "Get xiaomi device token"
+            "description": "Get xiaomi device token",
+            "fields": {
+                "name": {
+                    "name": "Name",
+                    "description": ""
+                }
+            }
         },
         "get_bindkey": {
             "name": "Get bindkey",
-            "description": "Get bindkey for ble device"
+            "description": "Get bindkey for ble device",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "did": {
+                    "name": "DID",
+                    "description": ""
+                }
+            }
         },
         "request_xiaomi_api": {
             "name": "Request xiaomi API",
-            "description": "Request xiaomi API"
+            "description": "Request xiaomi API",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "api": {
+                    "name": "API",
+                    "description": ""
+                },
+                "data": {
+                    "name": "Data",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Method",
+                    "description": ""
+                },
+                "crypt": {
+                    "name": "Crypt",
+                    "description": ""
+                },
+                "sid": {
+                    "name": "",
+                    "description": ""
+                },
+                "throw": {
+                    "name": "Throw",
+                    "description": "Throw result to HA notifications"
+                }
+            }
         }
     }
 }

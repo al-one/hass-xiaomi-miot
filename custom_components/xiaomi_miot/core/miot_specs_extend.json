@@ -14,6 +14,17 @@
       ]
     }
   ],
+  "aimore.light.cw3201": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 5,
+          "unit": "kelvin"
+        }
+      ]
+    }
+  ],
   "ainice.motion.bt": [
     {
       "iid": 2,
@@ -1060,7 +1071,7 @@
       ]
     }
   ],
-
+  "yeelink.bhf_light.v1": "yeelink.bhf_light.v2",
   "yeelink.bhf_light.v2": [
     {
       "iid": 2,
@@ -1072,6 +1083,21 @@
           "access": ["read", "write"],
           "unit": "minutes",
           "value-range": [0, 120, 1]
+        }
+      ]
+    },
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 1, "description": "Day"},
+            {"value": 5, "description": "Night"}
+          ]
         }
       ]
     },

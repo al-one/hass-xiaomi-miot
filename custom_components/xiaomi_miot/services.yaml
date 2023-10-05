@@ -206,12 +206,6 @@ xiaoai_wakeup:
       example: Livingroom light
       selector:
         text:
-    throw:
-      description: Throw result.
-      default: false
-      example: false
-      selector:
-        boolean:
 
 get_device_data:
   description: Get xiaomi device data from cloud.

@@ -1434,13 +1434,26 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.bhf_light.v2': {
+        'miio_props': ['light_mode', 'nl_br'],
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright', 'setter': True, 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.2.2': {
+                'prop': 'bright',
+                'setter': True,
+                'set_template': '{{ [value,"smooth",500] }}',
+                'template': '{% set nlb = props.nl_br|default(0)|int(0) %}'
+                            '{{ nlb if props.light_mode == "nightlight" else value }}',
+            },
             'prop.2.101': {
                 'prop': 'delayoff',
                 'setter': 'set_scene',
                 'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
+            },
+            'prop.2.103': {
+                'prop': 'light_mode',
+                'setter': 'set_power',
+                'set_template': '{{ ["on","smooth",500,value] }}',
+                'template': '{{ 5 if props.light_mode == "nightlight" else 1 }}',
             },
             'prop.3.1': {
                 'prop': 'bh_mode',
@@ -1732,9 +1745,15 @@ MIIO_TO_MIOT_SPECS = {
     },
     'yeelink.light.ceiling6': {
         'extend_model': 'yeelink.mirror.bm1',
+        'miio_props': ['nl_br'],
         'miio_specs': {
+            'prop.2.2': {
+                'prop': 'bright',
+                'setter': True,
+                'template': '{% set nlb = props.nl_br|default(0)|int(0) %}{{ nlb if nlb else value }}',
+            },
             'prop.2.4': {
-                'prop': 'nl_br',
+                'prop': 'active_mode',
                 'setter': 'set_ps',
                 'template': '{{ 2 if value|int else 1 }}',
                 'set_template': '{{ ["nightlight","on" if value == 2 else "off"] }}',
@@ -1805,7 +1824,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.3': {
                 'prop': 'bright',
                 'setter': True,
-                'template': '{{ value if props.active_mode|int == 0 else props.nl_br|default(value)|int }}',
+                'template': '{% set nlb = props.nl_br|default(0)|int(0) %}'
+                            '{{ nlb if props.active_mode|int(0) == 1 else value }}',
             },
             'prop.2.5': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
         },

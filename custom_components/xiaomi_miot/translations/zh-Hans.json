@@ -209,6 +209,38 @@
                 }
             }
         },
+        "fan": {
+            "fan": {
+                "state_attributes": {
+                    "preset_modes": {
+                        "state": {
+                            "Basic Wind": "标准风",
+                            "Straight Wind": "直吹风",
+                            "Natural Wind": "自然风",
+                            "Circular Wind": "循环风",
+                            "Baby": "婴儿",
+                            "Sleep": "睡眠",
+                            "Smart": "智能"
+                        }
+                    }
+                }
+            }
+        },
+        "light": {
+            "light": {
+                "state_attributes": {
+                    "effect_list": {
+                        "state": {
+                            "Day": "日光",
+                            "Night": "夜光",
+                            "Color": "彩光",
+                            "Scene": "场景",
+                            "Music": "音乐"
+                        }
+                    }
+                }
+            }
+        },
         "select": {
             "fan_control.fan_level": {
                 "state": {
@@ -242,40 +274,207 @@
     },
     "services": {
         "send_command": {
-            "description": "发送miio命令"
+            "description": "发送miio命令",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "method": {
+                    "description": "Miio方法"
+                },
+                "params": {
+                    "description": "Miio参数"
+                },
+                "throw": {
+                    "description": "在HA通知中显示结果"
+                }
+            }
         },
         "get_properties": {
-            "description": "获取MIoT属性"
+            "description": "获取MIoT属性",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "mapping": {
+                    "description": "MIoT规格"
+                },
+                "update_entity": {
+                    "description": "更新实体状态属性"
+                },
+                "throw": {
+                    "description": "在HA通知中显示结果"
+                }
+            }
         },
         "set_property": {
-            "description": "设置MIoT属性(通过属性名)"
+            "description": "设置MIoT属性(通过属性名)",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "field": {
+                    "description": "MIoT属性名"
+                },
+                "value": {
+                    "description": "MIoT属性值"
+                }
+            }
         },
         "set_miot_property": {
-            "description": "设置MIoT属性(通过siid/piid)"
+            "description": "设置MIoT属性(通过siid/piid)",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "siid": {
+                    "description": "MIoT服务ID"
+                },
+                "piid": {
+                    "description": "MIoT属性ID"
+                },
+                "value": {
+                    "description": "MIoT属性值"
+                }
+            }
         },
         "call_action": {
-            "description": "执行MIoT动作"
+            "description": "执行MIoT动作",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "siid": {
+                    "description": "MIoT服务ID"
+                },
+                "aiid": {
+                    "description": "MIoT动作ID"
+                },
+                "params": {
+                    "description": "MIoT动作参数"
+                },
+                "throw": {
+                    "description": "在HA通知中显示结果"
+                }
+            }
         },
         "intelligent_speaker": {
-            "description": "小爱TTS及执行语音命令"
+            "description": "小爱TTS及执行语音命令",
+            "fields": {
+                "entity_id": {
+                    "description": "小爱实体ID"
+                },
+                "text": {
+                    "description": "文本内容"
+                },
+                "execute": {
+                    "description": "执行语音指令，否则朗读文本"
+                },
+                "silent": {
+                    "description": "静默执行语音指令"
+                },
+                "throw": {
+                    "description": "在HA通知中显示结果"
+                }
+            }
         },
         "xiaoai_wakeup": {
-            "description": "唤醒小爱音箱"
+            "description": "唤醒小爱音箱",
+            "fields": {
+                "entity_id": {
+                    "description": "小爱实体ID"
+                },
+                "text": {
+                    "description": "文本内容"
+                }
+            }
         },
         "get_device_data": {
-            "description": "获取设备信息"
+            "description": "获取设备信息",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "type": {
+                    "name": "Type",
+                    "description": ""
+                },
+                "key": {
+                    "name": "Key",
+                    "description": ""
+                },
+                "time_start": {
+                    "name": "Time start",
+                    "description": ""
+                },
+                "time_end": {
+                    "name": "Time end",
+                    "description": ""
+                },
+                "limit": {
+                    "name": "Limit",
+                    "description": ""
+                },
+                "group": {
+                    "name": "Group",
+                    "description": ""
+                }
+            }
         },
         "renew_devices": {
-            "description": "刷新设备列表"
+            "description": "刷新设备列表",
+            "fields": {
+                "username": {
+                    "name": "小米账号",
+                    "description": "小米ID / 手机号 / 邮箱"
+                }
+            }
         },
         "get_token": {
-            "description": "获取米家设备令牌(token)"
+            "description": "获取米家设备令牌(token)",
+            "fields": {
+                "name": {
+                    "name": "关键词",
+                    "description": "米家APP中的设备名称关键词 / IP / 型号"
+                }
+            }
         },
         "get_bindkey": {
-            "description": "获取蓝牙设备bindkey"
+            "description": "获取蓝牙设备bindkey",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "did": {
+                    "description": "设备DID"
+                }
+            }
         },
         "request_xiaomi_api": {
-            "description": "请求小米云端接口"
+            "description": "请求小米云端接口",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "api": {
+                    "description": "接口地址"
+                },
+                "data": {
+                    "description": "请求数据"
+                },
+                "method": {
+                    "description": "请求方式"
+                },
+                "crypt": {
+                    "description": "是否加密"
+                },
+                "sid": {
+                    "description": "小米服务ID"
+                },
+                "throw": {
+                    "description": "在HA通知中显示结果"
+                }
+            }
         }
     }
 }

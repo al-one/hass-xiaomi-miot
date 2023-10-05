@@ -464,6 +464,7 @@ async def async_setup_component_services(hass):
         cnt = 0
         lst = []
         dls = {}
+        beaconkey = miio_info = None
         for cld in MiotCloud.all_clouds(hass):
             dvs = await cld.async_get_devices() or []
             for d in dvs:
@@ -475,14 +476,30 @@ async def async_setup_component_services(hass):
                 dnm = f"{d.get('name') or ''}"
                 dip = d.get('localip') or ''
                 dmd = d.get('model') or ''
-                if kwd in dnm.lower() or kwd == dip or kwd in dmd:
-                    lst.append({
+                tok = d.get('token') or ''
+                if kwd in [did, dip] or kwd in dnm.lower() or kwd in dmd:
+                    row = {
                         'did': did,
                         CONF_NAME: dnm,
                         CONF_HOST: dip,
                         CONF_MODEL: dmd,
-                        CONF_TOKEN: d.get('token'),
-                    })
+                        CONF_TOKEN: tok,
+                    }
+                    if not beaconkey and 'blt.' in did:
+                        beaconkey = await cld.async_get_beaconkey(did)
+                        row['beaconkey'] = (beaconkey or {}).get('beaconkey')
+                        row.pop(CONF_TOKEN, None)
+                    elif dip and tok:
+                        row['miio_cmd'] = f'miiocli device --ip {dip} --token {tok} info'
+                        if not miio_info:
+                            try:
+                                device = MiioDevice(dip, tok)
+                                miio_info = await hass.async_add_executor_job(device.info)
+                                miio_info = dict(miio_info.raw or {})
+                            except DeviceException as exc:
+                                miio_info = {'error': str(exc)}
+                            row['miio_info'] = miio_info
+                    lst.append(row)
                 dls[did] = 1
                 cnt += 1
         if not lst:
@@ -2077,7 +2094,7 @@ class MiotEntity(MiioEntity):
                         from .text import MiotTextActionSubEntity
                         self._subs[fnm] = MiotTextActionSubEntity(self, p, option=opt)
                         add_texts([self._subs[fnm]])
-                elif add_buttons and domain == 'button' and p.value_list:
+                elif add_buttons and domain == 'button' and (p.value_list or p.is_bool):
                     from .button import MiotButtonSubEntity
                     nls = []
                     f = fnm
@@ -2089,6 +2106,9 @@ class MiotEntity(MiioEntity):
                             continue
                         self._subs[f] = MiotButtonSubEntity(self, p, vk, option=opt)
                         nls.append(self._subs[f])
+                    if p.is_bool:
+                        self._subs[f] = MiotButtonSubEntity(self, p, True, option=opt)
+                        nls.append(self._subs[f])
                     if nls:
                         add_buttons(nls, update_before_add=True)
                         new = True
@@ -2098,7 +2118,7 @@ class MiotEntity(MiioEntity):
                 elif add_switches and domain == 'switch' and (p.format in ['bool'] or p.value_list) and p.writeable:
                     self._subs[fnm] = MiotSwitchSubEntity(self, p, option=opt)
                     add_switches([self._subs[fnm]], update_before_add=True)
-                elif add_binary_sensors and domain == 'binary_sensor' and p.format == 'bool':
+                elif add_binary_sensors and domain == 'binary_sensor' and p.is_bool:
                     self._subs[fnm] = MiotBinarySensorSubEntity(self, p, option=opt)
                     add_binary_sensors([self._subs[fnm]], update_before_add=True)
                 elif add_sensors and domain == 'sensor':
@@ -2149,8 +2169,7 @@ class MiotEntity(MiioEntity):
         mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
-        dat = {'did': did or self.miot_did, 'pdid': 1}
-        result = await mic.async_request_api('v2/device/blt_get_beaconkey', dat)
+        result = await mic.async_get_beaconkey(did or self.miot_did)
         persistent_notification.async_create(
             self.hass,
             f'{result}',
@@ -2161,7 +2180,7 @@ class MiotEntity(MiioEntity):
             raise Warning(f'Xiaomi device bindkey for {self.name}: {result}')
         else:
             _LOGGER.warning('%s: Xiaomi device bindkey/beaconkey: %s', self.name_model, result)
-        return (result or {}).get('beaconkey')
+        return result
 
     async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=True, **kwargs):
         mic = self.xiaomi_cloud
@@ -2279,7 +2298,7 @@ class BaseSubEntity(BaseEntity):
         self._unique_id = f'{parent.unique_id}-{attr}'
         self._name = f'{parent.name} {attr}'
         self._state = STATE_UNKNOWN
-        self._attr_state = STATE_UNKNOWN
+        self._attr_state = None
         self._available = False
         self._parent = parent
         self._attr = attr

@@ -726,6 +726,10 @@ class MiotProperty(MiotSpecInstance):
         return None
 
     @property
+    def is_bool(self):
+        return self.format == 'bool'
+
+    @property
     def is_integer(self):
         if self.format in [
             'int8', 'int16', 'int32', 'int64',
@@ -746,6 +750,8 @@ class MiotProperty(MiotSpecInstance):
             'kelvin': TEMP_KELVIN,
             'percentage': PERCENTAGE,
             'lux': LIGHT_LUX,
+            'watt': POWER_WATT,
+            'pascal': PRESSURE_PA,
             'μg/m3': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
             'mg/m3': CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
             'p/m3': CONCENTRATION_PARTS_PER_CUBIC_METER,
@@ -754,16 +760,18 @@ class MiotProperty(MiotSpecInstance):
             'current_step_count': 'steps',
             'heart_rate': 'bpm',
             'power_consumption': ENERGY_WATT_HOUR,
+            'electric_current': ELECTRIC_CURRENT_AMPERE,
+            'voltage': ELECTRIC_POTENTIAL_VOLT,
             'pm2_5_density': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
             'tds_in': CONCENTRATION_PARTS_PER_MILLION,
             'tds_out': CONCENTRATION_PARTS_PER_MILLION,
         }
-        if name in names:
+        if unit in aliases:
+            unit = aliases[unit]
+        elif name in names:
             unit = names[name]
         elif not unit or unit in ['none', 'null']:
             unit = None
-        elif unit in aliases:
-            unit = aliases[unit]
         return unit
 
     @property
@@ -774,10 +782,12 @@ class MiotProperty(MiotSpecInstance):
             'electric_current': SensorStateClass.MEASUREMENT,
             'power_consumption': SensorStateClass.TOTAL_INCREASING,
             'temperature': SensorStateClass.MEASUREMENT,
+            'relative_humidity': SensorStateClass.MEASUREMENT,
             'humidity': SensorStateClass.MEASUREMENT,
             'co2_density': SensorStateClass.MEASUREMENT,
             'co_density': SensorStateClass.MEASUREMENT,
             'pm2_5_density': SensorStateClass.MEASUREMENT,
+            'tvoc_density': SensorStateClass.MEASUREMENT,
             'tds_in': SensorStateClass.MEASUREMENT,
             'tds_out': SensorStateClass.MEASUREMENT,
             'filter_used_flow': SensorStateClass.TOTAL_INCREASING,
