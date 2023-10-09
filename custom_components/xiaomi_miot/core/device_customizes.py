@@ -877,6 +877,7 @@ DEVICE_CUSTOMIZES = {
     },
 
     'philips.light.aibed': {
+        'sensor_properties': 'sleep_state,wakeup_state',
         'switch_properties': 'night_en,wristband_switch,awake_enable_first,awake_enable_second,awake_enable_third',
         'select_properties': 'mode_main,mode_light,mode_sleep,mode_scene',
         'number_properties': 'sleep_duration,music_preview,sleep_volume,sleep_startbri,scene_volume',
