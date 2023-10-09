@@ -876,6 +876,12 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,dry_time',
     },
 
+    'philips.light.aibed': {
+        'switch_properties': 'night_en,wristband_switch,awake_enable_first,awake_enable_second,awake_enable_third',
+        'select_properties': 'mode_main,mode_light,mode_sleep,mode_scene',
+        'number_properties': 'sleep_duration,music_preview,sleep_volume,sleep_startbri,scene_volume',
+        'button_actions': 'brightness_up,brightness_down,cct_up,cct_down,stop_preview',
+    },
     'philips.light.strip3': {
         'switch_properties': 'mitv_rhythm,acousto_optic_rhythm',
         'select_properties': 'rhythm_sensitivity,rhythm_animation',
