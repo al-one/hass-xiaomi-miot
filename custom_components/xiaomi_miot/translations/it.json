@@ -54,6 +54,64 @@
                     "model_specified": "Modello dispositivo specificato (opzionale)",
                     "only_main_entity": "Solo entità principali (parent)",
                     "reset_customizes": "Ripristina le opzioni predefinite",
+		    
+                    "binary_sensor_attributes": "Attributi del sensore binario",
+                    "binary_sensor_properties": "Proprietà del sensore binario",
+                    "bind_sensor": "Collega sensore",
+                    "bind_xiaoai": "Collega Xiaoai",
+                    "brightness_for_off": "Luminosità per spegnere",
+                    "brightness_for_on": "Luminosità per accendere",
+                    "button_actions": "Azioni del pulsante",
+                    "button_properties": "Proprietà del pulsante",
+                    "chunk_properties": "Proprietà del chunk",
+                    "close_texts": "close_texts",
+                    "closed_position": "Posizione chiusa",
+                    "cloud_delay_update": "Ritardo aggiornamento cloud",
+                    "coord_type": "Tipo coordinata",
+                    "cover_properties": "Proprietà copertura",
+                    "current_temp_property": "Proprietà temperatura corrente",
+                    "descriptions_for_on": "Descrizione per acceso",
+                    "deviated_position": "Posizione deviazione",
+                    "device_class": "Classe dispositivo",
+                    "disable_location_name": "Disabilita nome località",
+                    "disable_preset_modes": "Disabilita modalità predefinite",
+                    "entity_category": "Categoria entità",
+                    "exclude_miot_properties": "Escludi proprietà miot",
+                    "exclude_miot_services": "Escludi servizi miot",
+                    "exclude_type": "Tipo esclusione",
+                    "fan_services": "Servizi ventilatore",
+                    "feeding_measure": "Misura alimentazione",
+                    "filter_home": "Filtro principale",
+                    "interval_seconds": "Secondi di intervallo",
+                    "light_services": "Servizi luce",
+                    "main_miot_services": "Servizi miot principali",
+                    "miot_did": "Miot did",
+                    "mitv_lan_host": "Host lan mitv",
+                    "motion_stream_slice": "Fetta del flusso di movimento",
+                    "motion_timeout": "Timeout movimento",
+                    "number_properties": "Proprietà numeriche",
+                    "open_texts": "Testi aperti",
+                    "percentage_property": "Proprietà percentuale",
+                    "screenshot_compress": "Compressione screenshot",
+                    "select_properties": "Seleziona proprietà",
+                    "sensor_attributes": "Attributi sensore",
+                    "sensor_properties": "Proprietà sensore",
+                    "sources_via_apps": "Fonti via app",
+                    "sources_via_keycodes": "Fonti via codici chiave",
+                    "speed_property": "Proprietà velocità",
+                    "stat_power_cost_key": "Chiave statistica costo energetico",
+                    "stat_power_cost_type": "Tipo statistica costo energetico",
+                    "state_class": "Classe stato",
+                    "state_property": "Proprietà stato",
+                    "switch_properties": "Proprietà interruttore",
+                    "television_name": "Nome televisione",
+                    "turn_on_hvac": "Accendi HVAC",
+                    "unit_of_measurement": "Unità di misuta",
+                    "value_ratio": "Rapporto valore",
+                    "video_attribute": "Attributo video",
+                    "yeelight_smooth_off": "Yeelight spegnimento graduale",
+                    "yeelight_smooth_on": "Yeelight accensione graduale",
+
                     "bool2selects": "Presonalizza opzioni"
                 }
             }
@@ -210,51 +268,255 @@
     "services": {
         "send_command": {
             "name": "Invia comando",
-            "description": "Invia comando miio"
+            "description": "Invia comando miio",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entità",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Metodo",
+                    "description": ""
+                },
+                "params": {
+                    "name": "Parametro",
+                    "description": ""
+                },
+                "throw": {
+                    "name": "Invia",
+                    "description": "Invia il risultato alle notifiche HA"
+                }
+            }
         },
         "get_properties": {
             "name": "Ottieni proprietà",
-            "description": "Ottieni proprietà miot"
+            "description": "Ottieni proprietà miot",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entità",
+                    "description": ""
+                },
+                "mapping": {
+                    "name": "Mappatura",
+                    "description": ""
+                },
+                "update_entity": {
+                    "name": "Update entity",
+                    "description": ""
+                },
+                "throw": {
+                    "name": "Invia",
+                    "description": "Invia il risultato alle notifiche HA"
+                }
+            }
         },
         "set_property": {
             "name": "Imposta proprietà",
-            "description": "Imposta proprietà miot"
+            "description": "Imposta proprietà miot",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entità",
+                    "description": ""
+                },
+                "field": {
+                    "name": "Campo",
+                    "description": ""
+                },
+                "value": {
+                    "name": "Valore",
+                    "description": ""
+                }
+            }
         },
         "set_miot_property": {
             "name": "Imposta proprietà miot",
-            "description": "Imposta proprietà miot tramite siid/piid"
+            "description": "Imposta proprietà miot tramite siid/piid",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entità",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "piid": {
+                    "name": "",
+                    "description": ""
+                },
+                "value": {
+                    "name": "",
+                    "description": ""
+                }
+            }
         },
         "call_action": {
             "name": "Chiamata azione",
-            "description": "Chiama azione miot"
+            "description": "Chiama azione miot",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entità",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "aiid": {
+                    "name": "",
+                    "description": ""
+                },
+                "params": {
+                    "name": "",
+                    "description": ""
+                },
+                "throw": {
+                    "name": "Invia",
+                    "description": "Invia il risultato alle notifiche HA"
+                }
+            }
         },
         "intelligent_speaker": {
             "name": "Altoparlante intelligente",
-            "description": "Altoparlante intelligente per XiaoAi"
+            "description": "Altoparlante intelligente per XiaoAi",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entità",
+                    "description": "ID entità Xiaoai"
+                },
+                "text": {
+                    "name": "Text",
+                    "description": ""
+                },
+                "execute": {
+                    "name": "Execute",
+                    "description": ""
+                },
+                "silent": {
+                    "name": "Silent",
+                    "description": ""
+                },
+                "throw": {
+                    "name": "Invia",
+                    "description": "Invia il risultato alle notifiche HA"
+                }
+            }
         },
         "xiaoai_wakeup": {
             "name": "Sveglia XiaoAi",
-            "description": "Sveglia l'altoparlante XiaoAi"
+            "description": "Sveglia l'altoparlante XiaoAi",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entità",
+                    "description": "ID entità Xiaoai"
+                },
+                "text": {
+                    "name": "Testo",
+                    "description": ""
+                }
+            }
         },
         "get_device_data": {
             "name": "Ottieni dati del dispositivo",
-            "description": "Ottieni dati del dispositivo Xiaomi dal cloud"
+            "description": "Ottieni dati del dispositivo Xiaomi dal cloud",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entità",
+                    "description": ""
+                },
+                "type": {
+                    "name": "Tipo",
+                    "description": ""
+                },
+                "key": {
+                    "name": "Chiave",
+                    "description": ""
+                },
+                "time_start": {
+                    "name": "Tempo di avvio",
+                    "description": ""
+                },
+                "time_end": {
+                    "name": "Tempo di fine",
+                    "description": ""
+                },
+                "limit": {
+                    "name": "Limite",
+                    "description": ""
+                },
+                "group": {
+                    "name": "Groupo",
+                    "description": ""
+                }
+            }
         },
         "renew_devices": {
             "name": "Rinnova dispositivi",
-            "description": "Rinnova dispositivi Xiaomi in cache"
+            "description": "Rinnova dispositivi Xiaomi in cache",
+            "fields": {
+                "username": {
+                    "name": "Username",
+                    "description": ""
+                }
+            }
         },
         "get_token": {
             "name": "Ottieni token",
-            "description": "Ottieni token del dispositivo Xiaomi"
+            "description": "Ottieni token del dispositivo Xiaomi",
+            "fields": {
+                "name": {
+                    "name": "Nome",
+                    "description": ""
+                }
+            }
         },
         "get_bindkey": {
             "name": "Ottieni bindkey",
-            "description": "Ottieni bindkey per dispositivo BLE"
+            "description": "Ottieni bindkey per dispositivo BLE",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entità",
+                    "description": ""
+                },
+                "did": {
+                    "name": "DID",
+                    "description": ""
+                }
+            }
         },
         "request_xiaomi_api": {
             "name": "Richiedi API Xiaomi",
-            "description": "Richiedi API Xiaomi"
+            "description": "Richiedi API Xiaomi",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entità",
+                    "description": ""
+                },
+                "api": {
+                    "name": "API",
+                    "description": ""
+                },
+                "data": {
+                    "name": "Dati",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Metodo",
+                    "description": ""
+                },
+                "crypt": {
+                    "name": "Cifratura",
+                    "description": ""
+                },
+                "sid": {
+                    "name": "",
+                    "description": ""
+                },
+                "throw": {
+                    "name": "Invia",
+                    "description": "Invia il risultato alle notifiche HA"
+                }
+            }
         }
     }
 }
