@@ -49,6 +49,24 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
     },
 
+    'babai.curtain.190812': {
+        'chunk_properties': 1,
+    },
+    'babai.curtain.at5810': {
+        'chunk_properties': 1,
+    },
+    'babai.curtain.bb82mj': {
+        'chunk_properties': 1,
+    },
+    'babai.curtain.m515e': {
+        'chunk_properties': 1,
+    },
+    'babai.curtain.mtx850': {
+        'chunk_properties': 1,
+    },
+    'babai.curtain.yilc3': {
+        'chunk_properties': 1,
+    },
     'bkrobo.chair.*': {
         'sensor_properties': 'sit_state,power_state,recharge',
         'switch_properties': 'on,setcheck',
@@ -876,6 +894,13 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,dry_time',
     },
 
+    'philips.light.aibed': {
+        'sensor_properties': 'sleep_state,wakeup_state',
+        'switch_properties': 'night_en,wristband_switch,awake_enable_first,awake_enable_second,awake_enable_third',
+        'select_properties': 'mode_main,mode_light,mode_sleep,mode_scene',
+        'number_properties': 'sleep_duration,music_preview,sleep_volume,sleep_startbri,scene_volume',
+        'button_actions': 'brightness_up,brightness_down,cct_up,cct_down,stop_preview',
+    },
     'philips.light.strip3': {
         'switch_properties': 'mitv_rhythm,acousto_optic_rhythm',
         'select_properties': 'rhythm_sensitivity,rhythm_animation',
@@ -1308,6 +1333,10 @@ DEVICE_CUSTOMIZES = {
     'zhimi.heater.nb1': {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
+    },
+    'zhimi.humidifier.cb1:water_level': {
+        'state_class': 'measurement',
+        'unit_of_measurement': '%',
     },
     'zhimi.humidifier.*': {
         'sensor_properties': 'water_level,actual_speed',
