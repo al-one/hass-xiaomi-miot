@@ -1288,7 +1288,7 @@ DEVICE_CUSTOMIZES = {
     'zhimi.airp.mb5a': {
         'sensor_properties': 'moto_speed_rpm,filter_used_debug',
         'switch_properties': 'anion,alarm',
-        'select_properties': 'brightness,temperature_display_unit',
+        'select_properties': 'brightness,temperature_display_unit,fan_level,mode',
         'number_properties': 'favorite_speed,favorite_level',
     },
     'zhimi.airp.sa4': {
