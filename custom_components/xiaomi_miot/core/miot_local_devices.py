@@ -318,7 +318,7 @@ MIOT_LOCAL_MODELS = [
     'miaomiaoce.airm.air01',
     'miaomiaoce.airm.air02',
     'miaomiaoce.blanket.s02',
-    'miaomiaoce.sensor_ht.t2',
+    # 'miaomiaoce.sensor_ht.t2',  # ble
     'mibx2.fridge.496',
     'mibx2.fridge.v1',
     'mibx2.washer.v1',
