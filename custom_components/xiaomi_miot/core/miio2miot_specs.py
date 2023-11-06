@@ -1401,6 +1401,71 @@ MIIO_TO_MIOT_SPECS = {
     'viomi.waterheater.u11': 'viomi.waterheater.u7',
     'viomi.waterheater.u12': 'viomi.waterheater.u7',
 
+    'xiaomi.aircondition.ma2': {
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {
+                'prop': 'power',
+                'setter': True,
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.2.2': {'prop': 'mode', 'setter': 'set_mode', 'dict': {
+                2: 1,
+                3: 2,
+                4: 3,
+                5: 4,
+            }, 'default': 2},
+            'prop.2.3': {'prop': 'settemp', 'setter': 'set_temp'},
+            'prop.2.4': {
+                'prop': 'energysave',
+                'setter': True,
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.2.5': {
+                'prop': 'auxheat',
+                'setter': True,
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.2.6': {
+                'prop': 'sleep',
+                'setter': True,
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.2.7': {
+                'prop': 'dry',
+                'setter': True,
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.3.1': {'prop': 'wind_level', 'setter': True},
+            'prop.3.2': {
+                'prop': 'swing',
+                'setter': True,
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.4.1': {'prop': 'temperature'},
+            'prop.5.1': {
+                'prop': 'beep',
+                'setter': True,
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+            'prop.6.1': {
+                'prop': 'light',
+                'setter': True,
+                'template': '{{ value != 0 }}',
+                'set_template': '{{ [value|int(1)] }}',
+            },
+        },
+    },
+    'xiaomi.aircondition.ma4': 'xiaomi.aircondition.ma2',
+    'xiaomi.aircondition.ma6': 'xiaomi.aircondition.ma2',
+
     'xjx.toilet.pro': {
         'miio_specs': {
             'prop.2.1': {'prop': 'seating'},
