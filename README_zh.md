@@ -421,7 +421,8 @@ logger:
 
 ## 交流
 
-- QQ群：[198841186](https://jq.qq.com/?_wv=1027&k=lZAMn5Uo)
+- TG群：[@xiaomi_miot](https://t.me/xiaomi_miot)
+- QQ群：[198841186](https://jq.qq.com/?_wv=1027&k=lZAMn5Uo) (已满)
 - 微信群：
 
   <img src="https://user-images.githubusercontent.com/4549099/161735971-0540ce1c-eb49-4aff-8cb3-3bdad15e22f7.png" alt="xiaomi miot weixin group" width="100">
