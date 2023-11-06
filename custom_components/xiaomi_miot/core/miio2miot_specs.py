@@ -2161,6 +2161,7 @@ MIIO_TO_MIOT_SPECS = {
     'zhimi.aircondition.ma3': 'zhimi.aircondition.ma1',
     'zhimi.aircondition.ma4': 'zhimi.aircondition.ma1',
     'zhimi.aircondition.za1': 'zhimi.aircondition.ma1',
+
     'zhimi.airmonitor.v1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'aqi'},
