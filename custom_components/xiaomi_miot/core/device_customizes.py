@@ -517,6 +517,11 @@ DEVICE_CUSTOMIZES = {
     'hfjh.fishbowl.v1': {
         'light_services': 'light',
     },
+    'hfjh.fishbowl.v2': {
+        'switch_properties': 'water_pump,ledboard_time_switch,feed_time_switch,key_switch',
+        'select_properties': 'ledboard_model',
+        'number_properties': 'ledboard_brightness,ledboard_sun,ledboard_color,ledboard_stream,ledboard_speed,feed_num',
+    },
     'hfjh.fishbowl.m100': {
         'light_services': 'light',
         'sensor_properties': 'temperature,water_pump_status,filter_life_level,alarm.alarm',
