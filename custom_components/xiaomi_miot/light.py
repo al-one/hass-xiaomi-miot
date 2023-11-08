@@ -88,6 +88,22 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             if not self._prop_color:
                 self._prop_color = self._srv_ambient_custom.get_property('color')
 
+        if prop := self.custom_config('power_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_power = prop
+        if prop := self.custom_config('mode_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_mode = prop
+        if prop := self.custom_config('brightness_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_brightness = prop
+        if prop := self.custom_config('color_temp_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_color_temp = prop
+        if prop := self.custom_config('color_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_color = prop
+
         self._attr_supported_color_modes = set()
         if self._prop_power:
             self._attr_supported_color_modes.add(ColorMode.ONOFF)

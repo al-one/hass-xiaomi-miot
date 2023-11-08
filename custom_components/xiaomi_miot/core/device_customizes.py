@@ -520,7 +520,13 @@ DEVICE_CUSTOMIZES = {
     'hfjh.fishbowl.v2': {
         'switch_properties': 'water_pump,ledboard_time_switch,feed_time_switch,key_switch',
         'select_properties': 'ledboard_model',
-        'number_properties': 'ledboard_brightness,ledboard_sun,ledboard_color,ledboard_stream,ledboard_speed,feed_num',
+        'number_properties': 'ledboard_brightness,ledboard_sun,ledboard_color,ledboard_stream,ledboard_speed,'
+                             'pump_flux,feed_num',
+        'light_services': 'fish_tank',
+        'power_property': 'fish_tank.on',
+        'mode_property': 'ledboard_model',
+        'brightness_property': 'ledboard_brightness',
+        'color_property': 'ledboard_color',
     },
     'hfjh.fishbowl.m100': {
         'light_services': 'light',
