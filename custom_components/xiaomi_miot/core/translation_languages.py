@@ -19,6 +19,10 @@ TRANSLATION_LANGUAGES = {
             'physical control locked': '童锁',
         },
 
+        'clock': {
+            'stop alarm': '关掉闹钟'
+        },
+
         'fan_level': {
             # 'auto': '自动',
             # 'low': '低档',
@@ -95,6 +99,14 @@ TRANSLATION_LANGUAGES = {
             'sleep': '睡眠',
             'strong': '强力',
             'circular wind': '循环风',
+        },
+
+        'intelligent_speaker': {
+            'wake up': '唤醒',
+            'play music': '播放音乐',
+            'play radio': '播放广播',
+            'play text': '朗读文本',
+            'execute text directive': '执行指令'
         },
 
         'ir_aircondition_control': {
