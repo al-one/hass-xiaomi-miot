@@ -87,6 +87,14 @@ TRANSLATION_LANGUAGES = {
             'stuck': '门卡住',
         },
 
+        'environment': {
+            'environment temperature': '温度',
+            'environment relative humidity': '湿度',
+            'environment pm2.5 density': 'PM2.5 浓度',
+            'environment co2 density': 'CO2 浓度',
+            'environment tvoc density': 'TVOC 浓度'
+        },
+
         'fan.mode': {
             'basic': '标准',
             'basic wind': '标准风',
