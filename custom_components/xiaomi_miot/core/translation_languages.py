@@ -168,6 +168,14 @@ TRANSLATION_LANGUAGES = {
             'motion sensor illumination': '光照度',
         },
 
+        'occupancy_sensor': {
+            'occupancy sensor occupancy status': '状态'
+        },
+        'occupancy_sensor.occupancy_status': {
+            'someone exists': '有人',
+            'no one exists': '无人'
+        },
+
         'physical_control_locked': {
             'physical control locked': '物理锁',
         },
@@ -834,7 +842,7 @@ TRANSLATION_LANGUAGES = {
             'go charging': 'Едет на зарядку',
             'charging': 'Заряжается',
             'sweeping': 'Сухая уборка',
-            'sweeping and mopping': 'Сухая и влажная уборки', 
+            'sweeping and mopping': 'Сухая и влажная уборки',
             'mopping': 'Влажная уборка',
             'upgrading': 'Обновление',
         },
@@ -874,7 +882,7 @@ TRANSLATION_LANGUAGES = {
             'sweep pet-recognize': 'распознование животных',
             'sweep mop-route': 'тип влажной уборки',
             'sweep ai_recognize': 'распознование AI',
-            'sweep dirt-recognize': 'распознование грязи',            
+            'sweep dirt-recognize': 'распознование грязи',
         },
         'sweep.water_state': {
             '低': 'Низкое',
@@ -1502,7 +1510,7 @@ TRANSLATION_LANGUAGES = {
             'water heater': 'vízforraló',
         },
     },
-    
+
     'de': {
         'off': 'aus',
         'idle': 'Inaktiv',
