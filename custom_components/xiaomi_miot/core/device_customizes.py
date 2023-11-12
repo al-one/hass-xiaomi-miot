@@ -1158,6 +1158,13 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'iot_linkage,machine_state,flag_bit',
         'exclude_miot_properties': 'enhance.timer',
     },
+    'xiaomi.controller.86v1': {
+        'switch_properties': 'mute,sleep_mode,auto_screen_off,auto_screen_brightness,touch_sound,key_name_display',
+        'select_properties': 'mode,mibrain_level,mico_level,display_state,wallpaper',
+        'number_properties': 'speaker.volume,brightness,theme',
+        'button_actions': 'homepage,light',
+        'text_actions': 'play_text,execute_text_directive',
+    },
     'xiaomi.tv.*': {
         'auto_cloud': True,
         'switch_properties': 'is_on',
