@@ -468,8 +468,15 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'status',
         'switch_properties': 'mode,motor_reverse',
     },
+    'dooya.curtain.m7': {
+        'chunk_properties': 1,
+    },
+    'dooya.curtain.m7li': {
+        'chunk_properties': 1,
+    },
     'dooya.curtain.*': {
         'exclude_miot_properties': 'fault',
+        'switch_properties': 'motor_reverse',
     },
     'dreame.light.r2229': {
         'sensor_properties': 'interaction_gesture',
