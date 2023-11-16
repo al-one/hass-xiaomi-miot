@@ -1404,6 +1404,26 @@ MIIO_TO_MIOT_SPECS = {
                 },
         },
     },
+    'viomi.health_pot.v1': {
+        # properties: ['run_status (16:No kettle placed 32:Drycooking protection 48:Both)', 'work_status (1:Reservation 2:Cooking 3:Paused 4:Keeping 5:Stop)', 'work_status_cn', 'warm_data', 'last_time', 'last_temp', 'curr_tempe', 'mode', 'mode_en', 'mode_cn', 'heat_power', 'warm_time', 'cook_time', 'left_time', 'cook_status', 'cooked_time', 'voice', 'stand_top_num', 'mode_sort']
+        # methods: ['set_voice', 'set_work', 'delete_modes', 'set_mode_sort', 'set_mode']
+        'entity_attrs': ['run_status', 'work_status', 'work_status_cn', 'warm_data', 'last_time', 'last_temp', 'curr_tempe', 'mode', 'mode_en', 'mode_cn', 'heat_power', 'warm_time', 'cook_time', 'left_time', 'cook_status', 'cooked_time', 'voice', 'stand_top_num', 'mode_sort'],
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {'prop': 'work_status', 'dict': {
+                0: 1,
+                1: 2,
+                2: 3,
+                3: 4,
+                4: 5,
+                5: 6,
+                },
+            },
+            'prop.2.2': {'prop': 'left_time'},
+            'prop.2.3': {'prop': 'mode'},
+            'prop.2.4': {'prop': 'curr_tempe'},
+        },
+    },
     'viomi.hood.v1': {
         'chunk_properties': 1,
         'miio_specs': {
