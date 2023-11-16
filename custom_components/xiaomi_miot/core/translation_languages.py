@@ -19,6 +19,10 @@ TRANSLATION_LANGUAGES = {
             'physical control locked': '童锁',
         },
 
+        'clock': {
+            'stop alarm': '关掉闹钟'
+        },
+
         'fan_level': {
             # 'auto': '自动',
             # 'low': '低档',
@@ -83,6 +87,14 @@ TRANSLATION_LANGUAGES = {
             'stuck': '门卡住',
         },
 
+        'environment': {
+            'environment temperature': '温度',
+            'environment relative humidity': '湿度',
+            'environment pm2.5 density': 'PM2.5 浓度',
+            'environment co2 density': 'CO2 浓度',
+            'environment tvoc density': 'TVOC 浓度'
+        },
+
         'fan.mode': {
             'basic': '标准',
             'basic wind': '标准风',
@@ -95,6 +107,14 @@ TRANSLATION_LANGUAGES = {
             'sleep': '睡眠',
             'strong': '强力',
             'circular wind': '循环风',
+        },
+
+        'intelligent_speaker': {
+            'wake up': '唤醒',
+            'play music': '播放音乐',
+            'play radio': '播放广播',
+            'play text': '朗读文本',
+            'execute text directive': '执行指令'
         },
 
         'ir_aircondition_control': {
@@ -166,6 +186,14 @@ TRANSLATION_LANGUAGES = {
         'motion_sensor': {
             'motion sensor': '运动侦测',
             'motion sensor illumination': '光照度',
+        },
+
+        'occupancy_sensor': {
+            'occupancy sensor occupancy status': '状态'
+        },
+        'occupancy_sensor.occupancy_status': {
+            'someone exists': '有人',
+            'no one exists': '无人'
         },
 
         'physical_control_locked': {
@@ -834,7 +862,7 @@ TRANSLATION_LANGUAGES = {
             'go charging': 'Едет на зарядку',
             'charging': 'Заряжается',
             'sweeping': 'Сухая уборка',
-            'sweeping and mopping': 'Сухая и влажная уборки', 
+            'sweeping and mopping': 'Сухая и влажная уборки',
             'mopping': 'Влажная уборка',
             'upgrading': 'Обновление',
         },
@@ -874,7 +902,7 @@ TRANSLATION_LANGUAGES = {
             'sweep pet-recognize': 'распознование животных',
             'sweep mop-route': 'тип влажной уборки',
             'sweep ai_recognize': 'распознование AI',
-            'sweep dirt-recognize': 'распознование грязи',            
+            'sweep dirt-recognize': 'распознование грязи',
         },
         'sweep.water_state': {
             '低': 'Низкое',
@@ -1502,7 +1530,7 @@ TRANSLATION_LANGUAGES = {
             'water heater': 'vízforraló',
         },
     },
-    
+
     'de': {
         'off': 'aus',
         'idle': 'Inaktiv',
