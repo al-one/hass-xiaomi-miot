@@ -728,6 +728,7 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
 
 class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
     MESSAGE_TIMEOUT = 60
+    UPDATE_INTERVAL = 15
 
     _has_none_message = False
 
@@ -750,7 +751,7 @@ class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity)
             _LOGGER,
             name=self._attr_unique_id,
             update_method=self.fetch_latest_message,
-            update_interval=timedelta(seconds=5),
+            update_interval=timedelta(seconds=self.UPDATE_INTERVAL),
         )
         super().__init__(self.coordinator)
 
