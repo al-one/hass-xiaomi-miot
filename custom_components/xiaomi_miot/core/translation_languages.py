@@ -638,6 +638,7 @@ TRANSLATION_LANGUAGES = {
         'busy': 'Занятый',
         'pause': 'Пауза',
         'fault': 'Неисправный',
+        'Charge-Full': 'Заряжен',
 
         '_globals': {
             'mode': 'Режим',
@@ -687,7 +688,7 @@ TRANSLATION_LANGUAGES = {
             'cool': 'охлаждение',
             'dry': 'осушение',
             'fan': 'вентиляция',
-            'heat': 'отопление',
+            'heat': 'обогрев',
         },
 
         'air_fresh.mode': {
@@ -745,7 +746,7 @@ TRANSLATION_LANGUAGES = {
             'cool': 'охлаждение',
             'dry': 'осушение',
             'fan': 'вентиляция',
-            'heat': 'отопление',
+            'heat': 'обогрев',
         },
 
         'light': {
