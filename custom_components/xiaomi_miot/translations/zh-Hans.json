@@ -92,7 +92,8 @@
                     "server_country": "小米服务器",
                     "conn_mode": "设备连接模式",
                     "renew_devices": "更新设备列表",
-                    "disable_message": "禁用米家APP通知消息实体"
+                    "disable_message": "禁用米家APP通知消息实体",
+                    "disable_scene_history": "禁用米家场景历史实体"
                 }
             },
             "cloud_filter": {

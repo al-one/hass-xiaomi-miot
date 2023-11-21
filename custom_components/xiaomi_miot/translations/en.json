@@ -150,7 +150,8 @@
                     "server_country": "Server location of MiCloud",
                     "conn_mode": "Connection mode for device",
                     "renew_devices": "Force renew devices",
-                    "disable_message": "Disable Mihome notification sensor"
+                    "disable_message": "Disable Mihome notification sensor",
+                    "disable_scene_history": "Disable Mihome scene history sensor"
                 }
             },
             "cloud_filter": {

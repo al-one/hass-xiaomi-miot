@@ -4,7 +4,7 @@ import time
 import json
 from typing import cast
 from datetime import datetime, timedelta
-from functools import partial
+from functools import partial, cmp_to_key
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.helpers.entity import (
@@ -63,12 +63,27 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     cfg = hass.data[DOMAIN].get(config_entry.entry_id) or {}
     mic = cfg.get(CONF_XIAOMI_CLOUD)
     config_data = config_entry.data or {}
-    if isinstance(mic, MiotCloud) and mic.user_id and not config_data.get('disable_message'):
-        hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
-        if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
-            entity = MihomeMessageSensor(hass, mic)
-            hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
-            async_add_entities([entity], update_before_add=False)
+
+    if isinstance(mic, MiotCloud) and mic.user_id:
+        if not config_data.get('disable_message'):
+            hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
+
+            if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
+                entity = MihomeMessageSensor(hass, mic)
+                hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
+                async_add_entities([entity], update_before_add=False)
+
+        if not config_data.get('disable_scene_history'):
+            homes = await mic.async_get_homerooms()
+            for home in homes:
+                home_id = home.get('id')
+                if hass.data[DOMAIN]['accounts'][mic.user_id].get(f'scene_history_{home_id}'):
+                    continue
+
+                entity = MihomeSceneHistorySensor(hass, mic, home_id, home.get('uid'))
+                hass.data[DOMAIN]['accounts'][mic.user_id][f'scene_history_{home_id}'] = entity
+                async_add_entities([entity], update_before_add=False)
+
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
@@ -709,6 +724,144 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
             self.message = msg
             self._has_none_message = False
         return msg
+
+
+class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
+    MESSAGE_TIMEOUT = 60
+    UPDATE_INTERVAL = 15
+
+    _has_none_message = False
+
+    def __init__(self, hass, cloud: MiotCloud, home_id, owner_user_id):
+        self.hass = hass
+        self.cloud = cloud
+        self.home_id = int(home_id)
+        self.owner_user_id = int(owner_user_id)
+        self.entity_id = f'{ENTITY_DOMAIN}.mi_{cloud.user_id}_{home_id}_scene_history'
+        self._attr_unique_id = f'{DOMAIN}-mihome-scene-history-{cloud.user_id}_{home_id}'
+        self._attr_name = f'Xiaomi {cloud.user_id}_{home_id} Scene History'
+        self._attr_icon = 'mdi:message'
+        self._attr_should_poll = False
+        self._attr_native_value = None
+        self._attr_extra_state_attributes = {
+            'entity_class': self.__class__.__name__,
+        }
+        self.coordinator = DataUpdateCoordinator(
+            hass,
+            _LOGGER,
+            name=self._attr_unique_id,
+            update_method=self.fetch_latest_message,
+            update_interval=timedelta(seconds=self.UPDATE_INTERVAL),
+        )
+        super().__init__(self.coordinator)
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self.hass.data[DOMAIN]['entities'][self.entity_id] = self
+        if sec := self.custom_config_integer('interval_seconds'):
+            self.coordinator.update_interval = timedelta(seconds=sec)
+
+        if restored := await self.async_get_last_extra_data():
+            restored_dict = restored.as_dict()
+
+            attrs = restored_dict.get('attrs', {})
+            if ts := attrs.get('ts'):
+                attrs['timestamp'] = datetime.fromtimestamp(ts, local_zone()) if ts else None
+
+            _LOGGER.debug(
+                'xiaomi scene history %s %d, async_added_to_hass restore state: state= %s attrs= %s',
+                self.cloud.user_id, self.home_id, restored_dict.get('state'), attrs,
+            )
+            self._attr_native_value = restored_dict.get('state')
+            self._attr_extra_state_attributes.update(attrs)
+
+        await self.coordinator.async_config_entry_first_refresh()
+
+    async def async_will_remove_from_hass(self):
+        """Run when entity will be removed from hass.
+        To be extended by integrations.
+        """
+        await super().async_will_remove_from_hass()
+        self.hass.data[DOMAIN]['accounts'].get(self.cloud.user_id, {}).pop(f'scene_history_{self.home_id}', None)
+
+    @property
+    def extra_restore_state_data(self):
+        """Return entity specific state data to be restored."""
+        return RestoredExtraData({
+            'state': self.native_value,
+            'attrs': self._attr_extra_state_attributes,
+        })
+
+    def trim_message(self, msg):
+        ts = msg.get('time') or int(time.time())
+        return {
+            "from": msg.get('from'),
+            "name": msg.get('name'),
+            "ts": ts,
+            'timestamp': datetime.fromtimestamp(ts, local_zone()),
+            "scene_id": str(msg.get('userSceneId')),
+            "targets": msg.get('msg', []),
+        }
+
+    @staticmethod
+    def _cmp_message(a, b):
+        a_ts, b_ts = a.get('ts', 0), b.get('ts', 0)
+        if a_ts != b_ts:
+            return a_ts - b_ts
+        
+        a_scene_id, b_scene_id = a.get('scene_id', 0), b.get('scene_id', 0)
+        if a_scene_id < b_scene_id:
+            return -1
+        if a_scene_id > b_scene_id:
+            return 1
+        return 0
+
+    async def async_set_message(self, msg):
+        self._attr_native_value = msg.get('name')
+        _LOGGER.debug('New xiaomi scene history for %s %d: %s', self.cloud.user_id, self.home_id, self._attr_native_value)
+
+        old = self._attr_extra_state_attributes or {}
+        self._attr_extra_state_attributes.update({**msg, 'prev_value': old.get('name'), 'prev_scene_id': old.get('scene_id')})
+
+    async def fetch_latest_message(self):
+        res = await self.cloud.async_request_api('scene/history', data={
+            "home_id": self.home_id,
+            "uid": int(self.cloud.user_id),
+            "owner_uid": self.owner_user_id,
+            "command": "history",
+            "limit": 15,
+        }) or {}
+
+        messages = [self.trim_message(msg) for msg in (res.get('result') or {}).get('history') or []]
+        if not messages:
+            if not self._has_none_message:
+                _LOGGER.warning('Get xiaomi scene history for %s %d failed: %s', self.cloud.user_id, self.home_id, res)
+
+            self._has_none_message = True
+            return {}
+
+        messages.sort(key=cmp_to_key(self._cmp_message), reverse=False)
+        _LOGGER.debug(
+            'Get xiaomi scene history for %s %d success: prev_timestamp= %d prev_scene_id= %s messages= %s,',
+            self.cloud.user_id, self.home_id,
+            self._attr_extra_state_attributes.get('ts') or 0,
+            self._attr_extra_state_attributes.get('scene_id') or '',
+            messages,
+        )
+
+        must_after = int(time.time()) - self.MESSAGE_TIMEOUT
+        for msg in messages:
+            if msg.get('ts') < must_after:
+                continue
+
+            if self._cmp_message(msg, self._attr_extra_state_attributes) <= 0:
+                continue
+
+            await self.async_set_message(msg)
+            self._has_none_message = False
+            return msg
+
+        return {}
 
 
 class XiaoaiConversationSensor(MiCoordinatorEntity, BaseSensorSubEntity):
