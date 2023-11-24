@@ -1405,9 +1405,9 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'viomi.health_pot.v1': {
-        # properties: ['run_status', 'work_status', 'warm_data', 'last_time', 'last_temp', 'curr_tempe', 'mode', 'heat_power', 'warm_time', 'cook_time', 'left_time', 'cook_status', 'cooked_time', 'voice', 'stand_top_num', 'mode_sort']
         # methods: ['set_voice', 'set_work', 'delete_modes', 'set_mode_sort', 'set_mode']
-        'entity_attrs': ['warm_time'],
+        'miio_props': ['run_status', 'warm_data', 'last_time', 'last_temp', 'heat_power', 'warm_time', 'cook_time', 'cook_status', 'cooked_time', 'voice', 'stand_top_num', 'mode_sort'],
+        'entity_attrs': ['run_status', 'warm_data', 'last_time', 'last_temp', 'heat_power', 'warm_time', 'cook_time', 'cook_status', 'cooked_time', 'voice', 'stand_top_num', 'mode_sort'],
         'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'work_status', 'dict': {
