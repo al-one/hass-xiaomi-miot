@@ -85,6 +85,16 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         await super().async_update()
         if not self._available:
             return
+
+        if self._prop_humidity:
+            self._attr_current_humidity = int(self._prop_humidity.from_dict(self._state_attrs) or 0)
+
+        if self._prop_target_humi:
+            num = int(self._prop_target_humi.from_dict(self._state_attrs) or 0)
+            if fac := self._vars.get('target_humidity_ratio'):
+                num = round(num * fac)
+            self._attr_target_humidity = num
+
         if self._prop_water_level and self._prop_water_level.writeable:
             self._update_sub_entities(
                 [self._prop_water_level.name],
@@ -109,15 +119,6 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         if HumidifierDeviceClass.DEHUMIDIFIER.value in typ or '.derh.' in typ:
             return HumidifierDeviceClass.DEHUMIDIFIER
         return HumidifierDeviceClass.HUMIDIFIER
-
-    @property
-    def target_humidity(self):
-        if not self._prop_target_humi:
-            return None
-        num = int(self._prop_target_humi.from_dict(self._state_attrs) or 0)
-        if fac := self._vars.get('target_humidity_ratio'):
-            num = round(num * fac)
-        return num
 
     def set_humidity(self, humidity: int):
         if not self._prop_target_humi:
