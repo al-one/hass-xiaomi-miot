@@ -228,6 +228,7 @@ MIOT_LOCAL_MODELS = [
     'gerwin.curtain.gm35xm',
     'giot.light.aise01',
     'gtop.light.c02',
+    'gtop.light.yl01',
     'hannto.printer.lager',
     'hanyi.vacuum.m7pro',
     'hddz.blanket.zndrt',

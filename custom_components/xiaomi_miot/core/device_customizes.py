@@ -1224,6 +1224,10 @@ DEVICE_CUSTOMIZES = {
     'yeelink.light.fancl5': {
         'number_properties': 'fan_speed_std,fan_speed_rec,dl_brightness,nl_brightness',
     },
+    'gtop.light.yl01': {
+        'chunk_properties': 1,
+        'exclude_miot_services': 'mode-setting,Ambient Light,scene',
+    },
     'yeelink.light.nl1': {
         'use_ble_object': True,
         'motion_timeout': 120,
