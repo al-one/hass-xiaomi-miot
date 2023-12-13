@@ -1172,6 +1172,13 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'homepage,light',
         'text_actions': 'play_text,execute_text_directive',
     },
+    'xiaomi.humidifier.p1200': {
+        'button_actions': 'loop_mode,reset_filter_life',
+        'select_properties': 'screen.brightness',
+        'sensor_properties': 'clean_time,fan_dry_time,fault,water_level,water_status',
+        'switch_properties': 'alarm,dry_switch,over_wet_protect,screen.on',
+        'number_properties': 'off_delay_time',
+    },
     'xiaomi.tv.*': {
         'auto_cloud': True,
         'switch_properties': 'is_on',
