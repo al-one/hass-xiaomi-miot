@@ -1600,6 +1600,28 @@
         }
       ]
     }
+  ],
+  
+  "zhimi.humidifier.ca4": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 7,
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    },
+    {
+      "iid": 7,
+      "properties": [
+        {
+          "iid": 1,
+          "unit": "rpm"
+        }
+      ]
+    }
   ]
 
 }
