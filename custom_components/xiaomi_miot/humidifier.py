@@ -68,13 +68,11 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             self._prop_target_humi = self._environment.get_property('target_humidity') or self._prop_target_humi
             self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity') or self._prop_humidity
 
-        self._prop_mode = None
         self._mode_props = list(filter(lambda x: x, [
             miot_service.get_property('mode'),
             miot_service.get_property('fan_level'),
         ]))
-        if self._mode_props:
-            self._prop_mode = self._mode_props.pop(0)
+        self._prop_mode = self._mode_props[0] if self._mode_props else None
         if prop := self.custom_config('mode_property'):
             if prop := self._miot_service.spec.get_property(prop):
                 self._prop_mode = prop
