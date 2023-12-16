@@ -773,6 +773,11 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
     if domain == 'number':
         bool2selects.extend(['restore_state'])
 
+    if domain == 'humidifier':
+        options.update({
+            'mode_property': cv.string,
+        })
+
     if domain == 'device_tracker' or re.search(r'watch', model, re.I):
         options.update({
             'coord_type': cv.string,
