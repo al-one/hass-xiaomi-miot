@@ -1608,9 +1608,6 @@
       "properties": [
         {
           "iid": 7,
-          "type": "urn:miot-spec-v2:property:water-level",
-          "format": "uint8",
-          "access": ["read", "notify"],
           "unit": "percentage",
           "value-range": [0, 100, 1]
         }
@@ -1621,13 +1618,10 @@
       "properties": [
         {
           "iid": 1,
-          "type": "urn:zhimi-spec:property:actual-speed",
-          "format": "uint32",
-          "access": ["read"],
-          "unit": "rpm",
-          "value-range": [0, 2000, 1]
+          "unit": "rpm"
         }
       ]
     }
   ]
+
 }
