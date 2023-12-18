@@ -36,6 +36,14 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'offline_timeout,motion_timeout,online_level,offline_level,online_duration,'
                              'offline_duration,ble_in_threshold,ble_out_threshold,ble_far_timeout',
     },
+    'ainice.sensor_occupy.pr': {
+        'state_property': 'occupancy_sensor.occupancy_status',
+        'interval_seconds': 10,
+        'sensor_properties': 'no_one_duration,has_someone_duration,zone_param',
+        'switch_properties': 'radar_switch,bluetooth_switch,count_switch',
+        'select_properties': 'sensitivity,direction,position',
+        'number_properties': 'hold_duration',
+    },
     'air.fan.ca23ad9': {
         'unreadable_properties': True,  # issues/1097
     },
