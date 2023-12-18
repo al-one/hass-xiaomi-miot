@@ -37,12 +37,15 @@ DEVICE_CUSTOMIZES = {
                              'offline_duration,ble_in_threshold,ble_out_threshold,ble_far_timeout',
     },
     'ainice.sensor_occupy.pr': {
+        'main_miot_services': 'occupancy_sensor',
         'state_property': 'occupancy_sensor.occupancy_status',
         'interval_seconds': 10,
         'sensor_properties': 'no_one_duration,has_someone_duration,zone_param',
         'switch_properties': 'radar_switch,bluetooth_switch,count_switch',
         'select_properties': 'sensitivity,direction,position',
         'number_properties': 'hold_duration',
+        'button_actions': 'reboot',
+        'exclude_miot_properties': 'cmd_request,cmd_response',
     },
     'air.fan.ca23ad9': {
         'unreadable_properties': True,  # issues/1097
