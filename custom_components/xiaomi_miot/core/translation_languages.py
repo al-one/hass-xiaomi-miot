@@ -316,6 +316,11 @@ TRANSLATION_LANGUAGES = {
         'water_heater': {
             'water heater': '热水器',
         },
+        'water_heater.mode': {
+            'low': '低档',
+            'medium': '中档',
+            'middle': '中档'
+        },
         'airer': {
             'airer': '晾衣架',
             'dryer': '干燥功能',
