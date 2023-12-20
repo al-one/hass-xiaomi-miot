@@ -319,7 +319,7 @@ TRANSLATION_LANGUAGES = {
         'water_heater.mode': {
             'low': '低档',
             'medium': '中档',
-            'middle': '中档'
+            'high': '高档'
         },
         'airer': {
             'airer': '晾衣架',
