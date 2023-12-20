@@ -67,10 +67,15 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         self._prop_target_temp = miot_service.get_property('target_temperature')
         self._prev_target_temp = None
 
+        self._target_temperature_list = None
         if self._prop_target_temp:
             self._supported_features |= WaterHeaterEntityFeature.TARGET_TEMPERATURE
         if self._prop_modes:
             self._supported_features |= WaterHeaterEntityFeature.OPERATION_MODE
+            if "zimi.waterheater.h03" == self._model:
+                # https://home.mi.com/views/introduction.html?region=cn&pdid=10164&model=zimi.waterheater.h03
+                # 1-Low(40°C), 2-Medium(60°C), 3-High(75°C)
+                self._target_temperature_list = [None, 40, 60, 75]
 
     async def async_update(self):
         await super().async_update()
@@ -127,6 +132,12 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
             return self.set_property(p, val)
         raise NotImplementedError()
 
+    def get_operation_mode_value(self, mode):
+        for p in self._prop_modes:
+            val = p.list_value(mode)
+            return val
+        raise NotImplementedError()
+
     @property
     def current_temperature(self):
         """Return the current temperature."""
@@ -175,6 +186,9 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
             elif self._prev_target_temp:
                 val = self._prev_target_temp
             return val
+        elif self._prop_modes:
+            if self._target_temperature_list:
+                return self._target_temperature_list[self.get_operation_mode_value(self.current_operation)]
         return None
 
     @property
