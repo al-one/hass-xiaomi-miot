@@ -317,9 +317,9 @@ TRANSLATION_LANGUAGES = {
             'water heater': '热水器',
         },
         'water_heater.mode': {
-            'low': '低档',
-            'medium': '中档',
-            'high': '高档'
+            'low': '低温',
+            'medium': '中温',
+            'high': '高温'
         },
         'airer': {
             'airer': '晾衣架',
