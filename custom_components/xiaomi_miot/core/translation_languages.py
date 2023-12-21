@@ -355,12 +355,16 @@ TRANSLATION_LANGUAGES = {
             'physical control locked': 'Φυσικός έλεγχος κλειδωμένος',
         },
 
+        'clock': {
+            'stop alarm': 'Διακοπή ξυπνητηριού'
+        },
+
         'fan_level': {
             'auto': 'Αυτόματο',
-            # 'low': '低档',
-            # 'medium': '中档',
-            # 'middle': '中档',
-            # 'high': '高档',
+            # 'low': 'Χαμηλό',
+            # 'medium': 'Μεσαίο',
+            # 'middle': 'Μεσαίο',
+            # 'high': 'Υψηλό',
             'quiet': 'Ήσυχο',
             'turbo': 'Τούρμπο',
             'level1': 'Επίπεδο 1',
@@ -419,6 +423,14 @@ TRANSLATION_LANGUAGES = {
             'stuck': 'Κόλλησε',
         },
 
+        'environment': {
+            'environment temperature': 'Θερμοκρασία',
+            'environment relative humidity': 'Σχετική υγρασία περιβάλλοντος',
+            'environment pm2.5 density': 'Πυκνότητα περιβάλλοντος PM2.5',
+            'environment co2 density': 'Περιβαλλοντική πυκνότητα co2',
+            'environment tvoc density': 'Περιβαλλοντική πυκνότητα TVOC'
+        },
+
         'fan.mode': {
             'basic': 'Βασική',
             'basic wind': 'Βασικός άνεμος',
@@ -431,6 +443,14 @@ TRANSLATION_LANGUAGES = {
             'sleep': 'Ύπνος',
             'strong': 'Δυνατή',
             'circular wind': 'Κυκλικός άνεμος',
+        },
+
+        'intelligent_speaker': {
+            'wake up': 'Ξύπνημα',
+            'play music': 'Αναπαραγωγή μουσικής',
+            'play radio': 'Αναπαραγωγή ραδιοφώνου',
+            'play text': 'Αναπαραγωγή κειμένου',
+            'execute text directive': 'Εκτέλεση οδηγίας κειμένου'
         },
 
         'ir_aircondition_control': {
@@ -502,6 +522,14 @@ TRANSLATION_LANGUAGES = {
         'motion_sensor': {
             'motion sensor': 'Ανίχνευση κίνησης',
             'motion sensor illumination': 'Ανίχνευση φωτισμού',
+        },
+
+        'occupancy_sensor': {
+            'occupancy sensor occupancy status': 'Κατάσταση αισθητήρα παρουσίας'
+        },
+        'occupancy_sensor.occupancy_status': {
+            'someone exists': 'Κάποιος υπάρχει',
+            'no one exists': 'Κάποιος δεν υπάρχει'
         },
 
         'physical_control_locked': {
@@ -629,6 +657,25 @@ TRANSLATION_LANGUAGES = {
 
         'water_heater': {
             'water heater': 'Θερμοσίφωνας νερού',
+        },
+
+        'airer': {
+            'airer': 'Απλώστρα',
+            'dryer': 'Στεγνωτήριο',
+            'drying_level': 'Επίπεδο στεγνώματος',
+            'left_time': 'Υπολειπόμενος χρόνος',
+            'fault': 'Σφάλμα',
+        },
+        'airer.dryer': {
+            'Air Drying': 'Στέγνωμα',
+            'Hot Air Drying': 'Στέγνωμα ζεστού αέρα',
+        },
+        'airer.fault': {
+            'No Faults': 'Κανένα σφάλμα',
+            'Obstruction': 'Απόφραξη',
+            'Overweight': 'Υπέρβαρο',
+            'Overheat': 'Υπερθέρμανση',
+            'Motor Failure': 'Βλάβη κινητήρα',
         },
     },
 
