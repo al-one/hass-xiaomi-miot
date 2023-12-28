@@ -4,7 +4,7 @@ import time
 import json
 from typing import cast
 from datetime import datetime, timedelta
-from functools import partial
+from functools import partial, cmp_to_key
 
 from homeassistant.const import *  # noqa: F401
 from homeassistant.helpers.entity import (
@@ -14,7 +14,7 @@ from homeassistant.components.sensor import (
     DOMAIN as ENTITY_DOMAIN,
     SensorDeviceClass,
 )
-from homeassistant.helpers.restore_state import RestoreEntity, RestoreStateData
+from homeassistant.helpers.restore_state import RestoreEntity, RestoredExtraData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from miio.waterpurifier_yunmi import WaterPurifierYunmi
 
@@ -63,12 +63,27 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     cfg = hass.data[DOMAIN].get(config_entry.entry_id) or {}
     mic = cfg.get(CONF_XIAOMI_CLOUD)
     config_data = config_entry.data or {}
-    if isinstance(mic, MiotCloud) and mic.user_id and not config_data.get('disable_message'):
-        hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
-        if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
-            entity = MihomeMessageSensor(hass, mic)
-            hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
-            async_add_entities([entity], update_before_add=False)
+
+    if isinstance(mic, MiotCloud) and mic.user_id:
+        if not config_data.get('disable_message'):
+            hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
+
+            if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
+                entity = MihomeMessageSensor(hass, mic)
+                hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
+                async_add_entities([entity], update_before_add=False)
+
+        if not config_data.get('disable_scene_history'):
+            homes = await mic.async_get_homerooms()
+            for home in homes:
+                home_id = home.get('id')
+                if hass.data[DOMAIN]['accounts'][mic.user_id].get(f'scene_history_{home_id}'):
+                    continue
+
+                entity = MihomeSceneHistorySensor(hass, mic, home_id, home.get('uid'))
+                hass.data[DOMAIN]['accounts'][mic.user_id][f'scene_history_{home_id}'] = entity
+                async_add_entities([entity], update_before_add=False)
+
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
@@ -83,15 +98,18 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(
             'battery', 'environment', 'tds_sensor', 'switch_sensor', 'vibration_sensor', 'occupancy_sensor',
             'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor',
-            'router', 'lock', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad', 'treadmill',
+            'router', 'lock', 'door', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad', 'treadmill',
             'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
             'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer',
             'water_purifier', 'dishwasher', 'fruit_vegetable_purifier',
-            'pet_feeder', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp', 'vital_signs',
+            'pet_feeder', 'cat_toilet', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp', 'vital_signs',
             'sterilizer', 'steriliser', 'table', 'chair', 'dryer', 'clothes_dryer',
         ):
             if srv.name in ['lock']:
                 if not srv.get_property('operation_method', 'operation_id'):
+                    continue
+            elif srv.name in ['door']:
+                if spec.get_service('lock'):
                     continue
             elif srv.name in ['battery']:
                 if spec.name not in ['switch_sensor', 'toothbrush']:
@@ -108,8 +126,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             elif srv.name in ['illumination_sensor']:
                 if spec.name not in ['illumination_sensor']:
                     continue
-            elif srv.name in ['pet_feeder']:
+            elif srv.name in ['pet_feeder', 'table']:
                 # no readable properties in mmgg.feeder.petfeeder
+                # nineam.desk.hoo01
                 pass
             elif not srv.mapping():
                 continue
@@ -168,11 +187,12 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             self._prop_state = miot_service.get_property('occupancy_status') or self._prop_state
 
         self._attr_icon = self._miot_service.entity_icon
+        self._attr_state_class = None
+        self._attr_native_unit_of_measurement = None
         if self._prop_state:
             self._name = f'{self.device_name} {self._prop_state.friendly_desc}'
             self._attr_icon = self._prop_state.entity_icon or self._attr_icon
-        self._attr_state_class = None
-        self._attr_native_unit_of_measurement = None
+            self._attr_state_class = self._prop_state.state_class
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -302,7 +322,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         key = f'{self._prop_state.full_name}_desc'
         if key in self._state_attrs:
             return f'{self._state_attrs[key]}'.lower()
-        return self._prop_state.from_dict(self._state_attrs, STATE_UNKNOWN)
+        return self._prop_state.from_dict(self._state_attrs)
 
     def before_select_modes(self, prop, option, **kwargs):
         if prop := self._miot_service.get_property('on'):
@@ -489,9 +509,10 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
 
     @property
     def native_value(self):
-        key = f'{self._miot_property.full_name}_desc'
-        if key in self._state_attrs:
-            return f'{self._state_attrs[key]}'.lower()
+        if not self._attr_native_unit_of_measurement:
+            key = f'{self._miot_property.full_name}_desc'
+            if key in self._state_attrs:
+                return f'{self._state_attrs[key]}'.lower()
         val = self._miot_property.from_dict(self._state_attrs)
         if val is not None:
             svd = self.custom_config_number('value_ratio') or 0
@@ -612,11 +633,9 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
         if sec := self.custom_config_integer('interval_seconds'):
             self.coordinator.update_interval = timedelta(seconds=sec)
 
-        restored = await RestoreStateData.async_get_instance(self.hass)
-        if restored and self.entity_id in restored.last_states:
-            state = restored.last_states[self.entity_id].state
-            self._attr_native_value = state.state
-            self._attr_extra_state_attributes.update(state.attributes)
+        if restored := await self.async_get_last_extra_data():
+            self._attr_native_value = restored.as_dict().get('state')
+            self._attr_extra_state_attributes.update(restored.as_dict().get('attrs', {}))
 
         self._attr_extra_state_attributes['filter_homes'] = self._filter_homes
         self._attr_extra_state_attributes['exclude_types'] = self._exclude_types
@@ -628,6 +647,14 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
         """
         await super().async_will_remove_from_hass()
         self.hass.data[DOMAIN]['accounts'].get(self.cloud.user_id, {}).pop('messenger', None)
+
+    @property
+    def extra_restore_state_data(self):
+        """Return entity specific state data to be restored."""
+        return RestoredExtraData({
+            'state': self.native_value,
+            'attrs': self._attr_extra_state_attributes,
+        })
 
     async def async_set_message(self, msg):
         if msg == self.message:
@@ -697,6 +724,144 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
             self.message = msg
             self._has_none_message = False
         return msg
+
+
+class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
+    MESSAGE_TIMEOUT = 60
+    UPDATE_INTERVAL = 15
+
+    _has_none_message = False
+
+    def __init__(self, hass, cloud: MiotCloud, home_id, owner_user_id):
+        self.hass = hass
+        self.cloud = cloud
+        self.home_id = int(home_id)
+        self.owner_user_id = int(owner_user_id)
+        self.entity_id = f'{ENTITY_DOMAIN}.mi_{cloud.user_id}_{home_id}_scene_history'
+        self._attr_unique_id = f'{DOMAIN}-mihome-scene-history-{cloud.user_id}_{home_id}'
+        self._attr_name = f'Xiaomi {cloud.user_id}_{home_id} Scene History'
+        self._attr_icon = 'mdi:message'
+        self._attr_should_poll = False
+        self._attr_native_value = None
+        self._attr_extra_state_attributes = {
+            'entity_class': self.__class__.__name__,
+        }
+        self.coordinator = DataUpdateCoordinator(
+            hass,
+            _LOGGER,
+            name=self._attr_unique_id,
+            update_method=self.fetch_latest_message,
+            update_interval=timedelta(seconds=self.UPDATE_INTERVAL),
+        )
+        super().__init__(self.coordinator)
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self.hass.data[DOMAIN]['entities'][self.entity_id] = self
+        if sec := self.custom_config_integer('interval_seconds'):
+            self.coordinator.update_interval = timedelta(seconds=sec)
+
+        if restored := await self.async_get_last_extra_data():
+            restored_dict = restored.as_dict()
+
+            attrs = restored_dict.get('attrs', {})
+            if ts := attrs.get('ts'):
+                attrs['timestamp'] = datetime.fromtimestamp(ts, local_zone()) if ts else None
+
+            _LOGGER.debug(
+                'xiaomi scene history %s %d, async_added_to_hass restore state: state= %s attrs= %s',
+                self.cloud.user_id, self.home_id, restored_dict.get('state'), attrs,
+            )
+            self._attr_native_value = restored_dict.get('state')
+            self._attr_extra_state_attributes.update(attrs)
+
+        await self.coordinator.async_config_entry_first_refresh()
+
+    async def async_will_remove_from_hass(self):
+        """Run when entity will be removed from hass.
+        To be extended by integrations.
+        """
+        await super().async_will_remove_from_hass()
+        self.hass.data[DOMAIN]['accounts'].get(self.cloud.user_id, {}).pop(f'scene_history_{self.home_id}', None)
+
+    @property
+    def extra_restore_state_data(self):
+        """Return entity specific state data to be restored."""
+        return RestoredExtraData({
+            'state': self.native_value,
+            'attrs': self._attr_extra_state_attributes,
+        })
+
+    def trim_message(self, msg):
+        ts = msg.get('time') or int(time.time())
+        return {
+            "from": msg.get('from'),
+            "name": msg.get('name'),
+            "ts": ts,
+            'timestamp': datetime.fromtimestamp(ts, local_zone()),
+            "scene_id": str(msg.get('userSceneId')),
+            "targets": msg.get('msg', []),
+        }
+
+    @staticmethod
+    def _cmp_message(a, b):
+        a_ts, b_ts = a.get('ts', 0), b.get('ts', 0)
+        if a_ts != b_ts:
+            return a_ts - b_ts
+        
+        a_scene_id, b_scene_id = a.get('scene_id', 0), b.get('scene_id', 0)
+        if a_scene_id < b_scene_id:
+            return -1
+        if a_scene_id > b_scene_id:
+            return 1
+        return 0
+
+    async def async_set_message(self, msg):
+        self._attr_native_value = msg.get('name')
+        _LOGGER.debug('New xiaomi scene history for %s %d: %s', self.cloud.user_id, self.home_id, self._attr_native_value)
+
+        old = self._attr_extra_state_attributes or {}
+        self._attr_extra_state_attributes.update({**msg, 'prev_value': old.get('name'), 'prev_scene_id': old.get('scene_id')})
+
+    async def fetch_latest_message(self):
+        res = await self.cloud.async_request_api('scene/history', data={
+            "home_id": self.home_id,
+            "uid": int(self.cloud.user_id),
+            "owner_uid": self.owner_user_id,
+            "command": "history",
+            "limit": 15,
+        }) or {}
+
+        messages = [self.trim_message(msg) for msg in (res.get('result') or {}).get('history') or []]
+        if not messages:
+            if not self._has_none_message:
+                _LOGGER.warning('Get xiaomi scene history for %s %d failed: %s', self.cloud.user_id, self.home_id, res)
+
+            self._has_none_message = True
+            return {}
+
+        messages.sort(key=cmp_to_key(self._cmp_message), reverse=False)
+        _LOGGER.debug(
+            'Get xiaomi scene history for %s %d success: prev_timestamp= %d prev_scene_id= %s messages= %s,',
+            self.cloud.user_id, self.home_id,
+            self._attr_extra_state_attributes.get('ts') or 0,
+            self._attr_extra_state_attributes.get('scene_id') or '',
+            messages,
+        )
+
+        must_after = int(time.time()) - self.MESSAGE_TIMEOUT
+        for msg in messages:
+            if msg.get('ts') < must_after:
+                continue
+
+            if self._cmp_message(msg, self._attr_extra_state_attributes) <= 0:
+                continue
+
+            await self.async_set_message(msg)
+            self._has_none_message = False
+            return msg
+
+        return {}
 
 
 class XiaoaiConversationSensor(MiCoordinatorEntity, BaseSensorSubEntity):

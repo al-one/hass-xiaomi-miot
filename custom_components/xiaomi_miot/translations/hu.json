@@ -1,0 +1,260 @@
+{
+    "config": {
+        "flow_title": "Xiaomi Miot Auto",
+        "step": {
+            "user": {
+                "title": "Válasszon műveletet",
+                "data": {
+                    "action": "Művelet"
+                }
+            },
+            "token": {
+                "description": "Konfigurálja az eszközinformációkat.",
+                "data": {
+                    "host": "Helyi IP",
+                    "token": "Token",
+                    "name": "Eszköz neve",
+                    "scan_interval": "Állapot frissítési időköz (másodperc)"
+                }
+            },
+            "cloud": {
+                "description": "Konfigurálja a Xiaomi felhőfiókot.\n{tip}",
+                "data": {
+                    "username": "Xiaomi fiók azonosító / E-mail",
+                    "password": "Jelszó",
+                    "captcha": "Captcha",
+                    "server_country": "MiCloud szerver régió",
+                    "conn_mode": "Kapcsolat módja az eszközhöz",
+                    "filter_models": "Eszközök szűrése modell/otthon/WiFi alapján (speciális)"
+                }
+            },
+            "cloud_filter": {
+                "title": "Felhő eszközök szűrése",
+                "description": "Beleveheti vagy kizárhatja az eszközöket, hogy csak azokat az eszközöket integrálja, amelyekiet szeretné. A kizárás módban, ha nem jelöl be semmilyen lehetőséget a listán, az egyenértékű az összes lehetőség beillesztésével. \n{tip}",
+                "data": {
+                    "filter_model": "Eszközmodell szűrése",
+                    "model_list": "Eszközmodell lista",
+                    "filter_home_id": "Otthon szűrése",
+                    "home_id_list": "Otthon lista",
+                    "filter_ssid": "WiFi SSID szűrése",
+                    "ssid_list": "WiFi SSID lista",
+                    "filter_bssid": "WiFi BSSID szűrése",
+                    "bssid_list": "WiFi BSSID lista",
+                    "filter_did": "Eszköz szűrése",
+                    "did_list": "Eszköz lista"
+                }
+            },
+            "customizing": {
+                "title": "Entitások / eszközök testreszabása",
+                "description": "{tip}",
+                "data": {
+                    "domain": "Válasszon entitás tartományt",
+                    "entity": "Válassza ki az entitást",
+                    "model": "Válassza ki az eszközmodellt",
+                    "model_specified": "Specifikus eszközmodell (opcionális)",
+                    "only_main_entity": "Csak fő (szülő) entitások",
+                    "reset_customizes": "Alapértelmezett testreszabások visszaállítása",
+                    "bool2selects": "Testreszabási lehetőségek"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Nem sikerült kapcsolódni az eszközhöz",
+            "cannot_login": "Nem sikerült bejelentkezni a Xiaomi fiókba. Kérjük, ellenőrizze a fiók adatait. Ha a bejelentkezési kísérletek többször is sikertelenek, próbálkozzon újra a Xiaomi hivatalos weboldalán (mi.com) ugyanazon hálózati környezetben.",
+            "cannot_reach": "Nem sikerült elérni a Xiaomi API felületet",
+            "tzinfo_error": "Probléma van a Hass környezetével. Kérjük, olvassa el a következő leírást: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt"
+        },
+        "abort": {
+            "config_saved": "Konfiguráció mentve! [Testreszabás újra](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nNéhány testreszabási lehetőség érvénybe léptetéséhez [újra kell tölteni az integrációt](/developer-tools/yaml).",
+            "already_configured": "Ez az eszköz már konfigurálva van.",
+            "not_xiaomi_miio": "Ez az eszköz nem támogatja a miio/miot protokolt."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "Konfigurálja az eszközinformációkat.",
+                "data": {
+                    "host": "Eszköz IP",
+                    "token": "Token",
+                    "scan_interval": "Állapot frissítési időköz (másodperc)",
+                    "miot_cloud": "Miot felhő engedélyezése (Először konfigurálja a fiókot a YAML-ben)"
+                }
+            },
+            "cloud": {
+                "description": "Konfigurálja a Xiaomi felhőfiókot.\n{tip}",
+                "data": {
+                    "username": "Xiaomi fiók azonosító / E-mail",
+                    "password": "Jelszó",
+                    "captcha": "Captcha",
+                    "server_country": "MiCloud szerver régió",
+                    "conn_mode": "Kapcsolat módja az eszközhöz",
+                    "renew_devices": "Eszközök kényszerített frissítése",
+                    "disable_message": "Mihome értesítés szenzor letiltása"
+                }
+            },
+            "cloud_filter": {
+                "title": "Felhő eszközök szűrése",
+                "description": "Beleveheti vagy kizárhatja az eszközöket, hogy csak azokat az eszközöket integrálja, amelyekiet szeretné. A kizárás módban, ha nem jelöl be semmilyen lehetőséget a listán, az egyenértékű az összes lehetőség beillesztésével. \n{tip}",
+                "data": {
+                    "filter_model": "Eszközmodell szűrése",
+                    "model_list": "Eszközmodell lista",
+                    "filter_home_id": "Otthon szűrése",
+                    "home_id_list": "Otthon lista",
+                    "filter_ssid": "WiFi SSID szűrése",
+                    "ssid_list": "WiFi SSID lista",
+                    "filter_bssid": "WiFi BSSID szűrése",
+                    "bssid_list": "WiFi BSSID lista",
+                    "filter_did": "Eszköz szűrése",
+                    "did_list": "Eszköz lista"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Nem sikerült kapcsolódni az eszközhöz",
+            "cannot_login": "Nem sikerült bejelentkezni a Xiaomi fiókba. Kérjük, ellenőrizze a fiók adatait. Ha a bejelentkezési kísérletek többször is sikertelenek, próbálkozzon újra a Xiaomi hivatalos weboldalán (mi.com) ugyanazon hálózati környezetben.",
+            "cannot_reach": "Nem sikerült elérni a Xiaomi API felületet",
+            "tzinfo_error": "Probléma van a Hass környezetével. Kérjük, olvassa el a következő leírást: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt"
+        },
+        "abort": {
+            "show_customizes": "[![Új integráció hozzáadása](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Új integráció hozzáadása](/_my_redirect/config_flow_start?domain=xiaomi_miot) a testreszabás módosításához.\n{tip}"
+        }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "Egyedi komponens verzió",
+            "can_reach_server": "Elérheti a Xiaomi API szerverét",
+            "can_reach_spec": "Elérheti a MIoT-Spec szerverét",
+            "logged_accounts": "Bejelentkezett fiókok száma",
+            "total_devices": "Összes MiHome eszköz száma"
+        }
+    },
+    "entity": {
+        "sensor": {
+            "lock": {
+                "state": {
+                    "bluetooth": "Bluetooth",
+                    "password": "Jelszó",
+                    "biological": "Biometrikus",
+                    "key": "Kulcs",
+                    "turntable": "Forgómechanizmus",
+                    "nfc": "NFC",
+                    "one_time_password": "Egyszer használatos jelszó",
+                    "two_step_verification": "Kétlépcsős azonosítás",
+                    "coercion": "Kényszerítés",
+                    "homekit": "Homekit",
+                    "manual": "Kézi",
+                    "automatic": "Automatikus"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "Kívülről kinyitás",
+                    "lock": "Zárás",
+                    "anti_lock_on": "Anti-lock engedélyezése",
+                    "anti_lock_off": "Anti-lock letiltása",
+                    "inside_unlock": "Belső oldalról kinyitás",
+                    "lock_inside": "Belső oldalról zárás",
+                    "child_lock_on": "Gyermekzár engedélyezése",
+                    "child_lock_off": "Gyermekzár letiltása",
+                    "lock_outside": "Kívülről zárás"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "Nyitott",
+                    "close": "Zárt",
+                    "close_timeout": "Zárás időkorlátja",
+                    "knock": "Kopogás",
+                    "breaking": "Betörés",
+                    "stuck": "Beragadt"
+                }
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "Automatikus",
+                            "low": "Alacsony",
+                            "medium": "Közepes",
+                            "middle": "Közepes",
+                            "high": "Magas",
+                            "quiet": "Csendes",
+                            "turbo": "Turbo",
+                            "level1": "Szint 1",
+                            "level2": "Szint 2",
+                            "level3": "Szint 3",
+                            "level4": "Szint 4",
+                            "level5": "Szint 5",
+                            "level6": "Szint 6",
+                            "level7": "Szint 7"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "Kikapcsolva",
+                            "vertical": "Függőleges",
+                            "horizontal": "Vízszintes",
+                            "both": "Mindkettő"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "services": {
+        "send_command": {
+            "name": "Parancs küldése",
+            "description": "Miio parancs küldése"
+        },
+        "get_properties": {
+            "name": "Tulajdonságok lekérése",
+            "description": "Miot tulajdonságok lekérése"
+        },
+        "set_property": {
+            "name": "Tulajdonság beállítása",
+            "description": "Miot tulajdonság beállítása"
+        },
+        "set_miot_property": {
+            "name": "Miot tulajdonság beállítása",
+            "description": "Miot tulajdonság beállítása siid/piid alapján"
+        },
+        "call_action": {
+            "name": "Művelet végrehajtása",
+            "description": "Miot művelet végrehajtása"
+        },
+        "intelligent_speaker": {
+            "name": "Intelligens hangszóró",
+            "description": "Intelligens hangszóró XiaoAi számára"
+        },
+        "xiaoai_wakeup": {
+            "name": "XiaoAi felébresztése",
+            "description": "XiaoAi hangszóró felébresztése"
+        },
+        "get_device_data": {
+            "name": "Eszközadatok lekérése",
+            "description": "Xiaomi eszközadatok lekérése a felhőből"
+        },
+        "renew_devices": {
+            "name": "Eszközök megújítása",
+            "description": "Gyorsítótárban lévő Xiaomi eszközök megújítása"
+        },
+        "get_token": {
+            "name": "Token lekérése",
+            "description": "Xiaomi eszköz token lekérése"
+        },
+        "get_bindkey": {
+            "name": "Kötési kulcs lekérése",
+            "description": "Kötési kulcs lekérése BLE eszközhöz"
+        },
+        "request_xiaomi_api": {
+            "name": "Xiaomi API lekérése",
+            "description": "Xiaomi API lekérése"
+        }
+    }
+}

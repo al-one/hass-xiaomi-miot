@@ -60,15 +60,15 @@
         },
         "error": {
             "cannot_connect": "连接设备失败",
-            "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登陆失败，请在与当前网络相同的环境下登陆小米官网(mi.com)后重试",
+            "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登录失败，请在与当前网络相同的环境下登录小米官网(mi.com)后重试",
             "cannot_reach": "无法访问小米API接口",
-            "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "tzinfo_error": "你的 Hass 环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备"
         },
         "abort": {
             "config_saved": "配置已保存！[再次自定义](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
             "already_configured": "该设备已经配置过",
-            "not_xiaomi_miio": "该设备不支持miio/miot协议"
+            "not_xiaomi_miio": "该设备不支持 miio/miot 协议"
         }
     },
     "options": {
@@ -77,7 +77,7 @@
                 "title": "Xiaomi Miot",
                 "description": "配置设备信息",
                 "data": {
-                    "host": "设备IP",
+                    "host": "设备 IP",
                     "token": "Token",
                     "scan_interval": "更新状态频率(秒)",
                     "miot_cloud": "开启云端模式(请先配置账户密码)"
@@ -92,7 +92,8 @@
                     "server_country": "小米服务器",
                     "conn_mode": "设备连接模式",
                     "renew_devices": "更新设备列表",
-                    "disable_message": "禁用米家APP通知消息实体"
+                    "disable_message": "禁用米家APP通知消息实体",
+                    "disable_scene_history": "禁用米家场景历史实体"
                 }
             },
             "cloud_filter": {
@@ -114,7 +115,7 @@
         },
         "error": {
             "cannot_connect": "连接设备失败",
-            "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登陆失败，请使用与HA宿主机同一局域网下的其他设备登录小米官网(mi.com)后重试",
+            "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登录失败，请使用与HA宿主机同一局域网下的其他设备登录小米官网(mi.com)后重试",
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备"
@@ -130,6 +131,351 @@
             "can_reach_spec": "可获取MIoT规格",
             "logged_accounts": "已登录的账户数量",
             "total_devices": "米家设备总数量"
+        }
+    },
+    "entity": {
+        "sensor": {
+            "lock": {
+                "state": {
+                    "bluetooth": "蓝牙",
+                    "password": "密码",
+                    "biological": "生物",
+                    "key": "钥匙",
+                    "turntable": "转盘",
+                    "nfc": "NFC",
+                    "one_time_password": "一次性密码",
+                    "two_step_verification": "双重认证",
+                    "coercion": "胁迫",
+                    "homekit": "Homekit",
+                    "manual": "人工",
+                    "automatic": "自动"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "门外开锁",
+                    "lock": "上锁",
+                    "anti_lock_on": "开启反锁",
+                    "anti_lock_off": "解除反锁",
+                    "inside_unlock": "门内开锁",
+                    "lock_inside": "门内上锁",
+                    "child_lock_on": "开启童锁",
+                    "child_lock_off": "关闭童锁",
+                    "lock_outside": "门外上锁"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "开门",
+                    "close": "关门",
+                    "close_timeout": "超时未关",
+                    "knock": "敲门",
+                    "breaking": "撬门",
+                    "stuck": "卡住"
+                }
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "自动",
+                            "low": "低档",
+                            "medium": "中档",
+                            "middle": "中档",
+                            "high": "高档",
+                            "quiet": "静音",
+                            "turbo": "超强",
+                            "level1": "一档",
+                            "level2": "二档",
+                            "level3": "三档",
+                            "level4": "四档",
+                            "level5": "五档",
+                            "level6": "六档",
+                            "level7": "七档",
+                            "level8": "八档",
+                            "leve7": "七档",
+                            "leve8": "八档"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "关闭",
+                            "vertical": "垂直",
+                            "horizontal": "水平",
+                            "both": "立体"
+                        }
+                    }
+                }
+            }
+        },
+        "fan": {
+            "fan": {
+                "state_attributes": {
+                    "preset_modes": {
+                        "state": {
+                            "Basic Wind": "标准风",
+                            "Straight Wind": "直吹风",
+                            "Natural Wind": "自然风",
+                            "Circular Wind": "循环风",
+                            "Baby": "婴儿",
+                            "Sleep": "睡眠",
+                            "Smart": "智能"
+                        }
+                    }
+                }
+            }
+        },
+        "light": {
+            "light": {
+                "state_attributes": {
+                    "effect_list": {
+                        "state": {
+                            "Day": "日光",
+                            "Night": "夜光",
+                            "Color": "彩光",
+                            "Scene": "场景",
+                            "Music": "音乐"
+                        }
+                    }
+                }
+            }
+        },
+        "select": {
+            "fan_control.fan_level": {
+                "state": {
+                    "Auto": "自动",
+                    "Low": "低档",
+                    "Medium": "中档",
+                    "Middle": "中档",
+                    "High": "高档",
+                    "Quiet": "静音",
+                    "Turbo": "超强",
+                    "Level1": "一档",
+                    "Level2": "二档",
+                    "Level3": "三档",
+                    "Level4": "四档",
+                    "Level5": "五档",
+                    "Level6": "六档",
+                    "Level7": "七档",
+                    "Level8": "八档",
+                    "Leve7": "七档",
+                    "Leve8": "八档"
+                }
+            },
+            "light.mode": {
+                "Day": "日光",
+                "Night": "夜光",
+                "Color": "彩光",
+                "Scene": "场景",
+                "Music": "音乐"
+            }
+        }
+    },
+    "services": {
+        "send_command": {
+            "description": "发送miio命令",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "method": {
+                    "description": "Miio方法"
+                },
+                "params": {
+                    "description": "Miio参数"
+                },
+                "throw": {
+                    "description": "在HA通知中显示结果"
+                }
+            }
+        },
+        "get_properties": {
+            "description": "获取MIoT属性",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "mapping": {
+                    "description": "MIoT规格"
+                },
+                "update_entity": {
+                    "description": "更新实体状态属性"
+                },
+                "throw": {
+                    "description": "在HA通知中显示结果"
+                }
+            }
+        },
+        "set_property": {
+            "description": "设置MIoT属性(通过属性名)",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "field": {
+                    "description": "MIoT属性名"
+                },
+                "value": {
+                    "description": "MIoT属性值"
+                }
+            }
+        },
+        "set_miot_property": {
+            "description": "设置MIoT属性(通过siid/piid)",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "siid": {
+                    "description": "MIoT服务ID"
+                },
+                "piid": {
+                    "description": "MIoT属性ID"
+                },
+                "value": {
+                    "description": "MIoT属性值"
+                }
+            }
+        },
+        "call_action": {
+            "description": "执行MIoT动作",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "siid": {
+                    "description": "MIoT服务ID"
+                },
+                "aiid": {
+                    "description": "MIoT动作ID"
+                },
+                "params": {
+                    "description": "MIoT动作参数"
+                },
+                "throw": {
+                    "description": "在HA通知中显示结果"
+                }
+            }
+        },
+        "intelligent_speaker": {
+            "description": "小爱TTS及执行语音命令",
+            "fields": {
+                "entity_id": {
+                    "description": "小爱实体ID"
+                },
+                "text": {
+                    "description": "文本内容"
+                },
+                "execute": {
+                    "description": "执行语音指令，否则朗读文本"
+                },
+                "silent": {
+                    "description": "静默执行语音指令"
+                },
+                "throw": {
+                    "description": "在HA通知中显示结果"
+                }
+            }
+        },
+        "xiaoai_wakeup": {
+            "description": "唤醒小爱音箱",
+            "fields": {
+                "entity_id": {
+                    "description": "小爱实体ID"
+                },
+                "text": {
+                    "description": "文本内容"
+                }
+            }
+        },
+        "get_device_data": {
+            "description": "获取设备信息",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "type": {
+                    "name": "Type",
+                    "description": ""
+                },
+                "key": {
+                    "name": "Key",
+                    "description": ""
+                },
+                "time_start": {
+                    "name": "Time start",
+                    "description": ""
+                },
+                "time_end": {
+                    "name": "Time end",
+                    "description": ""
+                },
+                "limit": {
+                    "name": "Limit",
+                    "description": ""
+                },
+                "group": {
+                    "name": "Group",
+                    "description": ""
+                }
+            }
+        },
+        "renew_devices": {
+            "description": "刷新设备列表",
+            "fields": {
+                "username": {
+                    "name": "小米账号",
+                    "description": "小米ID / 手机号 / 邮箱"
+                }
+            }
+        },
+        "get_token": {
+            "description": "获取米家设备令牌(token)",
+            "fields": {
+                "name": {
+                    "name": "关键词",
+                    "description": "米家APP中的设备名称关键词 / IP / 型号"
+                }
+            }
+        },
+        "get_bindkey": {
+            "description": "获取蓝牙设备bindkey",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "did": {
+                    "description": "设备DID"
+                }
+            }
+        },
+        "request_xiaomi_api": {
+            "description": "请求小米云端接口",
+            "fields": {
+                "entity_id": {
+                    "description": "实体ID"
+                },
+                "api": {
+                    "description": "接口地址"
+                },
+                "data": {
+                    "description": "请求数据"
+                },
+                "method": {
+                    "description": "请求方式"
+                },
+                "crypt": {
+                    "description": "是否加密"
+                },
+                "sid": {
+                    "description": "小米服务ID"
+                },
+                "throw": {
+                    "description": "在HA通知中显示结果"
+                }
+            }
         }
     }
 }

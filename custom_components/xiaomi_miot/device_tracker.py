@@ -22,6 +22,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from .core.coord_transform import gcj02_to_wgs84, bd09_to_wgs84
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -82,9 +83,22 @@ class MiotTrackerEntity(MiotEntity, TrackerEntity):
             self._attr_longitude = prop.from_dict(self._state_attrs)
         if prop := self._miot_service.get_property('current_address'):
             self._attr_location_name = prop.from_dict(self._state_attrs)
+        await self.transform_coord()
 
         for p in self._miot_service.get_properties('driving_status'):
             self._update_sub_entities(p, None, 'binary_sensor')
+
+    async def transform_coord(self, default=None):
+        if not (self._attr_latitude or self._attr_longitude):
+            return
+        typ = self.custom_config('coord_type') or default
+        if not typ:
+            return
+        typ = f'{typ}'.lower()
+        if typ == 'gcj02':
+            self._attr_longitude, self._attr_latitude = gcj02_to_wgs84(self._attr_longitude, self._attr_latitude)
+        if typ == 'bd09':
+            self._attr_longitude, self._attr_latitude = bd09_to_wgs84(self._attr_longitude, self._attr_latitude)
 
     @property
     def should_poll(self):
@@ -169,18 +183,36 @@ class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
         rdt = await mic.async_request_api('third/api', pms) or {}
         loc = {}
         for v in (rdt.get('result') or {}).get('PL', {}).get('List', {}).values():
-            loc = v.get('result', {})
-            break
+            if loc := v.get('result') or {}:
+                loc.setdefault('device', v)
+                loc.setdefault('timestamp', v.get('timestamp', ''))
+                break
         if not loc:
             self.logger.warning('%s: Got xiaoxun watch location faild: %s', self.name_model, rdt)
             return
         self.logger.debug('%s: Got xiaoxun watch location: %s', self.name_model, rdt)
+        dvc = loc.get('device') or {}
         gps = f"{loc.get('location', '')},".split(',')
         self._attr_latitude = float(gps[1])
         self._attr_longitude = float(gps[0])
         self._attr_location_name = loc.get('desc')
         self._attr_location_accuracy = int(loc.get('radius') or 0)
-        tim = loc.get('timestamp', '')
+        await self.transform_coord(default='gcj02')
         self.update_attrs({
-            'timestamp': f'{tim[0:4]}-{tim[4:6]}-{tim[6:8]} {tim[8:10]}:{tim[10:12]}:{tim[12:14]}',
+            'sos': dvc.get('SOS', 0),
+            'steps': dvc.get('steps', 0),
+            'home_wifi': dvc.get('home_wifi', 0),
+            'imei': dvc.get('imei'),
+            'adcode': loc.get('adcode'),
+            'country': loc.get('country'),
+            'province': loc.get('province'),
+            'city': loc.get('province'),
+            'district': loc.get('district'),
+            'township': loc.get('township'),
+            'road': loc.get('road'),
+            'street': loc.get('street'),
         })
+        if tim := loc.get('timestamp', ''):
+            self.update_attrs({
+                'timestamp': f'{tim[0:4]}-{tim[4:6]}-{tim[6:8]} {tim[8:10]}:{tim[10:12]}:{tim[12:14]}',
+            })

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 from .device_customizes import DEVICE_CUSTOMIZES  # noqa
 from .miot_local_devices import MIOT_LOCAL_MODELS  # noqa
@@ -81,3 +82,16 @@ try:
     SUPPORTED_DOMAINS.append(DOMAIN_TEXT)
 except (ModuleNotFoundError, ImportError):
     DOMAIN_TEXT = None
+
+try:
+    # hass 2023.3
+    from homeassistant.util.json import JsonObjectType
+except (ModuleNotFoundError, ImportError):
+    JsonObjectType = dict
+
+try:
+    # hass 2023.7
+    from homeassistant.core import ServiceResponse, SupportsResponse
+except (ModuleNotFoundError, ImportError):
+    SupportsResponse = None
+    ServiceResponse = Union[dict, None]

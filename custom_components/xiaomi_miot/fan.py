@@ -119,11 +119,13 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        if spd := self.custom_config('speed_property'):
+            if prop := self._miot_service.spec.get_property(spd):
+                self._prop_speed = prop
+                self._supported_features |= FanEntityFeature.SET_SPEED
+
         if per := self.custom_config('percentage_property'):
-            prop = self._miot_service.spec.specs.get(per)
-            if not isinstance(prop, MiotProperty):
-                prop = self._miot_service.get_property(per)
-            if prop:
+            if prop := self._miot_service.spec.get_property(per):
                 self._prop_percentage = prop
                 self._supported_features |= FanEntityFeature.SET_SPEED
 
@@ -140,7 +142,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
     def turn_on(self, speed=None, percentage=None, preset_mode=None, **kwargs):
         ret = False
-        if not self.is_on:
+        if not self.is_on and percentage != 0:
             ret = self.set_property(self._prop_power, True)
         if self._prop_percentage:
             if not percentage and speed:
@@ -224,6 +226,8 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 
     def set_percentage(self, percentage: int):
         """Set the speed of the fan, as a percentage."""
+        if percentage == 0:
+            return self.turn_off()
         return self.turn_on(percentage=percentage)
 
     @property

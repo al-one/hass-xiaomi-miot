@@ -460,6 +460,8 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
 
     @property
     def current_temperature(self):
+        if self.custom_config('target2current_temp') is True and self.is_on:
+            return self.target_temperature
         if ATTR_CURRENT_TEMPERATURE in self._state_attrs:
             return float(self._state_attrs[ATTR_CURRENT_TEMPERATURE] or 0)
         if self._prop_temperature:

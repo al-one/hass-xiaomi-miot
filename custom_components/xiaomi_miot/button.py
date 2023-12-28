@@ -107,4 +107,35 @@ class MiotButtonActionSubEntity(BaseSubEntity, ButtonEntity):
 
     def press(self):
         """Press the button."""
-        return self.call_parent('call_action', self._miot_action)
+        pms = []
+        for pid in self._miot_action.ins:
+            prop = self._miot_action.service.properties.get(pid)
+            val = self.custom_config(prop.name)
+            if prop.is_integer and val is not None:
+                val = int(val)
+            pms.append(val)
+        return self.call_parent('call_action', self._miot_action, pms)
+
+
+class ButtonSubEntity(ButtonEntity, BaseSubEntity):
+    def __init__(self, parent, attr, option=None):
+        BaseSubEntity.__init__(self, parent, attr, option)
+        self._available = True
+        self._press_action = self._option.get('press_action')
+        self._press_kwargs = self._option.get('press_kwargs') or {}
+        self._state_attrs = self._option.get('state_attrs') or {}
+
+    def update(self, data=None):
+        return
+
+    def press(self):
+        """Press the button."""
+        if not self._press_action:
+            raise NotImplementedError()
+        kws = {
+            'attr': self._attr,
+            **self._press_kwargs,
+        }
+        if ret := self._press_action(**kws):
+            self.async_write_ha_state()
+        return ret

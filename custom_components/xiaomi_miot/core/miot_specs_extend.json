@@ -14,6 +14,17 @@
       ]
     }
   ],
+  "aimore.light.cw3201": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 5,
+          "unit": "kelvin"
+        }
+      ]
+    }
+  ],
   "ainice.motion.bt": [
     {
       "iid": 2,
@@ -338,6 +349,23 @@
     }
   ],
 
+  "lumi.motion.bmgl01": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:illumination",
+          "unit": "lx",
+          "value-list": [
+            {"value": 1, "description": "0"},
+            {"value": 2, "description": "100"}
+          ]
+        }
+      ]
+    }
+  ],
+
   "midea.aircondition.v1": [
     {
       "iid": 2,
@@ -582,6 +610,18 @@
   "roborock.vacuum.a38": "roborock.vacuum.a14",
   "roborock.vacuum.a40": "roborock.vacuum.a14",
   "roborock.vacuum.a46": "roborock.vacuum.a14",
+  "roborock.vacuum.a50": "roborock.vacuum.a14",
+  "roborock.vacuum.a51": "roborock.vacuum.a14",
+  "roborock.vacuum.a52": "roborock.vacuum.a14",
+  "roborock.vacuum.a62": "roborock.vacuum.a14",
+  "roborock.vacuum.a64": "roborock.vacuum.a14",
+  "roborock.vacuum.a65": "roborock.vacuum.a14",
+  "roborock.vacuum.a66": "roborock.vacuum.a14",
+  "roborock.vacuum.a69": "roborock.vacuum.a14",
+  "roborock.vacuum.a70": "roborock.vacuum.a14",
+  "roborock.vacuum.a74": "roborock.vacuum.a14",
+  "roborock.vacuum.a75": "roborock.vacuum.a14",
+  "roborock.vacuum.a76": "roborock.vacuum.a14",
   "rockrobo.vacuum.v1": [
     {
       "iid": 2,
@@ -1031,7 +1071,7 @@
       ]
     }
   ],
-
+  "yeelink.bhf_light.v1": "yeelink.bhf_light.v2",
   "yeelink.bhf_light.v2": [
     {
       "iid": 2,
@@ -1043,6 +1083,21 @@
           "access": ["read", "write"],
           "unit": "minutes",
           "value-range": [0, 120, 1]
+        }
+      ]
+    },
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 103,
+          "type": "urn:miot-spec-v2:property:mode",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 1, "description": "Day"},
+            {"value": 5, "description": "Night"}
+          ]
         }
       ]
     },
@@ -1542,6 +1597,28 @@
         {
           "iid": 2,
           "value-range": [1, 100, 1]
+        }
+      ]
+    }
+  ],
+  
+  "zhimi.humidifier.ca4": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 7,
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    },
+    {
+      "iid": 7,
+      "properties": [
+        {
+          "iid": 1,
+          "unit": "rpm"
         }
       ]
     }

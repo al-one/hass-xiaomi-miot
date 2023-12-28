@@ -88,6 +88,22 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             if not self._prop_color:
                 self._prop_color = self._srv_ambient_custom.get_property('color')
 
+        if prop := self.custom_config('power_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_power = prop
+        if prop := self.custom_config('mode_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_mode = prop
+        if prop := self.custom_config('brightness_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_brightness = prop
+        if prop := self.custom_config('color_temp_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_color_temp = prop
+        if prop := self.custom_config('color_property'):
+            if prop := self._miot_service.spec.get_property(prop):
+                self._prop_color = prop
+
         self._attr_supported_color_modes = set()
         if self._prop_power:
             self._attr_supported_color_modes.add(ColorMode.ONOFF)
@@ -133,7 +149,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             val = self._prop_brightness.from_dict(self._state_attrs)
             bri = self._vars.get('brightness_for_on')
             if bri is not None:
-                return val == bri
+                return val >= bri
         return super().is_on
 
     def turn_on(self, **kwargs):
@@ -156,6 +172,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
                 ret = self.set_property(self._prop_brightness, bri)
             else:
                 ret = self.set_property(self._prop_power, True)
+        self._attr_color_mode = None
 
         if self._prop_brightness and ATTR_BRIGHTNESS in kwargs:
             brightness = kwargs[ATTR_BRIGHTNESS]
@@ -181,12 +198,14 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
                 ret = self.send_miio_command('set_ct_abx', [color_temp, 'smooth', trs])
             else:
                 ret = self.set_property(self._prop_color_temp, color_temp)
+            self._attr_color_mode = ColorMode.COLOR_TEMP
 
         if self._prop_color and ATTR_HS_COLOR in kwargs:
             rgb = color.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
             num = rgb_to_int(rgb)
             self.logger.debug('%s: Setting light color: %s', self.name_model, rgb)
             ret = self.set_property(self._prop_color, num)
+            self._attr_color_mode = ColorMode.HS
 
         if self._prop_mode and ATTR_EFFECT in kwargs:
             mode = kwargs[ATTR_EFFECT]

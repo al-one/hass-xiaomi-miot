@@ -123,7 +123,7 @@ async def check_xiaomi_account(hass, user_input, errors, renew_devices=False):
         if isinstance(exc, MiCloudAccessDenied) and mic:
             if url := mic.attrs.pop('notificationUrl', None):
                 err = f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!\n' \
-                      f'本次登陆小米账号需要安全验证，[点击这里]({url})继续！你需要在与HA宿主机同局域网的设备下完成安全验证，' \
+                      f'本次登录小米账号需要安全验证，[点击这里]({url})继续！你需要在与HA宿主机同局域网的设备下完成安全验证，' \
                       '如果你使用的是云服务器，将无法验证通过。'
                 persistent_notification.create(
                     hass,
@@ -370,6 +370,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             'miot_cloud_write',
             'miot_cloud_action',
             'check_lan',
+            'unreadable_properties',
         ]
         main_options = {
             'bool2selects': cv.multi_select({}),
@@ -484,15 +485,20 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 uds = {}
                 for v in self.hass.data[DOMAIN].values():
                     if isinstance(v, dict):
+                        if mod := v.get('miio_info', {}).get(CONF_MODEL):
+                            models.append(mod)
                         v = v.get(CONF_XIAOMI_CLOUD)
                     if isinstance(v, MiotCloud):
                         mic = v
                         if mic.user_id not in uds:
                             uds[mic.user_id] = await mic.async_get_devices_by_key('model') or {}
                             models.update(uds[mic.user_id])
-                models = sorted(models.keys())
+                if models:
+                    models = sorted(models.keys())
+                    schema.update({
+                        vol.Required('model'): vol.In(models),
+                    })
                 schema.update({
-                    vol.Required('model'): vol.In(models),
                     vol.Optional('model_specified'): str,
                 })
 
@@ -617,6 +623,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.In(CONN_MODES),
             vol.Optional('renew_devices', default=user_input.get('renew_devices', False)): bool,
             vol.Optional('disable_message', default=user_input.get('disable_message', False)): bool,
+            vol.Optional('disable_scene_history', default=user_input.get('disable_scene_history', False)): bool,
         })
         return self.async_show_form(
             step_id='cloud',
@@ -640,6 +647,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             cfg.update({
                 CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
                 'disable_message': prev_input.get('disable_message'),
+                'disable_scene_history': prev_input.get('disable_scene_history'),
                 **(user_input or {}),
             })
             self.hass.config_entries.async_update_entry(
@@ -713,9 +721,11 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'brightness_for_off': cv.string,
         })
 
-    if domain == 'fan' or re.search(r'\.fan\.', model, re.I):
+    if domain == 'fan' or re.search(r'\.fan\.|airpurifier|airfresh', model, re.I):
         options.update({
             'disable_preset_modes': cv.string,
+            'speed_property': cv.string,
+            'percentage_property': cv.string,
         })
 
     if domain == 'camera' or re.search(r'camera|videodoll', model, re.I):
@@ -729,7 +739,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         })
 
     if domain == 'climate' or re.search(r'aircondition|acpartner|airrtc', model, re.I):
-        bool2selects.extend(['ignore_fan_switch'])
+        bool2selects.extend(['ignore_fan_switch', 'target2current_temp'])
         options.update({
             'bind_sensor': cv.string,
             'turn_on_hvac': cv.string,
@@ -763,7 +773,15 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
     if domain == 'number':
         bool2selects.extend(['restore_state'])
 
-    if domain == 'device_tracker':
+    if domain == 'humidifier':
+        options.update({
+            'mode_property': cv.string,
+        })
+
+    if domain == 'device_tracker' or re.search(r'watch', model, re.I):
+        options.update({
+            'coord_type': cv.string,
+        })
         bool2selects.extend(['disable_location_name'])
 
     if domain == 'text' and re.search(r'execute_text_directive', entity_id, re.I):

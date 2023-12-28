@@ -19,8 +19,12 @@ TRANSLATION_LANGUAGES = {
             'physical control locked': '童锁',
         },
 
+        'clock': {
+            'stop alarm': '关掉闹钟'
+        },
+
         'fan_level': {
-            'auto': '自动',
+            # 'auto': '自动',
             # 'low': '低档',
             # 'medium': '中档',
             # 'middle': '中档',
@@ -83,6 +87,14 @@ TRANSLATION_LANGUAGES = {
             'stuck': '门卡住',
         },
 
+        'environment': {
+            'environment temperature': '温度',
+            'environment relative humidity': '湿度',
+            'environment pm2.5 density': 'PM2.5 浓度',
+            'environment co2 density': 'CO2 浓度',
+            'environment tvoc density': 'TVOC 浓度'
+        },
+
         'fan.mode': {
             'basic': '标准',
             'basic wind': '标准风',
@@ -95,6 +107,14 @@ TRANSLATION_LANGUAGES = {
             'sleep': '睡眠',
             'strong': '强力',
             'circular wind': '循环风',
+        },
+
+        'intelligent_speaker': {
+            'wake up': '唤醒',
+            'play music': '播放音乐',
+            'play radio': '播放广播',
+            'play text': '朗读文本',
+            'execute text directive': '执行指令'
         },
 
         'ir_aircondition_control': {
@@ -140,8 +160,8 @@ TRANSLATION_LANGUAGES = {
             'key': '钥匙',
             'turntable': '转盘',
             'nfc': 'NFC',
-            'one-time password': '一次性密码',
-            'two-step verification': '双重认证',
+            'one_time_password': '一次性密码',
+            'two_step_verification': '双重认证',
             'coercion': '胁迫',
             'homekit': 'Homekit',
             'manual': '人工',
@@ -166,6 +186,14 @@ TRANSLATION_LANGUAGES = {
         'motion_sensor': {
             'motion sensor': '运动侦测',
             'motion sensor illumination': '光照度',
+        },
+
+        'occupancy_sensor': {
+            'occupancy sensor occupancy status': '状态'
+        },
+        'occupancy_sensor.occupancy_status': {
+            'someone exists': '有人',
+            'no one exists': '无人'
         },
 
         'physical_control_locked': {
@@ -288,6 +316,24 @@ TRANSLATION_LANGUAGES = {
         'water_heater': {
             'water heater': '热水器',
         },
+        'airer': {
+            'airer': '晾衣架',
+            'dryer': '干燥功能',
+            'drying_level': '烘干级别',
+            'left_time': '剩余时间',
+            'fault': '设备故障',
+        },
+        'airer.dryer': {
+            'Air Drying': '风干',
+            'Hot Air Drying': '烘干',
+        },
+        'airer.fault': {
+            'No Faults': '无故障',
+            'Obstruction': '遇阻',
+            'Overweight': '超重',
+            'Overheat': '过热',
+            'Motor Failure': '电机故障',
+        },
     },
 
     'el': {
@@ -309,12 +355,16 @@ TRANSLATION_LANGUAGES = {
             'physical control locked': 'Φυσικός έλεγχος κλειδωμένος',
         },
 
+        'clock': {
+            'stop alarm': 'Διακοπή ξυπνητηριού'
+        },
+
         'fan_level': {
             'auto': 'Αυτόματο',
-            # 'low': '低档',
-            # 'medium': '中档',
-            # 'middle': '中档',
-            # 'high': '高档',
+            # 'low': 'Χαμηλό',
+            # 'medium': 'Μεσαίο',
+            # 'middle': 'Μεσαίο',
+            # 'high': 'Υψηλό',
             'quiet': 'Ήσυχο',
             'turbo': 'Τούρμπο',
             'level1': 'Επίπεδο 1',
@@ -373,6 +423,14 @@ TRANSLATION_LANGUAGES = {
             'stuck': 'Κόλλησε',
         },
 
+        'environment': {
+            'environment temperature': 'Θερμοκρασία',
+            'environment relative humidity': 'Σχετική υγρασία περιβάλλοντος',
+            'environment pm2.5 density': 'Πυκνότητα περιβάλλοντος PM2.5',
+            'environment co2 density': 'Περιβαλλοντική πυκνότητα co2',
+            'environment tvoc density': 'Περιβαλλοντική πυκνότητα TVOC'
+        },
+
         'fan.mode': {
             'basic': 'Βασική',
             'basic wind': 'Βασικός άνεμος',
@@ -385,6 +443,14 @@ TRANSLATION_LANGUAGES = {
             'sleep': 'Ύπνος',
             'strong': 'Δυνατή',
             'circular wind': 'Κυκλικός άνεμος',
+        },
+
+        'intelligent_speaker': {
+            'wake up': 'Ξύπνημα',
+            'play music': 'Αναπαραγωγή μουσικής',
+            'play radio': 'Αναπαραγωγή ραδιοφώνου',
+            'play text': 'Αναπαραγωγή κειμένου',
+            'execute text directive': 'Εκτέλεση οδηγίας κειμένου'
         },
 
         'ir_aircondition_control': {
@@ -430,8 +496,8 @@ TRANSLATION_LANGUAGES = {
             'key': 'Κλειδί',
             'turntable': 'Με περιστρεφή',
             'nfc': 'NFC',
-            'one-time password': 'Κωδικός πρόσβασης μίας χρήσης',
-            'two-step verification': 'Διπλή διαπίστευση',
+            'one_time_password': 'Κωδικός πρόσβασης μίας χρήσης',
+            'two_step_verification': 'Διπλή διαπίστευση',
             'coercion': 'Εξαναγκασμός',
             'homekit': 'Homekit',
             'manual': 'Χειροκίνητη',
@@ -456,6 +522,14 @@ TRANSLATION_LANGUAGES = {
         'motion_sensor': {
             'motion sensor': 'Ανίχνευση κίνησης',
             'motion sensor illumination': 'Ανίχνευση φωτισμού',
+        },
+
+        'occupancy_sensor': {
+            'occupancy sensor occupancy status': 'Κατάσταση αισθητήρα παρουσίας'
+        },
+        'occupancy_sensor.occupancy_status': {
+            'someone exists': 'Κάποιος υπάρχει',
+            'no one exists': 'Κάποιος δεν υπάρχει'
         },
 
         'physical_control_locked': {
@@ -584,6 +658,25 @@ TRANSLATION_LANGUAGES = {
         'water_heater': {
             'water heater': 'Θερμοσίφωνας νερού',
         },
+
+        'airer': {
+            'airer': 'Απλώστρα',
+            'dryer': 'Στεγνωτήριο',
+            'drying_level': 'Επίπεδο στεγνώματος',
+            'left_time': 'Υπολειπόμενος χρόνος',
+            'fault': 'Σφάλμα',
+        },
+        'airer.dryer': {
+            'Air Drying': 'Στέγνωμα',
+            'Hot Air Drying': 'Στέγνωμα ζεστού αέρα',
+        },
+        'airer.fault': {
+            'No Faults': 'Κανένα σφάλμα',
+            'Obstruction': 'Απόφραξη',
+            'Overweight': 'Υπέρβαρο',
+            'Overheat': 'Υπερθέρμανση',
+            'Motor Failure': 'Βλάβη κινητήρα',
+        },
     },
 
     'ru': {
@@ -592,6 +685,7 @@ TRANSLATION_LANGUAGES = {
         'busy': 'Занятый',
         'pause': 'Пауза',
         'fault': 'Неисправный',
+        'Charge-Full': 'Заряжен',
 
         '_globals': {
             'mode': 'Режим',
@@ -641,7 +735,7 @@ TRANSLATION_LANGUAGES = {
             'cool': 'охлаждение',
             'dry': 'осушение',
             'fan': 'вентиляция',
-            'heat': 'отопление',
+            'heat': 'обогрев',
         },
 
         'air_fresh.mode': {
@@ -699,7 +793,7 @@ TRANSLATION_LANGUAGES = {
             'cool': 'охлаждение',
             'dry': 'осушение',
             'fan': 'вентиляция',
-            'heat': 'отопление',
+            'heat': 'обогрев',
         },
 
         'light': {
@@ -726,8 +820,8 @@ TRANSLATION_LANGUAGES = {
             'key': 'ключ',
             'turntable': 'поворотный круг',
             'nfc': 'NFC',
-            'one-time password': 'одноразовый пароль',
-            'two-step verification': 'двухэтапная проверка',
+            'one_time_password': 'одноразовый пароль',
+            'two_step_verification': 'двухэтапная проверка',
             'coercion': 'сдерживание',
             'homekit': 'Homekit',
             'manual': 'руководство',
@@ -816,7 +910,7 @@ TRANSLATION_LANGUAGES = {
             'go charging': 'Едет на зарядку',
             'charging': 'Заряжается',
             'sweeping': 'Сухая уборка',
-            'sweeping and mopping': 'Сухая и влажная уборки', 
+            'sweeping and mopping': 'Сухая и влажная уборки',
             'mopping': 'Влажная уборка',
             'upgrading': 'Обновление',
         },
@@ -856,7 +950,7 @@ TRANSLATION_LANGUAGES = {
             'sweep pet-recognize': 'распознование животных',
             'sweep mop-route': 'тип влажной уборки',
             'sweep ai_recognize': 'распознование AI',
-            'sweep dirt-recognize': 'распознование грязи',            
+            'sweep dirt-recognize': 'распознование грязи',
         },
         'sweep.water_state': {
             '低': 'Низкое',
@@ -1484,7 +1578,7 @@ TRANSLATION_LANGUAGES = {
             'water heater': 'vízforraló',
         },
     },
-    
+
     'de': {
         'off': 'aus',
         'idle': 'Inaktiv',
@@ -1625,8 +1719,8 @@ TRANSLATION_LANGUAGES = {
             'key': 'schlüssel',
             'turntable': 'drehscheibe',
             'nfc': 'nfc',
-            'one-time password': 'Einmal-Passwort',
-            'two-step verification': 'Zwei-Faktor-Authentifizierung',
+            'one_time_password': 'Einmal-Passwort',
+            'two_step_verification': 'Zwei-Faktor-Authentifizierung',
             'coercion': 'erzwungen',
             'homekit': 'homekit',
             'manual': 'manuell',

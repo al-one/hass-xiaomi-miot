@@ -248,16 +248,16 @@ xiaomi_miot:
 - 🍵 [养生壶](https://home.miot-spec.com/s/health_pot) / ☕️ [咖啡机](https://home.miot-spec.com/s/coffee)
 - 🍹 [破壁机](https://home.miot-spec.com/s/juicer) / [搅拌机](https://home.miot-spec.com/s/juicer) / [果蔬清洗机](https://home.miot-spec.com/s/f_washer)
 - ♨️ [热水器](https://home.miot-spec.com/s/waterheater) / [洗碗机](https://home.miot-spec.com/s/dishwasher) / [足浴器](https://home.miot-spec.com/s/foot_bath)
-- 🦠 [消毒柜](https://home.miot-spec.com/s/steriliser)
+- 🦠 [消毒柜](https://home.miot-spec.com/s/steriliser) / [毛巾架](https://home.miot-spec.com/s/.tow)
 - 🪟 [窗帘电机](https://home.miot-spec.com/s/curtain) / [开窗器](https://home.miot-spec.com/s/wopener) / [晾衣机](https://home.miot-spec.com/s/airer)
 - 🧹 [扫地/扫拖机器人](https://home.miot-spec.com/s/vacuum) / [擦地机](https://home.miot-spec.com/s/.mop)
 - 💦 [加湿器](https://home.miot-spec.com/s/humidifier) / [除湿器](https://home.miot-spec.com/s/derh) / [除味器](https://home.miot-spec.com/s/diffuser)
 - 🍃 [空气检测仪](https://home.miot-spec.com/s/airmonitor) / 🪴 [植物监测仪](https://home.miot-spec.com/s/plantmonitor)
 - 🛏 [电动床](https://home.miot-spec.com/s/bed) / [电热毯/水暖床垫](https://home.miot-spec.com/s/blanket) / 😴 [睡眠监测仪](https://home.miot-spec.com/s/lunar)
-- 💺 [chair](https://home.miot-spec.com/s/chair) / [table](https://home.miot-spec.com/s/desk)
+- 💺 [办公椅](https://home.miot-spec.com/s/chair) / [升降桌](https://home.miot-spec.com/s/desk)
 - 💆 [按摩椅](https://home.miot-spec.com/s/massage) / [按摩仪](https://home.miot-spec.com/s/magic_touch)
 - 🏃 [走步机](https://home.miot-spec.com/s/walkingpad) / [跑步机](https://home.miot-spec.com/s/treadmill)
-- 🚽 [马桶(盖)](https://home.miot-spec.com/s/toilet) /️ [毛巾架](https://home.miot-spec.com/s/.tow) /️ 🪥 [牙刷](https://home.miot-spec.com/s/toothbrush)
+- 🚽 [马桶(盖)](https://home.miot-spec.com/s/toilet) / [猫砂盆](https://home.miot-spec.com/s/litter_box) / 🪥 [牙刷](https://home.miot-spec.com/s/toothbrush)
 - 🐱 [宠物喂食器](https://home.miot-spec.com/s/feeder) / ⛲ [宠物饮水机](https://home.miot-spec.com/s/pet_waterer) / 🐟 [鱼缸](https://home.miot-spec.com/s/fishbowl)
 - 🦟 [驱蚊器](https://home.miot-spec.com/s/mosq) / [消毒/灭菌灯](https://home.miot-spec.com/s/s_lamp)
 - 🚘 [智能后视镜](https://home.miot-spec.com/s/rv_mirror) / [抬头显示HUD](https://home.miot-spec.com/s/hud)
@@ -371,7 +371,7 @@ data:
 ```yaml
 service: xiaomi_miot.renew_devices
 data:
-  username: 80001234 # 小米账号ID/登陆邮箱/手机号
+  username: 80001234 # 小米账号ID/登录邮箱/手机号
 ```
 
 > 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.renew_devices`
@@ -421,7 +421,8 @@ logger:
 
 ## 交流
 
-- QQ群：[198841186](https://jq.qq.com/?_wv=1027&k=lZAMn5Uo)
+- TG群：[@xiaomi_miot](https://t.me/xiaomi_miot)
+- QQ群：[198841186](https://jq.qq.com/?_wv=1027&k=lZAMn5Uo) (已满)
 - 微信群：
 
   <img src="https://user-images.githubusercontent.com/4549099/161735971-0540ce1c-eb49-4aff-8cb3-3bdad15e22f7.png" alt="xiaomi miot weixin group" width="100">
