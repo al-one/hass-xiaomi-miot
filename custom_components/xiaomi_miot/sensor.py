@@ -535,7 +535,7 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
         self._subs = {
             'tds_in':  {'keys': ['tds_warn_thd'], 'unit': CONCENTRATION_PARTS_PER_MILLION, 'icon': 'mdi:water'},
             'tds_out': {'keys': ['tds_warn_thd'], 'unit': CONCENTRATION_PARTS_PER_MILLION, 'icon': 'mdi:water-check'},
-            'temperature': {'class': SensorDeviceClass.TEMPERATURE, 'unit': TEMP_CELSIUS},
+            'temperature': {'class': SensorDeviceClass.TEMPERATURE, 'unit': UnitOfTemperature.CELSIUS},
         }
         for i in [1, 2, 3]:
             self._subs.update({
@@ -546,7 +546,7 @@ class WaterPurifierYunmiEntity(MiioEntity, Entity):
                 },
                 f'f{i}_remain_days': {
                     'keys': [f'f{i}_totaltime', f'f{i}_usedtime'],
-                    'unit': TIME_DAYS,
+                    'unit': UnitOfTime.DAYS,
                     'icon': 'mdi:clock',
                 },
             })

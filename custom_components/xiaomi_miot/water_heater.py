@@ -138,13 +138,13 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     def temperature_unit(self):
         prop = self._prop_temperature or self._prop_target_temp
         if prop:
-            if prop.unit in ['celsius', TEMP_CELSIUS]:
-                return TEMP_CELSIUS
-            if prop.unit in ['fahrenheit', TEMP_FAHRENHEIT]:
-                return TEMP_FAHRENHEIT
-            if prop.unit in ['kelvin', TEMP_KELVIN]:
-                return TEMP_KELVIN
-        return TEMP_CELSIUS
+            if prop.unit in ['celsius', UnitOfTemperature.CELSIUS]:
+                return UnitOfTemperature.CELSIUS
+            if prop.unit in ['fahrenheit', UnitOfTemperature.FAHRENHEIT]:
+                return UnitOfTemperature.FAHRENHEIT
+            if prop.unit in ['kelvin', UnitOfTemperature.KELVIN]:
+                return UnitOfTemperature.KELVIN
+        return UnitOfTemperature.CELSIUS
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
