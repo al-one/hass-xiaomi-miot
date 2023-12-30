@@ -88,6 +88,7 @@ TRANSLATION_LANGUAGES = {
         },
 
         'environment': {
+            'environment air quality': '空气质量',
             'environment temperature': '温度',
             'environment relative humidity': '湿度',
             'environment pm2.5 density': 'PM2.5 浓度',
@@ -107,6 +108,12 @@ TRANSLATION_LANGUAGES = {
             'sleep': '睡眠',
             'strong': '强力',
             'circular wind': '循环风',
+        },
+
+        'filter': {
+            'filter left time': '滤芯剩余时间',
+            'filter used time': '滤芯已用时间',
+            'filter life level': '滤芯剩余寿命',
         },
 
         'intelligent_speaker': {
@@ -181,6 +188,7 @@ TRANSLATION_LANGUAGES = {
 
         'magnet_sensor': {
             'magnet sensor': '门窗传感器',
+            'magnet sensor illumination': '光照度',
         },
 
         'motion_sensor': {
@@ -210,6 +218,7 @@ TRANSLATION_LANGUAGES = {
             'power consumption electric power': '功率',
             'power consumption electric current': '电流',
             'power consumption electric voltage': '电压',
+            'power consumption voltage': '电压',
         },
 
         'ptc_bath_heater': {
