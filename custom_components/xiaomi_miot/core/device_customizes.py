@@ -1003,9 +1003,9 @@ DEVICE_CUSTOMIZES = {
     },
     'qmi.plug.tw02:power_consumption': {
         'value_ratio': 1,
-        'state_class': "total_increasing",
-        'device_class': "energy",
-        'unit_of_measurement': "kWh",
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
     },
     'qmi.plug.tw02:power_cost_today': {
         'value_ratio': 1,
