@@ -7,7 +7,7 @@ from homeassistant.const import *  # noqa: F401
 from homeassistant.components.device_tracker import (
     DOMAIN as ENTITY_DOMAIN,
 )
-from homeassistant.components.device_tracker.const import SOURCE_TYPE_GPS
+from homeassistant.components.device_tracker.const import SourceType
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 
 from . import (
@@ -108,7 +108,7 @@ class MiotTrackerEntity(MiotEntity, TrackerEntity):
     @property
     def source_type(self):
         """Return the source type, eg gps or router, of the device."""
-        return SOURCE_TYPE_GPS
+        return SourceType.GPS
 
     @property
     def latitude(self):

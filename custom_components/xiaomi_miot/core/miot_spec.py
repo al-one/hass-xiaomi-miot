@@ -745,13 +745,13 @@ class MiotProperty(MiotSpecInstance):
         name = self.name
         unit = self.unit
         aliases = {
-            'celsius': TEMP_CELSIUS,
-            'fahrenheit': TEMP_FAHRENHEIT,
-            'kelvin': TEMP_KELVIN,
+            'celsius': UnitOfTemperature.CELSIUS,
+            'fahrenheit': UnitOfTemperature.FAHRENHEIT,
+            'kelvin': UnitOfTemperature.KELVIN,
             'percentage': PERCENTAGE,
             'lux': LIGHT_LUX,
-            'watt': POWER_WATT,
-            'pascal': PRESSURE_PA,
+            'watt': UnitOfPower.WATT,
+            'pascal': UnitOfPressure.PA,
             'μg/m3': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
             'mg/m3': CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
             'p/m3': CONCENTRATION_PARTS_PER_CUBIC_METER,
@@ -759,9 +759,9 @@ class MiotProperty(MiotSpecInstance):
         names = {
             'current_step_count': 'steps',
             'heart_rate': 'bpm',
-            'power_consumption': ENERGY_WATT_HOUR,
-            'electric_current': ELECTRIC_CURRENT_AMPERE,
-            'voltage': ELECTRIC_POTENTIAL_VOLT,
+            'power_consumption': UnitOfEnergy.WATT_HOUR,
+            'electric_current': UnitOfElectricCurrent.AMPERE,
+            'voltage': UnitOfElectricPotential.VOLT,
             'pm2_5_density': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
             'tds_in': CONCENTRATION_PARTS_PER_MILLION,
             'tds_out': CONCENTRATION_PARTS_PER_MILLION,
