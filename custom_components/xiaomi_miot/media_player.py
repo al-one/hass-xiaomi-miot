@@ -16,6 +16,7 @@ from homeassistant.components.media_player.const import *
 from homeassistant.components.media_player import (
     DOMAIN as ENTITY_DOMAIN,
     MediaPlayerEntity,
+    MediaPlayerState,  # v2022.10
     MediaPlayerEntityFeature,  # v2022.5
     MediaPlayerDeviceClass,
 )
@@ -177,19 +178,19 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
             sta = self._prop_state.from_dict(self._state_attrs)
             if sta is not None:
                 if sta in self._prop_state.list_search('Playing', 'Play'):
-                    return STATE_PLAYING
+                    return MediaPlayerState.PLAYING
                 if sta == self._prop_state.list_value('Pause'):
-                    return STATE_PAUSED
+                    return MediaPlayerState.PAUSED
                 if sta == self._prop_state.list_value('Idle'):
-                    return STATE_IDLE
+                    return MediaPlayerState.IDLE
                 des = self._prop_state.list_description(sta)
                 if des is not None:
                     return des
         if self._attr_state is not None:
             return self._attr_state
         if self.available:
-            return STATE_IDLE
-        return STATE_UNAVAILABLE
+            return MediaPlayerState.IDLE
+        return None
 
     @property
     def is_volume_muted(self):
@@ -408,7 +409,11 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 song.update(playing)
 
                 if (sta := info.get('status')) is not None:
-                    self._attr_state = {0: STATE_IDLE, 1: STATE_PLAYING, 2: STATE_PAUSED}.get(sta)
+                    self._attr_state = {
+                        0: MediaPlayerState.IDLE,
+                        1: MediaPlayerState.PLAYING,
+                        2: MediaPlayerState.PAUSED,
+                    }.get(sta)
                 if (typ := info.get('media_type')) is not None:
                     self._attr_media_content_type = {3: MEDIA_TYPE_MUSIC, 13: MEDIA_TYPE_VIDEO}.get(typ)
                 else:
@@ -440,7 +445,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
 
         if unsub := self._vars.pop('unsub_play_status', None):
             unsub()
-        if self.state not in [STATE_PLAYING]:
+        if self.state not in [MediaPlayerState.PLAYING]:
             pass
         elif not self._attr_media_duration or self._attr_media_position is None:
             pass
@@ -728,10 +733,10 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
     def state(self):
         sta = super().state
         if not self.cloud_only and not self._local_state:
-            sta = STATE_OFF
+            sta = None
         if self._speaker_mode_switch and self.custom_config_bool('turn_off_screen'):
             if self._speaker_mode_switch.from_dict(self._state_attrs):
-                sta = STATE_OFF
+                sta = MediaPlayerState.OFF
         return sta
 
     def turn_on(self):
@@ -931,7 +936,7 @@ class MiirMediaPlayerEntity(MiirToggleEntity, MediaPlayerEntity):
     @property
     def state(self):
         """State of the player."""
-        return STATE_IDLE
+        return None
 
     def mute_volume(self, mute):
         """Mute the volume."""
