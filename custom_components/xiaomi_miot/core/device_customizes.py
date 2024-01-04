@@ -1348,6 +1348,12 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_off': 2,
         'button_actions': 'reset_filter_life',
     },
+    'zhimi.airp.rma3': {
+        'sensor_properties': 'moto_speed_rpm',
+        'switch_properties': 'alarm',
+        'select_properties': 'brightness',
+        'number_properties': 'air_purifier_favorite.fan_level',
+    },
     'zhimi.airpurifier.*': {
         'speed_property': 'favorite_level,favorite_fan_level',
         'number_properties': 'favorite_level,favorite_fan_level',
