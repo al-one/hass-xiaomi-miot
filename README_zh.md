@@ -48,13 +48,7 @@
 
 #### 方法3: 通过`SSH`或`Terminal & SSH`加载项执行一键安装命令
 ```shell
-wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | ARCHIVE_TAG=latest bash -
-
-# 如果遇到下载缓慢或下载失败可以执行下面的命令
-wget -q -O - https://ghproxy.com/raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=ghproxy.com/github.com ARCHIVE_TAG=latest bash -
-
-# 或者
-wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=hub.fastgit.xyz ARCHIVE_TAG=latest bash -
+wget -O - https://hacs.vip/get | DOMAIN=xiaomi_miot REPO_PATH=al-one/hass-xiaomi-miot ARCHIVE_TAG=latest bash -
 ```
 
 #### 方法4: `shell_command`服务
@@ -62,10 +56,11 @@ wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh |
     ```yaml
     shell_command:
       update_xiaomi_miot: |-
-        wget -q -O - https://ghproxy.com/raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=ghproxy.com/github.com ARCHIVE_TAG=latest bash -
+        wget -O - https://hacs.vip/get | DOMAIN=xiaomi_miot REPO_PATH=al-one/hass-xiaomi-miot ARCHIVE_TAG=latest bash -
     ```
-2. 重启HA
+2. 重启HA使配置生效
 3. 在HA开发者工具中调用此服务[`service: shell_command.update_xiaomi_miot`](https://my.home-assistant.io/redirect/developer_call_service/?service=shell_command.update_xiaomi_miot)
+4. 再次重启HA使新版插件生效
 
 #### 视频教程
 - 📺 **[HACS安装插件及使用视频教程](https://www.bilibili.com/video/BV1hY4y1a7Gh?t=48)** (感谢[小帅同学Js](https://space.bilibili.com/230242045))

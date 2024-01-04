@@ -29,7 +29,11 @@ This component uses the **miot** protocol to automatically integrate Xiaomi devi
 
 #### Method 3: Onkey shell via SSH / Terminal & SSH add-on
 ```shell
-wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | ARCHIVE_TAG=latest bash -
+wget -O - https://hacs.vip/get | DOMAIN=xiaomi_miot REPO_PATH=al-one/hass-xiaomi-miot ARCHIVE_TAG=latest bash -
+
+# Or
+
+wget -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | ARCHIVE_TAG=latest bash -
 ```
 
 #### Method 4: shell_command service
@@ -37,10 +41,11 @@ wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/in
     ```yaml
     shell_command:
       update_xiaomi_miot: |-
-        wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | ARCHIVE_TAG=latest bash -
+        wget -O - https://hacs.vip/get | DOMAIN=xiaomi_miot REPO_PATH=al-one/hass-xiaomi-miot ARCHIVE_TAG=latest bash -
     ```
 2. Restart HA core
 3. Call this [`service: shell_command.update_xiaomi_miot`](https://my.home-assistant.io/redirect/developer_call_service/?service=shell_command.update_xiaomi_miot) in Developer Tools
+2. Restart HA core again
 
 
 ## Config
