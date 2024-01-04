@@ -1275,6 +1275,22 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.3': {'prop': 'curr_tempe'},
         },
     },
+    'yunmi.plmachine.mg2': {
+        'miio_props': ['fault','run_status', 'water_remain_time', 'custom_tempe1', 'min_set_tempe', 'drink_remind_time', 'water_state', 'water_fetch'],
+        'entity_attrs': ['fault','run_status', 'water_remain_time', 'custom_tempe1', 'min_set_tempe', 'drink_remind_time', 'water_state', 'water_fetch'],
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.4': {'prop': 'work_mode'},
+            'prop.2.5': {'prop': 'curr_tempe'},
+            'prop.2.6': {
+                'prop': 'setup_tempe', 
+                'setter': 'set_tempe_setup',
+                'set_template': '{{ [1, value|int(52)] }}',
+                },
+            'prop.2.7': {'prop': 'uv_state'},
+            'prop.3.1': {'prop': 'tds'},
+        },
+    },
     'scishare.coffee.s1102': {
         # set_methods:
         # "Espresso_Coffee_Set [coffee.coffee, coffee.temp],
