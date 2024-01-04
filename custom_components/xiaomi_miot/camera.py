@@ -231,8 +231,6 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         await super().async_update()
         if not self._available:
             return
-        if self._prop_power:
-            self._update_sub_entities(self._prop_power, None, 'switch')
 
         self._motion_enable = self.custom_config_bool('use_motion_stream', self._use_motion_stream)
         add_cameras = self._add_entities.get(ENTITY_DOMAIN)
@@ -244,7 +242,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             add_cameras([self._motion_entity], update_before_add=True)
 
         adt = None
-        lag = locale.getdefaultlocale()[0]
+        lag = locale.getlocale()[0]
         stm = int(time.time() - 86400 * 7) * 1000
         etm = int(time.time() * 1000 + 999)
         if not self._motion_enable and not self._motion_entity:
