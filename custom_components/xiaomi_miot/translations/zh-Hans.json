@@ -232,11 +232,28 @@
                 "state_attributes": {
                     "effect_list": {
                         "state": {
-                            "Day": "日光",
-                            "Night": "夜光",
-                            "Color": "彩光",
-                            "Scene": "场景",
-                            "Music": "音乐"
+                            "Night": "夜光模式",
+                            "Color": "彩光模式",
+                            "Scene": "场景模式",
+                            "Music": "音乐模式",
+                            "WY": "冷暖模式",
+                            "Color": "颜色模式",
+                            "YS": "颜色模式",
+                            "Gradient": "彩光模式",
+                            "Jump": "跳变模式",
+                            "WYmode": "冷暖模式",
+                            "Day": "日光模式",
+                            "Night": "月光模式",
+                            "Warmth": "温馨模式",
+                            "Tv": "影院模式",
+                            "Reading": "阅读模式",
+                            "Computer": "电脑模式",
+                            "Hospitality": "会客模式",
+                            "Entertainment": "娱乐模式",
+                            "Wakeup": "清晨唤醒",
+                            "Dusk": "黄昏明亮",
+                            "Sleeping": "夜晚助眠",
+                            "Night Light": "夜灯模式"
                         }
                     }
                 }
