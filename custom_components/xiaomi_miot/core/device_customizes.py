@@ -638,7 +638,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'no_one_determine_time',
     },
     'izq.sensor_occupy.solo': {
-        'sensor_properties': 'occupancy_status,illumination',
+        'sensor_properties': 'occupancy_status,illumination,switch_sensor.status',
         'number_properties': 'bio_sensitive',
         'switch_properties': 'indicator_light,shadow_tracking',
         'button_actions': 'led_toggle,find_device'
