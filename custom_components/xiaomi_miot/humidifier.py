@@ -1,8 +1,10 @@
 """Support for humidifier and dehumidifier."""
 import logging
 
-from homeassistant.const import *  # noqa: F401
-from homeassistant.components.humidifier.const import *
+from homeassistant.components.humidifier.const import (
+    DEFAULT_MAX_HUMIDITY,
+    DEFAULT_MIN_HUMIDITY,
+)
 from homeassistant.components.humidifier import (
     DOMAIN as ENTITY_DOMAIN,
     HumidifierEntity,

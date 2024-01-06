@@ -3,7 +3,10 @@ import logging
 import time
 from functools import partial
 
-from homeassistant.const import *  # noqa: F401
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_TOKEN,
+)
 from homeassistant.components import remote
 from homeassistant.components.remote import (
     DOMAIN as ENTITY_DOMAIN,

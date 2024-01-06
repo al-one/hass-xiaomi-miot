@@ -2,8 +2,22 @@
 import logging
 from enum import Enum
 
-from homeassistant.const import *  # noqa: F401
-from homeassistant.components.climate.const import *
+from homeassistant.const import (
+    ATTR_DEVICE_CLASS,
+    ATTR_TEMPERATURE,
+    ATTR_UNIT_OF_MEASUREMENT,
+    STATE_UNKNOWN,
+    UnitOfTemperature,
+)
+from homeassistant.components.climate.const import (
+    ATTR_CURRENT_HUMIDITY,
+    ATTR_CURRENT_TEMPERATURE,
+    ATTR_HVAC_MODE,
+    DEFAULT_MAX_HUMIDITY,
+    DEFAULT_MIN_HUMIDITY,
+    HVACAction,
+    HVACMode,
+)
 from homeassistant.components.climate import (
     DOMAIN as ENTITY_DOMAIN,
     ClimateEntity,

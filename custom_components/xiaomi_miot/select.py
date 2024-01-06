@@ -1,7 +1,6 @@
 """Support select entity for Xiaomi Miot."""
 import logging
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.select import (
     DOMAIN as ENTITY_DOMAIN,
     SelectEntity,

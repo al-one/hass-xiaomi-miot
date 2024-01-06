@@ -1,7 +1,6 @@
 """Support number entity for Xiaomi Miot."""
 import logging
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.number import (
     DOMAIN as ENTITY_DOMAIN,
     NumberEntity,

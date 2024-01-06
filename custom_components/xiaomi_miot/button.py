@@ -1,7 +1,6 @@
 """Support button entity for Xiaomi Miot."""
 import logging
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.button import (
     DOMAIN as ENTITY_DOMAIN,
     ButtonEntity,
