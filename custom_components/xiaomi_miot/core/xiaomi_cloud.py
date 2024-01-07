@@ -12,8 +12,8 @@ from functools import partial
 from urllib import parse
 
 from homeassistant.const import (
-    CONF_USERNAME,
     CONF_PASSWORD,
+    CONF_USERNAME,
 )
 from homeassistant.helpers.storage import Store
 from homeassistant.components import persistent_notification
