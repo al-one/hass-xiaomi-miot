@@ -14,7 +14,19 @@ from homeassistant import (
     core as hass_core,
     config_entries,
 )
-from homeassistant.const import *
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    CONF_HOST,
+    CONF_NAME,
+    CONF_PASSWORD,
+    CONF_SCAN_INTERVAL,
+    CONF_TOKEN,
+    CONF_USERNAME,
+    STATE_OFF,
+    STATE_ON,
+    STATE_UNKNOWN,
+    SERVICE_RELOAD,
+)
 from homeassistant.config import DATA_CUSTOMIZE
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity import (
