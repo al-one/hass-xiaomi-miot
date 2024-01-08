@@ -6,7 +6,16 @@ from typing import cast
 from datetime import datetime, timedelta
 from functools import partial, cmp_to_key
 
-from homeassistant.const import *  # noqa: F401
+from homeassistant.const import (
+    CONCENTRATION_PARTS_PER_MILLION,
+    CONF_HOST,
+    CONF_NAME,
+    CONF_TOKEN,
+    PERCENTAGE,
+    STATE_UNKNOWN,
+    UnitOfTemperature,
+    UnitOfTime,
+)
 from homeassistant.helpers.entity import (
     Entity,
 )

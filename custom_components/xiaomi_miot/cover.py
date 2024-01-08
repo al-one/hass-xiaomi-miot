@@ -5,7 +5,11 @@ from enum import Enum
 from functools import partial
 from datetime import timedelta
 
-from homeassistant.const import *  # noqa: F401
+from homeassistant.const import (
+    CONF_NAME,
+    CONF_HOST,
+    CONF_TOKEN,
+)
 from homeassistant.core import callback
 from homeassistant.components.cover import (
     DOMAIN as ENTITY_DOMAIN,

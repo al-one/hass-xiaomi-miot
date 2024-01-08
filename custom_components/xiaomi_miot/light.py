@@ -2,7 +2,6 @@
 import logging
 from functools import partial
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.light import (
     DOMAIN as ENTITY_DOMAIN,
     LightEntity,

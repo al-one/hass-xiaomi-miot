@@ -11,14 +11,22 @@ from datetime import timedelta
 from functools import partial
 from urllib.parse import urlencode, urlparse, parse_qsl
 
-from homeassistant.const import *  # noqa: F401
-from homeassistant.components.media_player.const import *
+from homeassistant.const import (
+    ATTR_ATTRIBUTION,
+    ATTR_FRIENDLY_NAME,
+    CONF_HOST,
+)
+from homeassistant.components.media_player.const import ( 
+    MEDIA_TYPE_MUSIC,
+    MEDIA_TYPE_VIDEO,
+    RepeatMode,
+)
 from homeassistant.components.media_player import (
     DOMAIN as ENTITY_DOMAIN,
-    MediaPlayerEntity,
-    MediaPlayerState,  # v2022.10
-    MediaPlayerEntityFeature,  # v2022.5
     MediaPlayerDeviceClass,
+    MediaPlayerEntity,
+    MediaPlayerEntityFeature,  # v2022.5
+    MediaPlayerState,  # v2022.10
 )
 from homeassistant.components.homekit.const import EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED
 from homeassistant.core import HassJob
@@ -422,10 +430,10 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 if self._attr_volume_level is not None:
                     self._attr_volume_level = self._attr_volume_level / 100
                 self._attr_repeat = {
-                    0: REPEAT_MODE_ONE,
-                    1: REPEAT_MODE_ALL,
-                    3: REPEAT_MODE_OFF,  # random
-                }.get(info.get('loop_type'), REPEAT_MODE_OFF)
+                    0: RepeatMode.ONE,
+                    1: RepeatMode.ALL,
+                    3: RepeatMode.OFF,  # random
+                }.get(info.get('loop_type'), RepeatMode.OFF)
 
                 self._attr_media_content_id = mid
                 self._attr_media_title = song.get('title') or song.get('name')

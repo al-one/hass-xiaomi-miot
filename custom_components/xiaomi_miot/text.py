@@ -2,7 +2,6 @@
 import logging
 import time
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.text import (
     DOMAIN as ENTITY_DOMAIN,
     TextEntity,

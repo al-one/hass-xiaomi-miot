@@ -2,7 +2,12 @@
 import logging
 import math
 
-from homeassistant.const import *  # noqa: F401
+from homeassistant.const import (
+    ATTR_TEMPERATURE,
+    STATE_OFF,
+    STATE_ON,
+    UnitOfTemperature,
+)
 from homeassistant.components.water_heater import (
     DOMAIN as ENTITY_DOMAIN,
     WaterHeaterEntity,
