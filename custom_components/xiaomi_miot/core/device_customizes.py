@@ -1222,6 +1222,9 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'homepage,light',
         'text_actions': 'play_text,execute_text_directive',
     },
+    'xiaomi.heater.ma8': {
+        'button_actions': 'toggle',
+    },
     'xiaomi.humidifier.p1200': {
         'button_actions': 'loop_mode,reset_filter_life',
         'select_properties': 'screen.brightness',
@@ -1601,8 +1604,8 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_time,target_temperature',
     },
     '*.heater.*': {
-        'switch_properties': 'heater.on',
-        'number_properties': 'countdown_time',
+        'switch_properties': 'heater.on,horizontal_swing,alarm.alarm,delay.delay',
+        'number_properties': 'countdown_time,delay_time',
     },
     '*.ihcooker.*': {
         'sensor_properties': 'temperature,left_time',
