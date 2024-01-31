@@ -486,6 +486,7 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
     },
     'dooya.curtain.*': {
+        'auto_cloud': True,
         'exclude_miot_properties': 'fault',
         'switch_properties': 'motor_reverse',
     },
