@@ -1562,8 +1562,8 @@ class MiotEntity(MiioEntity):
             )
             self._update_sub_entities(
                 [
-                    'battery_level', 'ble_battery_level', 'charging_state', 'voltage', 'power_consumption',
-                    'electric_current', 'leakage_current', 'surge_power', 'electric_power', 'elec_count',
+                    'battery_level', 'ble_battery_level', 'charging_state', 'voltage', 'electric_power',
+                    'electric_current', 'leakage_current', 'surge_power', 'elec_count',
                 ],
                 ['battery', 'power_consumption', 'electricity'],
                 domain='sensor',

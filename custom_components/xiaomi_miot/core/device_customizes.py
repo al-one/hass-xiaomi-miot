@@ -311,6 +311,11 @@ DEVICE_CUSTOMIZES = {
     'cuco.plug.cp5pro:power_cost_month': {
         'value_ratio': 1,
     },
+    'cuco.plug.p8amd': {
+        'main_miot_services': 'switch-2',
+        'switch_properties': 'usb_switch.on,light,light.mode',
+        'select_properties': 'default_power_on_state',
+    },
     'cuco.plug.sp5': {
         'main_miot_services': 'switch-2',
         'exclude_miot_services': 'custome,physical_controls_locked,indicator_light',
@@ -1507,11 +1512,6 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'heating,blow,ventilation',
         'select_properties': 'link',
         'light_services': 'light',
-    },
-    'cuco.plug.p8amd': {
-        'main_miot_services': 'switch-2',
-        'switch_properties': 'usb_switch.on,light,light.mode',
-        'select_properties': 'default_power_on_state',
     },
 
     '*.aircondition.*': {
