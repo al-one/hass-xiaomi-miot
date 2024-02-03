@@ -655,6 +655,12 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'indicator_light,shadow_tracking',
         'button_actions': 'led_toggle,find_device'
     },
+    'leishi.bhf_light.lsyb01': {
+        'light_services': 'night_light',
+        'switch_properties': 'heating,blow,ventilation,dryer',
+        'select_properties': 'heat_level,fan_level',
+        'button_actions': 'stop_working',
+    },
     'leishi.light.*': {
         'exclude_miot_services': 'scenes,scene,scens,remote',
         'exclude_miot_properties': 'default.user_save,professional_setting.delay',
