@@ -3,7 +3,6 @@ import logging
 import time
 from datetime import timedelta
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.device_tracker import (
     DOMAIN as ENTITY_DOMAIN,
 )

@@ -199,6 +199,15 @@
                             "leve8": "八档"
                         }
                     },
+                    "preset_mode": {
+                        "state": {
+                            "off": "关闭",
+                            "auto": "自动",
+                            "Heat": "制热",
+                            "Warm": "温暖",
+                            "Natural Wind": "自然风"
+                        }
+                    },
                     "swing_mode": {
                         "state": {
                             "off": "关闭",

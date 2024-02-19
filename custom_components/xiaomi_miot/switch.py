@@ -2,7 +2,13 @@
 import logging
 import time
 
-from homeassistant.const import *  # noqa: F401
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_NAME,
+    CONF_TOKEN,
+    STATE_OFF,
+    STATE_ON,
+)
 from homeassistant.components.switch import (
     DOMAIN as ENTITY_DOMAIN,
     SwitchEntity,

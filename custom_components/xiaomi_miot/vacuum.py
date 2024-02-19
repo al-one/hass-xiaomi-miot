@@ -4,7 +4,10 @@ import time
 from datetime import timedelta
 from functools import partial
 
-from homeassistant.const import *  # noqa: F401
+from homeassistant.const import (
+    STATE_IDLE,
+    STATE_PAUSED,
+)
 from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
     StateVacuumEntity,

@@ -5,7 +5,11 @@ import json
 from functools import partial
 from datetime import datetime
 
-from homeassistant.const import *  # noqa: F401
+from homeassistant.const import (
+        STATE_OFF,
+        STATE_ON,
+        STATE_UNKNOWN,
+)
 from homeassistant.components.binary_sensor import (
     DOMAIN as ENTITY_DOMAIN,
     BinarySensorEntity,

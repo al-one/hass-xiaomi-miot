@@ -12,7 +12,7 @@ from functools import partial
 from urllib.parse import urlencode
 from datetime import datetime, timedelta
 
-from homeassistant.const import *  # noqa: F401
+from homeassistant.const import STATE_IDLE
 from homeassistant.core import HomeAssistant
 from homeassistant.components.camera import (
     DOMAIN as ENTITY_DOMAIN,

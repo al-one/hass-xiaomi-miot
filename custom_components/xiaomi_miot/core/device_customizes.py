@@ -311,6 +311,11 @@ DEVICE_CUSTOMIZES = {
     'cuco.plug.cp5pro:power_cost_month': {
         'value_ratio': 1,
     },
+    'cuco.plug.p8amd': {
+        'main_miot_services': 'switch-2',
+        'switch_properties': 'usb_switch.on,light,light.mode',
+        'select_properties': 'default_power_on_state',
+    },
     'cuco.plug.sp5': {
         'main_miot_services': 'switch-2',
         'exclude_miot_services': 'custome,physical_controls_locked,indicator_light',
@@ -486,6 +491,7 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
     },
     'dooya.curtain.*': {
+        'auto_cloud': True,
         'exclude_miot_properties': 'fault',
         'switch_properties': 'motor_reverse',
     },
@@ -648,6 +654,12 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'bio_sensitive',
         'switch_properties': 'indicator_light,shadow_tracking',
         'button_actions': 'led_toggle,find_device'
+    },
+    'leishi.bhf_light.lsyb01': {
+        'light_services': 'night_light',
+        'switch_properties': 'heating,blow,ventilation,dryer',
+        'select_properties': 'heat_level,fan_level',
+        'button_actions': 'stop_working',
     },
     'leishi.light.*': {
         'exclude_miot_services': 'scenes,scene,scens,remote',
@@ -1222,6 +1234,9 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'homepage,light',
         'text_actions': 'play_text,execute_text_directive',
     },
+    'xiaomi.heater.ma8': {
+        'button_actions': 'toggle',
+    },
     'xiaomi.humidifier.p1200': {
         'button_actions': 'loop_mode,reset_filter_life',
         'select_properties': 'screen.brightness',
@@ -1504,11 +1519,6 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'link',
         'light_services': 'light',
     },
-    'cuco.plug.p8amd': {
-        'main_miot_services': 'switch-2',
-        'switch_properties': 'usb_switch.on,light,light.mode',
-        'select_properties': 'default_power_on_state',
-    },
 
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
@@ -1601,8 +1611,8 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_time,target_temperature',
     },
     '*.heater.*': {
-        'switch_properties': 'heater.on',
-        'number_properties': 'countdown_time',
+        'switch_properties': 'heater.on,horizontal_swing,alarm.alarm,delay.delay',
+        'number_properties': 'countdown_time,delay_time',
     },
     '*.ihcooker.*': {
         'sensor_properties': 'temperature,left_time',
