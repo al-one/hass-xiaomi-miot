@@ -1803,6 +1803,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {'prop': 'status_seatheat', 'setter': 'work_seatheat', 'set_template': '{{ [value|int] }}'},
             'prop.3.2': {'prop': 'seat_temp', 'setter': 'set_seat_temp'},
             'prop.4.1': {'prop': 'status_led', 'setter': 'work_night_led', 'set_template': '{{ [value|int] }}'},
+            'action.2.101': {'setter': 'flush_on'},
         },
     },
 
