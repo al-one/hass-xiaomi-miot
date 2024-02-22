@@ -1622,6 +1622,21 @@
         }
       ]
     }
+  ],
+
+  "xjx.toilet.relax": [
+    {
+      "iid": 2,
+      "actions": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:action:flush-on",
+          "description": "Flush",
+          "in": [],
+          "out": []
+        }
+      ]
+    }
   ]
 
 }
