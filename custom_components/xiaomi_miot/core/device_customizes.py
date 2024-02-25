@@ -516,6 +516,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,fan_level,scene',
         'number_properties': 'worktime,sleeptime',
     },
+    'era.ysj.b65': {
+        'main_miot_services': 'water_dispenser',
+        'sensor_properties': 'status,tds_in,tds_out,current_water,filter_life_level',
+        'select_properties': 'mode,filter_reset',
+        'number_properties': 'out_water_volume,feidian',
+    },
 
     'fawad.airrtc.40011': {
         'chunk_properties': 1,
