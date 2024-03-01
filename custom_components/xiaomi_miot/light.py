@@ -103,11 +103,8 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             if prop := self._miot_service.spec.get_property(prop):
                 self._prop_color = prop
 
+        self._attr_color_mode = ColorMode.UNKNOWN
         self._attr_supported_color_modes = set()
-        if self._prop_power:
-            self._attr_supported_color_modes.add(ColorMode.ONOFF)
-        if self._prop_brightness:
-            self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
         self._is_percentage_color_temp = None
         if self._prop_color_temp:
             self._attr_supported_color_modes.add(ColorMode.COLOR_TEMP)
@@ -127,6 +124,12 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             self._vars['mireds_sum'] = self._attr_min_mireds + self._attr_max_mireds
         if self._prop_color:
             self._attr_supported_color_modes.add(ColorMode.HS)
+        if self._prop_brightness and not self._attr_supported_color_modes:
+            self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
+        if self._prop_power and not self._attr_supported_color_modes:
+            self._attr_supported_color_modes.add(ColorMode.ONOFF)
+
+        self._supported_features = LightEntityFeature(0)
         if self._prop_mode:
             self._supported_features |= LightEntityFeature.EFFECT
         self._is_yeelight = 'yeelink.' in f'{self.model}'
@@ -171,7 +174,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
                 ret = self.set_property(self._prop_brightness, bri)
             else:
                 ret = self.set_property(self._prop_power, True)
-        self._attr_color_mode = None
+        self._attr_color_mode = ColorMode.UNKNOWN
 
         if self._prop_brightness and ATTR_BRIGHTNESS in kwargs:
             brightness = kwargs[ATTR_BRIGHTNESS]
@@ -307,7 +310,7 @@ class MiirLightEntity(MiirToggleEntity, LightEntity):
             self._attr_supported_color_modes = {ColorMode.BRIGHTNESS}
             self._attr_brightness = 127
 
-        self._supported_features |= LightEntityFeature.EFFECT
+        self._supported_features = LightEntityFeature.EFFECT
         self._attr_effect_list = []
         for a in miot_service.actions.values():
             if a.ins:
