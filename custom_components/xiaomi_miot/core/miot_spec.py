@@ -1041,5 +1041,8 @@ class MiotResult:
     def spec_error(self):
         return MiotSpec.spec_error(self.code)
 
+    def to_json(self):
+        return self.result
+
     def __str__(self):
         return f'{self.result}'
