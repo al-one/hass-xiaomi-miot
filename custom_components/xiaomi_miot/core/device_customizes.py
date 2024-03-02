@@ -1411,6 +1411,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'brightness',
         'number_properties': 'air_purifier_favorite.fan_level',
     },
+    'zhimi.airp.vb4:pm10-density': {
+        'unit_of_measurement': 'µg/m³',
+    },
     'zhimi.airpurifier.*': {
         'speed_property': 'favorite_level,favorite_fan_level',
         'number_properties': 'favorite_level,favorite_fan_level',
