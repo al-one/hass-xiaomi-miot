@@ -1015,6 +1015,9 @@ class MiotResults:
                 adt[ek] = prop.spec_error
         return adt
 
+    def to_json(self):
+        return [r.to_json() for r in self.results]
+
     def __str__(self):
         return f'{self._results}'
 

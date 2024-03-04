@@ -59,6 +59,7 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
     MiotAction,
+    MiotResult,
     MiotResults,
 )
 from .core.xiaomi_cloud import (
@@ -434,6 +435,8 @@ def bind_services_to_entries(hass, services):
             update_tasks.append(ent.async_update_ha_state(True))
         if update_tasks:
             await asyncio.gather(*update_tasks)
+        if isinstance(result, (MiotResult, MiotResults)):
+            result = result.to_json()
         if not isinstance(result, dict):
             result = {'result': result}
         return result
