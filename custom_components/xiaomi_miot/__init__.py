@@ -2133,7 +2133,7 @@ class MiotEntity(MiioEntity):
                 elif add_switches and domain == 'switch' and (p.format in ['bool'] or p.value_list) and p.writeable:
                     self._subs[fnm] = MiotSwitchSubEntity(self, p, option=opt)
                     add_switches([self._subs[fnm]], update_before_add=True)
-                elif add_binary_sensors and domain == 'binary_sensor' and p.is_bool:
+                elif add_binary_sensors and domain == 'binary_sensor' and (p.is_bool or p.is_integer):
                     self._subs[fnm] = MiotBinarySensorSubEntity(self, p, option=opt)
                     add_binary_sensors([self._subs[fnm]], update_before_add=True)
                 elif add_sensors and domain == 'sensor':
