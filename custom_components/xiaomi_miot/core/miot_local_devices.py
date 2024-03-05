@@ -19,6 +19,7 @@ MIOT_LOCAL_MODELS = [
     'adp.fitting.adgw',
     'aimore.light.cw3201',
     'ainice.motion.bt',
+    'ainice.sensor_occupy.3b',
     'ainice.sensor_occupy.pr',
     'airdog.airpurifier.mn',
     'ateai.mosq.dakuo',

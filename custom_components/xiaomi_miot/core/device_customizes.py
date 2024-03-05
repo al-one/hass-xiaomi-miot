@@ -36,6 +36,16 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'offline_timeout,motion_timeout,online_level,offline_level,online_duration,'
                              'offline_duration,ble_in_threshold,ble_out_threshold,ble_far_timeout',
     },
+    'ainice.sensor_occupy.3b': {
+        'main_miot_services': 'occupancy_sensor',
+        'state_property': 'occupancy_sensor.current_objects',
+        'interval_seconds': 10,
+        'sensor_properties': 'total_objects,a_objects,b_objects,c_objects,d_objects,e_objects',
+        'switch_properties': 'radar_switch,count_switch',
+        'select_properties': 'map_index,traction',
+        'number_properties': 'radar_duration',
+        'button_actions': 'reboot',
+    },
     'ainice.sensor_occupy.pr': {
         'main_miot_services': 'occupancy_sensor',
         'state_property': 'occupancy_sensor.occupancy_status',

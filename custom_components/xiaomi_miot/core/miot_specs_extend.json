@@ -66,6 +66,40 @@
       ]
     }
   ],
+  "ainice.sensor_occupy.3b": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:current-objects",
+          "description": "Current Objects",
+          "value-range": [0, 5, 1],
+          "value-list": []
+        },
+        {"iid": 2, "type": "urn:miot-spec-v2:property:total-objects", "description": "Total Objects"},
+        {"iid": 5, "type": "urn:miot-spec-v2:property:a-objects", "description": "A Objects"},
+        {"iid": 6, "type": "urn:miot-spec-v2:property:a-someone-duration", "description": "A Someone Duration"},
+        {"iid": 7, "type": "urn:miot-spec-v2:property:a-noone-duration", "description": "A Noone Duration"},
+        {"iid": 8, "type": "urn:miot-spec-v2:property:b-objects", "description": "B Objects"},
+        {"iid": 9, "type": "urn:miot-spec-v2:property:b-someone-duration", "description": "B Someone Duration"},
+        {"iid": 10, "type": "urn:miot-spec-v2:property:b-noone-duration", "description": "B Noone Duration"},
+        {"iid": 11, "type": "urn:miot-spec-v2:property:c-objects", "description": "C Objects"},
+        {"iid": 12, "type": "urn:miot-spec-v2:property:c-someone-duration", "description": "C Someone Duration"},
+        {"iid": 13, "type": "urn:miot-spec-v2:property:c-noone-duration", "description": "C Noone Duration"},
+        {"iid": 14, "type": "urn:miot-spec-v2:property:d-objects", "description": "D Objects"},
+        {"iid": 15, "type": "urn:miot-spec-v2:property:d-someone-duration", "description": "D Someone Duration"},
+        {"iid": 16, "type": "urn:miot-spec-v2:property:d-noone-duration", "description": "D Noone Duration"},
+        {"iid": 17, "type": "urn:miot-spec-v2:property:e-objects", "description": "E Objects"},
+        {"iid": 18, "type": "urn:miot-spec-v2:property:e-someone-duration", "description": "E Someone Duration"},
+        {"iid": 19, "type": "urn:miot-spec-v2:property:e-noone-duration", "description": "E Noone Duration"}
+      ]
+    },
+    {
+      "iid": 3,
+      "description": "Indicator Light"
+    }
+  ],
 
   "chuangmi.plug.hmi208": [
     {
