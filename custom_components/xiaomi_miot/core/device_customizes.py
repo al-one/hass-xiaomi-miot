@@ -664,6 +664,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'work_mode,hip_water_gage,woman_water_gage,hip_nozzle_position,woman_nozzle_pos,'
                              'seat_temperature,wind_temperature,water_temperature,auto_mode',
     },
+    'iot.switch.padw2p': {
+        'sensor_properties': 'temperature,electric_power,electric_current,voltage',
+        'select_properties': 'default_power_on_state',
+        'switch_properties': 'screen.on,self_check,leak_switch,voice_switch',
+        'number_properties': 'over_electric_set,lack_voltage_set,delay_set,close_temp_set,over_voltage_set,alert_temp_set',
+    },
     'isa.camera.hlc7': {
         'select_properties': 'night_shot,recording_mode,detection_sensitivity',
         'switch_properties': 'on,time_watermark,motion_detection',
