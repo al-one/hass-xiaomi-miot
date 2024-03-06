@@ -669,6 +669,21 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'default_power_on_state',
         'switch_properties': 'screen.on,self_check,leak_switch,voice_switch',
         'number_properties': 'over_electric_set,lack_voltage_set,delay_set,close_temp_set,over_voltage_set,alert_temp_set',
+        'stat_power_cost_type': 'stat_day_v3',
+        'stat_power_cost_key': '3.1',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+    },
+    'iot.switch.padw2p:power_cost_today': {
+        'value_ratio': 1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'iot.switch.padw2p:power_cost_month': {
+        'value_ratio': 1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
     },
     'isa.camera.hlc7': {
         'select_properties': 'night_shot,recording_mode,detection_sensitivity',
