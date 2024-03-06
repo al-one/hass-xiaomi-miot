@@ -44,8 +44,31 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'total_occupied',
         'switch_properties': 'radar_switch,count_switch',
         'select_properties': 'map_index,traction',
-        'number_properties': 'radar_duration',
         'button_actions': 'reboot',
+    },
+    'ainice.sensor_occupy.3b:current_occupied': {
+        'with_properties': 'has_someone_duration,no_one_duration,total_occupied',
+        'device_class': 'occupancy',
+    },
+    'ainice.sensor_occupy.3b:a_occupied': {
+        'with_properties': 'a_someone_duration,a_noone_duration',
+        'device_class': 'occupancy',
+    },
+    'ainice.sensor_occupy.3b:b_occupied': {
+        'with_properties': 'b_someone_duration,b_noone_duration',
+        'device_class': 'occupancy',
+    },
+    'ainice.sensor_occupy.3b:c_occupied': {
+        'with_properties': 'c_someone_duration,c_noone_duration',
+        'device_class': 'occupancy',
+    },
+    'ainice.sensor_occupy.3b:d_occupied': {
+        'with_properties': 'd_someone_duration,d_noone_duration',
+        'device_class': 'occupancy',
+    },
+    'ainice.sensor_occupy.3b:e_occupied': {
+        'with_properties': 'e_someone_duration,e_noone_duration',
+        'device_class': 'occupancy',
     },
     'ainice.sensor_occupy.pr': {
         'main_miot_services': 'occupancy_sensor',

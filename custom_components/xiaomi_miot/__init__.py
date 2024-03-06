@@ -2545,6 +2545,21 @@ class MiotPropertySubEntity(BaseSubEntity):
             'property_description': miot_property.description or miot_property.name,
         })
 
+    def update_with_properties(self):
+        pls = self.custom_config_list('with_properties', [])
+        for p in pls:
+            prop = self._miot_service.get_property(p) or self._miot_service.spec.get_property(p)
+            if not prop:
+                continue
+            val = prop.from_dict(self.parent_attributes)
+            self._extra_attrs[prop.name] = val
+
+    def update(self, data=None):
+        super().update(data)
+        if not self._available:
+            return
+        self.update_with_properties()
+
     def set_parent_property(self, val, prop=None):
         if prop is None:
             prop = self._miot_property

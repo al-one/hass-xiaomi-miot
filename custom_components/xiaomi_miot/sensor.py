@@ -514,6 +514,7 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
         super().update(data)
         if not self._available:
             return
+        self.update_with_properties()
         self._miot_property.description_to_dict(self._state_attrs)
 
     @property
