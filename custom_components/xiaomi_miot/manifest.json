@@ -13,7 +13,7 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/al-one/hass-xiaomi-miot/issues",
   "requirements": [
-    "construct>=2.10.56",
+    "construct>=2.10.70",
     "python-miio>=0.5.12",
     "micloud>=0.5"
   ],
