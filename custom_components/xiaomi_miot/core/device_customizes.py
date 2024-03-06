@@ -1295,6 +1295,12 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.airp.*': {
         'exclude_miot_services': 'custom_service',
     },
+    'xiaomi.blanket.mj2': {
+        'exclude_miot_properties': 'fault,sleep_setting',
+        'switch_properties': 'alarm,indicator_light.on,antifreezing_switch,anti_scald_switch',
+        'number_properties': 'target_temperature,countdown_time',
+        'select_properties': 'water_level',
+    },
     'xiaomi.controller.86v1': {
         'switch_properties': 'mute,sleep_mode,auto_screen_off,auto_screen_brightness,touch_sound,key_name_display',
         'select_properties': 'mode,mibrain_level,mico_level,display_state,wallpaper',
