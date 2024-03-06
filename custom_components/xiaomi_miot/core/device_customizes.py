@@ -552,7 +552,7 @@ DEVICE_CUSTOMIZES = {
     },
     'era.ysj.b65': {
         'main_miot_services': 'water_dispenser',
-        'sensor_properties': 'status,tds_in,tds_out,current_water,filter_life_level',
+        'sensor_properties': 'status,current_water,filter_life_level',
         'select_properties': 'mode,filter_reset',
         'number_properties': 'out_water_volume,feidian',
     },
