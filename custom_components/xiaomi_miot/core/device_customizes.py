@@ -354,6 +354,13 @@ DEVICE_CUSTOMIZES = {
         'main_miot_services': 'switch-2',
         'exclude_miot_services': 'custome,physical_controls_locked,indicator_light',
     },
+    'cuco.plug.v2eur': {
+        'sensor_properties': 'electric_power',
+        'switch_properties': 'charging_protection.on,max_power_limit.on,cycle.status,delay.delay',
+        'number_properties': 'charging_protection.power,protect_time,max_power_limit.power',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '11.1',
+    },
     'cuco.plug.v3': {
         'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
