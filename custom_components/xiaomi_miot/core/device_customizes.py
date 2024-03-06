@@ -1296,6 +1296,7 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'custom_service',
     },
     'xiaomi.blanket.mj2': {
+        'chunk_properties': 1,
         'exclude_miot_properties': 'fault,sleep_setting',
         'switch_properties': 'alarm,indicator_light.on,antifreezing_switch,anti_scald_switch',
         'number_properties': 'target_temperature,countdown_time',
