@@ -48,7 +48,7 @@
 
 #### 方法3: 通过`SSH`或`Terminal & SSH`加载项执行一键安装命令
 ```shell
-wget -O - https://hacs.vip/get | DOMAIN=xiaomi_miot REPO_PATH=al-one/hass-xiaomi-miot ARCHIVE_TAG=latest bash -
+wget -O - https://get.hacs.vip | DOMAIN=xiaomi_miot bash -
 ```
 
 #### 方法4: `shell_command`服务
@@ -56,7 +56,7 @@ wget -O - https://hacs.vip/get | DOMAIN=xiaomi_miot REPO_PATH=al-one/hass-xiaomi
     ```yaml
     shell_command:
       update_xiaomi_miot: |-
-        wget -O - https://hacs.vip/get | DOMAIN=xiaomi_miot REPO_PATH=al-one/hass-xiaomi-miot ARCHIVE_TAG=latest bash -
+        wget -O - https://get.hacs.vip | DOMAIN=xiaomi_miot bash -
     ```
 2. 重启HA使配置生效
 3. 在HA开发者工具中调用此服务[`service: shell_command.update_xiaomi_miot`](https://my.home-assistant.io/redirect/developer_call_service/?service=shell_command.update_xiaomi_miot)
