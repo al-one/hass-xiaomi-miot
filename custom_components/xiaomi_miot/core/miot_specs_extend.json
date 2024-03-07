@@ -97,7 +97,10 @@
     },
     {
       "iid": 3,
-      "description": "Indicator Light"
+      "properties": [
+        {"iid": 1, "description": "Indicator Light"},
+        {"iid": 2, "type": "urn:miot-spec-v2:property:illumination", "description": "Illumination", "unit": "lx"}
+      ]
     }
   ],
 

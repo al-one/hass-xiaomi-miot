@@ -41,7 +41,7 @@ DEVICE_CUSTOMIZES = {
         'state_property': 'occupancy_sensor.current_occupied',
         'interval_seconds': 10,
         'binary_sensor_properties': 'current_occupied,a_occupied,b_occupied,c_occupied,d_occupied,e_occupied',
-        'sensor_properties': 'total_occupied',
+        'sensor_properties': 'total_occupied,illumination',
         'switch_properties': 'radar_switch,count_switch',
         'select_properties': 'map_index,traction',
         'button_actions': 'reboot',
