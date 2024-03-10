@@ -118,6 +118,7 @@ class MiotSpecInstance:
         dls = [
             des.lower(),
             des,
+            des.replace('-', ' ').lower(),
             des.replace('-', ' '),
         ]
         tls = self.translations
