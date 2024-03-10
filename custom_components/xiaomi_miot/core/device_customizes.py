@@ -903,6 +903,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'sleep_mode,steam_sterilization,detergent_self_delivery',
         'select_properties': 'soak_time,reservation_wash_status,reservation_left_time,detergent_self_delivery_level',
     },
+    'midjd8.washer.*': {
+        'select_properties': 'shake_time,soak_time',
+        'switch_properties': 'high_water_switch,steam_sterilization,sleep_mode'
+    },
     'mijia.light.*': {
         'cloud_delay_update': 7,
     },
