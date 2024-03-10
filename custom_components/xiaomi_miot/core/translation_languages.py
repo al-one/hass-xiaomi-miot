@@ -2231,5 +2231,12 @@ TRANSLATION_LANGUAGES = {
             'Overheat': 'Aşırı Isınma',
             'Motor Failure': 'Motor Hatası',
         },
+        'air_purifier': {
+             'mode': {
+             'Auto': 'Otomatik',
+             'Sleep': 'Uyku',
+             'Favorite': 'Favori',
+             'Manual': 'Manuel',
+        },        
     },    
 }
