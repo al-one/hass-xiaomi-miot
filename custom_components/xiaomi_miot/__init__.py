@@ -1572,7 +1572,7 @@ class MiotEntity(MiioEntity):
                 domain='sensor',
             )
             self._update_sub_entities(
-                ['tds_in'],
+                ['tds_in', 'tds_out'],
                 ['tds_sensor'],
                 domain='sensor',
             )
