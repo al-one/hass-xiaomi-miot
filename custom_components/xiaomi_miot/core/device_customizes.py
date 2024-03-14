@@ -996,6 +996,15 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
         'button_actions': 'start_wash,pause,drain,pause_drain',
     },
+    'mxiang.camera.mwc11': {
+        'sensor_properties': 'battery',
+        'switch_properties': 'on,time-watermark,wdr-mode,status-light,distortion-correct,'
+                             'moved-push,human-detect,motion-detection',
+        'select_properties': 'night-shot,video-auto-stop-time,resolution,power-freq-switch,'
+                             'delay-recording,recording-time,alarm-interval,detection-sensitivity',
+        'number_properties': 'image-rollover,rssi',
+        'button_actions': 'restart',
+    },
     'mxiang.cateye.*': {
         'miio_cloud_props': 'battery_level,is_can_open_video',
         'miio_cloud_records': 'event.human_visit_details:1',
