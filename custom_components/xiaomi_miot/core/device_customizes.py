@@ -1706,7 +1706,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'fan_init_power_opt',
     },
     '*.fishbowl.*': {
-        'sensor_properties': 'temperature',
+        'sensor_properties': 'temperature,tds_in,tds_out',
         'switch_properties': 'water_pump,automatic_feeding,heating',
         'number_properties': 'target_temperature,pump_flux,target_feeding_measure,'
                              'ambient_light_custom.stream,ambient_light_custom.speed',
@@ -1809,11 +1809,11 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'start_wash,pause',
     },
     '*.waterheater.*': {
-        'sensor_properties': 'water_velocity',
+        'sensor_properties': 'water_velocity,tds_in,tds_out',
         'switch_properties': 'water_heater.on,preheating,cruise_press',
     },
     '*.waterpuri.*': {
-        'sensor_properties': 'water_purifier.temperature',
+        'sensor_properties': 'water_purifier.temperature,tds_in,tds_out',
     },
 
 }
