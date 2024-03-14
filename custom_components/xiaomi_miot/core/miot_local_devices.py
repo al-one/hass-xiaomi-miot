@@ -285,6 +285,7 @@ MIOT_LOCAL_MODELS = [
     'ijomoo.toilet.zs320',
     'iot.plug.socn1',
     'iot.switch.padw2p',
+    'iot.switch.padwb1',
     'isa.camera.hlc7',
     'isa.camera.hlc8',
     'isa.camera.hlc9a',
