@@ -1328,6 +1328,13 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'iot_linkage,machine_state,flag_bit',
         'exclude_miot_properties': 'enhance.timer',
     },
+    'xiaomi.airp.mp4': {
+        'switch_properties': 'anion,alarm',
+        'light_services': 'screen',
+        'brightness_for_on': 0,
+        'brightness_for_off': 2,
+        'exclude_miot_services': 'rfid',
+    },
     'xiaomi.airp.*': {
         'exclude_miot_services': 'custom_service',
     },
