@@ -1899,4 +1899,361 @@ TRANSLATION_LANGUAGES = {
             'water heater': 'Wasserkocher',
         },
     },
+
+    'tr': {
+        'off': 'Kapalı',
+        'idle': 'Boşta',
+        'busy': 'Meşgul',
+        'pause': 'Duraklat',
+        'fault': 'Hata',
+
+        '_globals': {
+            'mode': 'Mod',
+            'switch status': 'Durum',
+            'battery level': 'Pil Seviyesi',
+            'target temperature': 'Hedef Sıcaklık',
+            'temperature': 'Sıcaklık',
+            'relative humidity': 'Bağıl Nem',
+            'illumination': 'Aydınlatma',
+            'indicator light': 'Gösterge Işığı',
+            'physical control locked': 'Çocuk Kilidi',
+        },
+
+        'clock': {
+            'stop alarm': 'Alarmı Kapat'
+        },
+
+        'fan_level': {
+            # 'auto': 'Otomatik',
+            # 'low': 'Düşük',
+            # 'medium': 'Orta',
+            # 'middle': 'Orta',
+            # 'high': 'Yüksek',
+            'quiet': 'Sessiz',
+            'turbo': 'Turbo',
+            'level1': '1. Seviye',
+            'level2': '2. Seviye',
+            'level3': '3. Seviye',
+            'level4': '4. Seviye',
+            'level5': '5. Seviye',
+            'level6': '6. Seviye',
+            'level7': '7. Seviye',
+        },
+
+        'mode': {
+            'auto': 'Otomatik',
+            'basic': 'Temel',
+            'low': 'Düşük',
+            'medium': 'Orta',
+            'high': 'Yüksek',
+            'sleep': 'Uyku Modu',
+            'smart': 'Akıllı Mod',
+            'favorite': 'Favori Mod',
+        },
+
+        'air_conditioner': {
+            'air conditioner': 'Klima',
+        },
+
+        'air_conditioner.mode': {
+            'cool': 'Soğutma',
+            'dry': 'Nem Alma',
+            'fan': 'Vantilatör',
+            'heat': 'Isıtma',
+        },
+
+        'air_fresh.mode': {
+            'auto': 'Otomatik',
+            'interval': 'Aralıklı',
+            'smart': 'Akıllı',
+            'silent': 'Sessiz',
+            'strong': 'Güçlü',
+            'none': 'Manuel',
+            'sleep': 'Uyku',
+            'favorite': 'Favori',
+        },
+
+        'battery': {
+            'battery battery level': 'Pil Seviyesi',
+            'battery charging state': 'Şarj Durumu',
+        },
+
+        'door_state': {
+            'open': 'Açık',
+            'close': 'Kapalı',
+            'close_timeout': 'Kapanma Zaman Aşımı',
+            'knock': 'Vurma',
+            'breaking': 'Zorlama',
+            'stuck': 'Sıkışma',
+        },
+
+        'environment': {
+            'environment air quality': 'Hava Kalitesi',
+            'environment temperature': 'Sıcaklık',
+            'environment relative humidity': 'Bağıl Nem',
+            'environment pm2.5 density': 'PM2.5 Yoğunluğu',
+            'environment co2 density': 'CO2 Yoğunluğu',
+            'environment tvoc density': 'TVOC Yoğunluğu'
+        },
+
+        'fan.mode': {
+            'basic': 'Temel',
+            'basic wind': 'Temel Esinti',
+            'straight wind': 'Doğrudan Esinti',
+            'natural wind': 'Doğal Esinti',
+            'energy saving': 'Enerji Tasarrufu',
+            'none': 'Manuel',
+            'baby': 'Bebek',
+            'smart': 'Akıllı',
+            'sleep': 'Uyku',
+            'strong': 'Güçlü',
+            'circular wind': 'Dairesel Hava',
+        },
+
+        'filter': {
+            'filter left time': 'Kalan Filtre Kullanım Süresi',
+            'filter used time': 'Filtre Kullanım Süresi',
+            'filter life level': 'Filtre Ömrü',
+        },
+
+        'intelligent_speaker': {
+            'wake up': 'Uyandırma',
+            'play music': 'Müzik Çal',
+            'play radio': 'Radyo Çal',
+            'play text': 'Metni Oku',
+            'execute text directive': 'Komutu Uygula'
+        },
+
+        'ir_aircondition_control': {
+            'ir aircondition control': 'Kızılötesi Klima Kontrolü',
+            'mode for ir': 'Mod',
+            'temperature for ir': 'Hedef Sıcaklık',
+            'turn on': 'Aç',
+            'turn off': 'Kapat',
+            'fan speed down': 'Fan Hızı Azalt',
+            'fan speed up': 'Fan Hızı Arttır',
+            'temperature down': 'Sıcaklık Azalt',
+            'temperature up': 'Sıcaklık Arttır',
+        },
+        'ir_aircondition_control.ir_mode': {
+            'auto': 'Otomatik',
+            'cool': 'Soğutma',
+            'dry': 'Nem Alma',
+            'fan': 'Vantilatör',
+            'heat': 'Isıtma',
+        },
+
+        'light': {
+            'light': 'Işık',
+        },
+        'light.mode': {
+            'day': 'Gündüz',
+            'night': 'Gece',
+            'color': 'Renkli',
+            'warmth': 'Sıcak',
+            'tv': 'TV Modu',
+            'reading': 'Okuma Modu',
+            'computer': 'Bilgisayar Modu',
+            'hospitality': 'Misafir Modu',
+            'entertainment': 'Eğlence Modu',
+            'lighting': 'Aydınlatma',
+            'night light': 'Gece Işığı',
+        },
+
+        'lock_method': {
+            'bluetooth': 'Bluetooth',
+            'password': 'Parola',
+            'biological': 'Biyolojik',
+            'key': 'Anahtar',
+            'turntable': 'Döner Levha',
+            'nfc': 'NFC',
+            'one_time_password': 'Tek Seferlik Parola',
+            'two_step_verification': 'İki Adımlı Doğrulama',
+            'coercion': 'Zorlama',
+            'homekit': 'Homekit',
+            'manual': 'Manuel',
+            'automatic': 'Otomatik',
+        },
+        'lock_action': {
+            'outside_unlock': 'Dışarıdan Aç',
+            'lock': 'Kilitle',
+            'anti_lock_on': 'Kilit Korumasını Aç',
+            'anti_lock_off': 'Kilit Korumasını Kapat',
+            'inside_unlock': 'İçeriden Aç',
+            'lock_inside': 'İçeriden Kilitle',
+            'child_lock_on': 'Çocuk Kilidini Aç',
+            'child_lock_off': 'Çocuk Kilidini Kapat',
+            'lock_outside': 'Dışarıdan Kilitle',
+        },
+
+        'magnet_sensor': {
+            'magnet sensor': 'Manyetik Sensör',
+            'magnet sensor illumination': 'Aydınlatma',
+        },
+
+        'motion_sensor': {
+            'motion sensor': 'Hareket Sensörü',
+            'motion sensor illumination': 'Aydınlatma',
+        },
+
+        'occupancy_sensor': {
+            'occupancy sensor occupancy status': 'Durum'
+        },
+        'occupancy_sensor.occupancy_status': {
+            'someone exists': 'Var',
+            'no one exists': 'Yok'
+        },
+
+        'physical_control_locked': {
+            'physical control locked': 'Fiziksel Kontrol Kilidi',
+        },
+
+        'play_control': {
+            'play control': 'Oynatma Kontrolü',
+            'keycodes': 'Uzaktan Kumanda Tuşları',
+        },
+
+        'power_consumption': {
+            'power consumption': 'Güç Tüketimi',
+            'power consumption electric power': 'Güç',
+            'power consumption electric current': 'Akım',
+            'power consumption electric voltage': 'Voltaj',
+            'power consumption voltage': 'Voltaj',
+        },
+
+        'ptc_bath_heater': {
+            'ptc bath heater': 'Havlupan',
+        },
+        'ptc_bath_heater.mode': {
+            'fan': 'Fan',
+            'heat': 'Isıtma',
+            'ventilate': 'Havalandırma',
+            'dry': 'Nem Alma',
+            'defog': 'Buğu Giderme',
+            'quick heat': 'Hızlı Isıtma',
+            'quick defog': 'Hızlı Buğu Giderme',
+        },
+
+        'speaker': {
+            'speaker': 'Hoparlör',
+            'speaker volume': 'Ses Seviyesi',
+        },
+
+        'sweep.suction_state': {
+            'medium': 'Orta',
+            'silent': 'Sessiz',
+            'slient': 'Sessiz',
+            'standard': 'Standart',
+            'turbo': 'Turbo',
+        },
+
+        'television': {
+            'input control': 'Giriş Kaynağı',
+            'tv input control': 'Giriş Kaynağı',
+        },
+
+        'temperature_humidity_sensor': {
+            'temperature humidity sensor temperature': 'Sıcaklık',
+            'temperature humidity sensor relative humidity': 'Bağıl Nem',
+            'temperature humidity sensor atmospheric pressure': 'Hava Basıncı',
+        },
+
+        'vacuum': {
+            'robot cleaner': 'Robot Süpürge',
+            'robot cleaner status': 'Robot Süpürge Durumu',
+        },
+
+        'vacuum.mode': {
+            'basic': 'Normal',
+            'silent': 'Sessiz',
+            'standard': 'Normal',
+            'strong': 'Güçlü',
+            'turbo': 'Turbo',
+            'full speed': 'Tam Hız',
+        },
+
+        'washer': {
+            'drying level': 'Kurutma Seviyesi',
+            'rinsh times': 'Durulama Sayısı',
+            'spin speed': 'Sıkma Hızı',
+            'target water level': 'Su Seviyesi',
+        },
+        'washer.mode': {
+            'baby care': 'Bebek Bakımı',
+            'boiling': 'Haşlama',
+            'color protection': 'Renk Koruması',
+            'cotton': 'Pamuklu',
+            'daily wash': 'Günlük Yıkama',
+            'delicate wash': 'Hassas Yıkama',
+            'down coat': 'Tüylü yıkama',
+            'drum clean': 'Tambur Temizleme',
+            'drum dry': 'Tambur Kurutma',
+            'dry air wash': 'Kuru Havayla Yıkama',
+            'dry timing': 'Zamanlı Kurutma',
+            'dry': 'Kurutma',
+            'gold wash': 'Altın Yıkama',
+            'heavy wash': 'Yoğun Yıkama',
+            'intensive': 'Yoğun',
+            'jacket': 'Ceket',
+            'jeans': 'Kot',
+            'mite removal': 'Akar Temizleme',
+            'quick wash dry': 'Hızlı Yıkama ve Kurutma',
+            'quick wash': 'Hızlı Yıkama',
+            'rinse spin': 'Durulama ve Sıkma',
+            'rinse': 'Durulama',
+            'shirt': 'Gömlek',
+            'silk': 'İpek',
+            'soak wash': 'Islatarak Yıkama',
+            'sock': 'Çorap',
+            'spin': 'Sıkma',
+            'sportswear': 'Spor Giyim',
+            'super quick': 'Süper Hızlı',
+            'synthetic': 'Sentetik',
+            'towel': 'Havlu',
+            'underwear': 'İç Çamaşırı',
+            'user define': 'Kullanıcı Tanımlı',
+            'wash dry': 'Yıkama ve Kurutma',
+            'wool': 'Yünlü',
+        },
+        'washer.drying_level': {
+            'moist': 'Nemli',
+            'normal': 'Normal',
+            'extra': 'Ekstra Kuru',
+            'none': 'Kurutmasız',
+        },
+
+        'water_heater': {
+            'water heater': 'Şofben',
+        },
+        'water_heater.mode': {
+            'low': 'Düşük Sıcaklık',
+            'medium': 'Orta Sıcaklık',
+            'high': 'Yüksek Sıcaklık'
+        },
+        'airer': {
+            'airer': 'Çamaşır Kurutma Askısı',
+            'dryer': 'Kurutma Fonksiyonu',
+            'drying_level': 'Kurutma Seviyesi',
+            'left_time': 'Kalan Süre',
+            'fault': 'Cihaz Hatası',
+        },
+        'airer.dryer': {
+            'Air Drying': 'Hava Kurutma',
+            'Hot Air Drying': 'Sıcak Hava Kurutma',
+        },
+        'airer.fault': {
+            'No Faults': 'Hata Yok',
+            'Obstruction': 'Engel',
+            'Overweight': 'Fazla Ağırlık',
+            'Overheat': 'Aşırı Isınma',
+            'Motor Failure': 'Motor Hatası',
+        },
+        'air_purifier': {
+             'mode': {
+             'Auto': 'Otomatik',
+             'Sleep': 'Uyku',
+             'Favorite': 'Favori',
+             'Manual': 'Manuel',
+        },        
+    },    
 }
