@@ -1537,6 +1537,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm',
         'number_properties': 'favorite_speed,aqi_updata_heartbeat,brightness',
     },
+    'zhimi.airpurifier.vb2:temperature': {
+        'unit_of_measurement': '°C',
+    },
     'zhimi.airpurifier.za1': {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
