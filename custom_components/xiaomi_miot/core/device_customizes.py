@@ -157,6 +157,12 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': 'prop.5.1',
     },
+    'chuangmi.plug.212a01:electric-current': {
+        'unit_of_measurement': 'mA',
+    },
+    'chuangmi.plug.212a01:voltage': {
+        'unit_of_measurement': 'V',
+    },
     'chuangmi.plug.v1': {
         'miot_type': 'urn:miot-spec-v2:device:outlet:0000A002:chuangmi-v1:1',
     },
