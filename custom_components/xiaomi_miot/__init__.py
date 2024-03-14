@@ -1044,7 +1044,7 @@ class MiioEntity(BaseEntity):
         self._state = attrs.get('power') == 'on'
         await self.async_update_attrs(attrs)
 
-    def _update_attr_sensor_entities(self, attrs, domain='sensor', option=None):
+    async def async_update_attr_sensor_entities(self, attrs, domain='sensor', option=None):
         add_sensors = self._add_entities.get(domain)
         opt = {**(option or {})}
         for a in attrs:
@@ -1056,6 +1056,8 @@ class MiioEntity(BaseEntity):
                 opt['dict_key'] = kys[1]
             if a not in self._state_attrs:
                 continue
+            if not add_sensors:
+                continue
             tms = self._check_same_sub_entity(p, domain)
             if p in self._subs:
                 self._subs[p].update_from_parent()
@@ -1064,8 +1066,6 @@ class MiioEntity(BaseEntity):
                 if tms <= 1:
                     self.logger.info('%s: Device sub entity %s: %s already exists.', self.name_model, domain, p)
                 continue
-            elif not add_sensors:
-                pass
             elif domain == 'sensor':
                 from .sensor import BaseSensorSubEntity
                 option = {'unique_id': f'{self._unique_did}-{p}', **opt}
@@ -1101,34 +1101,33 @@ class MiioEntity(BaseEntity):
 
     def update_attrs(self, attrs: dict, update_parent=False, update_subs=True):
         self._state_attrs.update(attrs or {})
-        if self.hass and self.platform and update_subs:
-            tps = cv.ensure_list(self.custom_config('attributes_template'))
-            for tpl in tps:
-                if not tpl:
-                    continue
-                tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
-                tpl = cv.template(tpl)
-                tpl.hass = self.hass
-                adt = tpl.render({'data': self._state_attrs}) or {}
-                if isinstance(adt, dict):
-                    if adt.pop('_override', False):
-                        self._state_attrs = adt
-                    else:
-                        self._state_attrs.update(adt)
         if update_parent and hasattr(self, '_parent'):
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
-        if update_subs:
-            if pls := self.custom_config_list('sensor_attributes'):
-                self._update_attr_sensor_entities(pls, domain='sensor')
-            if pls := self.custom_config_list('binary_sensor_attributes'):
-                self._update_attr_sensor_entities(pls, domain='binary_sensor')
         return self._state_attrs
 
-    async def async_update_attrs(self, *args, **kwargs):
-        return await self.hass.async_add_executor_job(
-            partial(self.update_attrs, *args, **kwargs)
-        )
+    async def async_update_attrs(self, attrs: dict, update_parent=False, update_subs=True):
+        self._state_attrs.update(attrs or {})
+        if update_subs:
+            if self.hass and self.platform:
+                tps = cv.ensure_list(self.custom_config('attributes_template'))
+                for tpl in tps:
+                    if not tpl:
+                        continue
+                    tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
+                    tpl = cv.template(tpl)
+                    tpl.hass = self.hass
+                    adt = tpl.async_render({'data': self._state_attrs}) or {}
+                    if isinstance(adt, dict):
+                        if adt.pop('_override', False):
+                            self._state_attrs = adt
+                        else:
+                            self._state_attrs.update(adt)
+            if pls := self.custom_config_list('sensor_attributes'):
+                await self.async_update_attr_sensor_entities(pls, domain='sensor')
+            if pls := self.custom_config_list('binary_sensor_attributes'):
+                await self.async_update_attr_sensor_entities(pls, domain='binary_sensor')
+        return self._state_attrs
 
 
 class MiotEntityInterface:
@@ -1600,10 +1599,10 @@ class MiotEntity(MiioEntity):
 
         # update miio prop/event in cloud
         if cls := self.custom_config_list('miio_cloud_records'):
-            await self.hass.async_add_executor_job(partial(self.update_miio_cloud_records, cls))
+            await self.async_update_miio_cloud_records(pls)
 
         if pls := self.custom_config_list('miio_cloud_props'):
-            await self.hass.async_add_executor_job(partial(self.update_miio_cloud_props, pls))
+            await self.async_update_miio_cloud_props(pls)
 
         # update micloud statistics in cloud
         cls = self.custom_config_list('micloud_statistics') or []
@@ -1618,17 +1617,17 @@ class MiotEntity(MiioEntity):
             }
             cls = [*cls, dic]
         if cls:
-            await self.hass.async_add_executor_job(partial(self.update_micloud_statistics, cls))
+            await self.async_update_micloud_statistics(cls)
 
         # update miio properties in lan
         if pls := self._vars.get('miio_properties', []):
-            await self.hass.async_add_executor_job(partial(self.update_miio_props, pls))
+            await self.async_update_miio_props(pls)
 
         # update miio commands in lan
         if cls := self.custom_config_json('miio_commands'):
-            await self.hass.async_add_executor_job(partial(self.update_miio_commands, cls))
+            await self.async_update_miio_commands(cls)
 
-    def update_miio_props(self, props):
+    async def async_update_miio_props(self, props):
         if not self.miot_device:
             return
         if self._miio2miot:
@@ -1636,20 +1635,22 @@ class MiotEntity(MiioEntity):
         else:
             try:
                 num = self.custom_config_integer('chunk_properties') or 15
-                attrs = self._device.get_properties(props, max_properties=num)
+                attrs = await self.hass.async_add_executor_job(
+                    partial(self._device.get_properties, props, max_properties=num)
+                )
             except DeviceException as exc:
                 self.logger.warning('%s: Got miio properties %s failed: %s', self.name_model, props, exc)
                 return
             if len(props) != len(attrs):
-                self.update_attrs({
+                await self.async_update_attrs({
                     'miio.props': attrs,
                 })
                 return
         attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
         self.logger.debug('%s: Got miio properties: %s', self.name_model, attrs)
-        self.update_attrs(attrs)
+        await self.async_update_attrs(attrs)
 
-    def update_miio_commands(self, commands):
+    async def async_update_miio_commands(self, commands):
         if not self.miot_device:
             return
         if isinstance(commands, dict):
@@ -1663,7 +1664,9 @@ class MiotEntity(MiioEntity):
             cmd = cfg.get('method')
             pms = cfg.get('params') or []
             try:
-                attrs = self._device.send(cmd, pms)
+                attrs = await self.hass.async_add_executor_job(
+                    partial(self._device.send, cmd, pms)
+                )
             except DeviceException as exc:
                 self.logger.warning('%s: Send miio command %s(%s) failed: %s', self.name_model, cmd, cfg, exc)
                 continue
@@ -1675,9 +1678,9 @@ class MiotEntity(MiioEntity):
             else:
                 attrs = dict(zip(props, attrs))
             self.logger.debug('%s: Got miio properties: %s', self.name_model, attrs)
-            self.update_attrs(attrs)
+            await self.async_update_attrs(attrs)
 
-    def update_miio_cloud_props(self, keys):
+    async def async_update_miio_cloud_props(self, keys):
         did = str(self.miot_did)
         mic = self.xiaomi_cloud
         if not did or not mic:
@@ -1691,7 +1694,7 @@ class MiotEntity(MiioEntity):
             'did': did,
             'props': kls,
         }
-        rdt = mic.request_miot_api('device/batchdevicedatas', [pms]) or {}
+        rdt = await mic.async_request_api('device/batchdevicedatas', [pms]) or {}
         self.logger.debug('%s: Got miio cloud props: %s', self.name_model, rdt)
         props = (rdt.get('result') or {}).get(did, {})
 
@@ -1700,12 +1703,12 @@ class MiotEntity(MiioEntity):
             tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
             tpl = cv.template(tpl)
             tpl.hass = self.hass
-            attrs = tpl.render({'props': props})
+            attrs = tpl.async_render({'props': props})
         else:
             attrs = props
-        self.update_attrs(attrs)
+        await self.async_update_attrs(attrs)
 
-    def update_miio_cloud_records(self, keys):
+    async def async_update_miio_cloud_records(self, keys):
         did = self.miot_did
         mic = self.xiaomi_cloud
         if not did or not mic:
@@ -1723,13 +1726,13 @@ class MiotEntity(MiioEntity):
             }
             if gby:
                 kws['group'] = gby
-            rdt = mic.get_user_device_data(did, key, typ, **kws) or []
+            rdt = await mic.async_get_user_device_data(did, key, typ, **kws) or []
             tpl = self.custom_config(f'miio_{typ}_{key}_template')
             if tpl:
                 tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                 tpl = cv.template(tpl)
                 tpl.hass = self.hass
-                rls = tpl.render({'result': rdt})
+                rls = tpl.async_render({'result': rdt})
             else:
                 rls = [
                     v.get('value')
@@ -1741,9 +1744,9 @@ class MiotEntity(MiioEntity):
             else:
                 attrs[f'{typ}.{key}'] = rls
         if attrs:
-            self.update_attrs(attrs)
+            await self.async_update_attrs(attrs)
 
-    def update_micloud_statistics(self, lst):
+    async def async_update_micloud_statistics(self, lst):
         did = self.miot_did
         mic = self.xiaomi_cloud
         if not did or not mic:
@@ -1762,14 +1765,14 @@ class MiotEntity(MiioEntity):
                 'time_end': now + 60,
                 'limit': int(c.get('limit') or 1),
             }
-            rdt = mic.request_miot_api('v2/user/statistics', pms) or {}
+            rdt = await mic.async_request_api('v2/user/statistics', pms) or {}
             self.logger.debug('%s: Got micloud statistics: %s', self.name_model, rdt)
             tpl = c.get('template')
             if tpl:
                 tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
                 tpl = cv.template(tpl)
                 tpl.hass = self.hass
-                rls = tpl.render(rdt)
+                rls = tpl.async_render(rdt)
             else:
                 rls = [
                     v.get('value')
@@ -1781,7 +1784,7 @@ class MiotEntity(MiioEntity):
             elif isinstance(rls, dict):
                 attrs.update(rls)
         if attrs:
-            self.update_attrs(attrs)
+            await self.async_update_attrs(attrs)
 
     def get_properties(self, mapping, update_entity=False, throw=False, **kwargs):
         results = []

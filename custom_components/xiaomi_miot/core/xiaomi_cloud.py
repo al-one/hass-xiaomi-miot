@@ -100,6 +100,11 @@ class MiotCloud(micloud.MiCloud):
             raise MiCloudException(json.dumps(rdt))
         return rls
 
+    async def async_get_user_device_data(self, *args, **kwargs):
+        return await self.hass.async_add_executor_job(
+            partial(self.get_user_device_data, *args, **kwargs)
+        )
+
     def get_user_device_data(self, did, key, typ='prop', raw=False, **kwargs):
         now = int(time.time())
         timeout = kwargs.pop('timeout', self.http_timeout)
@@ -115,10 +120,10 @@ class MiotCloud(micloud.MiCloud):
         rdt = self.request_miot_api('user/get_user_device_data', params, timeout=timeout) or {}
         return rdt if raw else rdt.get('result')
 
-    def get_last_device_data(self, did, key, typ='prop', **kwargs):
+    async def async_get_last_device_data(self, did, key, typ='prop', **kwargs):
         kwargs['raw'] = False
         kwargs['limit'] = 1
-        rls = self.get_user_device_data(did, key, typ, **kwargs) or [None]
+        rls = await self.async_get_user_device_data(did, key, typ, **kwargs) or [None]
         rdt = rls.pop(0) or {}
         if kwargs.get('not_value'):
             return rdt

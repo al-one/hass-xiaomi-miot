@@ -343,12 +343,7 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
         if isinstance(mic, MiotCloud):
             now = int(time.time())
             ofs = self.custom_config_integer('time_start_offset') or -86400 * 3
-            dlg = await self.hass.async_add_executor_job(partial(
-                mic.get_last_device_data,
-                self.miot_did,
-                'device_log',
-                time_start=now + ofs,
-            ))
+            dlg = await mic.async_get_last_device_data(self.miot_did, 'device_log', time_start=now + ofs)
             pes = json.loads(dlg or '[]')
         adt = {}
         typ = None
