@@ -162,8 +162,7 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
             val = self._miot_property.range_max()
         if self._miot_property.value_list:
             ret = self._miot_property.list_first(*self._on_descriptions)
-            if ret is not None:
-                val = ret
+            val = 1 if ret is None else ret
         elif self._miot_property.value_range:
             val = self._miot_property.range_max()
         if self._reverse_state:
@@ -175,9 +174,10 @@ class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         if self._miot_property.value_range:
             val = self._miot_property.range_min()
         if self._miot_property.value_list:
-            ret = self._miot_property.list_first('Off', 'Close', 'Closed', '关')
-            if ret is not None:
-                val = ret
+            if not (des := self.custom_config_list('descriptions_for_off')):
+                des = ['Off', 'Close', 'Closed', '关', '关闭']
+            ret = self._miot_property.list_first(*des)
+            val = 0 if ret is None else ret
         elif self._miot_property.value_range:
             val = self._miot_property.range_min()
         if self._reverse_state:

@@ -71,6 +71,7 @@
                     "cover_properties": "cover_properties",
                     "current_temp_property": "current_temp_property",
                     "descriptions_for_on": "descriptions_for_on",
+                    "descriptions_for_off": "descriptions_for_off",
                     "deviated_position": "deviated_position",
                     "device_class": "device_class",
                     "disable_location_name": "disable_location_name",

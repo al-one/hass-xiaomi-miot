@@ -713,6 +713,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         bool2selects.extend(['reverse_state'])
         options.update({
             'descriptions_for_on': cv.string,
+            'descriptions_for_off': cv.string,
             'stat_power_cost_key': cv.string,
             'stat_power_cost_type': cv.string,
         })
