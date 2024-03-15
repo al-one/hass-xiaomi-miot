@@ -1599,7 +1599,7 @@ class MiotEntity(MiioEntity):
 
         # update miio prop/event in cloud
         if cls := self.custom_config_list('miio_cloud_records'):
-            await self.async_update_miio_cloud_records(pls)
+            await self.async_update_miio_cloud_records(cls)
 
         if pls := self.custom_config_list('miio_cloud_props'):
             await self.async_update_miio_cloud_props(pls)
