@@ -2606,8 +2606,8 @@ MIIO_TO_MIOT_SPECS = {
                 'favorite': 2,
                 'low':      3,
                 'medium':   4,
-                'high':     5,
                 'strong':   5,
+                'high':     5,
             }, 'default': 0},
             'prop.2.3': {'prop': 'mode', 'setter': True, 'dict': {
                 'auto':     0,
