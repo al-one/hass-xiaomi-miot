@@ -103,7 +103,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             if prop := self._miot_service.spec.get_property(prop):
                 self._prop_color = prop
 
-        self._attr_color_mode = ColorMode.UNKNOWN
+        self._attr_color_mode = None
         self._attr_supported_color_modes = set()
         self._is_percentage_color_temp = None
         if self._prop_color_temp:
@@ -174,7 +174,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
                 ret = self.set_property(self._prop_brightness, bri)
             else:
                 ret = self.set_property(self._prop_power, True)
-        self._attr_color_mode = ColorMode.UNKNOWN
+        self._attr_color_mode = None
 
         if self._prop_brightness and ATTR_BRIGHTNESS in kwargs:
             brightness = kwargs[ATTR_BRIGHTNESS]
