@@ -2,6 +2,16 @@
     "config": {
         "flow_title": "Xiaomi Miot Auto",
         "step": {
+            "servicetoken": {
+                "description": "Config device token.",
+                "data": {
+                    "ssecurity": "Security",
+                    "location": "Location",
+                    "userId": "User Id",
+                    "server_country": "Server Country",
+                    "serviceToken": "serviceToken"
+                }
+            },
             "user": {
                 "title": "Select Action",
                 "data": {
