@@ -707,7 +707,7 @@ MIOT_LOCAL_MODELS = [
     'yeelink.light.lamp22',
     'yeelink.light.lamp27',
     'yeelink.light.lamp28',
-    'yeelink.light.mbulb3',
+    # 'yeelink.light.mbulb3',  #mesh
     'yeelink.light.mono6',
     'yeelink.light.mono7',
     'yeelink.light.mono8',
