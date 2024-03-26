@@ -1243,13 +1243,9 @@ MIIO_TO_MIOT_SPECS = {
         # ["Mode","RCSetTemp","FCSetTemp","RCSet","Error","IndoorTemp","SmartCool","SmartFreeze"]
         # ["none",8          ,-15        ,"on"   ,0      ,30          ,"off"      ,"off"]
         # 'chunk_properties': 8,
-        'miio_commands': [
-            {
-                'method': 'get_prop',
-                'params': ['RCSetTemp','FCSetTemp', 'RCSet', 'ScreenOn', 'Error', 'SmartCool', 'SmartFreeze', 'IndoorTemp'],
-                'values': ['RCSetTemp','FCSetTemp', 'RCSet', 'ScreenOn', 'Error', 'SmartCool', 'SmartFreeze', 'IndoorTemp'],
-            },
-        ],
+        'chunk_properties': 1,
+        'miio_props': ['ScreenOn', 'Error', 'SmartCool', 'SmartFreeze', 'IndoorTemp'],
+        'entity_attrs': ['ScreenOn', 'Error', 'SmartCool', 'SmartFreeze', 'IndoorTemp'],
         'miio_specs': {
             'prop.2.1': {'prop': 'Mode', 'setter': 'setMode', 'dict': {
                 'smart': 1,
