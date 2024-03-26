@@ -185,12 +185,6 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
         if self._prop_state:
             sta = self._prop_state.from_dict(self._state_attrs)
             if sta is not None:
-                if self._state_attrs['speaker.mute'] == False :
-                    new_state = {'playing_state': 1}
-                    self._state_attrs.update(new_state)
-                else:
-                    new_state = {'playing_state': 2}
-                    self._state_attrs.update(new_state)
                 if sta in self._prop_state.list_search('Playing', 'Play'):
                     return MediaPlayerState.PLAYING
                 if sta == self._prop_state.list_value('Pause'):
@@ -361,6 +355,12 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             return
         self._update_sub_entities('on', domain='switch')
 
+        if self._prop_state and not self._prop_state.readable:
+            if self.is_volume_muted is not False:
+                self._attr_state = MediaPlayerState.PLAYING
+            else:
+                self._attr_state = MediaPlayerState.IDLE
+
         if self.xiaoai_device is None:
             await self.async_update_xiaoai_device()
 
@@ -449,7 +449,8 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 self._attr_media_image_remotely_accessible = False
                 self._attr_media_duration = int(song['duration'] / 1000) if 'duration' in song else None
                 self._attr_media_position = int(song['position'] / 1000) if 'position' in song else None
-                self._attr_media_position_updated_at = utcnow()
+                if self._attr_state == MediaPlayerState.PLAYING:
+                    self._attr_media_position_updated_at = utcnow()
             if not self._attr_state:
                 self.logger.info('%s: Got empty media info: %s', self.name_model, result)
         except (TypeError, ValueError, Exception) as exc:
