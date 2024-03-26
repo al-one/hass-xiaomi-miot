@@ -1330,7 +1330,8 @@ MIIO_TO_MIOT_SPECS = {
     'viomi.oven.so1': {
         # methods:
         # ['get_prop', 'setDish', 'deleteDish', 'getDishs', 'setStartDish', 'setStartMode', 'setPrepareDish', 'setPrepareMode', 'setPause', 'canclePrepare', 'setEnd', 'setBootUp', 'setTurnOff'];
-        'entity_attrs': ['hwInfo', 'swInfo', 'error', 'dishId', 'dishName', 'status', 'mode', 'workTime', 'temp', 'leftTime', 'tempSetZ', 'timeSetZ', 'tempSetK', 'timeSetK', 'waterTank', 'prepareTime', 'doorIsOpen'],
+        'miio_props': ['hwInfo', 'swInfo', 'error', 'dishId', 'dishName',  'tempSetZ', 'timeSetZ', 'tempSetK', 'timeSetK', 'waterTank', 'prepareTime', 'doorIsOpen'],
+        'entity_attrs': ['hwInfo', 'swInfo', 'error', 'dishId', 'dishName',  'tempSetZ', 'timeSetZ', 'tempSetK', 'timeSetK', 'waterTank', 'prepareTime', 'doorIsOpen'],
         'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'status', 'dict': {
