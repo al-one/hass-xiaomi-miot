@@ -1267,7 +1267,8 @@ MIIO_TO_MIOT_SPECS = {
     'viomi.juicer.v1': {
         # ["work_status","run_status","mode","cooked_time","curr_tempe","cook_start","rev","stand_top_num","mode_sort"        ,"cook_status","warm_time","cook_time","left_time","voice"]
         # [0,           ,768         ,7     ,0            ,-300        ,1699143554  ,0    ,0              ,'7-8-9-4-3-1-5-2-6',1            ,6514       ,1668       ,0          ,0      ]
-        'entity_attrs': ['work_status', 'run_status', 'mode', 'cooked_time', 'curr_tempe', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'cook_status', 'warm_time', 'cook_time', 'left_time', 'voice'],
+        'miio_props': ['work_status', 'run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'warm_time', 'cook_time',  'voice'],
+        'entity_attrs': ['work_status', 'run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'warm_time', 'cook_time',  'voice'],
         'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'cook_status'},
