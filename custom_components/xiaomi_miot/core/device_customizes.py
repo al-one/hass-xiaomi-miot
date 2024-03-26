@@ -1417,6 +1417,9 @@ DEVICE_CUSTOMIZES = {
     'yeelink.bhf_light.v11': {
         'exclude_miot_services': 'yl_bath_heater',
     },
+    'yeelink.bhf_light.v13': {
+        'miot_type': 'urn:miot-spec-v2:device:bath-heater:0000A028:yeelink-v13:1',
+    },
     'yeelink.light.dn2grp': {
         'cloud_delay_update': 7,
     },
