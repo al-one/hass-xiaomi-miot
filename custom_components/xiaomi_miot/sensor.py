@@ -287,7 +287,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         )
         self._update_sub_entities(
             ['on'],
-            [self._miot_service.name, 'router', 'wifi', 'guest_wifi', 'fridge_chamber'],
+            [self._miot_service.name, 'router', 'wifi', 'guest_wifi'],
             domain='switch',
         )
         self._update_sub_entities(
@@ -312,11 +312,6 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             ['motor_control', 'backrest_angle', 'leg_rest_angle'],
             ['bed', 'backrest_control', 'leg_rest_control'],
             domain='cover',
-        )
-        self._update_sub_entities(
-            ['target_temperature'],
-            ['fridge_chamber'],
-            domain='number',
         )
 
     @property

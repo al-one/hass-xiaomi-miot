@@ -1763,6 +1763,10 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'heat_level,motor_control',
         'number_properties': 'target_time,target_temperature',
     },
+    '*.fridge.*': {
+        'switch_properties': 'on',
+        'number_properties': 'target_temperature',
+    },
     '*.heater.*': {
         'switch_properties': 'heater.on,horizontal_swing,alarm.alarm,delay.delay',
         'number_properties': 'countdown_time,delay_time',
