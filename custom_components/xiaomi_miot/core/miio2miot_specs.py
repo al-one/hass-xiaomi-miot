@@ -1244,8 +1244,8 @@ MIIO_TO_MIOT_SPECS = {
         # ["none",8          ,-15        ,"on"   ,0      ,30          ,"off"      ,"off"]
         # 'chunk_properties': 8,
         'chunk_properties': 1,
-        'miio_props': ['ScreenOn', 'Error', 'SmartCool', 'SmartFreeze', 'IndoorTemp'],
-        'entity_attrs': ['ScreenOn', 'Error', 'SmartCool', 'SmartFreeze', 'IndoorTemp'],
+        'miio_props': ['ScreenOn', 'Error', 'SmartCool', 'SmartFreeze'],
+        'entity_attrs': ['ScreenOn', 'Error', 'SmartCool', 'SmartFreeze'],
         'miio_specs': {
             'prop.2.1': {'prop': 'Mode', 'setter': 'setMode', 'dict': {
                 'smart': 1,
@@ -1258,6 +1258,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.3': {'prop': 'RCSetTemp'},
             'prop.4.1': {'prop': 'FCSetTemp', 'setter': 'setFCSetTemp'},
             'prop.4.2': {'prop': 'FCSetTemp'},
+            'prop.2.2': {'prop': 'IndoorTemp'},
         },
     },
     'viomi.juicer.v1': {
