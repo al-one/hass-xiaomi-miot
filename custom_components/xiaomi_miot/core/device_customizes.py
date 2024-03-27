@@ -1344,6 +1344,17 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_off': 2,
         'exclude_miot_services': 'rfid',
     },
+    'xiaomi.airp.va4': {
+        'sensor_properties': 'relative_humidity,air_quality,pm2_5_density,temperature,hcho_density,filter_life_level',
+        'switch_properties': 'on,anion,uv,alarm',
+        'select_properties': 'air_purifier_favorite.fan_level',
+        'number_properties': 'aqi_updata_heartbeat',
+        'button_actions': 'reset_filter_life',
+        'light_services': 'screen',
+        'brightness_for_on': 0,
+        'brightness_for_off': 2,
+        'exclude_miot_services': 'rfid,custom_service,filter_debug',
+    },
     'xiaomi.airp.*': {
         'exclude_miot_services': 'custom_service',
     },
@@ -1678,7 +1689,7 @@ DEVICE_CUSTOMIZES = {
     },
     '*.airpurifier.*': {
         'main_miot_services': 'air_purifier',
-        'switch_properties': 'air_purifier.on,alarm.alarm',
+        'switch_properties': 'air_purifier.on,alarm.alarm,anion,uv',
         'sensor_properties': 'relative_humidity,pm2_5_density,temperature,filter_life_level',
     },
     '*.bhf_light.*': {
@@ -1854,6 +1865,7 @@ DEVICE_CUSTOMIZES = {
 }
 
 DEVICE_CUSTOMIZES.update({
+    '*.airp.*': DEVICE_CUSTOMIZES.get('*.airpurifier.*') or {},
     '*.door.*': DEVICE_CUSTOMIZES.get('*.lock.*') or {},
     '*.dryer.*': DEVICE_CUSTOMIZES.get('*.dry.*') or {},
 })
