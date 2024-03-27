@@ -1176,6 +1176,9 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
+    'qmi.plug.*': {
+        'sensor_properties': 'power_consumption',
+    },
     'qushui.bed.001': {
         'chunk_properties': 1,
     },
