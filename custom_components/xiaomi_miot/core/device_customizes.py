@@ -1271,6 +1271,9 @@ DEVICE_CUSTOMIZES = {
             2: 0,    # Descent-limit
         },
     },
+    'viomi.fridge.m1': {
+        'sensor_properties': 'fridge.temperature',
+    },
     'viomi.hood.v1': {
         'main_miot_services': 'hood-2',
         'number_properties': 'off_delay_time',
