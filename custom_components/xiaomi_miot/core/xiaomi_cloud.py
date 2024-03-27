@@ -1,4 +1,6 @@
 import logging
+import aiohttp
+import asyncio
 import json
 import time
 import string
@@ -16,6 +18,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.components import persistent_notification
 
 from .const import DOMAIN, CONF_XIAOMI_CLOUD
@@ -51,6 +54,7 @@ class MiotCloud(micloud.MiCloud):
         self.useragent = UA % self.client_id
         self.http_timeout = int(hass.data[DOMAIN].get('config', {}).get('http_timeout') or 10)
         self.login_times = 0
+        self.async_session = None
         self.attrs = {}
 
     @property
@@ -58,7 +62,7 @@ class MiotCloud(micloud.MiCloud):
         uid = self.user_id or self.username
         return f'{uid}-{self.default_server}-{self.sid}'
 
-    def get_properties_for_mapping(self, did, mapping: dict):
+    async def async_get_properties_for_mapping(self, did, mapping: dict):
         pms = []
         rmp = {}
         for k, v in mapping.items():
@@ -68,7 +72,7 @@ class MiotCloud(micloud.MiCloud):
             p = v.get('piid')
             pms.append({'did': str(did), 'siid': s, 'piid': p})
             rmp[f'prop.{s}.{p}'] = k
-        rls = self.get_props(pms)
+        rls = await self.async_get_props(pms)
         if not rls:
             return None
         dls = []
@@ -85,14 +89,32 @@ class MiotCloud(micloud.MiCloud):
     def get_props(self, params=None):
         return self.request_miot_spec('prop/get', params)
 
+    async def async_get_props(self, params=None):
+        return await self.async_request_miot_spec('prop/get', params)
+
     def set_props(self, params=None):
         return self.request_miot_spec('prop/set', params)
+
+    async def async_set_props(self, params=None):
+        return await self.async_request_miot_spec('prop/set', params)
 
     def do_action(self, params=None):
         return self.request_miot_spec('action', params)
 
+    async def async_do_action(self, params=None):
+        return await self.async_request_miot_spec('action', params)
+
     def request_miot_spec(self, api, params=None):
         rdt = self.request_miot_api('miotspec/' + api, {
+            'params': params or [],
+        }) or {}
+        rls = rdt.get('result')
+        if not rls and rdt.get('code'):
+            raise MiCloudException(json.dumps(rdt))
+        return rls
+
+    async def async_request_miot_spec(self, api, params=None):
+        rdt = await self.async_request_api('miotspec/' + api, {
             'params': params or [],
         }) or {}
         rls = rdt.get('result')
@@ -173,12 +195,49 @@ class MiotCloud(micloud.MiCloud):
             _LOGGER.warning('Retry login xiaomi account failed: %s', self.username)
         return False
 
-    async def async_request_api(self, *args, **kwargs):
+    async def async_request_api(self, api, data, method='POST', crypt=True, debug=True, **kwargs):
         if not self.service_token:
             await self.async_login()
-        return await self.hass.async_add_executor_job(
-            partial(self.request_miot_api, *args, **kwargs)
-        )
+
+        params = {}
+        if data is not None:
+            params['data'] = self.json_encode(data)
+        raw = kwargs.pop('raw', self.sid != 'xiaomiio')
+        rsp = None
+        try:
+            if raw:
+                rsp = await self.hass.async_add_executor_job(
+                    partial(self.request_raw, api, data, method, **kwargs)
+                )
+            elif crypt:
+                rsp = await self.async_request_rc4_api(api, params, method, **kwargs)
+            else:
+                rsp = await self.hass.async_add_executor_job(
+                    partial(self.request, self.get_api_url(api), params, **kwargs)
+                )
+            rdt = json.loads(rsp)
+            if debug:
+                _LOGGER.debug(
+                    'Request miot api: %s %s result: %s',
+                    api, data, rsp,
+                )
+            self.attrs['timeouts'] = 0
+        except asyncio.TimeoutError as exc:
+            rdt = None
+            self.attrs.setdefault('timeouts', 0)
+            self.attrs['timeouts'] += 1
+            if 5 < self.attrs['timeouts'] <= 10:
+                _LOGGER.error('Request xiaomi api: %s %s timeout, exception: %s', api, data, exc)
+        except (TypeError, ValueError):
+            rdt = None
+        code = rdt.get('code') if rdt else None
+        if code == 3:
+            self._logout()
+            _LOGGER.warning('Unauthorized while request to %s, response: %s, logged out.', api, rsp)
+        elif code or not rdt:
+            fun = _LOGGER.info if rdt else _LOGGER.warning
+            fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp)
+        return rdt
 
     def request_miot_api(self, api, data, method='POST', crypt=True, debug=True, **kwargs):
         params = {}
@@ -377,7 +436,7 @@ class MiotCloud(micloud.MiCloud):
         self.service_token = None
 
     def _login_request(self, captcha=None):
-        self._init_session()
+        self._init_session(True)
         auth = self.attrs.pop('login_data', None)
         if captcha and auth:
             auth['captcha'] = captcha
@@ -513,6 +572,7 @@ class MiotCloud(micloud.MiCloud):
         mic.user_id = str(config.get('user_id') or '')
         if a := hass.data[DOMAIN].get('sessions', {}).get(mic.unique_id):
             mic = a
+            mic.async_session = None
             if mic.password != config.get(CONF_PASSWORD):
                 mic.password = config.get(CONF_PASSWORD)
                 mic.service_token = None
@@ -562,17 +622,33 @@ class MiotCloud(micloud.MiCloud):
             return cfg
         return old
 
-    def api_session(self):
+    def api_session(self, **kwargs):
         if not self.service_token or not self.user_id:
             raise MiCloudException('Cannot execute request. service token or userId missing. Make sure to login.')
 
-        session = requests.Session()
-        session.headers.update({
+        if kwargs.get('async'):
+            if not (session := self.async_session):
+                session = async_create_clientsession(
+                    self.hass,
+                    headers=self.api_headers(),
+                    cookies=self.api_cookies(),
+                )
+                self.async_session = session
+        else:
+            session = requests.Session()
+            session.headers.update(self.api_headers())
+            session.cookies.update(self.api_cookies())
+        return session
+
+    def api_headers(self):
+        return {
             'X-XIAOMI-PROTOCAL-FLAG-CLI': 'PROTOCAL-HTTP2',
             'Content-Type': 'application/x-www-form-urlencoded',
             'User-Agent': self.useragent,
-        })
-        session.cookies.update({
+        }
+
+    def api_cookies(self):
+        return {
             'userId': str(self.user_id),
             'yetAnotherServiceToken': self.service_token,
             'serviceToken': self.service_token,
@@ -581,8 +657,7 @@ class MiotCloud(micloud.MiCloud):
             'is_daylight': str(time.daylight),
             'dst_offset': str(time.localtime().tm_isdst * 60 * 60 * 1000),
             'channel': 'MI_APP_STORE',
-        })
-        return session
+        }
 
     def request(self, url, params, **kwargs):
         self.session = self.api_session()
@@ -631,6 +706,33 @@ class MiotCloud(micloud.MiCloud):
             _LOGGER.warning('Error while executing request to %s: %s', url, exc)
         except MiCloudException as exc:
             _LOGGER.warning('Error while decrypting response of request to %s :%s', url, exc)
+
+    async def async_request_rc4_api(self, api, params: dict, method='POST', **kwargs):
+        url = self.get_api_url(api)
+        session = self.api_session(**{'async': True})
+        timeout = aiohttp.ClientTimeout(total=kwargs.get('timeout', self.http_timeout))
+        headers = {
+            'MIOT-ENCRYPT-ALGORITHM': 'ENCRYPT-RC4',
+            'Accept-Encoding': 'identity',
+        }
+        try:
+            params = self.rc4_params(method, url, params)
+            if method == 'GET':
+                response = await session.get(url, params=params, timeout=timeout, headers=headers)
+            else:
+                response = await session.post(url, data=params, timeout=timeout, headers=headers)
+            rsp = await response.text()
+            if not rsp or 'error' in rsp or 'invalid' in rsp:
+                _LOGGER.warning('Error while executing request to %s: %s', url, rsp or response.status)
+            elif 'message' not in rsp:
+                try:
+                    signed_nonce = self.signed_nonce(params['_nonce'])
+                    rsp = MiotCloud.decrypt_data(signed_nonce, rsp)
+                except ValueError:
+                    _LOGGER.warning('Error while decrypting response of request to %s :%s', url, rsp)
+            return rsp
+        except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+            _LOGGER.warning('Error while executing request to %s: %s', url, exc)
 
     def request_raw(self, url, data=None, method='GET', **kwargs):
         self.session = self.api_session()
