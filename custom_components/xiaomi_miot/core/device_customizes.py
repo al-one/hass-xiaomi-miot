@@ -1237,7 +1237,7 @@ DEVICE_CUSTOMIZES = {
     'smith.waterpuri.cxr800': {
         'chunk_properties': 1,
         'state_property': 'chanitex_wp_gs.rsysstate',
-        'sensor_properties': 'rwaterconsumption,rfilterwaterlifei,rfilterwaterlifeii,rfilterwaterlifeiii',
+        'sensor_properties': 'tds_in,tds_out,rwaterconsumption,rfilterwaterlifei,rfilterwaterlifeii,rfilterwaterlifeiii',
     },
     'shuii.humidifier.jsq002': {
         'brightness_for_on': 3,
@@ -1467,11 +1467,11 @@ DEVICE_CUSTOMIZES = {
     },
     'yunmi.waterpuri.*': {
         'number_properties': 'tds_warn_thd',
-        'sensor_properties': 'rinse,filter_remaining',
+        'sensor_properties': 'tds_in,tds_out,rinse,filter_remaining',
         'switch_properties': 'light_mode',
     },
     'yunmi.waterpuri.s20': {
-        'sensor_properties': 'water_purifier.temperature,current_team,flow_in,flow_out',
+        'sensor_properties': 'tds_in,tds_out,water_purifier.temperature,current_team,flow_in,flow_out',
         'switch_properties': 'child_lock',
     },
     'yyunyi.wopener.yypy24': {
