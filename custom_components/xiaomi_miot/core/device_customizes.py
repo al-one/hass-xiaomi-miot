@@ -990,6 +990,12 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'remain_clean_time,fault,filter_left_time,no_water_time',
         'select_properties': 'mode',
     },
+    'mmgg.pet_waterer.s4': {
+        'binary_sensor_properties': 'no_water_flag,pump_block_flag',
+        'button_actions': 'reset_filter_life,reset_clean_time',
+        'sensor_properties': 'remain_clean_time,fault,filter_left_time,no_water_time',
+        'select_properties': 'mode',
+    },
     'mrbond.airer.m53pro': {
         'position_reverse': False,
         'sensor_properties': 'fault,left_time',
