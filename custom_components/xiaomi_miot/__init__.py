@@ -38,6 +38,7 @@ from homeassistant.components import persistent_notification
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.reload import async_integration_yaml_config
+from homeassistant.helpers.service import async_register_admin_service
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
 
@@ -572,7 +573,8 @@ async def async_setup_component_services(hass):
         ]
         await asyncio.gather(*reload_tasks)
 
-    hass.helpers.service.async_register_admin_service(
+    async_register_admin_service(
+        hass,
         DOMAIN,
         SERVICE_RELOAD,
         _handle_reload_config,
