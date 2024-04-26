@@ -1320,6 +1320,14 @@ DEVICE_CUSTOMIZES = {
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
     },
+    'viomi.waterheater.m1': {
+        'sensor_properties': 'water_heater.status,water_level,temperature_tips,'
+                             'input_water_temp,water_pump_volt,remaining_time',
+        'switch_properties': 'on,hot_water_recirculation,heat_preservation,jog_function,pressure_boost.status,'
+                             'cloud_preheater,in_cloud_timer,reminder,enhanced',
+        'select_properties': 'light_off_time,effective,model',
+        'number_properties': 'target_temperature,boost_value',
+    },
 
     'wise.wifispeaker.x7': {
         'switch_properties': 'key_one,key_two,key_three,key_four,key_five,key_six,key_seven,key_eight,key_nine,'
