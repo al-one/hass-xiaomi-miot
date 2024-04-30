@@ -444,6 +444,20 @@ DEVICE_CUSTOMIZES = {
         'main_miot_services': 'switch-2',
         'exclude_miot_services': 'setting,wireless_switch',
     },
+    'cykj.hood.jyj22': {
+        'sensor_properties': 'left_stove_level,right_stove_level,left_stove_timer,right_stove_timer,timer_mode',
+        'switch_properties': 'prop.2.9,hood_stove_switch,timer_alert_switch,low_power_alert,pose_recog_switch,'
+                             'start_period_notify,pm_fresh_notify,auto_lighton_start,clean_notify,pm_notify_on',
+        'select_properties': 'clean_period',
+        'number_properties': 'prop.2.5,off_delay_time,start_period_set,pm_thresold,pm_fresh_time,pm_fresh_valueset,'
+                             'turn_off_screen',
+    },
+    'cykj.hood.jyj22:battery': {
+        'state_class': '',
+    },
+    'cykj.hood.jyj22:battery_level': {
+        'state_class': '',
+    },
 
     'deerma.humidifier.jsq4': {
         'exclude_miot_services': None,

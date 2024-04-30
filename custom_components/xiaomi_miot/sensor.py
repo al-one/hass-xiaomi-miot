@@ -218,6 +218,8 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         cls = self.custom_config('state_class')
         if cls in STATE_CLASSES:
             self._attr_state_class = cls
+        elif cls in ['', False]:
+            self._attr_state_class = None
 
         if uom := self.custom_config('unit_of_measurement'):
             self._attr_native_unit_of_measurement = uom
@@ -465,6 +467,8 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
         cls = self.custom_config('state_class')
         if cls in STATE_CLASSES:
             self._attr_state_class = cls
+        elif cls in ['', False]:
+            self._attr_state_class = None
 
         if uom := self.custom_config('unit_of_measurement'):
             self._attr_native_unit_of_measurement = uom
