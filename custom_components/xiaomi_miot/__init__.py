@@ -1922,6 +1922,8 @@ class MiotEntity(MiioEntity):
         mca = self.miot_cloud_action
         if self.custom_config_bool('auto_cloud') and not self._local_state:
             mca = self.xiaomi_cloud
+        elif not self.miot_device:
+            mca = self.xiaomi_cloud
         try:
             if m2m and self._miio2miot.has_setter(siid, aiid=aiid):
                 result = self._miio2miot.call_action(self.miot_device, siid, aiid, params)
