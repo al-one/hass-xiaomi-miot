@@ -1403,6 +1403,13 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'homepage,light',
         'text_actions': 'play_text,execute_text_directive',
     },
+    'xiaomi.esteamer.mes01': {
+        'sensor_properties': 'left_time,keep_warm_left_time',
+        'switch_properties': 'auto_keep_warm',
+        'select_properties': 'mode',
+        'number_properties': 'target_temperature,target_time,reservation_left_time,keep_warm_time',
+        'button_actions': 'start_cook,pause,cancel_cooking,resume_cook',
+    },
     'xiaomi.heater.ma8': {
         'button_actions': 'toggle',
     },
