@@ -238,6 +238,8 @@ This component has added support for configuration reloading (to avoid having to
 
 ## Services
 
+> Since the HA support service response has been for some time, this component no longer triggers events starting from v0.7.18.
+
 #### [`xiaomi_miot.set_property`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.set_property)
 ```yaml
 service: xiaomi_miot.set_property
@@ -270,8 +272,6 @@ data:
   update_entity: true # Update to entity state attributes
 ```
 
-> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.got_miot_properties`
-
 #### [`xiaomi_miot.call_action`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.call_action)
 ```yaml
 service: xiaomi_miot.call_action
@@ -284,8 +284,6 @@ data:
     - '{"selects":[[7,1,0,2,1]]}' # piid: 10 - clean-extend-data
 ```
 
-> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.call_miot_action`
-
 #### [`xiaomi_miot.send_command`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.send_command)
 ```yaml
 service: xiaomi_miot.send_command
@@ -295,8 +293,6 @@ data:
   params:
     - on
 ```
-
-> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.send_miio_command`
 
 #### [`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token)
 ```yaml
@@ -329,8 +325,6 @@ data:
   username: 80001234 # Xiaomi Account ID / Email / Phone
 ```
 
-> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.renew_devices`
-
 #### [`xiaomi_miot.request_xiaomi_api`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.request_xiaomi_api)
 ```yaml
 service: xiaomi_miot.request_xiaomi_api
@@ -343,8 +337,6 @@ data:
       plugins:
         - model: brand.device.model
 ```
-
-> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.request_xiaomi_api`
 
 > [More services](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/services.yaml)
 

@@ -275,6 +275,8 @@ xiaomi_miot:
 <a name="services"></a>
 ## 服务
 
+> 由于HA支持服务响应已经有一段时间了，本组件自v0.7.18开始不再触发事件。
+
 #### [`xiaomi_miot.set_property`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.set_property)
 ```yaml
 service: xiaomi_miot.set_property
@@ -307,8 +309,6 @@ data:
   update_entity: true # 更新实体状态属性
 ```
 
-> 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.got_miot_properties`
-
 #### [`xiaomi_miot.call_action`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.call_action)
 ```yaml
 service: xiaomi_miot.call_action
@@ -321,8 +321,6 @@ data:
     - '{"selects":[[7,1,0,2,1]]}' # piid: 10 - clean-extend-data
 ```
 
-> 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.call_miot_action`
-
 #### [`xiaomi_miot.send_command`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.send_command)
 ```yaml
 service: xiaomi_miot.send_command
@@ -332,8 +330,6 @@ data:
   params:
     - on
 ```
-
-> 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.send_miio_command`
 
 #### [`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token)
 ```yaml
@@ -366,8 +362,6 @@ data:
   username: 80001234 # 小米账号ID/登录邮箱/手机号
 ```
 
-> 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.renew_devices`
-
 #### [`xiaomi_miot.request_xiaomi_api`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.request_xiaomi_api)
 ```yaml
 service: xiaomi_miot.request_xiaomi_api
@@ -380,8 +374,6 @@ data:
       plugins:
         - model: brand.device.model
 ```
-
-> 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.request_xiaomi_api`
 
 > 查看[更多服务](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/services.yaml)
 

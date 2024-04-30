@@ -542,11 +542,6 @@ async def async_setup_component_services(hass):
                 continue
             dvs = await cld.async_renew_devices()
             cnt = len(dvs)
-            hass.bus.async_fire(f'{DOMAIN}.renew_devices', {
-                CONF_USERNAME: cld.username,
-                'user_id': cld.user_id,
-                'device_count': cnt,
-            })
             _LOGGER.info('Renew xiaomi devices for %s. Got %s devices.', cld.username, cnt)
         return True
 
@@ -999,12 +994,6 @@ class MiioEntity(BaseEntity):
         except DeviceException as ex:
             self.logger.error('%s: Send miio command: %s(%s) failed: %s', self.name_model, method, params, ex)
             return False
-        self.hass.bus.async_fire(f'{DOMAIN}.send_miio_command', {
-            ATTR_ENTITY_ID: self.entity_id,
-            'method': method,
-            'params': params,
-            'result': result,
-        })
         ret = result == self._success_result
         if kwargs.get('return_result'):
             return result
@@ -1807,12 +1796,6 @@ class MiotEntity(MiioEntity):
             return
         result = MiotResults(results, mapping)
         attrs = result.to_attributes(self._state_attrs)
-        self.hass.bus.async_fire(f'{DOMAIN}.got_miot_properties', {
-            ATTR_ENTITY_ID: self.entity_id,
-            'mapping': mapping,
-            'attrs': attrs,
-            'result': results,
-        })
         self.logger.info('%s: Get miot properties: %s', self.name_model, results)
 
         if attrs and update_entity:
@@ -1957,14 +1940,6 @@ class MiotEntity(MiioEntity):
             self.logger.warning('%s: Call miot action %s failed: %s, result: %s', self.name_model, pms, exc, result)
         ret = eno == self._success_code
         if ret:
-            self.hass.bus.async_fire(f'{DOMAIN}.call_miot_action', {
-                ATTR_ENTITY_ID: self.entity_id,
-                'did': did,
-                'siid': siid,
-                'aiid': aiid,
-                'params': params,
-                'result': result,
-            })
             self._vars['delay_update'] = dly
             self.logger.debug('%s: Call miot action %s, result: %s', self.name_model, pms, result)
         else:
@@ -2160,12 +2135,6 @@ class MiotEntity(MiioEntity):
         pms = kwargs.pop('params', None)
         dat = data or pms
         result = await mic.async_request_api(api, data=dat, method=method, crypt=crypt, **kwargs)
-        self.hass.bus.async_fire(f'{DOMAIN}.request_xiaomi_api', {
-            ATTR_ENTITY_ID: self.entity_id,
-            'api': api,
-            'data': dat,
-            'result': result,
-        })
         _LOGGER.debug('Xiaomi Api %s: %s', api, result)
         return result
 
