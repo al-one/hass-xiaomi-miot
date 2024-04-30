@@ -1571,7 +1571,7 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'brightness,temperature_display_unit',
         'number_properties': 'favorite_speed,favorite_level',
     },
-    'zhimi.airp.meb1:pm10-density': {
+    'zhimi.airp.meb1:pm10_density': {
         'unit_of_measurement': 'µg/m³',
     },
     'zhimi.airp.sa4': {
@@ -1588,7 +1588,7 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'brightness',
         'number_properties': 'air_purifier_favorite.fan_level',
     },
-    'zhimi.airp.vb4:pm10-density': {
+    'zhimi.airp.vb4:pm10_density': {
         'unit_of_measurement': 'µg/m³',
     },
     'zhimi.airpurifier.*': {
