@@ -219,7 +219,7 @@ class MiotSwitchActionSubEntity(MiotPropertySubEntity, SwitchSubEntity):
         ret = self.call_parent('call_action', self._miot_action, None if val is None else [val])
         if ret:
             self._state = True
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
             time.sleep(0.5)
             self._state = False
         return ret

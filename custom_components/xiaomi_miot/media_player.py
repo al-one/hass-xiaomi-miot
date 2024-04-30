@@ -818,7 +818,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         if source in self._keycodes:
             ret = self.press_key(source)
             self._attr_app_name = source
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
             return ret
         if source in self.source_list:
             return super().select_source(source)

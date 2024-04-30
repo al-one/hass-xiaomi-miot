@@ -1800,7 +1800,7 @@ class MiotEntity(MiioEntity):
 
         if attrs and update_entity:
             self.update_attrs(attrs, update_subs=True)
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
         return attrs
 
     async def async_get_properties(self, mapping, **kwargs):
@@ -1888,7 +1888,7 @@ class MiotEntity(MiioEntity):
                     pass
                 elif prop := srv.properties.get(piid):
                     self._state_attrs[prop.full_name] = value
-                    self.async_write_ha_state()
+                    self.schedule_update_ha_state()
         return ret
 
     async def async_set_miot_property(self, siid, piid, value, did=None, **kwargs):
@@ -2370,7 +2370,7 @@ class BaseSubEntity(BaseEntity):
     def update_from_parent(self):
         self.update()
         if self.platform:
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
 
     def update(self, data=None):
         attrs = self.parent_attributes
@@ -2407,7 +2407,7 @@ class BaseSubEntity(BaseEntity):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
         if self.hass and self.platform:
             # don't set state before added to hass
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
         return self._state_attrs
 
     def call_parent(self, method, *args, **kwargs):
