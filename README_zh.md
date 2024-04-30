@@ -305,7 +305,6 @@ data:
     - siid: 3
       piid: 2
   update_entity: true # 更新实体状态属性
-  throw: true # 在HA通知中显示结果
 ```
 
 > 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.got_miot_properties`
@@ -320,7 +319,6 @@ data:
   params:
     - 18 # piid: 1 - work-mode
     - '{"selects":[[7,1,0,2,1]]}' # piid: 10 - clean-extend-data
-  throw: true # 在HA通知中显示结果
 ```
 
 > 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.call_miot_action`
@@ -333,7 +331,6 @@ data:
   method: set_power
   params:
     - on
-  throw: true # 在HA通知中显示结果
 ```
 
 > 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.send_miio_command`

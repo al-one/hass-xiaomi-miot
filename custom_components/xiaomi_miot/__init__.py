@@ -97,7 +97,7 @@ SERVICE_TO_METHOD_BASE = {
             {
                 vol.Required('method'): cv.string,
                 vol.Optional('params', default=[]): cv.ensure_list,
-                vol.Optional('throw', default=False): cv.boolean,
+                vol.Optional('throw', default=False): cv.boolean,  # Deprecated
                 vol.Optional('return_result', default=True): cv.boolean,
             },
         ),
@@ -520,10 +520,6 @@ async def async_setup_component_services(hass):
                 cnt += 1
         if not lst:
             lst = [f'Not Found "{nam}" in {cnt} devices.']
-        msg = '\n\n'.join(map(lambda vv: f'{vv}', lst))
-        persistent_notification.async_create(
-            hass, msg, 'Miot device', f'{DOMAIN}-debug',
-        )
         return {
             'list': lst,
         }
@@ -1009,13 +1005,6 @@ class MiioEntity(BaseEntity):
             'params': params,
             'result': result,
         })
-        if kwargs.get('throw'):
-            persistent_notification.create(
-                self.hass,
-                f'{result}',
-                'Miio command result',
-                f'{DOMAIN}-debug',
-            )
         ret = result == self._success_result
         if kwargs.get('return_result'):
             return result
@@ -1829,13 +1818,6 @@ class MiotEntity(MiioEntity):
         if attrs and update_entity:
             self.update_attrs(attrs, update_subs=True)
             self.async_write_ha_state()
-        if throw:
-            persistent_notification.create(
-                self.hass,
-                f'{results}',
-                'Miot properties',
-                f'{DOMAIN}-debug',
-            )
         return attrs
 
     async def async_get_properties(self, mapping, **kwargs):
@@ -1924,13 +1906,6 @@ class MiotEntity(MiioEntity):
                 elif prop := srv.properties.get(piid):
                     self._state_attrs[prop.full_name] = value
                     self.async_write_ha_state()
-        if kwargs.get('throw'):
-            persistent_notification.create(
-                self.hass,
-                f'{ret.result}',
-                'Set miot property result',
-                f'{DOMAIN}-debug',
-            )
         return ret
 
     async def async_set_miot_property(self, siid, piid, value, did=None, **kwargs):
@@ -1996,13 +1971,6 @@ class MiotEntity(MiioEntity):
             self._state_attrs['miot_action_error'] = MiotSpec.spec_error(eno)
             self.logger.info('%s: Call miot action %s failed: %s', self.name_model, pms, result)
         self._state_attrs['miot_action_result'] = result
-        if kwargs.get('throw'):
-            persistent_notification.create(
-                self.hass,
-                f'{result}',
-                'Miot action result',
-                f'{DOMAIN}-debug',
-            )
         return result if ret else ret
 
     async def async_miot_action(self, siid, aiid, params=None, did=None, **kwargs):
@@ -2170,36 +2138,16 @@ class MiotEntity(MiioEntity):
         mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
-        result = await self.hass.async_add_executor_job(
-            partial(mic.get_user_device_data, did, key, raw=True, **kwargs)
-        )
-        persistent_notification.async_create(
-            self.hass,
-            f'{result}',
-            f'Xiaomi device data: {self.name}',
-            f'{DOMAIN}-debug',
-        )
-        if throw:
-            raise Warning(f'Xiaomi device data for {self.name}: {result}')
-        else:
-            _LOGGER.debug('%s: Xiaomi device data: %s', self.name_model, result)
+        result = await self.async_get_user_device_data(did, key, raw=True, **kwargs)
+        _LOGGER.info('%s: Xiaomi device data: %s', self.name_model, result)
         return result
 
-    async def async_get_bindkey(self, did=None, throw=False):
+    async def async_get_bindkey(self, did=None):
         mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
         result = await mic.async_get_beaconkey(did or self.miot_did)
-        persistent_notification.async_create(
-            self.hass,
-            f'{result}',
-            f'Xiaomi device bindkey: {self.name}',
-            f'{DOMAIN}-debug',
-        )
-        if throw:
-            raise Warning(f'Xiaomi device bindkey for {self.name}: {result}')
-        else:
-            _LOGGER.warning('%s: Xiaomi device bindkey/beaconkey: %s', self.name_model, result)
+        _LOGGER.info('%s: Xiaomi device bindkey/beaconkey: %s', self.name_model, result)
         return result
 
     async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=True, **kwargs):
@@ -2218,13 +2166,6 @@ class MiotEntity(MiioEntity):
             'data': dat,
             'result': result,
         })
-        if kwargs.get('throw'):
-            persistent_notification.async_create(
-                self.hass,
-                f'{result}',
-                f'Xiaomi Api: {api}',
-                f'{DOMAIN}-debug',
-            )
         _LOGGER.debug('Xiaomi Api %s: %s', api, result)
         return result
 

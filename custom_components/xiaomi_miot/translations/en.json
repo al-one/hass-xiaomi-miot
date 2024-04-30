@@ -283,10 +283,6 @@
                 "params": {
                     "name": "Params",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Throw",
-                    "description": "Throw result to HA notifications"
                 }
             }
         },
@@ -305,10 +301,6 @@
                 "update_entity": {
                     "name": "Update entity",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Throw",
-                    "description": "Throw result to HA notifications"
                 }
             }
         },
@@ -371,10 +363,6 @@
                 "params": {
                     "name": "",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Throw",
-                    "description": "Throw result to HA notifications"
                 }
             }
         },
@@ -397,10 +385,6 @@
                 "silent": {
                     "name": "Silent",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Throw",
-                    "description": "Throw result to HA notifications"
                 }
             }
         },
@@ -513,10 +497,6 @@
                 "sid": {
                     "name": "",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Throw",
-                    "description": "Throw result to HA notifications"
                 }
             }
         }

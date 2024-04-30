@@ -268,7 +268,6 @@ data:
     - siid: 3
       piid: 2
   update_entity: true # Update to entity state attributes
-  throw: true # Throw result to HA notifications
 ```
 
 > With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.got_miot_properties`
@@ -283,7 +282,6 @@ data:
   params:
     - 18 # piid: 1 - work-mode
     - '{"selects":[[7,1,0,2,1]]}' # piid: 10 - clean-extend-data
-  throw: true # throw result to HA notifications
 ```
 
 > With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.call_miot_action`
@@ -296,7 +294,6 @@ data:
   method: set_power
   params:
     - on
-  throw: true # throw result to HA notifications
 ```
 
 > With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.send_miio_command`

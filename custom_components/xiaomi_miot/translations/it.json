@@ -281,10 +281,6 @@
                 "params": {
                     "name": "Parametro",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Invia",
-                    "description": "Invia il risultato alle notifiche HA"
                 }
             }
         },
@@ -303,10 +299,6 @@
                 "update_entity": {
                     "name": "Update entity",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Invia",
-                    "description": "Invia il risultato alle notifiche HA"
                 }
             }
         },
@@ -369,10 +361,6 @@
                 "params": {
                     "name": "",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Invia",
-                    "description": "Invia il risultato alle notifiche HA"
                 }
             }
         },
@@ -395,10 +383,6 @@
                 "silent": {
                     "name": "Silent",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Invia",
-                    "description": "Invia il risultato alle notifiche HA"
                 }
             }
         },
@@ -511,10 +495,6 @@
                 "sid": {
                     "name": "",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Invia",
-                    "description": "Invia il risultato alle notifiche HA"
                 }
             }
         }

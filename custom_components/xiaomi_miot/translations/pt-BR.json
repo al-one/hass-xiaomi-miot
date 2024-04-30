@@ -224,10 +224,6 @@
                 "params": {
                     "name": "Parâmetros",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Evniar",
-                    "description": "Enviar resultado para uma notificação HA"
                 }
             }
         },
@@ -246,10 +242,6 @@
                 "update_entity": {
                     "name": "Atualizar entidade",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Enviar",
-                    "description": "Enviar resultado para uma notificação HA"
                 }
             }
         },
@@ -312,10 +304,6 @@
                 "params": {
                     "name": "",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Enviar",
-                    "description": "Enviar resultado para uma notificação HA"
                 }
             }
         },
@@ -338,10 +326,6 @@
                 "silent": {
                     "name": "Silenciar",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Enviar",
-                    "description": "Enviar resultado para uma notificação HA"
                 }
             }
         },
@@ -454,10 +438,6 @@
                 "sid": {
                     "name": "",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Enviar",
-                    "description": "Enviar resultado para uma notificação HA"
                 }
             }
         }

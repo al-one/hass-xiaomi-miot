@@ -20,12 +20,6 @@ send_command:
       required: true
       selector:
         object:
-    throw:
-      description: Throw result.
-      default: false
-      example: false
-      selector:
-        boolean:
 
 get_properties:
   description: Get miot properties.
@@ -45,12 +39,6 @@ get_properties:
         object:
     update_entity:
       description: Update to entity state attributes.
-      default: false
-      example: true
-      selector:
-        boolean:
-    throw:
-      description: Throw properties.
       default: false
       example: true
       selector:
@@ -147,12 +135,6 @@ call_action:
       example: "['Turn on light', 1]"
       selector:
         object:
-    throw:
-      description: Throw result.
-      default: false
-      example: false
-      selector:
-        boolean:
 
 intelligent_speaker:
   description: Play text on Xiaoai speaker / Execute text directive / 小爱TTS及执行语音命令
@@ -179,12 +161,6 @@ intelligent_speaker:
         boolean:
     silent:
       description: Silent execution.
-      default: false
-      example: false
-      selector:
-        boolean:
-    throw:
-      description: Throw result.
       default: false
       example: false
       selector:
@@ -355,9 +331,3 @@ request_xiaomi_api:
               value: micoapi
             - label: i.mi.com
               value: i.mi.com
-    throw:
-      description: Throw result.
-      default: true
-      example: true
-      selector:
-        boolean:
