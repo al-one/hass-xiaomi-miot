@@ -1603,7 +1603,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'favorite_level,favorite_fan_level',
         'sensor_properties': 'illumination,motor_speed',
         # https://github.com/rytilahti/python-miio/blob/31c5d740d403c6f45f1e7e0d4a8a6276684a8ecd/miio/integrations/airpurifier/zhimi/airpurifier_miot.py#L13
-        'exclude_miot_services': 'button,filter_time,rfid,others',
+        'exclude_miot_services': 'button,rfid,others',
         'exclude_miot_properties': 'average_aqi_cnt,aqi_zone,sensor_state,aqi_goodh,aqi_runstate,aqi_state,'
                                    'motor_strong,motor_high,motor_med,motor_med_l,motor_low,motor_silent,'
                                    'motor_favorite,motor_set_speed',
@@ -1623,6 +1623,13 @@ DEVICE_CUSTOMIZES = {
     'zhimi.airpurifier.za2': {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
+    },
+    'zhimi.airpurifier.ma4': {
+        'select_properties': 'mode,brightness',
+        'number_properties': 'filter_hour_used_debug,favorite_fan_level',
+    },
+    'zhimi.airpurifier.ma4:filter_hour_used_debug': {
+        'unit_of_measurement': 'hours',
     },
     'zhimi.fan.*': {
         'switch_properties': 'anion,alarm,horizontal_swing,vertical_swing',
