@@ -1718,7 +1718,14 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'link',
         'light_services': 'light',
     },
-
+    'zimi.waterheater.h01': {
+        'sensor_properties': 'water_heater.status,water_level,temperature_tips,'
+                             'input_water_temp,water_pump_volt,remaining_time',
+        'switch_properties': 'on,hot_water_recirculation,heat_preservation,jog_function,pressure_boost.status,'
+                             'cloud_preheater,in_cloud_timer,reminder,enhanced',
+        'select_properties': 'light_off_time,effective,model',
+        'number_properties': 'target_temperature,boost_value',
+    },
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
         'switch_properties': 'air_conditioner.on,alarm.alarm,heater',
