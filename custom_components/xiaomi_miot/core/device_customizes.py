@@ -1711,6 +1711,15 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'energy',
         'unit_of_measurement': 'kWh',
     },
+    'zimi.waterheater.h01': {
+        'sensor_properties': 'water_heater.status,water_level,temperature_tips,'
+                             'input_water_temp,water_pump_volt,remaining_time',
+        'switch_properties': 'on,hot_water_recirculation,heat_preservation,jog_function,pressure_boost.status,'
+                             'cloud_preheater,in_cloud_timer,water_trigger,reminder,enhanced',
+        'select_properties': 'effective,model',
+        'number_properties': 'target_temperature,light_off_time,children_mode_temp,comfort_mode_temp,adult_mode_temp,'
+                             'kitchen_mode_temp,pet_mode_temp,custom_time,boost_value',
+    },
     'zinguo.switch.b5m': {
         'main_miot_services': 'switch-2',
         'sensor_properties': 'temperature',
@@ -1718,14 +1727,7 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'link',
         'light_services': 'light',
     },
-    'zimi.waterheater.h01': {
-        'sensor_properties': 'water_heater.status,water_level,temperature_tips,'
-                             'input_water_temp,water_pump_volt,remaining_time',
-        'switch_properties': 'on,hot_water_recirculation,heat_preservation,jog_function,pressure_boost.status,'
-                             'cloud_preheater,in_cloud_timer,reminder,enhanced',
-        'select_properties': 'light_off_time,effective,model',
-        'number_properties': 'target_temperature,boost_value',
-    },
+
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
         'switch_properties': 'air_conditioner.on,alarm.alarm,heater',
