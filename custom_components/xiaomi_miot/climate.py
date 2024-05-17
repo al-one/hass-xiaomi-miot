@@ -165,8 +165,6 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
             self._supported_features |= ClimateEntityFeature.FAN_MODE
         if self._prop_horizontal_swing or self._prop_vertical_swing:
             self._supported_features |= ClimateEntityFeature.SWING_MODE
-        if self._prop_heater and miot_service.name in ['air_conditioner', 'air_condition_outlet']:
-            self._supported_features |= ClimateEntityFeature.AUX_HEAT
 
         self._power_modes = []
         if miot_service.get_property('heat_level'):

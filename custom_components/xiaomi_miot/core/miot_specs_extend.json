@@ -766,6 +766,22 @@
       ]
     }
   ],
+  "viomi.fridge.m1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:temperature",
+          "description": "Indoor Temperature",
+          "format": "float",
+          "access": ["read"],
+          "unit": "celsius",
+          "value-range": [-40, 125, 1]
+        }
+      ]
+    }
+  ],
 
   "viomi.vacuum.v7": [
     {
@@ -1473,7 +1489,7 @@
     }
   ],
   "yeelink.light.ceiling19": "yeelink.light.ceiling4",
-  "yeelink.light.ceiling20": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling20": "yeelink.light.ceiling4",
   "yeelink.light.ceiling21": "yeelink.light.ceiling1",
   "yeelink.light.ceiling22": "yeelink.light.ceiling1",
   "yeelink.light.ceiling23": "yeelink.light.ceiling1",

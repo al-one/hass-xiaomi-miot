@@ -1243,13 +1243,9 @@ MIIO_TO_MIOT_SPECS = {
         # ["Mode","RCSetTemp","FCSetTemp","RCSet","Error","IndoorTemp","SmartCool","SmartFreeze"]
         # ["none",8          ,-15        ,"on"   ,0      ,30          ,"off"      ,"off"]
         # 'chunk_properties': 8,
-        'miio_commands': [
-            {
-                'method': 'get_prop',
-                'params': ['RCSetTemp','FCSetTemp', 'RCSet', 'ScreenOn', 'Error', 'SmartCool', 'SmartFreeze', 'IndoorTemp'],
-                'values': ['RCSetTemp','FCSetTemp', 'RCSet', 'ScreenOn', 'Error', 'SmartCool', 'SmartFreeze', 'IndoorTemp'],
-            },
-        ],
+        'chunk_properties': 1,
+        'miio_props': ['ScreenOn', 'Error', 'SmartCool', 'SmartFreeze'],
+        'entity_attrs': ['ScreenOn', 'Error', 'SmartCool', 'SmartFreeze'],
         'miio_specs': {
             'prop.2.1': {'prop': 'Mode', 'setter': 'setMode', 'dict': {
                 'smart': 1,
@@ -1262,12 +1258,14 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.3': {'prop': 'RCSetTemp'},
             'prop.4.1': {'prop': 'FCSetTemp', 'setter': 'setFCSetTemp'},
             'prop.4.2': {'prop': 'FCSetTemp'},
+            'prop.2.2': {'prop': 'IndoorTemp'},
         },
     },
     'viomi.juicer.v1': {
         # ["work_status","run_status","mode","cooked_time","curr_tempe","cook_start","rev","stand_top_num","mode_sort"        ,"cook_status","warm_time","cook_time","left_time","voice"]
         # [0,           ,768         ,7     ,0            ,-300        ,1699143554  ,0    ,0              ,'7-8-9-4-3-1-5-2-6',1            ,6514       ,1668       ,0          ,0      ]
-        'entity_attrs': ['work_status', 'run_status', 'mode', 'cooked_time', 'curr_tempe', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'cook_status', 'warm_time', 'cook_time', 'left_time', 'voice'],
+        'miio_props': ['work_status', 'run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'warm_time', 'cook_time',  'voice'],
+        'entity_attrs': ['work_status', 'run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'warm_time', 'cook_time',  'voice'],
         'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'cook_status'},
@@ -1330,7 +1328,8 @@ MIIO_TO_MIOT_SPECS = {
     'viomi.oven.so1': {
         # methods:
         # ['get_prop', 'setDish', 'deleteDish', 'getDishs', 'setStartDish', 'setStartMode', 'setPrepareDish', 'setPrepareMode', 'setPause', 'canclePrepare', 'setEnd', 'setBootUp', 'setTurnOff'];
-        'entity_attrs': ['hwInfo', 'swInfo', 'error', 'dishId', 'dishName', 'status', 'mode', 'workTime', 'temp', 'leftTime', 'tempSetZ', 'timeSetZ', 'tempSetK', 'timeSetK', 'waterTank', 'prepareTime', 'doorIsOpen'],
+        'miio_props': ['hwInfo', 'swInfo', 'error', 'dishId', 'dishName',  'tempSetZ', 'timeSetZ', 'tempSetK', 'timeSetK', 'waterTank', 'prepareTime', 'doorIsOpen'],
+        'entity_attrs': ['hwInfo', 'swInfo', 'error', 'dishId', 'dishName',  'tempSetZ', 'timeSetZ', 'tempSetK', 'timeSetK', 'waterTank', 'prepareTime', 'doorIsOpen'],
         'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'status', 'dict': {
@@ -2176,7 +2175,7 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.ceiling17': 'yeelink.light.ceiling16',
     'yeelink.light.ceiling18': 'yeelink.light.ceiling6',
     'yeelink.light.ceiling19': 'yeelink.light.ceiling10',
-    'yeelink.light.ceiling20': 'yeelink.light.ceiling6',
+    'yeelink.light.ceiling20': 'yeelink.light.ceiling10',
     'yeelink.light.ceiling21': {
         'extend_model': 'yeelink.light.ceiling22',
         'miio_specs': {

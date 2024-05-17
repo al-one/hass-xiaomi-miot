@@ -383,7 +383,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 self._url_expiration = now + 60 * 4.5
             if self._prop_stream_address:
                 self._last_url = self._prop_stream_address.from_dict(odt)
-                self.async_write_ha_state()
+                self.schedule_update_ha_state()
                 self.async_check_stream_address(self._last_url)
                 if not kwargs.get('scheduled') or self.custom_config('keep_streaming'):
                     self._schedule_stream_refresh()

@@ -202,7 +202,7 @@ This component has added support for configuration reloading (to avoid having to
 - 🚰 [water-purifier](https://home.miot-spec.com/s/waterpuri) / [kettle](https://home.miot-spec.com/s/kettle)
 - ♻️ [air-purifier](https://home.miot-spec.com/s/airpurifier) / [air-fresh](https://home.miot-spec.com/s/airfresh) / [hood](https://home.miot-spec.com/s/hood)
 - 🌡 [temperature-humidity-sensor](https://home.miot-spec.com/s/sensor_ht) / [submersion-sensor](https://home.miot-spec.com/s/flood) / [smoke-sensor](https://home.miot-spec.com/s/sensor_smoke)
-- 🥘 [cooker](https://home.miot-spec.com/s/cooker) / [pressure-cooker](https://home.miot-spec.com/s/pre_cooker)
+- 🥘 [cooker](https://home.miot-spec.com/s/cooker) / [pressure-cooker](https://home.miot-spec.com/s/pre_cooker) / [electric-steamer](https://home.miot-spec.com/s/esteamer)
 - 🍲 [induction-cooker](https://home.miot-spec.com/s/ihcooker) / [oven](https://home.miot-spec.com/s/oven) / [microwave](https://home.miot-spec.com/s/microwave)
 - 🍗 [air-fryer](https://home.miot-spec.com/s/fryer) / [multifunction-cooking-pot](https://home.miot-spec.com/s/mfcp)
 - 🍵 [health-pot](https://home.miot-spec.com/s/health_pot) / ☕️ [coffee-machine](https://home.miot-spec.com/s/coffee)
@@ -238,6 +238,8 @@ This component has added support for configuration reloading (to avoid having to
 
 ## Services
 
+> Since the HA support service response has been for some time, this component no longer triggers events starting from v0.7.18.
+
 #### [`xiaomi_miot.set_property`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.set_property)
 ```yaml
 service: xiaomi_miot.set_property
@@ -268,10 +270,7 @@ data:
     - siid: 3
       piid: 2
   update_entity: true # Update to entity state attributes
-  throw: true # Throw result to HA notifications
 ```
-
-> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.got_miot_properties`
 
 #### [`xiaomi_miot.call_action`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.call_action)
 ```yaml
@@ -283,10 +282,7 @@ data:
   params:
     - 18 # piid: 1 - work-mode
     - '{"selects":[[7,1,0,2,1]]}' # piid: 10 - clean-extend-data
-  throw: true # throw result to HA notifications
 ```
-
-> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.call_miot_action`
 
 #### [`xiaomi_miot.send_command`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.send_command)
 ```yaml
@@ -296,10 +292,7 @@ data:
   method: set_power
   params:
     - on
-  throw: true # throw result to HA notifications
 ```
-
-> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.send_miio_command`
 
 #### [`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token)
 ```yaml
@@ -332,8 +325,6 @@ data:
   username: 80001234 # Xiaomi Account ID / Email / Phone
 ```
 
-> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.renew_devices`
-
 #### [`xiaomi_miot.request_xiaomi_api`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.request_xiaomi_api)
 ```yaml
 service: xiaomi_miot.request_xiaomi_api
@@ -346,8 +337,6 @@ data:
       plugins:
         - model: brand.device.model
 ```
-
-> With [event](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.request_xiaomi_api`
 
 > [More services](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/services.yaml)
 

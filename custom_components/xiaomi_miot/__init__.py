@@ -38,6 +38,7 @@ from homeassistant.components import persistent_notification
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.reload import async_integration_yaml_config
+from homeassistant.helpers.service import async_register_admin_service
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
 
@@ -96,7 +97,7 @@ SERVICE_TO_METHOD_BASE = {
             {
                 vol.Required('method'): cv.string,
                 vol.Optional('params', default=[]): cv.ensure_list,
-                vol.Optional('throw', default=False): cv.boolean,
+                vol.Optional('throw', default=False): cv.boolean,  # Deprecated
                 vol.Optional('return_result', default=True): cv.boolean,
             },
         ),
@@ -519,10 +520,6 @@ async def async_setup_component_services(hass):
                 cnt += 1
         if not lst:
             lst = [f'Not Found "{nam}" in {cnt} devices.']
-        msg = '\n\n'.join(map(lambda vv: f'{vv}', lst))
-        persistent_notification.async_create(
-            hass, msg, 'Miot device', f'{DOMAIN}-debug',
-        )
         return {
             'list': lst,
         }
@@ -545,11 +542,6 @@ async def async_setup_component_services(hass):
                 continue
             dvs = await cld.async_renew_devices()
             cnt = len(dvs)
-            hass.bus.async_fire(f'{DOMAIN}.renew_devices', {
-                CONF_USERNAME: cld.username,
-                'user_id': cld.user_id,
-                'device_count': cnt,
-            })
             _LOGGER.info('Renew xiaomi devices for %s. Got %s devices.', cld.username, cnt)
         return True
 
@@ -572,7 +564,8 @@ async def async_setup_component_services(hass):
         ]
         await asyncio.gather(*reload_tasks)
 
-    hass.helpers.service.async_register_admin_service(
+    async_register_admin_service(
+        hass,
         DOMAIN,
         SERVICE_RELOAD,
         _handle_reload_config,
@@ -1014,19 +1007,6 @@ class MiioEntity(BaseEntity):
         except DeviceException as ex:
             self.logger.error('%s: Send miio command: %s(%s) failed: %s', self.name_model, method, params, ex)
             return False
-        self.hass.bus.async_fire(f'{DOMAIN}.send_miio_command', {
-            ATTR_ENTITY_ID: self.entity_id,
-            'method': method,
-            'params': params,
-            'result': result,
-        })
-        if kwargs.get('throw'):
-            persistent_notification.create(
-                self.hass,
-                f'{result}',
-                'Miio command result',
-                f'{DOMAIN}-debug',
-            )
         ret = result == self._success_result
         if kwargs.get('return_result'):
             return result
@@ -1825,24 +1805,11 @@ class MiotEntity(MiioEntity):
             return
         result = MiotResults(results, mapping)
         attrs = result.to_attributes(self._state_attrs)
-        self.hass.bus.async_fire(f'{DOMAIN}.got_miot_properties', {
-            ATTR_ENTITY_ID: self.entity_id,
-            'mapping': mapping,
-            'attrs': attrs,
-            'result': results,
-        })
         self.logger.info('%s: Get miot properties: %s', self.name_model, results)
 
         if attrs and update_entity:
             await self.async_update_attrs(attrs, update_subs=True)
-            self.async_write_ha_state()
-        if throw:
-            persistent_notification.create(
-                self.hass,
-                f'{results}',
-                'Miot properties',
-                f'{DOMAIN}-debug',
-            )
+            self.schedule_update_ha_state()
         return attrs
 
     def set_property(self, field, value):
@@ -1925,14 +1892,7 @@ class MiotEntity(MiioEntity):
                     pass
                 elif prop := srv.properties.get(piid):
                     self._state_attrs[prop.full_name] = value
-                    self.async_write_ha_state()
-        if kwargs.get('throw'):
-            persistent_notification.create(
-                self.hass,
-                f'{ret.result}',
-                'Set miot property result',
-                f'{DOMAIN}-debug',
-            )
+                    self.schedule_update_ha_state()
         return ret
 
     async def async_set_miot_property(self, siid, piid, value, did=None, **kwargs):
@@ -1966,6 +1926,8 @@ class MiotEntity(MiioEntity):
         mca = self.miot_cloud_action
         if self.custom_config_bool('auto_cloud') and not self._local_state:
             mca = self.xiaomi_cloud
+        elif not self.miot_device:
+            mca = self.xiaomi_cloud
         try:
             if m2m and self._miio2miot.has_setter(siid, aiid=aiid):
                 result = self._miio2miot.call_action(self.miot_device, siid, aiid, params)
@@ -1984,27 +1946,12 @@ class MiotEntity(MiioEntity):
             self.logger.warning('%s: Call miot action %s failed: %s, result: %s', self.name_model, pms, exc, result)
         ret = eno == self._success_code
         if ret:
-            self.hass.bus.async_fire(f'{DOMAIN}.call_miot_action', {
-                ATTR_ENTITY_ID: self.entity_id,
-                'did': did,
-                'siid': siid,
-                'aiid': aiid,
-                'params': params,
-                'result': result,
-            })
             self._vars['delay_update'] = dly
             self.logger.debug('%s: Call miot action %s, result: %s', self.name_model, pms, result)
         else:
             self._state_attrs['miot_action_error'] = MiotSpec.spec_error(eno)
             self.logger.info('%s: Call miot action %s failed: %s', self.name_model, pms, result)
         self._state_attrs['miot_action_result'] = result
-        if kwargs.get('throw'):
-            persistent_notification.create(
-                self.hass,
-                f'{result}',
-                'Miot action result',
-                f'{DOMAIN}-debug',
-            )
         return result if ret else ret
 
     async def async_miot_action(self, siid, aiid, params=None, did=None, **kwargs):
@@ -2172,36 +2119,16 @@ class MiotEntity(MiioEntity):
         mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
-        result = await self.hass.async_add_executor_job(
-            partial(mic.get_user_device_data, did, key, raw=True, **kwargs)
-        )
-        persistent_notification.async_create(
-            self.hass,
-            f'{result}',
-            f'Xiaomi device data: {self.name}',
-            f'{DOMAIN}-debug',
-        )
-        if throw:
-            raise Warning(f'Xiaomi device data for {self.name}: {result}')
-        else:
-            _LOGGER.debug('%s: Xiaomi device data: %s', self.name_model, result)
+        result = await self.async_get_user_device_data(did, key, raw=True, **kwargs)
+        _LOGGER.info('%s: Xiaomi device data: %s', self.name_model, result)
         return result
 
-    async def async_get_bindkey(self, did=None, throw=False):
+    async def async_get_bindkey(self, did=None):
         mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
         result = await mic.async_get_beaconkey(did or self.miot_did)
-        persistent_notification.async_create(
-            self.hass,
-            f'{result}',
-            f'Xiaomi device bindkey: {self.name}',
-            f'{DOMAIN}-debug',
-        )
-        if throw:
-            raise Warning(f'Xiaomi device bindkey for {self.name}: {result}')
-        else:
-            _LOGGER.warning('%s: Xiaomi device bindkey/beaconkey: %s', self.name_model, result)
+        _LOGGER.info('%s: Xiaomi device bindkey/beaconkey: %s', self.name_model, result)
         return result
 
     async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=True, **kwargs):
@@ -2214,19 +2141,6 @@ class MiotEntity(MiioEntity):
         pms = kwargs.pop('params', None)
         dat = data or pms
         result = await mic.async_request_api(api, data=dat, method=method, crypt=crypt, **kwargs)
-        self.hass.bus.async_fire(f'{DOMAIN}.request_xiaomi_api', {
-            ATTR_ENTITY_ID: self.entity_id,
-            'api': api,
-            'data': dat,
-            'result': result,
-        })
-        if kwargs.get('throw'):
-            persistent_notification.async_create(
-                self.hass,
-                f'{result}',
-                f'Xiaomi Api: {api}',
-                f'{DOMAIN}-debug',
-            )
         _LOGGER.debug('Xiaomi Api %s: %s', api, result)
         return result
 
@@ -2462,7 +2376,7 @@ class BaseSubEntity(BaseEntity):
     def update_from_parent(self):
         self.update()
         if self.platform:
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
 
     def update(self, data=None):
         attrs = self.parent_attributes
@@ -2499,7 +2413,7 @@ class BaseSubEntity(BaseEntity):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
         if self.hass and self.platform:
             # don't set state before added to hass
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
         return self._state_attrs
 
     def call_parent(self, method, *args, **kwargs):

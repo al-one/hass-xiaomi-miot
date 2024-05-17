@@ -109,7 +109,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor',
             'router', 'lock', 'door', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad', 'treadmill',
             'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
-            'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer',
+            'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer', 'electric_steamer',
             'water_purifier', 'dishwasher', 'fruit_vegetable_purifier',
             'pet_feeder', 'cat_toilet', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp', 'vital_signs',
             'sterilizer', 'steriliser', 'table', 'chair', 'dryer', 'clothes_dryer',
@@ -218,6 +218,8 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         cls = self.custom_config('state_class')
         if cls in STATE_CLASSES:
             self._attr_state_class = cls
+        elif cls in ['', False]:
+            self._attr_state_class = None
 
         if uom := self.custom_config('unit_of_measurement'):
             self._attr_native_unit_of_measurement = uom
@@ -287,7 +289,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         )
         self._update_sub_entities(
             ['on'],
-            [self._miot_service.name, 'router', 'wifi', 'guest_wifi', 'fridge_chamber'],
+            [self._miot_service.name, 'router', 'wifi', 'guest_wifi'],
             domain='switch',
         )
         self._update_sub_entities(
@@ -312,11 +314,6 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             ['motor_control', 'backrest_angle', 'leg_rest_angle'],
             ['bed', 'backrest_control', 'leg_rest_control'],
             domain='cover',
-        )
-        self._update_sub_entities(
-            ['target_temperature'],
-            ['fridge_chamber'],
-            domain='number',
         )
 
     @property
@@ -470,6 +467,8 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
         cls = self.custom_config('state_class')
         if cls in STATE_CLASSES:
             self._attr_state_class = cls
+        elif cls in ['', False]:
+            self._attr_state_class = None
 
         if uom := self.custom_config('unit_of_measurement'):
             self._attr_native_unit_of_measurement = uom

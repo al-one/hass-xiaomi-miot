@@ -414,7 +414,7 @@ class MiioCoverEntity(MiioEntity, CoverEntity):
             self._unsub_listener_cover()
             self._unsub_listener_cover = None
             self._set_position = None
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
         _LOGGER.debug('cover process %s: %s', self.entity_id, {
             'position': self._position,
             'set_position': self._set_position,
