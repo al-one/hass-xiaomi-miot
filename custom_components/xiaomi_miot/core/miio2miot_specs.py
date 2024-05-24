@@ -2754,6 +2754,16 @@ MIIO_TO_MIOT_SPECS = {
                 'template': '{{ 1 if value|int(0) > 0 else 0 }}',
                 'set_template': '{{ [value|int(0) * 25] }}',
             },
+            'prop.2.6': {
+                'prop': 'speed_level',
+                'setter': True,
+                'template': '{{ props.natural_level|default(value,true)|int(0) }}',
+                'set_template': '{% set nlv = props.natural_level|default(0)|int(0) %}'
+                                '{{ {'
+                                '"method": "set_natural_level" if nlv else "set_speed_level",'
+                                '"params": [value|int(0)],'
+                                '} }}',
+            },
             'prop.4.1': {
                 'prop': 'buzzer',
                 'setter': True,

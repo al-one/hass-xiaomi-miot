@@ -1624,6 +1624,12 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
     },
+    'zhimi.fan.za3': {
+        'miot_type': 'urn:miot-spec-v2:device:fan:0000A005:zhimi-za3:3',
+    },
+    'zhimi.fan.za4': {
+        'miot_type': 'urn:miot-spec-v2:device:fan:0000A005:zhimi-za4:3',
+    },
     'zhimi.fan.*': {
         'switch_properties': 'anion,alarm,horizontal_swing,vertical_swing',
         'number_properties': 'horizontal_angle,vertical_angle,off_delay',
