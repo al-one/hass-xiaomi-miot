@@ -1626,9 +1626,11 @@ DEVICE_CUSTOMIZES = {
     },
     'zhimi.fan.za3': {
         'miot_type': 'urn:miot-spec-v2:device:fan:0000A005:zhimi-za3:3',
+        'number_select_properties': 'fan_level',
     },
     'zhimi.fan.za4': {
         'miot_type': 'urn:miot-spec-v2:device:fan:0000A005:zhimi-za4:3',
+        'number_select_properties': 'fan_level',
     },
     'zhimi.fan.*': {
         'switch_properties': 'anion,alarm,horizontal_swing,vertical_swing',
