@@ -1057,6 +1057,13 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'problem',
     },
 
+    'opple.bhf_light.acmoto': {
+        'exclude_miot_services': 'pair,wifisinr,class_sku,fan_motor',
+        'exclude_miot_properties': 'fault',
+        'light_services': 'aura_light',
+        'number_properties': 'function_countdown.warm,function_countdown.blower,'
+                             'function_countdown.breath,function_countdown,shutdown',
+    },
     'opple.light.yrtd': {
         'switch_properties': 'night_light,time_display,wake_up_at_night,voice',
         'select_properties': 'study_time',
