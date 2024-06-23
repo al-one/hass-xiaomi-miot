@@ -941,6 +941,13 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 10,
     },
 
+    'madv.cateye.mi3iot': {
+        'sensor_properties': 'battery_level',
+        'switch_properties': 'eco,motion_detection,alarm,autoreply,fw_autoupgrade,vistpush,motionpush',
+        'select_properties': 'night_shot,ringtone,alarm_interval,detection_sensitivity,motionpush_pushtype,videolength,'
+                             'eco_code,ringer_music',
+        'number_properties': 'videodelay,volume',
+    },
     'mibx5.washer.*': {
         'sensor_properties': 'fault,left_time,door_state,run_status,detergent_left_level',
         'switch_properties': 'sleep_mode,steam_sterilization,detergent_self_delivery',
