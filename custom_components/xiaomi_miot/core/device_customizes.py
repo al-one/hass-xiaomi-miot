@@ -942,6 +942,7 @@ DEVICE_CUSTOMIZES = {
     },
 
     'madv.cateye.mi3iot': {
+        'binary_sensor_properties': 'madv_doorbell.motion_detection',
         'sensor_properties': 'battery_level',
         'switch_properties': 'eco,motion_detection,alarm,autoreply,fw_autoupgrade,vistpush,motionpush',
         'select_properties': 'night_shot,ringtone,alarm_interval,detection_sensitivity,motionpush_pushtype,videolength,'
