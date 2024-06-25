@@ -804,7 +804,7 @@ MIIO_TO_MIOT_SPECS = {
                                 '["dry_cloth"] if value == 2 else '
                                 '{"method": "set_auto","params": [props.auto]} }}',
             },
-            'prop.2.3': {'prop': 'fan_st', 'setter': True},
+            'prop.2.3': {'prop': 'fan_st', 'setter': 'set_fan_level'},
             'prop.2.101': {'prop': 'auto', 'setter': True},
             'prop.2.102': {'prop': 'tank_full', 'format': 'onoff'},
             'prop.3.1': {'prop': 'humidity'},
