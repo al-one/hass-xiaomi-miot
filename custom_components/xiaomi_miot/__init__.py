@@ -276,10 +276,9 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     if not config_entry.update_listeners:
         config_entry.add_update_listener(async_update_options)
 
-    for sd in SUPPORTED_DOMAINS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(config_entry, sd)
-        )
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(config_entry, SUPPORTED_DOMAINS)
+    )
     return True
 
 
