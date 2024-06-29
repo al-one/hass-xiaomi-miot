@@ -71,6 +71,7 @@
                     "cover_properties": "Proprietà copertura",
                     "current_temp_property": "Proprietà temperatura corrente",
                     "descriptions_for_on": "Descrizione per acceso",
+                    "descriptions_for_off": "Descrizione per spento",
                     "deviated_position": "Posizione deviazione",
                     "device_class": "Classe dispositivo",
                     "disable_location_name": "Disabilita nome località",
