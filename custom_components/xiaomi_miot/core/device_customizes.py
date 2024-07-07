@@ -476,6 +476,11 @@ DEVICE_CUSTOMIZES = {
         'state_class': '',
     },
 
+    'dawn.toilet.02': {
+        'button_actions': 'stop_working,fangai,fanquan,paopaowei,chongshui,tunxi,fuxi,honggan,zijie',
+        'switch_properties': 'on,auto_flush,foot_sensing,moistening_wall,auto_clamshell',
+        'select_properties': 'target_temperature,washing_strength,nozzle_position,sensing_distance',
+    },
     'deerma.humidifier.jsq4': {
         'exclude_miot_services': None,
     },
