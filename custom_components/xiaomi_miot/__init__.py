@@ -205,11 +205,14 @@ async def async_setup(hass, hass_config: dict):
     config = hass_config.get(DOMAIN) or {}
     await async_reload_integration_config(hass, config)
 
-    with open(os.path.dirname(__file__) + '/core/miot_specs_extend.json') as file:
-        models = json.load(file) or {}
-        for m, specs in models.items():
-            DEVICE_CUSTOMIZES.setdefault(m, {})
-            DEVICE_CUSTOMIZES[m]['extend_miot_specs'] = specs
+    def extend_miot_specs():
+        with open(os.path.dirname(__file__) + '/core/miot_specs_extend.json') as file:
+            models = json.load(file) or {}
+            for m, specs in models.items():
+                DEVICE_CUSTOMIZES.setdefault(m, {})
+                DEVICE_CUSTOMIZES[m]['extend_miot_specs'] = specs
+
+    await hass.async_add_executor_job(extend_miot_specs)
 
     component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
     hass.data[DOMAIN]['component'] = component
@@ -273,10 +276,7 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     if not config_entry.update_listeners:
         config_entry.add_update_listener(async_update_options)
 
-    for sd in SUPPORTED_DOMAINS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(config_entry, sd)
-        )
+    await hass.config_entries.async_forward_entry_setups(config_entry, SUPPORTED_DOMAINS)
     return True
 
 
