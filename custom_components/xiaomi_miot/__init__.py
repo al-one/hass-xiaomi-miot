@@ -858,7 +858,7 @@ class BaseEntity(Entity):
         if not pus:
             pus = asyncio.Semaphore(num)
             self.hass.data[DOMAIN][did]['parallel_updates'] = pus
-            _LOGGER.warning('%s: Update custom parallel updates: %s', self.name_model, num)
+            _LOGGER.debug('%s: Update custom parallel updates: %s', self.name_model, num)
         self.parallel_updates = pus
         return pus
 
