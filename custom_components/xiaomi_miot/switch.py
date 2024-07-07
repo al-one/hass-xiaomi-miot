@@ -36,6 +36,7 @@ from .core.miot_spec import (
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
+PARALLEL_UPDATES = 3  # issue#1749
 
 SERVICE_TO_METHOD = {}
 
