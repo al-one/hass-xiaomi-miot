@@ -964,6 +964,12 @@ DEVICE_CUSTOMIZES = {
     'lumi.switch.*': {
         'cloud_delay_update': 10,
     },
+    'lxzn.switch.cbcsmj': {
+        'sensor_properties': 'temperature,electric_power',
+        'select_properties': 'default_power_on_state',
+        'switch_properties': 'electric_alarm_set,heat_alert_set,overcurrent_set,overvoltage_set,undervoltage_set',
+        'number_properties': 'electric_alarm,heat_alert,overcurrent_alarm,overvoltage_alarm,undervoltage_alarm',
+    },
 
     'madv.cateye.mi3iot': {
         'binary_sensor_properties': 'madv_doorbell.motion_detection',
