@@ -427,6 +427,7 @@ DEVICE_CUSTOMIZES = {
     },    
     'cuco.plug.*': {
         'main_miot_services': 'switch-2',
+        'parallel_updates': 3,
     },
     'cuco.plug.*:electric_current': {
         'state_class': 'measurement',

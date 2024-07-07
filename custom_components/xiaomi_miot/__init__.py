@@ -843,6 +843,25 @@ class BaseEntity(Entity):
             self.platform.scan_interval = tim
             _LOGGER.debug('%s: Update custom scan interval: %s', self.name_model, tim)
 
+    def update_custom_parallel_updates(self):
+        if not self.hass:
+            return False
+        if not hasattr(self, '_unique_did'):
+            return False
+        num = self.custom_config_integer('parallel_updates', 0)
+        if not num:
+            return False
+        did = self._unique_did
+        self.hass.data[DOMAIN].setdefault(did, {})
+        dcs = self.hass.data[DOMAIN].get(did, {})
+        pus = dcs.get('parallel_updates')
+        if not pus:
+            pus = asyncio.Semaphore(num)
+            self.hass.data[DOMAIN][did]['parallel_updates'] = pus
+            _LOGGER.warning('%s: Update custom parallel updates: %s', self.name_model, num)
+        self.parallel_updates = pus
+        return pus
+
     def filter_state_attributes(self, dat: dict):
         if exl := self.global_config('exclude_state_attributes'):
             exl = cv.ensure_list(exl)
@@ -973,6 +992,7 @@ class MiioEntity(BaseEntity):
         await super().async_added_to_hass()
         if self.platform:
             self.update_custom_scan_interval()
+            self.update_custom_parallel_updates()
             if self.platform.config_entry:
                 eid = self.platform.config_entry.entry_id
                 self._add_entities = self.hass.data[DOMAIN][eid].get('add_entities') or {}
