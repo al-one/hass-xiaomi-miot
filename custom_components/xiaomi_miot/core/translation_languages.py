@@ -339,6 +339,32 @@ TRANSLATION_LANGUAGES = {
             'timed': '定时烘干',
         },
 
+        'dishwasher': {
+            'dishwasher status': '状态',
+            'dishwasher switch status': '开关',
+            'dishwasher mode': '洗涤模式',
+            'Start Wash': '开始洗涤',
+            'Stop Washing': '停止洗涤',
+            'dishwasher left time': '洗涤剩余时间',
+        },
+        'dishwasher.mode': {            
+            'Basic': '标准洗',
+            'Energy Saving': '节能洗',
+            'Quick Wash': '快速洗',
+            'Intensive': '强力洗',
+            'Glass': '玻璃洗',
+            'Disinfecting': '消毒洗',
+        },
+        'dishwasher.status': {            
+            'Off': '已关机',
+            'Idle': '已停止',
+            'Busy': '工作中',
+            'Paused': '暂停',
+            'Completed': '洗涤完成',
+            'Delay': '已预约',
+            'Preservation': '保留',
+        },
+
         'water_heater': {
             'water heater': '热水器',
         },
