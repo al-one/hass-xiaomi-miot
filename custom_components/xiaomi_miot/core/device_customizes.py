@@ -1919,6 +1919,10 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature',
         'switch_properties': 'oven.on',
     },
+    '*.senpres.*': {
+        'binary_sensor_properties': 'pressure_present_state',
+        'sensor_properties': 'pressure_not_present_duration',
+    },
     '*.s_lamp.*': {
         'sensor_properties': 'left_time',
         'switch_properties': 'uv,radar_on,lighting.on',

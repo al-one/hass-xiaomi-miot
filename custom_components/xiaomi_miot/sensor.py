@@ -106,7 +106,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if isinstance(spec, MiotSpec):
         for srv in spec.get_services(
             'battery', 'environment', 'tds_sensor', 'switch_sensor', 'vibration_sensor', 'occupancy_sensor',
-            'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor',
+            'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor', 'pressure_sensor',
             'router', 'lock', 'door', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad', 'treadmill',
             'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
             'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer', 'electric_steamer',
@@ -194,6 +194,8 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             self._prop_state = miot_service.get_property('smoke_concentration') or self._prop_state
         elif miot_service.name in ['occupancy_sensor']:
             self._prop_state = miot_service.get_property('occupancy_status') or self._prop_state
+        elif miot_service.name in ['pressure_sensor']:
+            self._prop_state = miot_service.get_property('pressure_present_duration') or self._prop_state
 
         self._attr_icon = self._miot_service.entity_icon
         self._attr_state_class = None
