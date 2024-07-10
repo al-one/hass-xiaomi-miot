@@ -509,6 +509,10 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
     async def async_play_media(self, media_type, media_id, **kwargs):
         if not self.xiaoai_device:
             return
+        hardware = self.xiaoai_device.get("hardware")
+        if hardware in [ "LX04", "L05B", "L05C", "L06", "L06A", "X08A", "X10A" ]:
+            return await self.async_play_music(media_id)
+
         aid = self.xiaoai_device.get('deviceID')
         typ = {
             'music': 1,
@@ -525,6 +529,47 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         rdt = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
         logger = rdt.get('code') and self.logger.warning or self.logger.info
         logger('%s: Play media: %s', self.name_model, [dat, rdt])
+
+    async def async_play_music(self, media_id, audio_id="1582971365183456177", id="355454500", **kwargs):
+        if not self.xiaoai_device:
+            return
+        aid = self.xiaoai_device.get('deviceID')
+        music = {
+            "payload": {
+                "audio_type": "MUSIC",
+                "audio_items": [
+                    {
+                        "item_id": {
+                            "audio_id": audio_id,
+                            "cp": {
+                                "album_id": "-1",
+                                "episode_index": 0,
+                                "id": id,
+                                "name": "xiaowei",
+                            },
+                        },
+                        "stream": {"url": media_id},
+                    }
+                ],
+                "list_params": {
+                    "listId": "-1",
+                    "loadmore_offset": 0,
+                    "origin": "xiaowei",
+                    "type": "MUSIC",
+                },
+            },
+            "play_behavior": "REPLACE_ALL",
+        }
+        api = 'https://api2.mina.mi.com/remote/ubus'
+        dat = {
+            'deviceId': aid,
+            'path': 'mediaplayer',
+            'method': 'player_play_music',
+            'message': json.dumps({"startaudioid": audio_id, "music": json.dumps(music)}),
+        }
+        rdt = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
+        logger = rdt.get('code') and self.logger.warning or self.logger.info
+        logger('%s: Play Music: %s', self.name_model, [dat, rdt])
 
     def intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         if srv := self._intelligent_speaker:
