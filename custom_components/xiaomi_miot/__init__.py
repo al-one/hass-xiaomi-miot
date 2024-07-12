@@ -841,6 +841,8 @@ class BaseEntity(Entity):
         tim = timedelta(seconds=sec)
         if sec > 0 and tim != self.platform.scan_interval:
             self.platform.scan_interval = tim
+            if(hasattr(self.platform, "scan_interval_seconds")):
+                self.platform.scan_interval_seconds = tim.total_seconds()            
             _LOGGER.debug('%s: Update custom scan interval: %s', self.name_model, tim)
 
     def update_custom_parallel_updates(self):
