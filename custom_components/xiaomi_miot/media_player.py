@@ -342,6 +342,12 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             self._state_attrs[ATTR_ATTRIBUTION] = 'Support TTS through service'
         self._supported_features |= MediaPlayerEntityFeature.PLAY_MEDIA
 
+    @property
+    def xiaoai_id(self):
+        if not self.xiaoai_device:
+            return None
+        return self.xiaoai_device.get('deviceID')
+
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         if self._intelligent_speaker:
@@ -393,12 +399,9 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         return self.xiaoai_device
 
     async def async_update_play_status(self, now=None):
-        if not self.xiaoai_device:
+        if not (aid := self.xiaoai_id):
             return
-        aid = self.xiaoai_device.get('deviceID')
-        self.update_attrs({
-            'xiaoai_id': aid,
-        })
+        self.update_attrs({'xiaoai_id': aid})
         api = 'https://api2.mina.mi.com/remote/ubus'
         dat = {
             'deviceId': aid,
@@ -507,18 +510,18 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         return False
 
     async def async_play_media(self, media_type, media_id, **kwargs):
-        if not self.xiaoai_device:
+        if not (aid := self.xiaoai_id):
             return
-        hardware = self.xiaoai_device.get("hardware")
-        if hardware in [ "LX04", "L05B", "L05C", "L06", "L06A", "X08A", "X10A" ]:
-            return await self.async_play_music(media_id)
-
-        aid = self.xiaoai_device.get('deviceID')
         typ = {
+            'audio': 1,
             'music': 1,
             'voice': 1,
+            'mp3': 1,
             'tts': 1,
         }.get(media_type, media_type)
+        if typ == 1:
+            return await self.async_play_music(media_id)
+
         api = 'https://api2.mina.mi.com/remote/ubus'
         dat = {
             'deviceId': aid,
@@ -531,9 +534,8 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         logger('%s: Play media: %s', self.name_model, [dat, rdt])
 
     async def async_play_music(self, media_id, audio_id="1582971365183456177", id="355454500", **kwargs):
-        if not self.xiaoai_device:
+        if not (aid := self.xiaoai_id):
             return
-        aid = self.xiaoai_device.get('deviceID')
         music = {
             "payload": {
                 "audio_type": "MUSIC",
