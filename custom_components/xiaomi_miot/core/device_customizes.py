@@ -1914,6 +1914,9 @@ DEVICE_CUSTOMIZES = {
     '*.motion.*:trigger_at': {
         'device_class': 'timestamp',
     },
+    '*.sensor_occupy.*': {
+        'sensor_properties': 'illumination,has_someone_duration,no_one_duration',
+    },
     '*.oven.*': {
         'sensor_properties': 'temperature,left_time,cook_time,working_time',
         'number_properties': 'target_temperature',
