@@ -665,6 +665,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm_shielding,silent_mode,line_exchange',
     },
     'hyd.airer.lyjpro': {
+        'position_reverse': True,
         'cover_position_mapping': {},
     },
     'hyd.airer.*': {
@@ -674,6 +675,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'drying_time',
         'exclude_miot_properties': 'motor_control',
         'disable_target_position': True,
+        'position_reverse': False,
         'cover_position_mapping': {
             0: 50,
             1: 100,
