@@ -1499,7 +1499,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'status_seatheat,status_led,auto_led,switch_bubble,status_seat,status_cover,'
                              'auto_seat_close,auto_cover_close,status_selfclean',
         'select_properties': 'seat_temp',
-        'button_actions': 'stop_working',
+        'button_actions': 'stop_working,flush_work,start_foam,clean_work',
     },
     'xwhzp.diffuser.xwxfj': {
         'sensor_properties': 'fragrance_liquid_left_level',
