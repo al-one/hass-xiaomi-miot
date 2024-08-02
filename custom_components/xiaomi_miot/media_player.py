@@ -182,7 +182,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
 
     @property
     def state(self):
-        if self._prop_state:
+        if self._prop_state and self._prop_state.readable:
             sta = self._prop_state.from_dict(self._state_attrs)
             if sta is not None:
                 if sta in self._prop_state.list_search('Playing', 'Play'):
@@ -362,7 +362,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         self._update_sub_entities('on', domain='switch')
 
         if self._prop_state and not self._prop_state.readable:
-            if self.is_volume_muted is not False:
+            if self.is_volume_muted is False:
                 self._attr_state = MediaPlayerState.PLAYING
             else:
                 self._attr_state = MediaPlayerState.IDLE
