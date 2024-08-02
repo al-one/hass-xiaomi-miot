@@ -224,6 +224,20 @@ DEVICE_CUSTOMIZES = {
     },
     'cuco.acpartner.cp6': {
         'switch_properties': 'air_conditioner.on',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '7.1',
+    },
+    'cuco.acpartner.cp6:power_cost_today': {
+        'value_ratio': 1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'cuco.acpartner.cp6:power_cost_month': {
+        'value_ratio': 1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
     },
     'cuco.light.sl4': {
         'switch_properties': 'swich',
