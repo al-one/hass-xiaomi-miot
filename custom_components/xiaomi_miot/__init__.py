@@ -205,11 +205,14 @@ async def async_setup(hass, hass_config: dict):
     config = hass_config.get(DOMAIN) or {}
     await async_reload_integration_config(hass, config)
 
-    with open(os.path.dirname(__file__) + '/core/miot_specs_extend.json') as file:
-        models = json.load(file) or {}
-        for m, specs in models.items():
-            DEVICE_CUSTOMIZES.setdefault(m, {})
-            DEVICE_CUSTOMIZES[m]['extend_miot_specs'] = specs
+    def extend_miot_specs():
+        with open(os.path.dirname(__file__) + '/core/miot_specs_extend.json') as file:
+            models = json.load(file) or {}
+            for m, specs in models.items():
+                DEVICE_CUSTOMIZES.setdefault(m, {})
+                DEVICE_CUSTOMIZES[m]['extend_miot_specs'] = specs
+
+    await hass.async_add_executor_job(extend_miot_specs)
 
     component = EntityComponent(_LOGGER, DOMAIN, hass, SCAN_INTERVAL)
     hass.data[DOMAIN]['component'] = component
@@ -273,10 +276,7 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     if not config_entry.update_listeners:
         config_entry.add_update_listener(async_update_options)
 
-    for sd in SUPPORTED_DOMAINS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(config_entry, sd)
-        )
+    await hass.config_entries.async_forward_entry_setups(config_entry, SUPPORTED_DOMAINS)
     return True
 
 
@@ -854,7 +854,28 @@ class BaseEntity(Entity):
         tim = timedelta(seconds=sec)
         if sec > 0 and tim != self.platform.scan_interval:
             self.platform.scan_interval = tim
+            if hasattr(self.platform, 'scan_interval_seconds'):
+                self.platform.scan_interval_seconds = tim.total_seconds()            
             _LOGGER.debug('%s: Update custom scan interval: %s', self.name_model, tim)
+
+    def update_custom_parallel_updates(self):
+        if not self.hass:
+            return False
+        if not hasattr(self, '_unique_did'):
+            return False
+        num = self.custom_config_integer('parallel_updates', 0)
+        if not num:
+            return False
+        did = self._unique_did
+        self.hass.data[DOMAIN].setdefault(did, {})
+        dcs = self.hass.data[DOMAIN].get(did, {})
+        pus = dcs.get('parallel_updates')
+        if not pus:
+            pus = asyncio.Semaphore(num)
+            self.hass.data[DOMAIN][did]['parallel_updates'] = pus
+            _LOGGER.debug('%s: Update custom parallel updates: %s', self.name_model, num)
+        self.parallel_updates = pus
+        return pus
 
     def filter_state_attributes(self, dat: dict):
         if exl := self.global_config('exclude_state_attributes'):
@@ -986,6 +1007,7 @@ class MiioEntity(BaseEntity):
         await super().async_added_to_hass()
         if self.platform:
             self.update_custom_scan_interval()
+            self.update_custom_parallel_updates()
             if self.platform.config_entry:
                 eid = self.platform.config_entry.entry_id
                 self._add_entities = self.hass.data[DOMAIN][eid].get('add_entities') or {}
@@ -2084,7 +2106,7 @@ class MiotEntity(MiioEntity):
                         fnm = f
                 elif p.full_name not in self._state_attrs and not p.writeable and not kwargs.get('whatever'):
                     continue
-                elif add_switches and domain == 'switch' and (p.format in ['bool'] or p.value_list) and p.writeable:
+                elif add_switches and domain == 'switch' and (p.format in ['bool', 'uint8']) and p.writeable:
                     self._subs[fnm] = MiotSwitchSubEntity(self, p, option=opt)
                     add_switches([self._subs[fnm]], update_before_add=True)
                 elif add_binary_sensors and domain == 'binary_sensor' and (p.is_bool or p.is_integer):

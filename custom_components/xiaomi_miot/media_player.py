@@ -342,6 +342,12 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             self._state_attrs[ATTR_ATTRIBUTION] = 'Support TTS through service'
         self._supported_features |= MediaPlayerEntityFeature.PLAY_MEDIA
 
+    @property
+    def xiaoai_id(self):
+        if not self.xiaoai_device:
+            return None
+        return self.xiaoai_device.get('deviceID')
+
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         if self._intelligent_speaker:
@@ -393,12 +399,9 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         return self.xiaoai_device
 
     async def async_update_play_status(self, now=None):
-        if not self.xiaoai_device:
+        if not (aid := self.xiaoai_id):
             return
-        aid = self.xiaoai_device.get('deviceID')
-        self.update_attrs({
-            'xiaoai_id': aid,
-        })
+        self.update_attrs({'xiaoai_id': aid})
         api = 'https://api2.mina.mi.com/remote/ubus'
         dat = {
             'deviceId': aid,
@@ -507,14 +510,18 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         return False
 
     async def async_play_media(self, media_type, media_id, **kwargs):
-        if not self.xiaoai_device:
+        if not (aid := self.xiaoai_id):
             return
-        aid = self.xiaoai_device.get('deviceID')
         typ = {
+            'audio': 1,
             'music': 1,
             'voice': 1,
+            'mp3': 1,
             'tts': 1,
         }.get(media_type, media_type)
+        if typ == 1:
+            return await self.async_play_music(media_id)
+
         api = 'https://api2.mina.mi.com/remote/ubus'
         dat = {
             'deviceId': aid,
@@ -525,6 +532,46 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         rdt = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
         logger = rdt.get('code') and self.logger.warning or self.logger.info
         logger('%s: Play media: %s', self.name_model, [dat, rdt])
+
+    async def async_play_music(self, media_id, audio_id="1582971365183456177", id="355454500", **kwargs):
+        if not (aid := self.xiaoai_id):
+            return
+        music = {
+            "payload": {
+                "audio_type": "MUSIC",
+                "audio_items": [
+                    {
+                        "item_id": {
+                            "audio_id": audio_id,
+                            "cp": {
+                                "album_id": "-1",
+                                "episode_index": 0,
+                                "id": id,
+                                "name": "xiaowei",
+                            },
+                        },
+                        "stream": {"url": media_id},
+                    }
+                ],
+                "list_params": {
+                    "listId": "-1",
+                    "loadmore_offset": 0,
+                    "origin": "xiaowei",
+                    "type": "MUSIC",
+                },
+            },
+            "play_behavior": "REPLACE_ALL",
+        }
+        api = 'https://api2.mina.mi.com/remote/ubus'
+        dat = {
+            'deviceId': aid,
+            'path': 'mediaplayer',
+            'method': 'player_play_music',
+            'message': json.dumps({"startaudioid": audio_id, "music": json.dumps(music)}),
+        }
+        rdt = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
+        logger = rdt.get('code') and self.logger.warning or self.logger.info
+        logger('%s: Play Music: %s', self.name_model, [dat, rdt])
 
     def intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         if srv := self._intelligent_speaker:

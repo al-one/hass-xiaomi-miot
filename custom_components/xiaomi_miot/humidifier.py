@@ -195,4 +195,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         val = self._prop_mode.list_value(mode)
         if val is None:
             return False
+        if mode != MODE_OFF and not self.is_on:
+            if not self.turn_on():
+                return False
         return self.set_property(self._prop_mode, val)

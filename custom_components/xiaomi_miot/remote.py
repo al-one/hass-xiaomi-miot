@@ -13,16 +13,12 @@ from homeassistant.components.remote import (
     RemoteEntity,
 )
 
-from miio.chuangmi_ir import (
-    ChuangmiIr,
-    DeviceException,
-)
-
 from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
+    DeviceException,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -34,6 +30,11 @@ from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
 )
+
+try:
+    from miio import ChuangmiIr
+except (ModuleNotFoundError, ImportError):
+    from miio.integrations.chuangmi.remote import ChuangmiIr
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'

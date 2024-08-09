@@ -22,7 +22,7 @@ body:
   - type: input
     attributes:
       label: HA core version / HA版本
-      placeholder: 2022.12.x
+      placeholder: 2024.x.x
       description: |
         > [⚙️ Settings > ℹ️️ About](https://my.home-assistant.io/redirect/info)
         > [⚙️ 配置 > ℹ️️ 关于](https://my.home-assistant.io/redirect/info)
@@ -47,6 +47,7 @@ body:
       required: true
     attributes:
       label: Entity attributes / 实体属性
+      render: yaml
       description: |
         > [🔨 Developer tools > ℹ️ State](https://my.home-assistant.io/redirect/developer_states) > 🔍 Filter (Entity with most attributes)
         > [🔨 开发者工具 > ℹ️ 状态](https://my.home-assistant.io/redirect/developer_states) > 🔍 筛选 (属性最多的实体)

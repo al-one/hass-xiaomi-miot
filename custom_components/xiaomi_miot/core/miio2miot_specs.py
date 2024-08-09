@@ -804,7 +804,7 @@ MIIO_TO_MIOT_SPECS = {
                                 '["dry_cloth"] if value == 2 else '
                                 '{"method": "set_auto","params": [props.auto]} }}',
             },
-            'prop.2.3': {'prop': 'fan_st', 'setter': True},
+            'prop.2.3': {'prop': 'fan_st', 'setter': 'set_fan_level'},
             'prop.2.101': {'prop': 'auto', 'setter': True},
             'prop.2.102': {'prop': 'tank_full', 'format': 'onoff'},
             'prop.3.1': {'prop': 'humidity'},
@@ -2753,6 +2753,16 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': True,
                 'template': '{{ 1 if value|int(0) > 0 else 0 }}',
                 'set_template': '{{ [value|int(0) * 25] }}',
+            },
+            'prop.2.6': {
+                'prop': 'speed_level',
+                'setter': True,
+                'template': '{{ props.natural_level|default(value,true)|int(0) }}',
+                'set_template': '{% set nlv = props.natural_level|default(0)|int(0) %}'
+                                '{{ {'
+                                '"method": "set_natural_level" if nlv else "set_speed_level",'
+                                '"params": [value|int(0)],'
+                                '} }}',
             },
             'prop.4.1': {
                 'prop': 'buzzer',
