@@ -287,8 +287,8 @@ class MiotCloud(micloud.MiCloud):
                 return d
         return None
 
-    def get_device_list(self):
-        rdt = self.request_miot_api('home/device_list', {
+    async def get_device_list(self):
+        rdt = await self.async_request_api('home/device_list', {
             'getVirtualModel': True,
             'getHuamiDevices': 1,
             'get_split_device': False,
@@ -296,11 +296,11 @@ class MiotCloud(micloud.MiCloud):
         }, debug=False, timeout=60) or {}
         if rdt and 'result' in rdt:
             return rdt['result']['list']
-        _LOGGER.warning('Got xiaomi cloud devices for %s failed: %s', self.username, rdt)
+        _LOGGER.warning('Got xiaomi devices for %s failed: %s', self.username, rdt)
         return None
 
-    def get_home_devices(self):
-        rdt = self.request_miot_api('homeroom/gethome', {
+    async def get_home_devices(self):
+        rdt = await self.async_request_api('homeroom/gethome', {
             'fetch_share_dev': True,
         }, debug=False, timeout=60) or {}
         rdt = rdt.get('result') or {}
@@ -335,9 +335,9 @@ class MiotCloud(micloud.MiCloud):
                 dvs = cds
         if not dvs:
             try:
-                dvs = await self.hass.async_add_executor_job(self.get_device_list)
+                hls = await self.get_home_devices()
+                dvs = await self.get_device_list()
                 if dvs:
-                    hls = await self.hass.async_add_executor_job(self.get_home_devices)
                     if hls:
                         hds = hls.get('devices') or {}
                         dvs = [
