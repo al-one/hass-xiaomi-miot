@@ -319,6 +319,7 @@ class MiotCloud(micloud.MiCloud):
                     'get_split_device': False,
                     'support_smart_home': True,
                     'get_cariot_device': True,
+                    'get_third_device': True,
                 }, debug=False, timeout=20) or {}
                 rdt = rdt.get('result') or {}
                 dvs.extend(rdt.get('device_info') or {})
