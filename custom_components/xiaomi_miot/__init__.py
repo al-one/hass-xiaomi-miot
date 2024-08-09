@@ -685,6 +685,8 @@ class MiioInfo(MiioInfoBase):
 
 
 class MiotDevice(MiotDeviceBase):
+    hass = None
+
     def get_properties_for_mapping(self, *, max_properties=12, did=None, mapping=None) -> list:
         if mapping is None:
             mapping = self.mapping
@@ -696,6 +698,17 @@ class MiotDevice(MiotDeviceBase):
             properties,
             property_getter='get_properties',
             max_properties=max_properties,
+        )
+
+    async def async_get_properties_for_mapping(self, *args, **kwargs) -> list:
+        if not self.hass:
+            return self.get_properties_for_mapping(*args, **kwargs)
+
+        return await self.hass.async_add_executor_job(
+            partial(
+                self.get_properties_for_mapping,
+                *args, **kwargs,
+            )
         )
 
 
@@ -1256,6 +1269,7 @@ class MiotEntity(MiioEntity):
             except ValueError as exc:
                 self.logger.warning('%s: Initializing with host %s failed: %s', host, self.name_model, exc)
             if device:
+                device.hass = self.hass
                 self._device = device
         return self._device
 
@@ -1413,13 +1427,10 @@ class MiotEntity(MiioEntity):
                             10, 9, 9, 9, 9, 9, 10, 10, 10, 10,
                         ]
                         max_properties = 10 if idx >= len(chunks) else chunks[idx]
-                    results = await self.hass.async_add_executor_job(
-                        partial(
-                            self._device.get_properties_for_mapping,
-                            max_properties=max_properties,
-                            did=self.miot_did,
-                            mapping=local_mapping,
-                        )
+                    results = await self._device.async_get_properties_for_mapping(
+                        max_properties=max_properties,
+                        did=self.miot_did,
+                        mapping=local_mapping,
                     )
                 self._local_state = True
             except (DeviceException, OSError) as exc:
@@ -1440,9 +1451,7 @@ class MiotEntity(MiioEntity):
             updater = 'cloud'
             try:
                 mic = self.xiaomi_cloud
-                results = await self.hass.async_add_executor_job(
-                    partial(mic.get_properties_for_mapping, self.miot_did, mapping)
-                )
+                results = await mic.async_get_properties_for_mapping(self.miot_did, mapping)
                 if self.custom_config_bool('check_lan'):
                     if self.miot_device:
                         await self.hass.async_add_executor_job(self.miot_device.info)
@@ -1788,7 +1797,7 @@ class MiotEntity(MiioEntity):
         if attrs:
             await self.async_update_attrs(attrs)
 
-    def get_properties(self, mapping, update_entity=False, throw=False, **kwargs):
+    async def async_get_properties(self, mapping, update_entity=False, throw=False, **kwargs):
         results = []
         if isinstance(mapping, list):
             new_mapping = {}
@@ -1805,9 +1814,9 @@ class MiotEntity(MiioEntity):
             return
         try:
             if self._local_state:
-                results = self.miot_device.get_properties_for_mapping(mapping=mapping)
+                results = await self.miot_device.async_get_properties_for_mapping(mapping=mapping)
             elif self.miot_cloud:
-                results = self.miot_cloud.get_properties_for_mapping(self.miot_did, mapping)
+                results = await self.miot_cloud.async_get_properties_for_mapping(self.miot_did, mapping)
         except (ValueError, DeviceException) as exc:
             self.logger.error(
                 '%s: Got exception while get properties: %s, mapping: %s, miio: %s',
@@ -1821,14 +1830,9 @@ class MiotEntity(MiioEntity):
         self.logger.info('%s: Get miot properties: %s', self.name_model, results)
 
         if attrs and update_entity:
-            self.update_attrs(attrs, update_subs=True)
+            await self.async_update_attrs(attrs, update_subs=True)
             self.schedule_update_ha_state()
         return attrs
-
-    async def async_get_properties(self, mapping, **kwargs):
-        return await self.hass.async_add_executor_job(
-            partial(self.get_properties, mapping, **kwargs)
-        )
 
     def set_property(self, field, value):
         if isinstance(field, MiotProperty):
