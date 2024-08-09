@@ -299,9 +299,42 @@ class MiotCloud(micloud.MiCloud):
         _LOGGER.warning('Got xiaomi devices for %s failed: %s', self.username, rdt)
         return None
 
+    async def get_all_devices(self, homes=None):
+        dvs = await self.get_device_list() or []
+        if not isinstance(homes, list):
+            return dvs
+        for home in homes:
+            hid = int(home.get('id', 0))
+            uid = int(home.get('uid', 0))
+            if not hid or uid == self.user_id:
+                continue
+            start_did = ''
+            has_more = True
+            while has_more:
+                rdt = await self.async_request_api('v2/home/home_device_list', {
+                    'home_owner': uid,
+                    'home_id': hid,
+                    'limit': 300,
+                    'start_did': start_did,
+                    'get_split_device': False,
+                    'support_smart_home': True,
+                    'get_cariot_device': True,
+                }, debug=False, timeout=20) or {}
+                rdt = rdt.get('result') or {}
+                dvs.extend(rdt.get('device_info') or {})
+                start_did = rdt.get('max_did') or ''
+                has_more = rdt.get('has_more')
+        return dvs
+
     async def get_home_devices(self):
-        rdt = await self.async_request_api('homeroom/gethome', {
+        rdt = await self.async_request_api('v2/homeroom/gethome_merged', {
+            'fg': True,
+            'fetch_share': True,
             'fetch_share_dev': True,
+            'fetch_cariot': True,
+            'limit': 300,
+            'app_ver': 7,
+            'plat_form': 0,
         }, debug=False, timeout=60) or {}
         rdt = rdt.get('result') or {}
         rdt.setdefault('devices', {})
@@ -336,7 +369,7 @@ class MiotCloud(micloud.MiCloud):
         if not dvs:
             try:
                 hls = await self.get_home_devices()
-                dvs = await self.get_device_list()
+                dvs = await self.get_all_devices(hls.get('homelist', []))
                 if dvs:
                     if hls:
                         hds = hls.get('devices') or {}
