@@ -1709,6 +1709,47 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'anion,alarm,horizontal_swing,vertical_swing',
         'number_properties': 'horizontal_angle,vertical_angle,off_delay',
     },
+    'zhimi.fan.fb1': {
+        'extend_miot_specs': [
+        {
+            'iid': 2,
+            'properties': [
+            {
+                'iid': 5,
+                'value-range': [30, 120, 30]
+            },
+            {
+                'iid': 6,
+                'value-range': [30, 90, 30]
+            }
+            ]
+        },
+        {
+            'iid': 5,
+            'properties': [
+            {
+                'iid': 6,
+                'value-list': [
+                {'value': 'left', 'description': 'LEFT'},
+                {'value': 'right', 'description': 'RIGHT'}
+                ]
+            },
+            {
+                'iid': 7,
+                'value-list': [
+                {'value': 'up', 'description': 'UP'},
+                {'value': 'down', 'description': 'DOWN'}
+                ]
+            }
+            ]
+        }
+        ],
+        'switch_properties': 'alarm,horizontal_swing,vertical_swing,oscillating,h_swing_back,v_swing_back',
+        'number_properties': 'timing',
+        'percentage_property': 'stepless_fan_level',
+        'select_properties': 'mode,horizontal_angle,vertical_angle',
+        'button_properties': 'h_swing_step_move,v_swing_step_move'
+    },
     'zhimi.heater.na1': {
         'switch_properties': 'return_to_middle,alarm',
         'number_properties': 'countdown_time',
