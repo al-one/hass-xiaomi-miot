@@ -39,7 +39,9 @@ DEVICE_CUSTOMIZES = {
     'ainice.sensor_occupy.3b': {
         'main_miot_services': 'occupancy_sensor',
         'state_property': 'occupancy_sensor.current_occupied',
-        'interval_seconds': 10,
+        'interval_seconds': 30,
+        'chunk_properties': 7,
+        'parallel_updates': 1,
         'binary_sensor_properties': 'current_occupied,a_occupied,b_occupied,c_occupied,d_occupied,e_occupied',
         'sensor_properties': 'total_occupied,illumination',
         'switch_properties': 'radar_switch,count_switch',
@@ -1697,6 +1699,41 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
     },
+    'zhimi.fan.fb1': {
+        'extend_miot_specs': [
+            {
+                'iid': 2,
+                'properties': [
+                    {'iid': 5, 'value-range': [30, 120, 30]},
+                    {'iid': 6, 'value-range': [30, 90, 30]},
+                ],
+            },
+            {
+                'iid': 5,
+                'properties': [
+                    {
+                        'iid': 6,
+                        'value-list': [
+                            {'value': 'left', 'description': 'Turn Left'},
+                            {'value': 'right', 'description': 'Turn Right'},
+                        ],
+                    },
+                    {
+                        'iid': 7,
+                        'value-list': [
+                            {'value': 'up', 'description': 'Turn Up'},
+                            {'value': 'down', 'description': 'Turn Down'},
+                        ],
+                    },
+                ],
+            },
+        ],
+        'switch_properties': 'alarm,horizontal_swing,vertical_swing,oscillating,h_swing_back,v_swing_back',
+        'number_properties': 'timing',
+        'percentage_property': 'stepless_fan_level',
+        'select_properties': 'mode,horizontal_angle,vertical_angle',
+        'button_properties': 'h_swing_step_move,v_swing_step_move'
+    },
     'zhimi.fan.za3': {
         'miot_type': 'urn:miot-spec-v2:device:fan:0000A005:zhimi-za3:3',
         'number_select_properties': 'fan_level',
@@ -1884,6 +1921,7 @@ DEVICE_CUSTOMIZES = {
         'number_select_properties': 'wash_mode,wash_time,target_water_level,water_level',
     },
     '*.fan.*': {
+        'button_actions': 'turn_left,turn_right',
         'number_properties': 'off_delay_time',
         'switch_properties': 'fan_init_power_opt',
     },

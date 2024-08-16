@@ -79,6 +79,12 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         self._prop_direction = miot_service.get_property('horizontal_angle', 'vertical_angle')
         self._prop_oscillate = miot_service.get_property('horizontal_swing', 'vertical_swing')
 
+        if self._prop_power:
+            if hasattr(FanEntityFeature, 'TURN_ON'): # v2024.8
+                self._supported_features |= FanEntityFeature.TURN_ON
+            if hasattr(FanEntityFeature, 'TURN_OFF'):
+                self._supported_features |= FanEntityFeature.TURN_OFF
+
         self._fan_control = miot_service.spec.get_service('fan_control')
         if self._fan_control:
             if not self._prop_speed:
