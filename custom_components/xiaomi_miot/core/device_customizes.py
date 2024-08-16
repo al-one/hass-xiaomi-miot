@@ -39,7 +39,9 @@ DEVICE_CUSTOMIZES = {
     'ainice.sensor_occupy.3b': {
         'main_miot_services': 'occupancy_sensor',
         'state_property': 'occupancy_sensor.current_occupied',
-        'interval_seconds': 10,
+        'interval_seconds': 30,
+        'chunk_properties': 7,
+        'parallel_updates': 1,
         'binary_sensor_properties': 'current_occupied,a_occupied,b_occupied,c_occupied,d_occupied,e_occupied',
         'sensor_properties': 'total_occupied,illumination',
         'switch_properties': 'radar_switch,count_switch',
