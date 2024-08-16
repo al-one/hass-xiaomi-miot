@@ -1485,6 +1485,13 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,target_time,reservation_left_time,keep_warm_time',
         'button_actions': 'start_cook,pause,cancel_cooking,resume_cook',
     },
+    'xiaomi.fan.p51': {
+        'button_actions': 'turn_left,turn_right,toggle,toggle_mode,loop_gear',
+        'switch_properties': 'delay',
+        'select_properties': 'horizontal_swing_included_angle',
+        'number_properties': 'delay_time',
+        'percentage_property': 'prop.2.6',
+    },
     'xiaomi.heater.ma8': {
         'button_actions': 'toggle',
     },
