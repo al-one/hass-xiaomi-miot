@@ -1886,6 +1886,7 @@ DEVICE_CUSTOMIZES = {
         'number_select_properties': 'wash_mode,wash_time,target_water_level,water_level',
     },
     '*.fan.*': {
+        'button_actions': 'turn_left,turn_right',
         'number_properties': 'off_delay_time',
         'switch_properties': 'fan_init_power_opt',
     },
