@@ -270,7 +270,7 @@ class MiotSpec(MiotSpecInstance):
         if not dat:
             try:
                 url = '/miot-spec-v2/instances?status=all'
-                dat = await MiotSpec.async_download_miot_spec(hass, url, tries=3, timeout=60)
+                dat = await MiotSpec.async_download_miot_spec(hass, url, tries=3, timeout=90)
                 if dat:
                     sdt = {
                         '_updated_time': now,
