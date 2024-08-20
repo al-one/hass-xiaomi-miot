@@ -737,7 +737,6 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
         'exclude_miot_services': 'indicator_light',
         'exclude_miot_properties': 'power_consumption',
-        'sensor_properties': 'electric_power',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_type': 'stat_day_v3',
         'stat_power_cost_key': '3.1',
