@@ -795,8 +795,8 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
     @property
     def state(self):
         sta = super().state
-        if not self.cloud_only and not self._local_state:
-            sta = None
+        if not self.cloud_only and not self._local_state and not self._state_attrs.get('6095_state'):
+            sta = MediaPlayerState.OFF
         if self._speaker_mode_switch and self.custom_config_bool('turn_off_screen'):
             if self._speaker_mode_switch.from_dict(self._state_attrs):
                 sta = MediaPlayerState.OFF
