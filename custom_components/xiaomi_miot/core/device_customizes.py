@@ -733,6 +733,26 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'work_mode,hip_water_gage,woman_water_gage,hip_nozzle_position,woman_nozzle_pos,'
                              'seat_temperature,wind_temperature,water_temperature,auto_mode',
     },
+    'iot.plug.jdls1': {
+        'chunk_properties': 1,
+        'exclude_miot_services': 'indicator_light',
+        'exclude_miot_properties': 'power_consumption',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_type': 'stat_day_v3',
+        'stat_power_cost_key': '3.1',
+    },
+    'iot.plug.jdls1:power_cost_today': {
+        'value_ratio': 1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
+    'iot.plug.jdls1:power_cost_month': {
+        'value_ratio': 1,
+        'state_class': 'total_increasing',
+        'device_class': 'energy',
+        'unit_of_measurement': 'kWh',
+    },
     'iot.switch.padw2p': {
         'sensor_properties': 'temperature,electric_power,electric_current,voltage',
         'select_properties': 'default_power_on_state',
