@@ -157,6 +157,11 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
             if not self._prop_fan_level:
                 self._prop_fan_level = miot_service.get_property('heat_level', 'water_level')
 
+        if self._prop_power:
+            if hasattr(ClimateEntityFeature, 'TURN_ON'): # v2024.2
+                self._supported_features |= ClimateEntityFeature.TURN_ON
+            if hasattr(ClimateEntityFeature, 'TURN_OFF'):
+                self._supported_features |= ClimateEntityFeature.TURN_OFF
         if self._prop_target_temp:
             self._supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE
         if self._prop_target_humi:
