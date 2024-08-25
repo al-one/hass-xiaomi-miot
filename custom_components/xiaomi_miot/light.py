@@ -276,6 +276,22 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             num = self._vars.get('color_temp_sum') - num
         return self.translate_mired(num)
 
+    @property
+    def color_mode(self):
+        """Return the color mode of the light."""
+        if self._attr_color_mode is not None:
+            return self._attr_color_mode
+        supported = self.supported_color_modes
+        if ColorMode.HS in supported and self.hs_color is not None:
+            return ColorMode.HS
+        if ColorMode.COLOR_TEMP in supported and self.color_temp_kelvin is not None:
+            return ColorMode.COLOR_TEMP
+        if ColorMode.BRIGHTNESS in supported and self.brightness is not None:
+            return ColorMode.BRIGHTNESS
+        if ColorMode.ONOFF in supported:
+            return ColorMode.ONOFF
+        return ColorMode.UNKNOWN
+
     def translate_mired(self, num):
         if self._is_percentage_color_temp:
             # issues/870
@@ -363,6 +379,8 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
         if parent_power:
             self._prop_power = parent_power
             self._available = True
+            if not self._attr_supported_color_modes:
+                self._attr_supported_color_modes.add(ColorMode.ONOFF)
 
     @property
     def available(self):
