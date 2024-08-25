@@ -11,6 +11,7 @@ from homeassistant.components import remote
 from homeassistant.components.remote import (
     DOMAIN as ENTITY_DOMAIN,
     RemoteEntity,
+    RemoteEntityFeature,
 )
 
 from . import (
@@ -78,6 +79,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         token = config.get(CONF_TOKEN)
         self._device = ChuangmiIr(host, token)
         self._attr_should_poll = False
+        self._supported_features = RemoteEntityFeature.LEARN_COMMAND
         self._translations = get_translations('ir_devices')
 
     async def async_added_to_hass(self):
