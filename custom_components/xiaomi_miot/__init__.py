@@ -1542,13 +1542,13 @@ class MiotEntity(MiioEntity):
     async def async_update_for_main_entity(self):
         if self._miot_service:
             for d in [
-                'sensor', 'binary_sensor', 'switch', 'number',
-                'select', 'fan', 'cover', 'button', 'number_select',
+                'sensor', 'binary_sensor', 'switch', 'number', 'select',
+                'fan', 'cover', 'button', 'number_select',
             ]:
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
-            for d in ['button', 'text']:
+            for d in ['button', 'text', 'select']:
                 als = self.custom_config_list(f'{d}_actions') or []
                 if als:
                     self._update_sub_entities(None, '*', domain=d, actions=als)
@@ -2085,6 +2085,10 @@ class MiotEntity(MiioEntity):
                         from .text import MiotTextActionSubEntity
                         self._subs[fnm] = MiotTextActionSubEntity(self, p, option=opt)
                         add_texts([self._subs[fnm]])
+                    elif add_selects and domain == 'select' and p.ins:
+                        from .select import MiotActionSelectSubEntity
+                        self._subs[fnm] = MiotActionSelectSubEntity(self, p, option=opt)
+                        add_selects([self._subs[fnm]])
                 elif add_buttons and domain == 'button' and (p.value_list or p.is_bool):
                     from .button import MiotButtonSubEntity
                     nls = []

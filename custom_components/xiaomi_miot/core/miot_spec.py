@@ -920,6 +920,12 @@ class MiotAction(MiotSpecInstance):
             or self.unique_prop in lst \
             or self.full_name in lst
 
+    def in_properties(self):
+        properties = []
+        for pid in self.ins:
+            properties.append(self.service.properties.get(pid))
+        return properties
+
     def in_params_from_attrs(self, dat: dict, with_piid=True):
         pms = []
         for pid in self.ins:

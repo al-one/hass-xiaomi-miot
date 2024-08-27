@@ -121,7 +121,9 @@ class MiotSelectSubEntity(SelectEntity, MiotPropertySubEntity):
 
 
 class MiotActionSelectSubEntity(MiotSelectSubEntity):
-    def __init__(self, parent, miot_action: MiotAction, miot_property: MiotProperty, option=None):
+    def __init__(self, parent, miot_action: MiotAction, miot_property: MiotProperty = None, option=None):
+        if not miot_property:
+            miot_property = miot_action.in_properties()[0] if miot_action.ins else None
         super().__init__(parent, miot_property, option)
         self._miot_action = miot_action
         self._attr_current_option = None
