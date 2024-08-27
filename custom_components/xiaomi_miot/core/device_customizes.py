@@ -72,6 +72,18 @@ DEVICE_CUSTOMIZES = {
         'with_properties': 'e_someone_duration,e_noone_duration',
         'device_class': 'occupancy',
     },
+    'ainice.sensor_occupy.bt': {
+        'main_miot_services': 'occupancy_sensor',
+        'interval_seconds': 10,
+        'parallel_updates': 1,
+        'switch_properties': 'indicator_switch,bt_pair_switch',
+        'select_properties': 'bt_power_level',
+        'scanner_properties': 'online_status',
+        'select_actions': 'send_magic_package',
+    },
+    'ainice.sensor_occupy.bt:online_status': {
+        'with_properties': 'online_duration,offline_duration,offline_interval,online_mode,bt_capture_mode,binding_info',
+    },
     'ainice.sensor_occupy.pr': {
         'main_miot_services': 'occupancy_sensor',
         'state_property': 'occupancy_sensor.occupancy_status',
