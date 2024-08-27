@@ -7,19 +7,21 @@ from homeassistant.components.device_tracker import (
     DOMAIN as ENTITY_DOMAIN,
 )
 from homeassistant.components.device_tracker.const import SourceType
-from homeassistant.components.device_tracker.config_entry import TrackerEntity
+from homeassistant.components.device_tracker.config_entry import TrackerEntity, ScannerEntity
 
 from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
+    MiotPropertySubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+    MiotProperty,
 )
 from .core.coord_transform import gcj02_to_wgs84, bd09_to_wgs84
 
@@ -215,3 +217,19 @@ class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
             self.update_attrs({
                 'timestamp': f'{tim[0:4]}-{tim[4:6]}-{tim[6:8]} {tim[8:10]}:{tim[10:12]}:{tim[12:14]}',
             })
+
+
+class MiotScannerSubEntity(MiotPropertySubEntity, ScannerEntity):
+
+    def __init__(self, parent, miot_property: MiotProperty, option=None):
+        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
+
+    @property
+    def source_type(self):
+        """Return the source type, eg gps or router, of the device."""
+        return SourceType.ROUTER
+
+    @property
+    def is_connected(self):
+        """Return true if the device is connected to the network."""
+        return self._attr_state in [True, 1]

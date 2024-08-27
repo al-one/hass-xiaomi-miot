@@ -794,6 +794,11 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         })
         bool2selects.extend(['disable_location_name'])
 
+    if re.search(r'sensor_occupy', model, re.I):
+        options.update({
+            'scanner_properties': cv.string,
+        })
+
     if domain == 'text' and re.search(r'execute_text_directive', entity_id, re.I):
         bool2selects.extend(['silent_execution'])
 

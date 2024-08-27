@@ -4,21 +4,10 @@ import time
 import json
 from typing import cast
 from datetime import datetime, timedelta
-from functools import partial, cmp_to_key
+from functools import cmp_to_key
 
-from homeassistant.const import (
-    CONCENTRATION_PARTS_PER_MILLION,
-    CONF_HOST,
-    CONF_NAME,
-    CONF_TOKEN,
-    PERCENTAGE,
-    STATE_UNKNOWN,
-    UnitOfTemperature,
-    UnitOfTime,
-)
-from homeassistant.helpers.entity import (
-    Entity,
-)
+from homeassistant.const import STATE_UNKNOWN
+from homeassistant.helpers.entity import Entity
 from homeassistant.components.sensor import (
     DOMAIN as ENTITY_DOMAIN,
     SensorDeviceClass,
@@ -31,7 +20,6 @@ from . import (
     CONF_MODEL,
     CONF_XIAOMI_CLOUD,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
-    MiioEntity,
     MiotEntity,
     BaseSubEntity,
     MiCoordinatorEntity,

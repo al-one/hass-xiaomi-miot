@@ -1543,7 +1543,7 @@ class MiotEntity(MiioEntity):
         if self._miot_service:
             for d in [
                 'sensor', 'binary_sensor', 'switch', 'number', 'select',
-                'fan', 'cover', 'button', 'number_select',
+                'fan', 'cover', 'button', 'scanner', 'number_select',
             ]:
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
@@ -2025,6 +2025,7 @@ class MiotEntity(MiioEntity):
         add_selects = self._add_entities.get('select')
         add_buttons = self._add_entities.get('button')
         add_texts = self._add_entities.get('text')
+        add_device_trackers = self._add_entities.get('device_tracker')
         exclude_services = self._state_attrs.get('exclude_miot_services') or []
         for s in sls:
             if s.name in exclude_services:
@@ -2135,6 +2136,10 @@ class MiotEntity(MiioEntity):
                     from .select import MiotSelectSubEntity
                     self._subs[fnm] = MiotSelectSubEntity(self, p, option=opt)
                     add_selects([self._subs[fnm]], update_before_add=True)
+                elif add_device_trackers and domain == 'scanner' and (p.is_bool or p.is_integer):
+                    from .device_tracker import MiotScannerSubEntity
+                    self._subs[fnm] = MiotScannerSubEntity(self, p, option=opt)
+                    add_device_trackers([self._subs[fnm]], update_before_add=True)
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
                     self.logger.debug('%s: Added sub entity %s: %s', self.name_model, domain, fnm)
