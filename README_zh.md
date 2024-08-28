@@ -430,4 +430,4 @@ logger:
 ## 鸣谢
 
 - [PyCharm](https://www.jetbrains.com/pycharm/)
-- [Dler](https://dler.pro/auth/register?affid=130833) (10%折扣代码`CXVbfhHuSRsi`)
+- [Dler](https://dler.pro/auth/register?affid=130833) (新用户10%折扣代码`CXVbfhHuSRsi`)

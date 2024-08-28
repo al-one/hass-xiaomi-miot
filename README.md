@@ -379,4 +379,4 @@ logger:
 ## Thanks
 
 - [PyCharm](https://www.jetbrains.com/pycharm/)
-- [Dler](https://dler.pro/auth/register?affid=130833) (10% Discount coupon: `CXVbfhHuSRsi`)
+- [Dler](https://dler.pro/auth/register?affid=130833) (10% Discount coupon for new user: `CXVbfhHuSRsi`)
