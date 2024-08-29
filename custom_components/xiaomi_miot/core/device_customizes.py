@@ -1545,7 +1545,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'speaker.volume',
     },
     'xiaomi.vacuum.b108gl': {
-        'sensor_properties': 'status,cleaning_area,cleaning_time,status_extend',
+        'sensor_properties': 'status,fault,cleaning_area,cleaning_time,status_extend',
         'binary_sensor_properties': 'mop_status',
         'switch_properties': 'edge_swing_tail_sweep,carpet_discriminate,carpet_boost,sweep_break_switch',
         'select_properties': 'sweep_mop_type,sweep_type,clean_times,suction_level,mop_water_output_level,mode,edge_sweep_frequency,carpet_cleaning_method',
