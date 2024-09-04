@@ -71,6 +71,7 @@
                     "cover_properties": "cover_properties",
                     "current_temp_property": "current_temp_property",
                     "descriptions_for_on": "descriptions_for_on",
+                    "descriptions_for_off": "descriptions_for_off",
                     "deviated_position": "deviated_position",
                     "device_class": "device_class",
                     "disable_location_name": "disable_location_name",
@@ -92,7 +93,9 @@
                     "number_properties": "number_properties",
                     "open_texts": "open_texts",
                     "percentage_property": "percentage_property",
+                    "scanner_properties": "scanner_properties",
                     "screenshot_compress": "screenshot_compress",
+                    "select_actions": "select_actions",
                     "select_properties": "select_properties",
                     "sensor_attributes": "sensor_attributes",
                     "sensor_properties": "sensor_properties",
@@ -105,6 +108,7 @@
                     "state_property": "state_property",
                     "switch_properties": "switch_properties",
                     "television_name": "television_name",
+                    "text_actions": "text_actions",
                     "turn_on_hvac": "turn_on_hvac",
                     "unit_of_measurement": "unit_of_measurement",
                     "value_ratio": "value_ratio",
@@ -282,10 +286,6 @@
                 "params": {
                     "name": "Params",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Throw",
-                    "description": "Throw result to HA notifications"
                 }
             }
         },
@@ -304,10 +304,6 @@
                 "update_entity": {
                     "name": "Update entity",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Throw",
-                    "description": "Throw result to HA notifications"
                 }
             }
         },
@@ -370,10 +366,6 @@
                 "params": {
                     "name": "",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Throw",
-                    "description": "Throw result to HA notifications"
                 }
             }
         },
@@ -396,10 +388,6 @@
                 "silent": {
                     "name": "Silent",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Throw",
-                    "description": "Throw result to HA notifications"
                 }
             }
         },
@@ -512,10 +500,6 @@
                 "sid": {
                     "name": "",
                     "description": ""
-                },
-                "throw": {
-                    "name": "Throw",
-                    "description": "Throw result to HA notifications"
                 }
             }
         }

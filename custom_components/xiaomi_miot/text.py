@@ -2,7 +2,6 @@
 import logging
 import time
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.text import (
     DOMAIN as ENTITY_DOMAIN,
     TextEntity,
@@ -109,7 +108,7 @@ class MiotTextActionSubEntity(BaseSubEntity, TextEntity):
 
         if ret:
             self._attr_native_value = value
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
             time.sleep(0.5)
             self._attr_native_value = ''
         return ret

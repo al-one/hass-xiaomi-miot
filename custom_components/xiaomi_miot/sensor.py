@@ -4,26 +4,22 @@ import time
 import json
 from typing import cast
 from datetime import datetime, timedelta
-from functools import partial, cmp_to_key
+from functools import cmp_to_key
 
-from homeassistant.const import *  # noqa: F401
-from homeassistant.helpers.entity import (
-    Entity,
-)
+from homeassistant.const import STATE_UNKNOWN
+from homeassistant.helpers.entity import Entity
 from homeassistant.components.sensor import (
     DOMAIN as ENTITY_DOMAIN,
     SensorDeviceClass,
 )
 from homeassistant.helpers.restore_state import RestoreEntity, RestoredExtraData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from miio.waterpurifier_yunmi import WaterPurifierYunmi
 
 from . import (
     DOMAIN,
     CONF_MODEL,
     CONF_XIAOMI_CLOUD,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
-    MiioEntity,
     MiotEntity,
     BaseSubEntity,
     MiCoordinatorEntity,
@@ -97,10 +93,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if isinstance(spec, MiotSpec):
         for srv in spec.get_services(
             'battery', 'environment', 'tds_sensor', 'switch_sensor', 'vibration_sensor', 'occupancy_sensor',
-            'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor',
+            'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor', 'pressure_sensor',
             'router', 'lock', 'door', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad', 'treadmill',
             'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
-            'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer',
+            'cooker', 'induction_cooker', 'pressure_cooker', 'air_fryer', 'juicer', 'electric_steamer',
             'water_purifier', 'dishwasher', 'fruit_vegetable_purifier',
             'pet_feeder', 'cat_toilet', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp', 'vital_signs',
             'sterilizer', 'steriliser', 'table', 'chair', 'dryer', 'clothes_dryer',
@@ -185,6 +181,8 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             self._prop_state = miot_service.get_property('smoke_concentration') or self._prop_state
         elif miot_service.name in ['occupancy_sensor']:
             self._prop_state = miot_service.get_property('occupancy_status') or self._prop_state
+        elif miot_service.name in ['pressure_sensor']:
+            self._prop_state = miot_service.get_property('pressure_present_duration') or self._prop_state
 
         self._attr_icon = self._miot_service.entity_icon
         self._attr_state_class = None
@@ -209,6 +207,8 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         cls = self.custom_config('state_class')
         if cls in STATE_CLASSES:
             self._attr_state_class = cls
+        elif cls in ['', False]:
+            self._attr_state_class = None
 
         if uom := self.custom_config('unit_of_measurement'):
             self._attr_native_unit_of_measurement = uom
@@ -278,7 +278,7 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         )
         self._update_sub_entities(
             ['on'],
-            [self._miot_service.name, 'router', 'wifi', 'guest_wifi', 'fridge_chamber'],
+            [self._miot_service.name, 'router', 'wifi', 'guest_wifi'],
             domain='switch',
         )
         self._update_sub_entities(
@@ -303,11 +303,6 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
             ['motor_control', 'backrest_angle', 'leg_rest_angle'],
             ['bed', 'backrest_control', 'leg_rest_control'],
             domain='cover',
-        )
-        self._update_sub_entities(
-            ['target_temperature'],
-            ['fridge_chamber'],
-            domain='number',
         )
 
     @property
@@ -461,6 +456,8 @@ class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
         cls = self.custom_config('state_class')
         if cls in STATE_CLASSES:
             self._attr_state_class = cls
+        elif cls in ['', False]:
+            self._attr_state_class = None
 
         if uom := self.custom_config('unit_of_measurement'):
             self._attr_native_unit_of_measurement = uom
@@ -505,6 +502,7 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
         super().update(data)
         if not self._available:
             return
+        self.update_with_properties()
         self._miot_property.description_to_dict(self._state_attrs)
 
     @property
@@ -521,81 +519,6 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
             elif self.device_class in [SensorDeviceClass.HUMIDITY, SensorDeviceClass.TEMPERATURE]:
                 val = round(float(val), 3)
         return val
-
-
-class WaterPurifierYunmiEntity(MiioEntity, Entity):
-    def __init__(self, config):
-        name = config[CONF_NAME]
-        host = config[CONF_HOST]
-        token = config[CONF_TOKEN]
-        _LOGGER.info('%s: Initializing with host %s (token %s...)', name, host, token[:5])
-
-        self._device = WaterPurifierYunmi(host, token)
-        super().__init__(name, self._device, config=config, logger=_LOGGER)
-        self._subs = {
-            'tds_in':  {'keys': ['tds_warn_thd'], 'unit': CONCENTRATION_PARTS_PER_MILLION, 'icon': 'mdi:water'},
-            'tds_out': {'keys': ['tds_warn_thd'], 'unit': CONCENTRATION_PARTS_PER_MILLION, 'icon': 'mdi:water-check'},
-            'temperature': {'class': SensorDeviceClass.TEMPERATURE, 'unit': TEMP_CELSIUS},
-        }
-        for i in [1, 2, 3]:
-            self._subs.update({
-                f'f{i}_remaining': {
-                    'keys': [f'f{i}_totalflow', f'f{i}_usedflow'],
-                    'unit': PERCENTAGE,
-                    'icon': 'mdi:water-percent',
-                },
-                f'f{i}_remain_days': {
-                    'keys': [f'f{i}_totaltime', f'f{i}_usedtime'],
-                    'unit': TIME_DAYS,
-                    'icon': 'mdi:clock',
-                },
-            })
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def icon(self):
-        return 'mdi:water-pump'
-
-    @property
-    def unit_of_measurement(self):
-        return CONCENTRATION_PARTS_PER_MILLION
-
-    async def async_update(self):
-        try:
-            status = await self.hass.async_add_executor_job(partial(self._device.status))
-        except DeviceException as ex:
-            if self._available:
-                self._available = False
-                _LOGGER.error('Got exception while fetching the state for %s: %s', self.entity_id, ex)
-            return
-        attrs = status.data or {}
-        _LOGGER.debug('Got new state from %s: %s', self.entity_id, attrs)
-        self._available = True
-        self._state = int(attrs.get('tds_out', 0))
-        self._state_attrs.update(attrs)
-        for i in [1, 2, 3]:
-            self._state_attrs.update({
-                f'f{i}_remaining':   round(100 - 100 * attrs[f'f{i}_usedtime'] / attrs[f'f{i}_totaltime']),
-                f'f{i}_remain_days': round((attrs[f'f{i}_totaltime'] - attrs[f'f{i}_usedtime']) / 24),
-            })
-        self._state_attrs.update({
-            'errors': '|'.join(status.operation_status.errors),
-        })
-        add_entities = self._add_entities.get('sensor')
-        for k, v in self._subs.items():
-            if 'entity' in v:
-                v['entity'].update_from_parent()
-            elif add_entities:
-                v['entity'] = WaterPurifierYunmiSubEntity(self, k, v)
-                add_entities([v['entity']], update_before_add=True)
-
-
-class WaterPurifierYunmiSubEntity(BaseSubEntity):
-    def __init__(self, parent: WaterPurifierYunmiEntity, attr, option=None):
-        super().__init__(parent, attr, option)
 
 
 class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
@@ -717,7 +640,12 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
             break
         if not mls:
             if not self._has_none_message:
-                _LOGGER.warning('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
+                # Only raise a warning if there was a failure obtaining the xiaomi message
+                # Otherwise, a warning will show anytime that there are simply no messages waiting
+                if res['code'] == 0 and res['message'] == 'ok':
+                    _LOGGER.debug('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
+                else:
+                    _LOGGER.warning('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
             self._has_none_message = True
         if msg:
             await self.async_set_message(msg)

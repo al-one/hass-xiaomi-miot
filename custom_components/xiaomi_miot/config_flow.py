@@ -6,7 +6,14 @@ import requests
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.const import *
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_NAME,
+    CONF_PASSWORD,
+    CONF_SCAN_INTERVAL,
+    CONF_TOKEN,
+    CONF_USERNAME,
+)
 from homeassistant.core import callback, split_entity_id
 from homeassistant.util import yaml
 from homeassistant.components import persistent_notification
@@ -384,8 +391,10 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             'cover_properties': cv.string,
             'sensor_attributes': cv.string,
             'binary_sensor_attributes': cv.string,
-            'button_actions': cv.string,
             'button_properties': cv.string,
+            'button_actions': cv.string,
+            'select_actions': cv.string,
+            'text_actions': cv.string,
             'light_services': cv.string,
             'fan_services': cv.string,
             'exclude_miot_services': cv.string,
@@ -706,6 +715,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         bool2selects.extend(['reverse_state'])
         options.update({
             'descriptions_for_on': cv.string,
+            'descriptions_for_off': cv.string,
             'stat_power_cost_key': cv.string,
             'stat_power_cost_type': cv.string,
         })
@@ -783,6 +793,11 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'coord_type': cv.string,
         })
         bool2selects.extend(['disable_location_name'])
+
+    if re.search(r'sensor_occupy', model, re.I):
+        options.update({
+            'scanner_properties': cv.string,
+        })
 
     if domain == 'text' and re.search(r'execute_text_directive', entity_id, re.I):
         bool2selects.extend(['silent_execution'])

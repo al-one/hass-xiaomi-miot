@@ -1,7 +1,6 @@
 """Support button entity for Xiaomi Miot."""
 import logging
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.button import (
     DOMAIN as ENTITY_DOMAIN,
     ButtonEntity,
@@ -137,5 +136,5 @@ class ButtonSubEntity(ButtonEntity, BaseSubEntity):
             **self._press_kwargs,
         }
         if ret := self._press_action(**kws):
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
         return ret

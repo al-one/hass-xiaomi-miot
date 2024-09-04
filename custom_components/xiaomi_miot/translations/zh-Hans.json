@@ -199,6 +199,15 @@
                             "leve8": "八档"
                         }
                     },
+                    "preset_mode": {
+                        "state": {
+                            "off": "关闭",
+                            "auto": "自动",
+                            "Heat": "制热",
+                            "Warm": "温暖",
+                            "Natural Wind": "自然风"
+                        }
+                    },
                     "swing_mode": {
                         "state": {
                             "off": "关闭",
@@ -285,9 +294,6 @@
                 },
                 "params": {
                     "description": "Miio参数"
-                },
-                "throw": {
-                    "description": "在HA通知中显示结果"
                 }
             }
         },
@@ -302,9 +308,6 @@
                 },
                 "update_entity": {
                     "description": "更新实体状态属性"
-                },
-                "throw": {
-                    "description": "在HA通知中显示结果"
                 }
             }
         },
@@ -353,9 +356,6 @@
                 },
                 "params": {
                     "description": "MIoT动作参数"
-                },
-                "throw": {
-                    "description": "在HA通知中显示结果"
                 }
             }
         },
@@ -373,9 +373,6 @@
                 },
                 "silent": {
                     "description": "静默执行语音指令"
-                },
-                "throw": {
-                    "description": "在HA通知中显示结果"
                 }
             }
         },
@@ -471,9 +468,6 @@
                 },
                 "sid": {
                     "description": "小米服务ID"
-                },
-                "throw": {
-                    "description": "在HA通知中显示结果"
                 }
             }
         }

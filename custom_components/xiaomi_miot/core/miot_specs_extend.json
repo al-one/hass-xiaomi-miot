@@ -66,6 +66,43 @@
       ]
     }
   ],
+  "ainice.sensor_occupy.3b": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:current-occupied",
+          "description": "Current Occupied",
+          "value-range": [0, 5, 1],
+          "value-list": []
+        },
+        {"iid": 2, "type": "urn:miot-spec-v2:property:total-occupied", "description": "Total Occupied"},
+        {"iid": 5, "type": "urn:miot-spec-v2:property:a-occupied", "description": "A Occupied"},
+        {"iid": 6, "type": "urn:miot-spec-v2:property:a-someone-duration", "description": "A Someone Duration"},
+        {"iid": 7, "type": "urn:miot-spec-v2:property:a-noone-duration", "description": "A Noone Duration"},
+        {"iid": 8, "type": "urn:miot-spec-v2:property:b-occupied", "description": "B Occupied"},
+        {"iid": 9, "type": "urn:miot-spec-v2:property:b-someone-duration", "description": "B Someone Duration"},
+        {"iid": 10, "type": "urn:miot-spec-v2:property:b-noone-duration", "description": "B Noone Duration"},
+        {"iid": 11, "type": "urn:miot-spec-v2:property:c-occupied", "description": "C Occupied"},
+        {"iid": 12, "type": "urn:miot-spec-v2:property:c-someone-duration", "description": "C Someone Duration"},
+        {"iid": 13, "type": "urn:miot-spec-v2:property:c-noone-duration", "description": "C Noone Duration"},
+        {"iid": 14, "type": "urn:miot-spec-v2:property:d-occupied", "description": "D Occupied"},
+        {"iid": 15, "type": "urn:miot-spec-v2:property:d-someone-duration", "description": "D Someone Duration"},
+        {"iid": 16, "type": "urn:miot-spec-v2:property:d-noone-duration", "description": "D Noone Duration"},
+        {"iid": 17, "type": "urn:miot-spec-v2:property:e-occupied", "description": "E Occupied"},
+        {"iid": 18, "type": "urn:miot-spec-v2:property:e-someone-duration", "description": "E Someone Duration"},
+        {"iid": 19, "type": "urn:miot-spec-v2:property:e-noone-duration", "description": "E Noone Duration"}
+      ]
+    },
+    {
+      "iid": 3,
+      "properties": [
+        {"iid": 1, "description": "Indicator Light"},
+        {"iid": 2, "type": "urn:miot-spec-v2:property:illumination", "description": "Illumination", "unit": "lx"}
+      ]
+    }
+  ],
 
   "chuangmi.plug.hmi208": [
     {
@@ -383,6 +420,22 @@
   ],
   "midea.aircondition.xa1": "midea.aircondition.v1",
   "midea.aircondition.xa2": "midea.aircondition.v1",
+
+  "midjd8.washer.44": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 24,
+          "value-range": [0, 720, 120]
+        },
+        {
+          "iid": 27,
+          "value-range": [0, 180, 30]
+        }
+      ]
+    }
+  ],
 
   "mmgg.feeder.petfeeder": [
     {
@@ -709,6 +762,22 @@
             {"value": 6, "description": "Orange"},
             {"value": 7, "description": "Red"}
           ]
+        }
+      ]
+    }
+  ],
+  "viomi.fridge.m1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:temperature",
+          "description": "Indoor Temperature",
+          "format": "float",
+          "access": ["read"],
+          "unit": "celsius",
+          "value-range": [-40, 125, 1]
         }
       ]
     }
@@ -1420,7 +1489,7 @@
     }
   ],
   "yeelink.light.ceiling19": "yeelink.light.ceiling4",
-  "yeelink.light.ceiling20": "yeelink.light.ceiling1",
+  "yeelink.light.ceiling20": "yeelink.light.ceiling4",
   "yeelink.light.ceiling21": "yeelink.light.ceiling1",
   "yeelink.light.ceiling22": "yeelink.light.ceiling1",
   "yeelink.light.ceiling23": "yeelink.light.ceiling1",
@@ -1619,6 +1688,21 @@
         {
           "iid": 1,
           "unit": "rpm"
+        }
+      ]
+    }
+  ],
+
+  "xjx.toilet.relax": [
+    {
+      "iid": 2,
+      "actions": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:action:flush-on",
+          "description": "Flush",
+          "in": [],
+          "out": []
         }
       ]
     }

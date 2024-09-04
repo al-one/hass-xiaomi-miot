@@ -4,7 +4,10 @@ import time
 from datetime import timedelta
 from functools import partial
 
-from homeassistant.const import *  # noqa: F401
+from homeassistant.const import (
+    STATE_IDLE,
+    STATE_PAUSED,
+)
 from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
     StateVacuumEntity,
@@ -138,14 +141,14 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             if val is None:
                 pass
             elif val in self._prop_status.list_search(
-                'Cleaning', 'Sweeping', 'Mopping', 'Sweeping and Mopping',
+                'Cleaning', 'Sweeping', 'Mopping', 'Sweeping And Mopping', 'Washing', 'Go Washing',
                 'Part Sweeping', 'Zone Sweeping', 'Select Sweeping', 'Spot Sweeping', 'Goto Target',
-                'Starting', 'Working', 'Busy',
+                'Starting', 'Working', 'Busy', 'DustCollecting'
             ):
                 return STATE_CLEANING
             elif val in self._prop_status.list_search('Idle', 'Sleep'):
                 return STATE_IDLE
-            elif val in self._prop_status.list_search('Charging', 'Charging Completed', 'Fullcharge'):
+            elif val in self._prop_status.list_search('Charging', 'Charging Completed', 'Fullcharge', 'Charge Done', 'Drying'):
                 return STATE_DOCKED
             elif val in self._prop_status.list_search('Go Charging'):
                 return STATE_RETURNING
@@ -384,7 +387,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
         if not self._available:
             return
         if self._miio2miot:
-            await self.hass.async_add_executor_job(partial(self.update_miio_props, self._miio_props))
+            await self.async_update_miio_props(self._miio_props)
         props = self._state_attrs or {}
         adt = {}
         if 'miio.s_area' in props:

@@ -5,7 +5,20 @@ import random
 import time
 import re
 
-from homeassistant.const import *
+from homeassistant.const import (
+    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+    CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
+    CONCENTRATION_PARTS_PER_CUBIC_METER,
+    CONCENTRATION_PARTS_PER_MILLION,
+    LIGHT_LUX,
+    PERCENTAGE,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfEnergy,
+    UnitOfPower,
+    UnitOfPressure,
+    UnitOfTemperature,
+)
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -105,6 +118,7 @@ class MiotSpecInstance:
         dls = [
             des.lower(),
             des,
+            des.replace('-', ' ').lower(),
             des.replace('-', ' '),
         ]
         tls = self.translations
@@ -256,7 +270,7 @@ class MiotSpec(MiotSpecInstance):
         if not dat:
             try:
                 url = '/miot-spec-v2/instances?status=all'
-                dat = await MiotSpec.async_download_miot_spec(hass, url, tries=3, timeout=60)
+                dat = await MiotSpec.async_download_miot_spec(hass, url, tries=3, timeout=90)
                 if dat:
                     sdt = {
                         '_updated_time': now,
@@ -906,6 +920,12 @@ class MiotAction(MiotSpecInstance):
             or self.unique_prop in lst \
             or self.full_name in lst
 
+    def in_properties(self):
+        properties = []
+        for pid in self.ins:
+            properties.append(self.service.properties.get(pid))
+        return properties
+
     def in_params_from_attrs(self, dat: dict, with_piid=True):
         pms = []
         for pid in self.ins:
@@ -1002,6 +1022,9 @@ class MiotResults:
                 adt[ek] = prop.spec_error
         return adt
 
+    def to_json(self):
+        return [r.to_json() for r in self.results]
+
     def __str__(self):
         return f'{self._results}'
 
@@ -1027,6 +1050,9 @@ class MiotResult:
     @property
     def spec_error(self):
         return MiotSpec.spec_error(self.code)
+
+    def to_json(self):
+        return self.result
 
     def __str__(self):
         return f'{self.result}'

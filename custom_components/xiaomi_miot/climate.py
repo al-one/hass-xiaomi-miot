@@ -2,8 +2,22 @@
 import logging
 from enum import Enum
 
-from homeassistant.const import *  # noqa: F401
-from homeassistant.components.climate.const import *
+from homeassistant.const import (
+    ATTR_DEVICE_CLASS,
+    ATTR_TEMPERATURE,
+    ATTR_UNIT_OF_MEASUREMENT,
+    STATE_UNKNOWN,
+    UnitOfTemperature,
+)
+from homeassistant.components.climate.const import (
+    ATTR_CURRENT_HUMIDITY,
+    ATTR_CURRENT_TEMPERATURE,
+    ATTR_HVAC_MODE,
+    DEFAULT_MAX_HUMIDITY,
+    DEFAULT_MIN_HUMIDITY,
+    HVACAction,
+    HVACMode,
+)
 from homeassistant.components.climate import (
     DOMAIN as ENTITY_DOMAIN,
     ClimateEntity,
@@ -92,7 +106,7 @@ class BaseClimateEntity(MiotEntity, ClimateEntity):
             if num is not None:
                 cls = sta.attributes.get(ATTR_DEVICE_CLASS)
                 unit = sta.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
-                if cls == SensorDeviceClass.TEMPERATURE.value or unit in [TEMP_CELSIUS, TEMP_KELVIN, TEMP_FAHRENHEIT]:
+                if cls == SensorDeviceClass.TEMPERATURE.value or unit in [UnitOfTemperature.CELSIUS, UnitOfTemperature.KELVIN, UnitOfTemperature.FAHRENHEIT]:
                     ext[ATTR_CURRENT_TEMPERATURE] = self.hass.config.units.temperature(num, unit)
                 elif cls == SensorDeviceClass.HUMIDITY.value:
                     ext[ATTR_CURRENT_HUMIDITY] = num
@@ -143,6 +157,11 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
             if not self._prop_fan_level:
                 self._prop_fan_level = miot_service.get_property('heat_level', 'water_level')
 
+        if self._prop_power:
+            if hasattr(ClimateEntityFeature, 'TURN_ON'): # v2024.2
+                self._supported_features |= ClimateEntityFeature.TURN_ON
+            if hasattr(ClimateEntityFeature, 'TURN_OFF'):
+                self._supported_features |= ClimateEntityFeature.TURN_OFF
         if self._prop_target_temp:
             self._supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE
         if self._prop_target_humi:
@@ -151,19 +170,17 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
             self._supported_features |= ClimateEntityFeature.FAN_MODE
         if self._prop_horizontal_swing or self._prop_vertical_swing:
             self._supported_features |= ClimateEntityFeature.SWING_MODE
-        if self._prop_heater and miot_service.name in ['air_conditioner', 'air_condition_outlet']:
-            self._supported_features |= ClimateEntityFeature.AUX_HEAT
 
         self._power_modes = []
         if miot_service.get_property('heat_level'):
             self._power_modes.append('heater')
         self._hvac_modes = {
-            HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None'], 'action': CURRENT_HVAC_OFF},
-            HVAC_MODE_AUTO: {'list': ['Auto', 'Manual', 'Normal']},
-            HVAC_MODE_COOL: {'list': ['Cool'], 'action': CURRENT_HVAC_COOL},
-            HVAC_MODE_HEAT: {'list': ['Heat'], 'action': CURRENT_HVAC_HEAT},
-            HVAC_MODE_DRY:  {'list': ['Dry'], 'action': CURRENT_HVAC_DRY},
-            HVAC_MODE_FAN_ONLY: {'list': ['Fan'], 'action': CURRENT_HVAC_FAN},
+            HVACMode.OFF:  {'list': ['Off', 'Idle', 'None'], 'action': HVACAction.OFF},
+            HVACMode.AUTO: {'list': ['Auto', 'Manual', 'Normal']},
+            HVACMode.COOL: {'list': ['Cool'], 'action': HVACAction.COOLING},
+            HVACMode.HEAT: {'list': ['Heat'], 'action': HVACAction.HEATING},
+            HVACMode.DRY:  {'list': ['Dry'], 'action': HVACAction.DRYING},
+            HVACMode.FAN_ONLY: {'list': ['Fan'], 'action': HVACAction.FAN},
         }
         self._preset_modes = {}
 
@@ -185,7 +202,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 if val is not None:
                     self._hvac_modes[mk]['value'] = val
                     mvs.append(val)
-                elif mk != HVAC_MODE_OFF:
+                elif mk != HVACMode.OFF:
                     dls.append(mk)
             for k in dls:
                 self._hvac_modes.pop(k, None)
@@ -201,7 +218,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                     des = self._prop_mode.get_translation(val)
                     self._preset_modes[val] = des
             if fst and len(self._hvac_modes) <= 1:
-                self._hvac_modes[HVAC_MODE_AUTO] = {
+                self._hvac_modes[HVACMode.AUTO] = {
                     'list':  [fst.get('description')],
                     'value': fst.get('value'),
                 }
@@ -221,7 +238,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 elif add_fans and p:
                     self._subs[m] = ClimateModeSubEntity(self, p)
                     add_fans([self._subs[m]], update_before_add=True)
-            off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
+            off = self._hvac_modes.get(HVACMode.OFF, {}).get('value')
             for val, des in self._preset_modes.items():
                 if des in self._subs:
                     self._subs[des].update_from_parent()
@@ -274,7 +291,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
             if self._state_attrs.get(p.full_name):
                 return True
         if self._prop_mode:
-            off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
+            off = self._hvac_modes.get(HVACMode.OFF, {}).get('value')
             if off is not None:
                 return off != self._prop_mode.from_dict(self._state_attrs)
         power = self._state_attrs.get('power')
@@ -304,7 +321,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 if not p:
                     continue
                 return self.set_property(p, True)
-            for mode in (HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO, HVAC_MODE_HEAT, HVAC_MODE_COOL):
+            for mode in (HVACMode.HEAT_COOL, HVACMode.AUTO, HVACMode.HEAT, HVACMode.COOL):
                 if mode not in self.hvac_modes:
                     continue
                 return self.set_hvac_mode(mode)
@@ -316,7 +333,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 self.set_property(self._prop_fan_power, False)
             return self.set_property(self._prop_power, False)
         if self._prop_mode:
-            off = self._hvac_modes.get(HVAC_MODE_OFF, {}).get('value')
+            off = self._hvac_modes.get(HVACMode.OFF, {}).get('value')
             if off is not None:
                 return self.set_property(self._prop_mode, off)
         act = self._miot_service.get_action('stop_working', 'power_off')
@@ -351,7 +368,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
     @property
     def hvac_mode(self):
         if not self.is_on:
-            return HVAC_MODE_OFF
+            return HVACMode.OFF
         if self._prop_mode:
             acm = self._prop_mode.from_dict(self._state_attrs)
             try:
@@ -364,7 +381,7 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
         if self._prop_power:
             if mod := self._vars.get('turn_on_hvac'):
                 return mod
-            return HVAC_MODE_AUTO
+            return HVACMode.AUTO
         return None
 
     @property
@@ -376,11 +393,11 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                     continue
                 hms.append(mk)
         if self._prop_power:
-            mod = self._vars.get('turn_on_hvac') or HVAC_MODE_AUTO
+            mod = self._vars.get('turn_on_hvac') or HVACMode.AUTO
             if mod and mod not in hms:
                 hms.append(mod)
-        if HVAC_MODE_OFF not in hms:
-            hms.append(HVAC_MODE_OFF)
+        if HVACMode.OFF not in hms:
+            hms.append(HVACMode.OFF)
         return hms
 
     def set_hvac_mode(self, mode: str):
@@ -389,21 +406,21 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
     @property
     def hvac_action(self):
         """Return the current running hvac operation if supported.
-        Need to be one of CURRENT_HVAC_*.
+        Need to be one of HVACAction.*.
         """
         if not self.is_on:
-            return CURRENT_HVAC_OFF
+            return HVACAction.OFF
         if self._miot_service.name in ['heater']:
-            return CURRENT_HVAC_HEAT
+            return HVACAction.HEATING
         hvac = self.hvac_mode
         if hvac is None:
-            return CURRENT_HVAC_IDLE
+            return HVACAction.IDLE
         return self._hvac_modes.get(hvac, {}).get('action')
 
     @property
     def preset_mode(self):
         if not self.is_on:
-            return HVAC_MODE_OFF
+            return HVACMode.OFF
         if self._preset_modes and self._prop_mode:
             acm = self._prop_mode.from_dict(self._state_attrs)
             acm = -1 if acm is None else acm
@@ -416,12 +433,12 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
         if self._preset_modes:
             for mk, mv in self._preset_modes.items():
                 pms.append(mv)
-        if HVAC_MODE_OFF not in pms:
-            pms.append(HVAC_MODE_OFF)
+        if HVACMode.OFF not in pms:
+            pms.append(HVACMode.OFF)
         return pms
 
     def set_preset_mode(self, mode: str):
-        if mode == HVAC_MODE_OFF:
+        if mode == HVACMode.OFF:
             return self.turn_off()
         if not self.is_on:
             self.turn_on(without_modes=True)
@@ -450,13 +467,13 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
     def temperature_unit(self):
         prop = self._prop_temperature or self._prop_target_temp
         if prop:
-            if prop.unit in ['celsius', TEMP_CELSIUS]:
-                return TEMP_CELSIUS
-            if prop.unit in ['fahrenheit', TEMP_FAHRENHEIT]:
-                return TEMP_FAHRENHEIT
-            if prop.unit in ['kelvin', TEMP_KELVIN]:
-                return TEMP_KELVIN
-        return TEMP_CELSIUS
+            if prop.unit in ['celsius', UnitOfTemperature.CELSIUS]:
+                return UnitOfTemperature.CELSIUS
+            if prop.unit in ['fahrenheit', UnitOfTemperature.FAHRENHEIT]:
+                return UnitOfTemperature.FAHRENHEIT
+            if prop.unit in ['kelvin', UnitOfTemperature.KELVIN]:
+                return UnitOfTemperature.KELVIN
+        return UnitOfTemperature.CELSIUS
 
     @property
     def current_temperature(self):
@@ -575,8 +592,8 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
         return None
 
     def set_fan_mode(self, fan_mode: str):
-        if not self.is_on and HVAC_MODE_FAN_ONLY in self._hvac_modes:
-            self.set_hvac_mode(HVAC_MODE_FAN_ONLY)
+        if not self.is_on and HVACMode.FAN_ONLY in self._hvac_modes:
+            self.set_hvac_mode(HVACMode.FAN_ONLY)
         if self._prop_fan_level:
             val = self._prop_fan_level.list_value(fan_mode)
             return self.set_property(self._prop_fan_level, val)
@@ -641,9 +658,9 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
         """Return true if aux heater."""
         if self._prop_heater:
             return self._prop_heater.from_dict(self._state_attrs) and self.hvac_mode in [
-                HVAC_MODE_AUTO,
-                HVAC_MODE_HEAT,
-                HVAC_MODE_HEAT_COOL,
+                HVACMode.AUTO,
+                HVACMode.HEAT,
+                HVACMode.HEAT_COOL,
             ]
         raise NotImplementedError
 
@@ -736,12 +753,12 @@ class MiirClimateEntity(BaseClimateEntity, RestoreEntity):
 
         self._attr_hvac_mode = None
         self._hvac_modes = {
-            HVAC_MODE_OFF:  {'list': ['Off', 'Idle', 'None'], 'action': CURRENT_HVAC_OFF},
-            HVAC_MODE_AUTO: {'list': ['Auto', 'Manual', 'Normal']},
-            HVAC_MODE_COOL: {'list': ['Cool'], 'action': CURRENT_HVAC_COOL},
-            HVAC_MODE_HEAT: {'list': ['Heat'], 'action': CURRENT_HVAC_HEAT},
-            HVAC_MODE_DRY:  {'list': ['Dry'], 'action': CURRENT_HVAC_DRY},
-            HVAC_MODE_FAN_ONLY: {'list': ['Fan'], 'action': CURRENT_HVAC_FAN},
+            HVACMode.OFF:  {'list': ['Off', 'Idle', 'None'], 'action': HVACAction.OFF},
+            HVACMode.AUTO: {'list': ['Auto', 'Manual', 'Normal']},
+            HVACMode.COOL: {'list': ['Cool'], 'action': HVACAction.COOLING},
+            HVACMode.HEAT: {'list': ['Heat'], 'action': HVACAction.HEATING},
+            HVACMode.DRY:  {'list': ['Dry'], 'action': HVACAction.DRYING},
+            HVACMode.FAN_ONLY: {'list': ['Fan'], 'action': HVACAction.FAN},
         }
         self._attr_hvac_modes = []
         self._prop_mode = miot_service.get_property('ir_mode')
@@ -751,11 +768,11 @@ class MiirClimateEntity(BaseClimateEntity, RestoreEntity):
                 if val is not None:
                     self._hvac_modes[mk]['value'] = val
                     self._attr_hvac_modes.append(mk)
-                elif mk == HVAC_MODE_OFF:
+                elif mk == HVACMode.OFF:
                     self._attr_hvac_modes.append(mk)
 
         self._attr_current_temperature = None
-        self._attr_temperature_unit = TEMP_CELSIUS
+        self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_max_temp = DEFAULT_MAX_TEMP
         self._attr_min_temp = DEFAULT_MIN_TEMP
         self._attr_target_temperature_step = 1
@@ -799,14 +816,14 @@ class MiirClimateEntity(BaseClimateEntity, RestoreEntity):
 
     @property
     def is_on(self):
-        return self.hvac_mode not in [None, HVAC_MODE_OFF]
+        return self.hvac_mode not in [None, HVACMode.OFF]
 
     def turn_on(self, **kwargs):
         """Turn the entity on."""
         if not self._act_turn_on:
             raise NotImplementedError()
         if ret := self.call_action(self._act_turn_on):
-            self._attr_hvac_mode = HVAC_MODE_AUTO
+            self._attr_hvac_mode = HVACMode.AUTO
         return ret
 
     def turn_off(self, **kwargs):
@@ -814,12 +831,12 @@ class MiirClimateEntity(BaseClimateEntity, RestoreEntity):
         if not self._act_turn_off:
             raise NotImplementedError()
         if ret := self.call_action(self._act_turn_off):
-            self._attr_hvac_mode = HVAC_MODE_OFF
+            self._attr_hvac_mode = HVACMode.OFF
         return ret
 
     def set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
-        if hvac_mode == HVAC_MODE_OFF:
+        if hvac_mode == HVACMode.OFF:
             return self.turn_off()
         if not self._prop_mode:
             raise NotImplementedError()
@@ -833,13 +850,13 @@ class MiirClimateEntity(BaseClimateEntity, RestoreEntity):
     @property
     def hvac_action(self):
         """Return the current running hvac operation if supported.
-        Need to be one of CURRENT_HVAC_*.
+        Need to be one of HVACAction.*.
         """
         if not self.is_on:
-            return CURRENT_HVAC_OFF
+            return HVACAction.OFF
         hvac = self.hvac_mode
         if hvac is None:
-            return CURRENT_HVAC_IDLE
+            return HVACAction.IDLE
         return self._hvac_modes.get(hvac, {}).get('action')
 
     def set_temperature(self, **kwargs):

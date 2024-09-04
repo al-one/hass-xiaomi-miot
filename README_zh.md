@@ -48,13 +48,7 @@
 
 #### 方法3: 通过`SSH`或`Terminal & SSH`加载项执行一键安装命令
 ```shell
-wget -q -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | ARCHIVE_TAG=latest bash -
-
-# 如果遇到下载缓慢或下载失败可以执行下面的命令
-wget -q -O - https://ghproxy.com/raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=ghproxy.com/github.com ARCHIVE_TAG=latest bash -
-
-# 或者
-wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=hub.fastgit.xyz ARCHIVE_TAG=latest bash -
+wget -O - https://get.hacs.vip | DOMAIN=xiaomi_miot bash -
 ```
 
 #### 方法4: `shell_command`服务
@@ -62,10 +56,11 @@ wget -q -O - https://raw.fastgit.org/al-one/hass-xiaomi-miot/master/install.sh |
     ```yaml
     shell_command:
       update_xiaomi_miot: |-
-        wget -q -O - https://ghproxy.com/raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/install.sh | HUB_DOMAIN=ghproxy.com/github.com ARCHIVE_TAG=latest bash -
+        wget -O - https://get.hacs.vip | DOMAIN=xiaomi_miot bash -
     ```
-2. 重启HA
+2. 重启HA使配置生效
 3. 在HA开发者工具中调用此服务[`service: shell_command.update_xiaomi_miot`](https://my.home-assistant.io/redirect/developer_call_service/?service=shell_command.update_xiaomi_miot)
+4. 再次重启HA使新版插件生效
 
 #### 视频教程
 - 📺 **[HACS安装插件及使用视频教程](https://www.bilibili.com/video/BV1hY4y1a7Gh?t=48)** (感谢[小帅同学Js](https://space.bilibili.com/230242045))
@@ -242,7 +237,7 @@ xiaomi_miot:
 - 🚰 [净水器](https://home.miot-spec.com/s/waterpuri) / [饮水机](https://home.miot-spec.com/s/kettle)
 - ♻️ [空气净化器](https://home.miot-spec.com/s/airpurifier) / [新风机](https://home.miot-spec.com/s/airfresh) / [油烟机](https://home.miot-spec.com/s/hood)
 - 🌡 [温湿度传感器](https://home.miot-spec.com/s/sensor_ht) / [水侵传感器](https://home.miot-spec.com/s/flood) / [烟雾传感器](https://home.miot-spec.com/s/sensor_smoke)
-- 🥘 [电饭煲](https://home.miot-spec.com/s/cooker) / [压力锅](https://home.miot-spec.com/s/pre_cooker)
+- 🥘 [电饭煲](https://home.miot-spec.com/s/cooker) / [压力锅](https://home.miot-spec.com/s/pre_cooker) / [电蒸锅](https://home.miot-spec.com/s/esteamer)
 - 🍲 [电磁炉](https://home.miot-spec.com/s/ihcooker) / [烤箱](https://home.miot-spec.com/s/oven) / [微波炉](https://home.miot-spec.com/s/microwave)
 - 🍗 [空气炸锅](https://home.miot-spec.com/s/fryer) / [多功能锅](https://home.miot-spec.com/s/mfcp)
 - 🍵 [养生壶](https://home.miot-spec.com/s/health_pot) / ☕️ [咖啡机](https://home.miot-spec.com/s/coffee)
@@ -280,6 +275,8 @@ xiaomi_miot:
 <a name="services"></a>
 ## 服务
 
+> 由于HA支持服务响应已经有一段时间了，本组件自v0.7.18开始不再触发事件。
+
 #### [`xiaomi_miot.set_property`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.set_property)
 ```yaml
 service: xiaomi_miot.set_property
@@ -310,10 +307,7 @@ data:
     - siid: 3
       piid: 2
   update_entity: true # 更新实体状态属性
-  throw: true # 在HA通知中显示结果
 ```
-
-> 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.got_miot_properties`
 
 #### [`xiaomi_miot.call_action`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.call_action)
 ```yaml
@@ -325,10 +319,7 @@ data:
   params:
     - 18 # piid: 1 - work-mode
     - '{"selects":[[7,1,0,2,1]]}' # piid: 10 - clean-extend-data
-  throw: true # 在HA通知中显示结果
 ```
-
-> 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.call_miot_action`
 
 #### [`xiaomi_miot.send_command`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.send_command)
 ```yaml
@@ -338,10 +329,7 @@ data:
   method: set_power
   params:
     - on
-  throw: true # 在HA通知中显示结果
 ```
-
-> 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.send_miio_command`
 
 #### [`xiaomi_miot.get_token`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.get_token)
 ```yaml
@@ -374,8 +362,6 @@ data:
   username: 80001234 # 小米账号ID/登录邮箱/手机号
 ```
 
-> 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.renew_devices`
-
 #### [`xiaomi_miot.request_xiaomi_api`](https://my.home-assistant.io/redirect/developer_call_service/?service=xiaomi_miot.request_xiaomi_api)
 ```yaml
 service: xiaomi_miot.request_xiaomi_api
@@ -388,8 +374,6 @@ data:
       plugins:
         - model: brand.device.model
 ```
-
-> 触发[事件](https://my.home-assistant.io/redirect/developer_events/) `xiaomi_miot.request_xiaomi_api`
 
 > 查看[更多服务](https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/services.yaml)
 
@@ -437,7 +421,7 @@ logger:
   3. 在HA通知列表中找到token
 
 - 使用[@vevsvevs](https://github.com/custom-components/ble_monitor/issues/7#issuecomment-595874419)修改版的米家
-  1. 下载APK [СКАЧАТЬ ВЕРСИЮ 6.x.x](https://www.kapiba.ru/2017/11/mi-home.html) 并安装
+  1. 下载APK [СКАЧАТЬ ВЕРСИЮ 7.x.x](https://www.vevs.me/2017/11/mi-home.html) 并安装
   2. 打开米家APP > 我的 > 实验室功能
   3. 打开`Write custom log files`和`Enable app's debug mode`
   4. 重启APP后在`vevs/logs/misc/devices.txt`文件中找到token
@@ -446,4 +430,4 @@ logger:
 ## 鸣谢
 
 - [PyCharm](https://www.jetbrains.com/pycharm/)
-- [Dler](https://dler.best/auth/register?affid=130833)
+- [Dler](https://dler.pro/auth/register?affid=130833) (新用户10%折扣代码`CXVbfhHuSRsi`)

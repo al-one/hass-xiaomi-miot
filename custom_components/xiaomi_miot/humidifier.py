@@ -1,8 +1,10 @@
 """Support for humidifier and dehumidifier."""
 import logging
 
-from homeassistant.const import *  # noqa: F401
-from homeassistant.components.humidifier.const import *
+from homeassistant.components.humidifier.const import (
+    DEFAULT_MAX_HUMIDITY,
+    DEFAULT_MIN_HUMIDITY,
+)
 from homeassistant.components.humidifier import (
     DOMAIN as ENTITY_DOMAIN,
     HumidifierEntity,
@@ -193,4 +195,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
         val = self._prop_mode.list_value(mode)
         if val is None:
             return False
+        if mode != MODE_OFF and not self.is_on:
+            if not self.turn_on():
+                return False
         return self.set_property(self._prop_mode, val)

@@ -1,7 +1,6 @@
 """Support number entity for Xiaomi Miot."""
 import logging
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.number import (
     DOMAIN as ENTITY_DOMAIN,
     NumberEntity,
@@ -123,5 +122,5 @@ class MiotNumberActionSubEntity(MiotNumberSubEntity):
         ret = self.call_parent('call_action', self._miot_action, [val])
         if ret:
             self._attr_native_value = val
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
         return ret

@@ -1,7 +1,6 @@
 """Support select entity for Xiaomi Miot."""
 import logging
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.select import (
     DOMAIN as ENTITY_DOMAIN,
     SelectEntity,
@@ -87,7 +86,7 @@ class MiotActionsEntity(MiotSelectEntity):
         if act:
             if ret := self.call_action(act):
                 self._attr_current_option = option
-                self.async_write_ha_state()
+                self.schedule_update_ha_state()
                 self._attr_current_option = None
         return ret
 
@@ -122,7 +121,9 @@ class MiotSelectSubEntity(SelectEntity, MiotPropertySubEntity):
 
 
 class MiotActionSelectSubEntity(MiotSelectSubEntity):
-    def __init__(self, parent, miot_action: MiotAction, miot_property: MiotProperty, option=None):
+    def __init__(self, parent, miot_action: MiotAction, miot_property: MiotProperty = None, option=None):
+        if not miot_property:
+            miot_property = miot_action.in_properties()[0] if miot_action.ins else None
         super().__init__(parent, miot_property, option)
         self._miot_action = miot_action
         self._attr_current_option = None
@@ -154,7 +155,7 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
             ret = self.call_parent('call_action', self._miot_action, pms)
         if ret:
             self._attr_current_option = option
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
         return ret
 
 
@@ -169,7 +170,7 @@ class SelectSubEntity(SelectEntity, BaseSubEntity):
     def update(self, data=None):
         super().update(data)
         self._attr_current_option = self._attr_state
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
     def select_option(self, option):
         """Change the selected option."""
@@ -180,7 +181,7 @@ class SelectSubEntity(SelectEntity, BaseSubEntity):
             }
             if ret := self._select_option(option, **kws):
                 self._attr_current_option = option
-                self.async_write_ha_state()
+                self.schedule_update_ha_state()
             return ret
         raise NotImplementedError()
 

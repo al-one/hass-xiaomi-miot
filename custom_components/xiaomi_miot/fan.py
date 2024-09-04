@@ -1,7 +1,6 @@
 """Support for Xiaomi fans."""
 import logging
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.fan import (
     DOMAIN as ENTITY_DOMAIN,
     FanEntity,
@@ -79,6 +78,12 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         self._prop_mode = miot_service.get_property('mode')
         self._prop_direction = miot_service.get_property('horizontal_angle', 'vertical_angle')
         self._prop_oscillate = miot_service.get_property('horizontal_swing', 'vertical_swing')
+
+        if self._prop_power:
+            if hasattr(FanEntityFeature, 'TURN_ON'): # v2024.8
+                self._supported_features |= FanEntityFeature.TURN_ON
+            if hasattr(FanEntityFeature, 'TURN_OFF'):
+                self._supported_features |= FanEntityFeature.TURN_OFF
 
         self._fan_control = miot_service.spec.get_service('fan_control')
         if self._fan_control:
@@ -306,6 +311,11 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
 class MiirFanEntity(MiirToggleEntity, FanEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
+
+        if self._act_turn_on and hasattr(FanEntityFeature, 'TURN_ON'): # v2024.8
+            self._supported_features |= FanEntityFeature.TURN_ON
+        if self._act_turn_off and hasattr(FanEntityFeature, 'TURN_OFF'):
+            self._supported_features |= FanEntityFeature.TURN_OFF
 
         self._attr_percentage = 50
         self._act_speed_up = miot_service.get_action('fan_speed_up')

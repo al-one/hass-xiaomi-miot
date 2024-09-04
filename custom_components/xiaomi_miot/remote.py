@@ -3,16 +3,15 @@ import logging
 import time
 from functools import partial
 
-from homeassistant.const import *  # noqa: F401
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_TOKEN,
+)
 from homeassistant.components import remote
 from homeassistant.components.remote import (
     DOMAIN as ENTITY_DOMAIN,
     RemoteEntity,
-)
-
-from miio.chuangmi_ir import (
-    ChuangmiIr,
-    DeviceException,
+    RemoteEntityFeature,
 )
 
 from . import (
@@ -20,6 +19,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     MiotEntity,
+    DeviceException,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -31,6 +31,11 @@ from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
 )
+
+try:
+    from miio import ChuangmiIr
+except (ModuleNotFoundError, ImportError):
+    from miio.integrations.chuangmi.remote import ChuangmiIr
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -74,6 +79,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         token = config.get(CONF_TOKEN)
         self._device = ChuangmiIr(host, token)
         self._attr_should_poll = False
+        self._supported_features = RemoteEntityFeature.LEARN_COMMAND
         self._translations = get_translations('ir_devices')
 
     async def async_added_to_hass(self):

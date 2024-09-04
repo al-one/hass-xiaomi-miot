@@ -2,7 +2,6 @@
 import logging
 from functools import partial
 
-from homeassistant.const import *  # noqa: F401
 from homeassistant.components.light import (
     DOMAIN as ENTITY_DOMAIN,
     LightEntity,
@@ -104,11 +103,8 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             if prop := self._miot_service.spec.get_property(prop):
                 self._prop_color = prop
 
+        self._attr_color_mode = None
         self._attr_supported_color_modes = set()
-        if self._prop_power:
-            self._attr_supported_color_modes.add(ColorMode.ONOFF)
-        if self._prop_brightness:
-            self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
         self._is_percentage_color_temp = None
         if self._prop_color_temp:
             self._attr_supported_color_modes.add(ColorMode.COLOR_TEMP)
@@ -128,6 +124,12 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             self._vars['mireds_sum'] = self._attr_min_mireds + self._attr_max_mireds
         if self._prop_color:
             self._attr_supported_color_modes.add(ColorMode.HS)
+        if self._prop_brightness and not self._attr_supported_color_modes:
+            self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
+        if self._prop_power and not self._attr_supported_color_modes:
+            self._attr_supported_color_modes.add(ColorMode.ONOFF)
+
+        self._supported_features = LightEntityFeature(0)
         if self._prop_mode:
             self._supported_features |= LightEntityFeature.EFFECT
         self._is_yeelight = 'yeelink.' in f'{self.model}'
@@ -274,6 +276,22 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
             num = self._vars.get('color_temp_sum') - num
         return self.translate_mired(num)
 
+    @property
+    def color_mode(self):
+        """Return the color mode of the light."""
+        if self._attr_color_mode is not None:
+            return self._attr_color_mode
+        supported = self.supported_color_modes
+        if ColorMode.HS in supported and self.hs_color is not None:
+            return ColorMode.HS
+        if ColorMode.COLOR_TEMP in supported and self.color_temp_kelvin is not None:
+            return ColorMode.COLOR_TEMP
+        if ColorMode.BRIGHTNESS in supported and self.brightness is not None:
+            return ColorMode.BRIGHTNESS
+        if ColorMode.ONOFF in supported:
+            return ColorMode.ONOFF
+        return ColorMode.UNKNOWN
+
     def translate_mired(self, num):
         if self._is_percentage_color_temp:
             # issues/870
@@ -308,7 +326,7 @@ class MiirLightEntity(MiirToggleEntity, LightEntity):
             self._attr_supported_color_modes = {ColorMode.BRIGHTNESS}
             self._attr_brightness = 127
 
-        self._supported_features |= LightEntityFeature.EFFECT
+        self._supported_features = LightEntityFeature.EFFECT
         self._attr_effect_list = []
         for a in miot_service.actions.values():
             if a.ins:
@@ -361,6 +379,8 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
         if parent_power:
             self._prop_power = parent_power
             self._available = True
+            if not self._attr_supported_color_modes:
+                self._attr_supported_color_modes.add(ColorMode.ONOFF)
 
     @property
     def available(self):
