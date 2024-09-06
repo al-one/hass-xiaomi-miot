@@ -1,7 +1,6 @@
 """Support for Xiaomi Miot."""
 import logging
 import asyncio
-import socket
 import json
 import time
 import os
@@ -18,6 +17,7 @@ from homeassistant.const import (
     ATTR_ENTITY_ID,
     CONF_HOST,
     CONF_NAME,
+    CONF_DEVICE,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
     CONF_TOKEN,
@@ -28,7 +28,6 @@ from homeassistant.const import (
     SERVICE_RELOAD,
 )
 from homeassistant.config import DATA_CUSTOMIZE
-from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity import (
     Entity,
     ToggleEntity,
@@ -42,18 +41,17 @@ from homeassistant.helpers.service import async_register_admin_service
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
 
-from miio import (
-    Device as MiioDevice,  # noqa: F401
-    DeviceException,
-)
-from miio.device import DeviceInfo as MiioInfoBase
-from miio.miot_device import MiotDevice as MiotDeviceBase
-
 from .core.const import *
 from .core.utils import (
     wildcard_models,
     is_offline_exception,
     async_analytics_track_event,
+)
+from .core.device import (
+    Device,
+    DeviceInfo,
+    MiioDevice,
+    DeviceException,
 )
 from .core.miot_spec import (
     MiotSpec,
@@ -254,15 +252,12 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     else:
         config = dict(config_entry.data)
         config.update(config_entry.options or {})
-        info = config.get('miio_info') or {}
-        model = str(config.get(CONF_MODEL) or info.get(CONF_MODEL) or '')
-        config[CONF_MODEL] = model
-
-        urn = DEVICE_CUSTOMIZES.get(model, {}).get('miot_type') or config.get('miot_type')
-        urn = urn or await MiotSpec.async_get_model_type(hass, model)
-        config['miot_type'] = urn
-        if urn and model:
-            hass.data[DOMAIN]['miot_specs'][model] = await MiotSpec.async_from_type(hass, urn)
+        info = DeviceInfo({**config})
+        device = Device(info, hass, config_entry)
+        await device.get_spec()
+        config[CONF_DEVICE] = device
+        config[CONF_MODEL] = info.model
+        config['miot_type'] = await device.get_urn()
         config['config_entry'] = config_entry
         config['miot_local'] = True
         config[CONF_CONN_MODE] = 'local'
@@ -302,43 +297,32 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         cnt = len(config['devices_by_mac'])
         _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', entry.get(CONF_USERNAME), cnt)
     for mac, d in config['devices_by_mac'].items():
-        model = d.get(CONF_MODEL)
-        urn = None
-        if model:
-            urn = DEVICE_CUSTOMIZES.get(model, {}).get('miot_type')
-            urn = urn or await MiotSpec.async_get_model_type(hass, model)
-        if not urn:
-            _LOGGER.info('Xiaomi device: %s has no urn', [d.get('name'), model])
+        info = DeviceInfo(d)
+        device = Device(info, hass, config_entry)
+        device.cloud = mic
+        spec = await device.get_spec()
+        if not spec:
+            _LOGGER.warning('Xiaomi device: %s has no spec', device.name_model)
             continue
-        hass.data[DOMAIN]['miot_specs'][model] = await MiotSpec.async_from_type(hass, urn)
-        ext = d.get('extra') or {}
-        mif = {
-            'ap':     {'ssid': d.get('ssid'), 'bssid': d.get('bssid'), 'rssi': d.get('rssi')},
-            'netif':  {'localIp': d.get('localip'), 'gw': '', 'mask': ''},
-            'fw_ver': ext.get('fw_version', ''),
-            'hw_ver': ext.get('hw_version', ''),
-            'mac':    d.get('mac'),
-            'model':  model,
-            'token':  d.get(CONF_TOKEN),
-        }
-        conn = entry.get(CONF_CONN_MODE, DEFAULT_CONN_MODE)
+        conn = device.conn_mode
         cfg = {
-            CONF_NAME: d.get(CONF_NAME) or DEFAULT_NAME,
-            CONF_HOST: d.get('localip') or '',
-            CONF_TOKEN: d.get('token') or '',
-            CONF_MODEL: model,
-            'miot_did': d.get('did') or '',
-            'miot_type': urn,
-            'miio_info': mif,
+            CONF_DEVICE: device,
+            CONF_NAME: device.name,
+            CONF_HOST: info.host,
+            CONF_TOKEN: info.token,
+            CONF_MODEL: info.model,
+            'miot_did': info.did,
+            'miot_type': await device.get_urn(),
+            'miio_info': info.miio_info,
             CONF_CONN_MODE: conn,
             'miot_local': conn == 'local',
             'miot_cloud': conn != 'local',
-            'home_name': d.get('home_name') or '',
-            'room_name': d.get('room_name') or '',
+            'home_name': info.home_name,
+            'room_name': info.room_name,
             'entry_id': entry_id,
             CONF_CONFIG_VERSION: entry.get(CONF_CONFIG_VERSION) or 0,
         }
-        if conn == 'auto' and model in MIOT_LOCAL_MODELS:
+        if conn == 'auto' and info.model in MIOT_LOCAL_MODELS:
             cfg['miot_local'] = True
             cfg['miot_cloud'] = False
         config['configs'].append(cfg)
@@ -672,46 +656,6 @@ def get_customize_via_model(model, key=None, default=None):
     return cfg if key is None else cfg.get(key, default)
 
 
-class MiioInfo(MiioInfoBase):
-    @property
-    def firmware_version(self):
-        """Firmware version if available."""
-        return self.data.get('fw_ver')
-
-    @property
-    def hardware_version(self):
-        """Hardware version if available."""
-        return self.data.get('hw_ver')
-
-
-class MiotDevice(MiotDeviceBase):
-    hass = None
-
-    def get_properties_for_mapping(self, *, max_properties=12, did=None, mapping=None) -> list:
-        if mapping is None:
-            mapping = self.mapping
-        properties = [
-            {'did': f'prop.{v["siid"]}.{v["piid"]}' if did is None else str(did), **v}
-            for k, v in mapping.items()
-        ]
-        return self.get_properties(
-            properties,
-            property_getter='get_properties',
-            max_properties=max_properties,
-        )
-
-    async def async_get_properties_for_mapping(self, *args, **kwargs) -> list:
-        if not self.hass:
-            return self.get_properties_for_mapping(*args, **kwargs)
-
-        return await self.hass.async_add_executor_job(
-            partial(
-                self.get_properties_for_mapping,
-                *args, **kwargs,
-            )
-        )
-
-
 class BaseEntity(Entity):
     _config = None
     _model = None
@@ -897,33 +841,23 @@ class MiioEntity(BaseEntity):
     def __init__(self, name, device, **kwargs):
         self._device = device
         self._config = dict(kwargs.get('config') or {})
-        self.hass = self._config.get('hass')
         self.logger = kwargs.get('logger') or _LOGGER
-        try:
-            miio_info = kwargs.get('miio_info', self._config.get('miio_info'))
-            if miio_info and isinstance(miio_info, dict):
-                miio_info = MiioInfo(miio_info)
-            self._miio_info = miio_info if isinstance(miio_info, MiioInfo) else device.info()
-        except DeviceException as exc:
-            self.logger.error('%s: Device unavailable or token incorrect: %s', name, exc)
-            raise PlatformNotReady from exc
-        except (socket.gaierror, OSError) as exc:
-            self.logger.error("%s: Device unavailable: %s", name, exc)
-            raise PlatformNotReady from exc
+        self.device = self._config.get(CONF_DEVICE)
+        self.hass = self.device.hass
+        self._miio_info = self.device.info.miio_info
         self._unique_did = self.unique_did
         self._unique_id = self._unique_did
         self._name = name
-        self._model = self._miio_info.model or ''
+        self._model = self.device.info.model
         self._state = None
         self._available = False
         self._state_attrs = {
             CONF_MODEL: self._model,
-            'lan_ip': self._miio_info.network_interface.get('localIp'),
-            'mac_address': self._miio_info.mac_address,
+            'lan_ip': self.device.info.host,
+            'mac_address': self.device.info.mac,
+            'home_room': self.device.info.home_room,
             'entity_class': self.__class__.__name__,
         }
-        if hnm := self._config.get('home_name'):
-            self._state_attrs['home_room'] = f"{hnm} {self._config.get('room_name')}"
         self._supported_features = 0
         self._props = ['power']
         self._success_result = ['ok']
@@ -937,18 +871,16 @@ class MiioEntity(BaseEntity):
 
     @property
     def unique_mac(self):
-        mac = self._miio_info.mac_address
-        if not mac and self.entry_config_version >= 0.2:
-            mac = self._config.get('miot_did')
+        mac = self.device.info.mac
+        if not mac:
+            mac = self.device.info.did
         return mac
 
     @property
     def unique_did(self):
-        did = dr.format_mac(self.unique_mac)
+        did = self.device.info.unique_id
         eid = self._config.get('entry_id')
-        if eid and self.entry_config_version >= 0.1:
-            did = f'{did}-{eid}'
-        return did
+        return f'{did}-{eid}'
 
     @property
     def name(self):
@@ -964,7 +896,7 @@ class MiioEntity(BaseEntity):
 
     @property
     def device_host(self):
-        return self._config.get(CONF_HOST) or ''
+        return self.device.name
 
     @property
     def available(self):
@@ -990,16 +922,19 @@ class MiioEntity(BaseEntity):
 
     @property
     def device_info(self):
-        swv = self._miio_info.firmware_version
-        if self._miio_info.hardware_version:
-            swv = f'{swv}@{self._miio_info.hardware_version}'
+        swv = self.device.info.firmware_version
+        if self.device.info.hardware_version:
+            swv = f'{swv}@{self.device.info.hardware_version}'
+        com = (self._model or 'Xiaomi').split('.', 1)[0]
+        if updater := self._state_attrs.get('state_updater'):
+            com = f'{com} via {updater}'
         return {
             'identifiers': {(DOMAIN, self._unique_did)},
             'name': self.device_name,
             'model': self._model,
-            'manufacturer': (self._model or 'Xiaomi').split('.', 1)[0],
+            'manufacturer': com,
             'sw_version': swv,
-            'suggested_area': self._config.get('room_name'),
+            'suggested_area': self.device.info.room_name,
             'configuration_url': f'https://home.miot-spec.com/s/{self._model}',
         }
 
@@ -1237,39 +1172,9 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_device(self):
-        host = self.device_host
-        token = self._config.get(CONF_TOKEN) or None
-        if self._device:
-            pass
-        elif not host or host in ['0.0.0.0']:
-            pass
-        elif not token:
-            pass
-        elif self.hass:
-            device = None
-            mapping = self.custom_config_json('miot_local_mapping')
-            if not mapping:
-                mapping = self.miot_mapping
-            elif self._miot_service:
-                self._miot_service.spec.set_custom_mapping(mapping)
-                self._vars['has_local_mapping'] = True
-            try:
-                device = MiotDevice(ip=host, token=token, mapping=mapping or {})
-            except TypeError as exc:
-                err = f'{exc}'
-                if 'mapping' in err:
-                    if 'unexpected keyword argument' in err:
-                        # for python-miio <= v0.5.5.1
-                        device = MiotDevice(host, token)
-                        device.mapping = mapping
-                    elif 'required positional argument' in err:
-                        # for python-miio <= v0.5.4
-                        # https://github.com/al-one/hass-xiaomi-miot/issues/44#issuecomment-815474650
-                        device = MiotDevice(mapping, host, token)  # noqa
-            except ValueError as exc:
-                self.logger.warning('%s: Initializing with host %s failed: %s', host, self.name_model, exc)
+        if not self._device:
+            device = self.device.local
             if device:
-                device.hass = self.hass
                 self._device = device
         return self._device
 
@@ -1277,7 +1182,7 @@ class MiotEntity(MiioEntity):
     def miot_did(self):
         did = self.custom_config('miot_did') or self._config.get('miot_did')
         if self.entity_id and not did:
-            mac = self._miio_info.mac_address
+            mac = self.device.info.mac
             dvs = self.entry_config('devices_by_mac') or {}
             if mac in dvs:
                 return dvs[mac].get('did')
@@ -1285,9 +1190,7 @@ class MiotEntity(MiioEntity):
 
     @property
     def xiaomi_cloud(self):
-        if self.hass:
-            return self.entry_config(CONF_XIAOMI_CLOUD)
-        return None
+        return self.device.cloud
 
     @property
     def miot_cloud(self):
