@@ -1110,6 +1110,9 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'remain_clean_time,fault,filter_left_time,no_water_time',
         'select_properties': 'mode',
     },
+    'mrbond.airer.m1s': {
+        'miot_type': 'urn:miot-spec-v2:device:airer:0000A00D:mrbond-m1pro:1',
+    },
     'mrbond.airer.m53pro': {
         'position_reverse': False,
         'sensor_properties': 'fault,left_time',
@@ -1117,6 +1120,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': '',
         'fan_properties': '',
         'chunk_properties': 1,
+    },
+    'mrbond.airer.*': {
+        'main_miot_services': 'airer',
+        'parallel_updates': 1,
     },
     'msj.f_washer.m2': {
         'chunk_properties': 1,

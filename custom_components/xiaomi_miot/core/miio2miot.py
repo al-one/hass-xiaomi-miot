@@ -79,7 +79,8 @@ class Miio2MiotHelper:
                 except (DeviceException, OSError) as exc:
                     if is_offline_exception(exc):
                         raise exc
-                    _LOGGER.error('%s: Got MiioException: %s while %s(%s)', self.model, exc, c['method'], pms)
+                    if not c.get('ignore_error'):
+                        _LOGGER.error('%s: Got MiioException: %s while %s(%s)', self.model, exc, c['method'], pms)
                     continue
                 kls = c.get('values', [])
                 if kls is True:

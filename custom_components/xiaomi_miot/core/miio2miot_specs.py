@@ -786,6 +786,27 @@ MIIO_TO_MIOT_SPECS = {
             },
         }
     },
+    'mrbond.airer.m1pro': {
+        'chunk_properties': 1,
+        'entity_attrs': ['airer_location'],
+        'miio_commands': [
+            {'method': 'get_prop', 'values': True, 'ignore_error': True, 'params': ['drytime']},
+            {'method': 'get_prop', 'values': True, 'ignore_error': True, 'params': ['airer_location']},
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'motor', 'setter': True},
+            'prop.2.2': {
+                'prop': 'dry',
+                'setter': True,
+                'template': '{{ value|int > 0 }}',
+                'set_template': '{{ [value|int] }}',
+            },
+            'prop.2.3': {'prop': 'dry', 'setter': 'set_dry'},
+            'prop.2.4': {'prop': 'dry', 'template': '{{ props.drytime|default(0)|int }}'},
+            'prop.3.1': {'prop': 'led', 'setter': True, 'set_template': '{{ [value|int] }}'},
+        }
+    },
+    'mrbond.airer.m1s': 'mrbond.airer.m1pro',
 
     'nwt.derh.wdh318efw1': {
         'chunk_properties': 1,
