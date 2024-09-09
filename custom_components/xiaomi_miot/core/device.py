@@ -10,6 +10,7 @@ from .const import DOMAIN, DEVICE_CUSTOMIZES, DEFAULT_NAME, CONF_CONN_MODE, DEFA
 from .miot_spec import MiotSpec, MiotResults
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
+from .utils import wildcard_models
 
 
 from miio import (  # noqa: F401
@@ -118,7 +119,7 @@ class Device:
 
         self.local = MiotDevice.from_device(self)
         if self.spec and not self.cloud_only:
-            self.miio2miot = Miio2MiotHelper.from_model(hass, self.info.model, self.spec)
+            self.miio2miot = Miio2MiotHelper.from_model(hass, self.model, self.spec)
 
     @cached_property
     def did(self):
@@ -129,8 +130,12 @@ class Device:
         return self.info.name
 
     @cached_property
+    def model(self):
+        return self.info.model
+
+    @cached_property
     def name_model(self):
-        return f'{self.name}({self.info.model})'
+        return f'{self.name}({self.model})'
 
     @property
     def conn_mode(self):
@@ -146,10 +151,16 @@ class Device:
 
     @property
     def customizes(self):
-        return DEVICE_CUSTOMIZES.get(self.info.model) or {}
+        cfg = {}
+        for m in wildcard_models(self.model):
+            cus = DEVICE_CUSTOMIZES.get(m) or {}
+            if cus:
+                cfg = {**cus, **cfg}
+        return cfg
 
     def custom_config(self, key=None, default=None):
-        return self.customizes.get(key, default)
+        cfg = self.customizes
+        return cfg if key is None else cfg.get(key, default)
 
     def custom_config_list(self, key=None, default=None):
         lst = self.custom_config(key)
@@ -179,11 +190,11 @@ class Device:
             return self.spec
 
         dat = self.hass.data[DOMAIN].setdefault('miot_specs', {})
-        obj = dat.get(self.info.model)
+        obj = dat.get(self.model)
         if not obj:
             urn = await self.get_urn()
             obj = await MiotSpec.async_from_type(self.hass, urn)
-            dat[self.info.model] = obj
+            dat[self.model] = obj
         if obj:
             self.spec = copy.copy(obj)
             if not self.cloud_only:
@@ -192,11 +203,11 @@ class Device:
         return obj
 
     async def get_urn(self):
-        urn = self.customizes.get('miot_type')
+        urn = self.custom_config('miot_type')
         if not urn:
             urn = self.info.urn
         if not urn:
-            urn = await MiotSpec.async_get_model_type(self.hass, self.info.model)
+            urn = await MiotSpec.async_get_model_type(self.hass, self.model)
             self.info.data['urn'] = urn
         return urn
 
@@ -209,7 +220,7 @@ class Device:
         auto_cloud=None,
         check_lan=None,
         max_properties=None,
-    ):
+    ) -> MiotResults:
         self.miot_results = MiotResults([])
         if use_local is None:
             use_local = self.local or self.miio2miot
@@ -285,7 +296,7 @@ class MiotDevice(MiotDeviceBase):
         mapping = {}
         miot_device = None
         try:
-            miot_device = MiotDevice(ip=host, token=token, model=device.info.model, mapping=mapping or {})
+            miot_device = MiotDevice(ip=host, token=token, model=device.model, mapping=mapping or {})
         except TypeError as exc:
             err = f'{exc}'
             if 'mapping' in err:
