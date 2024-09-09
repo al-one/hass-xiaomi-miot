@@ -118,7 +118,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     def device_class(self):
         if cls := self.get_device_class(CoverDeviceClass):
             return cls
-        typ = f'{self._model} {self._miot_service.spec.type}'
+        typ = f'{self.model} {self._miot_service.spec.type}'
         if 'curtain' in typ:
             return CoverDeviceClass.CURTAIN
         if 'window_opener' in typ:

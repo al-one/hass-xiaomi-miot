@@ -171,7 +171,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
     def device_class(self):
         if cls := self.get_device_class(MediaPlayerDeviceClass):
             return cls
-        typ = f'{self._model} {self._miot_service.spec.type}'
+        typ = f'{self.model} {self._miot_service.spec.type}'
         if 'speaker' in typ:
             return MediaPlayerDeviceClass.SPEAKER
         if 'receiver' in typ:

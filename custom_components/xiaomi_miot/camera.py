@@ -181,7 +181,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             self._supported_features |= CameraEntityFeature.ON_OFF
         if miot_service:
             self._prop_motion_tracking = miot_service.bool_property('motion_detection', 'motion_tracking')
-            self._is_doorbell = miot_service.name in ['video_doorbell'] or '.lock.' in self._model
+            self._is_doorbell = miot_service.name in ['video_doorbell'] or '.lock.' in self.model
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -279,7 +279,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             api = mic.get_api_by_host('business.smartcamera.api.io.mi.com', 'common/app/get/eventlist')
             rqd = {
                 'did': self.miot_did,
-                'model': self._model,
+                'model': self.model,
                 'doorBell': self._is_doorbell,
                 'eventType': 'Default',
                 'needMerge': True,

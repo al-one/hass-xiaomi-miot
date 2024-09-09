@@ -59,7 +59,7 @@ class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._attr_code_arm_required = False
-        self._is_mgl03 = self._model == 'lumi.gateway.mgl03'
+        self._is_mgl03 = self.model == 'lumi.gateway.mgl03'
         self._prop_mode = miot_service.get_property('arming_mode')
         if self._prop_mode:
             if self._prop_mode.list_value('home_arming') is not None:

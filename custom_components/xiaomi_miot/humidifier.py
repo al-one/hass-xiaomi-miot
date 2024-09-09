@@ -118,7 +118,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
     def device_class(self):
         if cls := self.get_device_class(HumidifierDeviceClass):
             return cls
-        typ = f'{self._model} {self._miot_service.spec.type}'
+        typ = f'{self.model} {self._miot_service.spec.type}'
         if HumidifierDeviceClass.DEHUMIDIFIER.value in typ or '.derh.' in typ:
             return HumidifierDeviceClass.DEHUMIDIFIER
         return HumidifierDeviceClass.HUMIDIFIER

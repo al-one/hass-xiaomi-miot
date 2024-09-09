@@ -973,10 +973,19 @@ class MiotAction(MiotSpecInstance):
 
 
 class MiotResults:
+    _results: list = None
+    updater: str = 'none'
+    errors = None
+
     def __init__(self, results, mapping=None):
-        self._results = results
         self.mapping = mapping or {}
         self.results = []
+        self.set_results(results)
+
+    def set_results(self, results, mapping=None):
+        if mapping:
+            self.mapping = mapping
+        self._results = results
         for v in results or []:
             if not isinstance(v, dict):
                 continue

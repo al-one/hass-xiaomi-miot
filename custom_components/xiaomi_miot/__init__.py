@@ -66,7 +66,6 @@ from .core.xiaomi_cloud import (
     MiCloudException,
     MiCloudAccessDenied,
 )
-from .core.miio2miot import Miio2MiotHelper
 from .core.templates import CUSTOM_TEMPLATES
 
 _LOGGER = logging.getLogger(__name__)
@@ -657,6 +656,7 @@ def get_customize_via_model(model, key=None, default=None):
 
 
 class BaseEntity(Entity):
+    device: Device = None
     _config = None
     _model = None
     _attr_device_class = None
@@ -696,11 +696,11 @@ class BaseEntity(Entity):
 
     @property
     def model(self):
-        return self._model
+        return self.device.info.model
 
     @property
     def name_model(self):
-        return f'{self.name}({self._model})'
+        return f'{self.name}({self.model})'
 
     def global_config(self, key=None, default=None):
         if not self.hass:
@@ -852,7 +852,7 @@ class MiioEntity(BaseEntity):
         self._state = None
         self._available = False
         self._state_attrs = {
-            CONF_MODEL: self._model,
+            CONF_MODEL: self.model,
             'lan_ip': self.device.info.host,
             'mac_address': self.device.info.mac,
             'home_room': self.device.info.home_room,
@@ -888,7 +888,7 @@ class MiioEntity(BaseEntity):
 
     @property
     def name_model(self):
-        return f'{self.device_name}({self._model})'
+        return f'{self.device_name}({self.model})'
 
     @property
     def device_name(self):
@@ -925,17 +925,17 @@ class MiioEntity(BaseEntity):
         swv = self.device.info.firmware_version
         if self.device.info.hardware_version:
             swv = f'{swv}@{self.device.info.hardware_version}'
-        com = (self._model or 'Xiaomi').split('.', 1)[0]
+        com = (self.model or 'Xiaomi').split('.', 1)[0]
         if updater := self._state_attrs.get('state_updater'):
             com = f'{com} via {updater}'
         return {
             'identifiers': {(DOMAIN, self._unique_did)},
             'name': self.device_name,
-            'model': self._model,
+            'model': self.model,
             'manufacturer': com,
             'sw_version': swv,
             'suggested_area': self.device.info.room_name,
-            'configuration_url': f'https://home.miot-spec.com/s/{self._model}',
+            'configuration_url': f'https://home.miot-spec.com/s/{self.model}',
         }
 
     async def async_added_to_hass(self):
@@ -1110,19 +1110,9 @@ class MiotEntity(MiioEntity):
         super().__init__(name, device, **kwargs)
 
         self._local_state = None
-        self._miio2miot = None
+        self._miio2miot = self.device.miio2miot
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         if self._miot_service:
-            if not self.cloud_only:
-                # only for local mode
-                ext = self.custom_config('extend_miot_specs')
-                if ext and isinstance(ext, str):
-                    ext = DEVICE_CUSTOMIZES.get(ext, {}).get('extend_miot_specs')
-                else:
-                    ext = self.custom_config_list('extend_miot_specs')
-                if ext and isinstance(ext, list):
-                    self._miot_service.spec.extend_specs(services=ext)
-                self._miio2miot = Miio2MiotHelper.from_model(self.hass, self._model, self._miot_service.spec)
             if dic := self.custom_config_json('miot_mapping'):
                 self._miot_service.spec.set_custom_mapping(dic)
             if not self._miot_mapping:
@@ -1154,11 +1144,11 @@ class MiotEntity(MiioEntity):
             self.entity_id = self._miot_service.generate_entity_id(self)
             self._state_attrs['miot_type'] = self._miot_service.spec.type
             self._attr_translation_key = self._miot_service.name
-        if not self.entity_id and self._model:
-            mls = f'{self._model}..'.split('.')
+        if not self.entity_id and self.model:
+            mls = f'{self.model}..'.split('.')
             mac = re.sub(r'[\W_]+', '', self.unique_mac)
             self.entity_id = f'{DOMAIN}.{mls[0]}_{mls[2]}_{mac[-4:]}_{mls[1]}'
-        if self._model in MIOT_LOCAL_MODELS:
+        if self.model in MIOT_LOCAL_MODELS:
             self._vars['track_miot_error'] = True
         self._success_code = 0
         self.logger.info('%s: Initializing miot device with mapping: %s', self.name_model, self._miot_mapping)
@@ -1277,10 +1267,7 @@ class MiotEntity(MiioEntity):
         if self._vars.get('delay_update'):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
-        updater = 'none'
         attrs = {}
-        results = None
-        errors = None
         mapping = self.miot_mapping
         local_mapping = mapping
         if self._vars.get('has_local_mapping'):
@@ -1291,93 +1278,24 @@ class MiotEntity(MiioEntity):
             if self._miio2miot:
                 self._miio2miot.extend_miio_props(pls)
 
-        use_local = self.miot_local or self._miio2miot
-        if self.cloud_only:
-            use_local = False
-        elif self.custom_config_bool('miot_cloud'):
-            use_local = False
-        elif not self.miot_device:
-            use_local = False
-        use_cloud = not use_local and self.miot_cloud
-        if not self.miot_device:
-            use_cloud = self.xiaomi_cloud
-        if not (mapping or local_mapping):
-            use_local = False
-            use_cloud = False
-            results = []
-
-        if use_local:
-            updater = 'lan'
-            max_properties = 10
-            try:
-                if self._miio2miot:
-                    results = await self._miio2miot.async_get_miot_props(self.miot_device, local_mapping)
-                    attrs.update(self._miio2miot.entity_attrs())
-                else:
-                    max_properties = self.custom_config_integer('chunk_properties')
-                    if not max_properties:
-                        idx = len(local_mapping)
-                        if idx >= 10:
-                            idx -= 10
-                        chunks = [
-                            # 10,11,12,13,14,15,16,17,18,19
-                            10, 6, 6, 7, 7, 8, 8, 9, 9, 10,
-                            # 20,21,22,23,24,25,26,27,28,29
-                            10, 7, 8, 8, 8, 9, 9, 9, 10, 10,
-                            # 30,31,32,33,34,35,36,37,38,39
-                            10, 8, 8, 7, 7, 7, 9, 9, 10, 10,
-                            # 40,41,42,43,44,45,46,47,48,49
-                            10, 9, 9, 9, 9, 9, 10, 10, 10, 10,
-                        ]
-                        max_properties = 10 if idx >= len(chunks) else chunks[idx]
-                    results = await self._device.async_get_properties_for_mapping(
-                        max_properties=max_properties,
-                        did=self.miot_did,
-                        mapping=local_mapping,
-                    )
-                self._local_state = True
-            except (DeviceException, OSError) as exc:
-                log = self.logger.error
-                if self.custom_config_bool('auto_cloud'):
-                    use_cloud = self.xiaomi_cloud
-                    log = self.logger.warning if self._local_state else self.logger.info
-                else:
-                    self._available = False
-                    errors = f'{exc}'
-                self._local_state = False
-                log(
-                    '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',
-                    self.name_model, exc, mapping, max_properties, len(mapping)
-                )
-
-        if use_cloud:
-            updater = 'cloud'
-            try:
-                mic = self.xiaomi_cloud
-                results = await mic.async_get_properties_for_mapping(self.miot_did, mapping)
-                if self.custom_config_bool('check_lan'):
-                    if self.miot_device:
-                        await self.hass.async_add_executor_job(self.miot_device.info)
-                    else:
-                        self._available = False
-                        return
-            except MiCloudException as exc:
-                self._available = False
-                errors = f'{exc}'
-                self.logger.error(
-                    '%s: Got MiCloudException while fetching the state: %s, mapping: %s',
-                    self.name_model, exc, mapping,
-                )
+        result = await self.device.update_miot_status(
+            mapping=mapping,
+            local_mapping=local_mapping,
+            use_local=self.custom_config_bool('miot_local'),
+            use_cloud=self.custom_config_bool('miot_cloud'),
+            auto_cloud=self.custom_config_bool('auto_cloud'),
+            check_lan=self.custom_config_bool('check_lan'),
+            max_properties=self.custom_config_integer('chunk_properties'),
+        )
 
         self._vars.setdefault('offline_times', 0)
-        self.hass.data[DOMAIN].setdefault('offline_devices', {})
-        result = MiotResults(results, mapping)
+        offline_devices = self.hass.data[DOMAIN].setdefault('offline_devices', {})
         if not result.is_valid:
             self._available = False
-            if errors and is_offline_exception(errors):
-                odd = self.hass.data[DOMAIN]['offline_devices'].get(self.unique_did) or {}
+            if result.errors and is_offline_exception(result.errors):
                 if not self._vars.get('ignore_offline'):
                     self._vars['offline_times'] += 1
+                odd = offline_devices.get(self.unique_did) or {}
                 if odd:
                     odd.update({
                         'occurrences': self._vars['offline_times'],
@@ -1387,11 +1305,11 @@ class MiotEntity(MiioEntity):
                         'entity': self,
                         'occurrences': self._vars['offline_times'],
                     }
-                    self.hass.data[DOMAIN]['offline_devices'][self.unique_did] = odd
+                    offline_devices[self.unique_did] = odd
                     tip = f'Some devices cannot be connected in the LAN, please check their IP ' \
                           f'and make sure they are in the same subnet as the HA.\n\n' \
                           f'一些设备无法通过局域网连接，请检查它们的IP，并确保它们和HA在同一子网。\n'
-                    for d in self.hass.data[DOMAIN]['offline_devices'].values():
+                    for d in offline_devices.values():
                         ent = d.get('entity')
                         if not ent:
                             continue
@@ -1408,28 +1326,26 @@ class MiotEntity(MiioEntity):
                         'Devices offline',
                         f'{DOMAIN}-devices-offline',
                     )
-            elif self._vars.get('track_miot_error') and updater == 'lan':
+            elif result.updater == 'lan' and self._vars.pop('track_miot_error', None):
                 await async_analytics_track_event(
-                    self.hass, 'miot', 'error', self._model,
-                    firmware=self.device_info.get('sw_version'),
-                    results=results or errors,
+                    self.hass, 'miot', 'error', self.model,
+                    firmware=self.device.info.firmware_version,
+                    results=result._results or result.errors,
                 )
-                self._vars.pop('track_miot_error', None)
-            if result.is_empty and results:
+            if result.is_empty and result._results:
                 self.logger.warning(
                     '%s: Got invalid miot result while fetching the state: %s, mapping: %s',
-                    self.name_model, results, mapping,
+                    self.name_model, result._results, mapping,
                 )
             return False
         self._vars['offline_times'] = 0
-        if self.hass.data[DOMAIN]['offline_devices'].pop(self.unique_did, None):
-            if not self.hass.data[DOMAIN]['offline_devices']:
-                persistent_notification.async_dismiss(
-                    self.hass,
-                    f'{DOMAIN}-devices-offline',
-                )
+        if offline_devices.pop(self.unique_did, None) and not offline_devices:
+            persistent_notification.async_dismiss(self.hass, f'{DOMAIN}-devices-offline')
+
         attrs.update(result.to_attributes(self._state_attrs))
-        attrs['state_updater'] = updater
+        if self._miio2miot:
+            attrs.update(self._miio2miot.entity_attrs())
+        attrs['state_updater'] = result.updater
         self._available = True
         self._state = True if self._state_attrs.get('power') else False
 
@@ -2165,6 +2081,7 @@ class MiirToggleEntity(MiotEntity, ToggleEntity):
 class BaseSubEntity(BaseEntity):
     def __init__(self, parent, attr, option=None, **kwargs):
         self.hass = parent.hass
+        self.device = parent.device
         self._unique_id = f'{parent.unique_id}-{attr}'
         self._name = f'{parent.name} {attr}'
         self._state = STATE_UNKNOWN
@@ -2235,7 +2152,7 @@ class BaseSubEntity(BaseEntity):
 
     @property
     def name_model(self):
-        return f'{self.device_name}({self._model})'
+        return f'{self.device_name}({self.model})'
 
     def format_name_by_property(self, prop: MiotProperty):
         return f'{self.device_name} {prop.friendly_desc}'.strip()
@@ -2286,7 +2203,7 @@ class BaseSubEntity(BaseEntity):
     @property
     def customize_keys(self):
         mar = []
-        for mod in wildcard_models(self._model):
+        for mod in wildcard_models(self.model):
             if self._dict_key:
                 mar.append(f'{mod}:{self._attr}:{self._dict_key}')
             elif self._attr:

@@ -81,7 +81,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
     def device_class(self):
         if cls := self.get_device_class(SwitchDeviceClass):
             return cls
-        typ = f'{self._model} {self._miot_service.spec.type}'
+        typ = f'{self.model} {self._miot_service.spec.type}'
         if 'outlet' in typ or '.plug.' in typ:
             return SwitchDeviceClass.OUTLET
         return SwitchDeviceClass.SWITCH

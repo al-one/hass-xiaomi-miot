@@ -172,7 +172,7 @@ class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
             'dids': [did],
             'params': {
                 'CID': 50031,
-                'model': self._model,
+                'model': self.model,
                 'SN': int(time.time() / 1000),
                 'PL': {
                     'Size': 1,

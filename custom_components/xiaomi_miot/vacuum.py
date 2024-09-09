@@ -329,7 +329,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         return super().pause()
 
     def return_to_base(self, **kwargs):
-        if self._model in ['rockrobo.vacuum.v1']:
+        if self.model in ['rockrobo.vacuum.v1']:
             self.stop()
         return super().return_to_base()
 
