@@ -92,7 +92,8 @@
                     "server_country": "Posizione server di MiCloud",
                     "conn_mode": "Modalità di connessione dispositivo",
                     "renew_devices": "Forza rinnovo dispositivi",
-                    "disable_message": "Disattiva il sensore di notifica di Mihome"
+                    "disable_message": "Disattiva il sensore di notifica di Mihome",
+                    "disable_scene_history": "Disabilita sensore cronologia scene Mihome"
                 }
             },
             "cloud_filter": {
