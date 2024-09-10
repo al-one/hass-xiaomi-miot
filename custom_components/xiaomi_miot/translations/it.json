@@ -54,7 +54,6 @@
                     "model_specified": "Modello dispositivo specificato (opzionale)",
                     "only_main_entity": "Solo entità principali (parent)",
                     "reset_customizes": "Ripristina le opzioni predefinite",
-
                     "bool2selects": "Presonalizza opzioni"
                 }
             }
