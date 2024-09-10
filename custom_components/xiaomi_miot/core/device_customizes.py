@@ -1457,6 +1457,10 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,boost_value',
     },
 
+    'wfxx.motor.mxrf': {
+        'switch_properties': 'key_set_flag',
+        'select_properties': 'key_num',
+    },
     'wise.wifispeaker.x7': {
         'switch_properties': 'key_one,key_two,key_three,key_four,key_five,key_six,key_seven,key_eight,key_nine,'
                              'key_ten,key_eleven,key_twelve,key_thirteen,key_fourteen,key_fifteen,key_sixteen',
