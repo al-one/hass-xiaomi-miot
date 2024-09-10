@@ -112,6 +112,39 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'airdog.airpurifier.x5': {
+        'without_props': True,
+        'ignore_result': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'values': ['power', 'mode', 'speed', 'lock', 'clean', 'pm25'],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff', 'set_template': '{{ [value|int] }}'},
+            'prop.2.2': {'prop': 'speed', 'setter': 'set_wind', 'set_template': '{{ [props.mode, value|int] }}'},
+            'prop.2.3': {'prop': 'mode', 'setter': 'set_wind', 'set_template': '{{ [value|int, props.speed] }}'},
+            'prop.3.1': {'prop': 'pm25'},
+            'prop.4.1': {
+                'prop': 'lock', 'setter': True,
+                'template': '{{ value in ["lock"] }}',
+                'set_template': '{{ [value|int] }}',
+            },
+        },
+    },
+    'airdog.airpurifier.x7': 'airdog.airpurifier.x5',
+    'airdog.airpurifier.x7sm': {
+        'extend_model': 'airdog.airpurifier.x5',
+        'entity_attrs': ['hcho'],
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'values': ['power', 'mode', 'speed', 'lock', 'clean', 'pm25', 'hcho'],
+            },
+        ],
+    },
+
     'bj352.waterpuri.s100cm': {
         'without_props': True,
         'entity_attrs': ['PureWasteRatio', 'HeatingStatus', 'TotalPureWater', 'TotalWasteWater', 'error_code'],
