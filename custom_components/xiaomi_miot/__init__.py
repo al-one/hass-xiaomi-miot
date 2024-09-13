@@ -993,11 +993,14 @@ class MiioEntity(BaseEntity):
         swv = self._miio_info.firmware_version
         if self._miio_info.hardware_version:
             swv = f'{swv}@{self._miio_info.hardware_version}'
+        com = (self.model or 'Xiaomi').split('.', 1)[0]
+        if updater := self._state_attrs.get('state_updater'):
+            com = f'{com} via {updater}'
         return {
             'identifiers': {(DOMAIN, self._unique_did)},
             'name': self.device_name,
             'model': self._model,
-            'manufacturer': (self._model or 'Xiaomi').split('.', 1)[0],
+            'manufacturer': com,
             'sw_version': swv,
             'suggested_area': self._config.get('room_name'),
             'configuration_url': f'https://home.miot-spec.com/s/{self._model}',

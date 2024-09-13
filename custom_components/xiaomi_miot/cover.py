@@ -1,16 +1,7 @@
 """Support for Curtain and Airer."""
 import logging
-import time
-from enum import Enum
-from functools import partial
 from datetime import timedelta
 
-from homeassistant.const import (
-    CONF_NAME,
-    CONF_HOST,
-    CONF_TOKEN,
-)
-from homeassistant.core import callback
 from homeassistant.components.cover import (
     DOMAIN as ENTITY_DOMAIN,
     CoverEntity,
@@ -18,17 +9,13 @@ from homeassistant.components.cover import (
     CoverDeviceClass,
     ATTR_POSITION,
 )
-from homeassistant.helpers.event import async_track_utc_time_change
 
 from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
-    MiioEntity,
     MiotEntity,
-    MiioDevice,
     MiotPropertySubEntity,
-    DeviceException,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -36,11 +23,6 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
     MiotProperty,
-)
-from .light import LightSubEntity
-from .fan import (
-    FanSubEntity,
-    FanEntityFeature,
 )
 
 _LOGGER = logging.getLogger(__name__)
