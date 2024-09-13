@@ -2,7 +2,6 @@
 import logging
 import time
 import json
-from functools import partial
 from datetime import datetime
 
 from homeassistant.const import (
