@@ -1,12 +1,14 @@
 import logging
 import copy
-from typing import Optional
+from typing import TYPE_CHECKING, Optional, Callable
 from functools import partial, cached_property
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL
 from homeassistant.helpers.device_registry import format_mac
 
 from .const import DOMAIN, DEVICE_CUSTOMIZES, DEFAULT_NAME, CONF_CONN_MODE, DEFAULT_CONN_MODE
+from .hass_entry import HassEntry
+from .converters import BaseConv, MiotPropConv
 from .miot_spec import MiotSpec, MiotResults
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
@@ -19,6 +21,9 @@ from miio import (  # noqa: F401
 )
 from miio.device import DeviceInfo as MiioInfoBase
 from miio.miot_device import MiotDevice as MiotDeviceBase
+
+if TYPE_CHECKING:
+    from .. import BaseEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,7 +39,7 @@ class DeviceInfo:
     def did(self):
         return self.data.get('did', '')
 
-    @property
+    @cached_property
     def unique_id(self):
         if mac := self.mac:
             return format_mac(mac).lower()
@@ -44,21 +49,21 @@ class DeviceInfo:
     def name(self):
         return self.data.get('name') or DEFAULT_NAME
 
-    @property
+    @cached_property
     def model(self):
-        return self.data.get('model') or self.miio_info.model or ''
+        return self.miio_info.model or ''
 
-    @property
+    @cached_property
     def mac(self):
         return self.data.get('mac') or ''
 
     @property
     def host(self):
-        return self.data.get('localip') or ''
+        return self.data.get('localip') or self.data.get(CONF_HOST) or ''
 
     @property
     def token(self):
-        return self.data.get('token') or ''
+        return self.data.get(CONF_TOKEN) or self.miio_info.token or ''
 
     @property
     def urn(self):
@@ -68,37 +73,37 @@ class DeviceInfo:
     def extra(self):
         return self.data.get('extra') or {}
 
-    @property
+    @cached_property
     def firmware_version(self):
-        return self.extra.get('fw_version', '')
+        return self.miio_info.firmware_version
 
-    @property
+    @cached_property
     def hardware_version(self):
-        return self.data.get('hw_ver', '')
+        return self.miio_info.hardware_version
 
-    @property
+    @cached_property
     def home_name(self):
         return self.data.get('home_name', '')
 
-    @property
+    @cached_property
     def room_name(self):
         return self.data.get('room_name', '')
 
-    @property
+    @cached_property
     def home_room(self):
         return f'{self.home_name} {self.room_name}'.strip()
 
-    @property
+    @cached_property
     def miio_info(self):
         info = self.data
         data = info.get('miio_info') or {
             'ap':     {'ssid': info.get('ssid'), 'bssid': info.get('bssid'), 'rssi': info.get('rssi')},
             'netif':  {'localIp': self.host, 'gw': '', 'mask': ''},
-            'fw_ver': self.firmware_version,
-            'hw_ver': self.hardware_version,
-            'mac':    self.mac,
-            'model':  self.model,
-            'token':  self.token,
+            'fw_ver': self.extra.get('fw_version', ''),
+            'hw_ver': info.get('hw_ver', ''),
+            'mac':    info.get('mac', ''),
+            'model':  info.get(CONF_MODEL, ''),
+            'token':  info.get(CONF_TOKEN, ''),
         }
         return MiioInfo(data)
 
@@ -111,15 +116,17 @@ class Device:
     miot_results = None
     _local_state = None
 
-    def __init__(self, info: DeviceInfo, hass: HomeAssistant, entry: ConfigEntry):
+    def __init__(self, info: DeviceInfo, entry: HassEntry):
         self.info = info
-        self.hass = hass
+        self.hass = entry.hass
         self.entry = entry
-        self.entities = []
+        self.entities: list['BaseEntity'] = []
+        self.listeners: list[Callable] = []
+        self.converters: list[BaseConv] = []
 
         self.local = MiotDevice.from_device(self)
         if self.spec and not self.cloud_only:
-            self.miio2miot = Miio2MiotHelper.from_model(hass, self.model, self.spec)
+            self.miio2miot = Miio2MiotHelper.from_model(self.hass, self.model, self.spec)
 
     @cached_property
     def did(self):
@@ -139,7 +146,7 @@ class Device:
 
     @property
     def conn_mode(self):
-        return self.entry.data.get(CONF_CONN_MODE, DEFAULT_CONN_MODE)
+        return self.entry.get_config(CONF_CONN_MODE) or DEFAULT_CONN_MODE
 
     @property
     def local_only(self):
@@ -200,7 +207,8 @@ class Device:
             if not self.cloud_only:
                 if ext := self.extend_miot_specs:
                     self.spec.extend_specs(services=ext)
-        return obj
+            self.init_converters()
+        return self.spec
 
     async def get_urn(self):
         urn = self.custom_config('miot_type')
@@ -210,6 +218,66 @@ class Device:
             urn = await MiotSpec.async_get_model_type(self.hass, self.model)
             self.info.data['urn'] = urn
         return urn
+
+    def init_converters(self):
+        for d in [
+            'sensor', 'binary_sensor', 'switch', 'number', 'select',
+            'fan', 'cover', 'button', 'scanner', 'number_select',
+        ]:
+            if not self.spec:
+                break
+            pls = self.custom_config_list(f'{d}_properties') or []
+            if not pls:
+                continue
+            for prop in self.spec.get_properties(*pls):
+                self.converters.append(MiotPropConv(prop, d))
+
+    def add_entity(self, entity: 'BaseEntity'):
+        if entity not in self.entities:
+            self.entities.append(entity)
+
+    def add_listener(self, handler: Callable):
+        if handler not in self.listeners:
+            self.listeners.append(handler)
+
+    def remove_listener(self, handler: Callable):
+        if handler in self.listeners:
+            self.listeners.remove(handler)
+
+    def dispatch(self, data: dict):
+        if self.converters: # TODO
+            _LOGGER.warning('%s: Device dispatch data: %s', self.name_model, data)
+        for handler in self.listeners:
+            handler(data)
+
+    def decode(self, data: dict | list) -> dict:
+        """Decode data from device."""
+        payload = {}
+        if not isinstance(data, list):
+            data = [data]
+        for value in data:
+            self.decode_one(payload, value)
+        return payload
+
+    def decode_one(self, payload: dict, value: dict):
+        if value.get('code', 0):
+            return
+        siid = value.get('siid')
+        piid = value.get('piid')
+        if siid and piid:
+            mi = MiotSpec.unique_prop(siid, piid=piid)
+            for conv in self.converters:
+                if conv.mi == mi:
+                    conv.decode(self, payload, value.get('value'))
+
+    def encode(self, value: dict) -> dict:
+        """Encode data from hass to device."""
+        payload = {}
+        for k, v in value.items():
+            for conv in self.converters:
+                if conv.attr == k:
+                    conv.encode(self, payload, v)
+        return payload
 
     async def update_miot_status(
         self,
@@ -221,7 +289,8 @@ class Device:
         check_lan=None,
         max_properties=None,
     ) -> MiotResults:
-        self.miot_results = MiotResults([])
+        results = []
+        self.miot_results = MiotResults(results)
         if use_local is None:
             use_local = self.local or self.miio2miot
             if self.cloud_only or use_cloud:
@@ -241,7 +310,6 @@ class Device:
             try:
                 if self.miio2miot:
                     results = await self.miio2miot.async_get_miot_props(self.local, local_mapping)
-                    attrs = self.miio2miot.entity_attrs()
                 else:
                     if not max_properties:
                         max_properties = self.local.get_max_properties(local_mapping)
@@ -279,6 +347,8 @@ class Device:
                     self.name_model, exc, mapping,
                 )
 
+        if results:
+            self.dispatch(self.decode(results))
         return self.miot_results
 
 

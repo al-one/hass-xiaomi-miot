@@ -47,9 +47,9 @@ from .core.utils import (
     is_offline_exception,
     async_analytics_track_event,
 )
+from .core import HassEntry
 from .core.device import (
     Device,
-    DeviceInfo,
     MiioDevice,
     DeviceException,
 )
@@ -242,20 +242,18 @@ async def async_setup(hass, hass_config: dict):
 async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
     hass.data.setdefault(DOMAIN, {})
     entry_id = config_entry.entry_id
-    unique_id = config_entry.unique_id
 
     if config_entry.data.get('customizing_entity') or config_entry.data.get('customizing_device'):
         await async_setup_customizes(hass, config_entry)
     elif config_entry.data.get(CONF_USERNAME):
         await async_setup_xiaomi_cloud(hass, config_entry)
     else:
-        config = dict(config_entry.data)
-        config.update(config_entry.options or {})
-        info = DeviceInfo({**config})
-        device = Device(info, hass, config_entry)
+        entry = HassEntry.init(hass, config_entry)
+        config = {**entry.get_config()}
+        device = entry.new_device(config)
         await device.get_spec()
         config[CONF_DEVICE] = device
-        config[CONF_MODEL] = info.model
+        config[CONF_MODEL] = device.model
         config['miot_type'] = await device.get_urn()
         config['config_entry'] = config_entry
         config['miot_local'] = True
@@ -263,7 +261,6 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
         hass.data[DOMAIN][entry_id] = config
         _LOGGER.debug('Xiaomi Miot setup config entry: %s', {
             'entry_id': entry_id,
-            'unique_id': unique_id,
             'config': config,
         })
 
@@ -276,29 +273,29 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
 
 async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
     entry_id = config_entry.entry_id
-    entry = {**config_entry.data, **config_entry.options}
+    entry = HassEntry.init(hass, config_entry)
+    entry_config = entry.get_config()
+    username = entry_config.get(CONF_USERNAME)
     config = {
         'entry_id': entry_id,
         'config_entry': config_entry,
         'configs': [],
     }
     try:
-        mic = await MiotCloud.from_token(hass, entry, login=False)
-        await mic.async_check_auth(notify=True)
-        config[CONF_XIAOMI_CLOUD] = mic
-        config['devices_by_mac'] = await mic.async_get_devices_by_key('mac', filters=entry) or {}
+        cloud = await entry.get_cloud(check=True)
+        config[CONF_XIAOMI_CLOUD] = cloud
+        config['devices_by_mac'] = await cloud.async_get_devices_by_key('mac', filters=entry_config) or {}
     except (MiCloudException, MiCloudAccessDenied) as exc:
-        _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', entry.get(CONF_USERNAME), exc)
+        _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', username, exc)
         return False
     if not config.get('devices_by_mac'):
-        _LOGGER.warning('None device in xiaomi cloud: %s', entry.get(CONF_USERNAME))
+        _LOGGER.warning('None device in xiaomi cloud: %s', username)
     else:
         cnt = len(config['devices_by_mac'])
-        _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', entry.get(CONF_USERNAME), cnt)
+        _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', username, cnt)
     for mac, d in config['devices_by_mac'].items():
-        info = DeviceInfo(d)
-        device = Device(info, hass, config_entry)
-        device.cloud = mic
+        device = entry.new_device(d)
+        device.cloud = cloud
         spec = await device.get_spec()
         if not spec:
             _LOGGER.warning('Xiaomi device: %s has no spec', device.name_model)
@@ -307,27 +304,27 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         cfg = {
             CONF_DEVICE: device,
             CONF_NAME: device.name,
-            CONF_HOST: info.host,
-            CONF_TOKEN: info.token,
-            CONF_MODEL: info.model,
-            'miot_did': info.did,
+            CONF_HOST: device.info.host,
+            CONF_TOKEN: device.info.token,
+            CONF_MODEL: device.info.model,
+            'miot_did': device.info.did,
             'miot_type': await device.get_urn(),
-            'miio_info': info.miio_info,
+            'miio_info': device.info.miio_info,
             CONF_CONN_MODE: conn,
             'miot_local': conn == 'local',
             'miot_cloud': conn != 'local',
-            'home_name': info.home_name,
-            'room_name': info.room_name,
+            'home_name': device.info.home_name,
+            'room_name': device.info.room_name,
             'entry_id': entry_id,
-            CONF_CONFIG_VERSION: entry.get(CONF_CONFIG_VERSION) or 0,
+            CONF_CONFIG_VERSION: entry_config.get(CONF_CONFIG_VERSION) or 0,
         }
-        if conn == 'auto' and info.model in MIOT_LOCAL_MODELS:
+        if conn == 'auto' and device.info.model in MIOT_LOCAL_MODELS:
             cfg['miot_local'] = True
             cfg['miot_cloud'] = False
         config['configs'].append(cfg)
         _LOGGER.debug('Xiaomi cloud device: %s', {**cfg, CONF_TOKEN: '****'})
     hass.data[DOMAIN][entry_id] = config
-    hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {CONF_XIAOMI_CLOUD: mic})
+    hass.data[DOMAIN]['accounts'].setdefault(cloud.user_id, {CONF_XIAOMI_CLOUD: cloud})
     return True
 
 
@@ -373,6 +370,7 @@ async def async_unload_entry(hass: hass_core.HomeAssistant, config_entry: config
 
 def init_integration_data(hass):
     hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN].setdefault('entries', {})
     hass.data[DOMAIN].setdefault('configs', {})
     hass.data[DOMAIN].setdefault('entities', {})
     hass.data[DOMAIN].setdefault('accounts', {})

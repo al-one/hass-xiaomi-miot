@@ -7,10 +7,11 @@ from datetime import datetime, timedelta
 from functools import cmp_to_key
 
 from homeassistant.const import STATE_UNKNOWN
-from homeassistant.helpers.entity import Entity
 from homeassistant.components.sensor import (
     DOMAIN as ENTITY_DOMAIN,
+    SensorEntity,
     SensorDeviceClass,
+    STATE_CLASSES,
 )
 from homeassistant.helpers.restore_state import RestoreEntity, RestoredExtraData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -18,8 +19,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from . import (
     DOMAIN,
     CONF_MODEL,
-    CONF_XIAOMI_CLOUD,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
+    HassEntry,
     MiotEntity,
     BaseSubEntity,
     MiCoordinatorEntity,
@@ -35,19 +36,6 @@ from .core.miot_spec import (
 )
 from .core.utils import local_zone, get_translation
 
-try:
-    # hass 2021.4.0b0+
-    from homeassistant.components.sensor import SensorEntity
-except ImportError:
-    class SensorEntity(Entity):
-        """Base class for sensor entities."""
-
-try:
-    # hass 2021.6.0b0+
-    from homeassistant.components.sensor import STATE_CLASSES
-except ImportError:
-    STATE_CLASSES = []
-
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
@@ -55,28 +43,27 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    cfg = hass.data[DOMAIN].get(config_entry.entry_id) or {}
-    mic = cfg.get(CONF_XIAOMI_CLOUD)
-    config_data = config_entry.data or {}
+    entry = HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
+    cloud = await entry.get_cloud()
 
-    if isinstance(mic, MiotCloud) and mic.user_id:
-        if not config_data.get('disable_message'):
-            hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {})
+    if cloud:
+        if not entry.get_config('disable_message'):
+            hass.data[DOMAIN]['accounts'].setdefault(cloud.user_id, {})
 
-            if not hass.data[DOMAIN]['accounts'][mic.user_id].get('messenger'):
-                entity = MihomeMessageSensor(hass, mic)
-                hass.data[DOMAIN]['accounts'][mic.user_id]['messenger'] = entity
+            if not hass.data[DOMAIN]['accounts'][cloud.user_id].get('messenger'):
+                entity = MihomeMessageSensor(hass, cloud)
+                hass.data[DOMAIN]['accounts'][cloud.user_id]['messenger'] = entity
                 async_add_entities([entity], update_before_add=False)
 
-        if not config_data.get('disable_scene_history'):
-            homes = await mic.async_get_homerooms()
+        if not entry.get_config('disable_scene_history'):
+            homes = await cloud.async_get_homerooms()
             for home in homes:
                 home_id = home.get('id')
-                if hass.data[DOMAIN]['accounts'][mic.user_id].get(f'scene_history_{home_id}'):
+                if hass.data[DOMAIN]['accounts'][cloud.user_id].get(f'scene_history_{home_id}'):
                     continue
 
-                entity = MihomeSceneHistorySensor(hass, mic, home_id, home.get('uid'))
-                hass.data[DOMAIN]['accounts'][mic.user_id][f'scene_history_{home_id}'] = entity
+                entity = MihomeSceneHistorySensor(hass, cloud, home_id, home.get('uid'))
+                hass.data[DOMAIN]['accounts'][cloud.user_id][f'scene_history_{home_id}'] = entity
                 async_add_entities([entity], update_before_add=False)
 
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
