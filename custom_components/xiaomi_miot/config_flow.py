@@ -173,6 +173,7 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None, via_did
                 grp.setdefault(v, 0)
                 grp[v] += 1
                 vls.setdefault(f, {})
+                dnm = f'{d.get("name")}'
                 des = '<empty>' if v == '' else v
                 if f == 'home_id':
                     des = d.get('home_name') or des
@@ -180,11 +181,10 @@ async def get_cloud_filter_schema(hass, user_input, errors, schema=None, via_did
                     if MiotCloud.is_hide(d):
                         continue
                     dip = d.get('localip')
-                    if not dip or d.get('pid') not in ['0', '8', '', None]:
+                    if not dip or d.get('pid') not in [0, '0', '8', '', None]:
                         dip = d.get('model')
-                    vls[f][v] = f'{d.get("name")} ({dip})'
+                    vls[f][v] = f'{dnm} ({dip})'
                 elif f in ['model']:
-                    dnm = f'{d.get("name")}'
                     if grp[v] > 1:
                         dnm += f' * {grp[v]}'
                     vls[f][v] = f'{des} ({dnm})'
