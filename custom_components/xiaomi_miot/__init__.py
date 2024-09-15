@@ -47,7 +47,7 @@ from .core.utils import (
     is_offline_exception,
     async_analytics_track_event,
 )
-from .core import HassEntry
+from .core import HassEntry, XEntity
 from .core.device import (
     Device,
     MiioDevice,
@@ -250,8 +250,7 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     else:
         entry = HassEntry.init(hass, config_entry)
         config = {**entry.get_config()}
-        device = entry.new_device(config)
-        await device.get_spec()
+        device = await entry.new_device(config)
         config[CONF_DEVICE] = device
         config[CONF_MODEL] = device.model
         config['miot_type'] = await device.get_urn()
@@ -294,10 +293,8 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         cnt = len(config['devices_by_mac'])
         _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', username, cnt)
     for mac, d in config['devices_by_mac'].items():
-        device = entry.new_device(d)
-        device.cloud = cloud
-        spec = await device.get_spec()
-        if not spec:
+        device = await entry.new_device(d, cloud)
+        if not device.spec:
             _LOGGER.warning('Xiaomi device: %s has no spec', device.name_model)
             continue
         conn = device.conn_mode
@@ -694,7 +691,9 @@ class BaseEntity(Entity):
 
     @property
     def model(self):
-        return self.device.info.model
+        if self.device:
+            return self.device.info.model
+        return self._model
 
     @property
     def name_model(self):

@@ -3,6 +3,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_USERNAME
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud
 
 if TYPE_CHECKING:
@@ -38,10 +39,14 @@ class HassEntry:
             return dat.get(key, default)
         return dat
 
-    def new_device(self, device_info: dict):
+    async def new_device(self, device_info: dict, cloud: Optional[MiotCloud] = None):
         from .device import Device, DeviceInfo
         info = DeviceInfo(device_info)
         device = Device(info, self)
+        device.cloud = cloud
+        spec = await device.get_spec()
+        if spec and not device.cloud_only:
+            device.miio2miot = Miio2MiotHelper.from_model(self.hass, device.model, spec)
         self.devices[info.unique_id] = device
         return device
 

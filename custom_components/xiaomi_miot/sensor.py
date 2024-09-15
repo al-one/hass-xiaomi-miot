@@ -9,7 +9,7 @@ from functools import cmp_to_key
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.components.sensor import (
     DOMAIN as ENTITY_DOMAIN,
-    SensorEntity,
+    SensorEntity as BaseEntity,
     SensorDeviceClass,
     STATE_CLASSES,
 )
@@ -21,6 +21,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
+    XEntity,
     MiotEntity,
     BaseSubEntity,
     MiCoordinatorEntity,
@@ -140,7 +141,17 @@ def datetime_with_tzinfo(value):
     return value
 
 
-class MiotSensorEntity(MiotEntity, SensorEntity):
+class SensorEntity(XEntity, BaseEntity):
+    def get_state(self) -> dict:
+        return {self.attr: self._attr_native_value}
+
+    def set_state(self, data: dict):
+        self._attr_native_value = data.get(self.attr)
+
+XEntity.CLS[ENTITY_DOMAIN] = SensorEntity
+
+
+class MiotSensorEntity(MiotEntity, BaseEntity):
 
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
@@ -417,7 +428,7 @@ class MiotCookerEntity(MiotSensorEntity):
         return ret
 
 
-class BaseSensorSubEntity(BaseSubEntity, SensorEntity):
+class BaseSensorSubEntity(BaseSubEntity, BaseEntity):
     def __init__(self, parent, attr, option=None, **kwargs):
         kwargs.setdefault('domain', ENTITY_DOMAIN)
         self._attr_state_class = None
@@ -507,7 +518,7 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
         return val
 
 
-class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
+class MihomeMessageSensor(MiCoordinatorEntity, BaseEntity, RestoreEntity):
     _filter_homes = None
     _exclude_types = None
     _has_none_message = False
@@ -640,7 +651,7 @@ class MihomeMessageSensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
         return msg
 
 
-class MihomeSceneHistorySensor(MiCoordinatorEntity, SensorEntity, RestoreEntity):
+class MihomeSceneHistorySensor(MiCoordinatorEntity, BaseEntity, RestoreEntity):
     MESSAGE_TIMEOUT = 60
     UPDATE_INTERVAL = 15
 

@@ -125,8 +125,6 @@ class Device:
         self.converters: list[BaseConv] = []
 
         self.local = MiotDevice.from_device(self)
-        if self.spec and not self.cloud_only:
-            self.miio2miot = Miio2MiotHelper.from_model(self.hass, self.model, self.spec)
 
     @cached_property
     def did(self):
@@ -260,6 +258,9 @@ class Device:
         return payload
 
     def decode_one(self, payload: dict, value: dict):
+        if not isinstance(value, dict):
+            _LOGGER.warning('%s: Device value is not dict: %s', self.name_model, value)
+            return
         if value.get('code', 0):
             return
         siid = value.get('siid')
@@ -291,6 +292,7 @@ class Device:
     ) -> MiotResults:
         results = []
         self.miot_results = MiotResults(results)
+
         if use_local is None:
             use_local = self.local or self.miio2miot
             if self.cloud_only or use_cloud:
