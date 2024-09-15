@@ -919,17 +919,17 @@ class MiioEntity(BaseEntity):
 
     @property
     def device_info(self):
-        swv = self.device.info.firmware_version
-        if self.device.info.hardware_version:
-            swv = f'{swv}@{self.device.info.hardware_version}'
-        com = (self.model or 'Xiaomi').split('.', 1)[0]
-        if updater := self._state_attrs.get('state_updater'):
-            com = f'{com} via {updater}'
+        swv = self._miio_info.firmware_version
+        if self._miio_info.hardware_version:
+            swv = f'{swv}@{self._miio_info.hardware_version}'
+        updater = self._state_attrs.get('state_updater')
+        if updater and updater not in ['none']:
+            swv = f'{swv} ({updater})'
         return {
             'identifiers': {(DOMAIN, self._unique_did)},
             'name': self.device_name,
             'model': self.model,
-            'manufacturer': com,
+            'manufacturer': (self.model or 'Xiaomi').split('.', 1)[0],
             'sw_version': swv,
             'suggested_area': self.device.info.room_name,
             'configuration_url': f'https://home.miot-spec.com/s/{self.model}',
