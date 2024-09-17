@@ -786,6 +786,7 @@ MIOT_LOCAL_MODELS = [
     'xiaomi.tv.rmi1',
     'xiaomi.tv.tv6h1',
     'xiaomi.tv.z2oh1',
+    'xiaomi.tv.mih1',
     'xiaomi.tvbox.4prob1',
     'xiaomi.vacuum.b106bk',
     'xiaomi.vacuum.b106eu',
