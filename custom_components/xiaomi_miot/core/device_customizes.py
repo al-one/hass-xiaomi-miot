@@ -967,6 +967,10 @@ DEVICE_CUSTOMIZES = {
         'miio_cloud_props': 'Status,Position',
         'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
     },
+    'minij.washer.v20': {
+        'descriptions_for_on': 'Busy,Delay,Run',
+        'descriptions_for_off': 'Off,Standby,Idle,Pause,Paused,Completed,Fault,END,E6',
+    },
     'mmgg.feeder.fi1': {
         'chunk_properties': 1,
         'state_property': 'pet_food_left_level',

@@ -236,8 +236,11 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
         self._name = self.format_name_by_property(miot_property)
         self._miot_property = miot_property
         self._miot_service = miot_property.service
-        self._values_on = miot_property.list_search('Busy', 'Delay')
-        self._values_off = miot_property.list_search('Off', 'Idle', 'Pause', 'Paused', 'Completed', 'Fault')
+
+        descriptions_on = self.custom_config_list('descriptions_for_on') or ['Busy', 'Delay']
+        self._values_on = miot_property.list_search(*descriptions_on)
+        descriptions_off = self.custom_config_list('descriptions_for_off') or ['Off', 'Idle', 'Pause', 'Paused', 'Completed', 'Fault']
+        self._values_off = miot_property.list_search(*descriptions_off)
 
     def update(self, data=None):
         super().update(data)
