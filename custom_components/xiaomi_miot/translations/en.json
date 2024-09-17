@@ -41,7 +41,8 @@
                     "filter_bssid": "Filter WiFi BSSID",
                     "bssid_list": "WiFi BSSID List",
                     "filter_did": "Filter Device",
-                    "did_list": "Device List"
+                    "did_list": "Device List",
+                    "home_ids": "Filter Home (Leave blank to save)"
                 }
             },
             "customizing": {
@@ -171,7 +172,8 @@
                     "filter_bssid": "Filter WiFi BSSID",
                     "bssid_list": "WiFi BSSID List",
                     "filter_did": "Filter Device",
-                    "did_list": "Device List"
+                    "did_list": "Device List",
+                    "home_ids": "Filter Home (Leave blank to save)"
                 }
             }
         },
