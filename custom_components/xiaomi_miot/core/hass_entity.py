@@ -1,9 +1,9 @@
 import logging
 from typing import TYPE_CHECKING, Callable
 
-from homeassistant.helpers.entity import Entity, DeviceInfo
+from homeassistant.helpers.entity import Entity
 
-from .miot_spec import MiotService, MiotProperty
+from .miot_spec import MiotService, MiotProperty, MiotAction
 
 if TYPE_CHECKING:
     from .device import Device
@@ -24,17 +24,26 @@ class XEntity(Entity):
         self.hass = device.hass
         self.conv = conv
         attr = conv.attr
-        if isinstance(attr, MiotProperty):
+
+        if isinstance(attr, (MiotProperty, MiotAction)):
             self.attr = attr.full_name
-            self._attr_translation_key = attr.friendly_name
             self.entity_id = attr.generate_entity_id(self, conv.domain)
+            self._attr_name = attr.friendly_desc
+            self._attr_translation_key = attr.friendly_name
         elif isinstance(attr, MiotService):
             self.attr = attr.name
-            self._attr_translation_key = attr.name
             self.entity_id = attr.generate_entity_id(self, conv.domain)
+            self._attr_name = attr.friendly_desc
+            self._attr_translation_key = attr.name
         else:
             self.attr = attr
+            prefix = device.spec.generate_entity_id(self)
+            self.entity_id = f'{prefix}_{attr}'
+            self._attr_name = attr.replace('_', '').title()
             self._attr_translation_key = attr
+        self.listen_attrs: set = {self.attr}
+        self._attr_unique_id = f'{device.info.unique_id}-{convert_unique_id(conv)}'
+        self._attr_device_info = self.device.hass_device_info
 
         self.on_init()
 
@@ -46,7 +55,15 @@ class XEntity(Entity):
         """Run on class init."""
 
     def on_device_update(self, data: dict):
-        pass
+        state_change = False
+        _LOGGER.info('%s: Device updated: %s', self.entity_id, [self.listen_attrs, data])
+
+        if self.listen_attrs & data.keys():
+            self.set_state(data)
+            state_change = True
+
+        if state_change and self.added:
+            self._async_write_ha_state()
 
     def get_state(self) -> dict:
         """Run before entity remove if entity is subclass from RestoreEntity."""
@@ -57,7 +74,15 @@ class XEntity(Entity):
         self._attr_state = data.get(self.attr)
 
     async def async_added_to_hass(self) -> None:
+        self.added = True
         self.device.add_listener(self.on_device_update)
 
     async def async_will_remove_from_hass(self) -> None:
         self.device.remove_listener(self.on_device_update)
+
+
+def convert_unique_id(conv: 'BaseConv'):
+    attr = conv.attr
+    if isinstance(attr, (MiotService, MiotProperty, MiotAction)):
+        return attr.unique_name
+    return attr

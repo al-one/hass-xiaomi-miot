@@ -23,7 +23,7 @@ from miio.device import DeviceInfo as MiioInfoBase
 from miio.miot_device import MiotDevice as MiotDeviceBase
 
 if TYPE_CHECKING:
-    from .. import BaseEntity
+    from . import XEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -117,10 +117,11 @@ class Device:
     _local_state = None
 
     def __init__(self, info: DeviceInfo, entry: HassEntry):
+        self.data = {}
         self.info = info
         self.hass = entry.hass
         self.entry = entry
-        self.entities: list['BaseEntity'] = []
+        self.entities: dict[str, 'XEntity'] = {}
         self.listeners: list[Callable] = []
         self.converters: list[BaseConv] = []
 
@@ -153,6 +154,24 @@ class Device:
     @property
     def cloud_only(self):
         return self.conn_mode == 'cloud'
+
+    @property
+    def hass_device_info(self):
+        swv = self.info.firmware_version
+        if self.info.hardware_version:
+            swv = f'{swv}@{self.info.hardware_version}'
+        updater = self.data.get('updater')
+        if updater and updater not in ['none']:
+            swv = f'{swv} ({updater})'
+        return {
+            'identifiers': {(DOMAIN, self.info.unique_id)},
+            'name': self.info.name,
+            'model': self.model,
+            'manufacturer': (self.model or 'Xiaomi').split('.', 1)[0],
+            'sw_version': swv,
+            'suggested_area': self.info.room_name,
+            'configuration_url': f'https://home.miot-spec.com/s/{self.model}',
+        }
 
     @property
     def customizes(self):
@@ -230,9 +249,9 @@ class Device:
             for prop in self.spec.get_properties(*pls):
                 self.converters.append(MiotPropConv(prop, d))
 
-    def add_entity(self, entity: 'BaseEntity'):
+    def add_entity(self, entity: 'XEntity'):
         if entity not in self.entities:
-            self.entities.append(entity)
+            self.entities[entity.unique_id] = entity
 
     def add_listener(self, handler: Callable):
         if handler not in self.listeners:
@@ -243,8 +262,6 @@ class Device:
             self.listeners.remove(handler)
 
     def dispatch(self, data: dict):
-        if self.converters: # TODO
-            _LOGGER.warning('%s: Device dispatch data: %s', self.name_model, data)
         for handler in self.listeners:
             handler(data)
 
@@ -349,7 +366,9 @@ class Device:
                     self.name_model, exc, mapping,
                 )
 
+        self.data['updater'] = self.miot_results.updater
         if results:
+            self.data['miot_results'] = results
             self.dispatch(self.decode(results))
         return self.miot_results
 

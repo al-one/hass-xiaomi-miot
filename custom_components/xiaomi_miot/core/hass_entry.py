@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING, Optional
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_USERNAME
@@ -5,9 +6,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud
+from .hass_entity import XEntity, convert_unique_id
 
 if TYPE_CHECKING:
     from .device import Device
+
+_LOGGER = logging.getLogger(__package__)
 
 class HassEntry:
     ALL: dict[str, 'HassEntry'] = {}
@@ -52,6 +56,23 @@ class HassEntry:
 
     def new_adder(self, domain, adder: AddEntitiesCallback):
         self.adders[domain] = adder
+        _LOGGER.info('New adder: %s', [domain, adder])
+
+        for device in self.devices.values():
+            for conv in device.converters:
+                if conv.domain != domain:
+                    continue
+                key = convert_unique_id(conv)
+                entity = device.entities.get(key)
+                if not entity:
+                    cls = XEntity.CLS.get(domain)
+                    if not cls:
+                        continue
+                    entity = cls(device, conv)
+                    device.entities[key] = entity
+                    adder([entity], update_before_add=False)
+                    _LOGGER.info('New entity: %s', entity)
+
         return self
 
     async def get_cloud(self, check=False, login=False):

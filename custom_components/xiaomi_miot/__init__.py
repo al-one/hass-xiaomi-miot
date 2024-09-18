@@ -855,6 +855,7 @@ class MiioEntity(BaseEntity):
             'home_room': self.device.info.home_room,
             'entity_class': self.__class__.__name__,
         }
+        self._attr_device_info = self.device.hass_device_info
         self._supported_features = 0
         self._props = ['power']
         self._success_result = ['ok']
@@ -916,24 +917,6 @@ class MiioEntity(BaseEntity):
     @property
     def supported_features(self):
         return self._supported_features
-
-    @property
-    def device_info(self):
-        swv = self._miio_info.firmware_version
-        if self._miio_info.hardware_version:
-            swv = f'{swv}@{self._miio_info.hardware_version}'
-        updater = self._state_attrs.get('state_updater')
-        if updater and updater not in ['none']:
-            swv = f'{swv} ({updater})'
-        return {
-            'identifiers': {(DOMAIN, self._unique_did)},
-            'name': self.device_name,
-            'model': self.model,
-            'manufacturer': (self.model or 'Xiaomi').split('.', 1)[0],
-            'sw_version': swv,
-            'suggested_area': self.device.info.room_name,
-            'configuration_url': f'https://home.miot-spec.com/s/{self.model}',
-        }
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
