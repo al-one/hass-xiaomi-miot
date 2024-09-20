@@ -3,14 +3,16 @@ import logging
 
 from homeassistant.components.select import (
     DOMAIN as ENTITY_DOMAIN,
-    SelectEntity,
+    SelectEntity as BaseEntity,
 )
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
+    XEntity,
     MiotEntity,
     BaseSubEntity,
     MiotPropertySubEntity,
@@ -53,7 +55,26 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotSelectEntity(MiotEntity, SelectEntity):
+class SelectEntity(XEntity, BaseEntity, RestoreEntity):
+    def on_init(self):
+        if self._miot_property:
+            self.listen_attrs.add('property_value')
+            self._attr_options = self._miot_property.list_descriptions()
+
+    def get_state(self) -> dict:
+        return {self.attr: self._attr_current_option}
+
+    def set_state(self, data: dict):
+        val = data.get(self.attr)
+        self._attr_current_option = val
+
+    async def async_select_option(self, option: str):
+        await self.device.async_write({self.attr: option})
+
+XEntity.CLS[ENTITY_DOMAIN] = SelectEntity
+
+
+class MiotSelectEntity(MiotEntity, BaseEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._attr_current_option = None
@@ -93,7 +114,7 @@ class MiotActionsEntity(MiotSelectEntity):
         return ret
 
 
-class MiotSelectSubEntity(SelectEntity, MiotPropertySubEntity):
+class MiotSelectSubEntity(BaseEntity, MiotPropertySubEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         MiotPropertySubEntity.__init__(self, parent, miot_property, option, domain=ENTITY_DOMAIN)
         self._attr_options = miot_property.list_descriptions()
@@ -161,7 +182,7 @@ class MiotActionSelectSubEntity(MiotSelectSubEntity):
         return ret
 
 
-class SelectSubEntity(SelectEntity, BaseSubEntity):
+class SelectSubEntity(BaseEntity, BaseSubEntity):
     def __init__(self, parent, attr, option=None):
         BaseSubEntity.__init__(self, parent, attr, option)
         self._available = True

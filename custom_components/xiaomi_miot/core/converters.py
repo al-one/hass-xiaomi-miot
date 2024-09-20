@@ -14,6 +14,9 @@ class BaseConv:
     mi: str | int = None
     option: dict = None
 
+    def __post_init__(self):
+        self.option = {}
+
     # to hass
     def decode(self, device: 'Device', payload: dict, value):
         payload[self.attr] = value
@@ -32,7 +35,21 @@ class BaseConv:
 @dataclass
 class MiotPropConv(BaseConv):
     prop: 'MiotProperty' = None
+    desc: bool = False
 
     def __post_init__(self):
+        super().__post_init__()
         if not self.mi:
             self.mi = MiotSpec.unique_prop(self.prop.siid, piid=self.prop.iid)
+
+    def decode(self, device: 'Device', payload: dict, value):
+        if self.desc:
+            payload['property_value'] = value
+            value = self.prop.list_description(value)
+        super().decode(device, payload, value)
+
+    # from hass
+    def encode(self, device: 'Device', payload: dict, value):
+        if self.desc:
+            value = self.prop.list_value(value)
+        super().encode(device, payload, value)

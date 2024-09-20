@@ -242,7 +242,8 @@ class Device:
             if not pls:
                 continue
             for prop in self.spec.get_properties(*pls):
-                self.converters.append(MiotPropConv(prop.full_name, d, prop=prop))
+                desc = prop.value_list and d in ['sensor', 'select']
+                self.converters.append(MiotPropConv(prop.full_name, d, prop=prop, desc=desc))
 
     def add_entity(self, entity: 'XEntity'):
         if entity not in self.entities:

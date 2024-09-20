@@ -118,10 +118,14 @@ class XEntity(BasicEntity):
     def on_device_update(self, data: dict):
         state_change = False
 
-        if self.listen_attrs & data.keys():
+        if keys := self.listen_attrs & data.keys():
             self.set_state(data)
             state_change = True
             self._attr_available = True
+            for key in keys:
+                if key == self.attr:
+                    continue
+                self._attr_extra_state_attributes[key] = data.get(key)
 
         if state_change and self.added:
             self._async_write_ha_state()

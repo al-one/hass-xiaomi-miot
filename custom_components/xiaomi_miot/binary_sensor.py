@@ -14,6 +14,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity as BaseEntity,
     BinarySensorDeviceClass,
 )
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
     DOMAIN,
@@ -85,7 +86,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class BinarySensorEntity(XEntity, BaseEntity):
+class BinarySensorEntity(XEntity, BaseEntity, RestoreEntity):
     def set_state(self, data: dict):
         val = data.get(self.attr)
         if val is None:
