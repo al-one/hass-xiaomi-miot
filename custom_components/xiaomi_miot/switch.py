@@ -11,15 +11,17 @@ from homeassistant.const import (
 )
 from homeassistant.components.switch import (
     DOMAIN as ENTITY_DOMAIN,
-    SwitchEntity,
+    SwitchEntity as BaseEntity,
     SwitchDeviceClass,
 )
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
+    XEntity,
     MiioDevice,
     MiioEntity,
     MiotToggleEntity,
@@ -74,7 +76,26 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
+class SwitchEntity(XEntity, BaseEntity, RestoreEntity):
+    def get_state(self) -> dict:
+        return {self.attr: self._attr_is_on}
+
+    def set_state(self, data: dict):
+        val = data.get(self.attr)
+        if val is not None:
+            val = bool(val)
+        self._attr_is_on = val
+
+    async def async_turn_on(self):
+        await self.device.async_write({self.attr: True})
+
+    async def async_turn_off(self):
+        await self.device.async_write({self.attr: False})
+
+XEntity.CLS[ENTITY_DOMAIN] = SwitchEntity
+
+
+class MiotSwitchEntity(MiotToggleEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._attr_icon = self._miot_service.entity_icon
@@ -117,7 +138,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
         )
 
 
-class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
+class SwitchSubEntity(ToggleSubEntity, BaseEntity):
     def __init__(self, parent, attr='switch', option=None, **kwargs):
         kwargs.setdefault('domain', ENTITY_DOMAIN)
         super().__init__(parent, attr, option, **kwargs)
@@ -290,7 +311,7 @@ class MiotCookerSwitchSubEntity(SwitchSubEntity):
         return self._parent.is_on
 
 
-class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
+class MiotPwznRelaySwitchEntity(MiotToggleEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._prop_status = miot_service.get_property('all_status')
@@ -370,7 +391,7 @@ class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
         return ret
 
 
-class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
+class PwznRelaySwitchEntity(MiioEntity, BaseEntity):
     def __init__(self, config: dict):
         name = config[CONF_NAME]
         host = config[CONF_HOST]

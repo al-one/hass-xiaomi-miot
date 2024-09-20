@@ -5,14 +5,15 @@ from typing import TYPE_CHECKING, Callable
 from functools import cached_property
 
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraData
 import homeassistant.helpers.config_validation as cv
 
 from .utils import get_customize_via_entity, wildcard_models
 from .miot_spec import MiotService, MiotProperty, MiotAction
+from .converters import BaseConv, MiotPropConv
 
 if TYPE_CHECKING:
     from .device import Device
-    from .converters import BaseConv
 
 _LOGGER = logging.getLogger(__package__)
 
@@ -82,24 +83,17 @@ class XEntity(BasicEntity):
         self.device = device
         self.hass = device.hass
         self.conv = conv
-        attr = conv.attr
+        self.attr = conv.attr
 
-        if isinstance(attr, (MiotProperty, MiotAction)):
-            self.attr = attr.full_name
-            self.entity_id = attr.generate_entity_id(self, conv.domain)
-            self._attr_name = attr.friendly_desc
-            self._attr_translation_key = attr.friendly_name
-        elif isinstance(attr, MiotService):
-            self.attr = attr.name
-            self.entity_id = attr.generate_entity_id(self, conv.domain)
-            self._attr_name = attr.friendly_desc
-            self._attr_translation_key = attr.name
+        if isinstance(conv, MiotPropConv):
+            self.entity_id = conv.prop.generate_entity_id(self, conv.domain)
+            self._attr_name = str(conv.prop.friendly_desc)
+            self._attr_translation_key = conv.prop.friendly_name
         else:
-            self.attr = attr
             prefix = device.spec.generate_entity_id(self)
-            self.entity_id = f'{prefix}_{attr}'
-            self._attr_name = attr.replace('_', '').title()
-            self._attr_translation_key = attr
+            self.entity_id = f'{prefix}_{self.attr}'
+            self._attr_name = self.attr.replace('_', '').title()
+            self._attr_translation_key = self.attr
 
         self.listen_attrs: set = {self.attr}
         self._attr_unique_id = f'{device.info.unique_id}-{convert_unique_id(conv)}'
@@ -119,7 +113,6 @@ class XEntity(BasicEntity):
 
     def on_device_update(self, data: dict):
         state_change = False
-        _LOGGER.info('%s: Device updated: %s', self.entity_id, [self.listen_attrs, data])
 
         if self.listen_attrs & data.keys():
             self.set_state(data)
@@ -137,9 +130,22 @@ class XEntity(BasicEntity):
         """Run on data from device."""
         self._attr_state = data.get(self.attr)
 
+    @property
+    def extra_restore_state_data(self) -> ExtraStoredData | None:
+        # filter None values
+        if state := {k: v for k, v in self.get_state().items() if v is not None}:
+            return RestoredExtraData(state)
+        return None
+
     async def async_added_to_hass(self) -> None:
         self.added = True
         self.device.add_listener(self.on_device_update)
+
+        if call := getattr(self, 'async_get_last_extra_data', None):
+            data: RestoredExtraData = await call()
+            if data and self.listen_attrs & data.as_dict().keys():
+                self.set_state(data.as_dict())
+
 
     async def async_will_remove_from_hass(self) -> None:
         self.device.remove_listener(self.on_device_update)

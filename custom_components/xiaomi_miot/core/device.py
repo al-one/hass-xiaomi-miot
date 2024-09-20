@@ -242,7 +242,7 @@ class Device:
             if not pls:
                 continue
             for prop in self.spec.get_properties(*pls):
-                self.converters.append(MiotPropConv(prop, d))
+                self.converters.append(MiotPropConv(prop.full_name, d, prop=prop))
 
     def add_entity(self, entity: 'XEntity'):
         if entity not in self.entities:
@@ -257,6 +257,7 @@ class Device:
             self.listeners.remove(handler)
 
     def dispatch(self, data: dict):
+        _LOGGER.info('%s: Device updated: %s', self.name_model, data)
         for handler in self.listeners:
             handler(data)
 
@@ -271,7 +272,7 @@ class Device:
 
     def decode_one(self, payload: dict, value: dict):
         if not isinstance(value, dict):
-            _LOGGER.warning('%s: Device value is not dict: %s', self.name_model, value)
+            _LOGGER.warning('%s: Value is not dict: %s', self.name_model, value)
             return
         if value.get('code', 0):
             return
@@ -291,6 +292,33 @@ class Device:
                 if conv.attr == k:
                     conv.encode(self, payload, v)
         return payload
+
+    async def async_write(self, payload: dict):
+        """Send command to device."""
+        data = self.encode(payload)
+        result = None
+        method = data.get('method')
+        if method == 'set_properties':
+            params = data.get('params', [])
+            if self.miio2miot:
+                result = []
+                for param in params:
+                    siid = param['siid']
+                    piid = param.get('piid')
+                    aiid = param.get('aiid')
+                    if not self.miio2miot.has_setter(siid, piid=piid, aiid=aiid):
+                        continue
+                    cmd = partial(self.miio2miot.set_property, self.local, siid, piid, param['value'])
+                    result.append(await self.hass.async_add_executor_job(cmd))
+            elif self.local and self._local_state:
+                result = await self.local.async_send(method, params)
+            elif self.cloud:
+                result = await self.cloud.async_set_props(params)
+
+        _LOGGER.info('%s: Device write: %s', self.name_model, [payload, data, result])
+        if result:
+            self.dispatch(payload)
+        return result
 
     async def update_miot_status(
         self,

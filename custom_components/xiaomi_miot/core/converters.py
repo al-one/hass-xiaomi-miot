@@ -31,11 +31,8 @@ class BaseConv:
 
 @dataclass
 class MiotPropConv(BaseConv):
-    attr: 'MiotProperty'
+    prop: 'MiotProperty' = None
 
     def __post_init__(self):
         if not self.mi:
-            self.mi = MiotSpec.unique_prop(self.attr.siid, piid=self.attr.iid)
-
-    def decode(self, device: 'Device', payload: dict, value):
-        payload[self.attr.full_name] = value
+            self.mi = MiotSpec.unique_prop(self.prop.siid, piid=self.prop.iid)
