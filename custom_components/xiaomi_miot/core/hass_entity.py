@@ -1,7 +1,7 @@
 import logging
 import json
 import voluptuous as vol
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Optional, Callable
 from functools import cached_property
 
 from homeassistant.helpers.entity import Entity
@@ -78,6 +78,8 @@ class XEntity(BasicEntity):
     _attr_available = False
     _attr_should_poll = False
     _attr_has_entity_name = True
+    _miot_service: Optional[MiotService] = None
+    _miot_property: Optional[MiotProperty] = None
 
     def __init__(self, device: 'Device', conv: 'BaseConv'):
         self.device = device
@@ -89,6 +91,8 @@ class XEntity(BasicEntity):
             self.entity_id = conv.prop.generate_entity_id(self, conv.domain)
             self._attr_name = str(conv.prop.friendly_desc)
             self._attr_translation_key = conv.prop.friendly_name
+            self._miot_service = conv.prop.service
+            self._miot_property = conv.prop
         else:
             prefix = device.spec.generate_entity_id(self)
             self.entity_id = f'{prefix}_{self.attr}'
