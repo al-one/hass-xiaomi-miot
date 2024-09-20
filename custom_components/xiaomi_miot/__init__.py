@@ -28,10 +28,7 @@ from homeassistant.const import (
     SERVICE_RELOAD,
 )
 from homeassistant.config import DATA_CUSTOMIZE
-from homeassistant.helpers.entity import (
-    Entity,
-    ToggleEntity,
-)
+from homeassistant.helpers.entity import ToggleEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components import persistent_notification
 from homeassistant.helpers.entity_component import EntityComponent
@@ -47,7 +44,7 @@ from .core.utils import (
     is_offline_exception,
     async_analytics_track_event,
 )
-from .core import HassEntry, XEntity
+from .core import HassEntry, BasicEntity, XEntity
 from .core.device import (
     Device,
     MiioDevice,
@@ -615,42 +612,7 @@ async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, entry:
     return True
 
 
-def get_customize_via_entity(entity, key=None, default=None):
-    if key is None:
-        default = {}
-    if not isinstance(entity, BaseEntity):
-        return default
-    cfg = {}
-    if entity.hass and entity.entity_id:
-        cfg = {
-            **(entity.hass.data[DATA_CUSTOMIZE].get(entity.entity_id) or {}),
-            **(entity.hass.data[DOMAIN].get(DATA_CUSTOMIZE, {}).get(entity.entity_id) or {}),
-        }
-        if key is not None and key in cfg:
-            return cfg.get(key)
-    mls = []
-    if entity.model:
-        if hasattr(entity, 'customize_keys'):
-            mls.extend(entity.customize_keys)
-        mls.append(entity.model)
-    for mod in mls:
-        cus = get_customize_via_model(mod)
-        cfg = {**cus, **cfg}
-    return cfg if key is None else cfg.get(key, default)
-
-
-def get_customize_via_model(model, key=None, default=None):
-    cfg = {}
-    for m in wildcard_models(model):
-        cus = DEVICE_CUSTOMIZES.get(m) or {}
-        if key is not None and key not in cus:
-            continue
-        if cus:
-            cfg = {**cus, **cfg}
-    return cfg if key is None else cfg.get(key, default)
-
-
-class BaseEntity(Entity):
+class BaseEntity(BasicEntity):
     device: Device = None
     _config = None
     _model = None
@@ -705,9 +667,6 @@ class BaseEntity(Entity):
         cfg = self.hass.data[DOMAIN]['config'] or {}
         return cfg if key is None else cfg.get(key, default)
 
-    def custom_config(self, key=None, default=None):
-        return get_customize_via_entity(self, key, default)
-
     @property
     def conn_mode(self):
         return self._config.get(CONF_CONN_MODE)
@@ -736,51 +695,6 @@ class BaseEntity(Entity):
         if eid:
             cfg = {**cfg, **(self.hass.data[DOMAIN].get(eid) or {})}
         return cfg if key is None else cfg.get(key, default)
-
-    def custom_config_bool(self, key=None, default=None):
-        val = self.custom_config(key, default)
-        try:
-            val = cv.boolean(val)
-        except vol.Invalid:
-            val = default
-        return val
-
-    def custom_config_number(self, key=None, default=None):
-        num = default
-        val = self.custom_config(key)
-        if val is not None:
-            try:
-                num = float(f'{val}')
-            except (TypeError, ValueError):
-                num = default
-        return num
-
-    def custom_config_integer(self, key=None, default=None):
-        num = self.custom_config_number(key, default)
-        if num is not None:
-            num = int(num)
-        return num
-
-    def custom_config_list(self, key=None, default=None):
-        lst = self.custom_config(key)
-        if lst is None:
-            return default
-        if not isinstance(lst, list):
-            lst = f'{lst}'.split(',')
-            lst = list(map(lambda x: x.strip(), lst))
-        return lst
-
-    def custom_config_json(self, key=None, default=None):
-        dic = self.custom_config(key)
-        if dic:
-            if not isinstance(dic, (dict, list)):
-                try:
-                    dic = json.loads(dic or '{}')
-                except (TypeError, ValueError):
-                    dic = None
-            if isinstance(dic, (dict, list)):
-                return dic
-        return default
 
     def update_custom_scan_interval(self, only_custom=False):
         if not self.platform:

@@ -11,7 +11,7 @@ from homeassistant.const import (
 )
 from homeassistant.components.binary_sensor import (
     DOMAIN as ENTITY_DOMAIN,
-    BinarySensorEntity,
+    BinarySensorEntity as BaseEntity,
     BinarySensorDeviceClass,
 )
 
@@ -20,6 +20,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
+    XEntity,
     MiotToggleEntity,
     MiotPropertySubEntity,
     ToggleSubEntity,
@@ -84,7 +85,27 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotBinarySensorEntity(MiotToggleEntity, BinarySensorEntity):
+class BinarySensorEntity(XEntity, BaseEntity):
+    def set_state(self, data: dict):
+        val = data.get(self.attr)
+        if val is None:
+            return
+        if self.invert:
+            self._attr_extra_state_attributes['reverse_state'] = True
+            val = not val
+        self._attr_is_on = val
+
+    def get_state(self) -> dict:
+        return {self.attr: not self._attr_is_on if self.invert else self._attr_is_on}
+
+    @property
+    def invert(self) -> bool:
+        return self.custom_config_bool('reverse_state', False)
+
+XEntity.CLS[ENTITY_DOMAIN] = BinarySensorEntity
+
+
+class MiotBinarySensorEntity(MiotToggleEntity, BaseEntity):
     def __init__(self, config, miot_service: MiotService, **kwargs):
         kwargs.setdefault('logger', _LOGGER)
         super().__init__(miot_service, config=config, **kwargs)
@@ -376,7 +397,7 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
             await self.async_update_attrs(adt)
 
 
-class MiotBinarySensorSubEntity(MiotPropertySubEntity, ToggleSubEntity, BinarySensorEntity):
+class MiotBinarySensorSubEntity(MiotPropertySubEntity, ToggleSubEntity, BaseEntity):
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         ToggleSubEntity.__init__(self, parent, miot_property.full_name, option)
         super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)

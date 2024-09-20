@@ -4,10 +4,47 @@ import json
 import locale
 import tzlocal
 from homeassistant.core import HomeAssistant
+from homeassistant.config import DATA_CUSTOMIZE
+from homeassistant.helpers.entity import Entity
 from homeassistant.util.dt import DEFAULT_TIME_ZONE, get_time_zone
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .const import DOMAIN, DEVICE_CUSTOMIZES
 from .translation_languages import TRANSLATION_LANGUAGES
+
+
+def get_customize_via_model(model, key=None, default=None):
+    cfg = {}
+    for m in wildcard_models(model):
+        cus = DEVICE_CUSTOMIZES.get(m) or {}
+        if key is not None and key not in cus:
+            continue
+        if cus:
+            cfg = {**cus, **cfg}
+    return cfg if key is None else cfg.get(key, default)
+
+def get_customize_via_entity(entity, key=None, default=None):
+    if key is None:
+        default = {}
+    if not isinstance(entity, Entity):
+        return default
+    cfg = {}
+    if entity.hass and entity.entity_id:
+        cfg = {
+            **(entity.hass.data[DATA_CUSTOMIZE].get(entity.entity_id) or {}),
+            **(entity.hass.data[DOMAIN].get(DATA_CUSTOMIZE, {}).get(entity.entity_id) or {}),
+        }
+        if key is not None and key in cfg:
+            return cfg.get(key)
+    mls = []
+    if model := getattr(entity, 'model', None):
+        if hasattr(entity, 'customize_keys'):
+            mls.extend(entity.customize_keys)
+        mls.append(model)
+    for mod in mls:
+        cus = get_customize_via_model(mod)
+        cfg = {**cus, **cfg}
+    return cfg if key is None else cfg.get(key, default)
 
 
 def get_manifest(field=None, default=None):

@@ -12,7 +12,7 @@ from .converters import BaseConv, MiotPropConv
 from .miot_spec import MiotSpec, MiotResults
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
-from .utils import wildcard_models
+from .utils import get_customize_via_model
 
 
 from miio import (  # noqa: F401
@@ -175,12 +175,7 @@ class Device:
 
     @property
     def customizes(self):
-        cfg = {}
-        for m in wildcard_models(self.model):
-            cus = DEVICE_CUSTOMIZES.get(m) or {}
-            if cus:
-                cfg = {**cus, **cfg}
-        return cfg
+        return get_customize_via_model(self.model)
 
     def custom_config(self, key=None, default=None):
         cfg = self.customizes
