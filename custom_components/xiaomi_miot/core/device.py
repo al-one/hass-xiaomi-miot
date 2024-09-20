@@ -300,7 +300,7 @@ class Device:
         method = data.get('method')
         if method == 'set_properties':
             params = data.get('params', [])
-            if self.miio2miot:
+            if self.miio2miot and self._local_state:
                 result = []
                 for param in params:
                     siid = param['siid']

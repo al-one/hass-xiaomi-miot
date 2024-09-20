@@ -3,8 +3,8 @@ import logging
 
 from homeassistant.components.number import (
     DOMAIN as ENTITY_DOMAIN,
-    NumberEntity,
     RestoreNumber,
+    NumberMode,
 )
 
 from . import (
@@ -12,6 +12,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
+    XEntity,
     MiotEntity,
     MiotPropertySubEntity,
     async_setup_config_entry,
@@ -53,7 +54,30 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotNumberEntity(MiotEntity, NumberEntity):
+class NumberEntity(XEntity, RestoreNumber):
+    _attr_mode = NumberMode.BOX
+
+    def on_init(self):
+        if self._miot_property:
+            self._attr_native_step = self._miot_property.range_step()
+            self._attr_native_max_value = self._miot_property.range_max()
+            self._attr_native_min_value = self._miot_property.range_min()
+            self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
+
+    def get_state(self) -> dict:
+        return {self.attr: self._attr_native_value}
+
+    def set_state(self, data: dict):
+        val = data.get(self.attr)
+        self._attr_native_value = val
+
+    async def async_set_native_value(self, value: float):
+        await self.device.async_write({self.attr: value})
+
+XEntity.CLS[ENTITY_DOMAIN] = NumberEntity
+
+
+class MiotNumberEntity(MiotEntity, RestoreNumber):
 
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
