@@ -8,19 +8,14 @@ from homeassistant.components.button import (
 
 from . import (
     DOMAIN,
-    CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     XEntity,
-    MiotEntity,
     MiotPropertySubEntity,
     BaseSubEntity,
     async_setup_config_entry,
-    bind_services_to_entries,
 )
 from .core.miot_spec import (
-    MiotSpec,
-    MiotService,
     MiotProperty,
     MiotAction,
 )
@@ -38,20 +33,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     hass.data.setdefault(DATA_KEY, {})
-    hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
-    config['hass'] = hass
-    model = str(config.get(CONF_MODEL) or '')
-    spec = hass.data[DOMAIN]['miot_specs'].get(model)
-    entities = []
-    if isinstance(spec, MiotSpec):
-        for srv in spec.get_services('none_service'):
-            if not srv.get_property('none_property'):
-                continue
-            entities.append(MiotButtonEntity(config, srv))
-    for entity in entities:
-        hass.data[DOMAIN]['entities'][entity.unique_id] = entity
-    async_add_entities(entities, update_before_add=True)
-    bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
 class ButtonEntity(XEntity, BaseEntity):
@@ -67,15 +48,6 @@ class ButtonEntity(XEntity, BaseEntity):
         await self.device.async_write({self.attr: getattr(self.conv, 'value', None)})
 
 XEntity.CLS[ENTITY_DOMAIN] = ButtonEntity
-
-
-class MiotButtonEntity(MiotEntity, BaseEntity):
-    def __init__(self, config, miot_service: MiotService):
-        super().__init__(miot_service, config=config, logger=_LOGGER)
-
-    def press(self) -> None:
-        """Press the button."""
-        raise NotImplementedError()
 
 
 class MiotButtonSubEntity(MiotPropertySubEntity, BaseEntity):
