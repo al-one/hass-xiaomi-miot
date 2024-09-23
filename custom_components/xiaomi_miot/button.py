@@ -3,7 +3,7 @@ import logging
 
 from homeassistant.components.button import (
     DOMAIN as ENTITY_DOMAIN,
-    ButtonEntity,
+    ButtonEntity as BaseEntity,
 )
 
 from . import (
@@ -11,6 +11,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
+    XEntity,
     MiotEntity,
     MiotPropertySubEntity,
     BaseSubEntity,
@@ -53,7 +54,22 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotButtonEntity(MiotEntity, ButtonEntity):
+class ButtonEntity(XEntity, BaseEntity):
+    def on_init(self):
+        self._attr_available = True
+        if des := getattr(self.conv, 'description', None):
+            self._attr_name = f'{self._attr_name} {des}'
+
+    def set_state(self, data: dict):
+        pass
+
+    async def async_press(self):
+        await self.device.async_write({self.attr: getattr(self.conv, 'value', None)})
+
+XEntity.CLS[ENTITY_DOMAIN] = ButtonEntity
+
+
+class MiotButtonEntity(MiotEntity, BaseEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 
@@ -62,7 +78,7 @@ class MiotButtonEntity(MiotEntity, ButtonEntity):
         raise NotImplementedError()
 
 
-class MiotButtonSubEntity(MiotPropertySubEntity, ButtonEntity):
+class MiotButtonSubEntity(MiotPropertySubEntity, BaseEntity):
     def __init__(self, parent, miot_property: MiotProperty, value, option=None):
         super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
         self._miot_property_value = value
@@ -89,7 +105,7 @@ class MiotButtonSubEntity(MiotPropertySubEntity, ButtonEntity):
         return self.set_parent_property(self._miot_property_value)
 
 
-class MiotButtonActionSubEntity(BaseSubEntity, ButtonEntity):
+class MiotButtonActionSubEntity(BaseSubEntity, BaseEntity):
     def __init__(self, parent, miot_action: MiotAction, option=None):
         self._miot_action = miot_action
         super().__init__(parent, miot_action.full_name, option, domain=ENTITY_DOMAIN)
@@ -118,7 +134,7 @@ class MiotButtonActionSubEntity(BaseSubEntity, ButtonEntity):
         return self.call_parent('call_action', self._miot_action, pms)
 
 
-class ButtonSubEntity(ButtonEntity, BaseSubEntity):
+class ButtonSubEntity(BaseEntity, BaseSubEntity):
     def __init__(self, parent, attr, option=None):
         BaseSubEntity.__init__(self, parent, attr, option)
         self._available = True

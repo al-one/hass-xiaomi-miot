@@ -8,7 +8,7 @@ from homeassistant.helpers.device_registry import format_mac
 
 from .const import DOMAIN, DEVICE_CUSTOMIZES, DEFAULT_NAME, CONF_CONN_MODE, DEFAULT_CONN_MODE
 from .hass_entry import HassEntry
-from .converters import BaseConv, MiotPropConv
+from .converters import BaseConv, MiotPropConv, MiotPropValueConv, MiotActionConv
 from .miot_spec import MiotSpec, MiotResults
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
@@ -232,18 +232,39 @@ class Device:
         return urn
 
     def init_converters(self):
+        if not self.spec:
+            return
+
         for d in [
             'sensor', 'binary_sensor', 'switch', 'number', 'select',
             'fan', 'cover', 'button', 'scanner', 'number_select',
         ]:
-            if not self.spec:
-                break
             pls = self.custom_config_list(f'{d}_properties') or []
             if not pls:
                 continue
             for prop in self.spec.get_properties(*pls):
-                desc = prop.value_list and d in ['sensor', 'select']
-                self.converters.append(MiotPropConv(prop.full_name, d, prop=prop, desc=desc))
+                if d == 'button':
+                    if prop.value_list:
+                        for pv in prop.value_list:
+                            val = pv.get('value')
+                            des = pv.get('description') or val
+                            attr = f'{prop.full_name}-{val}'
+                            conv = MiotPropValueConv(attr, d, prop=prop, value=val, description=des)
+                            self.converters.append(conv)
+                    elif prop.is_bool:
+                        conv = MiotPropValueConv(prop.full_name, d, prop=prop, value=True)
+                        self.converters.append(conv)
+                else:
+                    desc = bool(prop.value_list and d in ['sensor', 'select'])
+                    self.converters.append(MiotPropConv(prop.full_name, d, prop=prop, desc=desc))
+
+        for d in ['button']:
+            als = self.custom_config_list(f'{d}_actions') or []
+            if not als:
+                continue
+            for srv in self.spec.services.values():
+                for action in srv.get_actions(*als):
+                    self.converters.append(MiotActionConv(action.full_name, d, action=action))
 
     def add_entity(self, entity: 'XEntity'):
         if entity not in self.entities:
@@ -306,8 +327,7 @@ class Device:
                 for param in params:
                     siid = param['siid']
                     piid = param.get('piid')
-                    aiid = param.get('aiid')
-                    if not self.miio2miot.has_setter(siid, piid=piid, aiid=aiid):
+                    if not self.miio2miot.has_setter(siid, piid=piid):
                         continue
                     cmd = partial(self.miio2miot.set_property, self.local, siid, piid, param['value'])
                     result.append(await self.hass.async_add_executor_job(cmd))
@@ -315,6 +335,18 @@ class Device:
                 result = await self.local.async_send(method, params)
             elif self.cloud:
                 result = await self.cloud.async_set_props(params)
+
+        if method == 'action':
+            param = data.get('param', {})
+            siid = param['siid']
+            aiid = param.get('aiid')
+            if self.miio2miot and self._local_state and self.miio2miot.has_setter(siid, aiid=aiid):
+                cmd = partial(self.miio2miot.call_action, self.local, siid, aiid, param.get('in', []))
+                result = await self.hass.async_add_executor_job(cmd)
+            elif self.local and self._local_state:
+                result = await self.local.async_send(method, param)
+            elif self.cloud:
+                result = await self.cloud.async_do_action(param)
 
         _LOGGER.info('%s: Device write: %s', self.name_model, [payload, data, result])
         if result:

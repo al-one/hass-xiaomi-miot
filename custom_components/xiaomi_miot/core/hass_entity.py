@@ -10,7 +10,7 @@ import homeassistant.helpers.config_validation as cv
 
 from .utils import get_customize_via_entity, wildcard_models
 from .miot_spec import MiotService, MiotProperty, MiotAction
-from .converters import BaseConv, MiotPropConv
+from .converters import BaseConv, MiotPropConv, MiotActionConv
 
 if TYPE_CHECKING:
     from .device import Device
@@ -80,6 +80,7 @@ class XEntity(BasicEntity):
     _attr_has_entity_name = True
     _miot_service: Optional[MiotService] = None
     _miot_property: Optional[MiotProperty] = None
+    _miot_action: Optional[MiotAction] = None
 
     def __init__(self, device: 'Device', conv: 'BaseConv'):
         self.device = device
@@ -93,6 +94,15 @@ class XEntity(BasicEntity):
             self._attr_translation_key = conv.prop.friendly_name
             self._miot_service = conv.prop.service
             self._miot_property = conv.prop
+
+        elif isinstance(conv, MiotActionConv):
+            self.entity_id = device.spec.generate_entity_id(self, conv.action.name, conv.domain)
+            self._attr_name = str(conv.action.friendly_desc)
+            self._attr_translation_key = conv.action.friendly_name
+            self._miot_service = conv.action.service
+            self._miot_action = conv.action
+            self._miot_property = conv.action.in_properties()[0] if conv.action.ins else None
+
         else:
             prefix = device.spec.generate_entity_id(self)
             self.entity_id = f'{prefix}_{self.attr}'

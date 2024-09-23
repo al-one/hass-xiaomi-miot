@@ -220,6 +220,9 @@ DEVICE_CUSTOMIZES = {
         **ENERGY_KWH,
         'value_ratio': 0.001,
     },
+    'chunmi.microwave.n23l01': {
+        'button_actions': 'pause',
+    },
     'chunmi.ysj.*': {
         'sensor_properties': 'water_dispenser.status,filter_life_level,home_temp,clean_precent',
         'switch_properties': 'winter_mode,cold_keep,cup_check',

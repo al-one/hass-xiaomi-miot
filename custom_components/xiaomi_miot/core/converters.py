@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from dataclasses import dataclass
 from .miot_spec import MiotSpec
 
 if TYPE_CHECKING:
     from .device import Device
-    from .miot_spec import MiotProperty
+    from .miot_spec import MiotProperty, MiotAction
 
 
 @dataclass
@@ -48,8 +48,38 @@ class MiotPropConv(BaseConv):
             value = self.prop.list_description(value)
         super().decode(device, payload, value)
 
-    # from hass
     def encode(self, device: 'Device', payload: dict, value):
         if self.desc:
             value = self.prop.list_value(value)
         super().encode(device, payload, value)
+
+@dataclass
+class MiotPropValueConv(MiotPropConv):
+    value: Any = None
+    description: str = None
+
+    def decode(self, device: 'Device', payload: dict, value):
+        pass
+
+@dataclass
+class MiotActionConv(BaseConv):
+    action: 'MiotAction' = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not self.mi:
+            self.mi = MiotSpec.unique_prop(self.action.siid, aiid=self.action.iid)
+
+    def decode(self, device: 'Device', payload: dict, value):
+        super().decode(device, payload, value)
+
+    def encode(self, device: 'Device', payload: dict, value):
+        ins = value if isinstance(value, list) else [] if value is None else [value]
+        _, s, p = self.mi.split('.')
+        payload['method'] = 'action'
+        payload['param'] = {
+            'did': device.did,
+            'siid': int(s),
+            'aiid': int(p),
+            'in':   ins,
+        }
