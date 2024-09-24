@@ -220,6 +220,9 @@ DEVICE_CUSTOMIZES = {
         **ENERGY_KWH,
         'value_ratio': 0.001,
     },
+    'chunmi.cooker.normalcd2': {
+        'select_actions': 'start_cook',
+    },
     'chunmi.microwave.n23l01': {
         'button_actions': 'pause',
     },

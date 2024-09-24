@@ -258,7 +258,7 @@ class Device:
                     desc = bool(prop.value_list and d in ['sensor', 'select'])
                     self.converters.append(MiotPropConv(prop.full_name, d, prop=prop, desc=desc))
 
-        for d in ['button', 'text']:
+        for d in ['button', 'text', 'select']:
             als = self.custom_config_list(f'{d}_actions') or []
             if not als:
                 continue

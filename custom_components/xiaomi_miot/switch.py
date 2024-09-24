@@ -301,16 +301,6 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
         return 'mdi:play-box'
 
 
-class MiotCookerSwitchSubEntity(SwitchSubEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property.full_name, option)
-        self._name = self.format_name_by_property(miot_property)
-
-    @property
-    def is_on(self):
-        return self._parent.is_on
-
-
 class MiotPwznRelaySwitchEntity(MiotToggleEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)

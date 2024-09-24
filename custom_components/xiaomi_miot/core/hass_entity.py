@@ -101,7 +101,7 @@ class XEntity(BasicEntity):
             self._attr_translation_key = conv.action.friendly_name
             self._miot_service = conv.action.service
             self._miot_action = conv.action
-            self._miot_property = conv.action.in_properties()[0] if conv.action.ins else None
+            self._miot_property = conv.prop
             self._attr_available = True
 
         else:
@@ -114,7 +114,7 @@ class XEntity(BasicEntity):
         self._attr_unique_id = f'{device.info.unique_id}-{convert_unique_id(conv)}'
         self._attr_device_info = self.device.hass_device_info
         self._attr_extra_state_attributes = {
-            'converter': f'{conv}', # TODO
+            'converter': f'{conv}'.replace('custom_components.xiaomi_miot.core.miot_spec.', ''), # TODO
         }
 
         self.on_init()

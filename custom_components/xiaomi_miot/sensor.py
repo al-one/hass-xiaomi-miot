@@ -356,9 +356,7 @@ class MiotCookerEntity(MiotSensorEntity):
                 ['target_temperature'],
                 domain='number',
             )
-            add_fans = self._add_entities.get('fan')
             add_selects = self._add_entities.get('select')
-            add_switches = self._add_entities.get('switch')
             pls = self._miot_service.get_properties(
                 'mode', 'cook_mode', 'heat_level', 'target_time', 'target_temperature',
             )
@@ -369,41 +367,11 @@ class MiotCookerEntity(MiotSensorEntity):
                 elif not (p.value_list or p.value_range):
                     continue
                 elif add_selects:
-                    from .select import (
-                        MiotSelectSubEntity,
-                        MiotActionSelectSubEntity,
-                    )
+                    from .select import MiotSelectSubEntity
                     if p.writeable:
                         self._subs[p.name] = MiotSelectSubEntity(self, p)
-                    elif not self._action_start:
-                        continue
-                    elif p.iid in self._action_start.ins:
-                        if self._action_cancel:
-                            opt = {
-                                'extra_actions': {
-                                    p.get_translation('Off'): self._action_cancel,
-                                },
-                            }
-                        self._subs[p.name] = MiotActionSelectSubEntity(self, self._action_start, p, opt)
                     if p.name in self._subs:
                         add_selects([self._subs[p.name]], update_before_add=True)
-                elif add_fans:
-                    if p.value_list:
-                        opt = {
-                            'values_on':  self._values_on,
-                            'values_off': self._values_off,
-                        }
-                    from .fan import MiotCookerSubEntity
-                    self._subs[p.name] = MiotCookerSubEntity(self, p, self._prop_state, opt)
-                    add_fans([self._subs[p.name]], update_before_add=True)
-            if self._action_start or self._action_cancel:
-                pnm = 'cook_switch'
-                if pnm in self._subs:
-                    self._subs[pnm].update_from_parent()
-                elif add_switches:
-                    from .switch import MiotCookerSwitchSubEntity
-                    self._subs[pnm] = MiotCookerSwitchSubEntity(self, self._prop_state)
-                    add_switches([self._subs[pnm]], update_before_add=True)
 
     @property
     def is_on(self):

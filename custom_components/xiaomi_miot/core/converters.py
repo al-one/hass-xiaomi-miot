@@ -64,16 +64,21 @@ class MiotPropValueConv(MiotPropConv):
 @dataclass
 class MiotActionConv(BaseConv):
     action: 'MiotAction' = None
+    prop: 'MiotProperty' = None
 
     def __post_init__(self):
         super().__post_init__()
         if not self.mi:
             self.mi = MiotSpec.unique_prop(self.action.siid, aiid=self.action.iid)
+        if not self.prop:
+            self.prop = self.action.in_properties()[0] if self.action.ins else None
 
     def decode(self, device: 'Device', payload: dict, value):
         super().decode(device, payload, value)
 
     def encode(self, device: 'Device', payload: dict, value):
+        if self.prop and self.prop.value_list and isinstance(value, str):
+            value = self.prop.list_value(value)
         ins = value if isinstance(value, list) else [] if value is None else [value]
         _, s, p = self.mi.split('.')
         payload['method'] = 'action'

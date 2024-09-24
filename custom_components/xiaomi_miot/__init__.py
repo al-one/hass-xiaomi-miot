@@ -1260,10 +1260,6 @@ class MiotEntity(MiioEntity):
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
-            for d in ['select']:
-                als = self.custom_config_list(f'{d}_actions') or []
-                if als:
-                    self._update_sub_entities(None, '*', domain=d, actions=als)
             for d in ['light', 'fan']:
                 pls = self.custom_config_list(f'{d}_services') or []
                 if pls:
@@ -1790,18 +1786,7 @@ class MiotEntity(MiioEntity):
                     if tms <= 1:
                         self.logger.info('%s: Device sub entity %s: %s already exists.', self.name_model, domain, fnm)
                 elif isinstance(p, MiotAction):
-                    if add_buttons and domain == 'button':
-                        from .button import MiotButtonActionSubEntity
-                        self._subs[fnm] = MiotButtonActionSubEntity(self, p, option=opt)
-                        add_buttons([self._subs[fnm]])
-                    elif add_texts and domain == 'text':
-                        from .text import MiotTextActionSubEntity
-                        self._subs[fnm] = MiotTextActionSubEntity(self, p, option=opt)
-                        add_texts([self._subs[fnm]])
-                    elif add_selects and domain == 'select' and p.ins:
-                        from .select import MiotActionSelectSubEntity
-                        self._subs[fnm] = MiotActionSelectSubEntity(self, p, option=opt)
-                        add_selects([self._subs[fnm]])
+                    """migrate to converter"""
                 elif add_buttons and domain == 'button' and (p.value_list or p.is_bool):
                     from .button import MiotButtonSubEntity
                     nls = []

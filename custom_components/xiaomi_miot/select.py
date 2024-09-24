@@ -6,6 +6,7 @@ from homeassistant.components.select import (
     SelectEntity as BaseEntity,
 )
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.event import async_call_later
 
 from . import (
     DOMAIN,
@@ -56,10 +57,15 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class SelectEntity(XEntity, BaseEntity, RestoreEntity):
+    _attr_current_option = None
+    _attr_options = []
+
     def on_init(self):
         if self._miot_property:
             self.listen_attrs.add('property_value')
             self._attr_options = self._miot_property.list_descriptions()
+        if self._miot_action:
+            self._attr_options.insert(0, '')
 
     def get_state(self) -> dict:
         return {self.attr: self._attr_current_option}
@@ -69,7 +75,14 @@ class SelectEntity(XEntity, BaseEntity, RestoreEntity):
         self._attr_current_option = val
 
     async def async_select_option(self, option: str):
+        if self._miot_action and option == '':
+            return
+
         await self.device.async_write({self.attr: option})
+
+        if self._miot_action:
+            self._attr_current_option = ''
+            async_call_later(self.hass, 0.5, self.schedule_update_ha_state)
 
 XEntity.CLS[ENTITY_DOMAIN] = SelectEntity
 
@@ -141,45 +154,6 @@ class MiotSelectSubEntity(BaseEntity, MiotPropertySubEntity):
                 bfs(self._miot_property, option)
             return self.set_parent_property(val)
         return False
-
-
-class MiotActionSelectSubEntity(MiotSelectSubEntity):
-    def __init__(self, parent, miot_action: MiotAction, miot_property: MiotProperty = None, option=None):
-        if not miot_property:
-            miot_property = miot_action.in_properties()[0] if miot_action.ins else None
-        super().__init__(parent, miot_property, option)
-        self._miot_action = miot_action
-        self._attr_current_option = None
-        self._attr_options = miot_property.list_descriptions()
-        self._extra_actions = self._option.get('extra_actions') or {}
-        if self._extra_actions:
-            self._attr_options.extend(self._extra_actions.keys())
-
-        self._state_attrs.update({
-            'miot_action': miot_action.full_name,
-        })
-
-    def update(self, data=None):
-        self._available = True
-        self._attr_current_option = None
-
-    def select_option(self, option):
-        """Change the selected option."""
-        ret = None
-        val = self._miot_property.list_value(option)
-        if val is None:
-            act = self._extra_actions.get(option)
-            if isinstance(act, MiotAction):
-                ret = self.call_parent('call_action', act)
-            else:
-                return False
-        if ret is None:
-            pms = [val] if self._miot_action.ins else []
-            ret = self.call_parent('call_action', self._miot_action, pms)
-        if ret:
-            self._attr_current_option = option
-            self.schedule_update_ha_state()
-        return ret
 
 
 class SelectSubEntity(BaseEntity, BaseSubEntity):
