@@ -236,8 +236,8 @@ class Device:
             return
 
         for d in [
-            'sensor', 'binary_sensor', 'switch', 'number', 'select',
-            'fan', 'cover', 'button', 'scanner', 'number_select',
+            'sensor', 'binary_sensor', 'switch', 'number', 'select', 'button',
+            # 'fan', 'cover', 'scanner', 'number_select',
         ]:
             pls = self.custom_config_list(f'{d}_properties') or []
             if not pls:
@@ -254,6 +254,8 @@ class Device:
                     elif prop.is_bool:
                         conv = MiotPropValueConv(prop.full_name, d, prop=prop, value=True)
                         self.converters.append(conv)
+                elif d == 'number' and not prop.value_range:
+                    continue
                 else:
                     desc = bool(prop.value_list and d in ['sensor', 'select'])
                     self.converters.append(MiotPropConv(prop.full_name, d, prop=prop, desc=desc))
