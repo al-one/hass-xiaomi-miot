@@ -9,7 +9,7 @@ from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL
 from homeassistant.helpers.device_registry import format_mac
 import homeassistant.helpers.config_validation as cv
 
-from .const import DOMAIN, DEVICE_CUSTOMIZES, DEFAULT_NAME, CONF_CONN_MODE, DEFAULT_CONN_MODE
+from .const import DOMAIN, DEVICE_CUSTOMIZES, MIOT_LOCAL_MODELS, DEFAULT_NAME, CONF_CONN_MODE, DEFAULT_CONN_MODE
 from .hass_entry import HassEntry
 from .converters import BaseConv, MiotPropConv, MiotPropValueConv, MiotActionConv
 from .miot_spec import MiotSpec, MiotResults
@@ -128,7 +128,8 @@ class Device:
         self.listeners: list[Callable] = []
         self.converters: list[BaseConv] = []
 
-        self.local = MiotDevice.from_device(self)
+        if not self.cloud_only:
+            self.local = MiotDevice.from_device(self)
 
     @cached_property
     def did(self):
@@ -411,7 +412,8 @@ class Device:
         self.miot_results = MiotResults(results)
 
         if use_local is None:
-            use_local = self.local or self.miio2miot
+            if self.local:
+                use_local = self.miio2miot or self.model in MIOT_LOCAL_MODELS
             if self.cloud_only or use_cloud:
                 use_local = False
         if use_cloud is None:
