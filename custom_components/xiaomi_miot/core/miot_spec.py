@@ -314,6 +314,8 @@ class MiotSpec(MiotSpecInstance):
 
     @staticmethod
     async def async_from_type(hass, typ):
+        if not typ:
+            return None
         fnm = f'{DOMAIN}/{typ}.json'
         if platform.system() == 'Windows':
             fnm = fnm.replace(':', '_')
