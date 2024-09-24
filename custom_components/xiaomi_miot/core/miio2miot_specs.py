@@ -2566,7 +2566,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.5.2': {'prop': 'f2_hour_used'},
             'prop.6.1': {'prop': 'led', 'setter': True, 'format': 'onoff'},
             'prop.6.2': {'prop': 'led_b', 'setter': True},
-            'prop.7.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
+            'prop.7.1': {'prop': 'volume', 'setter': True, 'set_template': '{{ [100 if value else 0] }}'},
             'prop.8.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
             'prop.9.1': {'prop': 'favorite_level', 'setter': 'set_level_favorite'},
         },
