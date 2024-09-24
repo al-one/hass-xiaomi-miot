@@ -102,9 +102,10 @@ class XEntity(BasicEntity):
             self._miot_service = conv.action.service
             self._miot_action = conv.action
             self._miot_property = conv.action.in_properties()[0] if conv.action.ins else None
+            self._attr_available = True
 
         else:
-            prefix = device.spec.generate_entity_id(self)
+            prefix = device.spec.generate_entity_id(self, self.attr)
             self.entity_id = f'{prefix}_{self.attr}'
             self._attr_name = self.attr.replace('_', '').title()
             self._attr_translation_key = self.attr
@@ -127,11 +128,11 @@ class XEntity(BasicEntity):
 
     def on_device_update(self, data: dict):
         state_change = False
+        self._attr_available = True
 
         if keys := self.listen_attrs & data.keys():
             self.set_state(data)
             state_change = True
-            self._attr_available = True
             for key in keys:
                 if key == self.attr:
                     continue
