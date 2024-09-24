@@ -23,7 +23,7 @@ from miio.device import DeviceInfo as MiioInfoBase
 from miio.miot_device import MiotDevice as MiotDeviceBase
 
 if TYPE_CHECKING:
-    from . import XEntity
+    from . import BasicEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,7 +121,7 @@ class Device:
         self.info = info
         self.hass = entry.hass
         self.entry = entry
-        self.entities: dict[str, 'XEntity'] = {}
+        self.entities: dict[str, 'BasicEntity'] = {}
         self.listeners: list[Callable] = []
         self.converters: list[BaseConv] = []
 
@@ -266,7 +266,7 @@ class Device:
                 for action in srv.get_actions(*als):
                     self.converters.append(MiotActionConv(action.full_name, d, action=action))
 
-    def add_entity(self, entity: 'XEntity'):
+    def add_entity(self, entity: 'BasicEntity'):
         if entity not in self.entities:
             self.entities[entity.unique_id] = entity
 

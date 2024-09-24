@@ -70,7 +70,7 @@ class HassEntry:
                     if not cls:
                         continue
                     entity = cls(device, conv)
-                    device.entities[key] = entity
+                    device.add_entity(entity)
                     adder([entity], update_before_add=False)
                     _LOGGER.info('New entity: %s', entity)
 
