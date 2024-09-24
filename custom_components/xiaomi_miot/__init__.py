@@ -800,7 +800,7 @@ class MiioEntity(BaseEntity):
 
     @property
     def name_model(self):
-        return f'{self.device_name}({self.model})'
+        return self.device.name_model
 
     @property
     def device_name(self):

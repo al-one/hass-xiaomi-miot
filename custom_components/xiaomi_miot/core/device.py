@@ -1,10 +1,13 @@
 import logging
 import copy
+import json
+import voluptuous as vol
 from typing import TYPE_CHECKING, Optional, Callable
 from functools import partial, cached_property
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL
 from homeassistant.helpers.device_registry import format_mac
+import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN, DEVICE_CUSTOMIZES, DEFAULT_NAME, CONF_CONN_MODE, DEFAULT_CONN_MODE
 from .hass_entry import HassEntry
@@ -143,6 +146,10 @@ class Device:
     def name_model(self):
         return f'{self.name}({self.model})'
 
+    @cached_property
+    def unique_id(self):
+        return f'{self.info.unique_id}-{self.entry.entry_id}'
+
     @property
     def conn_mode(self):
         return self.entry.get_config(CONF_CONN_MODE) or DEFAULT_CONN_MODE
@@ -164,7 +171,7 @@ class Device:
         if updater and updater not in ['none']:
             swv = f'{swv} ({updater})'
         return {
-            'identifiers': {(DOMAIN, self.info.unique_id)},
+            'identifiers': {(DOMAIN, self.unique_id)},
             'name': self.info.name,
             'model': self.model,
             'manufacturer': (self.model or 'Xiaomi').split('.', 1)[0],
@@ -181,6 +188,14 @@ class Device:
         cfg = self.customizes
         return cfg if key is None else cfg.get(key, default)
 
+    def custom_config_bool(self, key=None, default=None):
+        val = self.custom_config(key, default)
+        try:
+            val = cv.boolean(val)
+        except vol.Invalid:
+            val = default
+        return val
+
     def custom_config_list(self, key=None, default=None):
         lst = self.custom_config(key)
         if lst is None:
@@ -189,6 +204,18 @@ class Device:
             lst = f'{lst}'.split(',')
             lst = list(map(lambda x: x.strip(), lst))
         return lst
+
+    def custom_config_json(self, key=None, default=None):
+        dic = self.custom_config(key)
+        if dic:
+            if not isinstance(dic, (dict, list)):
+                try:
+                    dic = json.loads(dic or '{}')
+                except (TypeError, ValueError):
+                    dic = None
+            if isinstance(dic, (dict, list)):
+                return dic
+        return default
 
     @cached_property
     def extend_miot_specs(self):
@@ -355,6 +382,21 @@ class Device:
             self.dispatch(payload)
         return result
 
+    def miot_mapping(self):
+        if dic := self.custom_config_json('miot_mapping'):
+            self.spec.set_custom_mapping(dic)
+        if ems := self.custom_config_list('exclude_miot_services') or []:
+            self.data['exclude_miot_services'] = ems
+        if eps := self.custom_config_list('exclude_miot_properties') or []:
+            self.data['exclude_miot_properties'] = eps
+        urp = self.custom_config_bool('unreadable_properties')
+        mapping =  self.spec.services_mapping(
+            excludes=ems,
+            exclude_properties=eps,
+            unreadable_properties=urp,
+        ) or {}
+        return mapping
+
     async def update_miot_status(
         self,
         mapping=None,
@@ -376,12 +418,15 @@ class Device:
             use_cloud = not use_local and self.cloud
             if not self.local:
                 use_cloud = self.cloud
+
+        if mapping is None:
+            mapping = self.miot_mapping()
         if not (mapping or local_mapping):
             use_local = False
             use_cloud = False
 
         if use_local:
-            self.miot_results.updater = 'lan'
+            self.miot_results.updater = 'local'
             if not local_mapping:
                 local_mapping = mapping
             try:

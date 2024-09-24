@@ -51,7 +51,7 @@ class HassEntry:
         spec = await device.get_spec()
         if spec and not device.cloud_only:
             device.miio2miot = Miio2MiotHelper.from_model(self.hass, device.model, spec)
-            await device.update_miot_status()
+            await device.update_miot_status() # TODO
         self.devices[info.unique_id] = device
         return device
 
