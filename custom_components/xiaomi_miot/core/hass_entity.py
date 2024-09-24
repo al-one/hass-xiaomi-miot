@@ -111,7 +111,7 @@ class XEntity(BasicEntity):
             self._attr_translation_key = self.attr
 
         self.listen_attrs: set = {self.attr}
-        self._attr_unique_id = f'{device.info.unique_id}-{convert_unique_id(conv)}'
+        self._attr_unique_id = f'{device.unique_id}-{convert_unique_id(conv)}'
         self._attr_device_info = self.device.hass_device_info
         self._attr_extra_state_attributes = {
             'converter': f'{conv}'.replace('custom_components.xiaomi_miot.core.miot_spec.', ''), # TODO
@@ -172,17 +172,25 @@ class XEntity(BasicEntity):
     @cached_property
     def customize_keys(self):
         keys = []
+        prop = getattr(self.conv, 'prop', None)
+        action = getattr(self.conv, 'action', None)
         for mod in wildcard_models(self.device.model):
-            if isinstance(self.conv.attr, (MiotProperty, MiotAction)):
-                keys.append(f'{mod}:{self.conv.attr.full_name}')
-                keys.append(f'{mod}:{self.conv.attr.name}')
-            elif self.attr:
+            if isinstance(action, MiotAction):
+                keys.append(f'{mod}:{action.full_name}')
+                keys.append(f'{mod}:{action.name}')
+            if isinstance(prop, MiotProperty):
+                keys.append(f'{mod}:{prop.full_name}')
+                keys.append(f'{mod}:{prop.name}')
+            if self.attr and not (prop or action):
                 keys.append(f'{mod}:{self.attr}')
         return keys
 
 
 def convert_unique_id(conv: 'BaseConv'):
-    attr = conv.attr
-    if isinstance(attr, (MiotService, MiotProperty, MiotAction)):
-        return attr.unique_name
-    return attr
+    action = getattr(conv, 'action', None)
+    if isinstance(action, MiotAction):
+        return action.unique_name
+    prop = getattr(conv, 'prop', None)
+    if isinstance(prop, MiotProperty):
+        return prop.unique_name
+    return conv.attr
