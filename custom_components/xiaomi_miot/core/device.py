@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional, Callable
 from functools import partial, cached_property
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL
-from homeassistant.helpers.device_registry import format_mac
+import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN, DEVICE_CUSTOMIZES, MIOT_LOCAL_MODELS, DEFAULT_NAME, CONF_CONN_MODE, DEFAULT_CONN_MODE
@@ -45,7 +45,7 @@ class DeviceInfo:
     @cached_property
     def unique_id(self):
         if mac := self.mac:
-            return format_mac(mac).lower()
+            return dr.format_mac(mac).lower()
         return self.did
 
     @property
@@ -164,19 +164,27 @@ class Device:
         return self.conn_mode == 'cloud'
 
     @property
-    def hass_device_info(self):
+    def sw_version(self):
         swv = self.info.firmware_version
         if self.info.hardware_version:
             swv = f'{swv}@{self.info.hardware_version}'
         updater = self.data.get('updater')
         if updater and updater not in ['none']:
             swv = f'{swv} ({updater})'
+        return swv
+
+    @property
+    def identifiers(self):
+        return {(DOMAIN, self.unique_id)}
+
+    @property
+    def hass_device_info(self):
         return {
-            'identifiers': {(DOMAIN, self.unique_id)},
+            'identifiers': self.identifiers,
             'name': self.info.name,
             'model': self.model,
             'manufacturer': (self.model or 'Xiaomi').split('.', 1)[0],
-            'sw_version': swv,
+            'sw_version': self.sw_version,
             'suggested_area': self.info.room_name,
             'configuration_url': f'https://home.miot-spec.com/s/{self.model}',
         }
@@ -383,6 +391,28 @@ class Device:
             self.dispatch(payload)
         return result
 
+    @property
+    def use_local(self):
+        if self.cloud_only:
+            return False
+        if not self.local:
+            return False
+        if self.miio2miot:
+            return True
+        if self.model in MIOT_LOCAL_MODELS:
+            return True
+        return False
+
+    @property
+    def use_cloud(self):
+        if self.local_only:
+            return False
+        if self.use_local:
+            return False
+        if not self.cloud:
+            return False
+        return True
+
     def miot_mapping(self):
         if dic := self.custom_config_json('miot_mapping'):
             self.spec.set_custom_mapping(dic)
@@ -412,14 +442,9 @@ class Device:
         self.miot_results = MiotResults(results)
 
         if use_local is None:
-            if self.local:
-                use_local = self.miio2miot or self.model in MIOT_LOCAL_MODELS
-            if self.cloud_only or use_cloud:
-                use_local = False
+            use_local = False if use_cloud else self.use_local
         if use_cloud is None:
-            use_cloud = not use_local and self.cloud
-            if not self.local:
-                use_cloud = self.cloud
+            use_cloud = False if use_local else self.use_cloud
 
         if mapping is None:
             mapping = self.miot_mapping()
@@ -428,7 +453,6 @@ class Device:
             use_cloud = False
 
         if use_local:
-            self.miot_results.updater = 'local'
             if not local_mapping:
                 local_mapping = mapping
             try:
@@ -443,6 +467,7 @@ class Device:
                         mapping=local_mapping,
                     )
                 self._local_state = True
+                self.miot_results.updater = 'local'
                 self.miot_results.set_results(results, local_mapping)
             except (DeviceException, OSError) as exc:
                 log = _LOGGER.error
@@ -458,11 +483,11 @@ class Device:
                 )
 
         if use_cloud:
-            self.miot_results.updater = 'cloud'
             try:
                 results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
                 if check_lan and self.local:
                     await self.hass.async_add_executor_job(partial(self.local.info, skip_cache=True))
+                self.miot_results.updater = 'cloud'
                 self.miot_results.set_results(results, mapping)
             except MiCloudException as exc:
                 self.miot_results.errors = exc
@@ -471,7 +496,11 @@ class Device:
                     self.name_model, exc, mapping,
                 )
 
-        self.data['updater'] = self.miot_results.updater
+        if self.miot_results.updater != self.data.get('updater'):
+            self.data['updater'] = self.miot_results.updater
+            dev_reg = dr.async_get(self.hass)
+            if dev := dev_reg.async_get_device(self.identifiers):
+                dev_reg.async_update_device(dev.id, sw_version=self.sw_version)
         if results:
             self.data['miot_results'] = results
             self.dispatch(self.decode(results))
