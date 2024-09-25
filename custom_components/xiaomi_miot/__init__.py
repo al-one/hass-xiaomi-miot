@@ -1256,7 +1256,7 @@ class MiotEntity(MiioEntity):
     async def async_update_for_main_entity(self):
         if self._miot_service:
             for d in [
-                'fan', 'cover', 'scanner', 'number_select',
+                'fan', 'cover', 'scanner',
             ]:
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:

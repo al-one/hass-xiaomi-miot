@@ -256,13 +256,17 @@ class Device(CustomConfigHelper):
         self.dispatch_info()
 
         for d in [
-            'sensor', 'binary_sensor', 'switch', 'number', 'select', 'button',
-            # 'fan', 'cover', 'scanner', 'number_select',
+            'sensor', 'binary_sensor', 'switch', 'number', 'select', 'button', 'number_select',
+            # 'fan', 'cover', 'scanner',
         ]:
             pls = self.custom_config_list(f'{d}_properties') or []
             if not pls:
                 continue
             for prop in self.spec.get_properties(*pls):
+                if d == 'number_select' and (prop.value_range or prop.value_list):
+                    d = 'number' if prop.value_range else 'select'
+                else:
+                    continue
                 if d == 'button':
                     if prop.value_list:
                         for pv in prop.value_list:
@@ -292,8 +296,9 @@ class Device(CustomConfigHelper):
         if self.miot_entity:
             return
 
+        interval = self.custom_config_integer('interval_seconds') or 30
         lst = [
-            DataCoordinator(self, name='update_miot_status', update_interval=timedelta(seconds=30)),
+            DataCoordinator(self, name='update_miot_status', update_interval=timedelta(seconds=interval)),
         ]
         for coo in lst:
             await coo.async_config_entry_first_refresh()
