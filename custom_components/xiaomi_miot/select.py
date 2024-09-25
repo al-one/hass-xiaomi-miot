@@ -24,7 +24,6 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
     MiotProperty,
-    MiotAction,
 )
 
 _LOGGER = logging.getLogger(__name__)

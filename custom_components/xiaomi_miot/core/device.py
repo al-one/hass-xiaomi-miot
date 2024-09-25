@@ -1,15 +1,18 @@
 import logging
 import copy
 from typing import TYPE_CHECKING, Optional, Callable
+from datetime import timedelta
 from functools import partial, cached_property
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL
+from homeassistant.helpers.event import async_call_later
 import homeassistant.helpers.device_registry as dr
 
 from .const import DOMAIN, DEVICE_CUSTOMIZES, MIOT_LOCAL_MODELS, DEFAULT_NAME, CONF_CONN_MODE, DEFAULT_CONN_MODE
 from .hass_entry import HassEntry
 from .hass_entity import XEntity, convert_unique_id
 from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv
+from .coordinator import DataCoordinator
 from .miot_spec import MiotSpec, MiotResults
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
@@ -115,6 +118,7 @@ class Device(CustomConfigHelper):
     cloud: Optional['MiotCloud'] = None
     local: Optional['MiotDevice'] = None
     miio2miot: Optional['Miio2MiotHelper'] = None
+    miot_entity = None
     miot_results = None
     _local_state = None
 
@@ -126,6 +130,7 @@ class Device(CustomConfigHelper):
         self.entities: dict[str, 'BasicEntity'] = {}
         self.listeners: list[Callable] = []
         self.converters: list[BaseConv] = []
+        self.coordinators: list[DataCoordinator] = []
 
         if not self.cloud_only:
             self.local = MiotDevice.from_device(self)
@@ -283,6 +288,17 @@ class Device(CustomConfigHelper):
                 for action in srv.get_actions(*als):
                     self.converters.append(MiotActionConv(action.full_name, d, action=action))
 
+    async def init_coordinators(self, _):
+        if self.miot_entity:
+            return
+
+        lst = [
+            DataCoordinator(self, name='update_miot_status', update_interval=timedelta(seconds=30)),
+        ]
+        for coo in lst:
+            await coo.async_config_entry_first_refresh()
+        self.coordinators.extend(lst)
+
     def add_entities(self, domain):
         for conv in self.converters:
             if conv.domain != domain:
@@ -299,7 +315,9 @@ class Device(CustomConfigHelper):
             self.add_entity(entity)
             adder([entity], update_before_add=False)
             _LOGGER.info('New entity: %s', entity)
+
         self.dispatch_info()
+        async_call_later(self.hass, 0.1, self.init_coordinators)
 
     def add_entity(self, entity: 'BasicEntity'):
         if entity not in self.entities:

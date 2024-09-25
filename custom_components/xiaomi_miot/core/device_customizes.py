@@ -6,6 +6,12 @@ ENERGY_KWH = {
 
 DEVICE_CUSTOMIZES = {
 
+    '*': {
+        'switch_properties': [
+            'switch.on',
+        ],
+    },
+
     '090615.aircondition.ktf': {
         'current_temp_property': 'setmode.roomtemp',
     },

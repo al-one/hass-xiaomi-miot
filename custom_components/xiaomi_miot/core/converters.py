@@ -39,12 +39,17 @@ class InfoConv(BaseConv):
     domain: str = 'sensor'
 
     def decode(self, device: 'Device', payload: dict, value):
+        updater = device.data.get('updater')
         payload.update({
             self.attr: value,
-            'updater': device.data.get('updater') or 'none',
+            'model': device.model,
+            'updater': updater or 'none',
         })
         if device.miot_results:
             payload.update(device.miot_results.to_attributes())
+            payload.pop('miot_error', None)
+            if err := device.miot_results.errors:
+                payload['miot_error'] = str(err)
 
 @dataclass
 class MiotPropConv(BaseConv):

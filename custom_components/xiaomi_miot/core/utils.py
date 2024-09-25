@@ -136,6 +136,7 @@ def wildcard_models(model):
         model,
         wil,
         re.sub(r'^[^.]+\.', '*.', wil),
+        '*',
     ]
 
 
