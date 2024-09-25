@@ -4,13 +4,13 @@ import voluptuous as vol
 from typing import TYPE_CHECKING, Optional, Callable
 from functools import cached_property
 
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraData
 import homeassistant.helpers.config_validation as cv
 
 from .utils import get_customize_via_entity, wildcard_models
 from .miot_spec import MiotService, MiotProperty, MiotAction
-from .converters import BaseConv, MiotPropConv, MiotActionConv
+from .converters import BaseConv, InfoConv, MiotPropConv, MiotActionConv
 
 if TYPE_CHECKING:
     from .device import Device
@@ -20,6 +20,7 @@ _LOGGER = logging.getLogger(__package__)
 
 class BasicEntity(Entity):
     device: 'Device' = None
+    conv: 'BaseConv' = None
 
     def custom_config(self, key=None, default=None):
         return get_customize_via_entity(self, key, default)
@@ -105,9 +106,8 @@ class XEntity(BasicEntity):
             self._attr_available = True
 
         else:
-            prefix = device.spec.generate_entity_id(self, self.attr)
-            self.entity_id = f'{prefix}_{self.attr}'
-            self._attr_name = self.attr.replace('_', '').title()
+            self.entity_id = device.spec.generate_entity_id(self, self.attr, conv.domain)
+            # self._attr_name = self.attr.replace('_', '').title()
             self._attr_translation_key = self.attr
 
         self.listen_attrs: set = {self.attr}
@@ -117,7 +117,14 @@ class XEntity(BasicEntity):
             'converter': f'{conv}'.replace('custom_components.xiaomi_miot.core.miot_spec.', ''), # TODO
         }
 
+        self._attr_icon = conv.option.get('icon')
+
+        if isinstance(conv, InfoConv):
+            self._attr_available = True
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
+
         self.on_init()
+        self.device.add_listener(self.on_device_update)
 
     @property
     def unique_mac(self):
@@ -129,6 +136,9 @@ class XEntity(BasicEntity):
     def on_device_update(self, data: dict):
         state_change = False
         self._attr_available = True
+
+        if isinstance(self.conv, InfoConv):
+            self._attr_extra_state_attributes.update(data)
 
         if keys := self.listen_attrs & data.keys():
             self.set_state(data)
@@ -158,7 +168,6 @@ class XEntity(BasicEntity):
 
     async def async_added_to_hass(self) -> None:
         self.added = True
-        self.device.add_listener(self.on_device_update)
 
         if call := getattr(self, 'async_get_last_extra_data', None):
             data: RestoredExtraData = await call()

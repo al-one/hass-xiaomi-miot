@@ -11,7 +11,8 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN, DEVICE_CUSTOMIZES, MIOT_LOCAL_MODELS, DEFAULT_NAME, CONF_CONN_MODE, DEFAULT_CONN_MODE
 from .hass_entry import HassEntry
-from .converters import BaseConv, MiotPropConv, MiotPropValueConv, MiotActionConv
+from .hass_entity import XEntity, convert_unique_id
+from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv
 from .miot_spec import MiotSpec, MiotResults
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
     from . import BasicEntity
 
 _LOGGER = logging.getLogger(__name__)
+InfoConverter = InfoConv(option={'icon': 'mdi:information'})
 
 
 class DeviceInfo:
@@ -169,7 +171,13 @@ class Device:
         if self.info.hardware_version:
             swv = f'{swv}@{self.info.hardware_version}'
         updater = self.data.get('updater')
-        if updater and updater not in ['none']:
+        emoji = {
+            'local': '🛜',
+            'cloud': '☁️',
+        }.get(updater)
+        if emoji:
+            swv = f'{swv} {emoji}'
+        elif updater and updater not in ['none']:
             swv = f'{swv} ({updater})'
         return swv
 
@@ -271,6 +279,9 @@ class Device:
         if not self.spec:
             return
 
+        self.converters.append(InfoConverter)
+        self.dispatch_info()
+
         for d in [
             'sensor', 'binary_sensor', 'switch', 'number', 'select', 'button',
             # 'fan', 'cover', 'scanner', 'number_select',
@@ -304,6 +315,24 @@ class Device:
                 for action in srv.get_actions(*als):
                     self.converters.append(MiotActionConv(action.full_name, d, action=action))
 
+    def add_entities(self, domain):
+        for conv in self.converters:
+            if conv.domain != domain:
+                continue
+            key = convert_unique_id(conv)
+            entity = self.entities.get(key)
+            if entity:
+                continue
+            cls = XEntity.CLS.get(domain)
+            adder = self.entry.adders.get(domain)
+            if not (cls and adder):
+                continue
+            entity = cls(self, conv)
+            self.add_entity(entity)
+            adder([entity], update_before_add=False)
+            _LOGGER.info('New entity: %s', entity)
+        self.dispatch_info()
+
     def add_entity(self, entity: 'BasicEntity'):
         if entity not in self.entities:
             self.entities[entity.unique_id] = entity
@@ -316,10 +345,16 @@ class Device:
         if handler in self.listeners:
             self.listeners.remove(handler)
 
-    def dispatch(self, data: dict):
-        _LOGGER.info('%s: Device updated: %s', self.name_model, data)
+    def dispatch(self, data: dict, log=True):
+        if log:
+            _LOGGER.info('%s: Device updated: %s', self.name_model, data)
         for handler in self.listeners:
             handler(data)
+
+    def dispatch_info(self):
+        info = {}
+        InfoConverter.decode(self, info, self.info.host)
+        self.dispatch(info, log=False)
 
     def decode(self, data: dict | list) -> dict:
         """Decode data from device."""
@@ -497,13 +532,15 @@ class Device:
                 )
 
         if self.miot_results.updater != self.data.get('updater'):
-            self.data['updater'] = self.miot_results.updater
             dev_reg = dr.async_get(self.hass)
             if dev := dev_reg.async_get_device(self.identifiers):
+                self.data['updater'] = self.miot_results.updater
                 dev_reg.async_update_device(dev.id, sw_version=self.sw_version)
+                _LOGGER.info('%s: State updater: %s', self.name_model, self.sw_version)
         if results:
             self.data['miot_results'] = results
             self.dispatch(self.decode(results))
+        self.dispatch_info()
         return self.miot_results
 
 

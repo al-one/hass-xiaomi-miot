@@ -137,6 +137,9 @@
     },
     "entity": {
         "sensor": {
+            "info": {
+                "name": "信息"
+            },
             "lock": {
                 "state": {
                     "bluetooth": "蓝牙",

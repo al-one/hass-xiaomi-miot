@@ -199,6 +199,9 @@
     },
     "entity": {
         "sensor": {
+            "info": {
+                "name": "Info"
+            },
             "lock": {
                 "state": {
                     "bluetooth": "Bluetooth",

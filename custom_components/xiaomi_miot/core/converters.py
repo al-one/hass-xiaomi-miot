@@ -15,7 +15,8 @@ class BaseConv:
     option: dict = None
 
     def __post_init__(self):
-        self.option = {}
+        if self.option is None:
+            self.option = {}
 
     # to hass
     def decode(self, device: 'Device', payload: dict, value):
@@ -31,6 +32,19 @@ class BaseConv:
         if params:
             params.update({'did': device.did, 'value': value})
             payload.setdefault('params', []).append(params)
+
+@dataclass
+class InfoConv(BaseConv):
+    attr: str = 'info'
+    domain: str = 'sensor'
+
+    def decode(self, device: 'Device', payload: dict, value):
+        payload.update({
+            self.attr: value,
+            'updater': device.data.get('updater'),
+        })
+        if device.miot_results:
+            payload.update(device.miot_results.to_attributes())
 
 @dataclass
 class MiotPropConv(BaseConv):

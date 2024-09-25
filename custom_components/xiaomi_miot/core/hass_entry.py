@@ -6,7 +6,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud
-from .hass_entity import XEntity, convert_unique_id
 
 if TYPE_CHECKING:
     from .device import Device
@@ -59,19 +58,7 @@ class HassEntry:
         _LOGGER.info('New adder: %s', [domain, adder])
 
         for device in self.devices.values():
-            for conv in device.converters:
-                if conv.domain != domain:
-                    continue
-                key = convert_unique_id(conv)
-                entity = device.entities.get(key)
-                if not entity:
-                    cls = XEntity.CLS.get(domain)
-                    if not cls:
-                        continue
-                    entity = cls(device, conv)
-                    device.add_entity(entity)
-                    adder([entity], update_before_add=False)
-                    _LOGGER.info('New entity: %s', entity)
+            device.add_entities(domain)
 
         return self
 
