@@ -41,7 +41,7 @@ class InfoConv(BaseConv):
     def decode(self, device: 'Device', payload: dict, value):
         payload.update({
             self.attr: value,
-            'updater': device.data.get('updater'),
+            'updater': device.data.get('updater') or 'none',
         })
         if device.miot_results:
             payload.update(device.miot_results.to_attributes())
