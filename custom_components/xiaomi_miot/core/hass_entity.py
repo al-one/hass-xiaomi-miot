@@ -1,14 +1,11 @@
 import logging
-import json
-import voluptuous as vol
 from typing import TYPE_CHECKING, Optional, Callable
 from functools import cached_property
 
 from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraData
-import homeassistant.helpers.config_validation as cv
 
-from .utils import get_customize_via_entity, wildcard_models
+from .utils import get_customize_via_entity, wildcard_models, CustomConfigHelper
 from .miot_spec import MiotService, MiotProperty, MiotAction
 from .converters import BaseConv, InfoConv, MiotPropConv, MiotActionConv
 
@@ -18,57 +15,12 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__package__)
 
 
-class BasicEntity(Entity):
+class BasicEntity(Entity, CustomConfigHelper):
     device: 'Device' = None
     conv: 'BaseConv' = None
 
     def custom_config(self, key=None, default=None):
         return get_customize_via_entity(self, key, default)
-
-    def custom_config_bool(self, key=None, default=None):
-        val = self.custom_config(key, default)
-        try:
-            val = cv.boolean(val)
-        except vol.Invalid:
-            val = default
-        return val
-
-    def custom_config_number(self, key=None, default=None):
-        num = default
-        val = self.custom_config(key)
-        if val is not None:
-            try:
-                num = float(f'{val}')
-            except (TypeError, ValueError):
-                num = default
-        return num
-
-    def custom_config_integer(self, key=None, default=None):
-        num = self.custom_config_number(key, default)
-        if num is not None:
-            num = int(num)
-        return num
-
-    def custom_config_list(self, key=None, default=None):
-        lst = self.custom_config(key)
-        if lst is None:
-            return default
-        if not isinstance(lst, list):
-            lst = f'{lst}'.split(',')
-            lst = list(map(lambda x: x.strip(), lst))
-        return lst
-
-    def custom_config_json(self, key=None, default=None):
-        dic = self.custom_config(key)
-        if dic:
-            if not isinstance(dic, (dict, list)):
-                try:
-                    dic = json.loads(dic or '{}')
-                except (TypeError, ValueError):
-                    dic = None
-            if isinstance(dic, (dict, list)):
-                return dic
-        return default
 
 
 class XEntity(BasicEntity):

@@ -1,13 +1,10 @@
 import logging
 import copy
-import json
-import voluptuous as vol
 from typing import TYPE_CHECKING, Optional, Callable
 from functools import partial, cached_property
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL
 import homeassistant.helpers.device_registry as dr
-import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN, DEVICE_CUSTOMIZES, MIOT_LOCAL_MODELS, DEFAULT_NAME, CONF_CONN_MODE, DEFAULT_CONN_MODE
 from .hass_entry import HassEntry
@@ -16,7 +13,7 @@ from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, Mio
 from .miot_spec import MiotSpec, MiotResults
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
-from .utils import get_customize_via_model
+from .utils import get_customize_via_model, CustomConfigHelper
 
 
 from miio import (  # noqa: F401
@@ -113,7 +110,7 @@ class DeviceInfo:
         return MiioInfo(data)
 
 
-class Device:
+class Device(CustomConfigHelper):
     spec: Optional['MiotSpec'] = None
     cloud: Optional['MiotCloud'] = None
     local: Optional['MiotDevice'] = None
@@ -177,7 +174,7 @@ class Device:
         }.get(updater)
         if emoji:
             swv = f'{swv} {emoji}'
-        elif updater and updater not in ['none']:
+        elif updater:
             swv = f'{swv} ({updater})'
         return swv
 
@@ -189,7 +186,7 @@ class Device:
     def hass_device_info(self):
         return {
             'identifiers': self.identifiers,
-            'name': self.info.name,
+            'name': self.name,
             'model': self.model,
             'manufacturer': (self.model or 'Xiaomi').split('.', 1)[0],
             'sw_version': self.sw_version,
@@ -204,35 +201,6 @@ class Device:
     def custom_config(self, key=None, default=None):
         cfg = self.customizes
         return cfg if key is None else cfg.get(key, default)
-
-    def custom_config_bool(self, key=None, default=None):
-        val = self.custom_config(key, default)
-        try:
-            val = cv.boolean(val)
-        except vol.Invalid:
-            val = default
-        return val
-
-    def custom_config_list(self, key=None, default=None):
-        lst = self.custom_config(key)
-        if lst is None:
-            return default
-        if not isinstance(lst, list):
-            lst = f'{lst}'.split(',')
-            lst = list(map(lambda x: x.strip(), lst))
-        return lst
-
-    def custom_config_json(self, key=None, default=None):
-        dic = self.custom_config(key)
-        if dic:
-            if not isinstance(dic, (dict, list)):
-                try:
-                    dic = json.loads(dic or '{}')
-                except (TypeError, ValueError):
-                    dic = None
-            if isinstance(dic, (dict, list)):
-                return dic
-        return default
 
     @cached_property
     def extend_miot_specs(self):

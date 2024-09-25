@@ -3,11 +3,13 @@ import re
 import json
 import locale
 import tzlocal
+import voluptuous as vol
 from homeassistant.core import HomeAssistant
 from homeassistant.config import DATA_CUSTOMIZE
 from homeassistant.helpers.entity import Entity
 from homeassistant.util.dt import DEFAULT_TIME_ZONE, get_time_zone
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN, DEVICE_CUSTOMIZES
 from .translation_languages import TRANSLATION_LANGUAGES
@@ -45,6 +47,55 @@ def get_customize_via_entity(entity, key=None, default=None):
         cus = get_customize_via_model(mod)
         cfg = {**cus, **cfg}
     return cfg if key is None else cfg.get(key, default)
+
+class CustomConfigHelper:
+    def custom_config(self, key=None, default=None):
+        raise NotImplementedError
+
+    def custom_config_bool(self, key=None, default=None):
+        val = self.custom_config(key, default)
+        try:
+            val = cv.boolean(val)
+        except vol.Invalid:
+            val = default
+        return val
+
+    def custom_config_number(self, key=None, default=None):
+        num = default
+        val = self.custom_config(key)
+        if val is not None:
+            try:
+                num = float(f'{val}')
+            except (TypeError, ValueError):
+                num = default
+        return num
+
+    def custom_config_integer(self, key=None, default=None):
+        num = self.custom_config_number(key, default)
+        if num is not None:
+            num = int(num)
+        return num
+
+    def custom_config_list(self, key=None, default=None):
+        lst = self.custom_config(key)
+        if lst is None:
+            return default
+        if not isinstance(lst, list):
+            lst = f'{lst}'.split(',')
+            lst = list(map(lambda x: x.strip(), lst))
+        return lst
+
+    def custom_config_json(self, key=None, default=None):
+        dic = self.custom_config(key)
+        if dic:
+            if not isinstance(dic, (dict, list)):
+                try:
+                    dic = json.loads(dic or '{}')
+                except (TypeError, ValueError):
+                    dic = None
+            if isinstance(dic, (dict, list)):
+                return dic
+        return default
 
 
 def get_manifest(field=None, default=None):

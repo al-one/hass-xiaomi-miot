@@ -982,7 +982,7 @@ class MiotAction(MiotSpecInstance):
 
 class MiotResults:
     _results: list = None
-    updater: str = 'none'
+    updater: str = None
     errors = None
 
     def __init__(self, results, mapping=None):
