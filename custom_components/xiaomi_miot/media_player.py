@@ -17,8 +17,7 @@ from homeassistant.const import (
     CONF_HOST,
 )
 from homeassistant.components.media_player.const import ( 
-    MEDIA_TYPE_MUSIC,
-    MEDIA_TYPE_VIDEO,
+    MediaType, # v2024.10
     RepeatMode,
 )
 from homeassistant.components.media_player import (
@@ -432,7 +431,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                         2: MediaPlayerState.PAUSED,
                     }.get(sta)
                 if (typ := info.get('media_type')) is not None:
-                    self._attr_media_content_type = {3: MEDIA_TYPE_MUSIC, 13: MEDIA_TYPE_VIDEO}.get(typ)
+                    self._attr_media_content_type = {3: MediaType.MUSIC, 13: MediaType.VIDEO}.get(typ)
                 else:
                     self._attr_media_content_type = song.get('audioType')
                 self._attr_volume_level = info.get('volume')
