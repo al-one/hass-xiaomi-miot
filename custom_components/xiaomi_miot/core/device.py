@@ -121,6 +121,10 @@ class Device(CustomConfigHelper):
     miot_entity = None
     miot_results = None
     _local_state = None
+    _miot_mapping = None
+    _exclude_miot_services = None
+    _exclude_miot_properties = None
+    _unreadable_properties = None
 
     def __init__(self, info: DeviceInfo, entry: HassEntry):
         self.data = {}
@@ -139,6 +143,10 @@ class Device(CustomConfigHelper):
         spec = await self.get_spec()
         if spec and self.local and not self.cloud_only:
             self.miio2miot = Miio2MiotHelper.from_model(self.hass, self.model, spec)
+
+        self._exclude_miot_services = self.custom_config_list('exclude_miot_services', [])
+        self._exclude_miot_properties = self.custom_config_list('exclude_miot_properties', [])
+        self._unreadable_properties = self.custom_config_bool('unreadable_properties')
 
     @cached_property
     def did(self):
@@ -432,6 +440,8 @@ class Device(CustomConfigHelper):
             return True
         if self.model in MIOT_LOCAL_MODELS:
             return True
+        if self.custom_config_bool('miot_local'):
+            return True
         return False
 
     @property
@@ -442,27 +452,30 @@ class Device(CustomConfigHelper):
             return False
         if not self.cloud:
             return False
+        if self.custom_config_bool('miot_cloud'):
+            return True
         return True
 
     def miot_mapping(self):
+        if self._miot_mapping:
+            return self._miot_mapping
+
         if dic := self.custom_config_json('miot_mapping'):
             self.spec.set_custom_mapping(dic)
-        if ems := self.custom_config_list('exclude_miot_services') or []:
-            self.data['exclude_miot_services'] = ems
-        if eps := self.custom_config_list('exclude_miot_properties') or []:
-            self.data['exclude_miot_properties'] = eps
-        urp = self.custom_config_bool('unreadable_properties')
-        mapping =  self.spec.services_mapping(
-            excludes=ems,
-            exclude_properties=eps,
-            unreadable_properties=urp,
+            self._miot_mapping = dic
+            return dic
+
+        mapping = self.spec.services_mapping(
+            excludes=self._exclude_miot_services,
+            exclude_properties=self._exclude_miot_properties,
+            unreadable_properties=self._unreadable_properties,
         ) or {}
+        self._miot_mapping = mapping
         return mapping
 
     async def update_miot_status(
         self,
         mapping=None,
-        local_mapping=None,
         use_local=None,
         use_cloud=None,
         auto_cloud=None,
@@ -479,29 +492,38 @@ class Device(CustomConfigHelper):
 
         if mapping is None:
             mapping = self.miot_mapping()
-        if not (mapping or local_mapping):
+        if not mapping:
             use_local = False
             use_cloud = False
 
         if use_local:
-            if not local_mapping:
-                local_mapping = mapping
             try:
                 if self.miio2miot:
-                    results = await self.miio2miot.async_get_miot_props(self.local, local_mapping)
+                    results = await self.miio2miot.async_get_miot_props(self.local, mapping)
                 else:
                     if not max_properties:
                         max_properties = self.custom_config_integer('chunk_properties')
                     if not max_properties:
-                        max_properties = self.local.get_max_properties(local_mapping)
-                    results = await self.local.async_get_properties_for_mapping(
-                        max_properties=max_properties,
-                        did=self.did,
-                        mapping=local_mapping,
-                    )
+                        max_properties = self.local.get_max_properties(mapping)
+                    maps = [mapping]
+                    if self.custom_config_integer('chunk_services'):
+                        for service in self.spec.get_services(excludes=self._exclude_miot_services):
+                            mapp = service.mapping(
+                                excludes=self._exclude_miot_properties,
+                                unreadable_properties=self._unreadable_properties,
+                            ) or {}
+                            if mapp:
+                                maps.append(mapp)
+                    for mapp in maps:
+                        res = await self.local.async_get_properties_for_mapping(
+                            max_properties=max_properties,
+                            did=self.did,
+                            mapping=mapp,
+                        )
+                        results.extend(res)
                 self._local_state = True
                 self.miot_results.updater = 'local'
-                self.miot_results.set_results(results, local_mapping)
+                self.miot_results.set_results(results, mapping)
             except (DeviceException, OSError) as exc:
                 log = _LOGGER.error
                 if auto_cloud:
@@ -512,7 +534,7 @@ class Device(CustomConfigHelper):
                 self._local_state = False
                 log(
                     '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',
-                    self.name_model, exc, local_mapping, max_properties, len(local_mapping)
+                    self.name_model, exc, mapping, max_properties, len(mapping)
                 )
 
         if use_cloud:

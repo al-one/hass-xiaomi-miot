@@ -315,6 +315,7 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.01,
     },
     'cuco.plug.cp2a': {
+        'chunk_services': 1,
         'main_miot_services': 'switch-2',
     },
     'cuco.plug.cp2d': {

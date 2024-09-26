@@ -1164,9 +1164,6 @@ class MiotEntity(MiioEntity):
             self._vars.pop('delay_update', 0)
         attrs = {}
         mapping = self.miot_mapping
-        local_mapping = mapping
-        if self._vars.get('has_local_mapping'):
-            local_mapping = self._device.mapping
 
         if pls := self.custom_config_list('miio_properties'):
             self._vars['miio_properties'] = pls
@@ -1175,7 +1172,6 @@ class MiotEntity(MiioEntity):
 
         result = await self.device.update_miot_status(
             mapping=mapping,
-            local_mapping=local_mapping,
             use_local=self.custom_config_bool('miot_local'),
             use_cloud=self.custom_config_bool('miot_cloud'),
             auto_cloud=self.custom_config_bool('auto_cloud'),
