@@ -20,6 +20,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
+from homeassistant.util.dt import now
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.exceptions import HomeAssistantError
@@ -983,12 +984,14 @@ class MiotAction(MiotSpecInstance):
 class MiotResults:
     _results: list = None
     updater: str = None
+    updated = None
     errors = None
 
-    def __init__(self, results, mapping=None):
+    def __init__(self, results=None, mapping=None):
         self.mapping = mapping or {}
         self.results = []
-        self.set_results(results)
+        if results:
+            self.set_results(results)
 
     def set_results(self, results, mapping=None):
         if mapping:
@@ -999,6 +1002,7 @@ class MiotResults:
                 continue
             r = MiotResult(v)
             self.results.append(r)
+        self.updated = now()
 
     @property
     def is_empty(self):

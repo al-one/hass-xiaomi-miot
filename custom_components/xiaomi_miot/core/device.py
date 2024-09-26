@@ -13,7 +13,7 @@ from .hass_entry import HassEntry
 from .hass_entity import XEntity, convert_unique_id
 from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv
 from .coordinator import DataCoordinator
-from .miot_spec import MiotSpec, MiotResults
+from .miot_spec import MiotSpec, MiotService, MiotResults
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
 from .utils import get_customize_via_model, CustomConfigHelper
@@ -127,13 +127,18 @@ class Device(CustomConfigHelper):
         self.info = info
         self.hass = entry.hass
         self.entry = entry
+        self.cloud = entry.cloud
         self.entities: dict[str, 'BasicEntity'] = {}
         self.listeners: list[Callable] = []
         self.converters: list[BaseConv] = []
         self.coordinators: list[DataCoordinator] = []
 
+    async def async_init(self):
         if not self.cloud_only:
             self.local = MiotDevice.from_device(self)
+        spec = await self.get_spec()
+        if spec and self.local and not self.cloud_only:
+            self.miio2miot = Miio2MiotHelper.from_model(self.hass, self.model, spec)
 
     @cached_property
     def did(self):
@@ -465,7 +470,7 @@ class Device(CustomConfigHelper):
         max_properties=None,
     ) -> MiotResults:
         results = []
-        self.miot_results = MiotResults(results)
+        self.miot_results = MiotResults()
 
         if use_local is None:
             use_local = False if use_cloud else self.use_local
@@ -485,6 +490,8 @@ class Device(CustomConfigHelper):
                 if self.miio2miot:
                     results = await self.miio2miot.async_get_miot_props(self.local, local_mapping)
                 else:
+                    if not max_properties:
+                        max_properties = self.custom_config_integer('chunk_properties')
                     if not max_properties:
                         max_properties = self.local.get_max_properties(local_mapping)
                     results = await self.local.async_get_properties_for_mapping(

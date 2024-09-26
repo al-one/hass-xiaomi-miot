@@ -42,14 +42,11 @@ class HassEntry:
             return dat.get(key, default)
         return dat
 
-    async def new_device(self, device_info: dict, cloud: Optional[MiotCloud] = None):
+    async def new_device(self, device_info: dict):
         from .device import Device, DeviceInfo
         info = DeviceInfo(device_info)
         device = Device(info, self)
-        device.cloud = cloud
-        spec = await device.get_spec()
-        if spec and device.local and not device.cloud_only:
-            device.miio2miot = Miio2MiotHelper.from_model(self.hass, device.model, spec)
+        await device.async_init()
         self.devices[info.unique_id] = device
         return device
 

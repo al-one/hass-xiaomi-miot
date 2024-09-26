@@ -290,7 +290,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         cnt = len(config['devices_by_mac'])
         _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', username, cnt)
     for mac, d in config['devices_by_mac'].items():
-        device = await entry.new_device(d, cloud)
+        device = await entry.new_device(d)
         if not device.spec:
             _LOGGER.warning('%s: Device has no spec %s', device.name_model, device.info.urn)
             continue

@@ -47,6 +47,7 @@ class InfoConv(BaseConv):
         })
         if device.miot_results:
             payload.update(device.miot_results.to_attributes())
+            payload['updated_at'] = str(device.miot_results.updated)
             payload.pop('miot_error', None)
             if err := device.miot_results.errors:
                 payload['miot_error'] = str(err)
