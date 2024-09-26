@@ -70,6 +70,16 @@ class DeviceInfo:
     def token(self):
         return self.data.get(CONF_TOKEN) or self.miio_info.token or ''
 
+    @cached_property
+    def pid(self):
+        pid = self.data.get('pid')
+        if pid is not None:
+            try:
+                pid = int(pid)
+            except Exception:
+                pid = None
+        return pid
+
     @property
     def urn(self):
         return self.data.get('urn') or ''
@@ -505,7 +515,7 @@ class Device(CustomConfigHelper):
                         max_properties = self.custom_config_integer('chunk_properties')
                     if not max_properties:
                         max_properties = self.local.get_max_properties(mapping)
-                    maps = [mapping]
+                    maps = []
                     if self.custom_config_integer('chunk_services'):
                         for service in self.spec.get_services(excludes=self._exclude_miot_services):
                             mapp = service.mapping(
@@ -514,6 +524,8 @@ class Device(CustomConfigHelper):
                             ) or {}
                             if mapp:
                                 maps.append(mapp)
+                    else:
+                        maps.append(mapping)
                     for mapp in maps:
                         res = await self.local.async_get_properties_for_mapping(
                             max_properties=max_properties,
@@ -575,6 +587,8 @@ class MiotDevice(MiotDeviceBase):
             return None
         elif not token:
             return None
+        elif device.info.pid in [6, 15, 16, 17]:
+            return None
         mapping = {}
         miot_device = None
         try:
@@ -621,8 +635,9 @@ class MiotDevice(MiotDeviceBase):
 
     def get_max_properties(self, mapping):
         idx = len(mapping)
-        if idx >= 10:
-            idx -= 10
+        if idx < 10:
+            return idx
+        idx -= 10
         chunks = [
             # 10,11,12,13,14,15,16,17,18,19
             10, 6, 6, 7, 7, 8, 8, 9, 9, 10,
