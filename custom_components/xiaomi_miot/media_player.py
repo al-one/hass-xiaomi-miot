@@ -17,7 +17,7 @@ from homeassistant.const import (
     CONF_HOST,
 )
 from homeassistant.components.media_player.const import ( 
-    MediaType, # v2024.10
+    MediaType, # v2022.5
     RepeatMode,
 )
 from homeassistant.components.media_player import (
