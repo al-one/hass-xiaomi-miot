@@ -470,6 +470,9 @@ class Device(CustomConfigHelper):
         if self._miot_mapping:
             return self._miot_mapping
 
+        if not self.spec:
+            return None
+
         if dic := self.custom_config_json('miot_mapping'):
             self.spec.set_custom_mapping(dic)
             self._miot_mapping = dic
