@@ -1,4 +1,4 @@
-from enum import Enum, StrEnum
+from enum import Enum
 from typing import Union
 
 from .device_customizes import DEVICE_CUSTOMIZES  # noqa
@@ -43,6 +43,13 @@ CLOUD_SERVERS = {
     'sg': 'Singapore',
     'us': 'United States',
 }
+
+try:
+    # python 3.11
+    from enum import StrEnum
+except (ModuleNotFoundError, ImportError):
+    class StrEnum(str, Enum):
+        pass
 
 try:
     # hass 2020.12.2
