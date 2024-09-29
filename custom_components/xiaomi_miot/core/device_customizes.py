@@ -1417,6 +1417,13 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'delay_time',
         'percentage_property': 'prop.2.6',
     },
+    'xiaomi.feeder.pi2001': {
+        'chunk_properties': 1,
+        'number_properties':'target_feeding_measure',
+        'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
+        'sensor_properties': 'pet_food_left_level,fault,desiccant_left_level,desiccant_left_time',
+        'switch_properties': 'compensate_switch,prevent_accumulation',
+    },
     'xiaomi.heater.ma8': {
         'button_actions': 'toggle',
     },
