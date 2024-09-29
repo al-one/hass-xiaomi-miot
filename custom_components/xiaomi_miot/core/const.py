@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Union
 
 from .device_customizes import DEVICE_CUSTOMIZES  # noqa
@@ -95,3 +95,12 @@ try:
 except (ModuleNotFoundError, ImportError):
     SupportsResponse = None
     ServiceResponse = Union[dict, None]
+
+try:
+    # hass 2024.10
+    from homeassistant.components.camera import CameraState
+except (ModuleNotFoundError, ImportError):
+    class CameraState(StrEnum):
+        RECORDING = 'recording'
+        STREAMING = 'streaming'
+        IDLE = 'idle'
