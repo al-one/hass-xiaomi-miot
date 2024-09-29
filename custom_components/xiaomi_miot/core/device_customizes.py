@@ -997,13 +997,6 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'feed_today,desiccant_left_time,cleantime',
         'switch_properties': 'feedstatus',
     },
-    'xiaomi.feeder.pi2001': {
-        'chunk_properties': 1,
-        'number_properties':'target_feeding_measure',
-        'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
-        'sensor_properties': 'pet_food_left_level,fault,desiccant_left_level,desiccant_left_time',
-        'switch_properties': 'compensate_switch,prevent_accumulation',
-    },
     'mmgg.litter_box.lbc1': {
         'binary_sensor_properties': 'warehouse_uninstall,cover_open,roller_uninstall,device_dump,'
                                     'cat_enter_state,cat_near_state,enter_time_too_long',
@@ -1423,6 +1416,13 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'horizontal_swing_included_angle',
         'number_properties': 'delay_time',
         'percentage_property': 'prop.2.6',
+    },
+    'xiaomi.feeder.pi2001': {
+        'chunk_properties': 1,
+        'number_properties':'target_feeding_measure',
+        'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
+        'sensor_properties': 'pet_food_left_level,fault,desiccant_left_level,desiccant_left_time',
+        'switch_properties': 'compensate_switch,prevent_accumulation',
     },
     'xiaomi.heater.ma8': {
         'button_actions': 'toggle',
