@@ -20,6 +20,10 @@ SUPPORTED_DOMAINS = [
     'sensor',
     'binary_sensor',
     'switch',
+    'number',
+    'select',
+    'button',
+    'text',
     'light',
     'fan',
     'climate',
@@ -50,45 +54,6 @@ try:
 except (ModuleNotFoundError, ImportError):
     class StrEnum(str, Enum):
         pass
-
-try:
-    # hass 2020.12.2
-    from homeassistant.components.number import DOMAIN as DOMAIN_NUMBER
-    SUPPORTED_DOMAINS.append(DOMAIN_NUMBER)
-except (ModuleNotFoundError, ImportError):
-    DOMAIN_NUMBER = None
-
-try:
-    # hass 2021.7
-    from homeassistant.components.select import DOMAIN as DOMAIN_SELECT
-    SUPPORTED_DOMAINS.append(DOMAIN_SELECT)
-except (ModuleNotFoundError, ImportError):
-    DOMAIN_SELECT = None
-
-try:
-    # hass 2021.12
-    from homeassistant.components.button import DOMAIN as DOMAIN_BUTTON
-    SUPPORTED_DOMAINS.append(DOMAIN_BUTTON)
-except (ModuleNotFoundError, ImportError):
-    DOMAIN_BUTTON = None
-
-try:
-    # hass 2021.12
-    from homeassistant.helpers.entity import EntityCategory
-    ENTITY_CATEGORY_VIA_ENUM = True
-except (ModuleNotFoundError, ImportError):
-    class EntityCategory(Enum):
-        CONFIG = 'config'
-        DIAGNOSTIC = 'diagnostic'
-        SYSTEM = 'system'
-    ENTITY_CATEGORY_VIA_ENUM = False
-
-try:
-    # hass 2022.12
-    from homeassistant.components.text import DOMAIN as DOMAIN_TEXT
-    SUPPORTED_DOMAINS.append(DOMAIN_TEXT)
-except (ModuleNotFoundError, ImportError):
-    DOMAIN_TEXT = None
 
 try:
     # hass 2023.3
