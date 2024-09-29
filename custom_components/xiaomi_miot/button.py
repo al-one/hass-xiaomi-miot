@@ -45,7 +45,10 @@ class ButtonEntity(XEntity, BaseEntity):
         pass
 
     async def async_press(self):
-        await self.device.async_write({self.attr: getattr(self.conv, 'value', None)})
+        pms = getattr(self.conv, 'value', None)
+        if self._miot_action and self._miot_action.ins:
+            pms = self.custom_config_list('action_params', pms)
+        await self.device.async_write({self.attr: pms})
 
 XEntity.CLS[ENTITY_DOMAIN] = ButtonEntity
 

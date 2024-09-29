@@ -1482,6 +1482,11 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'wake_up,play_music,tv_switchon,stop_alarm',
         'text_actions': 'play_text,execute_text_directive',
     },
+    'xiaomi.wifispeaker.l04m:wake_up': {'action_params': ''},
+    'xiaomi.wifispeaker.l06a:wake_up': {'action_params': ''},
+    'xiaomi.wifispeaker.l09a:wake_up': {'action_params': ''},
+    'xiaomi.wifispeaker.lx04:wake_up': {'action_params': ''},
+    'xiaomi.wifispeaker.x08a:wake_up': {'action_params': ''},
     'xjx.toilet.relax': {
         'button_actions': 'flush_on',
     },

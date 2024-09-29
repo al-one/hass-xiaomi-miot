@@ -33,7 +33,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# https://iot.mi.com/new/doc/guidelines-for-access/other-platform-access/control-api#MIOT%E7%8A%B6%E6%80%81%E7%A0%81
+# https://iot.mi.com/new/doc/accesses/direct-access/other-platform-access/control-api#MIOT%E7%8A%B6%E6%80%81%E7%A0%81
 SPEC_ERRORS = {
     '000': 'Unknown',
     '001': 'Device does not exist',
