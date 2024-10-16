@@ -1,10 +1,9 @@
 from typing import TYPE_CHECKING, Any
 from dataclasses import dataclass
-from .miot_spec import MiotSpec
 
 if TYPE_CHECKING:
     from .device import Device
-    from .miot_spec import MiotProperty, MiotAction
+    from .miot_spec import MiotService, MiotProperty, MiotAction
 
 
 @dataclass
@@ -74,7 +73,8 @@ class MiotPropConv(BaseConv):
 
     def __post_init__(self):
         super().__post_init__()
-        if not self.mi:
+        if not self.mi and self.prop:
+            from .miot_spec import MiotSpec
             self.mi = MiotSpec.unique_prop(self.prop.siid, piid=self.prop.iid)
 
     def decode(self, device: 'Device', payload: dict, value):
@@ -104,6 +104,7 @@ class MiotActionConv(BaseConv):
     def __post_init__(self):
         super().__post_init__()
         if not self.mi:
+            from .miot_spec import MiotSpec
             self.mi = MiotSpec.unique_prop(self.action.siid, aiid=self.action.iid)
         if not self.prop:
             self.prop = self.action.in_properties()[0] if self.action.ins else None
@@ -123,3 +124,26 @@ class MiotActionConv(BaseConv):
             'aiid': int(p),
             'in':   ins,
         }
+
+@dataclass
+class MiotServiceConv(MiotPropConv):
+    attr: str = None
+    service: 'MiotService' = None
+    prop: 'MiotProperty' = None
+    main_props: list = None
+
+    def __post_init__(self):
+        if not self.prop and self.service and self.main_props:
+            self.prop = self.service.get_property(*self.main_props)
+        super().__post_init__()
+        if not self.attr and self.prop:
+            self.attr = self.prop.full_name
+
+@dataclass
+class MiotSwitchConv(MiotServiceConv):
+    domain: str = 'switch'
+
+    def __post_init__(self):
+        if not self.main_props:
+            self.main_props = ['on']
+        super().__post_init__()

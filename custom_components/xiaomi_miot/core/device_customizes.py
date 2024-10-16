@@ -1,3 +1,5 @@
+from .converters import *
+
 ENERGY_KWH = {
     'state_class': 'total_increasing',
     'device_class': 'energy',
@@ -7,9 +9,7 @@ ENERGY_KWH = {
 DEVICE_CUSTOMIZES = {
 
     '*': {
-        'switch_properties': [
-            'switch.on',
-        ],
+        'switch_properties': 'physical_control_locked',
     },
 
     '090615.aircondition.ktf': {
@@ -2008,3 +2008,13 @@ DEVICE_CUSTOMIZES.update({
     '*.door.*': DEVICE_CUSTOMIZES.get('*.lock.*') or {},
     '*.dryer.*': DEVICE_CUSTOMIZES.get('*.dry.*') or {},
 })
+
+DEVICE_CONVERTERS = [
+    {
+        'class': MiotSwitchConv,
+        'services': [
+            'switch', 'outlet', 'massager', 'towel_rack', 'diffuser', 'fish_tank',
+            'pet_drinking_fountain', 'mosquito_dispeller', 'electric_blanket', 'foot_bath',
+        ],
+    },
+]

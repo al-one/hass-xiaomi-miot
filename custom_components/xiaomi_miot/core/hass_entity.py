@@ -7,7 +7,7 @@ from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraDa
 
 from .utils import get_customize_via_entity, wildcard_models, CustomConfigHelper
 from .miot_spec import MiotService, MiotProperty, MiotAction
-from .converters import BaseConv, InfoConv, MiotPropConv, MiotActionConv
+from .converters import BaseConv, InfoConv, MiotServiceConv, MiotPropConv, MiotActionConv
 
 if TYPE_CHECKING:
     from .device import Device
@@ -57,22 +57,30 @@ class XEntity(BasicEntity):
             self._miot_property = conv.prop
             self._attr_available = True
 
+        elif isinstance(conv, MiotServiceConv):
+            self.entity_id = conv.service.generate_entity_id(self, conv.domain)
+            self._attr_name = str(conv.service.friendly_desc)
+            self._attr_translation_key = conv.service.name
+            self._miot_service = conv.service
+            self._miot_property = conv.prop
+
         else:
             self.entity_id = device.spec.generate_entity_id(self, self.attr, conv.domain)
             # self._attr_name = self.attr.replace('_', '').title()
             self._attr_translation_key = self.attr
+            if isinstance(conv, InfoConv):
+                self._attr_available = True
 
         self.listen_attrs: set = {self.attr}
         self._attr_unique_id = f'{device.unique_id}-{convert_unique_id(conv)}'
         self._attr_device_info = self.device.hass_device_info
-        self._attr_extra_state_attributes = {}
+        self._attr_extra_state_attributes = {
+            'converter': f'{conv}'.replace('custom_components.xiaomi_miot.core.miot_spec.', ''), # TODO
+        }
 
         self._attr_icon = conv.option.get('icon')
         self._attr_device_class = conv.option.get('device_class')
         self._attr_entity_category = conv.option.get('entity_category')
-
-        if isinstance(conv, InfoConv):
-            self._attr_available = True
 
         self.on_init()
         self.device.add_listener(self.on_device_update)
@@ -147,10 +155,16 @@ class XEntity(BasicEntity):
 
 
 def convert_unique_id(conv: 'BaseConv'):
+    service = getattr(conv, 'service', None)
+    if isinstance(conv, MiotServiceConv) and isinstance(service, MiotService):
+        return service.iid
+
     action = getattr(conv, 'action', None)
     if isinstance(action, MiotAction):
         return action.unique_name
+
     prop = getattr(conv, 'prop', None)
     if isinstance(prop, MiotProperty):
         return prop.unique_name
+
     return conv.attr

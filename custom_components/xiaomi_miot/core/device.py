@@ -8,7 +8,15 @@ from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, EntityCategor
 from homeassistant.helpers.event import async_call_later
 import homeassistant.helpers.device_registry as dr
 
-from .const import DOMAIN, DEVICE_CUSTOMIZES, MIOT_LOCAL_MODELS, DEFAULT_NAME, CONF_CONN_MODE, DEFAULT_CONN_MODE
+from .const import (
+    DOMAIN,
+    DEVICE_CUSTOMIZES,
+    DEVICE_CONVERTERS,
+    MIOT_LOCAL_MODELS,
+    DEFAULT_NAME,
+    CONF_CONN_MODE,
+    DEFAULT_CONN_MODE,
+)
 from .hass_entry import HassEntry
 from .hass_entity import XEntity, convert_unique_id
 from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv
@@ -286,6 +294,14 @@ class Device(CustomConfigHelper):
 
         self.converters.append(InfoConverter)
         self.dispatch_info()
+
+        for cfg in DEVICE_CONVERTERS:
+            if not (cls := cfg.get('class')):
+                continue
+            if services := cfg.get('services'):
+                for service in self.spec.get_services(*services):
+                    conv = cls(service=service, **cfg.get('kwargs', {}))
+                    self.converters.append(conv)
 
         for d in [
             'sensor', 'binary_sensor', 'switch', 'number', 'select', 'button', 'number_select',

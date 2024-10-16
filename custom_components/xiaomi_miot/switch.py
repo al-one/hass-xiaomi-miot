@@ -62,14 +62,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             srv = spec.get_service('relays')
             if srv:
                 entities.append(MiotPwznRelaySwitchEntity(config, srv))
-        else:
-            for srv in spec.get_services(
-                'outlet', 'massager', 'towel_rack', 'diffuser', 'fish_tank',
-                'pet_drinking_fountain', 'mosquito_dispeller', 'electric_blanket', 'foot_bath',
-            ):
-                if not srv.get_property('on'):
-                    continue
-                entities.append(MiotSwitchEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
