@@ -18,6 +18,10 @@ class BaseConv:
         if self.option is None:
             self.option = {}
 
+    def with_option(self, **kwargs):
+        self.option.update(kwargs)
+        return self
+
     # to hass
     def decode(self, device: 'Device', payload: dict, value):
         payload[self.attr] = value
@@ -36,14 +40,20 @@ class BaseConv:
 @dataclass
 class InfoConv(BaseConv):
     attr: str = 'info'
-    domain: str = 'sensor'
+    domain: str = 'button'
 
     def decode(self, device: 'Device', payload: dict, value):
         updater = device.data.get('updater')
         payload.update({
-            self.attr: value,
+            self.attr: device.name,
             'model': device.model,
+            'did': device.info.did,
+            'mac': device.info.mac,
+            'lan_ip': device.info.host,
+            'app_link': device.app_link,
             'updater': updater or 'none',
+            'converters': [c.attr for c in device.converters],
+            'customizes': device.customizes,
         })
         if device.miot_results:
             payload.update(device.miot_results.to_attributes())
@@ -51,6 +61,11 @@ class InfoConv(BaseConv):
             payload.pop('miot_error', None)
             if err := device.miot_results.errors:
                 payload['miot_error'] = str(err)
+
+    def encode(self, device: 'Device', payload: dict, value):
+        payload.update({
+            'method': 'update_status',
+        })
 
 @dataclass
 class MiotPropConv(BaseConv):

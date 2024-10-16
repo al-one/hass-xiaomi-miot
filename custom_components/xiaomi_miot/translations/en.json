@@ -198,10 +198,12 @@
         }
     },
     "entity": {
-        "sensor": {
+        "button": {
             "info": {
                 "name": "Info"
-            },
+            }
+        },
+        "sensor": {
             "lock": {
                 "state": {
                     "bluetooth": "Bluetooth",

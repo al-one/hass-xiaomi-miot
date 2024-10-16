@@ -361,7 +361,6 @@ class MiotCookerEntity(MiotSensorEntity):
                 'mode', 'cook_mode', 'heat_level', 'target_time', 'target_temperature',
             )
             for p in pls:
-                opt = None
                 if p.name in self._subs:
                     self._subs[p.name].update_from_parent()
                 elif not (p.value_list or p.value_range):

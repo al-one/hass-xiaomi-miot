@@ -2,7 +2,7 @@ import logging
 from typing import TYPE_CHECKING, Optional, Callable
 from functools import cached_property
 
-from homeassistant.helpers.entity import Entity, EntityCategory
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraData
 
 from .utils import get_customize_via_entity, wildcard_models, CustomConfigHelper
@@ -65,15 +65,14 @@ class XEntity(BasicEntity):
         self.listen_attrs: set = {self.attr}
         self._attr_unique_id = f'{device.unique_id}-{convert_unique_id(conv)}'
         self._attr_device_info = self.device.hass_device_info
-        self._attr_extra_state_attributes = {
-            'converter': f'{conv}'.replace('custom_components.xiaomi_miot.core.miot_spec.', ''), # TODO
-        }
+        self._attr_extra_state_attributes = {}
 
         self._attr_icon = conv.option.get('icon')
+        self._attr_device_class = conv.option.get('device_class')
+        self._attr_entity_category = conv.option.get('entity_category')
 
         if isinstance(conv, InfoConv):
             self._attr_available = True
-            self._attr_entity_category = EntityCategory.DIAGNOSTIC
 
         self.on_init()
         self.device.add_listener(self.on_device_update)

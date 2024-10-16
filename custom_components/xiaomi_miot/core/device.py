@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
 from functools import partial, cached_property
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL
+from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, EntityCategory
 from homeassistant.helpers.event import async_call_later
 import homeassistant.helpers.device_registry as dr
 
@@ -30,7 +30,11 @@ if TYPE_CHECKING:
     from . import BasicEntity
 
 _LOGGER = logging.getLogger(__name__)
-InfoConverter = InfoConv(option={'icon': 'mdi:information'})
+InfoConverter = InfoConv().with_option(
+    icon='mdi:information',
+    device_class='update',
+    entity_category=EntityCategory.DIAGNOSTIC,
+)
 
 
 class DeviceInfo:
@@ -177,6 +181,11 @@ class Device(CustomConfigHelper):
     @cached_property
     def unique_id(self):
         return f'{self.info.unique_id}-{self.entry.entry_id}'
+
+    @cached_property
+    def app_link(self):
+        uid = self.cloud.user_id if self.cloud else ''
+        return f'mihome://device?uid={uid}&did={self.did}'
 
     @property
     def conn_mode(self):
@@ -372,7 +381,7 @@ class Device(CustomConfigHelper):
 
     def dispatch_info(self):
         info = {}
-        InfoConverter.decode(self, info, self.info.host)
+        InfoConverter.decode(self, info, None)
         self.dispatch(info, log=False)
 
     def decode(self, data: dict | list) -> dict:
@@ -412,6 +421,10 @@ class Device(CustomConfigHelper):
         data = self.encode(payload)
         result = None
         method = data.get('method')
+
+        if method == 'update_status':
+            result = await self.update_miot_status()
+
         if method == 'set_properties':
             params = data.get('params', [])
             if self.miio2miot and self._local_state:

@@ -205,7 +205,7 @@ class MiotSpec(MiotSpecInstance):
                 p.full_name = n
 
     def get_services(self, *args, **kwargs):
-        excludes = kwargs.get('excludes', [])
+        excludes = kwargs.get('excludes') or []
         excludes.append('device_information')
         return [
             s

@@ -174,6 +174,7 @@ class MiotCloud(micloud.MiCloud):
         except requests.exceptions.Timeout:
             return None
         # auth err
+        _LOGGER.info('Xiaomi auth failed, try relogin. %s', rdt)
         if await self.async_relogin():
             persistent_notification.dismiss(self.hass, nid)
             return True
