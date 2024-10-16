@@ -286,10 +286,14 @@ class Device(CustomConfigHelper):
             if not pls:
                 continue
             for prop in self.spec.get_properties(*pls):
-                if d == 'number_select' and (prop.value_range or prop.value_list):
-                    d = 'number' if prop.value_range else 'select'
-                else:
-                    continue
+                if d == 'number_select':
+                    if prop.value_range:
+                        d = 'number'
+                    elif prop.value_list:
+                        d = 'select'
+                    else:
+                        _LOGGER.warning(f'Unsupported customize entity: %s for %s', d, prop.full_name)
+                        continue
                 if d == 'button':
                     if prop.value_list:
                         for pv in prop.value_list:
@@ -302,6 +306,7 @@ class Device(CustomConfigHelper):
                         conv = MiotPropValueConv(prop.full_name, d, prop=prop, value=True)
                         self.converters.append(conv)
                 elif d == 'number' and not prop.value_range:
+                    _LOGGER.warning(f'Unsupported customize entity: %s for %s', d, prop.full_name)
                     continue
                 else:
                     desc = bool(prop.value_list and d in ['sensor', 'select'])
