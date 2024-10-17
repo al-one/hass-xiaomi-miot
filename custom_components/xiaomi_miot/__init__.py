@@ -1251,9 +1251,7 @@ class MiotEntity(MiioEntity):
 
     async def async_update_for_main_entity(self):
         if self._miot_service:
-            for d in [
-                'fan', 'cover', 'scanner',
-            ]:
+            for d in ['fan', 'cover']:
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)
@@ -1295,14 +1293,6 @@ class MiotEntity(MiioEntity):
                 ['brush_life_level', 'brush_left_time'],
                 ['brush_cleaner'],
                 domain='sensor',
-            )
-            self._update_sub_entities(
-                'physical_controls_locked',
-                ['physical_controls_locked', self._miot_service.name],
-                domain='switch',
-                option={
-                    'entity_category': EntityCategory.CONFIG.value,
-                },
             )
             self._update_sub_entities(
                 None,

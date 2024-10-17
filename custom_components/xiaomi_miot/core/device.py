@@ -304,8 +304,9 @@ class Device(CustomConfigHelper):
                     self.converters.append(conv)
 
         for d in [
-            'sensor', 'binary_sensor', 'switch', 'number', 'select', 'button', 'number_select',
-            # 'fan', 'cover', 'scanner',
+            'button', 'sensor', 'binary_sensor', 'switch', 'number', 'select',
+            'number_select', 'scanner',
+            # 'fan', 'cover',
         ]:
             pls = self.custom_config_list(f'{d}_properties') or []
             if not pls:
@@ -319,23 +320,31 @@ class Device(CustomConfigHelper):
                     else:
                         _LOGGER.warning(f'Unsupported customize entity: %s for %s', d, prop.full_name)
                         continue
-                if d == 'button':
+                platform = {
+                    'scanner': 'device_tracker',
+                    'tracker': 'device_tracker',
+                }.get(d) or d
+                if platform == 'button':
                     if prop.value_list:
                         for pv in prop.value_list:
                             val = pv.get('value')
                             des = pv.get('description') or val
                             attr = f'{prop.full_name}-{val}'
-                            conv = MiotPropValueConv(attr, d, prop=prop, value=val, description=des)
+                            conv = MiotPropValueConv(attr, platform, prop=prop, value=val, description=des)
                             self.converters.append(conv)
                     elif prop.is_bool:
-                        conv = MiotPropValueConv(prop.full_name, d, prop=prop, value=True)
+                        conv = MiotPropValueConv(prop.full_name, platform, prop=prop, value=True)
                         self.converters.append(conv)
-                elif d == 'number' and not prop.value_range:
-                    _LOGGER.warning(f'Unsupported customize entity: %s for %s', d, prop.full_name)
+                elif platform == 'number' and not prop.value_range:
+                    _LOGGER.warning(f'Unsupported customize entity: %s for %s', platform, prop.full_name)
                     continue
                 else:
-                    desc = bool(prop.value_list and d in ['sensor', 'select'])
-                    self.converters.append(MiotPropConv(prop.full_name, d, prop=prop, desc=desc))
+                    desc = bool(prop.value_list and platform in ['sensor', 'select'])
+                    conv = MiotPropConv(prop.full_name, platform, prop=prop, desc=desc)
+                    conv.with_option(
+                        entity_type=None if platform == d else d,
+                    )
+                    self.converters.append(conv)
 
         for d in ['button', 'text', 'select']:
             als = self.custom_config_list(f'{d}_actions') or []
@@ -366,6 +375,8 @@ class Device(CustomConfigHelper):
             if entity:
                 continue
             cls = XEntity.CLS.get(domain)
+            if entity_type := conv.option.get('entity_type'):
+                cls = XEntity.CLS.get(entity_type) or cls
             adder = self.entry.adders.get(domain)
             if not (cls and adder):
                 continue

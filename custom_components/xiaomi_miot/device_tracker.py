@@ -7,13 +7,18 @@ from homeassistant.components.device_tracker import (
     DOMAIN as ENTITY_DOMAIN,
 )
 from homeassistant.components.device_tracker.const import SourceType
-from homeassistant.components.device_tracker.config_entry import TrackerEntity, ScannerEntity
+from homeassistant.components.device_tracker.config_entry import (
+    TrackerEntity as BaseTrackerEntity,
+    ScannerEntity as BaseScannerEntity,
+)
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
+    XEntity,
     MiotEntity,
     MiotPropertySubEntity,
     async_setup_config_entry,
@@ -61,7 +66,33 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotTrackerEntity(MiotEntity, TrackerEntity):
+class ScannerEntity(XEntity, BaseScannerEntity, RestoreEntity):
+    @property
+    def device_info(self):
+        return self._attr_device_info
+
+    @property
+    def unique_id(self):
+        return self._attr_unique_id
+
+    @property
+    def is_connected(self):
+        """Return true if the device is connected to the network."""
+        return True if self._attr_state else False
+
+    @property
+    def source_type(self):
+        """Return the source type, eg gps or router, of the device."""
+        return SourceType.ROUTER
+
+    def get_state(self) -> dict:
+        return {self.attr: self._attr_state}
+
+XEntity.CLS[ENTITY_DOMAIN] = ScannerEntity
+XEntity.CLS['scanner'] = ScannerEntity
+
+
+class MiotTrackerEntity(MiotEntity, BaseTrackerEntity):
     _attr_latitude = None
     _attr_longitude = None
     _attr_location_name = None
@@ -221,7 +252,7 @@ class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
             })
 
 
-class MiotScannerSubEntity(MiotPropertySubEntity, ScannerEntity):
+class MiotScannerSubEntity(MiotPropertySubEntity, BaseScannerEntity):
 
     def __init__(self, parent, miot_property: MiotProperty, option=None):
         super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)

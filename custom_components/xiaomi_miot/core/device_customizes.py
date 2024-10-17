@@ -9,7 +9,7 @@ ENERGY_KWH = {
 DEVICE_CUSTOMIZES = {
 
     '*': {
-        'switch_properties': 'physical_control_locked',
+        'switch_properties': 'physical_control_locked,physical_controls_locked',
     },
 
     '090615.aircondition.ktf': {
