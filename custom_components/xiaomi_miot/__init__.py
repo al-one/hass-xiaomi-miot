@@ -32,6 +32,7 @@ from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity import (
     Entity,
     ToggleEntity,
+    EntityCategory,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components import persistent_notification
@@ -727,27 +728,18 @@ class BaseEntity(Entity):
     @property
     def entity_category(self):
         cat = super().entity_category
-        if ENTITY_CATEGORY_VIA_ENUM:
-            if isinstance(cat, str):
-                try:
-                    cat = EntityCategory(cat)
-                except KeyError:
-                    cat = None
-        elif isinstance(cat, EntityCategory):
-            # for v2021.11
-            cat = cat.value
-        return cat
+        if isinstance(cat, EntityCategory):
+            return cat
+        if isinstance(cat, str) and cat in EntityCategory:
+            return EntityCategory(cat)
+        return None
 
     def get_device_class(self, enum):
         cls = self._attr_device_class
         if isinstance(cls, enum):
             return cls
-        if isinstance(cls, str):
-            try:
-                cls = EntityCategory(cls)
-            except (KeyError, ValueError):
-                cls = None
-            return cls
+        if isinstance(cls, str) and cls in enum:
+            return enum(cls)
         return None
 
     @property
@@ -993,11 +985,14 @@ class MiioEntity(BaseEntity):
         swv = self._miio_info.firmware_version
         if self._miio_info.hardware_version:
             swv = f'{swv}@{self._miio_info.hardware_version}'
+        updater = self._state_attrs.get('state_updater')
+        if updater and updater not in ['none']:
+            swv = f'{swv} ({updater})'
         return {
             'identifiers': {(DOMAIN, self._unique_did)},
             'name': self.device_name,
             'model': self._model,
-            'manufacturer': (self._model or 'Xiaomi').split('.', 1)[0],
+            'manufacturer': (self.model or 'Xiaomi').split('.', 1)[0],
             'sw_version': swv,
             'suggested_area': self._config.get('room_name'),
             'configuration_url': f'https://home.miot-spec.com/s/{self._model}',

@@ -41,7 +41,8 @@
                     "filter_bssid": "筛选 WiFi BSSID",
                     "bssid_list": "WiFi BSSID 列表",
                     "filter_did": "筛选设备",
-                    "did_list": "设备列表"
+                    "did_list": "设备列表",
+                    "home_ids": "筛选家庭 (留空保存)"
                 }
             },
             "customizing": {
@@ -109,7 +110,8 @@
                     "filter_bssid": "筛选 WiFi BSSID",
                     "bssid_list": "WiFi BSSID 列表",
                     "filter_did": "筛选设备",
-                    "did_list": "设备列表"
+                    "did_list": "设备列表",
+                    "home_ids": "筛选家庭 (留空保存)"
                 }
             }
         },

@@ -1,3 +1,5 @@
+from homeassistant.helpers.template import Template
+
 CUSTOM_TEMPLATES = {
     # https://iot.mi.com/new/doc/accesses/direct-access/embedded-development/ble/object-definition#%E7%89%99%E5%88%B7%E4%BA%8B%E4%BB%B6
     'ble_toothbrush_events': "{%- set dat = props.get('event.16') | default('{}',true) | from_json %}"
@@ -182,3 +184,14 @@ CUSTOM_TEMPLATES = {
                                      "'month': dat.month | round(3),"
                                      "} }}",
 }
+
+
+def template(value, hass):
+    if value is None:
+        raise ValueError('template value is None')
+    if isinstance(value, (list, dict, Template)):
+        raise TypeError('template value should be a string')
+    value = CUSTOM_TEMPLATES.get(value, value)
+    template_value = Template(str(value), hass)
+    template_value.ensure_valid()
+    return template_value

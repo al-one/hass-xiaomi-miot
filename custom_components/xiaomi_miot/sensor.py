@@ -25,7 +25,6 @@ from . import (
     MiCoordinatorEntity,
     MiotPropertySubEntity,
     MiotCloud,
-    DeviceException,
     async_setup_config_entry,
     bind_services_to_entries,
 )

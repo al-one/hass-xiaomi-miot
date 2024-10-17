@@ -1,3 +1,9 @@
+ENERGY_KWH = {
+    'state_class': 'total_increasing',
+    'device_class': 'energy',
+    'unit_of_measurement': 'kWh',
+}
+
 DEVICE_CUSTOMIZES = {
 
     '090615.aircondition.ktf': {
@@ -195,34 +201,24 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'W',
     },
     'chuangmi.plug.*:power_consumption': {
+        **ENERGY_KWH,
         'value_ratio': 0.001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'chuangmi.plug.*:power_cost_today': {
+        **ENERGY_KWH,
         'value_ratio': 0.000001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'chuangmi.plug.*:power_cost_month': {
+        **ENERGY_KWH,
         'value_ratio': 0.000001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'chuangmi.plug.*:prop_cal_day.power_cost:today': {
+        **ENERGY_KWH,
         'value_ratio': 0.001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'chuangmi.plug.*:prop_cal_day.power_cost:month': {
+        **ENERGY_KWH,
         'value_ratio': 0.001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'chunmi.ysj.*': {
         'sensor_properties': 'water_dispenser.status,filter_life_level,home_temp,clean_precent',
@@ -241,18 +237,8 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '7.1',
     },
-    'cuco.acpartner.cp6:power_cost_today': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'cuco.acpartner.cp6:power_cost_month': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
+    'cuco.acpartner.cp6:power_cost_today': ENERGY_KWH,
+    'cuco.acpartner.cp6:power_cost_month': ENERGY_KWH,
     'cuco.light.sl4': {
         'switch_properties': 'swich',
         'select_properties': 'scene.mode,change_type',
@@ -404,16 +390,12 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'W',
     },
     'cuco.plug.v3:power_cost_today': {
+        **ENERGY_KWH,
         'value_ratio': 0.01,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'cuco.plug.v3:power_cost_month': {
+        **ENERGY_KWH,
         'value_ratio': 0.01,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'cuco.plug.wp5m': {
         'main_miot_services': 'switch-2',
@@ -425,16 +407,12 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'W',
     },
     'cuco.plug.wp5m:power_cost_today': {
+        **ENERGY_KWH,
         'value_ratio': 0.01,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'cuco.plug.wp5m:power_cost_month': {
+        **ENERGY_KWH,
         'value_ratio': 0.01,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'cuco.plug.wp12': {
         'main_miot_services': 'switch-2',
@@ -442,16 +420,12 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '11.1'
     },
     'cuco.plug.wp12:power_cost_today': {
+        **ENERGY_KWH,
         'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'cuco.plug.wp12:power_cost_month': {
+        **ENERGY_KWH,
         'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },    
     'cuco.plug.*': {
         'main_miot_services': 'switch-2',
@@ -469,16 +443,12 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'W',
     },
     'cuco.plug.*:power_cost_today': {
+        **ENERGY_KWH,
         'value_ratio': 0.001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'cuco.plug.*:power_cost_month': {
+        **ENERGY_KWH,
         'value_ratio': 0.001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'cuco.plug.*:voltage': {
         'value_ratio': 0.1,
@@ -753,18 +723,8 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_type': 'stat_day_v3',
         'stat_power_cost_key': '3.1',
     },
-    'iot.plug.jdls1:power_cost_today': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'iot.plug.jdls1:power_cost_month': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
+    'iot.plug.jdls1:power_cost_today': ENERGY_KWH,
+    'iot.plug.jdls1:power_cost_month': ENERGY_KWH,
     'iot.switch.padw2p': {
         'sensor_properties': 'temperature,electric_power,electric_current,voltage',
         'select_properties': 'default_power_on_state',
@@ -774,18 +734,8 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '3.1',
         'sensor_attributes': 'power_cost_today,power_cost_month',
     },
-    'iot.switch.padw2p:power_cost_today': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'iot.switch.padw2p:power_cost_month': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
+    'iot.switch.padw2p:power_cost_today': ENERGY_KWH,
+    'iot.switch.padw2p:power_cost_month': ENERGY_KWH,
     'iot.switch.padwb1': {
         'sensor_properties': 'a_electric_current,a_power,a_voltage,a_temp,a_fault,'
                              'b_electric_current,b_power,b_voltage,b_temp,b_fault,'
@@ -797,18 +747,8 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '3.1',
         'sensor_attributes': 'power_cost_today,power_cost_month',
     },
-    'iot.switch.padwb1:power_cost_today': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'iot.switch.padwb1:power_cost_month': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
+    'iot.switch.padwb1:power_cost_today': ENERGY_KWH,
+    'iot.switch.padwb1:power_cost_month': ENERGY_KWH,
     'isa.camera.hlc7': {
         'select_properties': 'night_shot,recording_mode,detection_sensitivity',
         'switch_properties': 'on,time_watermark,motion_detection',
@@ -886,11 +826,7 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_type': 'stat_day_v3',
         'stat_power_cost_key': '7.1',
     },
-    'lumi.acpartner.mcn04:power_consumption': {
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
+    'lumi.acpartner.mcn04:power_consumption': ENERGY_KWH,
     'lumi.acpartner.mcn04:power_cost_today': {
         'value_ratio': 1,
     },
@@ -910,16 +846,12 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'W',
     },
     'lumi.acpartner.*:power_cost_today': {
+        **ENERGY_KWH,
         'value_ratio': 0.001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'lumi.acpartner.*:power_cost_month': {
+        **ENERGY_KWH,
         'value_ratio': 0.001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'lumi.aircondition.acn05': {
         'sensor_attributes': 'power_cost_today',
@@ -930,21 +862,9 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'power',
         'unit_of_measurement': 'W',
     },
-    'lumi.aircondition.*:power_consumption': {
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'lumi.aircondition.*:power_cost_today': {
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'lumi.aircondition.*:power_cost_month': {
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
+    'lumi.aircondition.*:power_consumption': ENERGY_KWH,
+    'lumi.aircondition.*:power_cost_today': ENERGY_KWH,
+    'lumi.aircondition.*:power_cost_month': ENERGY_KWH,
     'lumi.airer.acn01': {
         'select_properties': 'dry_mode',
         'motor_reverse': False,
@@ -978,16 +898,12 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': 'powerCost',
     },
     'lumi.plug.*:power_cost_today': {
+        **ENERGY_KWH,
         'value_ratio': 0.001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'lumi.plug.*:power_cost_month': {
+        **ENERGY_KWH,
         'value_ratio': 0.001,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'lumi.sensor_gas.mcn02': {
         'chunk_properties': 1,
@@ -1051,6 +967,10 @@ DEVICE_CUSTOMIZES = {
         'miio_cloud_props': 'Status,Position',
         'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
     },
+    'minij.washer.v20': {
+        'descriptions_for_on': 'Busy,Delay,Run',
+        'descriptions_for_off': 'Off,Standby,Idle,Pause,Paused,Completed,Fault,END,E6',
+    },
     'mmgg.feeder.fi1': {
         'chunk_properties': 1,
         'state_property': 'pet_food_left_level',
@@ -1110,6 +1030,9 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'remain_clean_time,fault,filter_left_time,no_water_time',
         'select_properties': 'mode',
     },
+    'mrbond.airer.m1s': {
+        'miot_type': 'urn:miot-spec-v2:device:airer:0000A00D:mrbond-m1pro:1',
+    },
     'mrbond.airer.m53pro': {
         'position_reverse': False,
         'sensor_properties': 'fault,left_time',
@@ -1117,6 +1040,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': '',
         'fan_properties': '',
         'chunk_properties': 1,
+    },
+    'mrbond.airer.*': {
+        'main_miot_services': 'airer',
+        'parallel_updates': 1,
     },
     'msj.f_washer.m2': {
         'chunk_properties': 1,
@@ -1214,24 +1141,9 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.001,
         'unit_of_measurement': 'V',
     },
-    'qmi.plug.psv3:power_consumption': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'qmi.plug.psv3:power_cost_today': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'qmi.plug.psv3:power_cost_month': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
+    'qmi.plug.psv3:power_consumption': ENERGY_KWH,
+    'qmi.plug.psv3:power_cost_today': ENERGY_KWH,
+    'qmi.plug.psv3:power_cost_month': ENERGY_KWH,
     'qmi.plug.tw02': {
         'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
@@ -1250,24 +1162,9 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 1,
         'unit_of_measurement': 'V',
     },
-    'qmi.plug.tw02:power_consumption': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'qmi.plug.tw02:power_cost_today': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'qmi.plug.tw02:power_cost_month': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },    
+    'qmi.plug.tw02:power_consumption': ENERGY_KWH,
+    'qmi.plug.tw02:power_cost_today': ENERGY_KWH,
+    'qmi.plug.tw02:power_cost_month': ENERGY_KWH,
     'qmi.plug.2a1c1': {
         'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
@@ -1285,24 +1182,9 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.001,
         'unit_of_measurement': 'V',
     },
-    'qmi.plug.2a1c1:power_consumption': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'qmi.plug.2a1c1:power_cost_today': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'qmi.plug.2a1c1:power_cost_month': {
-        'value_ratio': 1,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
+    'qmi.plug.2a1c1:power_consumption': ENERGY_KWH,
+    'qmi.plug.2a1c1:power_cost_today': ENERGY_KWH,
+    'qmi.plug.2a1c1:power_cost_month': ENERGY_KWH,
     'qmi.plug.*': {
         'sensor_properties': 'power_consumption',
     },
@@ -1323,6 +1205,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,timer',
     },
 
+    'rhj.sensor_occupy.l730a': {
+        'sensor_properties': 'illumination,no_one_duration,has_someone_duration',
+    },
     'roborock.vacuum.*': {
         'sensor_attributes': 'props:clean_area,props:clean_time,brush_life_level',
         'sensor_properties': 'vacuum.status',
@@ -1450,11 +1335,19 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,boost_value',
     },
 
+    'wfxx.motor.mxrf': {
+        'switch_properties': 'key_set_flag',
+        'select_properties': 'key_num',
+    },
     'wise.wifispeaker.x7': {
         'switch_properties': 'key_one,key_two,key_three,key_four,key_five,key_six,key_seven,key_eight,key_nine,'
                              'key_ten,key_eleven,key_twelve,key_thirteen,key_fourteen,key_fifteen,key_sixteen',
     },
 
+    'xiaomi.airc.r34r00': {
+        'sensor_properties': 'power_consumption',
+    },
+    'xiaomi.airc.*:power_consumption': ENERGY_KWH,
     'xiaomi.aircondition.m9': {
         'exclude_miot_services': 'machine_state,flag_bit,single_smart_scene',
         'exclude_miot_properties': 'enhance.timer,humidity_range',
@@ -1524,6 +1417,13 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'delay_time',
         'percentage_property': 'prop.2.6',
     },
+    'xiaomi.feeder.pi2001': {
+        'chunk_properties': 1,
+        'number_properties':'target_feeding_measure',
+        'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
+        'sensor_properties': 'pet_food_left_level,fault,desiccant_left_level,desiccant_left_time',
+        'switch_properties': 'compensate_switch,prevent_accumulation',
+    },
     'xiaomi.heater.ma8': {
         'button_actions': 'toggle',
     },
@@ -1543,6 +1443,22 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.tvbox.*': {
         'auto_cloud': True,
         'number_properties': 'speaker.volume',
+    },
+    'xiaomi.vacuum.b108gl': {
+        'sensor_properties': 'status,fault,cleaning_area,cleaning_time,status_extend',
+        'binary_sensor_properties': 'mop_status',
+        'switch_properties': 'edge_swing_tail_sweep,carpet_discriminate,carpet_boost,sweep_break_switch',
+        'select_properties': 'sweep_mop_type,sweep_type,clean_times,suction_level,mop_water_output_level,mode,edge_sweep_frequency,carpet_cleaning_method',
+        'exclude_miot_services': 'vacuum_map',
+    },
+    'xiaomi.vacuum.b108gl:cleaning_area': {
+        'value_ratio': 0.01,
+        'unit_of_measurement': '㎡',
+    },
+    'xiaomi.vacuum.b108gl:cleaning_time': {
+        'value_ratio': 0.016666,
+        'device_class': 'duration',
+        'unit_of_measurement': 'min',
     },
     'xiaomi.watch.*': {
         'sensor_properties': 'current_step_count,current_distance',
@@ -1831,16 +1747,12 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'W',
     },
     'zimi.plug.*:power_cost_today': {
+        **ENERGY_KWH,
         'value_ratio': 0.01,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'zimi.plug.*:power_cost_month': {
+        **ENERGY_KWH,
         'value_ratio': 0.01,
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
     },
     'zimi.powerstrip.v2': {
         'sensor_attributes': 'electric_power,store.powerCost:today,store.powerCost:month',
@@ -1858,16 +1770,8 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'power',
         'unit_of_measurement': 'W',
     },
-    'zimi.powerstrip.*:store.powerCost:today': {
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
-    'zimi.powerstrip.*:store.powerCost:month': {
-        'state_class': 'total_increasing',
-        'device_class': 'energy',
-        'unit_of_measurement': 'kWh',
-    },
+    'zimi.powerstrip.*:store.powerCost:today': ENERGY_KWH,
+    'zimi.powerstrip.*:store.powerCost:month': ENERGY_KWH,
     'zimi.waterheater.h01': {
         'sensor_properties': 'water_heater.status,water_level,temperature_tips,'
                              'input_water_temp,water_pump_volt,remaining_time',

@@ -5,8 +5,8 @@ from typing import Tuple
 from functools import partial
 
 from .utils import is_offline_exception
+from .templates import template
 from .miot_spec import (MiotSpec, MiotProperty, MiotAction)
-from .templates import CUSTOM_TEMPLATES
 from .miio2miot_specs import MIIO_TO_MIOT_SPECS
 import homeassistant.helpers.config_validation as cv
 
@@ -79,15 +79,14 @@ class Miio2MiotHelper:
                 except (DeviceException, OSError) as exc:
                     if is_offline_exception(exc):
                         raise exc
-                    _LOGGER.error('%s: Got MiioException: %s while %s(%s)', self.model, exc, c['method'], pms)
+                    if not c.get('ignore_error'):
+                        _LOGGER.error('%s: Got MiioException: %s while %s(%s)', self.model, exc, c['method'], pms)
                     continue
                 kls = c.get('values', [])
                 if kls is True:
                     kls = c.get('params', [])
                 if tpl := c.get('template'):
-                    tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
-                    tpl = cv.template(tpl)
-                    tpl.hass = self.hass
+                    tpl = template(tpl, self.hass)
                     pdt = tpl.render({'results': vls})
                     if isinstance(pdt, dict):
                         dic.update(pdt)
@@ -101,9 +100,7 @@ class Miio2MiotHelper:
                         dic[k] = vls[i]
                         i += 1
         if tpl := self.config.get('miio_template'):
-            tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
-            tpl = cv.template(tpl)
-            tpl.hass = self.hass
+            tpl = template(tpl, self.hass)
             pdt = tpl.render({'props': dic})
             if isinstance(pdt, dict):
                 dic.update(pdt)
@@ -134,9 +131,7 @@ class Miio2MiotHelper:
                     fmt = c.get('format')
                     try:
                         if tpl := c.get('template', {}):
-                            tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
-                            tpl = cv.template(tpl)
-                            tpl.hass = self.hass
+                            tpl = template(tpl, self.hass)
                             val = tpl.render({
                                 'value': val,
                                 'props': dic,
@@ -193,9 +188,7 @@ class Miio2MiotHelper:
             mph = MiioPropertyHelper(prop, reverse=True)
             fmt = cfg.get('format')
             if tpl := cfg.get('set_template'):
-                tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
-                tpl = cv.template(tpl)
-                tpl.hass = self.hass
+                tpl = template(tpl, self.hass)
                 pms = tpl.render({
                     'value': value,
                     'props': self.miio_props_values,
@@ -242,9 +235,7 @@ class Miio2MiotHelper:
         act = self.miot_spec.specs.get(key)
         if act and isinstance(act, MiotAction):
             if tpl := cfg.get('set_template'):
-                tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
-                tpl = cv.template(tpl)
-                tpl.hass = self.hass
+                tpl = template(tpl, self.hass)
                 pms = tpl.render({
                     'params': pms,
                     'props': self.miio_props_values,
