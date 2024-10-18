@@ -2145,7 +2145,7 @@ class MiotEntity(MiioEntity):
         mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
-        result = await self.async_get_user_device_data(did, key, raw=True, **kwargs)
+        result = await mic.async_get_user_device_data(did, key, raw=True, **kwargs)
         _LOGGER.info('%s: Xiaomi device data: %s', self.name_model, result)
         return result
 
