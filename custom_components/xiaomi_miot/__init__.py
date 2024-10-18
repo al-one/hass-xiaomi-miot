@@ -631,27 +631,18 @@ class BaseEntity(BasicEntity):
     @property
     def entity_category(self):
         cat = super().entity_category
-        if ENTITY_CATEGORY_VIA_ENUM:
-            if isinstance(cat, str):
-                try:
-                    cat = EntityCategory(cat)
-                except KeyError:
-                    cat = None
-        elif isinstance(cat, EntityCategory):
-            # for v2021.11
-            cat = cat.value
-        return cat
+        if isinstance(cat, EntityCategory):
+            return cat
+        if isinstance(cat, str) and cat in EntityCategory:
+            return EntityCategory(cat)
+        return None
 
     def get_device_class(self, enum):
         cls = self._attr_device_class
         if isinstance(cls, enum):
             return cls
-        if isinstance(cls, str):
-            try:
-                cls = EntityCategory(cls)
-            except (KeyError, ValueError):
-                cls = None
-            return cls
+        if isinstance(cls, str) and cls in enum:
+            return enum(cls)
         return None
 
     @property
@@ -812,7 +803,7 @@ class MiioEntity(BaseEntity):
 
     @property
     def device_host(self):
-        return self.device.name
+        return self.device.info.host
 
     @property
     def available(self):
@@ -1660,7 +1651,7 @@ class MiotEntity(MiioEntity):
         mic = self.xiaomi_cloud
         if not isinstance(mic, MiotCloud):
             return None
-        result = await self.async_get_user_device_data(did, key, raw=True, **kwargs)
+        result = await mic.async_get_user_device_data(did, key, raw=True, **kwargs)
         _LOGGER.info('%s: Xiaomi device data: %s', self.name_model, result)
         return result
 

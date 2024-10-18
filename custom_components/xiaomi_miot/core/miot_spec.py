@@ -21,6 +21,7 @@ from homeassistant.const import (
 )
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.util.dt import now
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.exceptions import HomeAssistantError
@@ -28,7 +29,6 @@ from homeassistant.exceptions import HomeAssistantError
 from .const import (
     DOMAIN,
     TRANSLATION_LANGUAGES,
-    EntityCategory,
 )
 
 _LOGGER = logging.getLogger(__name__)

@@ -2300,6 +2300,40 @@ MIIO_TO_MIOT_SPECS = {
             'prop.5.2': {'prop': 'f2_usedflow'},
         },
     },
+    'yunmi.waterpuri.lx6': {
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [],
+                'values': [
+                    'tds_in', 'tds_out',
+                    'pp_filter_used_flow', 'pp_filter_used_time',
+                    'c1_filter_used_flow', 'c1_filter_used_time',
+                    'ro_filter_used_flow', 'ro_filter_used_time',
+                    'c2_filter_used_flow', 'c2_filter_used_time',
+                ],
+            },
+            {
+                'method': 'get_prop',
+                'params': ['run_status'],
+                'values': ['run_status'],
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'run_status' },
+            'prop.3.1': {'prop': 'pp_filter_used_time' },
+            'prop.3.2': {'prop': 'pp_filter_used_flow' },
+            'prop.4.1': {'prop': 'tds_in' },
+            'prop.4.2': {'prop': 'tds_out' },
+            'prop.5.1': {'prop': 'c1_filter_used_time' },
+            'prop.5.2': {'prop': 'c1_filter_used_flow' },
+            'prop.6.1': {'prop': 'ro_filter_used_time' },
+            'prop.6.2': {'prop': 'ro_filter_used_flow' },
+            'prop.7.1': {'prop': 'c2_filter_used_time' },
+            'prop.7.2': {'prop': 'c2_filter_used_flow' },
+        },
+    },
+
     'yunmi.waterpuri.lx7': 'yunmi.waterpuri.lx5',
     'yunmi.waterpuri.lx9': {
         'extend_model': 'yunmi.waterpuri.lx5',

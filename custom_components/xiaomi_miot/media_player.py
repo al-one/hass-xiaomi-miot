@@ -16,17 +16,14 @@ from homeassistant.const import (
     ATTR_FRIENDLY_NAME,
     CONF_HOST,
 )
-from homeassistant.components.media_player.const import ( 
-    MEDIA_TYPE_MUSIC,
-    MEDIA_TYPE_VIDEO,
-    RepeatMode,
-)
 from homeassistant.components.media_player import (
     DOMAIN as ENTITY_DOMAIN,
     MediaPlayerDeviceClass,
     MediaPlayerEntity,
     MediaPlayerEntityFeature,  # v2022.5
     MediaPlayerState,  # v2022.10
+    MediaType,  # v2022.10
+    RepeatMode,  # v2022.10
 )
 from homeassistant.components.homekit.const import EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED
 from homeassistant.core import HassJob
@@ -434,7 +431,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                         2: MediaPlayerState.PAUSED,
                     }.get(sta)
                 if (typ := info.get('media_type')) is not None:
-                    self._attr_media_content_type = {3: MEDIA_TYPE_MUSIC, 13: MEDIA_TYPE_VIDEO}.get(typ)
+                    self._attr_media_content_type = {3: MediaType.MUSIC, 13: MediaType.VIDEO}.get(typ)
                 else:
                     self._attr_media_content_type = song.get('audioType')
                 self._attr_volume_level = info.get('volume')

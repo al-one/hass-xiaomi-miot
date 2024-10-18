@@ -18,8 +18,6 @@ from homeassistant.components.camera import (
     DOMAIN as ENTITY_DOMAIN,
     Camera,
     CameraEntityFeature,  # v2022.5
-    STATE_RECORDING,
-    STATE_STREAMING,
 )
 from homeassistant.components.ffmpeg import async_get_image, DATA_FFMPEG
 from homeassistant.helpers.event import async_track_point_in_utc_time
@@ -38,6 +36,7 @@ from . import (
     async_setup_config_entry,
     bind_services_to_entries,
 )
+from .core.const import CameraState
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -223,9 +222,9 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
     @property
     def state(self):  # noqa
         if self.is_recording:
-            return STATE_RECORDING
+            return CameraState.RECORDING
         if self.is_streaming:
-            return STATE_STREAMING
+            return CameraState.STREAMING
         return STATE_IDLE
 
     async def async_update(self):
@@ -577,9 +576,9 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
     @property
     def state(self):
         if self.is_recording:
-            return STATE_RECORDING
+            return CameraState.RECORDING
         if self.is_streaming:
-            return STATE_STREAMING
+            return CameraState.STREAMING
         return STATE_IDLE
 
     def update(self, data=None):

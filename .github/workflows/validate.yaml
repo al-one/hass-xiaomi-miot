@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout the repository
-        uses: actions/checkout@v3.5.3
+        uses: actions/checkout@v4
 
       - name: 🏃 Hassfest validation
         uses: home-assistant/actions/hassfest@master
@@ -19,7 +19,7 @@ jobs:
     name: With HACS Action
     steps:
       - name: 📥 Checkout the repository
-        uses: actions/checkout@v3.5.3
+        uses: actions/checkout@v4
 
       - name: 🏃 HACS validation
         uses: hacs/action@main
@@ -31,11 +31,11 @@ jobs:
     name: With Home Assistant
     strategy:
       matrix:
-        channel: [stable, dev, "2023.1.0"]
+        channel: [stable, dev, "2023.7.0"]
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout the repository
-        uses: actions/checkout@v3.5.3
+        uses: actions/checkout@v4
 
       - name: 🛠️ Home Assistant configuration
         run: |
