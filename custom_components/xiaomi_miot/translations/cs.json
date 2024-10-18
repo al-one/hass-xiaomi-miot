@@ -9,7 +9,7 @@
         }
       },
       "token": {
-        "description": "Konfigurovat informace o zařízení.\n{tip}",
+        "description": "Konfigurovat informace o zařízení.",
         "data": {
           "host": "Místní IP",
           "token": "Token",
@@ -18,7 +18,7 @@
         }
       },
       "cloud": {
-        "description": "Konfigurace cloudového účtu Xiaomi.\n",
+        "description": "Konfigurace cloudového účtu Xiaomi.\n{tip}",
         "data": {
           "username": "ID účtu / e-mail Xiaomi",
           "password": "Heslo",
