@@ -86,7 +86,7 @@ XIAOMI_MIIO_SERVICE_SCHEMA = vol.Schema(
 
 SERVICE_TO_METHOD_BASE = {
     'send_command': {
-        'method': 'async_command',
+        'method': 'async_miio_command',
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
                 vol.Required('method'): cv.string,
@@ -128,7 +128,7 @@ SERVICE_TO_METHOD_BASE = {
         ),
     },
     'call_action': {
-        'method': 'async_miot_action',
+        'method': 'async_call_action',
         'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend(
             {
                 vol.Required('siid'): int,
@@ -407,8 +407,11 @@ def bind_services_to_entries(hass, services):
             if not hasattr(ent, fun):
                 _LOGGER.warning('Call service failed: Entity %s have no method: %s', ent.entity_id, fun)
                 continue
-            result = await getattr(ent, fun)(**params)
-            update_tasks.append(ent.async_update_ha_state(True))
+            try:
+                result = await getattr(ent, fun)(**params)
+                update_tasks.append(ent.async_update_ha_state(True))
+            except Exception as exc:
+                result = {'error': str(exc)}
         if update_tasks:
             await asyncio.gather(*update_tasks)
         if isinstance(result, (MiotResult, MiotResults)):
@@ -853,9 +856,8 @@ class MiioEntity(BaseEntity):
         return False
 
     def send_miio_command(self, method, params=None, **kwargs):
-        self.logger.debug('%s: Send miio command: %s(%s)', self.name_model, method, params)
         try:
-            result = self._device.send(method, params if params is not None else [])
+            result = self.hass.loop.run_until_complete(self.async_miio_command(method, params, **kwargs))
         except DeviceException as ex:
             self.logger.error('%s: Send miio command: %s(%s) failed: %s', self.name_model, method, params, ex)
             return False
@@ -865,14 +867,6 @@ class MiioEntity(BaseEntity):
         elif not ret:
             self.logger.info('%s: Send miio command: %s(%s) failed, result: %s', self.name_model, method, params, result)
         return ret
-
-    def send_command(self, method, params=None, **kwargs):
-        return self.send_miio_command(method, params, **kwargs)
-
-    async def async_command(self, method, params=None, **kwargs):
-        return await self.hass.async_add_executor_job(
-            partial(self.send_miio_command, method, params, **kwargs)
-        )
 
     async def async_update(self):
         try:
@@ -1492,189 +1486,21 @@ class MiotEntity(MiioEntity):
         if attrs:
             await self.async_update_attrs(attrs)
 
-    async def async_get_properties(self, mapping, update_entity=False, throw=False, **kwargs):
-        results = []
-        if isinstance(mapping, list):
-            new_mapping = {}
-            for p in mapping:
-                siid = p['siid']
-                piid = p['piid']
-                pkey = self._miot_service.spec.unique_prop(siid, piid=piid)
-                prop = self._miot_service.spec.specs.get(pkey)
-                if not isinstance(prop, MiotProperty):
-                    continue
-                new_mapping[prop.full_name] = p
-            mapping = new_mapping
-        if not mapping or not isinstance(mapping, dict):
-            return
-        try:
-            if self._local_state:
-                results = await self.miot_device.async_get_properties_for_mapping(mapping=mapping)
-            elif self.miot_cloud:
-                results = await self.miot_cloud.async_get_properties_for_mapping(self.miot_did, mapping)
-        except (ValueError, DeviceException) as exc:
-            self.logger.error(
-                '%s: Got exception while get properties: %s, mapping: %s, miio: %s',
-                self.name_model, exc, mapping, self._miio_info.data,
-            )
-            if throw:
-                raise exc
-            return
-        result = MiotResults(results, mapping)
-        attrs = result.to_attributes(self._state_attrs)
-        self.logger.info('%s: Get miot properties: %s', self.name_model, results)
-
-        if attrs and update_entity:
-            await self.async_update_attrs(attrs, update_subs=True)
-            self.schedule_update_ha_state()
-        return attrs
-
     def set_property(self, field, value):
-        if isinstance(field, MiotProperty):
-            siid = field.siid
-            piid = field.iid
-            field = field.full_name
-        else:
-            ext = self.miot_mapping.get(field) or {}
-            if not ext:
-                self.logger.warning(
-                    '%s: Set miot property %s(%s) failed: property not found',
-                    self.name_model, field, value,
-                )
-                return False
-            siid = ext['siid']
-            piid = ext['piid']
-        try:
-            result = self.set_miot_property(siid, piid, value)
-        except (DeviceException, MiCloudException) as exc:
-            self.logger.error('%s: Set miot property %s(%s) failed: %s', self.name_model, field, value, exc)
-            return False
-        ret = result.is_success if result else False
-        if ret:
-            if field in self._state_attrs:
-                self.update_attrs({
-                    field: value,
-                }, update_parent=False)
-            self.logger.debug('%s: Set miot property %s(%s), result: %s', self.name_model, field, value, result)
-        else:
-            self.logger.info('%s: Set miot property %s(%s) failed, result: %s', self.name_model, field, value, result)
-        return ret
+        return self.hass.loop.run_until_complete(self.async_set_property(field, value))
 
-    async def async_set_property(self, *args, **kwargs):
-        if not self.hass:
-            self.logger.info('%s: Set miot property %s failed: hass not ready.', self.name_model, args)
-            return False
-        return await self.hass.async_add_executor_job(partial(self.set_property, *args, **kwargs))
+    def set_miot_property(self, siid, piid, value, **kwargs):
+        return self.hass.loop.run_until_complete(self.set_miot_property(siid, piid, value, **kwargs))
 
-    def set_miot_property(self, siid, piid, value, did=None, **kwargs):
-        if did is None:
-            did = self.miot_did or f'prop.{siid}.{piid}'
-        pms = {
-            'did':  str(did),
-            'siid': siid,
-            'piid': piid,
-            'value': value,
-        }
-        ret = None
-        dly = 1
-        m2m = self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud_write')
-        mcw = self.miot_cloud_write
-        if self.custom_config_bool('auto_cloud') and not self._local_state:
-            mcw = self.xiaomi_cloud
-        if not self.miot_device:
-            mcw = self.xiaomi_cloud
-        try:
-            if m2m and self._miio2miot.has_setter(siid, piid=piid):
-                results = [
-                    self._miio2miot.set_property(self.miot_device, siid, piid, value),
-                ]
-            elif isinstance(mcw, MiotCloud):
-                results = mcw.set_props([pms])
-                dly = self.custom_config_integer('cloud_delay_update', 6)
-            else:
-                results = self.miot_device.send('set_properties', [pms])
-                dly = self.custom_config_integer('local_delay_update', 1)
-            ret = MiotResults(results).first
-        except (DeviceException, MiCloudException) as exc:
-            self.logger.warning('%s: Set miot property %s failed: %s', self.name_model, pms, exc)
-        if ret:
-            self._vars['delay_update'] = dly
-            if not ret.is_success:
-                self.logger.warning('%s: Set miot property %s failed, result: %s', self.name_model, pms, ret)
-            else:
-                self.logger.debug('%s: Set miot property %s, result: %s', self.name_model, pms, ret)
-                if not self._miot_service:
-                    pass
-                elif not (srv := self._miot_service.spec.services.get(siid)):
-                    pass
-                elif prop := srv.properties.get(piid):
-                    self._state_attrs[prop.full_name] = value
-                    self.schedule_update_ha_state()
-        return ret
-
-    async def async_set_miot_property(self, siid, piid, value, did=None, **kwargs):
-        return await self.hass.async_add_executor_job(
-            partial(self.set_miot_property, siid, piid, value, did, **kwargs)
-        )
-
-    def call_action(self, action: MiotAction, params=None, did=None, **kwargs):
+    def call_action(self, action: MiotAction, params=None, **kwargs):
         aiid = action.iid
         siid = action.service.iid
         pms = params or []
         kwargs['action'] = action
-        return self.miot_action(siid, aiid, pms, did, **kwargs)
+        return self.miot_action(siid, aiid, pms, **kwargs)
 
-    def miot_action(self, siid, aiid, params=None, did=None, **kwargs):
-        if did is None:
-            did = self.miot_did or f'action-{siid}-{aiid}'
-        pms = {
-            'did':  str(did),
-            'siid': siid,
-            'aiid': aiid,
-            'in':   params or [],
-        }
-        dly = 1
-        eno = 1
-        result = None
-        action = kwargs.get('action')
-        if not action and self._miot_service:
-            action = self._miot_service.spec.services.get(siid, {}).actions.get(aiid)
-        m2m = self._miio2miot and self.miot_device and not self.custom_config_bool('miot_cloud_action')
-        mca = self.miot_cloud_action
-        if self.custom_config_bool('auto_cloud') and not self._local_state:
-            mca = self.xiaomi_cloud
-        elif not self.miot_device:
-            mca = self.xiaomi_cloud
-        try:
-            if m2m and self._miio2miot.has_setter(siid, aiid=aiid):
-                result = self._miio2miot.call_action(self.miot_device, siid, aiid, params)
-            elif isinstance(mca, MiotCloud):
-                result = mca.do_action(pms)
-                dly = self.custom_config_integer('cloud_delay_update', 5)
-            else:
-                if not kwargs.get('force_params'):
-                    pms['in'] = action.in_params(params or [])
-                result = self.miot_device.send('action', pms)
-                dly = self.custom_config_integer('local_delay_update', 1)
-            eno = dict(result or {}).get('code', eno)
-        except (DeviceException, MiCloudException) as exc:
-            self.logger.warning('%s: Call miot action %s failed: %s', self.name_model, pms, exc)
-        except (TypeError, ValueError) as exc:
-            self.logger.warning('%s: Call miot action %s failed: %s, result: %s', self.name_model, pms, exc, result)
-        ret = eno == self._success_code
-        if ret:
-            self._vars['delay_update'] = dly
-            self.logger.debug('%s: Call miot action %s, result: %s', self.name_model, pms, result)
-        else:
-            self._state_attrs['miot_action_error'] = MiotSpec.spec_error(eno)
-            self.logger.info('%s: Call miot action %s failed: %s', self.name_model, pms, result)
-        self._state_attrs['miot_action_result'] = result
-        return result if ret else ret
-
-    async def async_miot_action(self, siid, aiid, params=None, did=None, **kwargs):
-        return await self.hass.async_add_executor_job(
-            partial(self.miot_action, siid, aiid, params, did, **kwargs)
-        )
+    def miot_action(self, siid, aiid, params=None, **kwargs):
+        return self.hass.loop.run_until_complete(self.async_call_action(siid, aiid, params, **kwargs))
 
     def turn_on(self, **kwargs):
         ret = False

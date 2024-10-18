@@ -5,6 +5,7 @@ from functools import cached_property
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraData
 
+from .const import DOMAIN
 from .utils import get_customize_via_entity, wildcard_models, CustomConfigHelper
 from .miot_spec import MiotService, MiotProperty, MiotAction
 from .converters import BaseConv, InfoConv, MiotServiceConv, MiotPropConv, MiotActionConv
@@ -21,6 +22,26 @@ class BasicEntity(Entity, CustomConfigHelper):
 
     def custom_config(self, key=None, default=None):
         return get_customize_via_entity(self, key, default)
+
+    async def async_get_properties(self, mapping, update_entity=False, **kwargs):
+        return await self.device.async_get_properties(mapping, update_entity, **kwargs)
+
+    async def async_set_property(self, field, value):
+        return await self.device.set_property(field, value)
+
+    async def async_set_miot_property(self, siid, piid, value, **kwargs):
+        return await self.device.set_miot_property(siid, piid, value, **kwargs)
+
+    async def async_call_action(self, siid, aiid, params=None, **kwargs):
+        return await self.device.call_action(siid, aiid, params, **kwargs)
+
+    async def async_miio_command(self, method, params=None, **kwargs):
+        if not self.device.local:
+            return {'error': 'Unsupported'}
+        if params is None:
+            params = []
+        _LOGGER.debug('%s: Send miio command: %s(%s)', self.device.name_model, method, params)
+        return await self.device.local.async_send(method, params)
 
 
 class XEntity(BasicEntity):
@@ -128,6 +149,7 @@ class XEntity(BasicEntity):
 
     async def async_added_to_hass(self) -> None:
         self.added = True
+        self.hass.data[DOMAIN]['entities'][self.entity_id] = self
 
         if call := getattr(self, 'async_get_last_extra_data', None):
             data: RestoredExtraData = await call()

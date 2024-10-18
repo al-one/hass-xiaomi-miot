@@ -989,7 +989,7 @@ class MiotResults:
 
     def __init__(self, results=None, mapping=None):
         self.mapping = mapping or {}
-        self.results = []
+        self.results: list[MiotResult] = []
         if results:
             self.set_results(results)
 
@@ -1051,13 +1051,15 @@ class MiotResults:
 
 
 class MiotResult:
-    def __init__(self, result: dict):
+    def __init__(self, result: dict, **kwargs):
+        result.update(kwargs)
         self.result = result
         self.code = result.get('code')
         self.value = result.get('value')
         self.did = result.get('did')
         self.siid = result.get('siid')
         self.piid = result.get('piid')
+        self.error = result.get('error')
 
     def get(self, key, default=None):
         return self.result.get(key, default)

@@ -21,7 +21,7 @@ from .hass_entry import HassEntry
 from .hass_entity import XEntity, convert_unique_id
 from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv
 from .coordinator import DataCoordinator
-from .miot_spec import MiotSpec, MiotService, MiotResults
+from .miot_spec import MiotSpec, MiotService, MiotProperty, MiotResults, MiotResult
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
 from .utils import get_customize_via_model, CustomConfigHelper
@@ -511,6 +511,12 @@ class Device(CustomConfigHelper):
             return True
         return True
 
+    @property
+    def auto_cloud(self):
+        if not self.cloud:
+            return False
+        return self.custom_config_bool('auto_cloud')
+
     def miot_mapping(self):
         if self._miot_mapping:
             return self._miot_mapping
@@ -547,6 +553,8 @@ class Device(CustomConfigHelper):
             use_local = False if use_cloud else self.use_local
         if use_cloud is None:
             use_cloud = False if use_local else self.use_cloud
+        if auto_cloud is None:
+            auto_cloud = self.auto_cloud
 
         if mapping is None:
             mapping = self.miot_mapping()
@@ -622,6 +630,142 @@ class Device(CustomConfigHelper):
             self.dispatch(self.decode(results))
         self.dispatch_info()
         return self.miot_results
+
+    async def async_get_properties(self, mapping, update_entity=True, throw=False, **kwargs):
+        if not self.spec:
+            return {'error': 'No spec'}
+        if isinstance(mapping, list):
+            new_mapping = {}
+            for p in mapping:
+                siid = p['siid']
+                piid = p['piid']
+                pkey = self.spec.unique_prop(siid, piid=piid)
+                prop = self.spec.specs.get(pkey)
+                if not isinstance(prop, MiotProperty):
+                    continue
+                new_mapping[prop.full_name] = p
+            mapping = new_mapping
+        if not mapping or not isinstance(mapping, dict):
+            return {'error': 'Mapping error'}
+        try:
+            results = []
+            if self.use_local and self._local_state:
+                results = await self.local.async_get_properties_for_mapping(did=self.did, mapping=mapping)
+            elif self.cloud:
+                results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
+        except (DeviceException, MiCloudException) as exc:
+            _LOGGER.error(
+                '%s: Got exception while get properties: %s, mapping: %s, miio: %s',
+                self.name_model, exc, mapping, self.info.miio_info,
+            )
+            if throw:
+                raise exc
+            return {'error': str(exc)}
+        _LOGGER.info('%s: Get miot properties: %s', self.name_model, results)
+        if results and update_entity:
+            self.dispatch(self.decode(results))
+        result = MiotResults(results, mapping)
+        return result.to_attributes()
+
+    async def set_property(self, field, value):
+        if isinstance(field, MiotProperty):
+            siid = field.siid
+            piid = field.iid
+            field = field.full_name
+        else:
+            ext = (self.miot_mapping() or {}).get(field) or {}
+            if not ext:
+                return MiotResult({}, code=-1, error='Field not found')
+            siid = ext['siid']
+            piid = ext['piid']
+        try:
+            result = await self.set_miot_property(siid, piid, value)
+        except (DeviceException, MiCloudException) as exc:
+            _LOGGER.error('%s: Set miot property %s(%s) failed: %s', self.name_model, field, value, exc)
+            return MiotResult({}, code=-1, error=str(exc))
+        ret = result.is_success if result else False
+        if ret:
+            _LOGGER.debug('%s: Set miot property %s(%s), result: %s', self.name_model, field, value, result)
+        else:
+            _LOGGER.info('%s: Set miot property %s(%s) failed, result: %s', self.name_model, field, value, result)
+        return ret
+
+    async def set_miot_property(self, siid, piid, value, **kwargs):
+        iid = MiotSpec.unique_prop(siid, piid)
+        did = self.did or iid
+        pms = {
+            'did':  str(did),
+            'siid': siid,
+            'piid': piid,
+            'value': value,
+        }
+        m2m = None if self.custom_config_bool('miot_cloud_write') else self.miio2miot
+        mcw = self.cloud if not self.use_local else None
+        if self.auto_cloud and not self._local_state:
+            mcw = self.cloud
+        if not self.local:
+            mcw = self.cloud
+        try:
+            if m2m and m2m.has_setter(siid, piid=piid):
+                results = [
+                    await self.hass.async_add_executor_job(
+                        partial(m2m.set_property, self.local, siid, piid, value)
+                    ),
+                ]
+            elif isinstance(mcw, MiotCloud):
+                results = await mcw.async_set_props([pms])
+            else:
+                results = await self.local.async_send('set_properties', [pms])
+            result = MiotResults(results).first
+        except (DeviceException, MiCloudException) as exc:
+            _LOGGER.warning('%s: Set miot property %s failed: %s', self.name_model, pms, exc)
+            return MiotResult({}, code=-1, error=str(exc))
+        if not result.is_success:
+            _LOGGER.warning('%s: Set miot property %s failed, result: %s', self.name_model, pms, result)
+        else:
+            _LOGGER.debug('%s: Set miot property %s, result: %s', self.name_model, pms, result)
+            result.value = value
+            self.dispatch(self.decode(result.to_json()))
+        return result
+
+    async def call_action(self, siid, aiid, params=None, **kwargs):
+        did = self.did or MiotSpec.unique_prop(siid, aiid=aiid)
+        pms = {
+            'did':  str(did),
+            'siid': siid,
+            'aiid': aiid,
+            'in':   params or [],
+        }
+        action = kwargs.get('action')
+        if not action and self.spec:
+            action = self.spec.services.get(siid, {}).actions.get(aiid)
+        m2m = None if self.custom_config_bool('miot_cloud_action') else self.miio2miot
+        mca = self.cloud if not self.use_local else None
+        if self.auto_cloud and not self._local_state:
+            mca = self.cloud
+        try:
+            if m2m and m2m.has_setter(siid, aiid=aiid):
+                result = await self.hass.async_add_executor_job(
+                    partial(m2m.call_action, self.local, siid, aiid, params)
+                )
+            elif isinstance(mca, MiotCloud):
+                result = await mca.async_do_action(pms)
+            else:
+                if not kwargs.get('force_params'):
+                    pms['in'] = action.in_params(params or [])
+                result = await self.local.async_send('action', pms)
+            result = MiotResult(result)
+        except (DeviceException, MiCloudException) as exc:
+            _LOGGER.warning('%s: Call miot action %s failed: %s', self.name_model, pms, exc)
+            return MiotResult({}, code=-1, error=str(exc))
+        except (TypeError, ValueError) as exc:
+            _LOGGER.warning('%s: Call miot action %s failed: %s, result: %s', self.name_model, pms, exc, result)
+            return MiotResult({}, code=-1, error=str(exc))
+        if result.is_success:
+            _LOGGER.debug('%s: Call miot action %s, result: %s', self.name_model, pms, result)
+        else:
+            _LOGGER.info('%s: Call miot action %s failed: %s', self.name_model, pms, result)
+        return result
 
 
 class MiotDevice(MiotDeviceBase):
