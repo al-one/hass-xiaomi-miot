@@ -143,13 +143,8 @@ class MiotServiceConv(MiotPropConv):
             self.attr = self.prop.full_name
 
 @dataclass
-class MiotSwitchConv(MiotServiceConv):
-    domain: str = 'switch'
-
-    def __post_init__(self):
-        if not self.main_props:
-            self.main_props = ['on']
-        super().__post_init__()
+class MiotSensorConv(MiotServiceConv):
+    domain: str = 'sensor'
 
 @dataclass
 class MiotSwitchConv(MiotServiceConv):
