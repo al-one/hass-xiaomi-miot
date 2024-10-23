@@ -413,7 +413,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             'switch_properties': cv.string,
             'number_properties': cv.string,
             'select_properties': cv.string,
-            'cover_properties': cv.string,
             'sensor_attributes': cv.string,
             'binary_sensor_attributes': cv.string,
             'button_properties': cv.string,

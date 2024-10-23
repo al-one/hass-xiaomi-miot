@@ -1236,7 +1236,7 @@ class MiotEntity(MiioEntity):
 
     async def async_update_for_main_entity(self):
         if self._miot_service:
-            for d in ['fan', 'cover']:
+            for d in ['fan']:
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
                     self._update_sub_entities(pls, '*', domain=d)

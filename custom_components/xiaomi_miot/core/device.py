@@ -316,7 +316,7 @@ class Device(CustomConfigHelper):
         for d in [
             'button', 'sensor', 'binary_sensor', 'switch', 'number', 'select',
             'number_select', 'scanner',
-            # 'fan', 'cover',
+            # 'fan',
         ]:
             pls = self.custom_config_list(f'{d}_properties') or []
             if not pls:
