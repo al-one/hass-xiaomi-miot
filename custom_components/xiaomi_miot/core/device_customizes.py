@@ -1052,7 +1052,6 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'fault,left_time',
         'select_properties': 'dryer,drying_level',
         'switch_properties': '',
-        'fan_properties': '',
         'chunk_properties': 1,
     },
     'mrbond.airer.*': {
@@ -1817,7 +1816,7 @@ DEVICE_CUSTOMIZES = {
         'position_reverse': True,
         'sensor_properties': 'left_time',
         'switch_properties': 'dryer,uv',
-        'fan_properties': 'drying_level',
+        'select_properties': 'drying_level',
     },
     '*.airrtc.*': {
         'switch_properties': 'air_conditioner.on',
