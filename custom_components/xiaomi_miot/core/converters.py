@@ -11,9 +11,12 @@ class BaseConv:
     attr: str
     domain: str = None
     mi: str | int = None
+    attrs: set = None
     option: dict = None
 
     def __post_init__(self):
+        if self.attrs is None:
+            self.attrs = set()
         if self.option is None:
             self.option = {}
 
@@ -138,6 +141,15 @@ class MiotServiceConv(MiotPropConv):
         super().__post_init__()
         if not self.attr and self.prop:
             self.attr = self.prop.full_name
+
+@dataclass
+class MiotSwitchConv(MiotServiceConv):
+    domain: str = 'switch'
+
+    def __post_init__(self):
+        if not self.main_props:
+            self.main_props = ['on']
+        super().__post_init__()
 
 @dataclass
 class MiotSwitchConv(MiotServiceConv):

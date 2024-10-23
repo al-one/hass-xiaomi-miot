@@ -11,7 +11,7 @@ import homeassistant.helpers.device_registry as dr
 from .const import (
     DOMAIN,
     DEVICE_CUSTOMIZES,
-    DEVICE_CONVERTERS,
+    GLOBAL_CONVERTERS,
     MIOT_LOCAL_MODELS,
     DEFAULT_NAME,
     CONF_CONN_MODE,
@@ -295,13 +295,23 @@ class Device(CustomConfigHelper):
         self.converters.append(InfoConverter)
         self.dispatch_info()
 
-        for cfg in DEVICE_CONVERTERS:
+        for cfg in GLOBAL_CONVERTERS:
             if not (cls := cfg.get('class')):
                 continue
             if services := cfg.get('services'):
                 for service in self.spec.get_services(*services):
-                    conv = cls(service=service, **cfg.get('kwargs', {}))
+                    kwargs = cfg.get('kwargs', {})
+                    conv = cls(service=service, **kwargs)
                     self.converters.append(conv)
+
+                    for p in cfg.get('attrs') or []:
+                        if not (prop := service.get_property(*p.get('names', []))):
+                            continue
+                        attr = p.get('attr', prop.full_name)
+                        c = p.get('class', MiotPropConv)
+                        ac = c(attr, prop=prop, desc=p.get('desc', False))
+                        self.converters.append(ac)
+                        conv.attrs |= {attr}
 
         for d in [
             'button', 'sensor', 'binary_sensor', 'switch', 'number', 'select',

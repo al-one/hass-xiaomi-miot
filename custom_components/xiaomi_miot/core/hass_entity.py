@@ -92,7 +92,7 @@ class XEntity(BasicEntity):
             if isinstance(conv, InfoConv):
                 self._attr_available = True
 
-        self.listen_attrs: set = {self.attr}
+        self.listen_attrs = {self.attr} | set(conv.attrs)
         self._attr_unique_id = f'{device.unique_id}-{convert_unique_id(conv)}'
         self._attr_device_info = self.device.hass_device_info
         self._attr_extra_state_attributes = {

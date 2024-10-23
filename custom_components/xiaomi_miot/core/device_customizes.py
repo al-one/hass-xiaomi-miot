@@ -317,6 +317,7 @@ DEVICE_CUSTOMIZES = {
     'cuco.plug.cp2a': {
         'chunk_services': 1,
         'main_miot_services': 'switch-2',
+        'miot_type': 'urn:miot-spec-v2:device:outlet:0000A002:cuco-cp2a:2',
     },
     'cuco.plug.cp2d': {
         'chunk_properties': 1,
@@ -2016,12 +2017,15 @@ DEVICE_CUSTOMIZES.update({
     '*.dryer.*': DEVICE_CUSTOMIZES.get('*.dry.*') or {},
 })
 
-DEVICE_CONVERTERS = [
+GLOBAL_CONVERTERS = [
     {
         'class': MiotSwitchConv,
         'services': [
             'switch', 'outlet', 'massager', 'towel_rack', 'diffuser', 'fish_tank',
             'pet_drinking_fountain', 'mosquito_dispeller', 'electric_blanket', 'foot_bath',
+        ],
+        'attrs' : [
+            {'names': ['status'], 'desc': False},
         ],
     },
 ]
