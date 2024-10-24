@@ -1628,12 +1628,7 @@ class MiotEntity(MiioEntity):
 
         # update micloud statistics in cloud
         cls = self.custom_config_list('micloud_statistics') or []
-        if key := self.custom_config('stat_power_cost_key'):
-            if isinstance(key, list):
-                keys = key
-            else:
-                keys = [key]
-
+        if keys := self.custom_config_list('stat_power_cost_key'):
             for k in keys:
                 dic = {
                     'type': self.custom_config('stat_power_cost_type', 'stat_day_v3'),
@@ -1643,7 +1638,7 @@ class MiotEntity(MiioEntity):
                     'attribute': None,
                     'template': 'micloud_statistics_power_cost',
                 }
-                cls = [*cls, dic]
+                cls.append(dic)
         if cls:
             await self.async_update_micloud_statistics(cls)
 
