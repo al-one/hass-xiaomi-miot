@@ -1444,6 +1444,14 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.heater.ma8': {
         'button_actions': 'toggle',
     },
+    'xiaomi.humidifier.airmx': {
+        'button_actions': 'toggle,reset_filter_life',
+        'sensor_properties': 'water_level,air_dry_remain_time,remain_time,filter_life_level',
+        'switch_properties': 'overwet_protect,automatic_air_drying,delay,alarm,auto_alarm_off,clean.on,descale.on'
+                             'indicator_light.on,auto_lights_off,wash_water_tank',
+        'select_properties': 'indicator_light.brightness',
+        'number_properties': 'delay_time',
+    },
     'xiaomi.humidifier.p1200': {
         'button_actions': 'loop_mode,reset_filter_life',
         'select_properties': 'screen.brightness',
