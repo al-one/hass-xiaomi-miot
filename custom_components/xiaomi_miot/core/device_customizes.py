@@ -811,6 +811,15 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm,warm_wind_turn,turn_ovp,dry_turn,turn_off_dry_turn',
         'number_properties': 'screen_brightness,tsms_turn_off',
     },
+    'linp.switch.s2dw3': {
+        'main_miot_services': 'switch-2',
+        'button_actions': 'reboot',
+        'sensor_properties': 'text_a,text_b,text_c,text_d',
+        'switch_properties': 'screen.on,auto-screen-off,auto-screen-brightness,night-mode',
+        'select_properties': 'mode,default-power-on-state,auto-screen-off-time,screen-switch,sensitivity',
+        'number_properties': 'brightness',
+        'light_services': 'vd-light-a,vd-light-b,vd-light-c',
+    },
     'lumi.acpartner.mcn02': {
         'miio_cloud_props': [],
     },
