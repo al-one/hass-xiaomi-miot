@@ -1201,7 +1201,7 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
         'sensor_properties': 'fault,water_level,a_temperature,b_temperature',
         'switch_properties': 'alarm,antifreezing_switch,ab_sleep_switch,anti_scald_switch',
-        'select_properties': 'mode,water_level',
+        'select_properties': 'mode',
         'number_properties': 'target_temperature,timer',
     },
 
@@ -1402,6 +1402,12 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'speaker.volume,brightness,theme',
         'button_actions': 'homepage,light',
         'text_actions': 'play_text,execute_text_directive',
+    },
+    'xiaomi.blanket.mj1': {
+        'chunk_properties': 1,
+        'switch_properties': 'anti_scald_switch,ab_sleep_switch,auto_screen_off',
+        'select_properties': 'mode,heat_level',
+        'number_properties': 'a_countdown,b_countdown',
     },
     'xiaomi.esteamer.mes01': {
         'sensor_properties': 'left_time,keep_warm_left_time',
