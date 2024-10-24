@@ -143,11 +143,17 @@ def datetime_with_tzinfo(value):
 
 class SensorEntity(XEntity, BaseEntity, RestoreEntity):
     def on_init(self):
+        self._attr_state_class = self.custom_config('state_class')
+        self._attr_native_unit_of_measurement = self.custom_config('unit_of_measurement')
         if self._miot_property:
-            self.listen_attrs.add('property_value')
-            self._attr_icon = self._miot_property.entity_icon
-            self._attr_device_class = self._miot_property.device_class
-            self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
+            if not self._attr_icon:
+                self._attr_icon = self._miot_property.entity_icon
+            if not self._attr_device_class:
+                self._attr_device_class = self._miot_property.device_class
+            if not self._attr_state_class:
+                self._attr_state_class = self._miot_property.state_class
+            if not self._attr_native_unit_of_measurement:
+                self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
 
     def get_state(self) -> dict:
         return {self.attr: self._attr_native_value}

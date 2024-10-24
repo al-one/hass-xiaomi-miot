@@ -1,5 +1,6 @@
 import logging
 import copy
+import re
 from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
 from functools import partial, cached_property
@@ -25,7 +26,7 @@ from .coordinator import DataCoordinator
 from .miot_spec import MiotSpec, MiotService, MiotProperty, MiotResults, MiotResult
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
-from .utils import CustomConfigHelper, get_customize_via_model, update_attrs_with_suffix
+from .utils import CustomConfigHelper, get_customize_via_model, get_value, update_attrs_with_suffix
 from .templates import template
 
 
@@ -367,6 +368,9 @@ class Device(CustomConfigHelper):
                 for action in srv.get_actions(*als):
                     self.converters.append(MiotActionConv(action.full_name, d, action=action))
 
+        if self.miot_entity:
+            return
+
         for d in ['sensor']:
             for attr in self.custom_config_list(f'{d}_attributes') or []:
                 self.converters.append(AttrSensorConv(attr))
@@ -382,6 +386,10 @@ class Device(CustomConfigHelper):
         if self.cloud_statistics_commands:
             lst.append(
                 DataCoordinator(self, name='update_cloud_statistics', update_interval=timedelta(seconds=interval*20)),
+            )
+        if self.miio_cloud_records:
+            lst.append(
+                DataCoordinator(self, name='update_miio_cloud_records', update_interval=timedelta(seconds=interval*20)),
             )
         for coo in lst:
             await coo.async_config_entry_first_refresh()
@@ -462,7 +470,7 @@ class Device(CustomConfigHelper):
             return
         payload = {}
         for conv in self.converters:
-            val = value.get(conv.attr)
+            val = get_value(value, conv.attr, None, ':')
             if val is not None:
                 conv.decode(self, payload, val)
         return payload
@@ -716,6 +724,50 @@ class Device(CustomConfigHelper):
                 attrs[anm] = rls
             elif isinstance(rls, dict):
                 update_attrs_with_suffix(attrs, rls)
+        if attrs:
+            self.props.update(attrs)
+            self.data['updated'] = dt.now()
+            self.dispatch(self.decode_attrs(attrs))
+        return attrs
+
+    @cached_property
+    def miio_cloud_records(self):
+        return self.custom_config_list('miio_cloud_records') or []
+
+    async def update_miio_cloud_records(self, keys=None):
+        if not self.did or not self.cloud:
+            return
+
+        if keys is None:
+            keys = self.miio_cloud_records
+
+        attrs = {}
+        for c in keys:
+            mat = re.match(r'^\s*(?:(\w+)\.?)([\w.]+)(?::(\d+))?(?::(\w+))?\s*$', c)
+            if not mat:
+                continue
+            typ, key, lmt, gby = mat.groups()
+            kws = {
+                'time_start': int(dt.now().timestamp()) - 86400 * 32,
+                'limit': int(lmt or 1),
+            }
+            if gby:
+                kws['group'] = gby
+            rdt = await self.cloud.async_get_user_device_data(self.did, key, typ, **kws) or []
+            tpl = self.custom_config(f'miio_{typ}_{key}_template')
+            if tpl:
+                tpl = template(tpl, self.hass)
+                rls = tpl.async_render({'result': rdt})
+            else:
+                rls = [
+                    v.get('value')
+                    for v in rdt
+                    if 'value' in v
+                ]
+            if isinstance(rls, dict) and rls.pop('_entity_attrs', False):
+                attrs.update(rls)
+            else:
+                attrs[f'{typ}.{key}'] = rls
         if attrs:
             self.props.update(attrs)
             self.data['updated'] = dt.now()

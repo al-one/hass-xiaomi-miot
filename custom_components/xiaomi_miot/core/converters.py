@@ -77,6 +77,7 @@ class InfoConv(BaseConv):
 class AttrSensorConv(BaseConv):
     domain: str = 'sensor'
 
+
 @dataclass
 class MiotPropConv(BaseConv):
     prop: 'MiotProperty' = None

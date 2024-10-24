@@ -95,18 +95,20 @@ class XEntity(BasicEntity):
         self.listen_attrs = {self.attr} | set(conv.attrs)
         self._attr_unique_id = f'{device.unique_id}-{convert_unique_id(conv)}'
         self._attr_device_info = self.device.hass_device_info
-        self._attr_extra_state_attributes = {
-            'converter': f'{conv}'.replace('custom_components.xiaomi_miot.core.miot_spec.', ''), # TODO
-        }
+        self._attr_extra_state_attributes = {}
 
         self._attr_icon = conv.option.get('icon')
-        self._attr_device_class = conv.option.get('device_class')
-        self._attr_entity_category = conv.option.get('entity_category')
+        self._attr_device_class = self.custom_config('device_class') or conv.option.get('device_class')
+        self._attr_entity_category = self.custom_config('entity_category') or conv.option.get('entity_category')
 
         self.on_init()
         self.device.add_listener(self.on_device_update)
 
-    @property
+    @cached_property
+    def model(self):
+        return self.device.model
+
+    @cached_property
     def unique_mac(self):
         return self.device.info.unique_id
 
@@ -157,7 +159,6 @@ class XEntity(BasicEntity):
             data: RestoredExtraData = await call()
             if data and self.listen_attrs & data.as_dict().keys():
                 self.set_state(data.as_dict())
-
 
     async def async_will_remove_from_hass(self) -> None:
         self.device.remove_listener(self.on_device_update)

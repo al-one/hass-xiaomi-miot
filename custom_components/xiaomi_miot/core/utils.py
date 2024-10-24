@@ -15,6 +15,21 @@ from .const import DOMAIN, DEVICE_CUSTOMIZES
 from .translation_languages import TRANSLATION_LANGUAGES
 
 
+def get_value(obj, key, def_value=None, sep='.'):
+    keys = f'{key}'.split(sep)
+    result = obj
+    for k in keys:
+        if result is None:
+            return None
+        if isinstance(result, dict):
+            result = result.get(k, def_value)
+        elif isinstance(result, (list, tuple)):
+            try:
+                result = result[int(k)]
+            except Exception:
+                result = def_value
+    return result
+
 def get_customize_via_model(model, key=None, default=None):
     cfg = {}
     for m in wildcard_models(model):
