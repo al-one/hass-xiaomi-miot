@@ -227,6 +227,7 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.001,
     },
     'chunmi.cooker.normalcd2': {
+        'button_actions': 'pause,cancel_cooking',
         'select_actions': 'start_cook',
     },
     'chunmi.microwave.n23l01': {
@@ -1889,8 +1890,8 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
     },
     '*.cooker.*': {
-        'sensor_properties': 'temperature,left_time',
-        'switch_properties': 'cooker.on',
+        'sensor_properties': 'status,temperature,left_time',
+        'switch_properties': 'on,auto_keep_warm',
         'button_actions': 'start_cook,pause,cancel_cooking',
     },
     '*.desk.*': {
@@ -1945,7 +1946,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'countdown_time,delay_time',
     },
     '*.ihcooker.*': {
-        'sensor_properties': 'temperature,left_time',
+        'sensor_properties': 'status,left_time,working_time',
+        'switch_properties': 'induction_cooker.on',
+        'number_properties': 'heat_level',
         'button_actions': 'start_cook,pause,cancel_cooking',
     },
     '*.light.*': {
@@ -2052,9 +2055,14 @@ DEVICE_CUSTOMIZES.update({
     '*.airp.*': DEVICE_CUSTOMIZES.get('*.airpurifier.*') or {},
     '*.door.*': DEVICE_CUSTOMIZES.get('*.lock.*') or {},
     '*.dryer.*': DEVICE_CUSTOMIZES.get('*.dry.*') or {},
+    '*.pre_cooker.*': DEVICE_CUSTOMIZES.get('*.cooker.*') or {},
 })
 
 GLOBAL_CONVERTERS = [
+    {
+        'class': MiotSensorConv,
+        'services': [],
+    },
     {
         'class': MiotSwitchConv,
         'services': [

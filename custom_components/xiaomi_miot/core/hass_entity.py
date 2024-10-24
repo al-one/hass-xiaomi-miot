@@ -113,12 +113,14 @@ class XEntity(BasicEntity):
     def on_init(self):
         """Run on class init."""
 
-    def on_device_update(self, data: dict):
+    def on_device_update(self, data: dict, only_info=False):
         state_change = False
         self._attr_available = True
 
         if isinstance(self.conv, InfoConv):
             self._attr_extra_state_attributes.update(data)
+        elif only_info:
+            return
 
         if keys := self.listen_attrs & data.keys():
             self.set_state(data)
@@ -130,7 +132,7 @@ class XEntity(BasicEntity):
 
         if state_change and self.added:
             self._async_write_ha_state()
-            _LOGGER.debug('%s: Entity state updated: %s', self.entity_id, self._attr_state)
+            _LOGGER.debug('%s: Entity state updated: %s', self.entity_id, data.get(self.attr))
 
     def get_state(self) -> dict:
         """Run before entity remove if entity is subclass from RestoreEntity."""

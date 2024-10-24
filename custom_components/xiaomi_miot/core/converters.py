@@ -81,13 +81,14 @@ class MiotPropConv(BaseConv):
             self.mi = MiotSpec.unique_prop(self.prop.siid, piid=self.prop.iid)
 
     def decode(self, device: 'Device', payload: dict, value):
-        if self.desc:
-            payload['property_value'] = value
+        if self.desc and self.prop:
             value = self.prop.list_description(value)
+            if isinstance(value, str):
+                value = value.lower()
         super().decode(device, payload, value)
 
     def encode(self, device: 'Device', payload: dict, value):
-        if self.desc:
+        if self.desc and self.prop:
             value = self.prop.list_value(value)
         super().encode(device, payload, value)
 

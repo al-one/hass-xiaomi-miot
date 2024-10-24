@@ -136,6 +136,7 @@ class DeviceInfo:
 
 
 class Device(CustomConfigHelper):
+    log = _LOGGER
     spec: Optional['MiotSpec'] = None
     cloud: Optional['MiotCloud'] = None
     local: Optional['MiotDevice'] = None
@@ -289,11 +290,11 @@ class Device(CustomConfigHelper):
         return urn
 
     def init_converters(self):
-        if not self.spec:
-            return
-
         self.converters.append(InfoConverter)
         self.dispatch_info()
+
+        if not self.spec:
+            return
 
         for cfg in GLOBAL_CONVERTERS:
             if not (cls := cfg.get('class')):
@@ -394,8 +395,9 @@ class Device(CustomConfigHelper):
             adder([entity], update_before_add=False)
             _LOGGER.info('New entity: %s', entity)
 
-        self.dispatch_info()
-        async_call_later(self.hass, 0.1, self.init_coordinators)
+        if domain == 'button':
+            self.dispatch_info()
+            async_call_later(self.hass, 0.1, self.init_coordinators)
 
     def add_entity(self, entity: 'BasicEntity'):
         if entity not in self.entities:
@@ -409,16 +411,16 @@ class Device(CustomConfigHelper):
         if handler in self.listeners:
             self.listeners.remove(handler)
 
-    def dispatch(self, data: dict, log=True):
+    def dispatch(self, data: dict, only_info=False, log=True):
         if log:
             _LOGGER.info('%s: Device updated: %s', self.name_model, data)
         for handler in self.listeners:
-            handler(data)
+            handler(data, only_info=only_info)
 
     def dispatch_info(self):
         info = {}
         InfoConverter.decode(self, info, None)
-        self.dispatch(info, log=False)
+        self.dispatch(info, only_info=True, log=False)
 
     def decode(self, data: dict | list) -> dict:
         """Decode data from device."""
