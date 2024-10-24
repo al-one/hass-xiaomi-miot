@@ -715,6 +715,10 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'work_mode,hip_water_gage,woman_water_gage,hip_nozzle_position,woman_nozzle_pos,'
                              'seat_temperature,wind_temperature,water_temperature,auto_mode',
     },
+    'iot.bed.upone': {
+        'select_properties': 'mode,min_control,light_conrtol',
+        'number_properties': 'light_bright',
+    },
     'iot.plug.jdls1': {
         'chunk_properties': 1,
         'exclude_miot_services': 'indicator_light',
