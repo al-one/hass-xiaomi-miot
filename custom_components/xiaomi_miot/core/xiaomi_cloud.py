@@ -596,7 +596,8 @@ class MiotCloud(micloud.MiCloud):
 
     @staticmethod
     async def from_token(hass, config: dict, login=None):
-        mic = MiotCloud(
+        mic = await hass.async_add_executor_job(
+            MiotCloud,
             hass,
             config.get(CONF_USERNAME),
             config.get(CONF_PASSWORD),
