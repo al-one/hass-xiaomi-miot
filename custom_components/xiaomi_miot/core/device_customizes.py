@@ -825,6 +825,15 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm,warm_wind_turn,turn_ovp,dry_turn,turn_off_dry_turn',
         'number_properties': 'screen_brightness,tsms_turn_off',
     },
+    'linp.switch.s2dw3': {
+        'main_miot_services': 'switch-2',
+        'button_actions': 'reboot',
+        'sensor_properties': 'text_a,text_b,text_c,text_d',
+        'switch_properties': 'screen.on,auto-screen-off,auto-screen-brightness,night-mode',
+        'select_properties': 'mode,default-power-on-state,auto-screen-off-time,screen-switch,sensitivity',
+        'number_properties': 'brightness',
+        'light_services': 'vd-light-a,vd-light-b,vd-light-c',
+    },
     'lumi.acpartner.mcn02': {
         'miio_cloud_props': [],
     },
@@ -838,14 +847,25 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'ac_mode',
         'miio_cloud_props': [],
         'stat_power_cost_type': 'stat_day_v3',
-        'stat_power_cost_key': '7.1',
+        'stat_power_cost_key': ['7.1', '7.3'],
+        'sensor_attributes': 'power_cost_today,power_cost_month,power_cost_today_2,power_cost_month_2'
     },
     'lumi.acpartner.mcn04:power_consumption': ENERGY_KWH,
     'lumi.acpartner.mcn04:power_cost_today': {
         'value_ratio': 1,
+        **ENERGY_KWH
     },
     'lumi.acpartner.mcn04:power_cost_month': {
         'value_ratio': 1,
+        **ENERGY_KWH
+    },
+    'lumi.acpartner.mcn04:power_cost_today_2': {
+        'value_ratio': 1,
+        **ENERGY_KWH
+    },
+    'lumi.acpartner.mcn04:power_cost_month_2': {
+        'value_ratio': 1,
+        **ENERGY_KWH
     },
     'lumi.acpartner.*': {
         'sensor_attributes': 'electric_power,power_cost_today,power_cost_month',
@@ -1214,7 +1234,7 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
         'sensor_properties': 'fault,water_level,a_temperature,b_temperature',
         'switch_properties': 'alarm,antifreezing_switch,ab_sleep_switch,anti_scald_switch',
-        'select_properties': 'mode,water_level',
+        'select_properties': 'mode',
         'number_properties': 'target_temperature,timer',
     },
 
@@ -1416,6 +1436,12 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'homepage,light',
         'text_actions': 'play_text,execute_text_directive',
     },
+    'xiaomi.blanket.mj1': {
+        'chunk_properties': 1,
+        'switch_properties': 'anti_scald_switch,ab_sleep_switch,auto_screen_off',
+        'select_properties': 'mode,heat_level',
+        'number_properties': 'a_countdown,b_countdown',
+    },
     'xiaomi.esteamer.mes01': {
         'sensor_properties': 'left_time,keep_warm_left_time',
         'switch_properties': 'auto_keep_warm',
@@ -1439,6 +1465,14 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.heater.ma8': {
         'button_actions': 'toggle',
+    },
+    'xiaomi.humidifier.airmx': {
+        'button_actions': 'toggle,reset_filter_life',
+        'sensor_properties': 'water_level,air_dry_remain_time,remain_time,filter_life_level',
+        'switch_properties': 'overwet_protect,automatic_air_drying,delay,alarm,auto_alarm_off,clean.on,descale.on'
+                             'indicator_light.on,auto_lights_off,wash_water_tank',
+        'select_properties': 'indicator_light.brightness',
+        'number_properties': 'delay_time',
     },
     'xiaomi.humidifier.p1200': {
         'button_actions': 'loop_mode,reset_filter_life',

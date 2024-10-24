@@ -16,6 +16,7 @@ from homeassistant.const import (
     ATTR_FRIENDLY_NAME,
     CONF_HOST,
 )
+from homeassistant.components import media_source
 from homeassistant.components.media_player import (
     DOMAIN as ENTITY_DOMAIN,
     MediaPlayerDeviceClass,
@@ -25,6 +26,7 @@ from homeassistant.components.media_player import (
     MediaType,  # v2022.10
     RepeatMode,  # v2022.10
 )
+from homeassistant.components.media_player.browse_media import async_process_play_media_url
 from homeassistant.components.homekit.const import EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED
 from homeassistant.core import HassJob
 from homeassistant.util.dt import utcnow
@@ -511,6 +513,11 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
     async def async_play_media(self, media_type, media_id, **kwargs):
         if not (aid := self.xiaoai_id):
             return
+
+        if media_source.is_media_source_id(media_id):
+            play_item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
+            media_id = async_process_play_media_url(self.hass, play_item.url)
+
         typ = {
             'audio': 1,
             'music': 1,
@@ -836,6 +843,10 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
 
     async def async_play_media(self, media_type, media_id, **kwargs):
         """Play a piece of media."""
+        if media_source.is_media_source_id(media_id):
+            play_item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
+            media_id = async_process_play_media_url(self.hass, play_item.url)
+
         tim = str(int(time.time() * 1000))
         pms = {
             'action': 'play',
