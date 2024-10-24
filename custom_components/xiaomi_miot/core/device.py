@@ -368,9 +368,6 @@ class Device(CustomConfigHelper):
                 for action in srv.get_actions(*als):
                     self.converters.append(MiotActionConv(action.full_name, d, action=action))
 
-        if self.miot_entity:
-            return
-
         for d in ['sensor']:
             for attr in self.custom_config_list(f'{d}_attributes') or []:
                 self.converters.append(AttrSensorConv(attr))

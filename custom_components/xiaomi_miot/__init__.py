@@ -954,8 +954,6 @@ class MiioEntity(BaseEntity):
                             self._state_attrs = adt
                         else:
                             self._state_attrs.update(adt)
-            if pls := self.custom_config_list('sensor_attributes'):
-                await self.async_update_attr_sensor_entities(pls, domain='sensor')
             if pls := self.custom_config_list('binary_sensor_attributes'):
                 await self.async_update_attr_sensor_entities(pls, domain='binary_sensor')
         return self._state_attrs
