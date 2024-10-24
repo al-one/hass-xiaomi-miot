@@ -1159,6 +1159,22 @@ class MiotEntityInterface:
         raise NotImplementedError()
 
 
+def update_attrs_add_suffix_on_duplicate(attrs, new_dict):
+    updated_attrs = {}
+
+    for key, value in new_dict.items():
+        if key in attrs:
+            suffix = 2
+            while f"{key}_{suffix}" in attrs:
+                suffix += 1
+            updated_key = f"{key}_{suffix}"
+        else:
+            updated_key = key
+
+        updated_attrs[updated_key] = value
+    attrs.update(updated_attrs)
+
+
 class MiotEntity(MiioEntity):
     def __init__(self, miot_service=None, device=None, **kwargs):
         self._config = dict(kwargs.get('config') or {})
@@ -1612,16 +1628,17 @@ class MiotEntity(MiioEntity):
 
         # update micloud statistics in cloud
         cls = self.custom_config_list('micloud_statistics') or []
-        if key := self.custom_config('stat_power_cost_key'):
-            dic = {
-                'type': self.custom_config('stat_power_cost_type', 'stat_day_v3'),
-                'key': key,
-                'day': 32,
-                'limit': 31,
-                'attribute': None,
-                'template': 'micloud_statistics_power_cost',
-            }
-            cls = [*cls, dic]
+        if keys := self.custom_config_list('stat_power_cost_key'):
+            for k in keys:
+                dic = {
+                    'type': self.custom_config('stat_power_cost_type', 'stat_day_v3'),
+                    'key': k,
+                    'day': 32,
+                    'limit': 31,
+                    'attribute': None,
+                    'template': 'micloud_statistics_power_cost',
+                }
+                cls.append(dic)
         if cls:
             await self.async_update_micloud_statistics(cls)
 
@@ -1788,7 +1805,7 @@ class MiotEntity(MiioEntity):
             if anm := c.get('attribute'):
                 attrs[anm] = rls
             elif isinstance(rls, dict):
-                attrs.update(rls)
+                update_attrs_add_suffix_on_duplicate(attrs, rls)
         if attrs:
             await self.async_update_attrs(attrs)
 
