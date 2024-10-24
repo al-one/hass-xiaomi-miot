@@ -5,6 +5,7 @@ from datetime import timedelta
 from functools import partial, cached_property
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, EntityCategory
+from homeassistant.util import dt
 from homeassistant.helpers.event import async_call_later
 import homeassistant.helpers.device_registry as dr
 
@@ -19,12 +20,13 @@ from .const import (
 )
 from .hass_entry import HassEntry
 from .hass_entity import XEntity, convert_unique_id
-from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv
+from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv, AttrSensorConv
 from .coordinator import DataCoordinator
 from .miot_spec import MiotSpec, MiotService, MiotProperty, MiotResults, MiotResult
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
-from .utils import get_customize_via_model, CustomConfigHelper
+from .utils import CustomConfigHelper, get_customize_via_model, update_attrs_with_suffix
+from .templates import template
 
 
 from miio import (  # noqa: F401
@@ -155,6 +157,7 @@ class Device(CustomConfigHelper):
         self.hass = entry.hass
         self.entry = entry
         self.cloud = entry.cloud
+        self.props: dict = {}
         self.entities: dict[str, 'BasicEntity'] = {}
         self.listeners: list[Callable] = []
         self.converters: list[BaseConv] = []
@@ -364,6 +367,10 @@ class Device(CustomConfigHelper):
                 for action in srv.get_actions(*als):
                     self.converters.append(MiotActionConv(action.full_name, d, action=action))
 
+        for d in ['sensor']:
+            for attr in self.custom_config_list(f'{d}_attributes') or []:
+                self.converters.append(AttrSensorConv(attr))
+
     async def init_coordinators(self, _):
         if self.miot_entity:
             return
@@ -372,6 +379,10 @@ class Device(CustomConfigHelper):
         lst = [
             DataCoordinator(self, name='update_miot_status', update_interval=timedelta(seconds=interval)),
         ]
+        if self.cloud_statistics_commands:
+            lst.append(
+                DataCoordinator(self, name='update_cloud_statistics', update_interval=timedelta(seconds=interval*20)),
+            )
         for coo in lst:
             await coo.async_config_entry_first_refresh()
         self.coordinators.extend(lst)
@@ -444,6 +455,17 @@ class Device(CustomConfigHelper):
             for conv in self.converters:
                 if conv.mi == mi:
                     conv.decode(self, payload, value.get('value'))
+
+    def decode_attrs(self, value: dict):
+        if not isinstance(value, dict):
+            _LOGGER.warning('%s: Value is not dict: %s', self.name_model, value)
+            return
+        payload = {}
+        for conv in self.converters:
+            val = value.get(conv.attr)
+            if val is not None:
+                conv.decode(self, payload, val)
+        return payload
 
     def encode(self, value: dict) -> dict:
         """Encode data from hass to device."""
@@ -637,10 +659,68 @@ class Device(CustomConfigHelper):
                 dev_reg.async_update_device(dev.id, sw_version=self.sw_version)
                 _LOGGER.info('%s: State updater: %s', self.name_model, self.sw_version)
         if results:
-            self.data['miot_results'] = results
+            self.miot_results.to_attributes(self.props)
+            self.data['updated'] = dt.now()
             self.dispatch(self.decode(results))
         self.dispatch_info()
         return self.miot_results
+
+    @cached_property
+    def cloud_statistics_commands(self):
+        commands = self.custom_config_list('micloud_statistics') or []
+        if keys := self.custom_config_list('stat_power_cost_key'):
+            for k in keys:
+                commands.append({
+                    'type': self.custom_config('stat_power_cost_type', 'stat_day_v3'),
+                    'key': k,
+                    'day': 32,
+                    'limit': 31,
+                    'attribute': None,
+                    'template': 'micloud_statistics_power_cost',
+                })
+        return commands
+
+
+    async def update_cloud_statistics(self, commands=None):
+        if not self.did or not self.cloud:
+            return
+
+        if commands is None:
+            commands = self.cloud_statistics_commands
+
+        now = int(dt.now().timestamp())
+        attrs = {}
+        for c in commands:
+            if not c.get('key'):
+                continue
+            pms = {
+                'did': self.did,
+                'key': c.get('key'),
+                'data_type': c.get('type', 'stat_day_v3'),
+                'time_start': now - 86400 * (c.get('day') or 7),
+                'time_end': now + 60,
+                'limit': int(c.get('limit') or 1),
+            }
+            rdt = await self.cloud.async_request_api('v2/user/statistics', pms) or {}
+            self.log.debug('%s: Got micloud statistics: %s', self.name_model, rdt)
+            if tpl := c.get('template'):
+                tpl = template(tpl, self.hass)
+                rls = tpl.async_render(rdt)
+            else:
+                rls = [
+                    v.get('value')
+                    for v in rdt
+                    if 'value' in v
+                ]
+            if anm := c.get('attribute'):
+                attrs[anm] = rls
+            elif isinstance(rls, dict):
+                update_attrs_with_suffix(attrs, rls)
+        if attrs:
+            self.props.update(attrs)
+            self.data['updated'] = dt.now()
+            self.dispatch(self.decode_attrs(attrs))
+        return attrs
 
     async def async_get_properties(self, mapping, update_entity=True, throw=False, **kwargs):
         if not self.spec:

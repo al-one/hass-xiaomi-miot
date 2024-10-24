@@ -173,6 +173,21 @@ def is_offline_exception(exc):
     return ret
 
 
+def update_attrs_with_suffix(attrs, new_dict):
+    updated_attrs = {}
+    for key, value in new_dict.items():
+        if key in attrs:
+            suffix = 2
+            while f"{key}_{suffix}" in attrs:
+                suffix += 1
+            updated_key = f"{key}_{suffix}"
+        else:
+            updated_key = key
+
+        updated_attrs[updated_key] = value
+    attrs.update(updated_attrs)
+
+
 async def async_analytics_track_event(hass: HomeAssistant, event, action, label, value=0, **kwargs):
     pms = {
         'model': label,

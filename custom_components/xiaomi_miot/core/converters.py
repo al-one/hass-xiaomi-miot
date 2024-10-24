@@ -46,7 +46,7 @@ class InfoConv(BaseConv):
 
     def decode(self, device: 'Device', payload: dict, value):
         updater = device.data.get('updater')
-        payload.update({
+        infos = {
             self.attr: device.name,
             'model': device.model,
             'did': device.info.did,
@@ -54,12 +54,16 @@ class InfoConv(BaseConv):
             'lan_ip': device.info.host,
             'app_link': device.app_link,
             'updater': updater or 'none',
+            'updated_at': str(device.data.get('updated', '')),
+        }
+        payload.update({
+            **infos,
+            **device.props,
             'converters': [c.attr for c in device.converters],
             'customizes': device.customizes,
+            **infos,
         })
         if device.miot_results:
-            payload.update(device.miot_results.to_attributes())
-            payload['updated_at'] = str(device.miot_results.updated)
             payload.pop('miot_error', None)
             if err := device.miot_results.errors:
                 payload['miot_error'] = str(err)
@@ -68,6 +72,10 @@ class InfoConv(BaseConv):
         payload.update({
             'method': 'update_status',
         })
+
+@dataclass
+class AttrSensorConv(BaseConv):
+    domain: str = 'sensor'
 
 @dataclass
 class MiotPropConv(BaseConv):

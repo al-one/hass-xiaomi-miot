@@ -42,6 +42,7 @@ from .core.const import *
 from .core.utils import (
     wildcard_models,
     is_offline_exception,
+    update_attrs_with_suffix,
     async_analytics_track_event,
 )
 from .core import HassEntry, BasicEntity, XEntity
@@ -979,22 +980,6 @@ class MiotEntityInterface:
         raise NotImplementedError()
 
 
-def update_attrs_add_suffix_on_duplicate(attrs, new_dict):
-    updated_attrs = {}
-
-    for key, value in new_dict.items():
-        if key in attrs:
-            suffix = 2
-            while f"{key}_{suffix}" in attrs:
-                suffix += 1
-            updated_key = f"{key}_{suffix}"
-        else:
-            updated_key = key
-
-        updated_attrs[updated_key] = value
-    attrs.update(updated_attrs)
-
-
 class MiotEntity(MiioEntity):
     def __init__(self, miot_service=None, device=None, **kwargs):
         self._config = dict(kwargs.get('config') or {})
@@ -1308,19 +1293,7 @@ class MiotEntity(MiioEntity):
             await self.async_update_miio_cloud_props(pls)
 
         # update micloud statistics in cloud
-        cls = self.custom_config_list('micloud_statistics') or []
-        if keys := self.custom_config_list('stat_power_cost_key'):
-            for k in keys:
-                dic = {
-                    'type': self.custom_config('stat_power_cost_type', 'stat_day_v3'),
-                    'key': k,
-                    'day': 32,
-                    'limit': 31,
-                    'attribute': None,
-                    'template': 'micloud_statistics_power_cost',
-                }
-                cls.append(dic)
-        if cls:
+        if cls := self.device.cloud_statistics_commands:
             await self.async_update_micloud_statistics(cls)
 
         # update miio properties in lan
@@ -1451,42 +1424,7 @@ class MiotEntity(MiioEntity):
             await self.async_update_attrs(attrs)
 
     async def async_update_micloud_statistics(self, lst):
-        did = self.miot_did
-        mic = self.xiaomi_cloud
-        if not did or not mic:
-            return
-        now = int(time.time())
-        attrs = {}
-        for c in lst:
-            if not c.get('key'):
-                continue
-            day = c.get('day') or 7
-            pms = {
-                'did': did,
-                'key': c.get('key'),
-                'data_type': c.get('type', 'stat_day_v3'),
-                'time_start': now - 86400 * day,
-                'time_end': now + 60,
-                'limit': int(c.get('limit') or 1),
-            }
-            rdt = await mic.async_request_api('v2/user/statistics', pms) or {}
-            self.logger.debug('%s: Got micloud statistics: %s', self.name_model, rdt)
-            tpl = c.get('template')
-            if tpl:
-                tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
-                tpl = cv.template(tpl)
-                tpl.hass = self.hass
-                rls = tpl.async_render(rdt)
-            else:
-                rls = [
-                    v.get('value')
-                    for v in rdt
-                    if 'value' in v
-                ]
-            if anm := c.get('attribute'):
-                attrs[anm] = rls
-            elif isinstance(rls, dict):
-                update_attrs_add_suffix_on_duplicate(attrs, rls)
+        attrs = await self.device.update_cloud_statistics(lst)
         if attrs:
             await self.async_update_attrs(attrs)
 
