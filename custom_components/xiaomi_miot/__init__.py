@@ -2019,6 +2019,8 @@ class MiotPropertySubEntity(BaseSubEntity):
             if not prop:
                 continue
             val = prop.from_dict(self.parent_attributes)
+            if prop.value_range and not (prop.range_min() <= val <= prop.range_max()):
+                val = None
             self._extra_attrs[prop.name] = val
 
     def update(self, data=None):

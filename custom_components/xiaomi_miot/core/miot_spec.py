@@ -815,7 +815,7 @@ class MiotProperty(MiotSpecInstance):
             'tds_out': SensorStateClass.MEASUREMENT,
             'filter_used_flow': SensorStateClass.TOTAL_INCREASING,
         }
-        if self.name in names:
+        if self.name in names and self.value_range:
             return names[self.name]
         return None
 
