@@ -293,30 +293,44 @@ class Device(CustomConfigHelper):
             self.info.data['urn'] = urn
         return urn
 
+    def add_converter(self, conv: BaseConv):
+        if conv in self.converters:
+            return
+        for c in self.converters:
+            if c.attr == conv.attr:
+                _LOGGER.warning(f'%s: Converter for %s already exists. Ignored.', self.name_model, c.attr)
+                return
+        self.converters.append(conv)
+
     def init_converters(self):
-        self.converters.append(InfoConverter)
+        self.add_converter(InfoConverter)
         self.dispatch_info()
 
         if not self.spec:
             return
 
         for cfg in GLOBAL_CONVERTERS:
-            if not (cls := cfg.get('class')):
-                continue
+            cls = cfg.get('class')
+            kwargs = cfg.get('kwargs', {})
             if services := cfg.get('services'):
-                for service in self.spec.get_services(*services):
-                    kwargs = cfg.get('kwargs', {})
-                    conv = cls(service=service, **kwargs)
-                    self.converters.append(conv)
+                for service in self.spec.get_services(*services, excludes=self._exclude_miot_services):
+                    conv = None
+                    if cls:
+                        conv = cls(service=service, **kwargs)
+                        self.add_converter(conv)
 
-                    for p in cfg.get('attrs') or []:
-                        if not (prop := service.get_property(*p.get('names', []))):
+                    for p in cfg.get('converters') or []:
+                        names = p.get('names', [])
+                        if not names:
                             continue
-                        attr = p.get('attr', prop.full_name)
-                        c = p.get('class', MiotPropConv)
-                        ac = c(attr, prop=prop, desc=p.get('desc', False))
-                        self.converters.append(ac)
-                        conv.attrs |= {attr}
+                        for prop in service.get_properties(*names, excludes=self._exclude_miot_properties):
+                            attr = p.get('attr', prop.full_name)
+                            c = p.get('class', MiotPropConv)
+                            d = p.get('domain', None)
+                            ac = c(attr, domain=d, prop=prop, desc=p.get('desc', False))
+                            self.add_converter(ac)
+                            if conv:
+                                conv.attrs.add(attr)
 
         for d in [
             'button', 'sensor', 'binary_sensor', 'switch', 'number', 'select',
@@ -345,10 +359,10 @@ class Device(CustomConfigHelper):
                             des = pv.get('description') or val
                             attr = f'{prop.full_name}-{val}'
                             conv = MiotPropValueConv(attr, platform, prop=prop, value=val, description=des)
-                            self.converters.append(conv)
+                            self.add_converter(conv)
                     elif prop.is_bool:
                         conv = MiotPropValueConv(prop.full_name, platform, prop=prop, value=True)
-                        self.converters.append(conv)
+                        self.add_converter(conv)
                 elif platform == 'number' and not prop.value_range:
                     _LOGGER.warning(f'Unsupported customize entity: %s for %s', platform, prop.full_name)
                     continue
@@ -358,7 +372,7 @@ class Device(CustomConfigHelper):
                     conv.with_option(
                         entity_type=None if platform == d else d,
                     )
-                    self.converters.append(conv)
+                    self.add_converter(conv)
 
         for d in ['button', 'text', 'select']:
             als = self.custom_config_list(f'{d}_actions') or []
@@ -366,11 +380,11 @@ class Device(CustomConfigHelper):
                 continue
             for srv in self.spec.services.values():
                 for action in srv.get_actions(*als):
-                    self.converters.append(MiotActionConv(action.full_name, d, action=action))
+                    self.add_converter(MiotActionConv(action.full_name, d, action=action))
 
         for d in ['sensor']:
             for attr in self.custom_config_list(f'{d}_attributes') or []:
-                self.converters.append(AttrSensorConv(attr))
+                self.add_converter(AttrSensorConv(attr))
 
     async def init_coordinators(self, _):
         if self.miot_entity:

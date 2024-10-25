@@ -468,11 +468,12 @@ class MiotService(MiotSpecInstance):
             }
         return dat
 
-    def get_properties(self, *args):
+    def get_properties(self, *args, **kwargs):
+        excludes = kwargs.get('excludes') or []
         return [
             p
             for p in self.properties.values()
-            if p.in_list(args) or not args
+            if not p.in_list(excludes) and (not args or p.in_list(args))
         ]
 
     def get_property(self, *args, only_format=None):

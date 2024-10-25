@@ -79,12 +79,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entities = []
     if isinstance(spec, MiotSpec):
         for srv in spec.get_services(
-            'battery', 'environment', 'tds_sensor', 'switch_sensor', 'vibration_sensor', 'occupancy_sensor',
-            'temperature_humidity_sensor', 'illumination_sensor', 'gas_sensor', 'smoke_sensor', 'pressure_sensor',
+            'switch_sensor', 'vibration_sensor', 'occupancy_sensor',
+            'gas_sensor', 'smoke_sensor', 'pressure_sensor',
             'router', 'lock', 'door', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad', 'treadmill',
-            'oven', 'microwave_oven', 'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
-            'air_fryer', 'juicer', 'electric_steamer',
-            'water_purifier', 'dishwasher', 'fruit_vegetable_purifier',
             'pet_feeder', 'cat_toilet', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp', 'vital_signs',
             'sterilizer', 'steriliser', 'table', 'chair', 'dryer', 'clothes_dryer',
         ):

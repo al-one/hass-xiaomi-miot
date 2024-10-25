@@ -1240,41 +1240,6 @@ class MiotEntity(MiioEntity):
                 if pls:
                     self._update_sub_entities(None, pls, domain=d)
             self._update_sub_entities(
-                [
-                    'temperature', 'indoor_temperature', 'relative_humidity', 'humidity',
-                    'pm2_5_density', 'pm10_density', 'co2_density', 'tvoc_density', 'hcho_density',
-                    'air_quality', 'air_quality_index', 'illumination', 'motion_state',
-                ],
-                ['environment', 'illumination_sensor'],
-                domain='sensor',
-            )
-            self._update_sub_entities(
-                [
-                    'filter_life', 'filter_life_level', 'filter_left_time', 'filter_used_time',
-                    'filter_left_flow', 'filter_used_flow',
-                ],
-                ['filter', 'filter_life'],
-                domain='sensor',
-            )
-            self._update_sub_entities(
-                [
-                    'battery_level', 'ble_battery_level', 'charging_state', 'voltage', 'electric_power',
-                    'electric_current', 'leakage_current', 'surge_power', 'elec_count',
-                ],
-                ['battery', 'power_consumption', 'electricity'],
-                domain='sensor',
-            )
-            self._update_sub_entities(
-                ['tds_in'],
-                ['tds_sensor'],
-                domain='sensor',
-            )
-            self._update_sub_entities(
-                ['brush_life_level', 'brush_left_time'],
-                ['brush_cleaner'],
-                domain='sensor',
-            )
-            self._update_sub_entities(
                 None,
                 ['indicator_light', 'night_light', 'ambient_light', 'plant_light'],
                 domain='light',

@@ -1890,7 +1890,7 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
     },
     '*.cooker.*': {
-        'sensor_properties': 'status,temperature,left_time',
+        'sensor_properties': 'temperature,left_time',
         'switch_properties': 'on,auto_keep_warm',
         'button_actions': 'start_cook,pause,cancel_cooking',
     },
@@ -1946,7 +1946,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'countdown_time,delay_time',
     },
     '*.ihcooker.*': {
-        'sensor_properties': 'status,left_time,working_time',
+        'sensor_properties': 'left_time,working_time',
         'switch_properties': 'induction_cooker.on',
         'number_properties': 'heat_level',
         'button_actions': 'start_cook,pause,cancel_cooking',
@@ -2058,19 +2058,86 @@ DEVICE_CUSTOMIZES.update({
     '*.pre_cooker.*': DEVICE_CUSTOMIZES.get('*.cooker.*') or {},
 })
 
+
 GLOBAL_CONVERTERS = [
     {
         'class': MiotSensorConv,
-        'services': [],
+        'services': [
+            'cooker', 'induction_cooker', 'pressure_cooker', 'oven', 'microwave_oven',
+            'health_pot', 'coffee_machine', 'multifunction_cooking_pot',
+            'air_fryer', 'juicer', 'electric_steamer',
+        ],
+        'kwargs': {'main_props': ['status'], 'desc': True},
+        'converters' : [
+            {'names': ['fault', 'left_time', 'working_time'], 'desc': True},
+        ],
+    },
+    {
+        'class': MiotSensorConv,
+        'services': ['water_purifier', 'dishwasher', 'fruit_vegetable_purifier'],
+        'kwargs': {'main_props': ['status', 'fault'], 'desc': True},
+    },
+    {
+        'services': ['tds_sensor'],
+        'converters' : [
+            {'names': ['tds_in', 'tds_out'], 'domain': 'sensor'},
+        ],
+    },
+    {
+        'services': ['filter', 'filter_life'],
+        'converters' : [
+            {
+                'names': [
+                    'filter_life', 'filter_life_level',
+                    'filter_left_time', 'filter_used_time',
+                    'filter_left_flow', 'filter_used_flow',
+                ],
+                'domain': 'sensor',
+            },
+        ],
+    },
+    {
+        'services': ['brush_cleaner'],
+        'converters' : [
+            {'names': ['brush_life_level', 'brush_left_time'], 'domain': 'sensor'},
+        ],
+    },
+    {
+        'services': ['environment', 'temperature_humidity_sensor'],
+        'converters' : [
+            {
+                'names': [
+                    'temperature', 'indoor_temperature', 'relative_humidity', 'humidity',
+                    'pm2_5_density', 'pm10_density', 'co2_density', 'tvoc_density', 'hcho_density',
+                    'air_quality', 'air_quality_index',
+                ],
+                'domain': 'sensor',
+            },
+        ],
+    },
+    {
+        'services': ['illumination_sensor'],
+        'converters' : [
+            {'names': ['illumination'], 'domain': 'sensor'},
+        ],
+    },
+    {
+        'services': ['battery', 'power_consumption', 'electricity'],
+        'converters' : [
+            {
+                'names': [
+                    'battery_level', 'electric_power', 'electric_current',
+                    'voltage', 'leakage_current', 'surge_power',
+                ],
+                'domain': 'sensor',
+            },
+        ],
     },
     {
         'class': MiotSwitchConv,
         'services': [
             'switch', 'outlet', 'massager', 'towel_rack', 'diffuser', 'fish_tank',
             'pet_drinking_fountain', 'mosquito_dispeller', 'electric_blanket', 'foot_bath',
-        ],
-        'attrs' : [
-            {'names': ['status'], 'desc': False},
         ],
     },
 ]
