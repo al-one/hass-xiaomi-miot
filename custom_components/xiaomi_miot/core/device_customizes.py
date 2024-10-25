@@ -1390,6 +1390,15 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'machine_state,flag_bit,single_smart_scene',
         'exclude_miot_properties': 'enhance.timer,humidity_range',
     },
+    'xiaomi.aircondition.ma1': {
+        'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:xiaomi-ma1:4',
+    },
+    'xiaomi.aircondition.ma2': {
+        'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:xiaomi-ma2:3',
+    },
+    'xiaomi.aircondition.ma4': {
+        'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:xiaomi-ma4:2',
+    },
     'xiaomi.aircondition.mc9': {
         'exclude_miot_services': 'machine_state,flag_bit',
         'exclude_miot_properties': 'enhance.timer',
