@@ -4,7 +4,7 @@ import time
 import json
 from typing import cast
 from datetime import datetime, timedelta
-from functools import cmp_to_key
+from functools import cmp_to_key, cached_property
 
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.components.sensor import (
@@ -131,7 +131,20 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
         return {self.attr: self._attr_native_value}
 
     def set_state(self, data: dict):
-        self._attr_native_value = data.get(self.attr)
+        val = data.get(self.attr)
+        if val is not None:
+            try:
+                if ratio := self.custom_value_ratio:
+                    val = round(float(val) * ratio, 3)
+                elif self.state_class:
+                    val = round(float(val), 3)
+            except (TypeError, ValueError):
+                val = None
+        self._attr_native_value = val
+
+    @cached_property
+    def custom_value_ratio(self):
+        return self.custom_config_number('value_ratio') or 0
 
 XEntity.CLS[ENTITY_DOMAIN] = SensorEntity
 

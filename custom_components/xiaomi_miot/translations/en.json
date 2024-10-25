@@ -198,11 +198,13 @@
     },
     "entity": {
         "button": {
-            "info": {
-                "name": "Info"
-            }
+            "info": {"name": "Info"}
         },
         "sensor": {
+            "power_cost_today": {"name": "Energy Today"},
+            "power_cost_month": {"name": "Energy Month"},
+            "power_cost_today_2": {"name": "Energy Today"},
+            "power_cost_month_2": {"name": "Energy Month"},
             "lock": {
                 "state": {
                     "bluetooth": "Bluetooth",

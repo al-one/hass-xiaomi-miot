@@ -137,11 +137,15 @@
     },
     "entity": {
         "button": {
-            "info": {
-                "name": "Info"
-            }
+            "info": {"name": "Info"}
         },
         "sensor": {
+            "power_cost_today": {"name": "日电量"},
+            "power_cost_month": {"name": "月电量"},
+            "power_cost_today_2": {"name": "日电量"},
+            "power_cost_month_2": {"name": "月电量"},
+            "prop_cal_day.power_cost:today": {"name": "日电量"},
+            "prop_cal_day.power_cost:month": {"name": "月电量"},
             "lock": {
                 "state": {
                     "bluetooth": "蓝牙",
