@@ -3,6 +3,7 @@ import logging
 import time
 import json
 from datetime import datetime
+from functools import cached_property
 
 from homeassistant.const import (
     STATE_OFF,
@@ -91,16 +92,16 @@ class BinarySensorEntity(XEntity, BaseEntity, RestoreEntity):
         val = data.get(self.attr)
         if val is None:
             return
-        if self.invert:
+        if self.custom_reverse:
             self._attr_extra_state_attributes['reverse_state'] = True
             val = not val
         self._attr_is_on = val
 
     def get_state(self) -> dict:
-        return {self.attr: not self._attr_is_on if self.invert else self._attr_is_on}
+        return {self.attr: not self._attr_is_on if self.custom_reverse else self._attr_is_on}
 
-    @property
-    def invert(self) -> bool:
+    @cached_property
+    def custom_reverse(self):
         return self.custom_config_bool('reverse_state', False)
 
 XEntity.CLS[ENTITY_DOMAIN] = BinarySensorEntity
