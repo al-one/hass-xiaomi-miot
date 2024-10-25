@@ -2039,7 +2039,11 @@ DEVICE_CUSTOMIZES = {
         'number_select_properties': 'speed_level',
     },
     '*.washer.*': {
-        'button_actions': 'start_wash,pause',
+        'button_actions': 'start_wash,pause,stop_washing',
+        'sensor_properties': 'fault,run_status,left_time,door_state',
+        'switch_properties': 'on,sleep_mode,steam_sterilization,ai_mode,high_water_switch,one_click_wash',
+        'select_properties': 'mode,drying_level,rinsh_times,drying_degree',
+        'number_select_properties': 'target_temperature,spin_speed,soak_time,wash_time,drying_time',
     },
     '*.waterheater.*': {
         'sensor_properties': 'water_velocity,tds_in,tds_out',
@@ -2061,6 +2065,13 @@ DEVICE_CUSTOMIZES.update({
 
 GLOBAL_CONVERTERS = [
     {
+        'class': MiotSwitchConv,
+        'services': [
+            'switch', 'outlet', 'massager', 'towel_rack', 'diffuser', 'fish_tank',
+            'pet_drinking_fountain', 'mosquito_dispeller', 'electric_blanket', 'foot_bath',
+        ],
+    },
+    {
         'class': MiotSensorConv,
         'services': [
             'cooker', 'induction_cooker', 'pressure_cooker', 'oven', 'microwave_oven',
@@ -2069,13 +2080,62 @@ GLOBAL_CONVERTERS = [
         ],
         'kwargs': {'main_props': ['status'], 'desc': True},
         'converters' : [
-            {'names': ['fault', 'left_time', 'working_time'], 'desc': True},
+            {'names': ['fault'], 'desc': True},
         ],
     },
     {
         'class': MiotSensorConv,
         'services': ['water_purifier', 'dishwasher', 'fruit_vegetable_purifier'],
         'kwargs': {'main_props': ['status', 'fault'], 'desc': True},
+    },
+    {
+        'class': MiotSensorConv,
+        'services': ['printer', 'vibration_sensor', 'router'],
+        'kwargs': {'main_props': ['status'], 'desc': True},
+    },
+    {
+        'class': MiotSensorConv,
+        'services': ['pet_feeder', 'cat_toilet', 'cat_litter'],
+        'kwargs': {'main_props': ['status'], 'desc': True},
+    },
+    {
+        'class': MiotSensorConv,
+        'services': ['washer'],
+        'kwargs': {'main_props': ['status', 'run_status'], 'desc': True},
+    },
+    {
+        'class': MiotSensorConv,
+        'services': ['plant_monitor'],
+        'kwargs': {'main_props': ['status'], 'desc': True},
+        'converters' : [
+            {'names': ['fault'], 'desc': True},
+            {'names': ['soil_ec', 'illumination'], 'domain': 'sensor'},
+        ],
+    },
+    {
+        'class': MiotSensorConv,
+        'services': ['gas_sensor'],
+        'kwargs': {'main_props': ['gas_concentration', 'status'], 'desc': True},
+    },
+    {
+        'class': MiotSensorConv,
+        'services': ['occupancy_sensor'],
+        'kwargs': {'main_props': ['occupancy_status'], 'desc': True},
+    },
+    {
+        'class': MiotSensorConv,
+        'services': ['pressure_sensor'],
+        'kwargs': {'main_props': ['pressure_present_duration', 'status'], 'desc': True},
+    },
+    {
+        'class': MiotSensorConv,
+        'services': ['sleep_monitor'],
+        'kwargs': {'main_props': ['sleep_state', 'status'], 'desc': True},
+    },
+    {
+        'class': MiotSensorConv,
+        'services': ['smoke_sensor'],
+        'kwargs': {'main_props': ['smoke_concentration', 'status'], 'desc': True},
     },
     {
         'services': ['tds_sensor'],
@@ -2109,7 +2169,7 @@ GLOBAL_CONVERTERS = [
                 'names': [
                     'temperature', 'indoor_temperature', 'relative_humidity', 'humidity',
                     'pm2_5_density', 'pm10_density', 'co2_density', 'tvoc_density', 'hcho_density',
-                    'air_quality', 'air_quality_index',
+                    'air_quality', 'air_quality_index', 'illumination', 'atmospheric_pressure',
                 ],
                 'domain': 'sensor',
             },
@@ -2134,10 +2194,16 @@ GLOBAL_CONVERTERS = [
         ],
     },
     {
-        'class': MiotSwitchConv,
-        'services': [
-            'switch', 'outlet', 'massager', 'towel_rack', 'diffuser', 'fish_tank',
-            'pet_drinking_fountain', 'mosquito_dispeller', 'electric_blanket', 'foot_bath',
+        'services': ['router', 'wifi', 'guest_wifi'],
+        'converters' : [
+            {'names': ['on'], 'domain': 'switch'},
+            {
+                'names': [
+                    'download_speed', 'upload_speed', 'connected_device_number', 'network_connection_type',
+                    'ip_address', 'online_time', 'wifi_ssid', 'wifi_bandwidth',
+                ],
+                'domain': 'sensor',
+            },
         ],
     },
 ]

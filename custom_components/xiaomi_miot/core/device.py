@@ -298,7 +298,7 @@ class Device(CustomConfigHelper):
             return
         for c in self.converters:
             if c.attr == conv.attr:
-                _LOGGER.warning(f'%s: Converter for %s already exists. Ignored.', self.name_model, c.attr)
+                _LOGGER.info(f'%s: Converter for %s already exists. Ignored.', self.name_model, c.attr)
                 return
         self.converters.append(conv)
 
@@ -329,7 +329,7 @@ class Device(CustomConfigHelper):
                             d = p.get('domain', None)
                             ac = c(attr, domain=d, prop=prop, desc=p.get('desc', False))
                             self.add_converter(ac)
-                            if conv:
+                            if conv and not d:
                                 conv.attrs.add(attr)
 
         for d in [

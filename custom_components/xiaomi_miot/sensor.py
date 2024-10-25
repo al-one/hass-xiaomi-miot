@@ -79,11 +79,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entities = []
     if isinstance(spec, MiotSpec):
         for srv in spec.get_services(
-            'switch_sensor', 'vibration_sensor', 'occupancy_sensor',
-            'gas_sensor', 'smoke_sensor', 'pressure_sensor',
-            'router', 'lock', 'door', 'washer', 'printer', 'sleep_monitor', 'bed', 'walking_pad', 'treadmill',
-            'pet_feeder', 'cat_toilet', 'fridge_chamber', 'plant_monitor', 'germicidal_lamp', 'vital_signs',
-            'sterilizer', 'steriliser', 'table', 'chair', 'dryer', 'clothes_dryer',
+            'switch_sensor',
+            'lock', 'door', 'bed', 'walking_pad', 'treadmill',
+            'fridge_chamber', 'germicidal_lamp', 'vital_signs',
+            'sterilizer', 'steriliser', 'chair', 'dryer', 'clothes_dryer',
         ):
             if srv.name in ['lock']:
                 if not srv.get_property('operation_method', 'operation_id'):
@@ -91,33 +90,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             elif srv.name in ['door']:
                 if spec.get_service('lock'):
                     continue
-            elif srv.name in ['battery']:
-                if spec.name not in ['switch_sensor', 'toothbrush']:
-                    continue
-            elif srv.name in ['environment']:
-                if spec.name not in ['air_monitor']:
-                    continue
-            elif srv.name in ['tds_sensor']:
-                if spec.get_service('water_purifier', 'fish_tank'):
-                    continue
-            elif srv.name in ['temperature_humidity_sensor']:
-                if spec.name not in ['temperature_humidity_sensor']:
-                    continue
-            elif srv.name in ['illumination_sensor']:
-                if spec.name not in ['illumination_sensor']:
-                    continue
-            elif srv.name in ['pet_feeder', 'table']:
-                # no readable properties in mmgg.feeder.petfeeder
-                # nineam.desk.hoo01
-                pass
             elif not srv.mapping():
                 continue
-            if srv.get_property('cook_mode') or srv.get_action('start_cook', 'cancel_cooking'):
-                entities.append(MiotCookerEntity(config, srv))
-            elif srv.name in ['oven', 'microwave_oven']:
-                entities.append(MiotCookerEntity(config, srv))
-            else:
-                entities.append(MiotSensorEntity(config, srv))
+            entities.append(MiotSensorEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=False)
@@ -174,22 +149,6 @@ class MiotSensorEntity(MiotEntity, BaseEntity):
         )
         if miot_service.name in ['lock']:
             self._prop_state = miot_service.get_property('operation_method') or self._prop_state
-        elif miot_service.name in ['tds_sensor']:
-            self._prop_state = miot_service.get_property('tds_out') or self._prop_state
-        elif miot_service.name in ['temperature_humidity_sensor']:
-            self._prop_state = miot_service.get_property(
-                'temperature', 'indoor_temperature', 'relative_humidity',
-            ) or self._prop_state
-        elif miot_service.name in ['sleep_monitor']:
-            self._prop_state = miot_service.get_property('sleep_state') or self._prop_state
-        elif miot_service.name in ['gas_sensor']:
-            self._prop_state = miot_service.get_property('gas_concentration') or self._prop_state
-        elif miot_service.name in ['smoke_sensor']:
-            self._prop_state = miot_service.get_property('smoke_concentration') or self._prop_state
-        elif miot_service.name in ['occupancy_sensor']:
-            self._prop_state = miot_service.get_property('occupancy_status') or self._prop_state
-        elif miot_service.name in ['pressure_sensor']:
-            self._prop_state = miot_service.get_property('pressure_present_duration') or self._prop_state
 
         self._attr_icon = self._miot_service.entity_icon
         self._attr_state_class = None
@@ -248,64 +207,6 @@ class MiotSensorEntity(MiotEntity, BaseEntity):
     async def async_update_for_main_entity(self):
         await super().async_update_for_main_entity()
 
-        if self._miot_service.name in ['washer']:
-            pls = self._miot_service.get_properties(
-                'mode', 'spin_speed', 'rinsh_times',
-                'target_temperature', 'target_water_level',
-                'drying_level', 'drying_time',
-            )
-            for p in pls:
-                if not p.value_list and not p.value_range:
-                    continue
-                if self.entry_config_version >= 0.3:
-                    opt = {
-                        'before_select': self.before_select_modes,
-                    }
-                    self._update_sub_entities(p, None, 'select', option=opt)
-                else:
-                    self._update_sub_entities(p, None, 'fan')
-            add_switches = self._add_entities.get('switch')
-            if self._miot_service.get_action('start_wash', 'pause'):
-                pnm = 'action'
-                prop = self._miot_service.get_property('status')
-                if pnm in self._subs:
-                    self._subs[pnm].update_from_parent()
-                elif add_switches and prop:
-                    from .switch import MiotWasherActionSubEntity
-                    self._subs[pnm] = MiotWasherActionSubEntity(self, prop)
-                    add_switches([self._subs[pnm]], update_before_add=True)
-
-        self._update_sub_entities(
-            [
-                'download_speed', 'upload_speed', 'connected_device_number', 'network_connection_type',
-                'ip_address', 'online_time', 'wifi_ssid', 'wifi_bandwidth',
-            ],
-            ['router', 'wifi', 'guest_wifi'],
-            domain='sensor',
-        )
-        self._update_sub_entities(
-            ['on'],
-            [self._miot_service.name, 'router', 'wifi', 'guest_wifi'],
-            domain='switch',
-        )
-        self._update_sub_entities(
-            [
-                'temperature', 'relative_humidity', 'humidity', 'pm2_5_density',
-                'battery_level', 'soil_ec', 'illumination', 'atmospheric_pressure',
-            ],
-            ['temperature_humidity_sensor', 'illumination_sensor', 'plant_monitor'],
-            domain='sensor',
-        )
-        self._update_sub_entities(
-            [
-                'mode_time', 'start_pause', 'leg_pillow', 'rl_control',
-                'heat_level', 'heat_time', 'heat_zone', 'intensity_mode', 'massage_strength',
-            ],
-            [
-                'bed', 'backrest_control', 'leg_rest_control', 'massage_mattress', 'fridge',
-            ],
-            domain='fan',
-        )
         self._update_sub_entities(
             ['motor_control', 'backrest_angle', 'leg_rest_angle'],
             ['bed', 'backrest_control', 'leg_rest_control'],
