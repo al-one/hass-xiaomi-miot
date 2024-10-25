@@ -21,7 +21,7 @@ from .const import (
 )
 from .hass_entry import HassEntry
 from .hass_entity import XEntity, convert_unique_id
-from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv, AttrSensorConv
+from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv, AttrConv
 from .coordinator import DataCoordinator
 from .miot_spec import MiotSpec, MiotService, MiotProperty, MiotResults, MiotResult
 from .miio2miot import Miio2MiotHelper
@@ -382,9 +382,9 @@ class Device(CustomConfigHelper):
                 for action in srv.get_actions(*als):
                     self.add_converter(MiotActionConv(action.full_name, d, action=action))
 
-        for d in ['sensor']:
+        for d in ['sensor', 'binary_sensor']:
             for attr in self.custom_config_list(f'{d}_attributes') or []:
-                self.add_converter(AttrSensorConv(attr))
+                self.add_converter(AttrConv(attr, d))
 
     async def init_coordinators(self, _):
         if self.miot_entity:

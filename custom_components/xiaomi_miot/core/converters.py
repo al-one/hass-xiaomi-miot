@@ -74,9 +74,8 @@ class InfoConv(BaseConv):
         })
 
 @dataclass
-class AttrSensorConv(BaseConv):
-    domain: str = 'sensor'
-
+class AttrConv(BaseConv):
+    pass
 
 @dataclass
 class MiotPropConv(BaseConv):
