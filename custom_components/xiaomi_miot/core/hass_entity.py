@@ -117,6 +117,9 @@ class XEntity(BasicEntity):
     def on_init(self):
         """Run on class init."""
 
+    async def async_update(self):
+        await self.device.update_status()
+
     def on_device_update(self, data: dict, only_info=False):
         state_change = False
         self._attr_available = True

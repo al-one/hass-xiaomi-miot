@@ -402,9 +402,17 @@ class Device(CustomConfigHelper):
             lst.append(
                 DataCoordinator(self, name='update_miio_cloud_records', update_interval=timedelta(seconds=interval*20)),
             )
+        if self.miio_cloud_props:
+            lst.append(
+                DataCoordinator(self, name='update_miio_cloud_props', update_interval=timedelta(seconds=interval*2)),
+            )
         for coo in lst:
             await coo.async_config_entry_first_refresh()
         self.coordinators.extend(lst)
+
+    async def update_status(self):
+        for coo in self.coordinators:
+            await coo.async_refresh()
 
     def add_entities(self, domain):
         for conv in self.converters:
@@ -502,7 +510,7 @@ class Device(CustomConfigHelper):
         method = data.get('method')
 
         if method == 'update_status':
-            result = await self.update_miot_status()
+            result = await self.update_status()
 
         if method == 'set_properties':
             params = data.get('params', [])
@@ -684,107 +692,6 @@ class Device(CustomConfigHelper):
         self.dispatch_info()
         return self.miot_results
 
-    @cached_property
-    def cloud_statistics_commands(self):
-        commands = self.custom_config_list('micloud_statistics') or []
-        if keys := self.custom_config_list('stat_power_cost_key'):
-            for k in keys:
-                commands.append({
-                    'type': self.custom_config('stat_power_cost_type', 'stat_day_v3'),
-                    'key': k,
-                    'day': 32,
-                    'limit': 31,
-                    'attribute': None,
-                    'template': 'micloud_statistics_power_cost',
-                })
-        return commands
-
-
-    async def update_cloud_statistics(self, commands=None):
-        if not self.did or not self.cloud:
-            return
-
-        if commands is None:
-            commands = self.cloud_statistics_commands
-
-        now = int(dt.now().timestamp())
-        attrs = {}
-        for c in commands:
-            if not c.get('key'):
-                continue
-            pms = {
-                'did': self.did,
-                'key': c.get('key'),
-                'data_type': c.get('type', 'stat_day_v3'),
-                'time_start': now - 86400 * (c.get('day') or 7),
-                'time_end': now + 60,
-                'limit': int(c.get('limit') or 1),
-            }
-            rdt = await self.cloud.async_request_api('v2/user/statistics', pms) or {}
-            self.log.debug('%s: Got micloud statistics: %s', self.name_model, rdt)
-            if tpl := c.get('template'):
-                tpl = template(tpl, self.hass)
-                rls = tpl.async_render(rdt)
-            else:
-                rls = [
-                    v.get('value')
-                    for v in rdt
-                    if 'value' in v
-                ]
-            if anm := c.get('attribute'):
-                attrs[anm] = rls
-            elif isinstance(rls, dict):
-                update_attrs_with_suffix(attrs, rls)
-        if attrs:
-            self.props.update(attrs)
-            self.data['updated'] = dt.now()
-            self.dispatch(self.decode_attrs(attrs))
-        return attrs
-
-    @cached_property
-    def miio_cloud_records(self):
-        return self.custom_config_list('miio_cloud_records') or []
-
-    async def update_miio_cloud_records(self, keys=None):
-        if not self.did or not self.cloud:
-            return
-
-        if keys is None:
-            keys = self.miio_cloud_records
-
-        attrs = {}
-        for c in keys:
-            mat = re.match(r'^\s*(?:(\w+)\.?)([\w.]+)(?::(\d+))?(?::(\w+))?\s*$', c)
-            if not mat:
-                continue
-            typ, key, lmt, gby = mat.groups()
-            kws = {
-                'time_start': int(dt.now().timestamp()) - 86400 * 32,
-                'limit': int(lmt or 1),
-            }
-            if gby:
-                kws['group'] = gby
-            rdt = await self.cloud.async_get_user_device_data(self.did, key, typ, **kws) or []
-            tpl = self.custom_config(f'miio_{typ}_{key}_template')
-            if tpl:
-                tpl = template(tpl, self.hass)
-                rls = tpl.async_render({'result': rdt})
-            else:
-                rls = [
-                    v.get('value')
-                    for v in rdt
-                    if 'value' in v
-                ]
-            if isinstance(rls, dict) and rls.pop('_entity_attrs', False):
-                attrs.update(rls)
-            else:
-                attrs[f'{typ}.{key}'] = rls
-        if attrs:
-            self.props.update(attrs)
-            self.data['updated'] = dt.now()
-            self.dispatch(self.decode_attrs(attrs))
-        return attrs
-
     async def async_get_properties(self, mapping, update_entity=True, throw=False, **kwargs):
         if not self.spec:
             return {'error': 'No spec'}
@@ -920,6 +827,143 @@ class Device(CustomConfigHelper):
         else:
             _LOGGER.info('%s: Call miot action %s failed: %s', self.name_model, pms, result)
         return result
+
+    @cached_property
+    def cloud_statistics_commands(self):
+        commands = self.custom_config_list('micloud_statistics') or []
+        if keys := self.custom_config_list('stat_power_cost_key'):
+            for k in keys:
+                commands.append({
+                    'type': self.custom_config('stat_power_cost_type', 'stat_day_v3'),
+                    'key': k,
+                    'day': 32,
+                    'limit': 31,
+                    'attribute': None,
+                    'template': 'micloud_statistics_power_cost',
+                })
+        return commands
+
+
+    async def update_cloud_statistics(self, commands=None):
+        if not self.did or not self.cloud:
+            return
+        if commands is None:
+            commands = self.cloud_statistics_commands
+
+        now = int(dt.now().timestamp())
+        attrs = {}
+        for c in commands:
+            if not c.get('key'):
+                continue
+            pms = {
+                'did': self.did,
+                'key': c.get('key'),
+                'data_type': c.get('type', 'stat_day_v3'),
+                'time_start': now - 86400 * (c.get('day') or 7),
+                'time_end': now + 60,
+                'limit': int(c.get('limit') or 1),
+            }
+            rdt = await self.cloud.async_request_api('v2/user/statistics', pms) or {}
+            self.log.debug('%s: Got micloud statistics: %s', self.name_model, rdt)
+            if tpl := c.get('template'):
+                tpl = template(tpl, self.hass)
+                rls = tpl.async_render(rdt)
+            else:
+                rls = [
+                    v.get('value')
+                    for v in rdt
+                    if 'value' in v
+                ]
+            if anm := c.get('attribute'):
+                attrs[anm] = rls
+            elif isinstance(rls, dict):
+                update_attrs_with_suffix(attrs, rls)
+        if attrs:
+            self.props.update(attrs)
+            self.data['updated'] = dt.now()
+            self.dispatch(self.decode_attrs(attrs))
+        return attrs
+
+    @cached_property
+    def miio_cloud_records(self):
+        return self.custom_config_list('miio_cloud_records') or []
+
+    async def update_miio_cloud_records(self, keys=None):
+        if not self.did or not self.cloud:
+            return
+        if keys is None:
+            keys = self.miio_cloud_records
+        if not keys:
+            return
+
+        attrs = {}
+        for c in keys:
+            mat = re.match(r'^\s*(?:(\w+)\.?)([\w.]+)(?::(\d+))?(?::(\w+))?\s*$', c)
+            if not mat:
+                continue
+            typ, key, lmt, gby = mat.groups()
+            kws = {
+                'time_start': int(dt.now().timestamp()) - 86400 * 32,
+                'limit': int(lmt or 1),
+            }
+            if gby:
+                kws['group'] = gby
+            rdt = await self.cloud.async_get_user_device_data(self.did, key, typ, **kws) or []
+            tpl = self.custom_config(f'miio_{typ}_{key}_template')
+            if tpl:
+                tpl = template(tpl, self.hass)
+                rls = tpl.async_render({'result': rdt})
+            else:
+                rls = [
+                    v.get('value')
+                    for v in rdt
+                    if 'value' in v
+                ]
+            if isinstance(rls, dict) and rls.pop('_entity_attrs', False):
+                attrs.update(rls)
+            else:
+                attrs[f'{typ}.{key}'] = rls
+        if attrs:
+            self.props.update(attrs)
+            self.data['updated'] = dt.now()
+            self.dispatch(self.decode_attrs(attrs))
+        return attrs
+
+    @cached_property
+    def miio_cloud_props(self):
+        return self.custom_config_list('miio_cloud_props') or []
+
+    async def update_miio_cloud_props(self, keys=None):
+        did = str(self.did)
+        if not did or not self.cloud:
+            return
+        if keys is None:
+            keys = self.miio_cloud_props
+        if not keys:
+            return
+
+        pms = {
+            'did': did,
+            'props': [
+                k if '.' in k else f'prop.{k}'
+                for k in keys
+            ],
+        }
+        rdt = await self.cloud.async_request_api('device/batchdevicedatas', [pms]) or {}
+        self.log.debug('%s: Got miio cloud props: %s', self.name_model, rdt)
+        props = (rdt.get('result') or {}).get(did, {})
+
+        tpl = self.custom_config('miio_cloud_props_template')
+        if tpl and props:
+            tpl = template(tpl, self.hass)
+            attrs = tpl.async_render({'props': props})
+        else:
+            attrs = props
+        if attrs:
+            self.props.update(attrs)
+            self.data['updated'] = dt.now()
+            self.dispatch(self.decode_attrs(attrs))
+        return attrs
 
 
 class MiotDevice(MiotDeviceBase):

@@ -1249,15 +1249,15 @@ class MiotEntity(MiioEntity):
             )
 
         # update miio prop/event in cloud
-        if cls := self.custom_config_list('miio_cloud_records'):
-            await self.async_update_miio_cloud_records(cls)
+        if attrs := await self.device.update_miio_cloud_records():
+            await self.async_update_attrs(attrs)
 
-        if pls := self.custom_config_list('miio_cloud_props'):
-            await self.async_update_miio_cloud_props(pls)
+        if attrs := await self.device.update_miio_cloud_props():
+            await self.async_update_attrs(attrs)
 
         # update micloud statistics in cloud
-        if cls := self.device.cloud_statistics_commands:
-            await self.async_update_micloud_statistics(cls)
+        if attrs := await self.device.update_cloud_statistics():
+            await self.async_update_attrs(attrs)
 
         # update miio properties in lan
         if pls := self._vars.get('miio_properties', []):
@@ -1318,77 +1318,6 @@ class MiotEntity(MiioEntity):
             else:
                 attrs = dict(zip(props, attrs))
             self.logger.debug('%s: Got miio properties: %s', self.name_model, attrs)
-            await self.async_update_attrs(attrs)
-
-    async def async_update_miio_cloud_props(self, keys):
-        did = str(self.miot_did)
-        mic = self.xiaomi_cloud
-        if not did or not mic:
-            return
-        kls = []
-        for k in keys:
-            if '.' not in k:
-                k = f'prop.{k}'
-            kls.append(k)
-        pms = {
-            'did': did,
-            'props': kls,
-        }
-        rdt = await mic.async_request_api('device/batchdevicedatas', [pms]) or {}
-        self.logger.debug('%s: Got miio cloud props: %s', self.name_model, rdt)
-        props = (rdt.get('result') or {}).get(did, {})
-
-        tpl = self.custom_config('miio_cloud_props_template')
-        if tpl and props:
-            tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
-            tpl = cv.template(tpl)
-            tpl.hass = self.hass
-            attrs = tpl.async_render({'props': props})
-        else:
-            attrs = props
-        await self.async_update_attrs(attrs)
-
-    async def async_update_miio_cloud_records(self, keys):
-        did = self.miot_did
-        mic = self.xiaomi_cloud
-        if not did or not mic:
-            return
-        attrs = {}
-        for c in keys:
-            mat = re.match(r'^\s*(?:(\w+)\.?)([\w.]+)(?::(\d+))?(?::(\w+))?\s*$', c)
-            if not mat:
-                continue
-            typ, key, lmt, gby = mat.groups()
-            stm = int(time.time()) - 86400 * 32
-            kws = {
-                'time_start': stm,
-                'limit': int(lmt or 1),
-            }
-            if gby:
-                kws['group'] = gby
-            rdt = await mic.async_get_user_device_data(did, key, typ, **kws) or []
-            tpl = self.custom_config(f'miio_{typ}_{key}_template')
-            if tpl:
-                tpl = CUSTOM_TEMPLATES.get(tpl, tpl)
-                tpl = cv.template(tpl)
-                tpl.hass = self.hass
-                rls = tpl.async_render({'result': rdt})
-            else:
-                rls = [
-                    v.get('value')
-                    for v in rdt
-                    if 'value' in v
-                ]
-            if isinstance(rls, dict) and rls.pop('_entity_attrs', False):
-                attrs.update(rls)
-            else:
-                attrs[f'{typ}.{key}'] = rls
-        if attrs:
-            await self.async_update_attrs(attrs)
-
-    async def async_update_micloud_statistics(self, lst):
-        attrs = await self.device.update_cloud_statistics(lst)
-        if attrs:
             await self.async_update_attrs(attrs)
 
     def set_property(self, field, value):
