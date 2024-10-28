@@ -122,9 +122,11 @@ class XEntity(BasicEntity):
 
     def on_device_update(self, data: dict, only_info=False):
         state_change = False
-        self._attr_available = True
+        self._attr_available = self.device.available
 
         if isinstance(self.conv, InfoConv):
+            self._attr_available = True
+            self._attr_icon = data.get('icon', self._attr_icon)
             self._attr_extra_state_attributes.update(data)
         elif only_info:
             return

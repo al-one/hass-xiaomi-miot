@@ -1,10 +1,9 @@
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_USERNAME
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud
 
 if TYPE_CHECKING:

@@ -144,6 +144,7 @@ class Device(CustomConfigHelper):
     cloud: Optional['MiotCloud'] = None
     local: Optional['MiotDevice'] = None
     miio2miot: Optional['Miio2MiotHelper'] = None
+    available = True
     miot_entity = None
     miot_results = None
     _local_state = None
@@ -649,6 +650,7 @@ class Device(CustomConfigHelper):
                             mapping=mapp,
                         )
                         results.extend(res)
+                self.available = True
                 self._local_state = True
                 self.miot_results.updater = 'local'
                 self.miot_results.set_results(results, mapping)
@@ -659,6 +661,7 @@ class Device(CustomConfigHelper):
                     log = _LOGGER.warning if self._local_state else _LOGGER.info
                 else:
                     self.miot_results.errors = exc
+                    self.available = False
                 self._local_state = False
                 log(
                     '%s: Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',
@@ -667,12 +670,14 @@ class Device(CustomConfigHelper):
 
         if use_cloud:
             try:
+                self.miot_results.updater = 'cloud'
                 results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
                 if check_lan and self.local:
                     await self.hass.async_add_executor_job(partial(self.local.info, skip_cache=True))
-                self.miot_results.updater = 'cloud'
+                self.available = True
                 self.miot_results.set_results(results, mapping)
             except MiCloudException as exc:
+                self.available = False
                 self.miot_results.errors = exc
                 _LOGGER.error(
                     '%s: Got MiCloudException while fetching the state: %s, mapping: %s',
@@ -879,6 +884,7 @@ class Device(CustomConfigHelper):
             elif isinstance(rls, dict):
                 update_attrs_with_suffix(attrs, rls)
         if attrs:
+            self.available = True
             self.props.update(attrs)
             self.data['updated'] = dt.now()
             self.dispatch(self.decode_attrs(attrs))
@@ -924,6 +930,7 @@ class Device(CustomConfigHelper):
             else:
                 attrs[f'{typ}.{key}'] = rls
         if attrs:
+            self.available = True
             self.props.update(attrs)
             self.data['updated'] = dt.now()
             self.dispatch(self.decode_attrs(attrs))
@@ -960,6 +967,7 @@ class Device(CustomConfigHelper):
         else:
             attrs = props
         if attrs:
+            self.available = True
             self.props.update(attrs)
             self.data['updated'] = dt.now()
             self.dispatch(self.decode_attrs(attrs))

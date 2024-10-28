@@ -53,6 +53,8 @@ class InfoConv(BaseConv):
             'mac': device.info.mac,
             'lan_ip': device.info.host,
             'app_link': device.app_link,
+            'available': device.available,
+            'icon': self.option.get('icon') if device.available else 'mdi:information-off',
             'updater': updater or 'none',
             'updated_at': str(device.data.get('updated', '')),
         }
