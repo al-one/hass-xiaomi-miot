@@ -480,6 +480,12 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,auto_flush,foot_sensing,moistening_wall,auto_clamshell',
         'select_properties': 'target_temperature,washing_strength,nozzle_position,sensing_distance',
     },
+    'deerma.humidifier.jsq2w': {
+        'exclude_miot_services': None,
+    },
+    'deerma.humidifier.jsq3': {
+        'exclude_miot_services': 'custom',
+    },
     'deerma.humidifier.jsq4': {
         'exclude_miot_services': None,
     },
@@ -489,8 +495,9 @@ DEVICE_CUSTOMIZES = {
     },
     'deerma.humidifier.*': {
         'chunk_properties': 6,
-        'exclude_miot_services': 'custom',
+        'exclude_miot_properties': 'humi_sensor_fault,temp_sensor_fault,overwet_protect,overtop_humidity',
         'binary_sensor_properties': 'water_shortage_fault,the_tank_filed',
+        'sensor_properties': 'fault',
         'switch_properties': 'alarm',
     },
     'degree.lunar.smh013': {
