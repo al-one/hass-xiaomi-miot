@@ -1507,6 +1507,34 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'duration',
         'unit_of_measurement': 'min',
     },
+    'xiaomi.vacuum.c107': {
+        'exclude_miot_services': 'vacuum_map,custom,ai_small_pictures,voice_management',
+        'exclude_miot_properties': 'vacuum_frameware_version,restricted_sweep_areas,restricted_walls,room_information,'
+                                   'order_clean,map_complete_dialog,current_cleaning_config,user_define_sweep_cfg,'
+                                   'water_check_list,sweep_ai_object,sweep_furniture,carpet_object,vacuum_route,'
+                                   'fault_ids,plugin_info_remind,enable_time_period,current_no_disturb,'
+                                   'current_physical_control_lock,current_no_disturb',
+        'binary_sensor_properties': 'mop_status',
+        'sensor_properties': 'status,cleaning_area,cleaning_time,water_check_status,battery_level,charging_state,'
+                             'mop_life_level,brush_life_level,filter_life_level,detergent_left_level,'
+                             'dust_bag_life_level',
+        'switch_properties': 'enable_mop_wash,sweep_break_switch,auto_dust_arrest,ai_cleaning,hot_water_mop_wash,'
+                             'auto_mop_dry,auto_water_change,use_detergent,mop_auto_lift,'
+                             'sweep_ai_detection,dirt_detection,object_detection,room_detection,solid_dirt_detection,'
+                             'floor_material_detection,liquid_dirt_detection,defecation_detection,'
+                             'edge_swing_tail_sweep,detergent_self_delivery,cut_hair_config,ai_managed_cleaning,'
+                             'carpet_boost,carpet_avoidance,carpet_deep_cleaning,carpet_discriminate',
+        'select_properties': 'mode,sweep_mop_type,sweep_type,clean_times,mop_water_output_level,drying_time,alarm'
+                             'water_output_for_washing_mop,dust_arrest_frequency,edge_sweep_frequency,sweep_route,'
+                             'carpet_cleaning_method,obstacle_avoidance_strategy,detergent_self_delivery_level',
+        'number_properties': 'volume',
+        'button_actions': 'start_sweep,start_only_sweep,start_mop,start_sweep_mop,start_custom_sweep,start_dry,'
+                          'pause_sweeping,continue_sweep,stop_and_gocharge,start_charge,start_mop_wash,start_cut_hair,'
+                          'enter_remote,exit_remote,stop_mop_wash,back_mop_wash,stop_dry,stop_cut_hair,identify,'
+                          'reset_mop_life,reset_brush_life,reset_filter_life,reset_detergent_management_level,'
+                          'reset_dust_bag_life',
+        'select_actions': 'remote_control',
+    },
     'xiaomi.watch.*': {
         'sensor_properties': 'current_step_count,current_distance',
     },
