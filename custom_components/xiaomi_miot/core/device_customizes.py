@@ -1401,6 +1401,16 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'iot_linkage,machine_state,flag_bit',
         'exclude_miot_properties': 'enhance.timer',
     },
+    'xiaomi.airp.cpa4': {
+        'button_actions': 'toggle,reset_filter_life',
+        'sensor_properties': 'filter_life_level',
+        'switch_properties': 'alarm',
+        'select_properties': 'brightness,aqi_updata_heartbeat',
+        'number_properties': 'favorite_level',
+        'speed_property': 'favorite_level',
+        'exclude_miot_services': None,
+        'exclude_miot_properties': 'country_code,filter_used_time_dbg',
+    },
     'xiaomi.airp.mp4': {
         'switch_properties': 'anion,alarm',
         'light_services': 'screen',
