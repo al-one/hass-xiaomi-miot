@@ -27,7 +27,6 @@ from homeassistant.const import (
     STATE_UNKNOWN,
     SERVICE_RELOAD,
 )
-from homeassistant.config import DATA_CUSTOMIZE
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity import (
     Entity,
