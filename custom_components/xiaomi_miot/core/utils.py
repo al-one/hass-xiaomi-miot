@@ -5,13 +5,12 @@ import locale
 import tzlocal
 import voluptuous as vol
 from homeassistant.core import HomeAssistant
-from homeassistant.config import DATA_CUSTOMIZE
 from homeassistant.helpers.entity import Entity
 from homeassistant.util.dt import DEFAULT_TIME_ZONE, get_time_zone
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 
-from .const import DOMAIN, DEVICE_CUSTOMIZES
+from .const import DOMAIN, DEVICE_CUSTOMIZES, DATA_CUSTOMIZE
 from .translation_languages import TRANSLATION_LANGUAGES
 
 
