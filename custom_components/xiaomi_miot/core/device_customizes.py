@@ -840,11 +840,12 @@ DEVICE_CUSTOMIZES = {
     'lumi.acpartner.mcn04': {
         'auto_cloud': True,
         'chunk_properties': 7,
+        'main_miot_services': 'air_conditioner',
         'switch_properties': 'quick_cool_enable,indicator_light',
         'select_properties': 'ac_mode',
         'miio_cloud_props': [],
         'stat_power_cost_type': 'stat_day_v3',
-        'stat_power_cost_key': ['7.1', '7.3'],
+        'stat_power_cost_key': '7.1,7.3',
         'sensor_attributes': 'power_cost_today,power_cost_month,power_cost_today_2,power_cost_month_2'
     },
     'lumi.acpartner.mcn04:power_consumption': ENERGY_KWH,
