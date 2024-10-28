@@ -76,3 +76,9 @@ except (ModuleNotFoundError, ImportError):
         RECORDING = 'recording'
         STREAMING = 'streaming'
         IDLE = 'idle'
+
+try:
+    # hass 2024.11
+    from homeassistant.core_config import DATA_CUSTOMIZE
+except (ModuleNotFoundError, ImportError):
+    from homeassistant.helpers.entity import DATA_CUSTOMIZE

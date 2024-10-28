@@ -27,7 +27,6 @@ from homeassistant.const import (
     STATE_UNKNOWN,
     SERVICE_RELOAD,
 )
-from homeassistant.config import DATA_CUSTOMIZE
 from homeassistant.helpers.entity import ToggleEntity, EntityCategory
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components import persistent_notification
