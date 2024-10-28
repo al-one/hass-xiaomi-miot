@@ -1587,7 +1587,17 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'viomi.waterheater.e1': {
-        'chunk_properties': 1,
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [
+                    'washStatus', 'velocity', 'waterTemp', 'targetTemp', 'errStatus',
+                    'hotWater', 'needClean', 'modeType', 'appointStart', 'appointEnd',
+                ],
+                'values': True,
+            },
+        ],
         'miio_specs': {
             'prop.2.1': {'prop': 'targetTemp', 'setter': 'set_temp', 'set_template': '{{ [value|int] }}'},
             'prop.2.2': {'prop': 'waterTemp'},
