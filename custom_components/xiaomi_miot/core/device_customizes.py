@@ -230,6 +230,15 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'pause,cancel_cooking',
         'select_actions': 'start_cook',
     },
+    'chunmi.health_pot.a1': {
+        'select_actions': 'start_cook',
+    },
+    'chunmi.health_pot.cmpa1': {
+        'select_actions': 'start_cook',
+    },
+    'chunmi.health_pot.zwza1': {
+        'select_actions': 'start_cook',
+    },
     'chunmi.microwave.n23l01': {
         'button_actions': 'pause',
     },
@@ -1503,6 +1512,9 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'pet_food_left_level,fault,desiccant_left_level,desiccant_left_time',
         'switch_properties': 'compensate_switch,prevent_accumulation',
     },
+    'xiaomi.health_pot.p1': {
+        'select_actions': 'start_cook',
+    },
     'xiaomi.heater.ma8': {
         'button_actions': 'toggle',
     },
@@ -2003,6 +2015,9 @@ DEVICE_CUSTOMIZES = {
     '*.fridge.*': {
         'switch_properties': 'on',
         'number_properties': 'target_temperature',
+    },
+    '*.health_pot.*': {
+        'button_actions': 'cancel_cooking',
     },
     '*.heater.*': {
         'switch_properties': 'heater.on,horizontal_swing,alarm.alarm,delay.delay',
