@@ -301,9 +301,9 @@ class MiotCloud(micloud.MiCloud):
         return None
 
     async def get_all_devices(self, homes=None):
-        dvs = await self.get_device_list() or []
+        dvs = []
         if not isinstance(homes, list):
-            return dvs
+            return await self.get_device_list() or []
         for home in homes:
             hid = int(home.get('id', 0))
             uid = int(home.get('uid', 0))
@@ -325,7 +325,7 @@ class MiotCloud(micloud.MiCloud):
                 rdt = rdt.get('result') or {}
                 dvs.extend(rdt.get('device_info') or {})
                 start_did = rdt.get('max_did') or ''
-                has_more = rdt.get('has_more')
+                has_more = rdt.get('has_more') and start_did
         return dvs
 
     async def get_home_devices(self):
