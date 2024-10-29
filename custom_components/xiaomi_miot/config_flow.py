@@ -688,6 +688,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             cfg = self.cloud.to_config() or {}
             cfg.update({
                 CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
+                'filter_models': prev_input.get('filter_models'),
                 'disable_message': prev_input.get('disable_message'),
                 'disable_scene_history': prev_input.get('disable_scene_history'),
                 **user_input,
