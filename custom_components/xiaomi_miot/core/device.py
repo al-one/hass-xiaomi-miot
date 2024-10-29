@@ -334,7 +334,7 @@ class Device(CustomConfigHelper):
                                 conv.attrs.add(attr)
 
         for d in [
-            'button', 'sensor', 'binary_sensor', 'switch', 'number', 'select',
+            'button', 'sensor', 'binary_sensor', 'switch', 'number', 'select', 'text',
             'number_select', 'scanner',
         ]:
             pls = self.custom_config_list(f'{d}_properties') or []
