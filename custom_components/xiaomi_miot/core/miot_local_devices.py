@@ -506,6 +506,7 @@ MIOT_LOCAL_MODELS = [
     'opple.bhf_light.mkc3',
     'opple.light.ceiling',
     'opple.light.dcfan',
+    'opple.light.dcfan2',
     'opple.light.moat',
     'opple.light.tabcol',
     'opple.light.tabcw',
