@@ -1123,6 +1123,14 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'function_countdown.warm,function_countdown.blower,'
                              'function_countdown.breath,function_countdown,shutdown',
     },
+    'opple.light.dcfan2': {
+        'sensor_properties': 'temperature',
+        'switch_properties': 'cycle_switch,mode_switch,switch,intelligent_speed,circle_air,bwind_rotate,'
+                             'fan_countdown_switch',
+        'select_properties': 'nursing_value,fan_level,buzzer_status',
+        'number_properties': 'temp_set,fan_countdown_time',
+        'percentage_property': 'fan_advance.speed',
+    },
     'opple.light.yrtd': {
         'switch_properties': 'night_light,time_display,wake_up_at_night,voice',
         'select_properties': 'study_time',
