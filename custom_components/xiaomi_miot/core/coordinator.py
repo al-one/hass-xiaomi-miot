@@ -9,14 +9,25 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 class DataCoordinator(DataUpdateCoordinator):
-    def __init__(self, device: 'Device', name, **kwargs):
+    def __init__(self, device: 'Device', update_method, **kwargs):
         kwargs.setdefault('always_update', True)
-        super().__init__(device.hass, _LOGGER, name=f'{device.unique_id}-{name}', **kwargs)
 
+        if callable(update_method):
+            name = update_method.__name__
+        elif isinstance(update_method, str):
+            name = update_method
+            update_method = getattr(device, name, None)
+        else:
+            raise ValueError('Invalid update method')
+        name = kwargs.pop('name', name)
+
+        super().__init__(
+            device.hass, _LOGGER,
+            name=f'{device.unique_id}-{name}',
+            update_method=update_method,
+            **kwargs,
+        )
         self.device = device
-        method = getattr(device, name, None)
-        if not self.update_method and method:
-            self.update_method = method
 
     async def _async_setup(self):
         """Set up coordinator."""

@@ -393,19 +393,19 @@ class Device(CustomConfigHelper):
 
         interval = self.custom_config_integer('interval_seconds') or 30
         lst = [
-            DataCoordinator(self, name='update_miot_status', update_interval=timedelta(seconds=interval)),
+            DataCoordinator(self, self.update_miot_status, update_interval=timedelta(seconds=interval)),
         ]
         if self.cloud_statistics_commands:
             lst.append(
-                DataCoordinator(self, name='update_cloud_statistics', update_interval=timedelta(seconds=interval*20)),
+                DataCoordinator(self, self.update_cloud_statistics, update_interval=timedelta(seconds=interval*20)),
             )
         if self.miio_cloud_records:
             lst.append(
-                DataCoordinator(self, name='update_miio_cloud_records', update_interval=timedelta(seconds=interval*20)),
+                DataCoordinator(self, self.update_miio_cloud_records, update_interval=timedelta(seconds=interval*20)),
             )
         if self.miio_cloud_props:
             lst.append(
-                DataCoordinator(self, name='update_miio_cloud_props', update_interval=timedelta(seconds=interval*2)),
+                DataCoordinator(self, self.update_miio_cloud_props, update_interval=timedelta(seconds=interval*2)),
             )
         for coo in lst:
             await coo.async_config_entry_first_refresh()
