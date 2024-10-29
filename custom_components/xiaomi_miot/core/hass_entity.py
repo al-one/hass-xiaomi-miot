@@ -2,7 +2,7 @@ import logging
 from typing import TYPE_CHECKING, Optional, Callable
 from functools import cached_property
 
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraData
 
 from .const import DOMAIN
@@ -99,7 +99,10 @@ class XEntity(BasicEntity):
 
         self._attr_icon = conv.option.get('icon')
         self._attr_device_class = self.custom_config('device_class') or conv.option.get('device_class')
-        self._attr_entity_category = self.custom_config('entity_category') or conv.option.get('entity_category')
+
+        cate = self.custom_config('entity_category') or conv.option.get('entity_category')
+        if isinstance(cate, str):
+            self._attr_entity_category = EntityCategory(cate) if cate in EntityCategory else None
 
         self.on_init()
         self.device.add_listener(self.on_device_update)

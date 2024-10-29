@@ -2201,6 +2201,15 @@ GLOBAL_CONVERTERS = [
         'kwargs': {'main_props': ['smoke_concentration', 'status'], 'desc': True},
     },
     {
+        'class': MiotLightConv,
+        'services': ['night_light', 'ambient_light', 'plant_light'],
+    },
+    {
+        'class': MiotLightConv,
+        'services': ['indicator_light'],
+        'kwargs': {'option': {'entity_category': 'config'}},
+    },
+    {
         'services': ['tds_sensor'],
         'converters' : [
             {'names': ['tds_in', 'tds_out'], 'domain': 'sensor'},

@@ -4,7 +4,7 @@ from functools import partial
 
 from homeassistant.components.light import (
     DOMAIN as ENTITY_DOMAIN,
-    LightEntity,
+    LightEntity as BaseEntity,
     LightEntityFeature,  # v2022.5
     ColorMode,
     ATTR_BRIGHTNESS,
@@ -13,6 +13,7 @@ from homeassistant.components.light import (
     ATTR_EFFECT,
     ATTR_TRANSITION,
 )
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import color
 
 from . import (
@@ -20,6 +21,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
+    XEntity,
     MiotToggleEntity,
     MiirToggleEntity,
     ToggleSubEntity,
@@ -71,7 +73,26 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotLightEntity(MiotToggleEntity, LightEntity):
+class SwitchEntity(XEntity, BaseEntity, RestoreEntity):
+    def get_state(self) -> dict:
+        return {self.attr: self._attr_is_on}
+
+    def set_state(self, data: dict):
+        val = data.get(self.attr)
+        if val is not None:
+            val = bool(val)
+        self._attr_is_on = val
+
+    async def async_turn_on(self):
+        await self.device.async_write({self.attr: True})
+
+    async def async_turn_off(self):
+        await self.device.async_write({self.attr: False})
+
+XEntity.CLS[ENTITY_DOMAIN] = SwitchEntity
+
+
+class MiotLightEntity(MiotToggleEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService, **kwargs):
         kwargs.setdefault('logger', _LOGGER)
         super().__init__(miot_service, config=config, **kwargs)
@@ -316,7 +337,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         return None
 
 
-class MiirLightEntity(MiirToggleEntity, LightEntity):
+class MiirLightEntity(MiirToggleEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 
@@ -396,29 +417,3 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
 
     def set_property(self, field, value):
         return self.set_parent_property(value, field)
-
-
-class LightSubEntity(ToggleSubEntity, LightEntity):
-    _brightness = None
-    _color_temp = None
-
-    def update(self, data=None):
-        super().update(data)
-        if self._available:
-            attrs = self._state_attrs
-            self._brightness = attrs.get('brightness', 0)
-            self._color_temp = attrs.get('color_temp', 0)
-
-    def turn_on(self, **kwargs):
-        self.call_parent(['turn_on_light', 'turn_on'], **kwargs)
-
-    def turn_off(self, **kwargs):
-        self.call_parent(['turn_off_light', 'turn_off'], **kwargs)
-
-    @property
-    def brightness(self):
-        return self._brightness
-
-    @property
-    def color_temp(self):
-        return self._color_temp

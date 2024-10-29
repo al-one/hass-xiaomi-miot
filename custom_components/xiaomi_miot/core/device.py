@@ -428,6 +428,7 @@ class Device(CustomConfigHelper):
                 cls = XEntity.CLS.get(entity_type) or cls
             adder = self.entry.adders.get(domain)
             if not (cls and adder):
+                self.log.warning('%s: Entity class/adder not found: %s', self.name_model, [domain, conv.attr, cls, adder])
                 continue
             entity = cls(self, conv)
             self.add_entity(entity)

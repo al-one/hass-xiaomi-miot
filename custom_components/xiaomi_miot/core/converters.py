@@ -65,8 +65,9 @@ class InfoConv(BaseConv):
             'customizes': device.customizes,
             **infos,
         })
-        if device.miot_results:
+        if device.available:
             payload.pop('miot_error', None)
+        if device.miot_results:
             if err := device.miot_results.errors:
                 payload['miot_error'] = str(err)
 
@@ -163,5 +164,9 @@ class MiotSwitchConv(MiotServiceConv):
 
     def __post_init__(self):
         if not self.main_props:
-            self.main_props = ['on']
+            self.main_props = ['on', 'switch']
         super().__post_init__()
+
+@dataclass
+class MiotLightConv(MiotSwitchConv):
+    domain: str = 'light'

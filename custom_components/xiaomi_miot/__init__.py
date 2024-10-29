@@ -1236,14 +1236,6 @@ class MiotEntity(MiioEntity):
                 pls = self.custom_config_list(f'{d}_services') or []
                 if pls:
                     self._update_sub_entities(None, pls, domain=d)
-            self._update_sub_entities(
-                None,
-                ['indicator_light', 'night_light', 'ambient_light', 'plant_light'],
-                domain='light',
-                option={
-                    'entity_category': EntityCategory.CONFIG.value,
-                },
-            )
 
         # update miio prop/event in cloud
         if attrs := await self.device.update_miio_cloud_records():
