@@ -95,9 +95,7 @@ class XEntity(BasicEntity):
         self.listen_attrs = {self.attr} | set(conv.attrs)
         self._attr_unique_id = f'{device.unique_id}-{convert_unique_id(conv)}'
         self._attr_device_info = self.device.hass_device_info
-        self._attr_extra_state_attributes = {
-            'converter': f'{conv}'.replace('custom_components.xiaomi_miot.core.miot_spec.', ''), # TODO
-        }
+        self._attr_extra_state_attributes = {}
 
         self._attr_icon = conv.option.get('icon')
         self._attr_device_class = self.custom_config('device_class') or conv.option.get('device_class')
