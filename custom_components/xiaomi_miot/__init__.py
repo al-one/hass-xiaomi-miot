@@ -1553,7 +1553,7 @@ class MiotEntity(MiioEntity):
         if self._miot_service:
             for d in [
                 'sensor', 'binary_sensor', 'switch', 'number', 'select',
-                'fan', 'cover', 'button', 'scanner', 'number_select',
+                'fan', 'cover', 'button', 'text', 'scanner', 'number_select',
             ]:
                 pls = self.custom_config_list(f'{d}_properties') or []
                 if pls:
@@ -2147,6 +2147,10 @@ class MiotEntity(MiioEntity):
                     from .select import MiotSelectSubEntity
                     self._subs[fnm] = MiotSelectSubEntity(self, p, option=opt)
                     add_selects([self._subs[fnm]], update_before_add=True)
+                elif add_texts and domain == 'text' and p.writeable:
+                    from .text import MiotTextSubEntity
+                    self._subs[fnm] = MiotTextSubEntity(self, p, option=opt)
+                    add_texts([self._subs[fnm]], update_before_add=True)
                 elif add_device_trackers and domain == 'scanner' and (p.is_bool or p.is_integer):
                     from .device_tracker import MiotScannerSubEntity
                     self._subs[fnm] = MiotScannerSubEntity(self, p, option=opt)
