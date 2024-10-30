@@ -325,9 +325,9 @@ class Device(CustomConfigHelper):
                             conv = None
 
                     for p in cfg.get('converters') or []:
-                        if not (names := p.get('names')):
+                        if not (props := p.get('props')):
                             continue
-                        for prop in service.get_properties(*names, excludes=self._exclude_miot_properties):
+                        for prop in service.get_properties(*props, excludes=self._exclude_miot_properties):
                             attr = p.get('attr', prop.full_name)
                             c = p.get('class', MiotPropConv)
                             d = p.get('domain', None)

@@ -2153,7 +2153,7 @@ GLOBAL_CONVERTERS = [
         ],
         'kwargs': {'main_props': ['status'], 'desc': True},
         'converters' : [
-            {'names': ['fault'], 'desc': True},
+            {'props': ['fault'], 'desc': True},
         ],
     },
     {
@@ -2181,8 +2181,8 @@ GLOBAL_CONVERTERS = [
         'services': ['plant_monitor'],
         'kwargs': {'main_props': ['status'], 'desc': True},
         'converters' : [
-            {'names': ['fault'], 'desc': True},
-            {'names': ['soil_ec', 'illumination'], 'domain': 'sensor'},
+            {'props': ['fault'], 'desc': True},
+            {'props': ['soil_ec', 'illumination'], 'domain': 'sensor'},
         ],
     },
     {
@@ -2226,7 +2226,7 @@ GLOBAL_CONVERTERS = [
         'services': ['physical_control_locked', 'physical_controls_locked'],
         'converters' : [
             {
-                'names': ['physical_control_locked', 'physical_controls_locked'],
+                'props': ['physical_control_locked', 'physical_controls_locked'],
                 'domain': 'switch',
                 'option': {'entity_category': 'config'},
             },
@@ -2235,14 +2235,14 @@ GLOBAL_CONVERTERS = [
     {
         'services': ['tds_sensor'],
         'converters' : [
-            {'names': ['tds_in', 'tds_out'], 'domain': 'sensor'},
+            {'props': ['tds_in', 'tds_out'], 'domain': 'sensor'},
         ],
     },
     {
         'services': ['filter', 'filter_life'],
         'converters' : [
             {
-                'names': [
+                'props': [
                     'filter_life', 'filter_life_level',
                     'filter_left_time', 'filter_used_time',
                     'filter_left_flow', 'filter_used_flow',
@@ -2254,14 +2254,14 @@ GLOBAL_CONVERTERS = [
     {
         'services': ['brush_cleaner'],
         'converters' : [
-            {'names': ['brush_life_level', 'brush_left_time'], 'domain': 'sensor'},
+            {'props': ['brush_life_level', 'brush_left_time'], 'domain': 'sensor'},
         ],
     },
     {
         'services': ['environment', 'temperature_humidity_sensor'],
         'converters' : [
             {
-                'names': [
+                'props': [
                     'temperature', 'indoor_temperature', 'relative_humidity', 'humidity',
                     'pm2_5_density', 'pm10_density', 'co2_density', 'tvoc_density', 'hcho_density',
                     'air_quality', 'air_quality_index', 'illumination', 'atmospheric_pressure',
@@ -2273,14 +2273,14 @@ GLOBAL_CONVERTERS = [
     {
         'services': ['illumination_sensor'],
         'converters' : [
-            {'names': ['illumination'], 'domain': 'sensor'},
+            {'props': ['illumination'], 'domain': 'sensor'},
         ],
     },
     {
         'services': ['battery', 'power_consumption', 'electricity'],
         'converters' : [
             {
-                'names': [
+                'props': [
                     'battery_level', 'electric_power', 'electric_current',
                     'voltage', 'leakage_current', 'surge_power',
                 ],
@@ -2291,9 +2291,9 @@ GLOBAL_CONVERTERS = [
     {
         'services': ['router', 'wifi', 'guest_wifi'],
         'converters' : [
-            {'names': ['on'], 'domain': 'switch'},
+            {'props': ['on'], 'domain': 'switch'},
             {
-                'names': [
+                'props': [
                     'download_speed', 'upload_speed', 'connected_device_number', 'network_connection_type',
                     'ip_address', 'online_time', 'wifi_ssid', 'wifi_bandwidth',
                 ],
