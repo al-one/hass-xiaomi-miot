@@ -73,7 +73,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class SwitchEntity(XEntity, BaseEntity, RestoreEntity):
+class LightEntity(XEntity, BaseEntity, RestoreEntity):
     def get_state(self) -> dict:
         return {self.attr: self._attr_is_on}
 
@@ -89,7 +89,7 @@ class SwitchEntity(XEntity, BaseEntity, RestoreEntity):
     async def async_turn_off(self):
         await self.device.async_write({self.attr: False})
 
-XEntity.CLS[ENTITY_DOMAIN] = SwitchEntity
+XEntity.CLS[ENTITY_DOMAIN] = LightEntity
 
 
 class MiotLightEntity(MiotToggleEntity, BaseEntity):
