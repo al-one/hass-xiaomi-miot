@@ -139,7 +139,7 @@
     },
     "entity": {
         "button": {
-            "info": {"name": "Info"}
+            "info": {"name": "信息"}
         },
         "sensor": {
             "power_cost_today": {"name": "日电量"},
