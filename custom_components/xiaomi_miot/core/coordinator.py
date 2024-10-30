@@ -22,7 +22,8 @@ class DataCoordinator(DataUpdateCoordinator):
         name = kwargs.pop('name', name)
 
         super().__init__(
-            device.hass, _LOGGER,
+            device.hass,
+            logger=device.log,
             name=f'{device.unique_id}-{name}',
             update_method=update_method,
             **kwargs,

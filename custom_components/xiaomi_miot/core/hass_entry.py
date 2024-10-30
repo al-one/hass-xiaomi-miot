@@ -11,7 +11,7 @@ from .xiaomi_cloud import MiotCloud
 if TYPE_CHECKING:
     from .device import Device
 
-_LOGGER = logging.getLogger(__package__)
+_LOGGER = logging.getLogger(__name__)
 
 class HassEntry:
     ALL: dict[str, 'HassEntry'] = {}

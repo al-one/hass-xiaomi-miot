@@ -1,7 +1,8 @@
 import logging
 from typing import TYPE_CHECKING, Optional, Callable
-from functools import cached_property
+from functools import partial, cached_property
 
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraData
 
@@ -13,10 +14,11 @@ from .converters import BaseConv, InfoConv, MiotServiceConv, MiotPropConv, MiotA
 if TYPE_CHECKING:
     from .device import Device
 
-_LOGGER = logging.getLogger(__package__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class BasicEntity(Entity, CustomConfigHelper):
+    hass: HomeAssistant = None
     device: 'Device' = None
     conv: 'BaseConv' = None
 
@@ -27,13 +29,17 @@ class BasicEntity(Entity, CustomConfigHelper):
         return await self.device.async_get_properties(mapping, update_entity, **kwargs)
 
     async def async_set_property(self, field, value):
-        return await self.device.set_property(field, value)
+        return await self.hass.async_add_executor_job(self.device.set_property, field, value)
 
     async def async_set_miot_property(self, siid, piid, value, **kwargs):
-        return await self.device.set_miot_property(siid, piid, value, **kwargs)
+        return await self.hass.async_add_executor_job(
+            partial(self.device.set_miot_property, siid, piid, value, **kwargs)
+        )
 
     async def async_call_action(self, siid, aiid, params=None, **kwargs):
-        return await self.device.call_action(siid, aiid, params, **kwargs)
+        return await self.hass.async_add_executor_job(
+            partial(self.device.call_action, siid, aiid, params, **kwargs)
+        )
 
     async def async_miio_command(self, method, params=None, **kwargs):
         if not self.device.local:

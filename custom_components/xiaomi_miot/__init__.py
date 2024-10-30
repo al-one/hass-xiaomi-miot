@@ -840,7 +840,7 @@ class MiioEntity(BaseEntity):
 
     def send_miio_command(self, method, params=None, **kwargs):
         try:
-            result = self.hass.loop.run_until_complete(self.async_miio_command(method, params, **kwargs))
+            result = self._device.send(method, params)
         except DeviceException as ex:
             self.logger.error('%s: Send miio command: %s(%s) failed: %s', self.name_model, method, params, ex)
             return False
@@ -1302,10 +1302,10 @@ class MiotEntity(MiioEntity):
             await self.async_update_attrs(attrs)
 
     def set_property(self, field, value):
-        return self.hass.loop.run_until_complete(self.async_set_property(field, value))
+        return self.device.set_property(field, value)
 
     def set_miot_property(self, siid, piid, value, **kwargs):
-        return self.hass.loop.run_until_complete(self.set_miot_property(siid, piid, value, **kwargs))
+        return self.device.set_miot_property(siid, piid, value, **kwargs)
 
     def call_action(self, action: MiotAction, params=None, **kwargs):
         aiid = action.iid
@@ -1315,7 +1315,7 @@ class MiotEntity(MiioEntity):
         return self.miot_action(siid, aiid, pms, **kwargs)
 
     def miot_action(self, siid, aiid, params=None, **kwargs):
-        return self.hass.loop.run_until_complete(self.async_call_action(siid, aiid, params, **kwargs))
+        return self.device.call_action(siid, aiid, params, **kwargs)
 
     def turn_on(self, **kwargs):
         ret = False

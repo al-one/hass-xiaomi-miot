@@ -1116,7 +1116,6 @@ class MiotResults:
             rmp[f'prop.{s}.{p}'] = k
         if attrs is None:
             attrs = {}
-        adt = {}
         for prop in self.results:
             s = prop.siid
             p = prop.piid
@@ -1126,12 +1125,12 @@ class MiotResults:
             e = prop.code
             ek = f'{k}.error'
             if e == 0:
-                adt[k] = prop.value
+                attrs[k] = prop.value
                 if ek in attrs:
                     attrs.pop(ek, None)
             else:
-                adt[ek] = prop.spec_error
-        return adt
+                attrs[ek] = prop.spec_error
+        return attrs
 
     def to_json(self):
         return [r.to_json() for r in self.results]
