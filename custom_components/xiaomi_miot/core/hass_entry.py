@@ -1,9 +1,11 @@
 import logging
+import asyncio
 from typing import TYPE_CHECKING
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_USERNAME
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from .const import SUPPORTED_DOMAINS
 from .xiaomi_cloud import MiotCloud
 
 if TYPE_CHECKING:
@@ -28,6 +30,21 @@ class HassEntry:
             this = HassEntry(hass, entry)
             HassEntry.ALL[entry.entry_id] = this
         return this
+
+    async def async_unload(self):
+        ret = all(
+            await asyncio.gather(
+                *[
+                    self.hass.config_entries.async_forward_entry_unload(self.entry, domain)
+                    for domain in SUPPORTED_DOMAINS
+                ]
+            )
+        )
+        if ret:
+            for device in self.devices.values():
+                await device.async_unload()
+            HassEntry.ALL.pop(self.entry.entry_id, None)
+        return ret
 
     def __getattr__(self, item):
         return getattr(self.entry, item)

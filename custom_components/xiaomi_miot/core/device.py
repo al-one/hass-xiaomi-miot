@@ -176,6 +176,13 @@ class Device(CustomConfigHelper):
         self._exclude_miot_properties = self.custom_config_list('exclude_miot_properties', [])
         self._unreadable_properties = self.custom_config_bool('unreadable_properties')
 
+    async def async_unload(self):
+        for coo in self.coordinators:
+            await coo.async_shutdown()
+
+        self.spec = None
+        self.hass.data[DOMAIN].setdefault('miot_specs', {}).pop(self.model, None)
+
     @cached_property
     def did(self):
         return self.info.did

@@ -2,7 +2,6 @@
 import logging
 import asyncio
 import json
-import time
 import os
 import re
 from datetime import timedelta
@@ -348,14 +347,7 @@ async def async_update_options(hass: hass_core.HomeAssistant, config_entry: conf
 
 
 async def async_unload_entry(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
-    unload_ok = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(config_entry, sd)
-                for sd in SUPPORTED_DOMAINS
-            ]
-        )
-    )
+    unload_ok = await HassEntry.init(hass, config_entry).async_unload()
     if unload_ok:
         hass.data[DOMAIN].pop(config_entry.entry_id, None)
         hass.data[DOMAIN]['sub_entities'] = {}
