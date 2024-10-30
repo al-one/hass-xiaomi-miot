@@ -269,7 +269,7 @@ class MiotSpec(MiotSpecInstance):
         if viid is not None and not self.trans_options:
             return None
         key = MiotSpec.spec_lang_key(siid, piid, aiid, viid)
-        langs = get_translation_langs(self.hass, self.spec_translations.keys())
+        langs = get_translation_langs(self.hass, list(self.spec_translations.keys()))
         for lang in langs:
             dic = self.spec_translations.get(lang) or {}
             val = dic.get(key)

@@ -178,7 +178,7 @@ def get_translations(*keys):
 def get_translation_langs(hass: HomeAssistant, langs=None):
     lang = hass.config.language
     if not langs:
-        return lang
+        return [lang]
     if 'en' not in langs:
         langs.append('en')
     return language_util.matches(lang, langs)
