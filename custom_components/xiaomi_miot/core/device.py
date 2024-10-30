@@ -274,8 +274,9 @@ class Device(CustomConfigHelper):
         dat = self.hass.data[DOMAIN].setdefault('miot_specs', {})
         obj = dat.get(self.model)
         if not obj:
+            trans_options = self.custom_config_bool('trans_options', self.entry.get_config('trans_options'))
             urn = await self.get_urn()
-            obj = await MiotSpec.async_from_type(self.hass, urn)
+            obj = await MiotSpec.async_from_type(self.hass, urn, trans_options=trans_options)
             dat[self.model] = obj
         if obj:
             self.spec = copy.copy(obj)

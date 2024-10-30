@@ -25,6 +25,7 @@
                     "captcha": "Captcha",
                     "server_country": "Server location of MiCloud",
                     "conn_mode": "Connection mode for device",
+                    "trans_options": "Translation property value description",
                     "filter_models": "Filter devices via model/home/WiFi (Advanced)"
                 }
             },
@@ -154,6 +155,7 @@
                     "server_country": "Server location of MiCloud",
                     "conn_mode": "Connection mode for device",
                     "renew_devices": "Force renew devices",
+                    "trans_options": "Translation property value description",
                     "disable_message": "Disable Mihome notification sensor",
                     "disable_scene_history": "Disable Mihome scene history sensor"
                 }

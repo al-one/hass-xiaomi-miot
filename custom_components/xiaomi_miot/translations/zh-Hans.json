@@ -25,6 +25,7 @@
                     "captcha": "验证码",
                     "server_country": "小米服务器",
                     "conn_mode": "设备连接模式",
+                    "trans_options": "翻译属性值描述",
                     "filter_models": "通过型号/家庭/WiFi筛选设备 (高级模式，新手勿选)"
                 }
             },
@@ -93,6 +94,7 @@
                     "server_country": "小米服务器",
                     "conn_mode": "设备连接模式",
                     "renew_devices": "更新设备列表",
+                    "trans_options": "翻译属性值描述",
                     "disable_message": "禁用米家APP通知消息实体",
                     "disable_scene_history": "禁用米家场景历史实体"
                 }

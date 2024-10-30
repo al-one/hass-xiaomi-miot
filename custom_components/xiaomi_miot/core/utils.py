@@ -6,6 +6,7 @@ import tzlocal
 import voluptuous as vol
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
+from homeassistant.util import language as language_util
 from homeassistant.util.dt import DEFAULT_TIME_ZONE, get_time_zone
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
@@ -173,6 +174,14 @@ def get_translations(*keys):
             continue
         dic.update(tls)
     return dic
+
+def get_translation_langs(hass: HomeAssistant, langs=None):
+    lang = hass.config.language
+    if not langs:
+        return lang
+    if 'en' not in langs:
+        langs.append('en')
+    return language_util.matches(lang, langs)
 
 
 def is_offline_exception(exc):

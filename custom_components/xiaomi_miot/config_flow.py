@@ -344,6 +344,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 vol.In(CLOUD_SERVERS),
             vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, 'auto')):
                 vol.In(CONN_MODES),
+            vol.Optional('trans_options', default=user_input.get('trans_options', False)): bool,
             vol.Optional('filter_models', default=user_input.get('filter_models', False)): bool,
         })
         return self.async_show_form(
@@ -662,6 +663,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, DEFAULT_CONN_MODE)):
                 vol.In(CONN_MODES),
             vol.Optional('renew_devices', default=user_input.get('renew_devices', False)): bool,
+            vol.Optional('trans_options', default=user_input.get('trans_options', False)): bool,
             vol.Optional('disable_message', default=user_input.get('disable_message', False)): bool,
             vol.Optional('disable_scene_history', default=user_input.get('disable_scene_history', False)): bool,
         })
@@ -690,6 +692,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             cfg = self.cloud.to_config() or {}
             cfg.update({
                 CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
+                'trans_options': prev_input.get('trans_options'),
                 'filter_models': prev_input.get('filter_models'),
                 'disable_message': prev_input.get('disable_message'),
                 'disable_scene_history': prev_input.get('disable_scene_history'),
