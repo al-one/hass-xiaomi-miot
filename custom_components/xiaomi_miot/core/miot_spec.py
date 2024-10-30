@@ -266,14 +266,14 @@ class MiotSpec(MiotSpecInstance):
         return f'{domain}.{eid}'
 
     def get_spec_translation(self, siid, piid=None, aiid=None, viid=None):
-        if viid is not None and not self.trans_options:
+        if viid != None and not self.trans_options:
             return None
-        key = MiotSpec.spec_lang_key(siid, piid, aiid, viid)
+        key = MiotSpec.spec_lang_key(siid, piid=piid, aiid=aiid, viid=viid)
         langs = get_translation_langs(self.hass, list(self.spec_translations.keys()))
         for lang in langs:
             dic = self.spec_translations.get(lang) or {}
             val = dic.get(key)
-            if val is not None:
+            if val != None:
                 return val
         return None
 
@@ -403,11 +403,11 @@ class MiotSpec(MiotSpecInstance):
     @staticmethod
     def spec_lang_key(siid, piid=None, aiid=None, viid=None):
         key = f'service:{siid:03}'
-        if aiid is not None:
+        if aiid != None:
             return f'{key}:action:{aiid:03}'
-        if piid is not None:
+        if piid != None:
             key = f'{key}:property:{piid:03}'
-        if viid is not None:
+        if viid != None:
             key = f'{key}:valuelist:{viid:03}'
         return key
 
@@ -713,7 +713,14 @@ class MiotProperty(MiotSpecInstance):
         return eid
 
     def get_spec_translation(self, viid=None):
-        return self.service.get_spec_translation(piid=self.iid, viid=viid)
+        if viid == None:
+            return self.service.get_spec_translation(piid=self.iid)
+        idx = 0
+        for v in self.value_list:
+            if viid == v.get('value'):
+                return self.service.get_spec_translation(piid=self.iid, viid=idx)
+            idx += 1
+        return None
 
     @property
     def translation_keys(self):
@@ -754,7 +761,7 @@ class MiotProperty(MiotSpecInstance):
             vde = v.get('description')
             if des is None:
                 rls.append(val)
-            elif des in [vde, f'{vde}'.lower(), self.get_translation(vde)]:
+            elif des in [vde, f'{vde}'.lower(), self.get_translation(vde, viid=val)]:
                 return val
         return rls if des is None else None
 
@@ -807,7 +814,7 @@ class MiotProperty(MiotSpecInstance):
                 des,
                 des.lower(),
                 self.format_name(des),
-                self.get_translation(des),
+                self.get_translation(des, viid=v.get('value', -1)),
             ]
             for d in dls:
                 if d not in args:
