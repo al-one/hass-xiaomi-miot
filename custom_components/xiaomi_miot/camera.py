@@ -92,6 +92,7 @@ class BaseCameraEntity(Camera):
 
     def __init__(self, hass: HomeAssistant):
         super().__init__()
+        self._supported_features = CameraEntityFeature(0)
         self.access_tokens = collections.deque(self.access_tokens, 12 * 2)
         self._manager = hass.data.get(DATA_FFMPEG)
         # http://ffmpeg.org/ffmpeg-all.html
