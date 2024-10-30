@@ -99,8 +99,11 @@ class MiotPropConv(BaseConv):
         super().decode(device, payload, value)
 
     def encode(self, device: 'Device', payload: dict, value):
-        if self.desc and self.prop:
-            value = self.prop.list_value(value)
+        if self.prop:
+            if self.prop.is_integer:
+                value = int(value) # bool to int
+            if self.desc and self.prop.value_list:
+                value = self.prop.list_value(value)
         super().encode(device, payload, value)
 
 @dataclass

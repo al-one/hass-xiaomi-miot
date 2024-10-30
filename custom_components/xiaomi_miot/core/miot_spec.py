@@ -144,6 +144,9 @@ class MiotSpecInstance:
             err += f' {SPEC_ERRORS.get(cod)}'
         return err
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.type})'
+
 
 # https://iot.mi.com/new/doc/design/spec/xiaoai
 class MiotSpec(MiotSpecInstance):

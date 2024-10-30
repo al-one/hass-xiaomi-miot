@@ -7,11 +7,6 @@ ENERGY_KWH = {
 }
 
 DEVICE_CUSTOMIZES = {
-
-    '*': {
-        'switch_properties': 'physical_control_locked,physical_controls_locked',
-    },
-
     '090615.aircondition.ktf': {
         'current_temp_property': 'setmode.roomtemp',
     },
@@ -2222,7 +2217,20 @@ GLOBAL_CONVERTERS = [
     {
         'class': MiotLightConv,
         'services': ['indicator_light'],
-        'kwargs': {'option': {'entity_category': 'config'}},
+        'kwargs': {
+            'main_props': ['on', 'switch'],
+            'option': {'entity_category': 'config'},
+        },
+    },
+    {
+        'services': ['physical_control_locked', 'physical_controls_locked'],
+        'converters' : [
+            {
+                'names': ['physical_control_locked', 'physical_controls_locked'],
+                'domain': 'switch',
+                'option': {'entity_category': 'config'},
+            },
+        ],
     },
     {
         'services': ['tds_sensor'],
