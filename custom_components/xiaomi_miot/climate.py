@@ -254,15 +254,6 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                     add_fans([self._subs[des]], update_before_add=True)
 
             add_switches = self._add_entities.get('switch')
-            for p in self._miot_service.properties.values():
-                if not (p.format == 'bool' and p.readable and p.writeable):
-                    continue
-                if p.name in self._power_modes:
-                    continue
-                if self._prop_power and self._prop_power.name == p.name:
-                    continue
-                self._update_sub_entities(p, None, 'switch')
-
             if self._miot_service.get_action('start_wash'):
                 pnm = 'action_wash'
                 prop = self._miot_service.get_property('status')

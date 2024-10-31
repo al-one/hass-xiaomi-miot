@@ -1642,6 +1642,9 @@ DEVICE_CUSTOMIZES = {
     'yeelink.bhf_light.v13': {
         'miot_type': 'urn:miot-spec-v2:device:bath-heater:0000A028:yeelink-v13:1',
     },
+    'yeelink.bhf_light.*': {
+        'switch_properties': 'heating,blow,ventilation',
+    },
     'yeelink.light.dn2grp': {
         'cloud_delay_update': 7,
     },
@@ -1942,7 +1945,8 @@ DEVICE_CUSTOMIZES = {
     },
     '*.bhf_light.*': {
         'main_miot_services': 'ptc_bath_heater',
-        'number_properties': 'off_delay_time',
+        'sensor_properties': 'temperature',
+        'number_properties': 'target_temperature,off_delay_time',
     },
     '*.blanket.*': {
         'sensor_properties': 'temperature',
