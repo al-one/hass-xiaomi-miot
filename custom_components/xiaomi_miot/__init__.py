@@ -1335,12 +1335,8 @@ class MiotEntity(MiioEntity):
 
     def _update_sub_entities(self, properties, services=None, domain=None, option=None, **kwargs):
         actions = kwargs.get('actions', [])
-        from .sensor import MiotSensorSubEntity
-        from .binary_sensor import MiotBinarySensorSubEntity
-        from .switch import MiotSwitchSubEntity
         from .light import MiotLightSubEntity
-        from .fan import (MiotFanSubEntity, MiotModesSubEntity)
-        from .cover import MiotCoverSubEntity
+        from .fan import MiotFanSubEntity
         if isinstance(services, MiotService):
             sls = [services]
         elif services == '*':
@@ -1351,17 +1347,8 @@ class MiotEntity(MiioEntity):
             sls = [properties.service]
         else:
             sls = [self._miot_service]
-        add_sensors = self._add_entities.get('sensor')
-        add_binary_sensors = self._add_entities.get('binary_sensor')
-        add_switches = self._add_entities.get('switch')
         add_lights = self._add_entities.get('light')
         add_fans = self._add_entities.get('fan')
-        add_covers = self._add_entities.get('cover')
-        add_numbers = self._add_entities.get('number')
-        add_selects = self._add_entities.get('select')
-        add_buttons = self._add_entities.get('button')
-        add_texts = self._add_entities.get('text')
-        add_device_trackers = self._add_entities.get('device_tracker')
         exclude_services = self._state_attrs.get('exclude_miot_services') or []
         for s in sls:
             if s.name in exclude_services:
@@ -1387,88 +1374,6 @@ class MiotEntity(MiioEntity):
                     if pon and pon.full_name in self._state_attrs:
                         self._subs[fnm] = MiotFanSubEntity(self, s)
                         add_fans([self._subs[fnm]], update_before_add=True)
-                if new and fnm in self._subs:
-                    self._check_same_sub_entity(fnm, domain, add=1)
-                    self.logger.debug('%s: Added sub entity %s: %s', self.name_model, domain, fnm)
-                continue
-            pls = []
-            if isinstance(properties, MiotProperty):
-                pls = [properties]
-            if properties:
-                pls.extend(s.get_properties(*cv.ensure_list(properties)))
-            if actions:
-                pls.extend(s.get_actions(*cv.ensure_list(actions)))
-            for p in pls:
-                fnm = p.unique_name
-                opt = {
-                    'unique_id': f'{self.unique_did}-{fnm}',
-                    **(option or {}),
-                }
-                tms = self._check_same_sub_entity(fnm, domain)
-                new = True
-                if fnm in self._subs:
-                    new = False
-                    self._subs[fnm].update_from_parent()
-                    self._check_same_sub_entity(fnm, domain, add=1)
-                elif tms > 0:
-                    if tms <= 1:
-                        self.logger.info('%s: Device sub entity %s: %s already exists.', self.name_model, domain, fnm)
-                elif isinstance(p, MiotAction):
-                    """migrate to converter"""
-                elif add_buttons and domain == 'button' and (p.value_list or p.is_bool):
-                    from .button import MiotButtonSubEntity
-                    nls = []
-                    f = fnm
-                    for pv in p.value_list:
-                        vk = pv.get('value')
-                        f = f'{fnm}-{vk}'
-                        if f in self._subs:
-                            new = False
-                            continue
-                        self._subs[f] = MiotButtonSubEntity(self, p, vk, option=opt)
-                        nls.append(self._subs[f])
-                    if p.is_bool:
-                        self._subs[f] = MiotButtonSubEntity(self, p, True, option=opt)
-                        nls.append(self._subs[f])
-                    if nls:
-                        add_buttons(nls, update_before_add=True)
-                        new = True
-                        fnm = f
-                elif p.full_name not in self._state_attrs and not p.writeable and not kwargs.get('whatever'):
-                    continue
-                elif add_switches and domain == 'switch' and (p.format in ['bool', 'uint8']) and p.writeable:
-                    self._subs[fnm] = MiotSwitchSubEntity(self, p, option=opt)
-                    add_switches([self._subs[fnm]], update_before_add=True)
-                elif add_binary_sensors and domain == 'binary_sensor' and (p.is_bool or p.is_integer):
-                    self._subs[fnm] = MiotBinarySensorSubEntity(self, p, option=opt)
-                    add_binary_sensors([self._subs[fnm]], update_before_add=True)
-                elif add_sensors and domain == 'sensor':
-                    if p.full_name == self._state_attrs.get('state_property'):
-                        continue
-                    self._subs[fnm] = MiotSensorSubEntity(self, p, option=opt)
-                    add_sensors([self._subs[fnm]], update_before_add=True)
-                elif add_fans and domain == 'fan':
-                    self._subs[fnm] = MiotModesSubEntity(self, p, option=opt)
-                    add_fans([self._subs[fnm]], update_before_add=True)
-                elif add_covers and domain == 'cover':
-                    self._subs[fnm] = MiotCoverSubEntity(self, p, option=opt)
-                    add_covers([self._subs[fnm]], update_before_add=True)
-                elif add_numbers and domain in ['number', 'number_select'] and p.value_range:
-                    from .number import MiotNumberSubEntity
-                    self._subs[fnm] = MiotNumberSubEntity(self, p, option=opt)
-                    add_numbers([self._subs[fnm]], update_before_add=True)
-                elif add_selects and domain in ['select', 'number_select'] and (p.value_list or p.value_range):
-                    from .select import MiotSelectSubEntity
-                    self._subs[fnm] = MiotSelectSubEntity(self, p, option=opt)
-                    add_selects([self._subs[fnm]], update_before_add=True)
-                elif add_texts and domain == 'text' and p.writeable:
-                    from .text import MiotTextSubEntity
-                    self._subs[fnm] = MiotTextSubEntity(self, p, option=opt)
-                    add_texts([self._subs[fnm]], update_before_add=True)
-                elif add_device_trackers and domain == 'scanner' and (p.is_bool or p.is_integer):
-                    from .device_tracker import MiotScannerSubEntity
-                    self._subs[fnm] = MiotScannerSubEntity(self, p, option=opt)
-                    add_device_trackers([self._subs[fnm]], update_before_add=True)
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
                     self.logger.debug('%s: Added sub entity %s: %s', self.name_model, domain, fnm)

@@ -338,45 +338,6 @@ class BaseSensorSubEntity(BaseSubEntity, BaseEntity):
             self._extra_attrs['updated_time'] = now
 
 
-class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
-        self._attr_state_class = miot_property.state_class
-
-        self._prop_battery = None
-        for s in self._miot_service.spec.get_services('battery', self._miot_service.name):
-            p = s.get_property('battery_level')
-            if p:
-                self._prop_battery = p
-        if self._prop_battery:
-            self._option['keys'] = [*(self._option.get('keys') or []), self._prop_battery.full_name]
-
-    async def async_added_to_hass(self):
-        await BaseSensorSubEntity.async_added_to_hass(self)
-
-    def update(self, data=None):
-        super().update(data)
-        if not self._available:
-            return
-        self.update_with_properties()
-        self._miot_property.description_to_dict(self._state_attrs)
-
-    @property
-    def native_value(self):
-        if not self._attr_native_unit_of_measurement:
-            key = f'{self._miot_property.full_name}_desc'
-            if key in self._state_attrs:
-                return f'{self._state_attrs[key]}'.lower()
-        val = self._miot_property.from_dict(self._state_attrs)
-        if val is not None:
-            svd = self.custom_config_number('value_ratio') or 0
-            if svd:
-                val = round(float(val) * svd, 3)
-            elif self.device_class in [SensorDeviceClass.HUMIDITY, SensorDeviceClass.TEMPERATURE]:
-                val = round(float(val), 3)
-        return val
-
-
 class MihomeMessageSensor(MiCoordinatorEntity, BaseEntity, RestoreEntity):
     _filter_homes = None
     _exclude_types = None

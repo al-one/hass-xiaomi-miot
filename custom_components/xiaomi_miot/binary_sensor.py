@@ -355,9 +355,3 @@ class LumiBinarySensorEntity(MiotBinarySensorEntity):
             adt[self._prop_state.full_name] = self._state
         if adt:
             await self.async_update_attrs(adt)
-
-
-class MiotBinarySensorSubEntity(MiotPropertySubEntity, ToggleSubEntity, BaseEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None):
-        ToggleSubEntity.__init__(self, parent, miot_property.full_name, option)
-        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)

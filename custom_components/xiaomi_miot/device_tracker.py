@@ -119,9 +119,6 @@ class MiotTrackerEntity(MiotEntity, BaseTrackerEntity):
             self._attr_location_name = prop.from_dict(self._state_attrs)
         await self.transform_coord()
 
-        for p in self._miot_service.get_properties('driving_status'):
-            self._update_sub_entities(p, None, 'binary_sensor')
-
     async def transform_coord(self, default=None):
         if not (self._attr_latitude or self._attr_longitude):
             return

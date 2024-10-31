@@ -1020,6 +1020,7 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'battery',
     },
     'midr.rv_mirror.*': {
+        'binary_sensor_properties': 'driving_status',
         'miio_cloud_props': 'Status,Position',
         'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
     },
@@ -1599,7 +1600,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,boost_value',
     },
     'xiaomi.wifispeaker.*': {
-        'switch_properties': 'sleep_mode,no_disturb',
+        'switch_properties': 'on,sleep_mode,no_disturb',
         'button_actions': 'wake_up,play_music,tv_switchon,stop_alarm',
         'text_actions': 'play_text,execute_text_directive',
     },

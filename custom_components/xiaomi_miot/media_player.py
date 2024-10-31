@@ -339,8 +339,6 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         self._message_router = miot_service.spec.get_service('message_router')
         self.xiaoai_cloud = None
         self.xiaoai_device = None
-        if self._intelligent_speaker:
-            self._state_attrs[ATTR_ATTRIBUTION] = 'Support TTS through service'
         self._supported_features |= MediaPlayerEntityFeature.PLAY_MEDIA
 
     @property
@@ -360,7 +358,6 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         await super().async_update()
         if not self._available:
             return
-        self._update_sub_entities('on', domain='switch')
 
         if self._prop_state and not self._prop_state.readable:
             if self.is_volume_muted is False:
