@@ -219,15 +219,6 @@ class MiotSensorEntity(MiotEntity, BaseEntity):
                     })
         self._prop_state.description_to_dict(self._state_attrs)
 
-    async def async_update_for_main_entity(self):
-        await super().async_update_for_main_entity()
-
-        self._update_sub_entities(
-            ['motor_control', 'backrest_angle', 'leg_rest_angle'],
-            ['bed', 'backrest_control', 'leg_rest_control'],
-            domain='cover',
-        )
-
     @property
     def device_class(self):
         """Return the class of this entity."""
@@ -265,31 +256,6 @@ class MiotCookerEntity(MiotSensorEntity):
             self._values_off = self._prop_state.list_search(
                 'Idle', 'Completed', 'Shutdown', 'CookFinish', 'Pause', 'Paused', 'Fault', 'Error', 'Stop', 'Off',
             )
-
-    async def async_update(self):
-        await super().async_update()
-        if not self._available:
-            return
-        if self._prop_state:
-            self._update_sub_entities(
-                ['target_temperature'],
-                domain='number',
-            )
-            add_selects = self._add_entities.get('select')
-            pls = self._miot_service.get_properties(
-                'mode', 'cook_mode', 'heat_level', 'target_time', 'target_temperature',
-            )
-            for p in pls:
-                if p.name in self._subs:
-                    self._subs[p.name].update_from_parent()
-                elif not (p.value_list or p.value_range):
-                    continue
-                elif add_selects:
-                    from .select import MiotSelectSubEntity
-                    if p.writeable:
-                        self._subs[p.name] = MiotSelectSubEntity(self, p)
-                    if p.name in self._subs:
-                        add_selects([self._subs[p.name]], update_before_add=True)
 
     @property
     def is_on(self):

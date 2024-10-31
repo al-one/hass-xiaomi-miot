@@ -263,9 +263,6 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                     continue
                 self._update_sub_entities(p, None, 'switch')
 
-            if self._miot_service.name in ['ptc_bath_heater']:
-                self._update_sub_entities(None, ['light', 'light_bath_heater'], domain='light')
-
             if self._miot_service.get_action('start_wash'):
                 pnm = 'action_wash'
                 prop = self._miot_service.get_property('status')

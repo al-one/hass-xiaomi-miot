@@ -111,24 +111,6 @@ class MiotSwitchEntity(MiotToggleEntity, BaseEntity):
                 self._subs[fnm] = MiotSwitchActionSubEntity(self, prop, act)
                 add_switches([self._subs[fnm]], update_before_add=True)
 
-    async def async_update(self):
-        await super().async_update()
-        if not self._available:
-            return
-        self._update_sub_entities(
-            ['heat_level'],
-            ['massager'],
-            domain='fan',
-            option={
-                'power_property': self._miot_service.get_property('heating'),
-            },
-        )
-        self._update_sub_entities(
-            ['mode', 'massage_strength', 'massage_part', 'massage_manipulation'],
-            ['massager'],
-            domain='number_select' if self.entry_config_version >= 0.3 else 'fan',
-        )
-
 
 class SwitchSubEntity(ToggleSubEntity, BaseEntity):
     def __init__(self, parent, attr='switch', option=None, **kwargs):

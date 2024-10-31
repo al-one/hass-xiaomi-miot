@@ -100,11 +100,6 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
                 num = round(num * fac)
             self._attr_target_humidity = num
 
-        if self._prop_water_level and self._prop_water_level.writeable:
-            self._update_sub_entities(
-                [self._prop_water_level.name],
-                domain='number_select',
-            )
         add_fans = self._add_entities.get('fan')
         for p in self._mode_props:
             pnm = p.full_name

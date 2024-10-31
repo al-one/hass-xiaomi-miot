@@ -2217,7 +2217,7 @@ GLOBAL_CONVERTERS = [
     },
     {
         'class': MiotLightConv,
-        'services': ['night_light', 'ambient_light', 'plant_light'],
+        'services': ['night_light', 'ambient_light', 'plant_light', 'light_bath_heater'],
     },
     {
         'class': MiotLightConv,

@@ -152,10 +152,6 @@ class MiotBinarySensorEntity(MiotToggleEntity, BaseEntity):
         if rev is not None:
             self._vars['reverse_state'] = rev
 
-    async def async_update_for_main_entity(self):
-        await super().async_update_for_main_entity()
-        self._update_sub_entities(['illumination', 'no_motion_duration'], domain='sensor')
-
     @property
     def is_on(self):
         ret = self._state
@@ -221,7 +217,6 @@ class BleBinarySensorEntity(MiotBinarySensorEntity):
         if self.custom_config_bool('use_ble_object', True):
             await self.async_update_ble_data()
         await super().async_update_for_main_entity()
-        self._update_sub_entities(['illumination', 'no_motion_duration'], domain='sensor')
 
     async def async_update_ble_data(self):
         did = self.miot_did
@@ -311,43 +306,6 @@ class MiotToiletEntity(MiotBinarySensorEntity):
             self._prop_state = miot_service.get_property(
                 self._prop_state.name if self._prop_state else 'status',
             )
-
-    async def async_update(self):
-        await super().async_update()
-        if not self._available:
-            return
-        from .fan import MiotModesSubEntity
-        add_fans = self._add_entities.get('fan')
-        pls = self._miot_service.get_properties(
-            'mode', 'washing_strength', 'nozzle_position', 'heat_level',
-        )
-        seat = self._miot_service.spec.get_service('seat')
-        if seat:
-            prop = seat.get_property('heat_level')
-            if prop:
-                pls.append(prop)
-            else:
-                self._update_sub_entities(
-                    ['heating', 'deodorization'],
-                    [seat],
-                    domain='switch',
-                )
-        for p in pls:
-            if not p.value_list and not p.value_range:
-                continue
-            if p.name in self._subs:
-                self._subs[p.name].update()
-            elif add_fans:
-                opt = None
-                if p.name in ['heat_level']:
-                    opt = {
-                        'power_property': p.service.bool_property('heating'),
-                    }
-                self._subs[p.name] = MiotModesSubEntity(self, p, opt)
-                add_fans([self._subs[p.name]], update_before_add=True)
-
-        if self._prop_power:
-            self._update_sub_entities(self._prop_power, None, 'switch')
 
     @property
     def icon(self):
