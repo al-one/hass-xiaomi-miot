@@ -1003,7 +1003,12 @@ DEVICE_CUSTOMIZES = {
     },
     'midjd8.washer.*': {
         'select_properties': 'shake_time,soak_time',
-        'switch_properties': 'high_water_switch,steam_sterilization,sleep_mode'
+        'switch_properties': 'high_water_switch,steam_sterilization,sleep_mode',
+    },
+    'miir.aircondition.*': {
+        'select_properties': 'ir_mode',
+        'number_properties': 'ir_temperature',
+        'button_actions': 'turn_on,turn_off,fan_speed_up,fan_speed_down,temperature_up,temperature_down',
     },
     'mijia.light.*': {
         'cloud_delay_update': 7,
