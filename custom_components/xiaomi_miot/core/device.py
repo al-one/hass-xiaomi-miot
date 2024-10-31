@@ -7,6 +7,7 @@ from functools import partial, cached_property
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, EntityCategory
 from homeassistant.util import dt
+from homeassistant.components import persistent_notification
 from homeassistant.helpers.event import async_call_later
 import homeassistant.helpers.device_registry as dr
 
@@ -26,7 +27,13 @@ from .coordinator import DataCoordinator
 from .miot_spec import MiotSpec, MiotService, MiotProperty, MiotResults, MiotResult
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
-from .utils import CustomConfigHelper, get_customize_via_model, get_value, update_attrs_with_suffix
+from .utils import (
+    CustomConfigHelper,
+    get_customize_via_model,
+    get_value,
+    is_offline_exception,
+    update_attrs_with_suffix,
+)
 from .templates import template
 
 
@@ -638,6 +645,7 @@ class Device(CustomConfigHelper):
             try:
                 if self.miio2miot:
                     results = await self.miio2miot.async_get_miot_props(self.local, mapping)
+                    self.props.update(self.miio2miot.entity_attrs())
                 else:
                     if not max_properties:
                         max_properties = self.custom_config_integer('chunk_properties')
@@ -706,7 +714,54 @@ class Device(CustomConfigHelper):
             self.data['updated'] = dt.now()
             self.dispatch(self.decode(results))
         self.dispatch_info()
+        await self.offline_notify()
         return self.miot_results
+
+    async def offline_notify(self):
+        result = self.miot_results
+        is_offline = not result.is_valid and result.errors and is_offline_exception(result.errors)
+        offline_devices = self.hass.data[DOMAIN].setdefault('offline_devices', {})
+        notification_id = f'{DOMAIN}-devices-offline'
+        if not is_offline:
+            self.data.pop('offline_times', None)
+            if offline_devices.pop(self.info.unique_id, None) and not offline_devices:
+                persistent_notification.async_dismiss(self.hass, notification_id)
+            return
+        offline_times = self.data.setdefault('offline_times', 0)
+        if not self.custom_config_bool('ignore_offline'):
+            offline_times += 1
+        odd = offline_devices.get(self.info.unique_id) or {}
+        if odd:
+            odd.update({
+                'occurrences': offline_times,
+            })
+        elif offline_times >= 5:
+            odd = {
+                'device': self,
+                'occurrences': offline_times,
+            }
+            offline_devices[self.info.unique_id] = odd
+            tip = f'Some devices cannot be connected in the LAN, please check their IP ' \
+                  f'and make sure they are in the same subnet as the HA.\n\n' \
+                  f'一些设备无法通过局域网连接，请检查它们的IP，并确保它们和HA在同一子网。\n'
+            for d in offline_devices.values():
+                device = d.get('device')
+                if not device:
+                    continue
+                tip += f'\n - {device.name_model}: {device.info.host}'
+            tip += '\n\n'
+            url = 'https://github.com/al-one/hass-xiaomi-miot/search' \
+                  '?type=issues&q=%22Unable+to+discover+the+device%22'
+            tip += f'[Known issues]({url})'
+            url = 'https://github.com/al-one/hass-xiaomi-miot/issues/500#offline'
+            tip += f' | [了解更多]({url})'
+            persistent_notification.async_create(
+                self.hass,
+                tip,
+                'Devices offline',
+                notification_id,
+            )
+        self.data['offline_times'] = offline_times
 
     async def async_get_properties(self, mapping, update_entity=True, throw=False, **kwargs):
         if not self.spec:

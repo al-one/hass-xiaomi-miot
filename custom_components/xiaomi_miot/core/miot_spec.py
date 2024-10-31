@@ -1115,9 +1115,11 @@ class MiotResults:
             return None
         return self.results[0]
 
-    def to_attributes(self, attrs=None):
+    def to_attributes(self, attrs=None, mapping=None):
         rmp = {}
-        for k, v in self.mapping.items():
+        if not mapping:
+            mapping = self.mapping
+        for k, v in mapping.items():
             s = v.get('siid')
             p = v.get('piid')
             rmp[f'prop.{s}.{p}'] = k

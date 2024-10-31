@@ -40,10 +40,9 @@ from .core.const import *
 from .core.utils import (
     wildcard_models,
     is_offline_exception,
-    update_attrs_with_suffix,
     async_analytics_track_event,
 )
-from .core import HassEntry, BasicEntity, XEntity
+from .core import HassEntry, BasicEntity, XEntity # noqa
 from .core.device import (
     Device,
     MiioDevice,
@@ -1097,12 +1096,7 @@ class MiotEntity(MiioEntity):
 
     @property
     def miot_mapping(self):
-        mmp = None
-        if self._miot_mapping:
-            mmp = self._miot_mapping
-        elif self._device and hasattr(self._device, 'mapping'):
-            mmp = self._device.mapping or {}
-        return mmp
+        return self._miot_mapping or {}
 
     @property
     def entity_id_prefix(self):
@@ -1136,7 +1130,6 @@ class MiotEntity(MiioEntity):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
         attrs = {}
-        mapping = self.miot_mapping
 
         if pls := self.custom_config_list('miio_properties'):
             self._vars['miio_properties'] = pls
@@ -1144,7 +1137,6 @@ class MiotEntity(MiioEntity):
                 self._miio2miot.extend_miio_props(pls)
 
         result = await self.device.update_miot_status(
-            mapping=mapping,
             use_local=self.custom_config_bool('miot_local'),
             use_cloud=self.custom_config_bool('miot_cloud'),
             auto_cloud=self.custom_config_bool('auto_cloud'),
@@ -1152,45 +1144,11 @@ class MiotEntity(MiioEntity):
             max_properties=self.custom_config_integer('chunk_properties'),
         )
 
-        self._vars.setdefault('offline_times', 0)
-        offline_devices = self.hass.data[DOMAIN].setdefault('offline_devices', {})
         if not result.is_valid:
             self._available = False
             if result.errors and is_offline_exception(result.errors):
-                if not self._vars.get('ignore_offline'):
-                    self._vars['offline_times'] += 1
-                odd = offline_devices.get(self.unique_did) or {}
-                if odd:
-                    odd.update({
-                        'occurrences': self._vars['offline_times'],
-                    })
-                elif self._vars['offline_times'] >= 5:
-                    odd = {
-                        'entity': self,
-                        'occurrences': self._vars['offline_times'],
-                    }
-                    offline_devices[self.unique_did] = odd
-                    tip = f'Some devices cannot be connected in the LAN, please check their IP ' \
-                          f'and make sure they are in the same subnet as the HA.\n\n' \
-                          f'一些设备无法通过局域网连接，请检查它们的IP，并确保它们和HA在同一子网。\n'
-                    for d in offline_devices.values():
-                        ent = d.get('entity')
-                        if not ent:
-                            continue
-                        tip += f'\n - {ent.name_model}: {ent.device_host}'
-                    tip += '\n\n'
-                    url = 'https://github.com/al-one/hass-xiaomi-miot/search' \
-                          '?type=issues&q=%22Unable+to+discover+the+device%22'
-                    tip += f'[Known issues]({url})'
-                    url = 'https://github.com/al-one/hass-xiaomi-miot/issues/500#offline'
-                    tip += f' | [了解更多]({url})'
-                    persistent_notification.async_create(
-                        self.hass,
-                        tip,
-                        'Devices offline',
-                        f'{DOMAIN}-devices-offline',
-                    )
-            elif result.updater == 'lan' and self._vars.pop('track_miot_error', None):
+                """ Migrated to device """
+            elif result.updater == 'local' and self._vars.pop('track_miot_error', None):
                 await async_analytics_track_event(
                     self.hass, 'miot', 'error', self.model,
                     firmware=self.device.info.firmware_version,
@@ -1199,14 +1157,11 @@ class MiotEntity(MiioEntity):
             if result.is_empty and result._results:
                 self.logger.warning(
                     '%s: Got invalid miot result while fetching the state: %s, mapping: %s',
-                    self.name_model, result._results, mapping,
+                    self.name_model, result._results, self.miot_mapping,
                 )
             return False
-        self._vars['offline_times'] = 0
-        if offline_devices.pop(self.unique_did, None) and not offline_devices:
-            persistent_notification.async_dismiss(self.hass, f'{DOMAIN}-devices-offline')
 
-        attrs.update(result.to_attributes(self._state_attrs))
+        attrs.update(result.to_attributes(self._state_attrs, self.miot_mapping))
         if self._miio2miot:
             attrs.update(self._miio2miot.entity_attrs())
         attrs['state_updater'] = result.updater
