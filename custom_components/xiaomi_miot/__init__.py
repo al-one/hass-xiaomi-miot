@@ -980,8 +980,6 @@ class MiotEntity(MiioEntity):
         self._miio2miot = self.device.miio2miot
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         if self._miot_service:
-            if dic := self.custom_config_json('miot_mapping'):
-                self._miot_service.spec.set_custom_mapping(dic)
             if not self._miot_mapping:
                 if ems := self.custom_config_list('exclude_miot_services') or []:
                     self._state_attrs['exclude_miot_services'] = ems
@@ -992,21 +990,7 @@ class MiotEntity(MiioEntity):
                     excludes=eps,
                     unreadable_properties=urp,
                 ) or {}
-                ism = True
-                if mms := self.custom_config_list('main_miot_services') or []:
-                    if self._miot_service.in_list(mms):
-                        ism = True
-                    elif self._miot_service.spec.get_services(*mms):
-                        ism = False
-                if ism:
-                    ems = [self._miot_service.name, *ems]
-                    ext = self._miot_service.spec.services_mapping(
-                        excludes=ems,
-                        exclude_properties=eps,
-                        unreadable_properties=urp,
-                    ) or {}
-                    self._miot_mapping = {**self._miot_mapping, **ext, **self._miot_mapping}
-                self._vars['is_main_entity'] = ism
+                self._vars['is_main_entity'] = True
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self.entity_id = self._miot_service.generate_entity_id(self)
             self._state_attrs['miot_type'] = self._miot_service.spec.type
@@ -1095,10 +1079,6 @@ class MiotEntity(MiioEntity):
         return self._config or {}
 
     @property
-    def miot_mapping(self):
-        return self._miot_mapping or {}
-
-    @property
     def entity_id_prefix(self):
         if not self._miot_service:
             return None
@@ -1157,11 +1137,11 @@ class MiotEntity(MiioEntity):
             if result.is_empty and result._results:
                 self.logger.warning(
                     '%s: Got invalid miot result while fetching the state: %s, mapping: %s',
-                    self.name_model, result._results, self.miot_mapping,
+                    self.name_model, result._results, self._miot_mapping,
                 )
             return False
 
-        attrs.update(result.to_attributes(self._state_attrs, self.miot_mapping))
+        attrs.update(result.to_attributes(self._state_attrs, self._miot_mapping))
         if self._miio2miot:
             attrs.update(self._miio2miot.entity_attrs())
         attrs['state_updater'] = result.updater
@@ -1183,17 +1163,6 @@ class MiotEntity(MiioEntity):
                 pls = self.custom_config_list(f'{d}_services') or []
                 if pls:
                     self._update_sub_entities(None, pls, domain=d)
-
-        # update miio prop/event in cloud
-        if attrs := await self.device.update_miio_cloud_records():
-            await self.async_update_attrs(attrs)
-
-        if attrs := await self.device.update_miio_cloud_props():
-            await self.async_update_attrs(attrs)
-
-        # update micloud statistics in cloud
-        if attrs := await self.device.update_cloud_statistics():
-            await self.async_update_attrs(attrs)
 
         # update miio properties in lan
         if pls := self._vars.get('miio_properties', []):

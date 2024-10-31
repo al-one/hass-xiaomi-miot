@@ -44,7 +44,6 @@ DEVICE_CUSTOMIZES = {
                              'offline_duration,ble_in_threshold,ble_out_threshold,ble_far_timeout',
     },
     'ainice.sensor_occupy.3b': {
-        'main_miot_services': 'occupancy_sensor',
         'state_property': 'occupancy_sensor.current_occupied',
         'interval_seconds': 30,
         'chunk_properties': 7,
@@ -80,7 +79,6 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'occupancy',
     },
     'ainice.sensor_occupy.bt': {
-        'main_miot_services': 'occupancy_sensor',
         'interval_seconds': 10,
         'parallel_updates': 1,
         'switch_properties': 'indicator_switch,bt_pair_switch',
@@ -92,7 +90,6 @@ DEVICE_CUSTOMIZES = {
         'with_properties': 'online_duration,offline_duration,offline_interval,online_mode,bt_capture_mode,binding_info',
     },
     'ainice.sensor_occupy.pr': {
-        'main_miot_services': 'occupancy_sensor',
         'state_property': 'occupancy_sensor.occupancy_status',
         'interval_seconds': 10,
         'sensor_properties': 'no_one_duration,has_someone_duration,zone_param',
@@ -321,7 +318,6 @@ DEVICE_CUSTOMIZES = {
     },
     'cuco.plug.cp2a': {
         'chunk_services': 1,
-        'main_miot_services': 'switch-2',
         'miot_type': 'urn:miot-spec-v2:device:outlet:0000A002:cuco-cp2a:2',
     },
     'cuco.plug.cp2d': {
@@ -355,11 +351,9 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '2.2',
     },
     'cuco.plug.cp5d': {
-        'main_miot_services': 'switch-2',
         'exclude_miot_services': 'indicator_light',  # issues/836
     },
     'cuco.plug.cp5prd': {
-        'main_miot_services': 'switch-2',
         'exclude_miot_services': 'device_setting,use_ele_alert',
         'exclude_miot_properties': 'power_consumption,electric_current,voltage,temperature_high_ai,temperature_high_ci,'
                                    'indicator_light.mode,start_time,end_time,data_values',
@@ -373,7 +367,6 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 1,
     },
     'cuco.plug.cp5pro': {
-        'main_miot_services': 'switch-2',
         'exclude_miot_services': 'power_consumption,device_setting,use_ele_alert',  # issues/763
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '10.1',
@@ -385,12 +378,10 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 1,
     },
     'cuco.plug.p8amd': {
-        'main_miot_services': 'switch-2',
         'switch_properties': 'usb_switch.on,light,light.mode',
         'select_properties': 'default_power_on_state',
     },
     'cuco.plug.sp5': {
-        'main_miot_services': 'switch-2',
         'exclude_miot_services': 'custome,physical_controls_locked,indicator_light',
     },
     'cuco.plug.v2eur': {
@@ -401,7 +392,6 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '11.1',
     },
     'cuco.plug.v3': {
-        'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '11.1',
     },
@@ -417,7 +407,6 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.01,
     },
     'cuco.plug.wp5m': {
-        'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '3.1',
         'chunk_properties': 1,
@@ -434,7 +423,6 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.01,
     },
     'cuco.plug.wp12': {
-        'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '11.1'
     },
@@ -447,7 +435,6 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 1,
     },    
     'cuco.plug.*': {
-        'main_miot_services': 'switch-2',
         'parallel_updates': 3,
     },
     'cuco.plug.*:electric_current': {
@@ -476,7 +463,6 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'V',
     },
     'cuco.switch.*': {
-        'main_miot_services': 'switch-2',
         'exclude_miot_services': 'setting,wireless_switch',
     },
     'cykj.hood.jyj22': {
@@ -626,7 +612,6 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'worktime,sleeptime',
     },
     'era.ysj.b65': {
-        'main_miot_services': 'water_dispenser',
         'sensor_properties': 'status,current_water,filter_life_level',
         'select_properties': 'mode,filter_reset',
         'number_properties': 'out_water_volume,feidian',
@@ -693,7 +678,6 @@ DEVICE_CUSTOMIZES = {
         'cover_position_mapping': {},
     },
     'hyd.airer.*': {
-        'main_miot_services': 'airer',
         'switch_properties': 'uv',
         'select_properties': 'mode,dryer',
         'number_properties': 'drying_time',
@@ -842,7 +826,6 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'screen_brightness,tsms_turn_off',
     },
     'linp.switch.s2dw3': {
-        'main_miot_services': 'switch-2',
         'button_actions': 'reboot',
         'switch_properties': 'screen.on,auto_screen_off,auto_screen_brightness,night_mode',
         'select_properties': 'mode,default_power_on_state,auto_screen_off_time,screen_switch,sensitivity',
@@ -859,7 +842,6 @@ DEVICE_CUSTOMIZES = {
     'lumi.acpartner.mcn04': {
         'auto_cloud': True,
         'chunk_properties': 7,
-        'main_miot_services': 'air_conditioner',
         'switch_properties': 'quick_cool_enable,indicator_light',
         'select_properties': 'ac_mode',
         'miio_cloud_props': [],
@@ -1098,7 +1080,6 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
     },
     'mrbond.airer.*': {
-        'main_miot_services': 'airer',
         'parallel_updates': 1,
     },
     'msj.f_washer.m2': {
@@ -1191,7 +1172,6 @@ DEVICE_CUSTOMIZES = {
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:qdhkl-b23:2',
     },
     'qmi.plug.psv3': {
-        'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'sensor_properties': 'switch.temperature',
         'stat_power_cost_key': '3.1',
@@ -1209,7 +1189,6 @@ DEVICE_CUSTOMIZES = {
     'qmi.plug.psv3:power_cost_today': ENERGY_KWH,
     'qmi.plug.psv3:power_cost_month': ENERGY_KWH,
     'qmi.plug.tw02': {
-        'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'sensor_properties': 'switch.temperature',
         'stat_power_cost_key': '4.1',
@@ -1230,7 +1209,6 @@ DEVICE_CUSTOMIZES = {
     'qmi.plug.tw02:power_cost_today': ENERGY_KWH,
     'qmi.plug.tw02:power_cost_month': ENERGY_KWH,
     'qmi.plug.2a1c1': {
-        'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'sensor_properties': 'switch.temperature',
         'stat_power_cost_key': '3.1',
@@ -1329,7 +1307,6 @@ DEVICE_CUSTOMIZES = {
     },
 
     'topwit.bhf_light.rz01': {
-        'main_miot_services': 'light-2',
         'sensor_properties': 'temperature',
         'switch_properties': 'heating,blow,ventilation',
         'number_properties': 'ventilation_cnt_down',
@@ -1354,7 +1331,6 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'fridge.temperature',
     },
     'viomi.hood.v1': {
-        'main_miot_services': 'hood-2',
         'number_properties': 'off_delay_time',
         'miio_properties': [
             'cruise', 'link', 'holiday', 'leftBtn', 'rightBtn', 'batLife',
@@ -1665,7 +1641,6 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 7,
     },
     'yeelink.light.*': {
-        'main_miot_services': 'light-2',
         'switch_properties': 'bg_on',
     },
     'yeelink.switch.sw1': {
@@ -1918,7 +1893,6 @@ DEVICE_CUSTOMIZES = {
                              'kitchen_mode_temp,pet_mode_temp,custom_time,boost_value',
     },
     'zinguo.switch.b5m': {
-        'main_miot_services': 'switch-2',
         'sensor_properties': 'temperature',
         'switch_properties': 'heating,blow,ventilation',
         'select_properties': 'link',
@@ -1940,12 +1914,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'air_conditioner.on',
     },
     '*.airpurifier.*': {
-        'main_miot_services': 'air_purifier',
         'switch_properties': 'air_purifier.on,alarm.alarm,anion,uv',
         'sensor_properties': 'relative_humidity,pm2_5_density,temperature,filter_life_level',
     },
     '*.bhf_light.*': {
-        'main_miot_services': 'ptc_bath_heater',
         'sensor_properties': 'temperature',
         'number_properties': 'target_temperature,off_delay_time',
     },

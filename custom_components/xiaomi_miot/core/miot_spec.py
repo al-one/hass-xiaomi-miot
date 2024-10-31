@@ -1120,16 +1120,13 @@ class MiotResults:
         if not mapping:
             mapping = self.mapping
         for k, v in mapping.items():
-            s = v.get('siid')
-            p = v.get('piid')
-            rmp[f'prop.{s}.{p}'] = k
+            u = MiotSpec.unique_prop(v.get('siid'), piid=v.get('piid'))
+            rmp[u] = k
         if attrs is None:
             attrs = {}
         for prop in self.results:
-            s = prop.siid
-            p = prop.piid
-            k = rmp.get(f'prop.{s}.{p}', prop.did)
-            if k is None:
+            k = rmp.get(prop.unique_prop)
+            if k == None:
                 continue
             e = prop.code
             ek = f'{k}.error'
@@ -1157,6 +1154,7 @@ class MiotResult:
         self.did = result.get('did')
         self.siid = result.get('siid')
         self.piid = result.get('piid')
+        self.unique_prop = MiotSpec.unique_prop(self.siid, piid=self.piid)
         self.error = result.get('error')
 
     def get(self, key, default=None):
