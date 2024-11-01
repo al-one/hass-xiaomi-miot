@@ -524,7 +524,7 @@ MIOT_LOCAL_MODELS = [
     # 'philips.light.bulb',  # issues/254
     # 'philips.light.cbulb',  # miio2miot
     'philips.light.ceil33',
-    'philips.light.ceilz',
+    # 'philips.light.ceilz',  # issues/1908
     'philips.light.dlight',
     # 'philips.light.downlight',  # miio2miot
     'philips.light.pceil',
