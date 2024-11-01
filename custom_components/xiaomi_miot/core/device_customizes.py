@@ -1398,6 +1398,9 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.airc.r34r00': {
         'sensor_properties': 'power_consumption',
     },
+    'xiaomi.airc.r24r00': {
+        'sensor_properties': 'power_consumption',
+    },
     'xiaomi.airc.*:power_consumption': ENERGY_KWH,
     'xiaomi.aircondition.m9': {
         'exclude_miot_services': 'machine_state,flag_bit,single_smart_scene',
