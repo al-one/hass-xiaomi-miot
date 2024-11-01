@@ -1374,6 +1374,9 @@ DEVICE_CUSTOMIZES = {
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
     },
+    'viomi.waterheater.e1': {
+        'unreadable_properties': True,  # issues/1707
+    },
     'viomi.waterheater.m1': {
         'sensor_properties': 'water_heater.status,water_level,temperature_tips,'
                              'input_water_temp,water_pump_volt,remaining_time',
