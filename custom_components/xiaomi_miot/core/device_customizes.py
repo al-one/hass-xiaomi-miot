@@ -381,6 +381,14 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '11.1',
     },
+    'cuco.plug.v2eur:power_cost_today': {
+        **ENERGY_KWH,
+        'value_ratio': 0.01,
+    },
+    'cuco.plug.v2eur:power_cost_month': {
+        **ENERGY_KWH,
+        'value_ratio': 0.01,
+    },
     'cuco.plug.v3': {
         'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
