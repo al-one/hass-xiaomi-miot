@@ -112,7 +112,9 @@ async def check_miio_device(hass, user_input, errors):
     return user_input
 
 
-class BaseFlowHandler(config_entries.ConfigEntryBaseFlow):
+class BaseFlowHandler:
+    hass = None
+    context = None
     cloud: MiotCloud = None
     devices: Optional[list] = None
 
