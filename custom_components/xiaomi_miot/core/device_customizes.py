@@ -1295,6 +1295,9 @@ DEVICE_CUSTOMIZES = {
         'select_attributes': 'main_state,main_light,night_light,heat,vent,dry,natural_wind,delay_wind',
     },
 
+    'smartj.curtain.sjdt82': {
+        'chunk_properties': 1,
+    },
     'smith.blanket.cxma1': {
         'sensor_properties': 'fault,temperature',
         'select_properties': 'water_level,quilt_dry',
@@ -1954,6 +1957,10 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'temperature,left_time',
         'switch_properties': 'cooker.on',
         'button_actions': 'start_cook,pause,cancel_cooking',
+    },
+    '*.curtain.*': {
+        'switch_properties': 'motor_reverse',
+        'select_properties': 'mode',
     },
     '*.desk.*': {
         'button_properties': 'motor_control,reset',
