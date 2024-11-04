@@ -1493,6 +1493,20 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.4': {'prop': 'curr_tempe'},
         },
     },
+    'viomi.hood.c1': {
+        'chunk_properties': 1,
+        'miio_props': ['run_time', 'link_state', 'stove1_data', 'stove2_data', 'battary_life', 'run_status', 'poweroff_delaytime'],
+        'entity_attrs': ['run_time', 'link_state', 'stove1_data', 'stove2_data', 'battary_life', 'run_status', 'poweroff_delaytime'],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power_state', 'setter': 'set_power', 'set_template': '{{ [2 if value else 0] }}'},
+            'prop.3.1': {'prop': 'wind_state', 'setter': 'set_wind', 'dict': {
+                1:  1, # Low
+                16: 2, # High
+                4:  3, # Stir-fry
+            }},
+            'prop.4.1': {'prop': 'light_state', 'setter': 'set_light', 'set_template': '{{ [value|int] }}'},
+        },
+    },
     'viomi.hood.v1': {
         'chunk_properties': 1,
         'miio_specs': {
