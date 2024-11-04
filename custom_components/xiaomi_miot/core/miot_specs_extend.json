@@ -367,6 +367,28 @@
     }
   ],
 
+  "hfjh.fishbowl.m100": [
+    {
+      "iid": 15,
+      "properties": [
+        {
+          "iid": 2,
+          "value-list": [
+            {"value": 0, "description": "Day"},
+            {"value": 1, "description": "Flow"},
+            {"value": 2, "description": "Water Grass"},
+            {"value": 3, "description": "Color 1"},
+            {"value": 4, "description": "Color 2"},
+            {"value": 5, "description": "Color 3"},
+            {"value": 6, "description": "Color 4"},
+            {"value": 7, "description": "Night Light"},
+            {"value": 8, "description": "Color 5"}
+          ]
+        }
+      ]
+    }
+  ],
+
   "lumi.airer.acn01": [
     {
       "iid": 2,
