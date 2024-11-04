@@ -123,6 +123,9 @@ DEVICE_CUSTOMIZES = {
     'babai.curtain.bb82mj': {
         'chunk_properties': 1,
     },
+    'babai.curtain.lsxf83': {
+        'chunk_properties': 1,
+    },
     'babai.curtain.m515e': {
         'chunk_properties': 1,
     },
