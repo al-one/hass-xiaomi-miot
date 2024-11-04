@@ -560,6 +560,9 @@ DEVICE_CUSTOMIZES = {
     },
     'dmaker.fan.p33': {
         'percentage_property': 'prop.2.6',
+        'select_properties': 'motor_control',
+        'open_texts': 'LEFT',
+        'close_texts': 'RIGHT',
     },
     'dmaker.fan.p45': {
         'percentage_property': 'speed_level',
