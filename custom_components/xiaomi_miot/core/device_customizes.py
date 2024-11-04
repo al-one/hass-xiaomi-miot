@@ -53,6 +53,8 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'radar_switch,count_switch',
         'select_properties': 'map_index,traction',
         'button_actions': 'reboot',
+        'exclude_miot_properties': 'zone_param,target_param,duration_param,time_param,'
+                                   'map_read,map_write,radar_duration',
     },
     'ainice.sensor_occupy.3b:current_occupied': {
         'with_properties': 'has_someone_duration,no_one_duration,total_occupied',
