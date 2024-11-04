@@ -167,7 +167,8 @@ class MiotCloud(micloud.MiCloud):
             rdt = await self.async_request_api(api, dat, method='POST') or {}
             nid = f'xiaomi-miot-auth-warning-{self.user_id}'
             eno = rdt.get('code', 0)
-            if eno != 3:
+            msg = rdt.get('message', '')
+            if not (eno == 3 or msg == 'auth err'):
                 return True
         except requests.exceptions.ConnectionError:
             return None

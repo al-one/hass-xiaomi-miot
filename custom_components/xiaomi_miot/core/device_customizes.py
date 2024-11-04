@@ -53,6 +53,8 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'radar_switch,count_switch',
         'select_properties': 'map_index,traction',
         'button_actions': 'reboot',
+        'exclude_miot_properties': 'zone_param,target_param,duration_param,time_param,'
+                                   'map_read,map_write,radar_duration',
     },
     'ainice.sensor_occupy.3b:current_occupied': {
         'with_properties': 'has_someone_duration,no_one_duration,total_occupied',
@@ -119,6 +121,9 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
     },
     'babai.curtain.bb82mj': {
+        'chunk_properties': 1,
+    },
+    'babai.curtain.lsxf83': {
         'chunk_properties': 1,
     },
     'babai.curtain.m515e': {
@@ -391,6 +396,14 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '11.1',
     },
+    'cuco.plug.v2eur:power_cost_today': {
+        **ENERGY_KWH,
+        'value_ratio': 0.01,
+    },
+    'cuco.plug.v2eur:power_cost_month': {
+        **ENERGY_KWH,
+        'value_ratio': 0.01,
+    },
     'cuco.plug.v3': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '11.1',
@@ -552,6 +565,9 @@ DEVICE_CUSTOMIZES = {
     },
     'dmaker.fan.p33': {
         'percentage_property': 'prop.2.6',
+        'select_properties': 'motor_control',
+        'open_texts': 'LEFT',
+        'close_texts': 'RIGHT',
     },
     'dmaker.fan.p45': {
         'percentage_property': 'speed_level',
@@ -637,6 +653,10 @@ DEVICE_CUSTOMIZES = {
         'auto_position_reverse': True,
         'select_properties': 'speed_control',
     },
+    'giot.bhf_light.v1ibhw': {
+        'switch_properties': 'heating,blow,ventilation,dryer,uv,horizontal_swing,night_light_switch',
+        'exclude_miot_properties': 'custom.status,setting,msga,msgb',
+    },
 
     'hfjh.fishbowl.v1': {
         'light_services': 'light',
@@ -676,6 +696,9 @@ DEVICE_CUSTOMIZES = {
     'hyd.airer.lyjpro': {
         'position_reverse': True,
         'cover_position_mapping': {},
+    },
+    'hyd.airer.znlyj5': {
+        'cover_position_mapping': {0: 50, 1: 0, 2: 100},
     },
     'hyd.airer.*': {
         'switch_properties': 'uv',
@@ -1171,6 +1194,11 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 8,
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:qdhkl-b23:2',
     },
+    'qjiang.acpartner.wb20': {
+        'sensor_properties': 'switch.temperature',
+        'exclude_miot_services': 'air_condition_outlet_matching,matching_action',
+        'exclude_miot_properties': 'fault',
+    },
     'qmi.plug.psv3': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'sensor_properties': 'switch.temperature',
@@ -1286,6 +1314,9 @@ DEVICE_CUSTOMIZES = {
         'select_attributes': 'main_state,main_light,night_light,heat,vent,dry,natural_wind,delay_wind',
     },
 
+    'smartj.curtain.sjdt82': {
+        'chunk_properties': 1,
+    },
     'smith.blanket.cxma1': {
         'sensor_properties': 'fault,temperature',
         'select_properties': 'water_level,quilt_dry',
@@ -1366,6 +1397,9 @@ DEVICE_CUSTOMIZES = {
     'viomi.washer.*': {
         'exclude_miot_services': 'key_press',
     },
+    'viomi.waterheater.e1': {
+        'unreadable_properties': True,  # issues/1707
+    },
     'viomi.waterheater.m1': {
         'sensor_properties': 'water_heater.status,water_level,temperature_tips,'
                              'input_water_temp,water_pump_volt,remaining_time',
@@ -1385,6 +1419,9 @@ DEVICE_CUSTOMIZES = {
     },
 
     'xiaomi.airc.r34r00': {
+        'sensor_properties': 'power_consumption',
+    },
+    'xiaomi.airc.r24r00': {
         'sensor_properties': 'power_consumption',
     },
     'xiaomi.airc.*:power_consumption': ENERGY_KWH,
@@ -1945,6 +1982,10 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'temperature,left_time',
         'switch_properties': 'on,auto_keep_warm',
         'button_actions': 'start_cook,pause,cancel_cooking',
+    },
+    '*.curtain.*': {
+        'switch_properties': 'motor_reverse',
+        'select_properties': 'mode',
     },
     '*.desk.*': {
         'button_properties': 'motor_control,reset',
