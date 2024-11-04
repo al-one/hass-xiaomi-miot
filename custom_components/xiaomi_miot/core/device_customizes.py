@@ -1185,6 +1185,11 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 8,
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:qdhkl-b23:2',
     },
+    'qjiang.acpartner.wb20': {
+        'sensor_properties': 'switch.temperature',
+        'exclude_miot_services': 'air_condition_outlet_matching,matching_action',
+        'exclude_miot_properties': 'fault',
+    },
     'qmi.plug.psv3': {
         'main_miot_services': 'switch-2',
         'sensor_attributes': 'power_cost_today,power_cost_month',
