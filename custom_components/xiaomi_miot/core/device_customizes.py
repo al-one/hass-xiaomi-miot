@@ -649,6 +649,10 @@ DEVICE_CUSTOMIZES = {
         'auto_position_reverse': True,
         'select_properties': 'speed_control',
     },
+    'giot.bhf_light.v1ibhw': {
+        'switch_properties': 'heating,blow,ventilation,dryer,uv,horizontal_swing,night_light_switch',
+        'exclude_miot_properties': 'custom.status,setting,msga,msgb',
+    },
 
     'hfjh.fishbowl.v1': {
         'light_services': 'light',
