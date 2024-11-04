@@ -681,6 +681,9 @@ DEVICE_CUSTOMIZES = {
         'position_reverse': True,
         'cover_position_mapping': {},
     },
+    'hyd.airer.znlyj5': {
+        'cover_position_mapping': {0: 50, 1: 0, 2: 100},
+    },
     'hyd.airer.*': {
         'main_miot_services': 'airer',
         'switch_properties': 'uv',
