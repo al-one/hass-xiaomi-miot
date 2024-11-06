@@ -522,7 +522,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 for v in self.hass.data[DOMAIN].values():
                     if isinstance(v, dict):
                         if mod := v.get('miio_info', {}).get(CONF_MODEL):
-                            models.append(mod)
+                            models[mod] = v
                         v = v.get(CONF_XIAOMI_CLOUD)
                     if isinstance(v, MiotCloud):
                         mic = v
