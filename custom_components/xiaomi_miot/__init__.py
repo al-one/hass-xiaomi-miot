@@ -1121,9 +1121,9 @@ class MiotEntity(MiioEntity):
             check_lan=self.custom_config_bool('check_lan'),
             max_properties=self.custom_config_integer('chunk_properties'),
         )
+        self._available = self.device.available
 
         if not result.is_valid:
-            self._available = False
             if result.errors and is_offline_exception(result.errors):
                 """ Migrated to device """
             elif result.updater == 'local' and self._vars.pop('track_miot_error', None):
@@ -1143,7 +1143,6 @@ class MiotEntity(MiioEntity):
         if self._miio2miot:
             attrs.update(self._miio2miot.entity_attrs())
         attrs['state_updater'] = result.updater
-        self._available = True
         self._state = True if self._state_attrs.get('power') else False
 
         await self.async_update_attrs(attrs, update_subs=True)

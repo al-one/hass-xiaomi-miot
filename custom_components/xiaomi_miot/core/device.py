@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
 from functools import partial, cached_property
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, EntityCategory
+from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
 from homeassistant.components import persistent_notification
 from homeassistant.helpers.event import async_call_later
@@ -212,10 +212,14 @@ class Device(CustomConfigHelper):
     @cached_property
     def app_link(self):
         uid = self.cloud.user_id if self.cloud else ''
+        if not self.did:
+            return ''
         return f'mihome://device?uid={uid}&did={self.did}'
 
     @property
     def conn_mode(self):
+        if not self.entry.get_config(CONF_USERNAME):
+            return 'local'
         return self.entry.get_config(CONF_CONN_MODE) or DEFAULT_CONN_MODE
 
     @property
