@@ -177,6 +177,9 @@ class Device(CustomConfigHelper):
         spec = await self.get_spec()
         if spec and self.local and not self.cloud_only:
             self.miio2miot = Miio2MiotHelper.from_model(self.hass, self.model, spec)
+            mps = self.custom_config_list('miio_properties')
+            if mps and self.miio2miot:
+                self.miio2miot.extend_miio_props(mps)
 
         self._exclude_miot_services = self.custom_config_list('exclude_miot_services', [])
         self._exclude_miot_properties = self.custom_config_list('exclude_miot_properties', [])

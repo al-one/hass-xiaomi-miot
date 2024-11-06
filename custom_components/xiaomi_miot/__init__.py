@@ -1109,12 +1109,6 @@ class MiotEntity(MiioEntity):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
         attrs = {}
-
-        if pls := self.custom_config_list('miio_properties'):
-            self._vars['miio_properties'] = pls
-            if self._miio2miot:
-                self._miio2miot.extend_miio_props(pls)
-
         result = await self.device.update_miot_status(
             use_local=self.custom_config_bool('miot_local'),
             use_cloud=self.custom_config_bool('miot_cloud'),
@@ -1140,19 +1134,13 @@ class MiotEntity(MiioEntity):
                 )
             return False
 
-        attrs.update(result.to_attributes(self._state_attrs, self._miot_mapping))
-        if self._miio2miot:
-            attrs.update(self._miio2miot.entity_attrs())
-        attrs['state_updater'] = result.updater
-        self._state = True if self._state_attrs.get('power') else False
-
-        await self.async_update_attrs(attrs, update_subs=True)
         if self.is_main_entity:
+            attrs.update(self.device.props)
+            attrs['state_updater'] = result.updater
             await self.async_update_for_main_entity()
-        if self._subs:
-            await self.async_update_attrs({
-                'sub_entities': list(self._subs.keys()),
-            }, update_subs=False)
+        else:
+            attrs.update(result.to_attributes(self._state_attrs, self._miot_mapping))
+        await self.async_update_attrs(attrs, update_subs=True)
         self.logger.debug('%s: Got new state: %s', self.name_model, attrs)
 
     async def async_update_for_main_entity(self):
