@@ -55,7 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class NumberEntity(XEntity, RestoreNumber):
-    _attr_mode = NumberMode.BOX
+    _attr_mode = NumberMode.AUTO
 
     def on_init(self):
         if self._miot_property:
