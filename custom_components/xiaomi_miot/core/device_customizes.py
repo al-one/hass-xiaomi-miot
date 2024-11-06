@@ -1603,6 +1603,13 @@ DEVICE_CUSTOMIZES = {
                           'reset_mop_life,reset_brush_life,reset_filter_life,reset_detergent_management_level,'
                           'reset_dust_bag_life',
         'select_actions': 'remote_control',
+        'configuration_entities': 'ai_cleaning,ai_managed_cleaning,use_detergent,defecation_detection,cut_hair_config,'
+                                  'solid_dirt_detection,floor_material_detection,room_detection,liquid_dirt_detection,'
+                                  'mop_auto_lift,carpet_boost,carpet_avoidance,carpet_cleaning_method,object_detection,'
+                                  'dirt_detection,sweep_ai_detection,hot_water_mop_wash,physical_control_locked,volume,'
+                                  'auto_water_change,auto_mop_dry,auto_dust_arrest,dust_arrest_frequency,'
+                                  'vacuum.detergent_self_delivery,detergent_self_delivery_level',
+        'diagnostic_entities': 'voltage,water_check_status',
     },
     'xiaomi.watch.*': {
         'sensor_properties': 'current_step_count,current_distance',

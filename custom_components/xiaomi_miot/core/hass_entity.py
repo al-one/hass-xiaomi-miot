@@ -108,7 +108,22 @@ class XEntity(BasicEntity):
 
         cate = self.custom_config('entity_category') or conv.option.get('entity_category')
         if isinstance(cate, str):
+            cate = EntityCategory(cate) if cate in EntityCategory else None
+        if cate:
             self._attr_entity_category = EntityCategory(cate) if cate in EntityCategory else None
+        elif not cate:
+            cats = {
+                'configuration_entities': EntityCategory.CONFIG,
+                'diagnostic_entities': EntityCategory.DIAGNOSTIC,
+            }
+            for k, v in cats.items():
+                names = self.custom_config_list(k) or []
+                if self._miot_property and self._miot_property.in_list(names):
+                    self._attr_entity_category = v
+                    break
+                if self._miot_action and self._miot_action.in_list(names):
+                    self._attr_entity_category = v
+                    break
 
         self.on_init()
         self.device.add_listener(self.on_device_update)
