@@ -16,6 +16,8 @@ def get_manifest(field=None, default=None):
         manifest = json.load(fil) or {}
     return manifest.get(field, default) if field else manifest
 
+async def async_get_manifest(hass: HomeAssistant, field=None, default=None):
+    return await hass.async_add_executor_job(get_manifest, field, default)
 
 def local_zone(hass=None):
     try:
@@ -93,7 +95,7 @@ async def async_analytics_track_event(hass: HomeAssistant, event, action, label,
         'value': value,
         'locale': locale.getdefaultlocale()[0],
         'tz': hass.config.time_zone,
-        'ver': get_manifest('version', ''),
+        'ver': await async_get_manifest(hass, 'version', ''),
         **kwargs,
     }
     url = 'https://hacc.miot-spec.com/api/track'
