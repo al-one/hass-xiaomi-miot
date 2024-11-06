@@ -12,7 +12,6 @@ from functools import partial
 from urllib.parse import urlencode, urlparse, parse_qsl
 
 from homeassistant.const import (
-    ATTR_ATTRIBUTION,
     ATTR_FRIENDLY_NAME,
     CONF_HOST,
 )

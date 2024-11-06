@@ -24,7 +24,7 @@ from .hass_entry import HassEntry
 from .hass_entity import XEntity, convert_unique_id
 from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv, AttrConv
 from .coordinator import DataCoordinator
-from .miot_spec import MiotSpec, MiotService, MiotProperty, MiotResults, MiotResult
+from .miot_spec import MiotSpec, MiotProperty, MiotResults, MiotResult
 from .miio2miot import Miio2MiotHelper
 from .xiaomi_cloud import MiotCloud, MiCloudException
 from .utils import (

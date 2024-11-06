@@ -10,7 +10,6 @@ from homeassistant.helpers.event import async_call_later
 
 from . import (
     DOMAIN,
-    CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     XEntity,
@@ -21,7 +20,6 @@ from . import (
     bind_services_to_entries,
 )
 from .core.miot_spec import (
-    MiotSpec,
     MiotService,
     MiotProperty,
 )

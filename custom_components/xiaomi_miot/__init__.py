@@ -28,7 +28,6 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.entity import ToggleEntity, EntityCategory
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.components import persistent_notification
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.reload import async_integration_yaml_config
@@ -49,7 +48,6 @@ from .core.device import (
     DeviceException,
 )
 from .core.miot_spec import (
-    MiotSpec,
     MiotService,
     MiotProperty,
     MiotAction,

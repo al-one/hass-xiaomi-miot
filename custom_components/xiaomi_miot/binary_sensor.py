@@ -24,15 +24,12 @@ from . import (
     HassEntry,
     XEntity,
     MiotToggleEntity,
-    MiotPropertySubEntity,
-    ToggleSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
-    MiotProperty,
 )
 from .core.xiaomi_cloud import MiotCloud
 from .core.utils import local_zone
