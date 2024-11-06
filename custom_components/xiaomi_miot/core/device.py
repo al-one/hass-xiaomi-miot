@@ -412,7 +412,9 @@ class Device(CustomConfigHelper):
         if self.miot_entity:
             return
 
-        interval = self.custom_config_integer('interval_seconds') or 30
+        interval = 30
+        interval = self.entry.get_config('scan_interval') or interval
+        interval = self.custom_config_integer('interval_seconds') or interval
         lst = [
             DataCoordinator(self, self.update_miot_status, update_interval=timedelta(seconds=interval)),
         ]
@@ -933,7 +935,7 @@ class Device(CustomConfigHelper):
                 'limit': int(c.get('limit') or 1),
             }
             rdt = await self.cloud.async_request_api('v2/user/statistics', pms) or {}
-            self.log.debug('Got micloud statistics: %s', rdt)
+            self.log.info('Got micloud statistics: %s', rdt)
             if tpl := c.get('template'):
                 tpl = template(tpl, self.hass)
                 rls = tpl.async_render(rdt)

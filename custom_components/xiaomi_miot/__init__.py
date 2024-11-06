@@ -737,7 +737,6 @@ class MiioEntity(BaseEntity):
         self._config = dict(kwargs.get('config') or {})
         self.logger = kwargs.get('logger') or _LOGGER
         self.device = self._config.get(CONF_DEVICE)
-        self.device.miot_entity = self # TODO
         self.hass = self.device.hass
         self._miio_info = self.device.info.miio_info
         self._unique_did = self.unique_did
@@ -760,6 +759,9 @@ class MiioEntity(BaseEntity):
         self._add_entities = {}
         self._vars = {}
         self._subs = {}
+
+        self._vars['is_main_entity'] = not self.device.miot_entity
+        self.device.miot_entity = self # TODO
 
     @property
     def unique_id(self):
@@ -988,7 +990,6 @@ class MiotEntity(MiioEntity):
                     excludes=eps,
                     unreadable_properties=urp,
                 ) or {}
-                self._vars['is_main_entity'] = True
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self.entity_id = self._miot_service.generate_entity_id(self)
             self._state_attrs['miot_type'] = self._miot_service.spec.type
@@ -1160,6 +1161,17 @@ class MiotEntity(MiioEntity):
                 pls = self.custom_config_list(f'{d}_services') or []
                 if pls:
                     self._update_sub_entities(None, pls, domain=d)
+
+        # update miio prop/event in cloud
+        if attrs := await self.device.update_miio_cloud_records():
+            await self.async_update_attrs(attrs)
+
+        if attrs := await self.device.update_miio_cloud_props():
+            await self.async_update_attrs(attrs)
+
+        # update micloud statistics in cloud
+        if attrs := await self.device.update_cloud_statistics():
+            await self.async_update_attrs(attrs)
 
         # update miio properties in lan
         if pls := self._vars.get('miio_properties', []):
