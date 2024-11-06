@@ -865,8 +865,8 @@ DEVICE_CUSTOMIZES = {
     'lumi.acpartner.mcn04': {
         'auto_cloud': True,
         'chunk_properties': 7,
-        'switch_properties': 'quick_cool_enable,indicator_light',
-        'select_properties': 'ac_mode',
+        'switch_properties': 'on,quick_cool_enable,indicator_light',
+        'select_properties': 'fan_level,ac_mode',
         'miio_cloud_props': [],
         'stat_power_cost_type': 'stat_day_v3',
         'stat_power_cost_key': '7.1,7.3',
@@ -891,6 +891,7 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.acpartner.*': {
         'sensor_attributes': 'electric_power,power_cost_today,power_cost_month',
+        'select_properties': 'fan_level',
         'miio_cloud_props': 'ac_power,load_power',
         'miio_cloud_props_template': 'lumi_acpartner_electric_power',
         'stat_power_cost_type': 'stat_day',
@@ -1447,6 +1448,8 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'enhance.timer,humidity_range,filter_core_rest,sleep_diy_sign',
     },
     'xiaomi.aircondition.mt6': {
+        'select_properties': 'fan_level,horizontal_angle,vertical_angle',
+        'number_properties': 'target_humidity,fan_percent',
         'exclude_miot_services': 'iot_linkage,machine_state,screen_show',
         'exclude_miot_properties': 'enhance.timer,humidity_range,filter_core_rest,sleep_diy_sign',
     },
@@ -1938,7 +1941,10 @@ DEVICE_CUSTOMIZES = {
 
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
-        'switch_properties': 'air_conditioner.on,alarm.alarm,heater',
+        'switch_properties': 'air_conditioner.on,uv,heater,eco,dryer,sleep_mode,soft_wind,'
+                             'horizontal_swing,vertical_swing,alarm.alarm',
+        'select_properties': 'fan_level',
+        'number_properties': 'target_humidity',
         'fan_services': 'air_fresh',
     },
     '*.airer.*': {
