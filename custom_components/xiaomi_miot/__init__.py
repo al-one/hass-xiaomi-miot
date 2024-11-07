@@ -975,13 +975,9 @@ class MiotEntity(MiioEntity):
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         if self._miot_service:
             if not self._miot_mapping:
-                if ems := self.custom_config_list('exclude_miot_services') or []:
-                    self._state_attrs['exclude_miot_services'] = ems
-                if eps := self.custom_config_list('exclude_miot_properties') or []:
-                    self._state_attrs['exclude_miot_properties'] = eps
                 urp = self.custom_config_bool('unreadable_properties')
                 self._miot_mapping = miot_service.mapping(
-                    excludes=eps,
+                    excludes=self.custom_config_list('exclude_miot_properties') or [],
                     unreadable_properties=urp,
                 ) or {}
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
