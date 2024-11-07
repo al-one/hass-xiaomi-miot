@@ -412,15 +412,14 @@ class Device(CustomConfigHelper):
                 self.add_converter(AttrConv(attr, d))
 
     async def init_coordinators(self, _):
-        if self.miot_entity:
-            return
-
         interval = 30
         interval = self.entry.get_config('scan_interval') or interval
         interval = self.custom_config_integer('interval_seconds') or interval
-        lst = [
-            DataCoordinator(self, self.update_miot_status, update_interval=timedelta(seconds=interval)),
-        ]
+        lst = []
+        if not self.miot_entity:
+            lst.append(
+                DataCoordinator(self, self.update_miot_status, update_interval=timedelta(seconds=interval)),
+            )
         if self.cloud_statistics_commands:
             lst.append(
                 DataCoordinator(self, self.update_cloud_statistics, update_interval=timedelta(seconds=interval*20)),

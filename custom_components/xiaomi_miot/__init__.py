@@ -1150,17 +1150,6 @@ class MiotEntity(MiioEntity):
                 if pls:
                     self._update_sub_entities(None, pls, domain=d)
 
-        # update miio prop/event in cloud
-        if attrs := await self.device.update_miio_cloud_records():
-            await self.async_update_attrs(attrs)
-
-        if attrs := await self.device.update_miio_cloud_props():
-            await self.async_update_attrs(attrs)
-
-        # update micloud statistics in cloud
-        if attrs := await self.device.update_cloud_statistics():
-            await self.async_update_attrs(attrs)
-
         # update miio properties in lan
         if pls := self._vars.get('miio_properties', []):
             await self.async_update_miio_props(pls)
