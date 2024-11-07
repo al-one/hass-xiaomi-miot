@@ -432,9 +432,17 @@ class Device(CustomConfigHelper):
             lst.append(
                 DataCoordinator(self, self.update_miio_cloud_props, update_interval=timedelta(seconds=interval*2)),
             )
+        if self.custom_miio_properties:
+            lst.append(
+                DataCoordinator(self, self.update_miio_props, update_interval=timedelta(seconds=interval)),
+            )
+        if self.custom_miio_commands:
+            lst.append(
+                DataCoordinator(self, self.update_miio_commands, update_interval=timedelta(seconds=interval)),
+            )
+        self.coordinators.extend(lst)
         for coo in lst:
             await coo.async_config_entry_first_refresh()
-        self.coordinators.extend(lst)
 
     async def update_status(self):
         for coo in self.coordinators:
@@ -444,8 +452,8 @@ class Device(CustomConfigHelper):
         for conv in self.converters:
             if conv.domain != domain:
                 continue
-            key = convert_unique_id(conv)
-            entity = self.entities.get(key)
+            unique = convert_unique_id(conv)
+            entity = self.entities.get(unique)
             if entity:
                 continue
             cls = XEntity.CLS.get(domain)
@@ -456,17 +464,22 @@ class Device(CustomConfigHelper):
                 self.log.warning('Entity class/adder not found: %s', [domain, conv.attr, cls, adder])
                 continue
             entity = cls(self, conv)
-            self.add_entity(entity)
+            self.add_entity(entity, unique)
             adder([entity], update_before_add=False)
             self.log.info('New entity: %s', entity)
 
         if domain == 'button':
             self.dispatch_info()
-            async_call_later(self.hass, 0.1, self.init_coordinators)
+            if not self.coordinators:
+                async_call_later(self.hass, 0.1, self.init_coordinators)
 
-    def add_entity(self, entity: 'BasicEntity'):
-        if entity not in self.entities:
-            self.entities[entity.unique_id] = entity
+    def add_entity(self, entity: 'BasicEntity', unique=None):
+        if unique == None:
+            unique = entity.unique_id
+        if unique in self.entities:
+            return None
+        self.entities[unique] = entity
+        return entity
 
     def add_listener(self, handler: Callable):
         if handler not in self.listeners:
@@ -1040,6 +1053,69 @@ class Device(CustomConfigHelper):
             self.data['updated'] = dt.now()
             self.dispatch(self.decode_attrs(attrs))
         return attrs
+
+    @cached_property
+    def custom_miio_properties(self):
+        return self.custom_config_list('miio_properties') or []
+
+    async def update_miio_props(self, props=None):
+        if not self.local:
+            return
+        if props == None:
+            props = self.custom_miio_properties
+        if self.miio2miot:
+            attrs = self.miio2miot.only_miio_props(props)
+        else:
+            try:
+                num = self.custom_config_integer('chunk_properties') or 15
+                attrs = await self.hass.async_add_executor_job(
+                    partial(self.local.get_properties, props, max_properties=num)
+                )
+            except DeviceException as exc:
+                self.log.warning('%s: Got miio properties %s failed: %s', self.name_model, props, exc)
+                return
+            if len(props) != len(attrs):
+                self.props.update({
+                    'miio.props': attrs,
+                })
+                return
+        attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
+        self.props.update(attrs)
+        self.log.info('%s: Got miio properties: %s', self.name_model, attrs)
+
+    @cached_property
+    def custom_miio_commands(self):
+        return self.custom_config_json('miio_commands') or {}
+
+    async def update_miio_commands(self, commands=None):
+        if not self.local:
+            return
+        if commands == None:
+            commands = self.custom_miio_commands
+        if isinstance(commands, dict):
+            commands = [
+                {'method': cmd, **(cfg if isinstance(cfg, dict) else {'values': cfg})}
+                for cmd, cfg in commands.items()
+            ]
+        elif not isinstance(commands, list):
+            commands = []
+        for cfg in commands:
+            cmd = cfg.get('method')
+            pms = cfg.get('params') or []
+            try:
+                attrs = await self.local.async_send(cmd, pms)
+            except DeviceException as exc:
+                self.log.warning('%s: Send miio command %s(%s) failed: %s', self.name_model, cmd, cfg, exc)
+                continue
+            props = cfg.get('values', pms) or []
+            if len(props) != len(attrs):
+                attrs = {
+                    f'miio.{cmd}': attrs,
+                }
+            else:
+                attrs = dict(zip(props, attrs))
+            self.props.update(attrs)
+            self.log.info('%s: Got miio properties: %s', self.name_model, attrs)
 
 
 class MiotDevice(MiotDeviceBase):

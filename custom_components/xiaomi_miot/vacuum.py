@@ -288,12 +288,13 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
             adt['clean_time'] = round(props['clean_time'] / 60, 1)
         if adt:
             await self.async_update_attrs(adt)
+            await self.device.dispatch(self.device.encode({'props': props}))
 
     async def get_room_mapping(self):
         if not self.miot_device:
             return None
         try:
-            rooms = self.miot_device.send('get_room_mapping')
+            rooms = await self.miot_device.async_send('get_room_mapping')
             if rooms and rooms != 'unknown_method':
                 homes = await self.xiaomi_cloud.async_get_homerooms() if self.xiaomi_cloud else []
                 cloud_rooms = {}

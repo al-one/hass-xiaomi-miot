@@ -1150,14 +1150,6 @@ class MiotEntity(MiioEntity):
                 if pls:
                     self._update_sub_entities(None, pls, domain=d)
 
-        # update miio properties in lan
-        if pls := self._vars.get('miio_properties', []):
-            await self.async_update_miio_props(pls)
-
-        # update miio commands in lan
-        if cls := self.custom_config_json('miio_commands'):
-            await self.async_update_miio_commands(cls)
-
     async def async_update_miio_props(self, props):
         if not self.miot_device:
             return
