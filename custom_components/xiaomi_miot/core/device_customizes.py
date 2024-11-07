@@ -857,6 +857,7 @@ DEVICE_CUSTOMIZES = {
         'light_services': 'vd_light_a,vd_light_b,vd_light_c',
     },
     'lumi.acpartner.mcn02': {
+        'sensor_attributes': 'power_cost_today,power_cost_month',
         'miio_cloud_props': [],
     },
     'lumi.acpartner.mcn02:electric_power': {
@@ -870,7 +871,7 @@ DEVICE_CUSTOMIZES = {
         'miio_cloud_props': [],
         'stat_power_cost_type': 'stat_day_v3',
         'stat_power_cost_key': '7.1,7.3',
-        'sensor_attributes': 'power_cost_today,power_cost_month,power_cost_today_2,power_cost_month_2'
+        'sensor_attributes': 'power_cost_today,power_cost_month,power_cost_today_2,power_cost_month_2',
     },
     'lumi.acpartner.mcn04:power_consumption': ENERGY_KWH,
     'lumi.acpartner.mcn04:power_cost_today': {
