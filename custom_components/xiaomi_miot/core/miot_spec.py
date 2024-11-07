@@ -118,7 +118,7 @@ class MiotSpecInstance:
             dic = {**dic, **d}
         return dic
 
-    def get_translation(self, des, viid=None):
+    def get_translation(self, des, viid=None, spec=True):
         dls = [
             des.lower(),
             des,
@@ -137,7 +137,7 @@ class MiotSpecInstance:
             return ret
 
         fun = getattr(self, 'get_spec_translation', None)
-        ret = fun(viid=viid) if fun else None
+        ret = fun(viid=viid) if fun and spec else None
         if ret:
             return ret
         return des
@@ -643,7 +643,6 @@ class MiotProperty(MiotSpecInstance):
         self.unique_prop = self.service.unique_prop(piid=self.iid)
         self.desc_name = self.format_desc_name(self.description, self.name)
         self.friendly_name = f'{service.name}.{self.name}'
-        self.friendly_desc = self.short_desc
         self.format = dat.get('format') or ''
         self.access = dat.get('access') or []
         self.unit = dat.get('unit') or ''
@@ -674,6 +673,7 @@ class MiotProperty(MiotSpecInstance):
                 'siid': self.siid,
                 'piid': self.iid,
             }
+        self.friendly_desc = self.short_desc
 
     def in_list(self, lst):
         return self.name in lst \
@@ -685,17 +685,28 @@ class MiotProperty(MiotSpecInstance):
 
     @property
     def short_desc(self):
-        sde = (self.service.description or self.service.name).strip()
-        pde = (self.description or self.name).strip()
-        des = pde
-        if sde != pde:
-            des = f'{sde} {pde}'.strip()
-        ret = self.get_translation(des)
-        if ret != des:
-            return ret
-        ret = self.get_translation(pde)
-        if ret != pde:
-            return f'{sde} {ret}'.strip()
+        serv = self.service
+        sde = ''
+        if self.in_list(['on', 'switch']):
+            sde = serv.get_spec_translation() or ''
+        pde = self.get_spec_translation() or ''
+        if sde and pde:
+            pde = pde.replace(sde, '')
+        des = f'{sde} {pde}'.strip()
+        if not des:
+            sde = (serv.description or serv.name).strip()
+            pde = (self.description or self.name).strip()
+            if sde == pde:
+                des = pde
+            else:
+                des = f'{sde} {pde}'.strip()
+            ret = self.get_translation(des, spec=False)
+            if ret != des:
+                return ret
+            sde = serv.get_translation(sde, spec=False)
+            pde = self.get_translation(pde, spec=False)
+            if sde != pde:
+                return f'{sde} {pde}'.strip()
         arr = des.split(' ')
         return ' '.join(dict(zip(arr, arr)).keys())
 

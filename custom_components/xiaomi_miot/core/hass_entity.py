@@ -99,6 +99,8 @@ class XEntity(BasicEntity):
                 self._attr_available = True
 
         self.listen_attrs = {self.attr} | set(conv.attrs)
+        if getattr(self, '_attr_name', None):
+            self._attr_name = self._attr_name.replace(device.name, '').strip()
         self._attr_unique_id = f'{device.unique_id}-{convert_unique_id(conv)}'
         self._attr_device_info = self.device.hass_device_info
         self._attr_extra_state_attributes = {}

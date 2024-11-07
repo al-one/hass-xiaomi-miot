@@ -745,13 +745,7 @@ class MiioEntity(BaseEntity):
         self._model = self.device.info.model
         self._state = None
         self._available = False
-        self._state_attrs = {
-            CONF_MODEL: self.model,
-            'lan_ip': self.device.info.host,
-            'mac_address': self.device.info.mac,
-            'home_room': self.device.info.home_room,
-            'entity_class': self.__class__.__name__,
-        }
+        self._state_attrs = {}
         self._attr_device_info = self.device.hass_device_info
         self._supported_features = 0
         self._props = ['power']
@@ -992,7 +986,6 @@ class MiotEntity(MiioEntity):
                 ) or {}
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self.entity_id = self._miot_service.generate_entity_id(self)
-            self._state_attrs['miot_type'] = self._miot_service.spec.type
             self._attr_translation_key = self._miot_service.name
         if not self.entity_id and self.model:
             mls = f'{self.model}..'.split('.')
