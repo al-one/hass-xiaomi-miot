@@ -1,5 +1,10 @@
 from typing import TYPE_CHECKING, Any
 from dataclasses import dataclass
+from homeassistant.util import color
+from miio.utils import (
+    rgb_to_int,
+    int_to_rgb,
+)
 
 if TYPE_CHECKING:
     from .device import Device
@@ -175,3 +180,50 @@ class MiotSwitchConv(MiotServiceConv):
 @dataclass
 class MiotLightConv(MiotSwitchConv):
     domain: str = 'light'
+
+@dataclass
+class MiotBrightnessConv(MiotPropConv):
+    def decode(self, device: 'Device', payload: dict, value: int):
+        max = self.prop.range_max()
+        super().encode(device, payload, value / max * 255.0)
+
+    def encode(self, device: 'Device', payload: dict, value: float):
+        max = self.prop.range_max()
+        value = round(value / 255.0 * max)
+        super().encode(device, payload, int(value))
+
+@dataclass
+class MiotColorTempConv(MiotPropConv):
+    def decode(self, device: 'Device', payload: dict, value: int):
+        if self.prop.unit not in ['kelvin']:
+            value = round(1000000.0 / value)
+        super().decode(device, payload, value)
+
+    def encode(self, device: 'Device', payload: dict, value: int):
+        if self.prop.unit not in ['kelvin']:
+            value = round(1000000.0 / value)
+        if value < self.prop.range_min():
+            value = self.prop.range_min()
+        if value > self.prop.range_max():
+            value = self.prop.range_max()
+        super().encode(device, payload, value)
+
+@dataclass
+class MiotRgbColorConv(MiotPropConv):
+    def decode(self, device: 'Device', payload: dict, value: int):
+        super().decode(device, payload, int_to_rgb(value))
+
+    def encode(self, device: 'Device', payload: dict, value: tuple[int, int, int]):
+        super().encode(device, payload, rgb_to_int(value))
+
+@dataclass
+class MiotHsColorConv(MiotPropConv):
+    def decode(self, device: 'Device', payload: dict, value: int):
+        rgb = int_to_rgb(value)
+        hsc = color.color_RGB_to_hs(*rgb)
+        super().decode(device, payload, hsc)
+
+    def encode(self, device: 'Device', payload: dict, value: tuple):
+        rgb = color.color_hs_to_RGB(*value)
+        num = rgb_to_int(rgb)
+        super().encode(device, payload, num)

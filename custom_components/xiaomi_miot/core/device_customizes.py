@@ -2248,15 +2248,35 @@ GLOBAL_CONVERTERS = [
     },
     {
         'class': MiotLightConv,
+        'services': ['light'],
+        'converters' : [
+            {'props': ['brightness'], 'class': MiotBrightnessConv},
+            {'props': ['color_temperature', 'color_temp'], 'class': MiotColorTempConv},
+            {'props': ['color'], 'class': MiotRgbColorConv},
+            {'props': ['mode'], 'desc': True},
+        ],
+    },
+    {
+        'class': MiotLightConv,
         'services': ['night_light', 'ambient_light', 'plant_light', 'light_bath_heater'],
+        'converters' : [
+            {'props': ['brightness'], 'class': MiotBrightnessConv},
+            {'props': ['color_temperature', 'color_temp'], 'class': MiotColorTempConv},
+            {'props': ['color'], 'class': MiotRgbColorConv},
+            {'props': ['mode'], 'desc': True},
+        ],
     },
     {
         'class': MiotLightConv,
         'services': ['indicator_light'],
         'kwargs': {
-            'main_props': ['on', 'switch'],
+            'main_props': ['on', 'switch', 'brightness'],
             'option': {'entity_category': 'config'},
         },
+        'converters' : [
+            {'props': ['brightness'], 'class': MiotBrightnessConv},
+            {'props': ['mode'], 'desc': True},
+        ],
     },
     {
         'services': ['physical_control_locked', 'physical_controls_locked'],
