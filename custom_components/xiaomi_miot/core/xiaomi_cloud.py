@@ -302,14 +302,15 @@ class MiotCloud(micloud.MiCloud):
         return None
 
     async def get_all_devices(self, homes=None):
-        dvs = []
+        devices = {
+            d['did']: d
+            for d in await self.get_device_list() or []
+        }
         if not isinstance(homes, list):
             return await self.get_device_list() or []
         for home in homes:
             hid = int(home.get('id', 0))
             uid = int(home.get('uid', 0))
-            if not hid or uid == self.user_id:
-                continue
             start_did = ''
             has_more = True
             while has_more:
@@ -324,10 +325,12 @@ class MiotCloud(micloud.MiCloud):
                     'get_third_device': True,
                 }, debug=False, timeout=20) or {}
                 rdt = rdt.get('result') or {}
-                dvs.extend(rdt.get('device_info') or {})
+                for d in rdt.get('device_info') or []:
+                    did = d.get('did')
+                    devices.setdefault(did, {}).update(d)
                 start_did = rdt.get('max_did') or ''
                 has_more = rdt.get('has_more') and start_did
-        return dvs
+        return list(devices.values())
 
     async def get_home_devices(self):
         rdt = await self.async_request_api('v2/homeroom/gethome_merged', {
