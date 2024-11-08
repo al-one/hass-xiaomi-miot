@@ -1970,6 +1970,8 @@ DEVICE_CUSTOMIZES = {
     },
     '*.bhf_light.*': {
         'sensor_properties': 'temperature',
+        'switch_properties': 'heating,blow,ventilation,dryer',
+        'select_properties': 'mode',
         'number_properties': 'target_temperature,off_delay_time',
     },
     '*.blanket.*': {
