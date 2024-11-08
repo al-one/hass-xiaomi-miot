@@ -770,9 +770,7 @@ class MiioEntity(BaseEntity):
 
     @property
     def unique_did(self):
-        did = self.device.info.unique_id
-        eid = self._config.get('entry_id')
-        return f'{did}-{eid}'
+        return self.device.unique_id
 
     @property
     def name(self):

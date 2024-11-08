@@ -81,7 +81,7 @@ class DeviceInfo:
 
     @cached_property
     def mac(self):
-        return self.data.get('mac') or ''
+        return self.data.get('mac') or self.miio_info.mac_address or ''
 
     @property
     def host(self):
@@ -210,7 +210,7 @@ class Device(CustomConfigHelper):
 
     @cached_property
     def unique_id(self):
-        return f'{self.info.unique_id}-{self.entry.entry_id}'
+        return f'{self.info.unique_id}-{self.entry.id}'
 
     @cached_property
     def app_link(self):

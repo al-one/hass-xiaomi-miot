@@ -18,6 +18,7 @@ class HassEntry:
     cloud: MiotCloud = None
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry):
+        self.id = entry.entry_id
         self.hass = hass
         self.entry = entry
         self.adders: dict[str, AddEntitiesCallback] = {}
