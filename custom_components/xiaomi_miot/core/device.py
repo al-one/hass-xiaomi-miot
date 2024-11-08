@@ -103,7 +103,7 @@ class DeviceInfo:
 
     @property
     def urn(self):
-        return self.data.get('urn') or ''
+        return self.data.get('urn') or self.data.get('spec_type') or ''
 
     @property
     def extra(self):
