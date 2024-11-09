@@ -185,22 +185,28 @@ class MiotLightConv(MiotSwitchConv):
 class MiotBrightnessConv(MiotPropConv):
     def decode(self, device: 'Device', payload: dict, value: int):
         max = self.prop.range_max()
-        super().encode(device, payload, value / max * 255.0)
+        if max != None:
+            super().encode(device, payload, value / max * 255.0)
 
     def encode(self, device: 'Device', payload: dict, value: float):
         max = self.prop.range_max()
-        value = round(value / 255.0 * max)
-        super().encode(device, payload, int(value))
+        if max != None:
+            value = round(value / 255.0 * max)
+            super().encode(device, payload, int(value))
 
 @dataclass
 class MiotColorTempConv(MiotPropConv):
     def decode(self, device: 'Device', payload: dict, value: int):
         if self.prop.unit not in ['kelvin']:
+            if not value:
+                return
             value = round(1000000.0 / value)
         super().decode(device, payload, value)
 
     def encode(self, device: 'Device', payload: dict, value: int):
         if self.prop.unit not in ['kelvin']:
+            if not value:
+                return
             value = round(1000000.0 / value)
         if value < self.prop.range_min():
             value = self.prop.range_min()
