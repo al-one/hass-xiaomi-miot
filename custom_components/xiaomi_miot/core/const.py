@@ -82,3 +82,21 @@ try:
     from homeassistant.core_config import DATA_CUSTOMIZE
 except (ModuleNotFoundError, ImportError):
     from homeassistant.helpers.entity import DATA_CUSTOMIZE
+
+try:
+    # hass 2024.11
+    from homeassistant.components.alarm_control_panel import AlarmControlPanelState
+except (ModuleNotFoundError, ImportError):
+    class AlarmControlPanelState(StrEnum):
+        """Alarm control panel entity states."""
+
+        DISARMED = "disarmed"
+        ARMED_HOME = "armed_home"
+        ARMED_AWAY = "armed_away"
+        ARMED_NIGHT = "armed_night"
+        ARMED_VACATION = "armed_vacation"
+        ARMED_CUSTOM_BYPASS = "armed_custom_bypass"
+        PENDING = "pending"
+        ARMING = "arming"
+        DISARMING = "disarming"
+        TRIGGERED = "triggered"
