@@ -165,16 +165,16 @@ class MiotCloud(micloud.MiCloud):
         }
         try:
             rdt = await self.async_request_api(api, dat, method='POST') or {}
-            nid = f'xiaomi-miot-auth-warning-{self.user_id}'
             eno = rdt.get('code', 0)
             msg = rdt.get('message', '')
-            if not (eno == 3 or msg == 'auth err'):
+            if not (eno in [2, 3] or 'auth err' in msg):
                 return True
         except requests.exceptions.ConnectionError:
             return None
         except requests.exceptions.Timeout:
             return None
         # auth err
+        nid = f'xiaomi-miot-auth-warning-{self.user_id}'
         if await self.async_relogin():
             persistent_notification.dismiss(self.hass, nid)
             return True
@@ -437,7 +437,7 @@ class MiotCloud(micloud.MiCloud):
         return dat.get('homes') or []
 
     async def async_get_beaconkey(self, did):
-        dat = {'did': did or self.miot_did, 'pdid': 1}
+        dat = {'did': did, 'pdid': 1}
         rdt = await self.async_request_api('v2/device/blt_get_beaconkey', dat) or {}
         return rdt.get('result')
 
@@ -472,6 +472,7 @@ class MiotCloud(micloud.MiCloud):
 
     def _logout(self):
         self.service_token = None
+        self.async_session = None
 
     def _login_request(self, captcha=None):
         self._init_session(True)
@@ -569,6 +570,7 @@ class MiotCloud(micloud.MiCloud):
         service_token = response.cookies.get('serviceToken')
         if service_token:
             self.service_token = service_token
+            self.async_session = None
         else:
             err = {
                 'location': location,
