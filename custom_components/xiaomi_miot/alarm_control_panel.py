@@ -1,13 +1,6 @@
 """Support alarm_control_panel entity for Xiaomi Miot."""
 import logging
 
-from homeassistant.const import (
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_ARMED_NIGHT,
-    STATE_ALARM_DISARMED,
-    STATE_ALARM_TRIGGERED,
-)
 from homeassistant.components.alarm_control_panel import (
     DOMAIN as ENTITY_DOMAIN,
     AlarmControlPanelEntity,
@@ -89,17 +82,17 @@ class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
             if des is not None:
                 des = f'{des}'.lower()
                 if 'basic' in des:
-                    self._attr_state = STATE_ALARM_DISARMED
+                    self._attr_state = AlarmControlPanelState.DISARMED
                 elif 'home' in des:
-                    self._attr_state = STATE_ALARM_ARMED_HOME
+                    self._attr_state = AlarmControlPanelState.ARMED_HOME
                 elif 'away' in des:
-                    self._attr_state = STATE_ALARM_ARMED_AWAY
+                    self._attr_state = AlarmControlPanelState.ARMED_AWAY
                 elif 'sleep' in des:
-                    self._attr_state = STATE_ALARM_ARMED_NIGHT
+                    self._attr_state = AlarmControlPanelState.ARMED_NIGHT
         if self._is_mgl03:
             val = self._state_attrs.get('arming.alarm')
             if val:
-                self._attr_state = STATE_ALARM_TRIGGERED
+                self._attr_state = AlarmControlPanelState.TRIGGERED
         return self._attr_state
 
     def set_arm_mode(self, mode):
