@@ -110,7 +110,7 @@ DEVICE_CUSTOMIZES = {
     },
     'aupu.bhf_light.s368m': {
         'ignore_fan_switch': True,
-        'switch_properties': 'fan_control.on,onoff.on',
+        'switch_properties': 'fan_control.on,onoff.on,blow,ventilation,dryer',
         'select_properties': 'mode',
     },
 
