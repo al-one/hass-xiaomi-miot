@@ -520,6 +520,14 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'realtime_heart_rate,realtime_breath_rate,realtime_sleepstage',
         'switch_properties': 'fast_update_switch',
     },
+    'devcea.light.ls2307': {
+        'interval_seconds': 60,
+        'exclude_miot_properties': 'update,colorful_set',
+        'switch_properties': 'flex_switch,ac_status,power_on_state,custom_sleep_aid,custom_weak_up',
+        'select_properties': 'ambient_light.mode',
+        'number_properties': 'default_brightness,default_temperature,sleep_aid_time,wake_up_time,'
+                             'gradient_duration_on,gradient_duration_of,gradient_duration_aj,ambient_light.color',
+    },
     'deye.derh.u20a3': {
         'target_humidity_ratio': 9.0909,
     },
