@@ -1681,6 +1681,34 @@
     }
   ],
 
+  "zhimi.fan.fb1": [
+    {
+      "iid": 2,
+      "properties": [
+          {"iid": 5, "value-range": [30, 120, 30]},
+          {"iid": 6, "value-range": [30, 90, 30]}
+      ]
+    },
+    {
+        "iid": 5,
+        "properties": [
+            {
+                "iid": 6,
+                "value-list": [
+                    {"value": "left", "description": "Turn Left"},
+                    {"value": "right", "description": "Turn Right"}
+                ]
+            },
+            {
+                "iid": 7,
+                "value-list": [
+                    {"value": "up", "description": "Turn Up"},
+                    {"value": "down", "description": "Turn Down"}
+                ]
+            }
+        ]
+    }
+  ],
   "zhimi.fan.za4": [
     {
       "iid": 2,
@@ -1692,7 +1720,7 @@
       ]
     }
   ],
-  
+
   "zhimi.humidifier.ca4": [
     {
       "iid": 2,
