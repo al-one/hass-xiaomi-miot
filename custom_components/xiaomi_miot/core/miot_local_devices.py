@@ -373,6 +373,7 @@ MIOT_LOCAL_MODELS = [
     'leishi.light.eps112',
     'leishi.light.eps118',
     'leishi.light.eps121',
+    'leishi.light.eps125',
     'leishi.light.eps126',
     'leishi.light.eps127',
     'leishi.light.nvc001',
