@@ -59,3 +59,4 @@ body:
       description: |
         > [⚙️ Settings > System > ✍️ Logs](https://my.home-assistant.io/redirect/logs) > 🔍 Filter `miot`
         > [⚙️ 配置 > 系统 > ✍️ 日志](https://my.home-assistant.io/redirect/logs) > 🔍 筛选 `miot`
+        > [🐞 获取调试日志](https://github.com/al-one/hass-xiaomi-miot/issues/500#debug)

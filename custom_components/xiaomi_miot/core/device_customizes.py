@@ -525,6 +525,14 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'realtime_heart_rate,realtime_breath_rate,realtime_sleepstage',
         'switch_properties': 'fast_update_switch',
     },
+    'devcea.light.ls2307': {
+        'interval_seconds': 60,
+        'exclude_miot_properties': 'update,colorful_set',
+        'switch_properties': 'flex_switch,ac_status,power_on_state,custom_sleep_aid,custom_weak_up',
+        'select_properties': 'ambient_light.mode',
+        'number_properties': 'default_brightness,default_temperature,sleep_aid_time,wake_up_time,'
+                             'gradient_duration_on,gradient_duration_of,gradient_duration_aj,ambient_light.color',
+    },
     'deye.derh.u20a3': {
         'target_humidity_ratio': 9.0909,
     },
@@ -826,7 +834,7 @@ DEVICE_CUSTOMIZES = {
     'leishi.light.*': {
         'exclude_miot_services': 'scenes,scene,scens,remote',
         'exclude_miot_properties': 'default.user_save,professional_setting.delay',
-        'switch_properties': 'flex_switch',
+        'switch_properties': 'flex_switch,wind_reverse',
         'select_properties': 'default.default',
     },
     'leshi.light.wy0b01': {
@@ -1814,35 +1822,7 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_off': 2,
     },
     'zhimi.fan.fb1': {
-        'extend_miot_specs': [
-            {
-                'iid': 2,
-                'properties': [
-                    {'iid': 5, 'value-range': [30, 120, 30]},
-                    {'iid': 6, 'value-range': [30, 90, 30]},
-                ],
-            },
-            {
-                'iid': 5,
-                'properties': [
-                    {
-                        'iid': 6,
-                        'value-list': [
-                            {'value': 'left', 'description': 'Turn Left'},
-                            {'value': 'right', 'description': 'Turn Right'},
-                        ],
-                    },
-                    {
-                        'iid': 7,
-                        'value-list': [
-                            {'value': 'up', 'description': 'Turn Up'},
-                            {'value': 'down', 'description': 'Turn Down'},
-                        ],
-                    },
-                ],
-            },
-        ],
-        'switch_properties': 'alarm,horizontal_swing,vertical_swing,oscillating,h_swing_back,v_swing_back',
+        'switch_properties': 'alarm,horizontal_swing,vertical_swing,oscillating,h_swing_back,v_swing_back,brightness',
         'number_properties': 'timing',
         'percentage_property': 'stepless_fan_level',
         'select_properties': 'mode,horizontal_angle,vertical_angle',
