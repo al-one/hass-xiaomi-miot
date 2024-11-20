@@ -637,6 +637,15 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'out_water_volume,feidian',
     },
 
+    'fawad.aircondition.3010': {
+        'chunk_properties': 1,
+        'exclude_miot_properties': 'device_info,ontime_dark,offtime_dark,monday_timer,tuesday_timer,wednesday_timer,'
+                                   'thursday_timer,friday_timer,saturday_timer,sunday_timer',
+        'switch_properties': 'screen_lock_enable,beep_opration_enable,dark_night_display,show_tempreture_poff,'
+                             'power_hold,fannostop',
+        'select_properties': 'antifreeze_set,tempreture_delta,heat_type',
+        'number_properties': 'count_down',
+    },
     'fawad.airrtc.40011': {
         'chunk_properties': 1,
         'switch_properties': 'target_temper_eco,target_temper_out,target_temper_in,target_temper_sleep',
