@@ -226,12 +226,17 @@ class MiotSensorEntity(MiotEntity, BaseEntity):
 
     @property
     def native_value(self):
-        if not self._prop_state:
+        prop = self._prop_state
+        if not prop:
             return None
-        key = f'{self._prop_state.full_name}_desc'
+        key = f'{prop.full_name}_desc'
         if key in self._state_attrs:
             return f'{self._state_attrs[key]}'.lower()
-        return self._prop_state.from_dict(self._state_attrs)
+        val = prop.from_dict(self._state_attrs)
+        if prop.value_range:
+            if not prop.range_min() <= val <= prop.range_max():
+                val = None
+        return val
 
     def before_select_modes(self, prop, option, **kwargs):
         if prop := self._miot_service.get_property('on'):

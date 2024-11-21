@@ -167,7 +167,13 @@ class MiotCloud(micloud.MiCloud):
             rdt = await self.async_request_api(api, dat, method='POST') or {}
             eno = rdt.get('code', 0)
             msg = rdt.get('message', '')
-            if not (eno in [2, 3] or 'auth err' in msg):
+            if eno in [2, 3]:
+                pass
+            elif 'auth err' in msg:
+                pass
+            elif msg in ['invalid signature', 'SERVICETOKEN_EXPIRED']:
+                pass
+            else:
                 return True
         except requests.exceptions.ConnectionError:
             return None
