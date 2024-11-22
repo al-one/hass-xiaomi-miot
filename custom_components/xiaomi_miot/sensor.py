@@ -133,7 +133,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
     def set_state(self, data: dict):
         value = data.get(self.attr)
         prop = self._miot_property
-        if prop.value_range:
+        if prop and prop.value_range:
             if not prop.range_min() <= value <= prop.range_max():
                 value = None
         if value is not None:
