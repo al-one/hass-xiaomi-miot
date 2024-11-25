@@ -318,9 +318,8 @@ class MiotSensorEntity(MiotEntity, SensorEntity):
         if key in self._state_attrs:
             return f'{self._state_attrs[key]}'.lower()
         val = prop.from_dict(self._state_attrs)
-        if prop.value_range:
-            if not prop.range_min() <= val <= prop.range_max():
-                val = None
+        if not prop.range_valid(val):
+            val = None
         return val
 
     def before_select_modes(self, prop, option, **kwargs):
@@ -517,9 +516,8 @@ class MiotSensorSubEntity(MiotPropertySubEntity, BaseSensorSubEntity):
             if key in self._state_attrs:
                 return f'{self._state_attrs[key]}'.lower()
         val = prop.from_dict(self._state_attrs)
-        if prop.value_range:
-            if not prop.range_min() <= val <= prop.range_max():
-                val = None
+        if not prop.range_valid(val):
+            val = None
         if val is not None:
             svd = self.custom_config_number('value_ratio') or 0
             if svd:

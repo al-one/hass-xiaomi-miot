@@ -739,6 +739,17 @@ class MiotProperty(MiotSpecInstance):
             return self.value_range[2]
         return None
 
+    def range_valid(self, val):
+        if not self.value_range:
+            return True
+        range_min = self.range_min()
+        range_max = self.range_max()
+        if None in [range_min, range_max]:
+            return True
+        if val == None:
+            return False
+        return range_min <= val <= range_max
+
     @property
     def is_bool(self):
         return self.format == 'bool'
