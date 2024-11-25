@@ -1,3 +1,7 @@
+CHUNK_1 = {
+    'chunk_properties': 1,
+}
+
 ENERGY_KWH = {
     'state_class': 'total_increasing',
     'device_class': 'energy',
@@ -116,27 +120,15 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
     },
 
-    'babai.curtain.190812': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.at5810': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.bb82mj': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.lsxf83': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.m515e': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.mtx850': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.yilc3': {
-        'chunk_properties': 1,
-    },
+    'babai.curtain.190812': CHUNK_1,
+    'babai.curtain.at5810': CHUNK_1,
+    'babai.curtain.bb82cb': CHUNK_1,
+    'babai.curtain.bb82mj': CHUNK_1,
+    'babai.curtain.cmb5': CHUNK_1,
+    'babai.curtain.lsxf83': CHUNK_1,
+    'babai.curtain.m515e': CHUNK_1,
+    'babai.curtain.mtx850': CHUNK_1,
+    'babai.curtain.yilc3': CHUNK_1,
     'bkrobo.chair.*': {
         'sensor_properties': 'sit_state,power_state,recharge',
         'switch_properties': 'on,setcheck',
@@ -598,12 +590,8 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'status',
         'switch_properties': 'mode,motor_reverse',
     },
-    'dooya.curtain.m7': {
-        'chunk_properties': 1,
-    },
-    'dooya.curtain.m7li': {
-        'chunk_properties': 1,
-    },
+    'dooya.curtain.m7': CHUNK_1,
+    'dooya.curtain.m7li': CHUNK_1,
     'dooya.curtain.*': {
         'auto_cloud': True,
         'exclude_miot_properties': 'fault',
@@ -805,9 +793,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,time_watermark,motion_detection',
         'number_properties': 'image_rollover,alarm_interval',
     },
-    'isleep.blanket.hs2205': {
-        'chunk_properties': 1,
-    },
+    'isleep.blanket.hs2205': CHUNK_1,
     'isleep.blanket.*': {
         'sensor_properties': 'fault,temperature,water_level',
         'select_properties': 'mode,sleep_level',
@@ -1273,9 +1259,7 @@ DEVICE_CUSTOMIZES = {
     'qmi.plug.*': {
         'sensor_properties': 'power_consumption',
     },
-    'qushui.bed.001': {
-        'chunk_properties': 1,
-    },
+    'qushui.bed.001': CHUNK_1,
     'qushui.bed.*': {
         'chunk_properties': 1,
         'switch_properties': 'ai_on',
@@ -1329,9 +1313,7 @@ DEVICE_CUSTOMIZES = {
         'select_attributes': 'main_state,main_light,night_light,heat,vent,dry,natural_wind,delay_wind',
     },
 
-    'smartj.curtain.sjdt82': {
-        'chunk_properties': 1,
-    },
+    'smartj.curtain.sjdt82': CHUNK_1,
     'smith.blanket.cxma1': {
         'sensor_properties': 'fault,temperature',
         'select_properties': 'water_level,quilt_dry',
