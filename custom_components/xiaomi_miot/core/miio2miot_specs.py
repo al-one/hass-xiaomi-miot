@@ -376,6 +376,73 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'dmaker.airfresh.a1': {
+        # https://github.com/rytilahti/python-miio/blob/0.6.0.dev0/miio/integrations/dmaker/airfresh/airfresh_t2017.py#L73
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [
+                    'power', 'mode', 'pm25', 'co2', 'temperature_outside', 'favourite_speed', 'control_speed',
+                    'ptc_on', 'ptc_status', 'child_lock', 'sound', 'display', 'filter_rate', 'filter_day',
+                ],
+                'values': True,
+            },
+        ],
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True},
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto': 0,
+                'favourite': 1,
+                'sleep': 2,
+            }},
+            'prop.2.3': {'prop': 'ptc_on', 'setter': True},
+            'prop.3.1': {'prop': 'pm25'},
+            'prop.3.2': {'prop': 'co2'},
+            'prop.4.1': {'prop': 'filter_rate'},
+            'prop.4.2': {'prop': 'filter_day'},
+            'prop.5.1': {'prop': 'child_lock', 'setter': True},
+            'prop.6.1': {'prop': 'sound', 'setter': True},
+            'prop.7.1': {'prop': 'favourite_speed', 'setter': True, 'dict': {
+                60: 0, 80: 1, 100: 2,
+                120: 3, 140: 4, 160: 5, 180: 6, 200: 7,
+                220: 8, 240: 9, 260: 10, 280: 11, 300: 12,
+            }},
+            'prop.8.1': {'prop': 'display', 'setter': True},
+        },
+    },
+    'dmaker.airfresh.t2017': {
+        # https://github.com/rytilahti/python-miio/blob/0.6.0.dev0/miio/integrations/dmaker/airfresh/airfresh_t2017.py#L91
+        'extend_model': 'dmaker.airfresh.a1',
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [
+                    'power', 'mode', 'pm25', 'co2', 'temperature_outside', 'favourite_speed', 'control_speed',
+                    'ptc_on', 'ptc_status', 'child_lock', 'sound', 'display',
+                    'filter_intermediate', 'filter_inter_day', 'filter_efficient', 'filter_effi_day',
+                    'ptc_level', 'screen_direction',
+                ],
+                'values': True,
+            },
+        ],
+        'miio_specs': {
+            'prop.2.4': {'prop': 'ptc_level', 'setter': True, 'dict': {
+                'low': 1,
+                'medium': 2,
+                'high': 3,
+            }},
+            'prop.3.2': {'prop': 'temperature_outside'},
+            'prop.3.3': {'prop': 'co2'},
+            'prop.4.1': {'prop': 'filter_intermediate'},
+            'prop.4.2': {'prop': 'filter_inter_day'},
+            'prop.5.1': {'prop': 'filter_efficient'},
+            'prop.5.2': {'prop': 'filter_effi_day'},
+            'prop.6.1': {'prop': 'child_lock', 'setter': True},
+            'prop.8.1': {'prop': 'display', 'setter': True},
+            'prop.9.1': {'prop': 'sound', 'setter': True},
+        },
+    },
     'dmaker.fan.p5': {
         """
         https://github.com/rytilahti/python-miio/blob/31c5d740d403c6f45f1e7e0d4a8a6276684a8ecd/miio/integrations/fan/dmaker/fan.py#L28
