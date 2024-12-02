@@ -1196,6 +1196,7 @@ DEVICE_CUSTOMIZES = {
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:qdhkl-b23:2',
     },
     'qjiang.acpartner.wb20': {
+        'chunk_properties': 1,
         'sensor_properties': 'switch.temperature',
         'exclude_miot_services': 'air_condition_outlet_matching,matching_action',
         'exclude_miot_properties': 'fault',
