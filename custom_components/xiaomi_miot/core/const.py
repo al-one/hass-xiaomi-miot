@@ -89,7 +89,6 @@ try:
 except (ModuleNotFoundError, ImportError):
     class AlarmControlPanelState(StrEnum):
         """Alarm control panel entity states."""
-
         DISARMED = "disarmed"
         ARMED_HOME = "armed_home"
         ARMED_AWAY = "armed_away"

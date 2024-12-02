@@ -19,6 +19,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from .core.const import AlarmControlPanelState
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
