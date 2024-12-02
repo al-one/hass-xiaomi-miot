@@ -19,6 +19,8 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'curtain-2.mode-10,default_close_position',
     },
     '090615.curtain.*': {
+        'auto_cloud': True,
+        'chunk_properties': 1,
         'exclude_miot_properties': 'motor_control',
     },
     '090615.plug.plus01': {

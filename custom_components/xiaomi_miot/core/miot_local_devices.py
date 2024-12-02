@@ -1,13 +1,13 @@
 MIOT_LOCAL_MODELS = [
-    # '090615.curtain.jldj03',
-    # '090615.curtain.kcz82d',  # -4004
-    # '090615.curtain.ptx82',   # -4004
-    # '090615.curtain.sidt82',  # -4004
-    # '090615.curtain.ws9856',
-    # '090615.curtain.wsdml1',  # -4004
-    # '090615.curtain.ykgc82',  # -4004
-    # '090615.curtain.zsdj35',  # -4004
-    # '090615.curtain.zsdj82',  # -4004
+    '090615.curtain.jldj03',
+    '090615.curtain.kcz82d',
+    '090615.curtain.ptx82',
+    '090615.curtain.sidt82',
+    '090615.curtain.ws9856',
+    '090615.curtain.wsdml1',
+    '090615.curtain.ykgc82',
+    '090615.curtain.zsdj35',
+    '090615.curtain.zsdj82',
     '090615.gateway.ac10',
     '090615.gateway.ktvrf',
     '090615.plug.plus01',
