@@ -655,8 +655,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'speed_control',
     },
     'giot.bhf_light.v1ibhw': {
+        'sensor_properties': 'custom.status',
         'switch_properties': 'heating,blow,ventilation,dryer,uv,horizontal_swing,night_light_switch',
-        'exclude_miot_properties': 'custom.status,setting,msga,msgb',
+        'exclude_miot_properties': 'setting,msga,msgb',
     },
 
     'hfjh.fishbowl.v1': {
