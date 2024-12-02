@@ -1,5 +1,9 @@
 from .converters import *
 
+CHUNK_1 = {
+    'chunk_properties': 1,
+}
+
 ENERGY_KWH = {
     'state_class': 'total_increasing',
     'device_class': 'energy',
@@ -16,6 +20,8 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'curtain-2.mode-10,default_close_position',
     },
     '090615.curtain.*': {
+        'auto_cloud': True,
+        'chunk_properties': 1,
         'exclude_miot_properties': 'motor_control',
     },
     '090615.plug.plus01': {
@@ -114,27 +120,15 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
     },
 
-    'babai.curtain.190812': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.at5810': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.bb82mj': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.lsxf83': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.m515e': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.mtx850': {
-        'chunk_properties': 1,
-    },
-    'babai.curtain.yilc3': {
-        'chunk_properties': 1,
-    },
+    'babai.curtain.190812': CHUNK_1,
+    'babai.curtain.at5810': CHUNK_1,
+    'babai.curtain.bb82cb': CHUNK_1,
+    'babai.curtain.bb82mj': CHUNK_1,
+    'babai.curtain.cmb5': CHUNK_1,
+    'babai.curtain.lsxf83': CHUNK_1,
+    'babai.curtain.m515e': CHUNK_1,
+    'babai.curtain.mtx850': CHUNK_1,
+    'babai.curtain.yilc3': CHUNK_1,
     'bkrobo.chair.*': {
         'sensor_properties': 'sit_state,power_state,recharge',
         'switch_properties': 'on,setcheck',
@@ -603,12 +597,8 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'status',
         'switch_properties': 'mode,motor_reverse',
     },
-    'dooya.curtain.m7': {
-        'chunk_properties': 1,
-    },
-    'dooya.curtain.m7li': {
-        'chunk_properties': 1,
-    },
+    'dooya.curtain.m7': CHUNK_1,
+    'dooya.curtain.m7li': CHUNK_1,
     'dooya.curtain.*': {
         'auto_cloud': True,
         'exclude_miot_properties': 'fault',
@@ -671,8 +661,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'speed_control',
     },
     'giot.bhf_light.v1ibhw': {
+        'sensor_properties': 'custom.status',
         'switch_properties': 'heating,blow,ventilation,dryer,uv,horizontal_swing,night_light_switch',
-        'exclude_miot_properties': 'custom.status,setting,msga,msgb',
+        'exclude_miot_properties': 'setting,msga,msgb',
     },
 
     'hfjh.fishbowl.v1': {
@@ -808,9 +799,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,time_watermark,motion_detection',
         'number_properties': 'image_rollover,alarm_interval',
     },
-    'isleep.blanket.hs2205': {
-        'chunk_properties': 1,
-    },
+    'isleep.blanket.hs2205': CHUNK_1,
     'isleep.blanket.*': {
         'sensor_properties': 'fault,temperature,water_level',
         'select_properties': 'mode,sleep_level',
@@ -1214,6 +1203,7 @@ DEVICE_CUSTOMIZES = {
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:qdhkl-b23:2',
     },
     'qjiang.acpartner.wb20': {
+        'chunk_properties': 1,
         'sensor_properties': 'switch.temperature',
         'exclude_miot_services': 'air_condition_outlet_matching,matching_action',
         'exclude_miot_properties': 'fault',
@@ -1277,9 +1267,7 @@ DEVICE_CUSTOMIZES = {
     'qmi.plug.*': {
         'sensor_properties': 'power_consumption',
     },
-    'qushui.bed.001': {
-        'chunk_properties': 1,
-    },
+    'qushui.bed.001': CHUNK_1,
     'qushui.bed.*': {
         'chunk_properties': 1,
         'switch_properties': 'ai_on',
@@ -1333,9 +1321,7 @@ DEVICE_CUSTOMIZES = {
         'select_attributes': 'main_state,main_light,night_light,heat,vent,dry,natural_wind,delay_wind',
     },
 
-    'smartj.curtain.sjdt82': {
-        'chunk_properties': 1,
-    },
+    'smartj.curtain.sjdt82': CHUNK_1,
     'smith.blanket.cxma1': {
         'sensor_properties': 'fault,temperature',
         'select_properties': 'water_level,quilt_dry',
@@ -1814,12 +1800,16 @@ DEVICE_CUSTOMIZES = {
                                    'motor_strong,motor_high,motor_med,motor_med_l,motor_low,motor_silent,'
                                    'motor_favorite,motor_set_speed',
     },
+    'zhimi.airpurifier.ma2:filter_life_level': {
+        'state_class': 'measurement',
+    },
     'zhimi.airpurifier.mb4': {
         'sensor_properties': 'moto_speed_rpm',
         'switch_properties': 'alarm',
         'number_properties': 'favorite_speed,aqi_updata_heartbeat,brightness',
     },
     'zhimi.airpurifier.vb2:temperature': {
+        'state_class': 'measurement',
         'unit_of_measurement': '°C',
     },
     'zhimi.airpurifier.za1': {
