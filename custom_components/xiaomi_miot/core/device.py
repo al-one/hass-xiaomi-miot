@@ -678,7 +678,9 @@ class Device(CustomConfigHelper):
             try:
                 if self.miio2miot:
                     results = await self.miio2miot.async_get_miot_props(self.local, mapping)
-                    self.props.update(self.miio2miot.entity_attrs())
+                    if attrs := self.miio2miot.entity_attrs():
+                        self.props.update(attrs)
+                        self.dispatch(self.decode_attrs(attrs))
                 else:
                     if not max_properties:
                         max_properties = self.custom_config_integer('chunk_properties')

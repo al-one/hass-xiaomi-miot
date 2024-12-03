@@ -67,6 +67,7 @@ class XEntity(BasicEntity):
         self.hass = device.hass
         self.conv = conv
         self.attr = conv.attr
+        self.log = device.log
 
         if isinstance(conv, MiotPropConv):
             self.entity_id = conv.prop.generate_entity_id(self, conv.domain)
