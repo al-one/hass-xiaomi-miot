@@ -49,8 +49,8 @@ body:
       label: Entity attributes / 实体属性
       render: yaml
       description: |
-        > [🔨 Developer tools > ℹ️ State](https://my.home-assistant.io/redirect/developer_states) > 🔍 Filter (Entity with most attributes)
-        > [🔨 开发者工具 > ℹ️ 状态](https://my.home-assistant.io/redirect/developer_states) > 🔍 筛选 (属性最多的实体)
+        > [🔨 Developer tools > ℹ️ State](https://my.home-assistant.io/redirect/developer_states) > 🔍 Filter (`button.xxxx_info`)
+        > [🔨 开发者工具 > ℹ️ 状态](https://my.home-assistant.io/redirect/developer_states) > 🔍 筛选该设备下的info实体
         > 如果没有实体，请填写`无实体`
 
   - type: textarea
