@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Union
 
-from .device_customizes import DEVICE_CUSTOMIZES  # noqa
+from .device_customizes import DEVICE_CUSTOMIZES, GLOBAL_CONVERTERS  # noqa
 from .miot_local_devices import MIOT_LOCAL_MODELS  # noqa
 from .translation_languages import TRANSLATION_LANGUAGES  # noqa
 

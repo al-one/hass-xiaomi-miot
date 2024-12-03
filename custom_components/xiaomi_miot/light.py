@@ -4,21 +4,26 @@ from functools import partial
 
 from homeassistant.components.light import (
     DOMAIN as ENTITY_DOMAIN,
-    LightEntity,
+    LightEntity as BaseEntity,
     LightEntityFeature,  # v2022.5
     ColorMode,
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP,
+    ATTR_COLOR_TEMP_KELVIN,
+    ATTR_RGB_COLOR,
     ATTR_HS_COLOR,
     ATTR_EFFECT,
     ATTR_TRANSITION,
 )
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import color
 
 from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
+    HassEntry,
+    XEntity,
     MiotToggleEntity,
     MiirToggleEntity,
     ToggleSubEntity,
@@ -28,6 +33,7 @@ from . import (
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+    MiotProperty,
 )
 from miio.utils import (
     rgb_to_int,
@@ -41,6 +47,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
+    HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
@@ -52,7 +59,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if isinstance(spec, MiotSpec):
-        for srv in spec.get_services(ENTITY_DOMAIN, 'ir_light_control', 'light_bath_heater'):
+        for srv in spec.get_services('ir_light_control'):
             if srv.name in ['ir_light_control']:
                 entities.append(MiirLightEntity(config, srv))
                 continue
@@ -69,7 +76,102 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotLightEntity(MiotToggleEntity, LightEntity):
+class LightEntity(XEntity, BaseEntity, RestoreEntity):
+    _attr_names = None
+    _brightness_for_on = None
+    _brightness_for_off = None
+
+    def on_init(self):
+        self._attr_names = {}
+        self._brightness_for_on = self.custom_config_number('brightness_for_on')
+        self._brightness_for_off = self.custom_config_number('brightness_for_off')
+        self._attr_color_mode = ColorMode.ONOFF
+        modes = set()
+
+        for conv in self.device.converters:
+            if not self._miot_service:
+                break
+            prop = getattr(conv, 'prop', None)
+            if isinstance(prop, MiotProperty):
+                if conv.attr == ATTR_BRIGHTNESS or prop.in_list(['brightness']):
+                    self.listen_attrs.add(conv.attr)
+                    self._attr_names[ATTR_BRIGHTNESS] = conv.attr
+                    self._attr_color_mode = ColorMode.BRIGHTNESS
+                elif conv.attr == ATTR_COLOR_TEMP or prop.in_list(['color_temperature', 'color_temp']):
+                    self.listen_attrs.add(conv.attr)
+                    self._attr_color_mode = ColorMode.COLOR_TEMP
+                    modes.add(ColorMode.COLOR_TEMP)
+                    if prop.unit in ['kelvin']:
+                        self._attr_min_color_temp_kelvin = prop.range_min()
+                        self._attr_max_color_temp_kelvin = prop.range_max()
+                        self._attr_names[ATTR_COLOR_TEMP_KELVIN] = conv.attr
+                    else:
+                        self._attr_min_mireds = prop.range_min()
+                        self._attr_max_mireds = prop.range_max()
+                        self._attr_names[ATTR_COLOR_TEMP] = conv.attr
+                elif conv.attr == ATTR_RGB_COLOR or prop.in_list(['color']):
+                    self.listen_attrs.add(conv.attr)
+                    self._attr_names[ATTR_RGB_COLOR] = conv.attr
+                    modes.add(ColorMode.RGB)
+                elif conv.attr == ATTR_EFFECT or prop.in_list(['mode']):
+                    self.listen_attrs.add(conv.attr)
+                    self._attr_names[ATTR_EFFECT] = conv.attr
+                    self._attr_effect_list = prop.list_descriptions()
+                    self._attr_supported_features |= LightEntityFeature.EFFECT
+
+            self._attr_supported_color_modes = modes if modes else {self._attr_color_mode}
+
+    def get_state(self) -> dict:
+        return {
+            self.attr: self._attr_is_on,
+            ATTR_BRIGHTNESS: self._attr_brightness,
+            ATTR_COLOR_TEMP: self._attr_color_temp,
+        }
+
+    def set_state(self, data: dict):
+        val = data.get(self.attr)
+        if val != None:
+            val = bool(val)
+        self._attr_is_on = val
+
+        if (val := data.get(self._attr_names.get(ATTR_BRIGHTNESS))) != None:
+            self._attr_brightness = val
+            if self._brightness_for_on != None:
+                self._attr_is_on = val >= self._brightness_for_on
+        if (val := data.get(self._attr_names.get(ATTR_COLOR_TEMP_KELVIN))) != None:
+            if val != self._attr_color_temp_kelvin:
+                self._attr_color_temp_kelvin = val
+                self._attr_color_mode = ColorMode.COLOR_TEMP
+        elif (val := data.get(self._attr_names.get(ATTR_COLOR_TEMP))) != None:
+            if val != self._attr_color_temp:
+                self._attr_color_temp = val
+                self._attr_color_mode = ColorMode.COLOR_TEMP
+        if (val := data.get(self._attr_names.get(ATTR_RGB_COLOR))) != None:
+            if val != self._attr_rgb_color:
+                self._attr_rgb_color = val
+                self._attr_color_mode = ColorMode.RGB
+        if (val := data.get(self._attr_names.get(ATTR_EFFECT))) != None:
+            self._attr_effect = val
+
+    async def async_turn_on(self, **kwargs):
+        dat = {self.attr: True}
+        if self._brightness_for_on != None:
+            dat[self.attr] = self._brightness_for_on
+        for k, v in kwargs.items():
+            if attr := self._attr_names.get(k):
+                dat[attr] = v
+        await self.device.async_write(dat)
+
+    async def async_turn_off(self, **kwargs):
+        dat = {self.attr: False}
+        if self._brightness_for_off != None:
+            dat[self.attr] = self._brightness_for_off
+        await self.device.async_write(dat)
+
+XEntity.CLS[ENTITY_DOMAIN] = LightEntity
+
+
+class MiotLightEntity(MiotToggleEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService, **kwargs):
         kwargs.setdefault('logger', _LOGGER)
         super().__init__(miot_service, config=config, **kwargs)
@@ -314,7 +416,7 @@ class MiotLightEntity(MiotToggleEntity, LightEntity):
         return None
 
 
-class MiirLightEntity(MiirToggleEntity, LightEntity):
+class MiirLightEntity(MiirToggleEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 
@@ -394,29 +496,3 @@ class MiotLightSubEntity(MiotLightEntity, ToggleSubEntity):
 
     def set_property(self, field, value):
         return self.set_parent_property(value, field)
-
-
-class LightSubEntity(ToggleSubEntity, LightEntity):
-    _brightness = None
-    _color_temp = None
-
-    def update(self, data=None):
-        super().update(data)
-        if self._available:
-            attrs = self._state_attrs
-            self._brightness = attrs.get('brightness', 0)
-            self._color_temp = attrs.get('color_temp', 0)
-
-    def turn_on(self, **kwargs):
-        self.call_parent(['turn_on_light', 'turn_on'], **kwargs)
-
-    def turn_off(self, **kwargs):
-        self.call_parent(['turn_off_light', 'turn_off'], **kwargs)
-
-    @property
-    def brightness(self):
-        return self._brightness
-
-    @property
-    def color_temp(self):
-        return self._color_temp

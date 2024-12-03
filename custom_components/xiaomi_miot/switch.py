@@ -11,14 +11,17 @@ from homeassistant.const import (
 )
 from homeassistant.components.switch import (
     DOMAIN as ENTITY_DOMAIN,
-    SwitchEntity,
+    SwitchEntity as BaseEntity,
     SwitchDeviceClass,
 )
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
+    HassEntry,
+    XEntity,
     MiioDevice,
     MiioEntity,
     MiotToggleEntity,
@@ -41,6 +44,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
+    HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
@@ -58,21 +62,32 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             srv = spec.get_service('relays')
             if srv:
                 entities.append(MiotPwznRelaySwitchEntity(config, srv))
-        else:
-            for srv in spec.get_services(
-                ENTITY_DOMAIN, 'outlet', 'massager', 'towel_rack', 'diffuser', 'fish_tank',
-                'pet_drinking_fountain', 'mosquito_dispeller', 'electric_blanket', 'foot_bath',
-            ):
-                if not srv.get_property('on'):
-                    continue
-                entities.append(MiotSwitchEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
+class SwitchEntity(XEntity, BaseEntity, RestoreEntity):
+    def get_state(self) -> dict:
+        return {self.attr: self._attr_is_on}
+
+    def set_state(self, data: dict):
+        val = data.get(self.attr)
+        if val is not None:
+            val = bool(val)
+        self._attr_is_on = val
+
+    async def async_turn_on(self):
+        await self.device.async_write({self.attr: True})
+
+    async def async_turn_off(self):
+        await self.device.async_write({self.attr: False})
+
+XEntity.CLS[ENTITY_DOMAIN] = SwitchEntity
+
+
+class MiotSwitchEntity(MiotToggleEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._attr_icon = self._miot_service.entity_icon
@@ -81,7 +96,7 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
     def device_class(self):
         if cls := self.get_device_class(SwitchDeviceClass):
             return cls
-        typ = f'{self._model} {self._miot_service.spec.type}'
+        typ = f'{self.model} {self._miot_service.spec.type}'
         if 'outlet' in typ or '.plug.' in typ:
             return SwitchDeviceClass.OUTLET
         return SwitchDeviceClass.SWITCH
@@ -96,93 +111,14 @@ class MiotSwitchEntity(MiotToggleEntity, SwitchEntity):
                 self._subs[fnm] = MiotSwitchActionSubEntity(self, prop, act)
                 add_switches([self._subs[fnm]], update_before_add=True)
 
-    async def async_update(self):
-        await super().async_update()
-        if not self._available:
-            return
-        self._update_sub_entities(
-            ['heat_level'],
-            ['massager'],
-            domain='fan',
-            option={
-                'power_property': self._miot_service.get_property('heating'),
-            },
-        )
-        self._update_sub_entities(
-            ['mode', 'massage_strength', 'massage_part', 'massage_manipulation'],
-            ['massager'],
-            domain='number_select' if self.entry_config_version >= 0.3 else 'fan',
-        )
 
-
-class SwitchSubEntity(ToggleSubEntity, SwitchEntity):
+class SwitchSubEntity(ToggleSubEntity, BaseEntity):
     def __init__(self, parent, attr='switch', option=None, **kwargs):
         kwargs.setdefault('domain', ENTITY_DOMAIN)
         super().__init__(parent, attr, option, **kwargs)
 
     def update(self, data=None):
         super().update(data)
-
-
-class MiotSwitchSubEntity(MiotPropertySubEntity, SwitchSubEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
-        self._name = self.format_name_by_property(miot_property)
-        self._prop_power = self._miot_service.get_property('on', 'power')
-        if self._prop_power:
-            self._option['keys'] = [*(self._option.get('keys') or []), self._prop_power.full_name]
-            self._option['icon'] = self._prop_power.entity_icon or self._option.get('icon')
-        self._on_descriptions = ['On', 'Open', 'Enable', 'Enabled', 'Yes', '开', '打开']
-        if des := self.custom_config_list('descriptions_for_on'):
-            self._on_descriptions = des
-
-    @property
-    def is_on(self):
-        val = self._miot_property.from_dict(self._state_attrs)
-        if self._miot_property.value_list:
-            if val is not None:
-                self._state = val in self._miot_property.list_search(*self._on_descriptions)
-        elif self._miot_property.value_range:
-            if self._miot_property.range_min() == 0 and self._miot_property.range_max() == 1:
-                self._state = val == self._miot_property.range_max()
-        elif self._miot_property.format in ['bool']:
-            self._state = val
-
-        if self._miot_service.name in ['air_conditioner']:
-            if self._prop_power:
-                self._state = self._state and self._prop_power.from_dict(self._state_attrs)
-
-        if self._reverse_state and self._state is not None:
-            return not self._state
-        return self._state
-
-    def turn_on(self, **kwargs):
-        val = True
-        if self._miot_property.value_range:
-            val = self._miot_property.range_max()
-        if self._miot_property.value_list:
-            ret = self._miot_property.list_first(*self._on_descriptions)
-            val = 1 if ret is None else ret
-        elif self._miot_property.value_range:
-            val = self._miot_property.range_max()
-        if self._reverse_state:
-            val = not val
-        return self.set_parent_property(val)
-
-    def turn_off(self, **kwargs):
-        val = False
-        if self._miot_property.value_range:
-            val = self._miot_property.range_min()
-        if self._miot_property.value_list:
-            if not (des := self.custom_config_list('descriptions_for_off')):
-                des = ['Off', 'Close', 'Closed', '关', '关闭']
-            ret = self._miot_property.list_first(*des)
-            val = 0 if ret is None else ret
-        elif self._miot_property.value_range:
-            val = self._miot_property.range_min()
-        if self._reverse_state:
-            val = not val
-        return self.set_parent_property(val)
 
 
 class MiotSwitchActionSubEntity(MiotPropertySubEntity, SwitchSubEntity):
@@ -278,17 +214,7 @@ class MiotWasherActionSubEntity(SwitchSubEntity):
         return 'mdi:play-box'
 
 
-class MiotCookerSwitchSubEntity(SwitchSubEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property.full_name, option)
-        self._name = self.format_name_by_property(miot_property)
-
-    @property
-    def is_on(self):
-        return self._parent.is_on
-
-
-class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
+class MiotPwznRelaySwitchEntity(MiotToggleEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._prop_status = miot_service.get_property('all_status')
@@ -368,7 +294,7 @@ class MiotPwznRelaySwitchEntity(MiotToggleEntity, SwitchEntity):
         return ret
 
 
-class PwznRelaySwitchEntity(MiioEntity, SwitchEntity):
+class PwznRelaySwitchEntity(MiioEntity, BaseEntity):
     def __init__(self, config: dict):
         name = config[CONF_NAME]
         host = config[CONF_HOST]

@@ -30,6 +30,7 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
+    HassEntry,
     MiotEntity,
     MiotToggleEntity,
     async_setup_config_entry,
@@ -55,6 +56,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
+    HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
@@ -252,18 +254,6 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                     add_fans([self._subs[des]], update_before_add=True)
 
             add_switches = self._add_entities.get('switch')
-            for p in self._miot_service.properties.values():
-                if not (p.format == 'bool' and p.readable and p.writeable):
-                    continue
-                if p.name in self._power_modes:
-                    continue
-                if self._prop_power and self._prop_power.name == p.name:
-                    continue
-                self._update_sub_entities(p, None, 'switch')
-
-            if self._miot_service.name in ['ptc_bath_heater']:
-                self._update_sub_entities(None, ['light', 'light_bath_heater'], domain='light')
-
             if self._miot_service.get_action('start_wash'):
                 pnm = 'action_wash'
                 prop = self._miot_service.get_property('status')

@@ -14,15 +14,14 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
+    HassEntry,
     MiotEntity,
-    MiotPropertySubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
-    MiotProperty,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,6 +32,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
+    HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
@@ -100,7 +100,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     def device_class(self):
         if cls := self.get_device_class(CoverDeviceClass):
             return cls
-        typ = f'{self._model} {self._miot_service.spec.type}'
+        typ = f'{self.model} {self._miot_service.spec.type}'
         if 'curtain' in typ:
             return CoverDeviceClass.CURTAIN
         if 'window_opener' in typ:
@@ -244,99 +244,3 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         val = self._prop_motor_control.list_first('Pause', 'Stop')
         val = self.custom_config_integer('stop_cover_value', val)
         return self.set_property(self._prop_motor_control, val)
-
-
-class MiotCoverSubEntity(MiotPropertySubEntity, CoverEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None):
-        super().__init__(parent, miot_property, option, domain=ENTITY_DOMAIN)
-        self._prop_status = self._option.get('status_property')
-        if self._prop_status:
-            self._option['keys'] = [*(self._option.get('keys') or []), self._prop_status.full_name]
-        self._prop_target_position = self._miot_service.get_property('target_position')
-        self._value_open = self._miot_property.list_first('Open', 'Up', 'All-up', 'Rise')
-        self._value_close = self._miot_property.list_first('Close', 'Down', 'All-down')
-        self._value_stop = self._miot_property.list_first('Pause', 'Stop')
-        if self._value_open is not None:
-            self._supported_features |= CoverEntityFeature.OPEN
-        if self._value_close is not None:
-            self._supported_features |= CoverEntityFeature.CLOSE
-        if self._value_stop is not None:
-            self._supported_features |= CoverEntityFeature.STOP
-        if self._prop_target_position:
-            self._supported_features |= CoverEntityFeature.SET_POSITION
-        if self._miot_property.value_range:
-            self._supported_features |= CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
-            self._supported_features |= CoverEntityFeature.SET_POSITION
-
-    @property
-    def current_cover_position(self):
-        """Return current position of cover.
-        None is unknown, 0 is closed, 100 is fully open.
-        """
-        if self._miot_property.value_range:
-            val = round(self._miot_property.from_dict(self._state_attrs) or -1, 2)
-            top = self._miot_property.range_max()
-            return round(val / top * 100)
-
-        prop = self._miot_service.get_property('current_position')
-        if self.custom_config_bool('target2current_position'):
-            prop = self._miot_service.get_property('target_position') or prop
-        if prop:
-            return round(prop.from_dict(self._state_attrs) or -1)
-        return None
-
-    def set_cover_position(self, **kwargs):
-        """Move the cover to a specific position."""
-        pos = round(kwargs.get(ATTR_POSITION) or 0)
-        if self._prop_target_position:
-            return self.set_parent_property(pos, self._prop_target_position)
-        if self._miot_property.value_range:
-            stp = self._miot_property.range_step()
-            top = self._miot_property.range_max()
-            pos = round(top * (pos / 100) / stp) * stp
-            return self.set_parent_property(pos)
-        raise NotImplementedError()
-
-    @property
-    def is_closed(self):
-        """Return if the cover is closed or not."""
-        if self._prop_status:
-            val = self._prop_status.from_dict(self._state_attrs)
-            vls = self._prop_status.list_search('Closed', 'Down')
-            if vls and val is not None:
-                return val in vls
-        pos = self.current_cover_position
-        if pos is not None and pos >= 0:
-            return pos <= 0
-        return None
-
-    def open_cover(self, **kwargs):
-        """Open the cover."""
-        val = None
-        if self._miot_property.value_list:
-            val = self._value_open
-        elif self._miot_property.value_range:
-            val = self._miot_property.range_max()
-        if val is not None:
-            return self.set_parent_property(val)
-        raise NotImplementedError()
-
-    def close_cover(self, **kwargs):
-        """Close cover."""
-        val = None
-        if self._miot_property.value_list:
-            val = self._value_close
-        elif self._miot_property.value_range:
-            val = self._miot_property.range_min()
-        if val is not None:
-            return self.set_parent_property(val)
-        raise NotImplementedError()
-
-    def stop_cover(self, **kwargs):
-        """Stop the cover."""
-        val = None
-        if self._miot_property.value_list:
-            val = self._value_stop
-        if val is not None:
-            return self.set_parent_property(val)
-        raise NotImplementedError()

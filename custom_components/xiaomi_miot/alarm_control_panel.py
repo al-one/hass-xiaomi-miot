@@ -11,6 +11,7 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
+    HassEntry,
     MiotEntity,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -28,6 +29,7 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
+    HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
@@ -53,7 +55,7 @@ class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._attr_code_arm_required = False
-        self._is_mgl03 = self._model == 'lumi.gateway.mgl03'
+        self._is_mgl03 = self.model == 'lumi.gateway.mgl03'
         self._prop_mode = miot_service.get_property('arming_mode')
         if self._prop_mode:
             if self._prop_mode.list_value('home_arming') is not None:

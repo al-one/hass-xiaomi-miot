@@ -12,7 +12,6 @@ from functools import partial
 from urllib.parse import urlencode, urlparse, parse_qsl
 
 from homeassistant.const import (
-    ATTR_ATTRIBUTION,
     ATTR_FRIENDLY_NAME,
     CONF_HOST,
 )
@@ -38,6 +37,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     XIAOMI_MIIO_SERVICE_SCHEMA,
+    HassEntry,
     BaseEntity,
     MiotEntityInterface,
     MiotEntity,
@@ -80,6 +80,7 @@ SERVICE_TO_METHOD = {
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
+    HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
 
 
@@ -170,7 +171,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
     def device_class(self):
         if cls := self.get_device_class(MediaPlayerDeviceClass):
             return cls
-        typ = f'{self._model} {self._miot_service.spec.type}'
+        typ = f'{self.model} {self._miot_service.spec.type}'
         if 'speaker' in typ:
             return MediaPlayerDeviceClass.SPEAKER
         if 'receiver' in typ:
@@ -337,8 +338,6 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         self._message_router = miot_service.spec.get_service('message_router')
         self.xiaoai_cloud = None
         self.xiaoai_device = None
-        if self._intelligent_speaker:
-            self._state_attrs[ATTR_ATTRIBUTION] = 'Support TTS through service'
         self._supported_features |= MediaPlayerEntityFeature.PLAY_MEDIA
 
     @property
@@ -358,7 +357,6 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         await super().async_update()
         if not self._available:
             return
-        self._update_sub_entities('on', domain='switch')
 
         if self._prop_state and not self._prop_state.readable:
             if self.is_volume_muted is False:

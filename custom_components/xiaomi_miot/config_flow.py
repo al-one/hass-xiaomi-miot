@@ -30,10 +30,13 @@ from . import (
     DEFAULT_NAME,
     DEFAULT_CONN_MODE,
     init_integration_data,
+)
+from .core.utils import (
     get_customize_via_entity,
     get_customize_via_model,
+    in_china,
+    async_analytics_track_event,
 )
-from .core.utils import in_china, async_analytics_track_event
 from .core.const import SUPPORTED_DOMAINS, CLOUD_SERVERS, CONF_XIAOMI_CLOUD
 from .core.miot_spec import MiotSpec
 from .core.xiaomi_cloud import (
@@ -343,6 +346,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 vol.In(CLOUD_SERVERS),
             vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, 'auto')):
                 vol.In(CONN_MODES),
+            vol.Optional('trans_options', default=user_input.get('trans_options', False)): bool,
             vol.Optional('filter_models', default=user_input.get('filter_models', False)): bool,
         })
         return self.async_show_form(
@@ -412,7 +416,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             'switch_properties': cv.string,
             'number_properties': cv.string,
             'select_properties': cv.string,
-            'cover_properties': cv.string,
             'sensor_attributes': cv.string,
             'binary_sensor_attributes': cv.string,
             'button_properties': cv.string,
@@ -423,7 +426,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             'fan_services': cv.string,
             'exclude_miot_services': cv.string,
             'exclude_miot_properties': cv.string,
-            'main_miot_services': cv.string,
+            'configuration_entities': cv.string,
+            'diagnostic_entities': cv.string,
             'cloud_delay_update': cv.string,
         }
         options = {
@@ -662,6 +666,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, DEFAULT_CONN_MODE)):
                 vol.In(CONN_MODES),
             vol.Optional('renew_devices', default=user_input.get('renew_devices', False)): bool,
+            vol.Optional('trans_options', default=user_input.get('trans_options', False)): bool,
             vol.Optional('disable_message', default=user_input.get('disable_message', False)): bool,
             vol.Optional('disable_scene_history', default=user_input.get('disable_scene_history', False)): bool,
         })
@@ -690,6 +695,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             cfg = self.cloud.to_config() or {}
             cfg.update({
                 CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
+                'trans_options': prev_input.get('trans_options'),
                 'filter_models': prev_input.get('filter_models'),
                 'disable_message': prev_input.get('disable_message'),
                 'disable_scene_history': prev_input.get('disable_scene_history'),

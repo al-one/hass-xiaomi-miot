@@ -25,6 +25,7 @@
                     "captcha": "Captcha",
                     "server_country": "Server location of MiCloud",
                     "conn_mode": "Connection mode for device",
+                    "trans_options": "Translation property value description",
                     "filter_models": "Filter devices via model/home/WiFi (Advanced)"
                 }
             },
@@ -68,13 +69,14 @@
                     "close_texts": "close_texts",
                     "closed_position": "closed_position",
                     "cloud_delay_update": "cloud_delay_update",
+                    "configuration_entities": "configuration_entities",
                     "coord_type": "coord_type",
-                    "cover_properties": "cover_properties",
                     "current_temp_property": "current_temp_property",
                     "descriptions_for_on": "descriptions_for_on",
                     "descriptions_for_off": "descriptions_for_off",
                     "deviated_position": "deviated_position",
                     "device_class": "device_class",
+                    "diagnostic_entities": "diagnostic_entities",
                     "disable_location_name": "disable_location_name",
                     "disable_preset_modes": "disable_preset_modes",
                     "entity_category": "entity_category",
@@ -155,6 +157,7 @@
                     "server_country": "Server location of MiCloud",
                     "conn_mode": "Connection mode for device",
                     "renew_devices": "Force renew devices",
+                    "trans_options": "Translation property value description",
                     "disable_message": "Disable Mihome notification sensor",
                     "disable_scene_history": "Disable Mihome scene history sensor"
                 }
@@ -198,7 +201,14 @@
         }
     },
     "entity": {
+        "button": {
+            "info": {"name": "Info"}
+        },
         "sensor": {
+            "power_cost_today": {"name": "Energy Today"},
+            "power_cost_month": {"name": "Energy Month"},
+            "power_cost_today_2": {"name": "Energy Today"},
+            "power_cost_month_2": {"name": "Energy Month"},
             "lock": {
                 "state": {
                     "bluetooth": "Bluetooth",
