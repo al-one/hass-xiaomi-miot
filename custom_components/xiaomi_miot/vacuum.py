@@ -367,6 +367,8 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         if self.state == STATE_CLEANING:
             self.pause()
             time.sleep(1)
+        if self.model in ['roborock.vacuum.m1s']:
+            return self.send_miio_command('app_segment_clean', segments)
         return self.send_miio_command('app_segment_clean', [{'segments': segments, 'repeat': repeat}])
 
 
