@@ -75,7 +75,7 @@ class XEntity(BasicEntity):
             self._attr_translation_key = conv.prop.friendly_name
             self._miot_service = conv.prop.service
             self._miot_property = conv.prop
-            if not conv.prop.readable():
+            if not conv.prop.readable:
                 self._attr_available = True
 
         elif isinstance(conv, MiotActionConv):
