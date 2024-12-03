@@ -862,6 +862,10 @@ class MiotProperty(MiotSpecInstance):
             return True
         if val == None:
             return False
+        try:
+            val = float(val)
+        except (TypeError, ValueError):
+            return False
         return range_min <= val <= range_max
 
     @property
