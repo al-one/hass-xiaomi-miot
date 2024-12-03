@@ -75,6 +75,8 @@ class XEntity(BasicEntity):
             self._attr_translation_key = conv.prop.friendly_name
             self._miot_service = conv.prop.service
             self._miot_property = conv.prop
+            if not conv.prop.readable():
+                self._attr_available = True
 
         elif isinstance(conv, MiotActionConv):
             self.entity_id = device.spec.generate_entity_id(self, conv.action.name, conv.domain)
