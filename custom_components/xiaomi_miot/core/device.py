@@ -210,6 +210,8 @@ class Device(CustomConfigHelper):
 
     @cached_property
     def unique_id(self):
+        if self.entry.get_config(CONF_TOKEN):
+            return self.info.unique_id
         return f'{self.info.unique_id}-{self.entry.id}'
 
     @cached_property
