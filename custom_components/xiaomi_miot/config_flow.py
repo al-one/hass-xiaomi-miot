@@ -371,6 +371,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             cfg.update({
                 CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
                 **user_input,
+                'filter_models': True if via_did else False,
             })
             cfg[CONF_CONFIG_VERSION] = ENTRY_VERSION
             _LOGGER.debug('Setup xiaomi cloud: %s', {**cfg, CONF_PASSWORD: '*', 'service_token': '*'})
@@ -682,7 +683,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
         schema = vol.Schema({})
         if user_input is None:
             user_input = {}
-        via_did = not self.saved_config.get('filter_models')
+        via_did = not user_input.get('filter_models')
         home_ids = user_input.pop('home_ids', [])
         if user_input.get('filtering') or home_ids:
             user_input = {
@@ -696,7 +697,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             cfg.update({
                 CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
                 'trans_options': prev_input.get('trans_options'),
-                'filter_models': prev_input.get('filter_models'),
+                'filter_models': True if via_did else False,
                 'disable_message': prev_input.get('disable_message'),
                 'disable_scene_history': prev_input.get('disable_scene_history'),
                 **user_input,
