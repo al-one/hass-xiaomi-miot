@@ -1286,7 +1286,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'illumination,no_one_duration,has_someone_duration',
     },
     'roborock.vacuum.*': {
-        'sensor_attributes': 'props:clean_area,props:clean_time,brush_life_level',
+        'sensor_attributes': 'props:clean_area,props:clean_time',
         'sensor_properties': 'vacuum.status',
         'select_properties': 'water_level,mop_mode',
     },
