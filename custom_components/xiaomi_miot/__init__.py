@@ -735,9 +735,9 @@ class MiioEntity(BaseEntity):
     def __init__(self, name, device, **kwargs):
         self._device = device
         self._config = dict(kwargs.get('config') or {})
-        self.logger = kwargs.get('logger') or _LOGGER
         self.device = self._config.get(CONF_DEVICE)
         self.hass = self.device.hass
+        self.logger = self.device.log
         self._miio_info = self.device.info.miio_info
         self._unique_did = self.unique_did
         self._unique_id = self._unique_did
