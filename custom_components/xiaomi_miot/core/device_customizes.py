@@ -2081,6 +2081,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature',
         'switch_properties': 'oven.on',
     },
+    '*.plantmonitor.*': {
+        'sensor_properties': 'soil_ec,illumination,temperature,relative_humidity',
+    },
     '*.senpres.*': {
         'binary_sensor_properties': 'pressure_present_state',
         'sensor_properties': 'pressure_not_present_duration',
