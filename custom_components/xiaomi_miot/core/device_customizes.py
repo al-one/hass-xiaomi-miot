@@ -2064,6 +2064,10 @@ DEVICE_CUSTOMIZES = {
     '*.lock.*:timestamp': {
         'device_class': 'timestamp',
     },
+    '*.magnet.*': {
+        'binary_sensor_properties': 'contact_state',
+        'sensor_properties': 'illumination',
+    },
     '*.microwave.*': {
         'sensor_properties': 'left_time,heat_level,cook_time',
     },
