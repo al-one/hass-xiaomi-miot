@@ -291,6 +291,7 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '2.2',
         'miot_mapping': {
             'switch.on': {'siid': 2, 'piid': 1},
+            'switch.voltage': {'siid': 2, 'piid': 3},
             'switch.electric_current': {'siid': 2, 'piid': 4},
             'switch.power': {'siid': 4, 'piid': 2},
             'physical_controls_locked': {'siid': 6, 'piid': 1},
