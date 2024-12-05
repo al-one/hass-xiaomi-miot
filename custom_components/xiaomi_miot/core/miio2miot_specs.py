@@ -1674,7 +1674,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'viomi.waterheater.e1': {
-        'without_props': True,
+        'chunk_properties': 1,
         'miio_commands': [
             {
                 'method': 'get_prop',
@@ -1683,6 +1683,7 @@ MIIO_TO_MIOT_SPECS = {
                     'hotWater', 'needClean', 'modeType', 'appointStart', 'appointEnd',
                 ],
                 'values': True,
+                'ignore_error': True,
             },
         ],
         'miio_specs': {
