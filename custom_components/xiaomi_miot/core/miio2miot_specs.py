@@ -420,6 +420,12 @@ MIIO_TO_MIOT_SPECS = {
                 'params': [
                     'power', 'mode', 'pm25', 'co2', 'temperature_outside', 'favourite_speed', 'control_speed',
                     'ptc_on', 'ptc_status', 'child_lock', 'sound', 'display',
+                ],
+                'values': True,
+            },
+            {
+                'method': 'get_prop',
+                'params': [
                     'filter_intermediate', 'filter_inter_day', 'filter_efficient', 'filter_effi_day',
                     'ptc_level', 'screen_direction',
                 ],
