@@ -53,6 +53,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
             if not hass.data[DOMAIN]['accounts'][cloud.user_id].get('messenger'):
                 entity = MihomeMessageSensor(hass, cloud)
+                await entity.coordinator.async_config_entry_first_refresh()
                 hass.data[DOMAIN]['accounts'][cloud.user_id]['messenger'] = entity
                 async_add_entities([entity], update_before_add=False)
 
@@ -64,6 +65,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                     continue
 
                 entity = MihomeSceneHistorySensor(hass, cloud, home_id, home.get('uid'))
+                await entity.coordinator.async_config_entry_first_refresh()
                 hass.data[DOMAIN]['accounts'][cloud.user_id][f'scene_history_{home_id}'] = entity
                 async_add_entities([entity], update_before_add=False)
 
@@ -387,7 +389,6 @@ class MihomeMessageSensor(MiCoordinatorEntity, BaseEntity, RestoreEntity):
 
         self._attr_extra_state_attributes['filter_homes'] = self._filter_homes
         self._attr_extra_state_attributes['exclude_types'] = self._exclude_types
-        await self.coordinator.async_config_entry_first_refresh()
 
     async def async_will_remove_from_hass(self):
         """Run when entity will be removed from hass.
@@ -528,8 +529,6 @@ class MihomeSceneHistorySensor(MiCoordinatorEntity, BaseEntity, RestoreEntity):
             self._attr_native_value = restored_dict.get('state')
             self._attr_extra_state_attributes.update(attrs)
 
-        await self.coordinator.async_config_entry_first_refresh()
-
     async def async_will_remove_from_hass(self):
         """Run when entity will be removed from hass.
         To be extended by integrations.
@@ -637,7 +636,7 @@ class XiaoaiConversationSensor(MiCoordinatorEntity, BaseSensorSubEntity):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         self.hass.data[DOMAIN]['entities'][self.entity_id] = self
-        await self.coordinator.async_config_entry_first_refresh()
+        await self.coordinator.async_refresh()
         if sec := self.custom_config_integer('interval_seconds'):
             self.coordinator.update_interval = timedelta(seconds=sec)
 

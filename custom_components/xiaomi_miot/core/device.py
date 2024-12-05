@@ -716,9 +716,10 @@ class Device(CustomConfigHelper):
                     self.miot_results.errors = exc
                     self.available = False
                 self._local_state = False
+                props_count = len(mapping)
                 log(
                     'Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',
-                    exc, mapping, max_properties, len(mapping)
+                    exc, mapping, max_properties or props_count, props_count
                 )
 
         if use_cloud:
