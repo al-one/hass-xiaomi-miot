@@ -874,7 +874,7 @@ MIOT_LOCAL_MODELS = [
     'yeelink.bhf_light.v17',
     'yeelink.bhf_light.v18',
     'yeelink.bhf_light.v20',
-    'yeelink.bhf_light.v6',
+    # 'yeelink.bhf_light.v6',  # miio2miot
     'yeelink.bhf_light.v8',
     'yeelink.controller.v2',
     'yeelink.curtain.ctmt1',
