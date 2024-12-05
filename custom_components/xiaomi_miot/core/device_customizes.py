@@ -2071,6 +2071,9 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'repellent_left_level,liquid_left',
         'select_properties': 'mode',
     },
+    '*.motion.*': {
+        'sensor_properties': 'illumination,no_motion_duration',
+    },
     '*.motion.*:light_strong': {
         'device_class': 'light',
     },
