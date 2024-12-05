@@ -1723,7 +1723,7 @@ DEVICE_CUSTOMIZES = {
     },
     'yunmi.waterpuri.*': {
         'number_properties': 'tds_warn_thd',
-        'sensor_properties': 'tds_in,tds_out,rinse,filter_remaining',
+        'sensor_properties': 'tds_in,tds_out,temperature,rinse,filter_remaining',
         'switch_properties': 'light_mode',
     },
     'yunmi.waterpuri.s20': {
