@@ -354,7 +354,7 @@ class Device(CustomConfigHelper):
                             attr = p.get('attr', prop.full_name)
                             c = p.get('class', MiotPropConv)
                             d = p.get('domain', None)
-                            ac = c(attr, domain=d, prop=prop, desc=p.get('desc', False))
+                            ac = c(attr, domain=d, prop=prop, desc=p.get('desc'))
                             self.add_converter(ac)
                             if conv and not d:
                                 conv.attrs.add(attr)
@@ -394,8 +394,7 @@ class Device(CustomConfigHelper):
                     self.log.warning(f'Unsupported customize entity: %s for %s', platform, prop.full_name)
                     continue
                 else:
-                    desc = bool(prop.value_list and platform in ['sensor', 'select'])
-                    conv = MiotPropConv(prop.full_name, platform, prop=prop, desc=desc)
+                    conv = MiotPropConv(prop.full_name, platform, prop=prop)
                     conv.with_option(
                         entity_type=None if platform == d else d,
                     )

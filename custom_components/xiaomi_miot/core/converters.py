@@ -90,13 +90,16 @@ class AttrConv(BaseConv):
 @dataclass
 class MiotPropConv(BaseConv):
     prop: 'MiotProperty' = None
-    desc: bool = False
+    desc: bool = None
 
     def __post_init__(self):
         super().__post_init__()
-        if not self.mi and self.prop:
-            from .miot_spec import MiotSpec
-            self.mi = MiotSpec.unique_prop(self.prop.siid, piid=self.prop.iid)
+        if self.prop:
+            if not self.mi:
+                from .miot_spec import MiotSpec
+                self.mi = MiotSpec.unique_prop(self.prop.siid, piid=self.prop.iid)
+            if self.desc == None:
+                self.desc = bool(self.prop.value_list and self.domain in ['sensor', 'select'])
 
     def decode(self, device: 'Device', payload: dict, value):
         if self.desc and self.prop:
