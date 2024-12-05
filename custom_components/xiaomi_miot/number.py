@@ -6,6 +6,7 @@ from homeassistant.components.number import (
     RestoreNumber,
     NumberMode,
 )
+from homeassistant.helpers.event import async_call_later
 
 from . import (
     DOMAIN,
@@ -73,6 +74,10 @@ class NumberEntity(XEntity, RestoreNumber):
 
     async def async_set_native_value(self, value: float):
         await self.device.async_write({self.attr: value})
+
+        if self._miot_action:
+            self._attr_native_value = None
+            async_call_later(self.hass, 0.5, self.schedule_update_ha_state)
 
 XEntity.CLS[ENTITY_DOMAIN] = NumberEntity
 

@@ -1046,29 +1046,29 @@ DEVICE_CUSTOMIZES = {
     },
     'mmgg.feeder.fi1': {
         'chunk_properties': 1,
-        'state_property': 'pet_food_left_level',
         'button_actions': 'pet_food_out,resetclean,reset_desiccant_life',
         'binary_sensor_properties': 'outletstatus,doorstatus',
-        'sensor_properties': 'fault,outfood_num,cleantime,desiccant_left_time',
+        'sensor_properties': 'fault,pet_food_left_level,outfood_num,cleantime,desiccant_left_time',
         'number_properties': 'key_stat,indicator_light.on',
+        'select_actions': 'pet_food_out',
         'exclude_miot_properties': 'outfood_id,contrycode,feddplan_string,factory_result,phon_time_zone'
                                    'feedplan_hour,feedplan_min,feedplan_unit,feedplan_stat,feedplan_id,getfeedplan_num',
     },
     'mmgg.feeder.inland': {
         'chunk_properties': 1,
-        'state_property': 'pet_food_left_level',
         'button_actions': 'pet_food_out,resetclean,reset_desiccant_life',
         'binary_sensor_properties': 'outletstatus,doorstatus',
-        'sensor_properties': 'outfood_num,foodstatus,desiccant_left_time,cleantime',
+        'sensor_properties': 'pet_food_left_level,outfood_num,foodstatus,desiccant_left_time,cleantime',
         'switch_properties': 'key_stat,indicator_light.on',
+        'select_actions': 'pet_food_out',
         'exclude_miot_properties': 'fault,outfood_id,contrycode,feddplan_string,factory_result,phon_time_zone,'
                                    'feedplan_hour,feedplan_min,feedplan_unit,feedplan_stat,feedplan_id,getfeedplan_num',
     },
     'mmgg.feeder.petfeeder': {
-        'state_property': 'pet_food_left_level',
         'button_actions': 'reset_desiccant_life',
-        'sensor_properties': 'feed_today,desiccant_left_time,cleantime',
+        'sensor_properties': 'pet_food_left_level,feed_today,desiccant_left_time,cleantime',
         'switch_properties': 'feedstatus',
+        'select_actions': 'pet_food_out',
     },
     'mmgg.litter_box.lbc1': {
         'binary_sensor_properties': 'warehouse_uninstall,cover_open,roller_uninstall,device_dump,'
