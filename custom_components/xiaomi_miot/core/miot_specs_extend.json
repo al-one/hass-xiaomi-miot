@@ -104,6 +104,14 @@
     }
   ],
 
+  "cgllc.motion.cgpr1": [
+    {
+      "iid": 2,
+      "properties": [
+          {"iid": 2, "value-range": [1, 30, 1], "value-list": null}
+      ]
+    }
+  ],
   "chuangmi.plug.hmi208": [
     {
       "iid": 2,
