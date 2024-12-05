@@ -111,6 +111,13 @@ class XEntity(BasicEntity):
         self._attr_icon = conv.option.get('icon')
         self._attr_device_class = self.custom_config('device_class') or conv.option.get('device_class')
 
+        if self._attr_translation_key:
+            self._attr_translation_key = ( # hassfest
+                self._attr_translation_key
+                .replace(':', '-')
+                .replace('.', '-')
+            )
+
         cate = self.custom_config('entity_category') or conv.option.get('entity_category')
         if isinstance(cate, str):
             cate = EntityCategory(cate) if cate in EntityCategory else None

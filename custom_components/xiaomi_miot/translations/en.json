@@ -209,8 +209,8 @@
             "power_cost_month": {"name": "Energy Month"},
             "power_cost_today_2": {"name": "Energy Today"},
             "power_cost_month_2": {"name": "Energy Month"},
-            "props:clean_area": {"name": "Clean Area"},
-            "props:clean_time": {"name": "Clean Time"},
+            "props-clean_area": {"name": "Clean Area"},
+            "props-clean_time": {"name": "Clean Time"},
             "lock": {
                 "state": {
                     "bluetooth": "Bluetooth",

@@ -146,10 +146,10 @@
             "power_cost_month": {"name": "月电量"},
             "power_cost_today_2": {"name": "日电量"},
             "power_cost_month_2": {"name": "月电量"},
-            "prop_cal_day.power_cost:today": {"name": "日电量"},
-            "prop_cal_day.power_cost:month": {"name": "月电量"},
-            "props:clean_area": {"name": "清洁面积"},
-            "props:clean_time": {"name": "清洁时间"},
+            "prop_cal_day-power_cost-today": {"name": "日电量"},
+            "prop_cal_day-power_cost-month": {"name": "月电量"},
+            "props-clean_area": {"name": "清洁面积"},
+            "props-clean_time": {"name": "清洁时间"},
             "lock": {
                 "state": {
                     "bluetooth": "蓝牙",
