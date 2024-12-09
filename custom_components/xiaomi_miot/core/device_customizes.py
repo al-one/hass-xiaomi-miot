@@ -803,7 +803,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,time_watermark,motion_detection',
         'number_properties': 'image_rollover,alarm_interval',
     },
+    'isleep.blanket.hs2001': CHUNK_1,
+    'isleep.blanket.hs2201': CHUNK_1,
     'isleep.blanket.hs2205': CHUNK_1,
+    'isleep.blanket.hs2401': CHUNK_1,
     'isleep.blanket.*': {
         'sensor_properties': 'fault,temperature,water_level',
         'select_properties': 'mode,sleep_level',
