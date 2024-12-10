@@ -212,11 +212,11 @@ class MiotClimateEntity(MiotToggleEntity, BaseClimateEntity):
                 fst = fst or v
                 val = v.get('value')
                 if val not in mvs:
-                    des = self._prop_mode.get_translation(v.get('description'))
+                    des = self._prop_mode.get_translation(v.get('description'), viid=val)
                     self._preset_modes[val] = des
             if self._prop_mode.value_range:
                 for val in self._prop_mode.list_descriptions():
-                    des = self._prop_mode.get_translation(val)
+                    des = self._prop_mode.get_translation(val, viid=val)
                     self._preset_modes[val] = des
             if fst and len(self._hvac_modes) <= 1:
                 self._hvac_modes[HVACMode.AUTO] = {

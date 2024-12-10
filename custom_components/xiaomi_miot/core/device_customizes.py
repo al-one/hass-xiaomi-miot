@@ -1669,7 +1669,6 @@ DEVICE_CUSTOMIZES = {
     },
     'yeelink.bhf_light.v6': {
         'select_properties': 'heat_mode,cold_mode,vent_mode',
-        'trans_options': False,
     },
     'yeelink.bhf_light.v10': {
         'chunk_properties': 1,
