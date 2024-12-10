@@ -1859,6 +1859,9 @@ DEVICE_CUSTOMIZES = {
         'state_class': 'measurement',
         'unit_of_measurement': '%',
     },
+    'zhimi.humidifier.ca4:water_level': {
+        'value_ratio': 100/128
+    },
     'zhimi.humidifier.*': {
         'sensor_properties': 'water_level,actual_speed',
         'switch_properties': 'alarm,other.clean,humidifier.dry',
