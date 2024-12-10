@@ -585,9 +585,12 @@ DEVICE_CUSTOMIZES = {
                                     'vertical_swing_included_angle,vertical_angle',
         'number_properties': 'off_delay_time',
     },
+    'dmaker.humidifier.p2': {
+        'auto_cloud': True,
+    },
     'dmaker.humidifier.*': {
         'button_actions': 'loop_mode',
-        'sensor_properties': 'fault,water_level,fan_dry_time',
+        'sensor_properties': 'fault,water_status,water_level,fan_dry_time',
         'switch_properties': 'over_wet_protect,screen.on',
         'number_properties': 'off_delay_time',
     },
