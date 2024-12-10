@@ -1736,7 +1736,7 @@
         {
           "iid": 7,
           "unit": "percentage",
-          "value-range": [0, 100, 1]
+          "value-range": [0, 128, 1]
         }
       ]
     },
