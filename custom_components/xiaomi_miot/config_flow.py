@@ -118,6 +118,7 @@ async def check_miio_device(hass, user_input, errors):
 class BaseFlowHandler:
     hass = None
     context = None
+    base_input = None
     cloud: MiotCloud = None
     devices: Optional[list] = None
 
@@ -235,7 +236,6 @@ class BaseFlowHandler:
                 schema = schema.extend({
                     vol.Optional('home_ids', default=[]): cv.multi_select(homes),
                 })
-            self.hass.data[DOMAIN]['prev_input'] = user_input
         tip = ''
         if user_input.get(CONF_CONN_MODE) == 'local':
             url = 'https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855183156'
@@ -253,6 +253,7 @@ class BaseFlowHandler:
 
 class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=DOMAIN):
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
+    filter_models = None
 
     @staticmethod
     @callback
@@ -333,6 +334,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             await self.check_xiaomi_account(user_input, errors, renew_devices=True)
             if not errors:
                 user_input['filtering'] = True
+                self.base_input = user_input
+                self.filter_models = user_input.get('filter_models')
                 return await self.async_step_cloud_filter(user_input)
         schema = {}
         if self.context.get('captchaIck'):
@@ -361,17 +364,17 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         schema = vol.Schema({})
         if user_input is None:
             user_input = {}
-        via_did = not user_input.get('filter_models')
+        via_did = not self.filter_models
         home_ids = user_input.pop('home_ids', [])
         if user_input.get('filtering') or home_ids:
             schema = await self.get_cloud_filter_schema(user_input, errors, schema, via_did=via_did, home_ids=home_ids)
-        elif 'prev_input' in self.hass.data[DOMAIN]:
-            prev_input = self.hass.data[DOMAIN].pop('prev_input', None) or {}
+        elif user_input:
+            prev_input = self.base_input or {}
             cfg = self.cloud.to_config() or {}
             cfg.update({
                 CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
                 **user_input,
-                'filter_models': True if via_did else False,
+                'filter_models': self.filter_models,
             })
             cfg[CONF_CONFIG_VERSION] = ENTRY_VERSION
             _LOGGER.debug('Setup xiaomi cloud: %s', {**cfg, CONF_PASSWORD: '*', 'service_token': '*'})
@@ -591,6 +594,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             **self.config_entry.options,
         }
 
+    @property
+    def filter_models(self):
+        if self.saved_config.get('filter_model'):
+            return True
+        return self.saved_config.get('filter_models', False)
+
     async def async_step_init(self, user_input=None):
         data = self.config_entry.data
         if CONF_USERNAME in data:
@@ -622,7 +631,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                 )
                 return self.async_create_entry(title='', data=opt)
         else:
-            user_input = {**self.config_entry.data, **self.config_entry.options}
+            user_input = self.saved_config
         return self.async_show_form(
             step_id='user',
             data_schema=vol.Schema({
@@ -647,10 +656,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             renew = not not user_input.pop('renew_devices', False)
             await self.check_xiaomi_account(user_input, errors, renew_devices=renew)
             if not errors:
-                user_input['filter_models'] = prev_input.get('filter_models') and True
-                if prev_input.get('filter_model'):
-                    user_input['filter_models'] = True
                 user_input['filtering'] = True
+                self.base_input = user_input
                 return await self.async_step_cloud_filter(user_input)
         else:
             user_input = prev_input
@@ -683,7 +690,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
         schema = vol.Schema({})
         if user_input is None:
             user_input = {}
-        via_did = not user_input.get('filter_models')
+        via_did = not self.filter_models
         home_ids = user_input.pop('home_ids', [])
         if user_input.get('filtering') or home_ids:
             user_input = {
@@ -691,13 +698,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                 **user_input,
             }
             schema = await self.get_cloud_filter_schema(user_input, errors, schema, via_did=via_did, home_ids=home_ids)
-        elif 'prev_input' in self.hass.data[DOMAIN]:
-            prev_input = self.hass.data[DOMAIN].pop('prev_input', None) or {}
+        elif user_input:
+            prev_input = self.base_input or {}
             cfg = self.cloud.to_config() or {}
             cfg.update({
                 CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
+                'filter_models': self.filter_models,
                 'trans_options': prev_input.get('trans_options'),
-                'filter_models': True if via_did else False,
                 'disable_message': prev_input.get('disable_message'),
                 'disable_scene_history': prev_input.get('disable_scene_history'),
                 **user_input,
