@@ -1860,7 +1860,7 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': '%',
     },
     'zhimi.humidifier.ca4:water_level': {
-        'value_ratio': 100/128
+        'value_ratio': 100 / 120
     },
     'zhimi.humidifier.*': {
         'sensor_properties': 'water_level,actual_speed',
