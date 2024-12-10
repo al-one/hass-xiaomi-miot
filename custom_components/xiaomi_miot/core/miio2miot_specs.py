@@ -2293,6 +2293,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {'prop': 'color_mode', 'setter': True},
         },
     },
+    'yeelink.light.mono4': 'yeelink.light.mono1',
+    'yeelink.light.mono5': 'yeelink.light.mono1',
     'yeelink.light.panel1': 'yeelink.light.ceiling2',
     'yeelink.light.panel3': 'yeelink.light.ceiling2',
     'yeelink.light.strip1': 'yeelink.light.color1',
