@@ -120,10 +120,13 @@ class XEntity(BasicEntity):
 
         cate = self.custom_config('entity_category') or conv.option.get('entity_category')
         if isinstance(cate, str):
-            cate = EntityCategory(cate) if cate in EntityCategory else None
+            try:
+                cate = EntityCategory(cate)
+            except Exception:
+                cate = None
         if cate:
-            self._attr_entity_category = EntityCategory(cate) if cate in EntityCategory else None
-        elif not cate:
+            self._attr_entity_category = cate
+        else:
             cats = {
                 'configuration_entities': EntityCategory.CONFIG,
                 'diagnostic_entities': EntityCategory.DIAGNOSTIC,
