@@ -593,6 +593,10 @@ DEVICE_CUSTOMIZES = {
     },
     'dmaker.humidifier.p2': {
         'auto_cloud': True,
+        'interval_seconds': 90,
+        'chunk_coordinators': [
+            {'interval': 30, 'props': 'humidifier.on,mode,target_humidity'},
+        ],
     },
     'dmaker.humidifier.*': {
         'button_actions': 'loop_mode',
