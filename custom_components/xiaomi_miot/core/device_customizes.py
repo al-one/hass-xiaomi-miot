@@ -595,7 +595,7 @@ DEVICE_CUSTOMIZES = {
         'auto_cloud': True,
         'interval_seconds': 90,
         'chunk_coordinators': [
-            {'interval': 30, 'props': 'humidifier.on,mode,target_humidity'},
+            {'interval': 30, 'props': 'humidifier.on,mode,target_humidity', 'notify': True},
         ],
     },
     'dmaker.humidifier.*': {
@@ -1640,7 +1640,7 @@ DEVICE_CUSTOMIZES = {
                                   'vacuum.detergent_self_delivery,detergent_self_delivery_level',
         'diagnostic_entities': 'voltage,water_check_status',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'status,cleaning_area,cleaning_time,charging_state'},
+            {'interval': 10, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
             {'interval': 15, 'props': 'mode,sweep_mop_type,sweep_type,clean_times'},
         ],
     },
