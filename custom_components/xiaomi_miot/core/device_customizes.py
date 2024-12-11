@@ -2028,6 +2028,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'fan_init_power_opt',
     },
     '*.fishbowl.*': {
+        'select_actions': 'pet_food_out',
         'sensor_properties': 'temperature,tds_in,tds_out',
         'switch_properties': 'water_pump,automatic_feeding,heating',
         'number_properties': 'target_temperature,pump_flux,target_feeding_measure,'
