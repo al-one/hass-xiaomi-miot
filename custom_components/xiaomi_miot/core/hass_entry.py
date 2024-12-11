@@ -55,9 +55,31 @@ class HassEntry:
             **self.entry.data,
             **self.entry.options,
         }
+        if self.filter_models:
+            dat.pop('filter_did', None)
+            dat.pop('did_list', None)
+        else:
+            dat.pop('filter_model', None)
+            dat.pop('model_list', None)
         if key:
             return dat.get(key, default)
         return dat
+
+    @property
+    def filter_models(self):
+        data = {
+            **self.entry.data,
+            **self.entry.options,
+        }
+        if data.get('did_list'):
+            return False
+        if data.get('model_list'):
+            return True
+        if 'did_list' in data:
+            return False
+        if 'model_list' in data:
+            return True
+        return data.get('filter_models', False)
 
     async def new_device(self, device_info: dict):
         from .device import Device, DeviceInfo
