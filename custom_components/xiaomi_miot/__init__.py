@@ -973,10 +973,9 @@ class MiotEntity(MiioEntity):
         self._miot_mapping = dict(kwargs.get('mapping') or {})
         if self._miot_service:
             if not self._miot_mapping:
-                urp = self.custom_config_bool('unreadable_properties')
                 self._miot_mapping = miot_service.mapping(
-                    excludes=self.custom_config_list('exclude_miot_properties') or [],
-                    unreadable_properties=urp,
+                    excludes=self.device._exclude_miot_properties,
+                    unreadable_properties=self.device._unreadable_properties,
                 ) or {}
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
             self.entity_id = self._miot_service.generate_entity_id(self)
@@ -1096,13 +1095,9 @@ class MiotEntity(MiioEntity):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
         attrs = {}
-        result = await self.device.update_miot_status(
-            use_local=self.custom_config_bool('miot_local'),
-            use_cloud=self.custom_config_bool('miot_cloud'),
-            auto_cloud=self.custom_config_bool('auto_cloud'),
-            check_lan=self.custom_config_bool('check_lan'),
-            max_properties=self.custom_config_integer('chunk_properties'),
-        )
+        result = self.device.miot_results
+        if not result:
+            return
         self._available = self.device.available
 
         if not result.is_valid:
@@ -1114,11 +1109,6 @@ class MiotEntity(MiioEntity):
                     firmware=self.device.info.firmware_version,
                     results=result._results or result.errors,
                 )
-            if result.is_empty and result._results:
-                self.logger.warning(
-                    '%s: Got invalid miot result while fetching the state: %s, mapping: %s',
-                    self.name_model, result._results, self._miot_mapping,
-                )
             return False
 
         if self.is_main_entity:
@@ -1126,6 +1116,13 @@ class MiotEntity(MiioEntity):
             attrs['state_updater'] = result.updater
             await self.async_update_for_main_entity()
         else:
+            result = await self.device.update_miot_status(
+                use_local=self.custom_config_bool('miot_local'),
+                use_cloud=self.custom_config_bool('miot_cloud'),
+                auto_cloud=self.custom_config_bool('auto_cloud'),
+                check_lan=self.custom_config_bool('check_lan'),
+                max_properties=self.custom_config_integer('chunk_properties'),
+            )
             attrs.update(result.to_attributes(self._state_attrs, self._miot_mapping))
         await self.async_update_attrs(attrs, update_subs=True)
         self.logger.debug('%s: Got new state: %s', self.name_model, attrs)

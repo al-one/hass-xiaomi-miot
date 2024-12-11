@@ -51,7 +51,7 @@ DEVICE_CUSTOMIZES = {
     },
     'ainice.sensor_occupy.3b': {
         'state_property': 'occupancy_sensor.current_occupied',
-        'interval_seconds': 30,
+        'interval_seconds': 90,
         'chunk_properties': 7,
         'parallel_updates': 1,
         'binary_sensor_properties': 'current_occupied,a_occupied,b_occupied,c_occupied,d_occupied,e_occupied',
@@ -61,6 +61,9 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'reboot',
         'exclude_miot_properties': 'zone_param,target_param,duration_param,time_param,'
                                    'map_read,map_write,radar_duration',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'current_occupied,a_occupied,b_occupied,c_occupied,d_occupied,e_occupied'},
+        ],
     },
     'ainice.sensor_occupy.3b:current_occupied': {
         'with_properties': 'has_someone_duration,no_one_duration,total_occupied',
@@ -87,12 +90,15 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'occupancy',
     },
     'ainice.sensor_occupy.bt': {
-        'interval_seconds': 10,
+        'interval_seconds': 60,
         'parallel_updates': 1,
         'switch_properties': 'indicator_switch,bt_pair_switch',
         'select_properties': 'bt_power_level',
         'scanner_properties': 'online_status',
         'select_actions': 'send_magic_package',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'online_status'},
+        ],
     },
     'ainice.sensor_occupy.bt:online_status': {
         'with_properties': 'online_duration,offline_duration,offline_interval,online_mode,bt_capture_mode,binding_info',
@@ -1595,6 +1601,7 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'min',
     },
     'xiaomi.vacuum.c107': {
+        'interval_seconds': 120,
         'exclude_miot_services': 'vacuum_map,custom,ai_small_pictures,voice_management',
         'exclude_miot_properties': 'vacuum_frameware_version,restricted_sweep_areas,restricted_walls,room_information,'
                                    'order_clean,map_complete_dialog,current_cleaning_config,user_define_sweep_cfg,'
@@ -1628,6 +1635,10 @@ DEVICE_CUSTOMIZES = {
                                   'auto_water_change,auto_mop_dry,auto_dust_arrest,dust_arrest_frequency,'
                                   'vacuum.detergent_self_delivery,detergent_self_delivery_level',
         'diagnostic_entities': 'voltage,water_check_status',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'status,cleaning_area,cleaning_time,charging_state'},
+            {'interval': 15, 'props': 'mode,sweep_mop_type,sweep_type,clean_times'},
+        ],
     },
     'xiaomi.watch.*': {
         'sensor_properties': 'current_step_count,current_distance',

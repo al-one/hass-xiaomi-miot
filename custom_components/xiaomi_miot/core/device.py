@@ -21,7 +21,7 @@ from .const import (
     DEFAULT_CONN_MODE,
 )
 from .hass_entry import HassEntry
-from .hass_entity import XEntity, convert_unique_id
+from .hass_entity import XEntity, BasicEntity, convert_unique_id
 from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv, AttrConv
 from .coordinator import DataCoordinator
 from .miot_spec import MiotSpec, MiotProperty, MiotResults, MiotResult
@@ -416,11 +416,7 @@ class Device(CustomConfigHelper):
         interval = 30
         interval = self.entry.get_config('scan_interval') or interval
         interval = self.custom_config_integer('interval_seconds') or interval
-        lst = []
-        if not self.miot_entity:
-            lst.append(
-                DataCoordinator(self, self.update_miot_status, update_interval=timedelta(seconds=interval)),
-            )
+        lst = await self.init_miot_coordinators(interval)
         if self.cloud_statistics_commands:
             lst.append(
                 DataCoordinator(self, self.update_cloud_statistics, update_interval=timedelta(seconds=interval*20)),
@@ -444,6 +440,72 @@ class Device(CustomConfigHelper):
         self.coordinators.extend(lst)
         for coo in lst:
             await coo.async_config_entry_first_refresh()
+
+    async def init_miot_coordinators(self, interval=60):
+        lst = []
+        if not self.spec:
+            return lst
+
+        all_mapping = {**self.miot_mapping()}
+        chunks = self.custom_config_list('chunk_coordinators') or []
+
+        def update_factory(mapping, notify=False):
+            async def _update():
+                result = await self.update_miot_status(mapping)
+                if notify:
+                    for entity in self.entities.values():
+                        if isinstance(entity, XEntity):
+                            continue
+                        if not isinstance(entity, BasicEntity):
+                            continue
+                        if not hasattr(entity, 'async_update'):
+                            continue
+                        await entity.async_update()
+                return result
+            return _update
+
+        index = 0
+        for chunk in chunks:
+            index += 1
+            inter = chunk.get('interval', interval)
+            props = chunk.get('props')
+            if not props:
+                continue
+            if isinstance(props, str):
+                props = props.split(',')
+            mapping = self.spec.services_mapping(
+                excludes=self._exclude_miot_services,
+                include_properties=props,
+                exclude_properties=self._exclude_miot_properties,
+                unreadable_properties=self._unreadable_properties,
+            ) or {}
+            for k in mapping.keys():
+                all_mapping.pop(k, None)
+            lst.append(
+                DataCoordinator(
+                    self, update_factory(mapping, chunk.get('notify')),
+                    name=f'chunk_{index}',
+                    update_interval=timedelta(seconds=inter),
+                ),
+            )
+
+        if all_mapping:
+            async def _update():
+                result = await self.update_miot_status(all_mapping)
+                for entity in self.entities.values():
+                    if isinstance(entity, XEntity):
+                        continue
+                    if not isinstance(entity, BasicEntity):
+                        continue
+                    if not hasattr(entity, 'async_update'):
+                        continue
+                    await entity.async_update()
+                return result
+            lst.append(
+                DataCoordinator(self, _update, name='miot_status', update_interval=timedelta(seconds=interval)),
+            )
+        self.log.debug('Miot coordinators: %s', [*chunks, all_mapping])
+        return lst
 
     async def update_status(self):
         for coo in self.coordinators:
@@ -737,6 +799,12 @@ class Device(CustomConfigHelper):
                     'Got MiCloudException while fetching the state: %s, mapping: %s',
                     exc, mapping,
                 )
+
+        if results and self.miot_results.is_empty:
+            self.log.warning(
+                'Got invalid miot result while fetching the state: %s, mapping: %s',
+                results, mapping,
+            )
 
         if self.miot_results.updater != self.data.get('updater'):
             dev_reg = dr.async_get(self.hass)

@@ -185,6 +185,7 @@ class MiotSpec(MiotSpecInstance):
     def services_mapping(self, *args, **kwargs):
         dat = None
         eps = kwargs.pop('exclude_properties', [])
+        ips = kwargs.pop('include_properties', [])
         urp = kwargs.pop('unreadable_properties', None)
         sls = self.get_services(*args, **kwargs)
         if self.custom_mapping:
@@ -198,7 +199,7 @@ class MiotSpec(MiotSpecInstance):
         for s in sls:
             if dat is None:
                 dat = {}
-            nxt = s.mapping(excludes=eps, unreadable_properties=urp) or {}
+            nxt = s.mapping(excludes=eps, includes=ips, unreadable_properties=urp) or {}
             dat = {**nxt, **dat}
         return dat
 
@@ -525,9 +526,11 @@ class MiotService(MiotSpecInstance):
     def name_count(self):
         return self.spec.services_count.get(self.name) or 0
 
-    def mapping(self, excludes=None, **kwargs):
+    def mapping(self, excludes=None, includes=None, **kwargs):
         dat = {}
         if not isinstance(excludes, list):
+            excludes = []
+        if not isinstance(includes, list):
             excludes = []
         for p in self.properties.values():
             if not isinstance(p, MiotProperty):
@@ -540,6 +543,8 @@ class MiotService(MiotSpecInstance):
                 if not p.writeable:
                     continue
             if p.in_list(excludes):
+                continue
+            if includes and not p.in_list(includes):
                 continue
             dat[p.full_name] = {
                 'siid': self.iid,
