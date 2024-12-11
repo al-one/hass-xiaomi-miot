@@ -1861,6 +1861,9 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_on': 0,
         'brightness_for_off': 2,
     },
+    'zhimi.humidifier.ca4:water_level': {
+        'value_ratio': 100 / 120,
+    },
     'zhimi.humidifier.cb1:water_level': {
         'state_class': 'measurement',
         'unit_of_measurement': '%',
