@@ -25,7 +25,6 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
-from .fan import MiotModesSubEntity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
