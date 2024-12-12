@@ -1413,6 +1413,17 @@ DEVICE_CUSTOMIZES = {
             'workRemind', 'offLight', 'offTime', 'isBound', 'isLink',
         ],
     },
+    'viomi.hood.v5': {
+        'interval_seconds': 120,
+        'sensor_properties': 'battery_life,left_status,right_status',
+        'switch_properties': 'off_delay,stove_bind,light_on,power_on_light,power_off_light,clean_remine_on,'
+                             'cruise_on,holiday_on,gestures',
+        'select_properties': 'holiday_cycle,holiday_duration',
+        'number_properties': 'off_delay_time,countdown_time,clean_remine_time',
+        'chunk_coordinators': [
+            {'interval': 30, 'props': 'on,fan_level,left_status,right_status,off_delay_time,countdown_time'},
+        ],
+    },
 
     'viomi.vacuum.v18': {
         'sensor_properties': 'vacuum.status,fault,door_state,mop_state,hypa_life,hypa_hours,'
