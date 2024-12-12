@@ -663,6 +663,8 @@ class Device(CustomConfigHelper):
             return False
         if not self.local:
             return False
+        if self.local_only:
+            return True
         if self.miio2miot:
             return True
         if self.model in MIOT_LOCAL_MODELS:
@@ -675,9 +677,11 @@ class Device(CustomConfigHelper):
     def use_cloud(self):
         if self.local_only:
             return False
-        if self.use_local:
-            return False
         if not self.cloud:
+            return False
+        if self.cloud_only:
+            return True
+        if self.use_local:
             return False
         if self.custom_config_bool('miot_cloud'):
             return True
@@ -733,6 +737,12 @@ class Device(CustomConfigHelper):
         if not mapping:
             use_local = False
             use_cloud = False
+
+        self.log.debug('Update miot status: %s', {
+            'use_local': [use_local, self.use_local, self.local],
+            'use_cloud': [use_cloud, self.use_cloud],
+            'mapping': mapping,
+        })
 
         if use_local:
             try:

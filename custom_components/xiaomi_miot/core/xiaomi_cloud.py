@@ -82,7 +82,7 @@ class MiotCloud(micloud.MiCloud):
             k = rmp.get(f'prop.{s}.{p}')
             if not k:
                 continue
-            v['did'] = k
+            v['prop'] = k
             dls.append(v)
         return dls
 

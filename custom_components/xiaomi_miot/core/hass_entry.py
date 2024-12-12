@@ -86,6 +86,8 @@ class HassEntry:
     async def new_device(self, device_info: dict):
         from .device import Device, DeviceInfo
         info = DeviceInfo(device_info)
+        if device := self.devices.get(info.unique_id):
+            return device
         device = Device(info, self)
         await device.async_init()
         self.devices[info.unique_id] = device
