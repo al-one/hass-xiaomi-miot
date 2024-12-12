@@ -8,7 +8,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
 from homeassistant.components import persistent_notification
-from homeassistant.helpers.event import async_call_later
 import homeassistant.helpers.device_registry as dr
 
 from .const import (
@@ -412,7 +411,7 @@ class Device(CustomConfigHelper):
             for attr in self.custom_config_list(f'{d}_attributes') or []:
                 self.add_converter(AttrConv(attr, d))
 
-    async def init_coordinators(self, _):
+    async def init_coordinators(self):
         interval = 30
         interval = self.entry.get_config('scan_interval') or interval
         interval = self.custom_config_integer('interval_seconds') or interval
@@ -534,7 +533,7 @@ class Device(CustomConfigHelper):
         if domain == 'button':
             self.dispatch_info()
             if not self.coordinators:
-                async_call_later(self.hass, 0.1, self.init_coordinators)
+                self.hass.loop.create_task(self.init_coordinators())
 
     def add_entity(self, entity: 'BasicEntity', unique=None):
         if unique == None:
