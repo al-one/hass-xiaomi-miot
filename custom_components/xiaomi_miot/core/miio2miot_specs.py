@@ -1335,7 +1335,7 @@ MIIO_TO_MIOT_SPECS = {
             },
         ],
         'miio_specs': {
-            'prop.2.1': {'prop': 'filter_use_time'},
+            'prop.2.1': {'prop': 'filter_use_time', 'template': '{{ value|int(0) * 24 }}'},
             'prop.2.2': {'prop': 'filter_use_flux'},
             'prop.3.1': {'prop': None, 'setter': 'seat_heat', 'format': 'onoff'},
             'prop.3.2': {'prop': None, 'setter': 'deodorant', 'format': 'onoff'},
