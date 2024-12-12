@@ -540,6 +540,16 @@ DEVICE_CUSTOMIZES = {
     'deye.derh.u20a3': {
         'target_humidity_ratio': 9.0909,
     },
+    'dmaker.airfresh.a1': {
+        'sensor_properties': 'filter_life_level',
+        'switch_properties': 'heater,alarm',
+        'select_properties': 'fan_level',
+    },
+    'dmaker.airfresh.t2017': {
+        'sensor_properties': 'filter_life_level',
+        'switch_properties': 'heater,screen.on,alarm',
+        'select_properties': 'heat_level,fan_level',
+    },
     'dmaker.airp.*': {
         'switch_properties': 'air_purifier.on,anion',
         'number_select_properties': 'horizontal_swing_included_angle',
