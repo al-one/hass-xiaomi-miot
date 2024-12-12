@@ -2041,6 +2041,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'motor_reverse',
         'select_properties': 'mode',
     },
+    '*.derh.*': {
+        'select_properties': 'fan_level',
+    },
     '*.desk.*': {
         'button_properties': 'motor_control,reset',
         'switch_properties': 'on',
@@ -2095,6 +2098,9 @@ DEVICE_CUSTOMIZES = {
     '*.heater.*': {
         'switch_properties': 'heater.on,horizontal_swing,alarm.alarm,delay.delay',
         'number_properties': 'countdown_time,delay_time',
+    },
+    '*.humidifier.*': {
+        'select_properties': 'fan_level',
     },
     '*.ihcooker.*': {
         'sensor_properties': 'left_time,working_time',
