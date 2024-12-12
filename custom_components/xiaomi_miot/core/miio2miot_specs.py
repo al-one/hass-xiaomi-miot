@@ -433,6 +433,11 @@ MIIO_TO_MIOT_SPECS = {
             },
         ],
         'miio_specs': {
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
+                'auto': 0,
+                'sleep': 1,
+                'favourite': 2,
+            }},
             'prop.2.4': {'prop': 'ptc_level', 'setter': True, 'dict': {
                 'low': 1,
                 'medium': 2,
