@@ -1546,6 +1546,13 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,heat_level',
         'number_properties': 'a_countdown,b_countdown',
     },
+    'xiaomi.derh.lite': {
+        'chunk_properties': 1,
+        'sensor_properties': 'fault,delay_remain_time',
+        'switch_properties': 'alarm,delay',
+        'select_properties': 'indicator_light.mode',
+        'number_properties': 'delay_time',
+    },
     'xiaomi.esteamer.mes01': {
         'sensor_properties': 'left_time,keep_warm_left_time',
         'switch_properties': 'auto_keep_warm',
