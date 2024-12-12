@@ -146,8 +146,18 @@ DEVICE_CUSTOMIZES = {
     },
 
     'careli.fryer.*': {
-        'button_actions': 'start_cook,pause,cancel_cooking',
-        'exclude_miot_services': 'custom',
+        'auto_cloud': True,
+        'interval_seconds': 120,
+        'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
+        'sensor_properties': 'status,fault,left_time,appoint_time_left',
+        'switch_properties': 'auto_keep_warm,current_keep_warm,preheat,turn_pot_cfg,turn_pot_config',
+        'select_properties': 'mode,food_quanty,preheat_switch,turn_pot,texture,target_cooking_measure',
+        'number_properties': 'target_time,target_temperature,appoint_time,reservation_left_time,cooking_weight',
+        'exclude_miot_properties': 'recipe_id,recipe_name,recipe_sync',
+        'chunk_coordinators': [
+            {'interval': 20, 'props': 'status,target_time,target_temperature,left_time'},
+            {'interval': 35, 'props': 'fault,mode,appoint_time,reservation_left_time'},
+        ],
     },
     'cgllc.airm.cgdn1': {
         'exclude_miot_services': 'mac,settings',
