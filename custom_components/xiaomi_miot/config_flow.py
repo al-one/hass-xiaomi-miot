@@ -37,7 +37,7 @@ from .core.utils import (
     in_china,
     async_analytics_track_event,
 )
-from .core.const import SUPPORTED_DOMAINS, CLOUD_SERVERS, CONF_XIAOMI_CLOUD
+from .core.const import SUPPORTED_DOMAINS, CLOUD_SERVERS, CONF_XIAOMI_CLOUD, HA_VERSION
 from .core.miot_spec import MiotSpec
 from .core.xiaomi_cloud import (
     MiotCloud,
@@ -585,8 +585,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
 
 class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
     def __init__(self, config_entry: config_entries.ConfigEntry):
-        if not hasattr(self, 'config_entry'):
-            # hass v2024.12+
+        if HA_VERSION >= '2024.12':
             self.config_entry = config_entry
 
     @property
