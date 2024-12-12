@@ -276,16 +276,15 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
     try:
         cloud = await entry.get_cloud(check=True)
         config[CONF_XIAOMI_CLOUD] = cloud
-        config['devices_by_mac'] = await cloud.async_get_devices_by_key('mac', filters=entry_config) or {}
+        devices = await entry.get_cloud_devices()
     except (MiCloudException, MiCloudAccessDenied) as exc:
         _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', username, exc)
         return False
-    if not config.get('devices_by_mac'):
+    if not devices:
         _LOGGER.warning('None device in xiaomi cloud: %s', username)
     else:
-        cnt = len(config['devices_by_mac'])
-        _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', username, cnt)
-    for mac, d in config['devices_by_mac'].items():
+        _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', username, len(devices))
+    for d in devices.values():
         device = await entry.new_device(d)
         if not device.spec:
             _LOGGER.warning('%s: Device has no spec %s', device.name_model, device.info.urn)
@@ -577,18 +576,19 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
     hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, updated)
 
 
-async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, entry: ConfigEntry, device: dr.DeviceEntry):
+async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, config_entry: ConfigEntry, device: dr.DeviceEntry):
     """Supported from Hass v2022.3"""
-    dvc = None
+    entry = HassEntry.init(hass, config_entry)
+    cloud_device = None
     identifier = next(iter(device.identifiers))
     if len(identifier) >= 2 and identifier[0] == DOMAIN:
         mac = identifier[1].split('-')[0]
         if mac:
-            dvc = hass.data[DOMAIN].get(entry.entry_id, {}).get('devices_by_mac', {}).get(mac.upper()) or {}
-    data = {**entry.data, **entry.options}
-    for typ in (['did'] if dvc else []):
+            cloud_device = await entry.get_cloud_device(mac=mac.upper())
+    data = entry.entry.data
+    for typ in (['did'] if cloud_device else []):
         filter_typ = data.get(f'filter_{typ}')
-        filter_val = dvc.get(typ)
+        filter_val = cloud_device.get(typ)
         if not filter_val or not filter_typ:
             continue
         lst = data.get(f'{typ}_list') or []
@@ -597,8 +597,8 @@ async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, entry:
         else:
             lst = list({*lst}.difference({filter_val}))
         data[f'{typ}_list'] = lst
-        hass.config_entries.async_update_entry(entry, data=data)
-        _LOGGER.info('Remove miot device: %s', [dvc])
+        hass.config_entries.async_update_entry(config_entry, data=data)
+        _LOGGER.info('Remove miot device: %s', cloud_device)
 
     dr.async_get(hass).async_remove_device(device.id)
     return True
@@ -1007,12 +1007,9 @@ class MiotEntity(MiioEntity):
     @property
     def miot_did(self):
         did = self.custom_config('miot_did') or self._config.get('miot_did')
-        if self.entity_id and not did:
-            mac = self.device.info.mac
-            dvs = self.entry_config('devices_by_mac') or {}
-            if mac in dvs:
-                return dvs[mac].get('did')
-        return did
+        if did:
+            return did
+        return self.device.did
 
     @property
     def xiaomi_cloud(self):

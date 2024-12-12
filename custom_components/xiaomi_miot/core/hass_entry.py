@@ -16,6 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 class HassEntry:
     ALL: dict[str, 'HassEntry'] = {}
     cloud: MiotCloud = None
+    cloud_devices = None
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry):
         self.id = entry.entry_id
@@ -23,6 +24,7 @@ class HassEntry:
         self.entry = entry
         self.adders: dict[str, AddEntitiesCallback] = {}
         self.devices: dict[str, 'Device'] = {}
+        self.mac_to_did = {}
 
     @staticmethod
     def init(hass: HomeAssistant, entry: ConfigEntry):
@@ -106,3 +108,22 @@ class HassEntry:
         if check:
             await self.cloud.async_check_auth(notify=True)
         return self.cloud
+
+    async def get_cloud_devices(self):
+        if isinstance(self.cloud_devices, dict):
+            return self.cloud_devices
+        cloud = await self.get_cloud()
+        config = self.get_config()
+        self.cloud_devices = await cloud.async_get_devices_by_key('did', filters=config) or {}
+        for did, info in self.cloud_devices.items():
+            mac = info.get('mac') or did
+            self.mac_to_did[mac] = did
+        return self.cloud_devices
+
+    async def get_cloud_device(self, did=None, mac=None):
+        devices = await self.get_cloud_devices()
+        if mac and not did:
+            did = self.mac_to_did.get(mac)
+        if did:
+            return devices.get(did)
+        return None
