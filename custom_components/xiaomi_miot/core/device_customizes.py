@@ -239,10 +239,6 @@ DEVICE_CUSTOMIZES = {
         **ENERGY_KWH,
         'value_ratio': 0.001,
     },
-    'chunmi.cooker.normalcd2': {
-        'button_actions': 'pause,cancel_cooking',
-        'select_actions': 'start_cook',
-    },
     'chunmi.health_pot.a1': {
         'select_actions': 'start_cook',
     },
@@ -2080,7 +2076,8 @@ DEVICE_CUSTOMIZES = {
     '*.cooker.*': {
         'sensor_properties': 'temperature,left_time',
         'switch_properties': 'on,auto_keep_warm',
-        'button_actions': 'start_cook,pause,cancel_cooking',
+        'button_actions': 'pause,cancel_cooking',
+        'select_actions': 'start_cook',
     },
     '*.curtain.*': {
         'switch_properties': 'motor_reverse',
