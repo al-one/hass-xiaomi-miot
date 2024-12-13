@@ -168,6 +168,7 @@ class Device(CustomConfigHelper):
         self.listeners: list[Callable] = []
         self.converters: list[BaseConv] = []
         self.coordinators: list[DataCoordinator] = []
+        self.main_coordinators: list[DataCoordinator] = []
         self.log = logging.getLogger(f'{__name__}.{self.model}')
 
     async def async_init(self):
@@ -480,34 +481,30 @@ class Device(CustomConfigHelper):
             ) or {}
             for k in mapping.keys():
                 all_mapping.pop(k, None)
-            lst.append(
-                DataCoordinator(
-                    self, update_factory(mapping, chunk.get('notify')),
-                    name=f'chunk_{index}',
-                    update_interval=timedelta(seconds=inter),
-                ),
+            notify = chunk.get('notify')
+            coo = DataCoordinator(
+                self, update_factory(mapping, notify),
+                name=f'chunk_{index}',
+                update_interval=timedelta(seconds=inter),
             )
+            lst.append(coo)
+            if notify or not self.main_coordinators:
+                self.main_coordinators.append(coo)
 
         if all_mapping:
-            async def _update():
-                result = await self.update_miot_status(all_mapping)
-                for entity in self.entities.values():
-                    if isinstance(entity, XEntity):
-                        continue
-                    if not isinstance(entity, BasicEntity):
-                        continue
-                    if not hasattr(entity, 'async_update'):
-                        continue
-                    await entity.async_update()
-                return result
-            lst.append(
-                DataCoordinator(self, _update, name='miot_status', update_interval=timedelta(seconds=interval)),
-            )
+            coo = DataCoordinator(self, update_factory(all_mapping, True), name='miot_status', update_interval=timedelta(seconds=interval))
+            lst.append(coo)
+            if not self.main_coordinators:
+                self.main_coordinators.append(coo)
         self.log.debug('Miot coordinators: %s', [*chunks, all_mapping])
         return lst
 
     async def update_status(self):
         for coo in self.coordinators:
+            await coo.async_refresh()
+
+    async def update_main_status(self):
+        for coo in self.main_coordinators:
             await coo.async_refresh()
 
     def add_entities(self, domain):

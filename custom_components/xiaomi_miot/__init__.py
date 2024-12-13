@@ -782,7 +782,7 @@ class MiioEntity(BaseEntity):
 
     @property
     def device_name(self):
-        return self._config.get(CONF_NAME) or self._name
+        return self.device.name
 
     @property
     def device_host(self):
@@ -984,8 +984,6 @@ class MiotEntity(MiioEntity):
             mls = f'{self.model}..'.split('.')
             mac = re.sub(r'[\W_]+', '', self.unique_mac)
             self.entity_id = f'{DOMAIN}.{mls[0]}_{mls[2]}_{mac[-4:]}_{mls[1]}'
-        if self.model in MIOT_LOCAL_MODELS:
-            self._vars['track_miot_error'] = True
         self._success_code = 0
         self.logger.info('%s: Initializing miot device with mapping: %s', self.name_model, self._miot_mapping)
 
@@ -1087,42 +1085,29 @@ class MiotEntity(MiioEntity):
             return super().send_miio_command(method, params, **kwargs)
         self.logger.error('%s: None local device for send miio command %s(%s)', self.name_model, method, params)
 
+    async def async_update_from_device(self):
+        self._available = self.device.available
+        if self.is_main_entity:
+            attrs = self.device.props
+            attrs['state_updater'] = self.device.data.get('updater')
+            await self.async_update_for_main_entity()
+        else:
+            attrs = {
+                k: v
+                for k, v in self.device.props
+                if k in self._miot_mapping
+            }
+        self._state_attrs = attrs
+        await self.async_update_attrs(attrs, update_subs=True)
+        return attrs
+
     async def async_update(self):
         if self._vars.get('delay_update'):
             await asyncio.sleep(self._vars.get('delay_update'))
             self._vars.pop('delay_update', 0)
-        attrs = {}
-        result = self.device.miot_results
-        if not result:
-            return
-        self._available = self.device.available
-
-        if not result.is_valid:
-            if result.errors and is_offline_exception(result.errors):
-                """ Migrated to device """
-            elif result.updater == 'local' and self._vars.pop('track_miot_error', None):
-                await async_analytics_track_event(
-                    self.hass, 'miot', 'error', self.model,
-                    firmware=self.device.info.firmware_version,
-                    results=result._results or result.errors,
-                )
-            return False
-
-        if self.is_main_entity:
-            attrs.update(self.device.props)
-            attrs['state_updater'] = result.updater
-            await self.async_update_for_main_entity()
-        else:
-            result = await self.device.update_miot_status(
-                use_local=self.custom_config_bool('miot_local'),
-                use_cloud=self.custom_config_bool('miot_cloud'),
-                auto_cloud=self.custom_config_bool('auto_cloud'),
-                check_lan=self.custom_config_bool('check_lan'),
-                max_properties=self.custom_config_integer('chunk_properties'),
-            )
-            attrs.update(result.to_attributes(self._state_attrs, self._miot_mapping))
-        await self.async_update_attrs(attrs, update_subs=True)
-        self.logger.debug('%s: Got new state: %s', self.name_model, attrs)
+        await self.device.update_main_status()
+        attrs = await self.async_update_from_device()
+        self.logger.debug('%s: Got new state: %s', self.name, attrs)
 
     async def async_update_for_main_entity(self):
         if self._miot_service:
