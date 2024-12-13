@@ -585,7 +585,7 @@ async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, config
         mac = identifier[1].split('-')[0]
         if mac:
             cloud_device = await entry.get_cloud_device(mac=mac.upper())
-    data = entry.entry.data
+    data = {**entry.entry.data}
     for typ in (['did'] if cloud_device else []):
         filter_typ = data.get(f'filter_{typ}')
         filter_val = cloud_device.get(typ)
