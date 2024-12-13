@@ -2434,10 +2434,11 @@ GLOBAL_CONVERTERS = [
             {
                 'props': [
                     'battery_level', 'electric_power', 'electric_current',
-                    'voltage', 'leakage_current', 'surge_power', 'charging_state',
+                    'voltage', 'leakage_current', 'surge_power',
                 ],
                 'domain': 'sensor',
             },
+            {'props': ['charging_state'], 'domain': 'sensor', 'desc': True},
         ],
     },
     {
