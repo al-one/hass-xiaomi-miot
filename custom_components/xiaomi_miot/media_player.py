@@ -390,7 +390,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         for d in result.get('data', []):
             if not isinstance(d, dict):
                 continue
-            if d.get('miotDID') == self.miot_did or d.get('mac') == self._miio_info.mac_address:
+            if d.get('miotDID') == self.miot_did or d.get('mac') == self.device.info.mac:
                 self.xiaoai_device = d
                 break
         return self.xiaoai_device
