@@ -863,6 +863,14 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'indicator_light,shadow_tracking',
         'button_actions': 'led_toggle,find_device'
     },
+    'jyf.tow_w.ts03': {
+        'auto_cloud': True,
+        'interval_seconds': 120,
+        'exclude_miot_properties': 'mode,fault',
+        'chunk_coordinators': [
+            {'interval': 30, 'props': 'on,target-temperature,temperature,left_time'},
+        ],
+    },
     'leishi.bhf_light.lsyb01': {
         'light_services': 'night_light',
         'switch_properties': 'heating,blow,ventilation,dryer',
