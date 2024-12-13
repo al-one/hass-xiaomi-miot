@@ -177,6 +177,9 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'voltage',
         'unit_of_measurement': 'V',
     },
+    'cgllc.airm.cgs2': {
+        'sensor_properties': 'noise_decibel',
+    },
     'cgllc.motion.cgpr1': {
         'sensor_properties': 'illumination,no_motion_duration',
     },
