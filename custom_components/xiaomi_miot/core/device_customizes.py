@@ -1618,6 +1618,9 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'pet_food_left_level,fault,desiccant_left_level,desiccant_left_time',
         'switch_properties': 'compensate_switch,prevent_accumulation',
     },
+    'xiaomi.feeder.pi2001:pet_food_out': {
+        'action_params': 1,
+    },
     'xiaomi.health_pot.p1': {
         'select_actions': 'start_cook',
     },

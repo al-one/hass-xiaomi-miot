@@ -95,7 +95,9 @@ class CustomConfigHelper:
         lst = self.custom_config(key)
         if lst is None:
             return default
-        if not isinstance(lst, list):
+        if isinstance(lst, (int, float, bool)):
+            lst = [lst]
+        elif not isinstance(lst, list):
             lst = f'{lst}'.split(',')
             lst = list(map(lambda x: x.strip(), lst))
         return lst
