@@ -1094,7 +1094,7 @@ class MiotEntity(MiioEntity):
         else:
             attrs = {
                 k: v
-                for k, v in self.device.props
+                for k, v in self.device.props.items()
                 if k in self._miot_mapping
             }
         self._state_attrs = attrs

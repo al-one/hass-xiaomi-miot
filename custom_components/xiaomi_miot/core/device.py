@@ -609,46 +609,54 @@ class Device(CustomConfigHelper):
         result = None
         method = data.get('method')
 
-        if method == 'update_status':
-            result = await self.update_main_status()
+        try:
+            if method == 'update_status':
+                result = await self.update_main_status()
 
-        if method == 'set_properties':
-            params = data.get('params', [])
-            cloud_params = []
-            if not self._local_state or self.cloud_only:
-                cloud_params = params
-            elif self.miio2miot:
-                result = []
-                for param in params:
-                    siid = param['siid']
-                    piid = param['piid']
-                    if not self.miio2miot.has_setter(siid, piid=piid):
-                        cloud_params.append(param)
-                        continue
-                    cmd = partial(self.miio2miot.set_property, self.local, siid, piid, param['value'])
-                    result.append(await self.hass.async_add_executor_job(cmd))
-            elif self.local:
-                result = await self.local.async_send(method, params)
-            if self.cloud and cloud_params:
-                result = await self.cloud.async_set_props(cloud_params)
+            if method == 'set_properties':
+                params = data.get('params', [])
+                cloud_params = []
+                if not self._local_state or self.cloud_only:
+                    cloud_params = params
+                elif self.miio2miot:
+                    result = []
+                    for param in params:
+                        siid = param['siid']
+                        piid = param['piid']
+                        if not self.miio2miot.has_setter(siid, piid=piid):
+                            cloud_params.append(param)
+                            continue
+                        cmd = partial(self.miio2miot.set_property, self.local, siid, piid, param['value'])
+                        result.append(await self.hass.async_add_executor_job(cmd))
+                elif self.local:
+                    result = await self.local.async_send(method, params)
+                if self.cloud and cloud_params:
+                    result = await self.cloud.async_set_props(cloud_params)
 
-        if method == 'action':
-            param = data.get('param', {})
-            cloud_param = None
-            siid = param['siid']
-            aiid = param['aiid']
-            if not self._local_state or self.cloud_only:
-                cloud_param = param
-            elif self.miio2miot:
-                if self.miio2miot.has_setter(siid, aiid=aiid):
-                    cmd = partial(self.miio2miot.call_action, self.local, siid, aiid, param.get('in', []))
-                    result = await self.hass.async_add_executor_job(cmd)
-                else:
+            if method == 'action':
+                param = data.get('param', {})
+                cloud_param = None
+                siid = param['siid']
+                aiid = param['aiid']
+                ins = param.get('in') or []
+                if not self._local_state or self.cloud_only:
                     cloud_param = param
-            elif self.local:
-                result = await self.local.async_send(method, param)
-            if self.cloud and cloud_param:
-                result = await self.cloud.async_do_action(cloud_param)
+                elif self.miio2miot:
+                    if self.miio2miot.has_setter(siid, aiid=aiid):
+                        cmd = partial(self.miio2miot.call_action, self.local, siid, aiid, ins)
+                        result = await self.hass.async_add_executor_job(cmd)
+                    else:
+                        cloud_param = param
+                elif self.local:
+                    action = self.spec.services.get(siid, {}).actions.get(aiid) if self.spec else None
+                    if action and ins:
+                        param['in'] = action.in_params(ins)
+                    result = await self.local.async_send(method, param)
+                if self.cloud and cloud_param:
+                    result = await self.cloud.async_do_action(cloud_param)
+
+        except (DeviceException, MiCloudException) as exc:
+            self.log.exception('Device write failed: %s', [exc, payload, data])
 
         self.log.info('Device write result: %s', [payload, result])
         if result:
@@ -976,20 +984,25 @@ class Device(CustomConfigHelper):
             'aiid': aiid,
             'in':   params or [],
         }
-        action = kwargs.get('action')
-        if not action and self.spec:
-            action = self.spec.services.get(siid, {}).actions.get(aiid)
-        m2m = None if self.custom_config_bool('miot_cloud_action') else self.miio2miot
-        mca = self.cloud if not self.use_local else None
-        if self.auto_cloud and not self._local_state:
-            mca = self.cloud
+        cloud = None
+        if kwargs.get('cloud'):
+            cloud = self.cloud
+        elif self.custom_config_bool('miot_cloud_action'):
+            cloud = self.cloud
+        elif self.auto_cloud and not self._local_state:
+            cloud = self.cloud
+        elif self.use_cloud:
+            cloud = self.cloud
         try:
-            if m2m and m2m.has_setter(siid, aiid=aiid):
-                result = m2m.call_action(self.local, siid, aiid, params)
-            elif isinstance(mca, MiotCloud):
-                result = mca.do_action(pms)
+            if self.miio2miot and self.miio2miot.has_setter(siid, aiid=aiid):
+                result = self.miio2miot.call_action(self.local, siid, aiid, params)
+            elif cloud:
+                result = cloud.do_action(pms)
             else:
                 if not kwargs.get('force_params'):
+                    action = kwargs.get('action')
+                    if not action and self.spec:
+                        action = self.spec.services.get(siid, {}).actions.get(aiid)
                     pms['in'] = action.in_params(params or [])
                 result = self.local.send('action', pms)
             result = MiotResult(result)
@@ -997,7 +1010,7 @@ class Device(CustomConfigHelper):
             self.log.warning('Call miot action %s failed: %s', pms, exc)
             return MiotResult({}, code=-1, error=str(exc))
         except (TypeError, ValueError) as exc:
-            self.log.warning('Call miot action %s failed: %s, result: %s', pms, exc, result)
+            self.log.warning('Call miot action %s failed: %s, result: %s', pms, exc)
             return MiotResult({}, code=-1, error=str(exc))
         if result.is_success:
             self.log.debug('Call miot action %s, result: %s', pms, result)
