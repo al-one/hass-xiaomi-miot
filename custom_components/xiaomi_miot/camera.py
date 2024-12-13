@@ -315,7 +315,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
     @property
     def is_on(self):
         if self._prop_power:
-            return self._state_attrs.get(self._prop_power.full_name) and True
+            return self._prop_power.from_device(self.device) and True
         return True
 
     async def stream_source(self, **kwargs):
@@ -553,7 +553,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
     @property
     def motion_detection_enabled(self):
         if self._prop_motion_tracking:
-            return self._prop_motion_tracking.from_dict(self._state_attrs)
+            return self._prop_motion_tracking.from_device(self.device)
         return None
 
     def enable_motion_detection(self):

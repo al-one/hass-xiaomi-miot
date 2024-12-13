@@ -187,7 +187,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
         if not self.is_on:
             return SPEED_OFF
         if self._prop_speed:
-            spd = int(self._prop_speed.from_dict(self._state_attrs, 0))
+            spd = int(self._prop_speed.from_device(self.device, 0))
             return self._prop_speed.list_description(spd)
         return None
 
@@ -215,7 +215,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
     def percentage(self):
         """Return the current speed as a percentage."""
         if self._prop_percentage:
-            val = self._prop_percentage.from_dict(self._state_attrs)
+            val = self._prop_percentage.from_device(self.device)
             if val is not None:
                 return val
         lst = [v for v in self.speed_list if v not in OFF_SPEED_VALUES]
@@ -241,7 +241,7 @@ class MiotFanEntity(MiotToggleEntity, FanEntity):
     def preset_mode(self):
         """Return the current preset mode, e.g., auto, smart, interval, favorite."""
         if self._prop_mode:
-            val = self._prop_mode.from_dict(self._state_attrs)
+            val = self._prop_mode.from_device(self.device)
             if val is not None:
                 return self._prop_mode.list_description(val)
         return None
@@ -504,7 +504,7 @@ class MiotModesSubEntity(MiotPropertySubEntity, FanSubEntity):
     @property
     def is_on(self):
         if self._prop_power:
-            return self._prop_power.from_dict(self._state_attrs) and True
+            return self._prop_power.from_device(self.device) and True
         if self._parent.is_on is False:
             return False
         sta = self._state_attrs.get(self._attr)
@@ -554,7 +554,7 @@ class MiotModesSubEntity(MiotPropertySubEntity, FanSubEntity):
     def percentage(self):
         """Return the current speed as a percentage."""
         if self._miot_property.value_range:
-            val = self._miot_property.from_dict(self._state_attrs)
+            val = self._miot_property.from_device(self.device)
             if val is not None:
                 return round(val / self._miot_property.range_max() * 100, 2)
         return super().percentage
@@ -578,7 +578,7 @@ class MiotModesSubEntity(MiotPropertySubEntity, FanSubEntity):
 
     @property
     def preset_mode(self):
-        val = self._miot_property.from_dict(self._state_attrs)
+        val = self._miot_property.from_device(self.device)
         if val is not None:
             return self._miot_property.list_description(val)
         return None

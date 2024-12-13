@@ -458,9 +458,9 @@ class Device(CustomConfigHelper):
                             continue
                         if not isinstance(entity, BasicEntity):
                             continue
-                        if not hasattr(entity, 'async_update'):
+                        if not hasattr(entity, 'async_update_from_device'):
                             continue
-                        await entity.async_update()
+                        await entity.async_update_from_device()
                 return result
             return _update
 
@@ -610,7 +610,7 @@ class Device(CustomConfigHelper):
         method = data.get('method')
 
         if method == 'update_status':
-            result = await self.update_miot_status()
+            result = await self.update_main_status()
 
         if method == 'set_properties':
             params = data.get('params', [])

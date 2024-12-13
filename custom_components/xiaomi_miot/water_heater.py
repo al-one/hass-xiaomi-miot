@@ -86,7 +86,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         if self._prop_power:
             if not self._prop_power.readable and self._prop_status:
                 # https://github.com/al-one/hass-xiaomi-miot/issues/30
-                val = self._prop_status.from_dict(self._state_attrs)
+                val = self._prop_status.from_device(self.device)
                 if val is not None:
                     off = val in self._prop_status.list_search('Off')
                     await self.async_update_attrs({
@@ -102,11 +102,11 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
             mds = self._prop_mode.list_descriptions()
         if sta is None or sta not in mds:
             if self._prop_status:
-                val = self._prop_status.from_dict(self._state_attrs)
+                val = self._prop_status.from_device(self.device)
                 if val is not None:
                     sta = self._prop_status.list_description(val)
         if sta is None and self._prop_power and self._prop_power.readable:
-            sta = STATE_ON if self._prop_power.from_dict(self._state_attrs) else STATE_OFF
+            sta = STATE_ON if self._prop_power.from_device(self.device) else STATE_OFF
         if sta:
             sta = str(sta).lower()
         return sta
@@ -115,7 +115,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     def current_operation(self):
         """Return current operation ie. eco, electric, performance, ..."""
         for p in self._prop_modes:
-            val = p.from_dict(self._state_attrs)
+            val = p.from_device(self.device)
             if val is not None:
                 return p.list_description(val)
         return None
@@ -138,7 +138,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     def current_temperature(self):
         """Return the current temperature."""
         if self._prop_temperature:
-            return round(self._prop_temperature.from_dict(self._state_attrs) or 0, 2)
+            return round(self._prop_temperature.from_device(self.device) or 0, 2)
         return None
 
     @property
@@ -176,7 +176,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     def target_temperature(self):
         """Return the temperature we try to reach."""
         if self._prop_target_temp:
-            val = round(self._prop_target_temp.from_dict(self._state_attrs) or 0, 2)
+            val = round(self._prop_target_temp.from_device(self.device) or 0, 2)
             if val:
                 self._prev_target_temp = val
             elif self._prev_target_temp:

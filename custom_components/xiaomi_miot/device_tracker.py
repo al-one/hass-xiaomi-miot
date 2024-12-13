@@ -112,11 +112,11 @@ class MiotTrackerEntity(MiotEntity, BaseTrackerEntity):
             return
 
         if prop := self._miot_service.get_property('latitude'):
-            self._attr_latitude = prop.from_dict(self._state_attrs)
+            self._attr_latitude = prop.from_device(self.device)
         if prop := self._miot_service.get_property('longitude'):
-            self._attr_longitude = prop.from_dict(self._state_attrs)
+            self._attr_longitude = prop.from_device(self.device)
         if prop := self._miot_service.get_property('current_address'):
-            self._attr_location_name = prop.from_dict(self._state_attrs)
+            self._attr_location_name = prop.from_device(self.device)
         await self.transform_coord()
 
     async def transform_coord(self, default=None):
@@ -174,7 +174,7 @@ class MiotTrackerEntity(MiotEntity, BaseTrackerEntity):
         for srv in sls:
             prop = srv.get_property('battery_level')
             if prop:
-                return prop.from_dict(self._state_attrs)
+                return prop.from_device(self.device)
         return None
 
 

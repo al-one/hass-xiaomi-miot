@@ -116,7 +116,7 @@ class MiotNumberSubEntity(MiotPropertySubEntity, RestoreNumber):
 
     @property
     def native_value(self):
-        val = self._miot_property.from_dict(self._state_attrs)
+        val = self._miot_property.from_device(self.device)
         return val
 
     def cast_value(self, val, default=None):

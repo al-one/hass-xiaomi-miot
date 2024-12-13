@@ -153,7 +153,7 @@ class MiotBinarySensorEntity(MiotToggleEntity, BaseEntity):
     def is_on(self):
         ret = self._state
         if self._prop_state:
-            val = self._prop_state.from_dict(self._state_attrs)
+            val = self._prop_state.from_device(self.device)
             if val is None:
                 pass
             elif self._prop_state.name in ['no_motion_duration', 'nobody_time']:

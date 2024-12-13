@@ -94,7 +94,7 @@ class MiotSelectSubEntity(BaseEntity, MiotPropertySubEntity):
         super().update(data)
         if not self._available:
             return
-        val = self._miot_property.from_dict(self._state_attrs)
+        val = self._miot_property.from_device(self.device)
         if val is None:
             self._attr_current_option = None
         else:

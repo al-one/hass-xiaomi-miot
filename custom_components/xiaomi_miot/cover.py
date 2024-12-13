@@ -112,7 +112,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         if not self._available:
             return
         if prop_reverse := self._miot_service.get_property('motor_reverse'):
-            if prop_reverse.from_dict(self._state_attrs):
+            if prop_reverse.from_device(self.device):
                 if self.custom_config_bool('auto_position_reverse'):
                     self._position_reverse = True
 
@@ -121,7 +121,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         pos = -1
         if self._prop_current_position:
             try:
-                cur = round(self._prop_current_position.from_dict(self._state_attrs), 2)
+                cur = round(self._prop_current_position.from_device(self.device), 2)
             except (TypeError, ValueError):
                 cur = None
             if cur is None:
@@ -149,7 +149,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         if pos < 0:
             # If the motor controller is stopped, generate fake middle position
             if self._prop_status:
-                sta = int(self._prop_status.from_dict(self._state_attrs) or -1)
+                sta = int(self._prop_status.from_device(self.device) or -1)
                 if sta in self._prop_status.list_search('Stopped'):
                     return 50
             return None
@@ -167,7 +167,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
         pos = None
         if not self._prop_target_position:
             return pos
-        pos = self._prop_target_position.from_dict(self._state_attrs)
+        pos = self._prop_target_position.from_device(self.device)
         if pos is None:
             return pos
         pos = int(pos)
@@ -199,7 +199,7 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
             pos = self.custom_config_number('closed_position', 1)
             return cur <= pos
         if self._prop_status:
-            sta = int(self._prop_status.from_dict(self._state_attrs) or -1)
+            sta = int(self._prop_status.from_device(self.device) or -1)
             cvs = self.custom_config_list('closed_status') or []
             if cvs:
                 return sta in cvs or f'{sta}' in cvs
@@ -209,14 +209,14 @@ class MiotCoverEntity(MiotEntity, CoverEntity):
     def is_closing(self):
         if not self._prop_status:
             return None
-        sta = int(self._prop_status.from_dict(self._state_attrs) or -1)
+        sta = int(self._prop_status.from_device(self.device) or -1)
         return sta in self._prop_status.list_search(*self._close_texts)
 
     @property
     def is_opening(self):
         if not self._prop_status:
             return None
-        sta = int(self._prop_status.from_dict(self._state_attrs) or -1)
+        sta = int(self._prop_status.from_device(self.device) or -1)
         return sta in self._prop_status.list_search(*self._open_texts)
 
     def motor_control(self, open_cover=True, **kwargs):

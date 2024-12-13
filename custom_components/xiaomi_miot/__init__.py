@@ -1454,7 +1454,7 @@ class BaseSubEntity(BaseEntity):
 
     @property
     def parent_attributes(self):
-        return self._parent.state_attrs or {}
+        return self.device.props or {}
 
     @property
     def extra_state_attributes(self):
@@ -1606,7 +1606,7 @@ class MiotPropertySubEntity(BaseSubEntity):
             prop = self._miot_service.get_property(p) or self._miot_service.spec.get_property(p)
             if not prop:
                 continue
-            val = prop.from_dict(self.parent_attributes)
+            val = prop.from_device(self.device)
             if not prop.range_valid(val):
                 val = None
             self._extra_attrs[prop.name] = val

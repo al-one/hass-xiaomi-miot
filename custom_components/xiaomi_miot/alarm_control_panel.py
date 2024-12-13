@@ -76,7 +76,7 @@ class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
     def update_state(self):
         sta = None
         if self._prop_mode:
-            val = self._prop_mode.from_dict(self._state_attrs)
+            val = self._prop_mode.from_device(self.device)
             des = self._prop_mode.list_description(val) if val is not None else None
             if des is not None:
                 des = f'{des}'.lower()
@@ -89,7 +89,7 @@ class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
                 elif 'sleep' in des:
                     sta = AlarmControlPanelState.ARMED_NIGHT
         if self._is_mgl03:
-            if val := self._state_attrs.get('arming.alarm'):
+            if self.device.props.get('arming.alarm'):
                 sta = AlarmControlPanelState.TRIGGERED
         if hasattr(self, '_attr_alarm_state'):
             self._attr_alarm_state = sta

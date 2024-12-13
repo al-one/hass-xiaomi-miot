@@ -131,7 +131,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     @property
     def status(self):
         if self._prop_status:
-            val = self._prop_status.from_dict(self._state_attrs)
+            val = self._prop_status.from_device(self.device)
             if val is not None:
                 return self._prop_status.list_description(val)
         return None
@@ -139,7 +139,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     @property
     def state(self):
         if self._prop_status:
-            val = self._prop_status.from_dict(self._state_attrs)
+            val = self._prop_status.from_device(self.device)
             if val is None:
                 pass
             elif val in self._prop_status.list_search(
@@ -165,7 +165,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     @property
     def battery_level(self):
         if self._prop_battery:
-            return self._prop_battery.from_dict(self._state_attrs)
+            return self._prop_battery.from_device(self.device)
         return None
 
     def turn_on(self, **kwargs):
@@ -213,7 +213,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     @property
     def fan_speed(self):
         if self._prop_fan:
-            val = self._prop_fan.from_dict(self._state_attrs)
+            val = self._prop_fan.from_device(self.device)
             try:
                 val = int(val)
             except (TypeError, ValueError):
@@ -272,6 +272,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
                     'state_attrs': {'room_id': r[1]},
                 })
                 add_buttons([self._subs[sub]], update_before_add=False)
+        self.logger.info('Room buttons: %s', [rooms, add_buttons])
 
 
     async def async_update(self):
@@ -395,7 +396,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
             return
         if self._miio2miot:
             await self.async_update_miio_props(self._miio_props)
-        props = self._state_attrs or {}
+        props = self.device.props or {}
         adt = {}
         if 'miio.s_area' in props:
             adt['clean_area'] = props['miio.s_area']

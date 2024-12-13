@@ -248,7 +248,7 @@ class MiotLightEntity(MiotToggleEntity, BaseEntity):
     @property
     def is_on(self):
         if self._prop_brightness:
-            val = self._prop_brightness.from_dict(self._state_attrs)
+            val = self._prop_brightness.from_device(self.device)
             bri = self._vars.get('brightness_for_on')
             if bri is not None:
                 return val >= bri
@@ -343,7 +343,7 @@ class MiotLightEntity(MiotToggleEntity, BaseEntity):
         """Return the brightness of this light between 0..255."""
         val = None
         if self._prop_brightness:
-            val = self._prop_brightness.from_dict(self._state_attrs)
+            val = self._prop_brightness.from_device(self.device)
         if val is None:
             return None
         rmx = 100
@@ -363,7 +363,7 @@ class MiotLightEntity(MiotToggleEntity, BaseEntity):
     def rgb_color(self):
         """Return the rgb color value [int, int, int]."""
         if self._prop_color:
-            num = int(self._prop_color.from_dict(self._state_attrs) or 0)
+            num = int(self._prop_color.from_device(self.device) or 0)
             return int_to_rgb(num)
         return None
 
@@ -371,7 +371,7 @@ class MiotLightEntity(MiotToggleEntity, BaseEntity):
     def color_temp(self):
         if not self._prop_color_temp:
             return None
-        num = self._prop_color_temp.from_dict(self._state_attrs) or 3000
+        num = self._prop_color_temp.from_device(self.device) or 3000
         if self._vars.get('color_temp_reverse'):
             num = self._vars.get('color_temp_sum') - num
         return self.translate_mired(num)
@@ -410,7 +410,7 @@ class MiotLightEntity(MiotToggleEntity, BaseEntity):
     @property
     def effect(self):
         if self._prop_mode:
-            val = self._prop_mode.from_dict(self._state_attrs)
+            val = self._prop_mode.from_device(self.device)
             if val is not None:
                 return self._prop_mode.list_description(val)
         return None

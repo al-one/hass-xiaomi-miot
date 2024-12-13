@@ -183,7 +183,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
     @property
     def state(self):
         if self._prop_state and self._prop_state.readable:
-            sta = self._prop_state.from_dict(self._state_attrs)
+            sta = self._prop_state.from_device(self.device)
             if sta is not None:
                 if sta in self._prop_state.list_search('Playing', 'Play'):
                     return MediaPlayerState.PLAYING
@@ -203,7 +203,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
     @property
     def is_volume_muted(self):
         if self._prop_mute:
-            return self._prop_mute.from_dict(self._state_attrs) and True
+            return self._prop_mute.from_device(self.device) and True
         return None
 
     def mute_volume(self, mute):
@@ -214,7 +214,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
     @property
     def volume_level(self):
         if self._prop_volume:
-            val = self._prop_volume.from_dict(self._state_attrs)
+            val = self._prop_volume.from_device(self.device)
             if val is not None:
                 try:
                     return round(val or 0) / 100
@@ -234,14 +234,14 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
     def volume_up(self):
         if self._prop_volume:
             stp = self._prop_volume.range_step() or 5
-            val = round(self._prop_volume.from_dict(self._state_attrs) or 0) + stp
+            val = round(self._prop_volume.from_device(self.device) or 0) + stp
             return self.set_property(self._prop_volume, val)
         return False
 
     def volume_down(self):
         if self._prop_volume:
             stp = self._prop_volume.range_step() or 5
-            val = round(self._prop_volume.from_dict(self._state_attrs) or 0) - stp
+            val = round(self._prop_volume.from_device(self.device) or 0) - stp
             return self.set_property(self._prop_volume, val)
         return False
 
@@ -300,7 +300,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
     def source(self):
         """Name of the current input source."""
         if self._prop_input:
-            val = self._prop_input.from_dict(self._state_attrs)
+            val = self._prop_input.from_device(self.device)
             if val is not None:
                 return self._prop_input.list_description(val)
         return None
@@ -800,7 +800,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         if not self.cloud_only and not self._local_state and not self._state_attrs.get('6095_state'):
             sta = MediaPlayerState.OFF
         if self._speaker_mode_switch and self.custom_config_bool('turn_off_screen'):
-            if self._speaker_mode_switch.from_dict(self._state_attrs):
+            if self._speaker_mode_switch.from_device(self.device):
                 sta = MediaPlayerState.OFF
         return sta
 

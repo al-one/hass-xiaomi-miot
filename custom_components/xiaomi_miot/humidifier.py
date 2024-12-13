@@ -91,10 +91,10 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             return
 
         if self._prop_humidity:
-            self._attr_current_humidity = int(self._prop_humidity.from_dict(self._state_attrs) or 0)
+            self._attr_current_humidity = int(self._prop_humidity.from_device(self.device) or 0)
 
         if self._prop_target_humi:
-            num = int(self._prop_target_humi.from_dict(self._state_attrs) or 0)
+            num = int(self._prop_target_humi.from_device(self.device) or 0)
             if fac := self._vars.get('target_humidity_ratio'):
                 num = round(num * fac)
             self._attr_target_humidity = num
@@ -160,7 +160,7 @@ class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
             return MODE_OFF
         if not self._prop_mode:
             return None
-        val = self._prop_mode.from_dict(self._state_attrs)
+        val = self._prop_mode.from_device(self.device)
         if val is None:
             return None
         return self._prop_mode.list_description(val)
