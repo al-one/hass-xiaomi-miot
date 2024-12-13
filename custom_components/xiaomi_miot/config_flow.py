@@ -585,7 +585,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
 
 class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
     def __init__(self, config_entry: config_entries.ConfigEntry):
-        if HA_VERSION >= '2024.12':
+        if HA_VERSION < '2024.12':
             self.config_entry = config_entry
 
     @property
