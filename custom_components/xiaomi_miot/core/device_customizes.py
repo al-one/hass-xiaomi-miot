@@ -146,7 +146,6 @@ DEVICE_CUSTOMIZES = {
     },
 
     'careli.fryer.*': {
-        'auto_cloud': True,
         'interval_seconds': 120,
         'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
         'sensor_properties': 'status,fault,left_time,appoint_time_left',
@@ -1580,7 +1579,6 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'a_countdown,b_countdown',
     },
     'xiaomi.fryer.maf07d': {
-        'auto_cloud': True,
         'interval_seconds': 120,
         'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
         'sensor_properties': 'status,fault,left_time',
