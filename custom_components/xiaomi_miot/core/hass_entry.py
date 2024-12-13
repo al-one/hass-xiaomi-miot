@@ -3,7 +3,7 @@ import asyncio
 from typing import TYPE_CHECKING
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_USERNAME
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import SUPPORTED_DOMAINS
 from .xiaomi_cloud import MiotCloud
@@ -51,6 +51,10 @@ class HassEntry:
 
     def __getattr__(self, item):
         return getattr(self.entry, item)
+
+    @property
+    def setup_in_progress(self):
+        return self.entry.state == ConfigEntryState.SETUP_IN_PROGRESS
 
     def get_config(self, key=None, default=None):
         dat = {

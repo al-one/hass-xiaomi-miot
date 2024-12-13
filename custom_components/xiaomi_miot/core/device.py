@@ -438,8 +438,9 @@ class Device(CustomConfigHelper):
                 DataCoordinator(self, self.update_miio_commands, update_interval=timedelta(seconds=interval)),
             )
         self.coordinators.extend(lst)
-        for coo in lst:
-            await coo.async_config_entry_first_refresh()
+        if self.entry.setup_in_progress:
+            for coo in lst:
+                await coo.async_config_entry_first_refresh()
 
     async def init_miot_coordinators(self, interval=60):
         lst = []
