@@ -608,6 +608,7 @@ class Device(CustomConfigHelper):
     async def async_write(self, payload: dict):
         """Send command to device."""
         data = self.encode(payload)
+        self.log.info('Device write data: %s', [payload, data])
         result = None
         method = data.get('method')
 
@@ -652,7 +653,7 @@ class Device(CustomConfigHelper):
             if self.cloud and cloud_param:
                 result = await self.cloud.async_do_action(cloud_param)
 
-        self.log.info('Device write: %s', [payload, data, result])
+        self.log.info('Device write result: %s', [payload, result])
         if result:
             self.dispatch(payload)
         return result

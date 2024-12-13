@@ -53,6 +53,7 @@ class SelectEntity(XEntity, BaseEntity, RestoreEntity):
             self._attr_options.insert(0, '')
         if lst := getattr(self.conv, 'options', None):
             self._attr_options = lst
+        self._attr_available = True
 
     def get_state(self) -> dict:
         return {self.attr: self._attr_current_option}

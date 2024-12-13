@@ -141,8 +141,11 @@ class MiotActionConv(BaseConv):
         super().decode(device, payload, value)
 
     def encode(self, device: 'Device', payload: dict, value):
-        if self.prop and self.prop.value_list and isinstance(value, str):
-            value = self.prop.list_value(value)
+        if self.prop and isinstance(value, str):
+            if self.prop.value_list or self.prop.value_range:
+                value = self.prop.list_value(value)
+            elif self.prop.is_integer:
+                value = int(value)
         ins = value if isinstance(value, list) else [] if value is None else [value]
         _, s, p = self.mi.split('.')
         payload['method'] = 'action'

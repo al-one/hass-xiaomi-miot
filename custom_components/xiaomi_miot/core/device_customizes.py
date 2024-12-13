@@ -711,6 +711,7 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'ledboard_model',
         'number_properties': 'ledboard_brightness,ledboard_sun,ledboard_color,ledboard_stream,ledboard_speed,'
                              'pump_flux,feed_num',
+        'select_actions': 'set_feed_single',
         'light_services': 'fish_tank',
         'power_property': 'fish_tank.on',
         'mode_property': 'ledboard_model',
