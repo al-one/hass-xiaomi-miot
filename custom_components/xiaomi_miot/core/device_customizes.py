@@ -52,17 +52,18 @@ DEVICE_CUSTOMIZES = {
     'ainice.sensor_occupy.3b': {
         'state_property': 'occupancy_sensor.current_occupied',
         'interval_seconds': 90,
-        'chunk_properties': 7,
         'parallel_updates': 1,
         'binary_sensor_properties': 'current_occupied,a_occupied,b_occupied,c_occupied,d_occupied,e_occupied',
         'sensor_properties': 'total_occupied,illumination',
         'switch_properties': 'radar_switch,count_switch',
         'select_properties': 'map_index,traction',
         'button_actions': 'reboot',
+        'select_actions': 'reset_target',
         'exclude_miot_properties': 'zone_param,target_param,duration_param,time_param,'
                                    'map_read,map_write,radar_duration',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'current_occupied,a_occupied,b_occupied,c_occupied,d_occupied,e_occupied'},
+            {'interval': 3, 'props': 'current_occupied,a_occupied,b_occupied,c_occupied,d_occupied,e_occupied'},
+            {'interval': 5, 'props': 'total_occupied,illumination'},
         ],
     },
     'ainice.sensor_occupy.3b:current_occupied': {
