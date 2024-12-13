@@ -892,6 +892,15 @@ class MiotProperty(MiotSpecInstance):
             return True
         return False
 
+    def use_desc(self, domain=None):
+        if domain not in ['sensor', 'select']:
+            return False
+        if self.unit:
+            return False
+        if self.value_list:
+            return True
+        return False
+
     @property
     def unit_of_measurement(self):
         name = self.name

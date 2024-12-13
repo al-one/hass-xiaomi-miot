@@ -99,7 +99,7 @@ class MiotPropConv(BaseConv):
                 from .miot_spec import MiotSpec
                 self.mi = MiotSpec.unique_prop(self.prop.siid, piid=self.prop.iid)
             if self.desc == None:
-                self.desc = bool(self.prop.value_list and self.domain in ['sensor', 'select'])
+                self.desc = self.prop.use_desc(self.domain)
 
     def decode(self, device: 'Device', payload: dict, value):
         if self.desc and self.prop:
