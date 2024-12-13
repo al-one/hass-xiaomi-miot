@@ -1098,9 +1098,11 @@ DEVICE_CUSTOMIZES = {
         'binary_sensor_properties': 'outletstatus,doorstatus',
         'sensor_properties': 'fault,pet_food_left_level,outfood_num,cleantime,desiccant_left_time',
         'number_properties': 'key_stat,indicator_light.on',
-        'select_actions': 'pet_food_out',
         'exclude_miot_properties': 'outfood_id,contrycode,feddplan_string,factory_result,phon_time_zone'
                                    'feedplan_hour,feedplan_min,feedplan_unit,feedplan_stat,feedplan_id,getfeedplan_num',
+    },
+    'mmgg.feeder.fi1:pet_food_out': {
+        'action_params': 1,
     },
     'mmgg.feeder.inland': {
         'chunk_properties': 1,
@@ -1108,15 +1110,19 @@ DEVICE_CUSTOMIZES = {
         'binary_sensor_properties': 'outletstatus,doorstatus',
         'sensor_properties': 'pet_food_left_level,outfood_num,foodstatus,desiccant_left_time,cleantime',
         'switch_properties': 'key_stat,indicator_light.on',
-        'select_actions': 'pet_food_out',
         'exclude_miot_properties': 'fault,outfood_id,contrycode,feddplan_string,factory_result,phon_time_zone,'
                                    'feedplan_hour,feedplan_min,feedplan_unit,feedplan_stat,feedplan_id,getfeedplan_num',
     },
+    'mmgg.feeder.inland:pet_food_out': {
+        'action_params': 1,
+    },
     'mmgg.feeder.petfeeder': {
-        'button_actions': 'reset_desiccant_life',
+        'button_actions': 'pet_food_out,reset_desiccant_life',
         'sensor_properties': 'pet_food_left_level,feed_today,desiccant_left_time,cleantime',
         'switch_properties': 'feedstatus',
-        'select_actions': 'pet_food_out',
+    },
+    'mmgg.feeder.petfeeder:pet_food_out': {
+        'action_params': 1,
     },
     'mmgg.litter_box.lbc1': {
         'binary_sensor_properties': 'warehouse_uninstall,cover_open,roller_uninstall,device_dump,'
