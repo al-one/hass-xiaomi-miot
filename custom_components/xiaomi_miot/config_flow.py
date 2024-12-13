@@ -585,14 +585,13 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
 
 class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
     def __init__(self, config_entry: config_entries.ConfigEntry):
-        if HA_VERSION < '2024.12':
-            self.config_entry = config_entry
+            self._config_entry = config_entry
 
     @property
     def saved_config(self):
         return {
-            **self.config_entry.data,
-            **self.config_entry.options,
+            **self._config_entry.data,
+            **self._config_entry.options,
         }
 
     @property
@@ -609,7 +608,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
         return data.get('filter_models', False)
 
     async def async_step_init(self, user_input=None):
-        data = self.config_entry.data
+        data = self._config_entry.data
         if CONF_USERNAME in data:
             return await self.async_step_cloud()
 
@@ -635,7 +634,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             await check_miio_device(self.hass, user_input, errors)
             if user_input.get('miio_info'):
                 self.hass.config_entries.async_update_entry(
-                    self.config_entry, data={**self.config_entry.data, **cfg}
+                    self._config_entry, data={**self._config_entry.data, **cfg}
                 )
                 return self.async_create_entry(title='', data=opt)
         else:
@@ -712,7 +711,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             prev_input = self.base_input or {}
             cfg = {
                 **(self.cloud.to_config() or {}),
-                **self.config_entry.data,
+                **self._config_entry.data,
             }
             cfg.update({
                 CONF_CONN_MODE: prev_input.get(CONF_CONN_MODE),
@@ -728,7 +727,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             else:
                 cfg.pop('filter_model', None)
                 cfg.pop('model_list', None)
-            self.hass.config_entries.async_update_entry(self.config_entry, data=cfg)
+            self.hass.config_entries.async_update_entry(self._config_entry, data=cfg)
             _LOGGER.debug('Setup xiaomi cloud: %s', {**cfg, CONF_PASSWORD: '*', 'service_token': '*'})
             return self.async_create_entry(title='', data={})
         else:
