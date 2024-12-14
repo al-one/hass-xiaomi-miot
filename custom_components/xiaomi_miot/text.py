@@ -50,7 +50,43 @@ class TextEntity(XEntity, BaseEntity):
     async def async_set_value(self, value: str):
         if self._miot_action and self._miot_action.name == 'execute_text_directive':
             silent = self.custom_config_integer('silent_execution', 0)
-            value = [value, silent]
+            silent_prop = self._miot_service.get_property('silent_execution')
+            if silent_prop:
+                """
+                xiaomi.wifispeaker.07g  bool
+                xiaomi.wifispeaker.16b  bool
+                xiaomi.wifispeaker.l04m 0:On 1:Off
+                xiaomi.wifispeaker.l05b bool
+                xiaomi.wifispeaker.l05c bool
+                xiaomi.wifispeaker.l05g bool
+                xiaomi.wifispeaker.l06a 0:On 1:Off
+                xiaomi.wifispeaker.l09a 0:On 1:Off
+                xiaomi.wifispeaker.l09b bool
+                xiaomi.wifispeaker.l15a bool
+                xiaomi.wifispeaker.l16a bool
+                xiaomi.wifispeaker.l17a bool
+                xiaomi.wifispeaker.l7a  0:On 1:Off
+                xiaomi.wifispeaker.lx01 0:On 1:Off
+                xiaomi.wifispeaker.lx04 0:On 1:Off
+                xiaomi.wifispeaker.lx05 bool
+                xiaomi.wifispeaker.lx06 bool
+                xiaomi.wifispeaker.lx5a bool
+                xiaomi.wifispeaker.m03a bool
+                xiaomi.wifispeaker.s12  bool
+                xiaomi.wifispeaker.x08a 0:On 1:Off
+                xiaomi.wifispeaker.x08c 0:On 1:Off
+                xiaomi.wifispeaker.x08e bool
+                xiaomi.wifispeaker.x10a bool
+                xiaomi.wifispeaker.x6a  bool
+                xiaomi.wifispeaker.x8f  bool
+                xiaomi.wifispeaker.x8s  bool
+                """
+                if silent_prop.value_list:
+                    val = silent_prop.list_value('On' if silent else 'Off')
+                    if val == None:
+                        val = 0 if silent else 1
+                    silent = val
+                value = [value, silent]
 
         await self.device.async_write({self.attr: value})
 
