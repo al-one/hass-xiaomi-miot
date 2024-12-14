@@ -172,8 +172,6 @@ class XEntity(BasicEntity):
             self.set_state(data)
             state_change = True
             for key in keys:
-                if key == self.attr:
-                    continue
                 self._attr_extra_state_attributes[key] = data.get(key)
 
         if state_change and self.added:
