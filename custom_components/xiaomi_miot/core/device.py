@@ -347,8 +347,8 @@ class Device(CustomConfigHelper):
                             self.log.info('Converter has no main props: %s', conv)
                             conv = None
 
-                    for p in cfg.get('converters') or []:
-                        if not (props := p.get('props')):
+                    for pc in cfg.get('converters') or []:
+                        if not (props := pc.get('props')):
                             continue
                         for p in props:
                             if '.' in p:
@@ -357,10 +357,10 @@ class Device(CustomConfigHelper):
                                 prop = service.get_property(p)
                             if not prop:
                                 continue
-                            attr = p.get('attr', prop.full_name)
-                            c = p.get('class', MiotPropConv)
-                            d = p.get('domain', None)
-                            ac = c(attr, domain=d, prop=prop, desc=p.get('desc'))
+                            attr = pc.get('attr', prop.full_name)
+                            c = pc.get('class', MiotPropConv)
+                            d = pc.get('domain', None)
+                            ac = c(attr, domain=d, prop=prop, desc=pc.get('desc'))
                             self.add_converter(ac)
                             if conv and not d:
                                 conv.attrs.add(attr)
