@@ -267,13 +267,13 @@
             }
         },
         "select": {
-            "fan_control.fan_level": {
+            "fan_control-fan_level": {
                 "state": {
-                    "Auto": "自动",
-                    "Low": "低档",
-                    "Medium": "中档",
-                    "Middle": "中档",
-                    "High": "高档",
+                    "auto": "自动",
+                    "low": "低档",
+                    "medium": "中档",
+                    "middle": "中档",
+                    "high": "高档",
                     "Quiet": "静音",
                     "Turbo": "超强",
                     "Level1": "一档",
@@ -288,7 +288,7 @@
                     "Leve8": "八档"
                 }
             },
-            "light.mode": {
+            "light-mode": {
                 "Day": "日光",
                 "Night": "夜光",
                 "Color": "彩光",

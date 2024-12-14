@@ -919,31 +919,24 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.acpartner.mcn04': {
         'auto_cloud': True,
-        'chunk_properties': 7,
+        'interval_seconds': 60,
+        'chunk_properties': 8,
         'switch_properties': 'on,quick_cool_enable,indicator_light',
         'select_properties': 'fan_level,ac_mode',
         'miio_cloud_props': [],
         'stat_power_cost_type': 'stat_day_v3',
         'stat_power_cost_key': '7.1,7.3',
         'sensor_attributes': 'power_cost_today,power_cost_month,power_cost_today_2,power_cost_month_2',
+        'configuration_entities': 'ac_mode,indicator_light',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level,electric_power'},
+        ],
     },
     'lumi.acpartner.mcn04:power_consumption': ENERGY_KWH,
-    'lumi.acpartner.mcn04:power_cost_today': {
-        'value_ratio': 1,
-        **ENERGY_KWH
-    },
-    'lumi.acpartner.mcn04:power_cost_month': {
-        'value_ratio': 1,
-        **ENERGY_KWH
-    },
-    'lumi.acpartner.mcn04:power_cost_today_2': {
-        'value_ratio': 1,
-        **ENERGY_KWH
-    },
-    'lumi.acpartner.mcn04:power_cost_month_2': {
-        'value_ratio': 1,
-        **ENERGY_KWH
-    },
+    'lumi.acpartner.mcn04:power_cost_today': {'value_ratio': 1, **ENERGY_KWH},
+    'lumi.acpartner.mcn04:power_cost_month': {'value_ratio': 1, **ENERGY_KWH},
+    'lumi.acpartner.mcn04:power_cost_today_2': ENERGY_KWH,
+    'lumi.acpartner.mcn04:power_cost_month_2': ENERGY_KWH,
     'lumi.acpartner.*': {
         'sensor_attributes': 'electric_power,power_cost_today,power_cost_month',
         'select_properties': 'fan_level',
