@@ -902,6 +902,13 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm,warm_wind_turn,turn_ovp,dry_turn,turn_off_dry_turn',
         'number_properties': 'screen_brightness,tsms_turn_off',
     },
+    'linp.doorbell.g04': {
+        'sensor_properties': 'pressed_key',
+        'switch_properties': 'on',
+        'select_properties': 'current_music,current_key',
+        'number_properties': 'volume',
+        'select_actions': 'play_music',
+    },
     'linp.switch.s2dw3': {
         'button_actions': 'reboot',
         'switch_properties': 'screen.on,auto_screen_off,auto_screen_brightness,night_mode',
