@@ -185,6 +185,9 @@ class Device(CustomConfigHelper):
         self._exclude_miot_properties = self.custom_config_list('exclude_miot_properties', [])
         self._unreadable_properties = self.custom_config_bool('unreadable_properties')
 
+        if not self.coordinators:
+            await self.init_coordinators()
+
     async def async_unload(self):
         for coo in self.coordinators:
             await coo.async_shutdown()
@@ -444,9 +447,8 @@ class Device(CustomConfigHelper):
                 DataCoordinator(self, self.update_miio_commands, update_interval=timedelta(seconds=interval)),
             )
         self.coordinators.extend(lst)
-        if self.entry.setup_in_progress:
-            for coo in lst:
-                await coo.async_config_entry_first_refresh()
+        for coo in lst:
+            await coo.async_config_entry_first_refresh()
 
     async def init_miot_coordinators(self, interval=60):
         lst = []
@@ -508,11 +510,11 @@ class Device(CustomConfigHelper):
 
     async def update_status(self):
         for coo in self.coordinators:
-            await coo.async_refresh()
+            await coo.async_request_refresh()
 
     async def update_main_status(self):
         for coo in self.main_coordinators:
-            await coo.async_refresh()
+            await coo.async_request_refresh()
 
     def add_entities(self, domain):
         for conv in self.converters:
@@ -536,8 +538,6 @@ class Device(CustomConfigHelper):
 
         if domain == 'button':
             self.dispatch_info()
-            if not self.coordinators:
-                self.hass.loop.create_task(self.init_coordinators())
 
     def add_entity(self, entity: 'BasicEntity', unique=None):
         if unique == None:
