@@ -320,6 +320,17 @@ class Device(CustomConfigHelper):
             self.info.data['urn'] = urn
         return urn
 
+    @property
+    def hass_device(self):
+        dev_reg = dr.async_get(self.hass)
+        return dev_reg.async_get_device(self.identifiers)
+
+    @property
+    def hass_device_disabled(self):
+        if dev := self.hass_device:
+            return dev.disabled_by
+        return None
+
     def add_converter(self, conv: BaseConv):
         if conv in self.converters:
             return
@@ -334,6 +345,9 @@ class Device(CustomConfigHelper):
         self.dispatch_info()
 
         if not self.spec:
+            return
+        if dby := self.hass_device_disabled:
+            self.log.debug('Device disabled by: %s', dby)
             return
 
         for cfg in GLOBAL_CONVERTERS:

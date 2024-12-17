@@ -558,9 +558,8 @@ async def async_setup_config_entry(hass, config_entry, async_setup_platform, asy
 
 async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
     async def updated(event: hass_core.Event):
-        if event.data['action'] != 'update':
-            return
-        registry: dr.DeviceRegistry = hass.data['device_registry']
+        action = event.data['action']
+        registry = dr.async_get(hass)
         device_id = event.data.get('device_id')
         if device_id not in registry.devices:
             return
@@ -570,9 +569,28 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
         identifier = next(iter(device.identifiers))
         if identifier[0] != DOMAIN:
             return
-        if device.name_by_user in ['delete', 'remove', '删除']:
+        miot_device = None
+        for entry_id in device.config_entries:
+            entry = HassEntry.ALL.get(entry_id)
+            if not entry:
+                continue
+            for d in entry.devices.values():
+                if d.identifiers == device.identifiers:
+                    miot_device = d
+                    break
+        if action == 'update' and device.name_by_user in ['delete', 'remove', '删除']:
             # remove from Hass
+            if miot_device:
+                await miot_device.async_unload()
             registry.async_remove_device(device.id)
+            return
+        if not miot_device:
+            return
+        miot_device.log.info('Device registry updated: %s', [action, identifier, device.disabled])
+        if device.disabled and miot_device.coordinators:
+            await miot_device.async_unload()
+        if not device.disabled and not miot_device.coordinators:
+            miot_device.init_converters()
     hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, updated)
 
 
