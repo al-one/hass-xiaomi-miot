@@ -1687,11 +1687,10 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 120,
         'exclude_miot_services': 'vacuum_map,custom,ai_small_pictures,voice_management',
         'exclude_miot_properties': 'vacuum_frameware_version,restricted_sweep_areas,restricted_walls,room_information,'
-                                   'order_clean,map_complete_dialog,current_cleaning_config,user_define_sweep_cfg,'
+                                   'order_clean,map_complete_dialog,carpet_deep_cleaning,carpet_discriminate,'
                                    'water_check_list,sweep_ai_object,sweep_furniture,carpet_object,vacuum_route,'
                                    'fault_ids,plugin_info_remind,enable_time_period,current_no_disturb,sweep_route,'
-                                   'current_physical_control_lock,current_no_disturb,obstacle_avoidance_strategy,'
-                                   'carpet_deep_cleaning,carpet_discriminate',
+                                   'current_physical_control_lock,current_no_disturb,obstacle_avoidance_strategy',
         'binary_sensor_properties': 'mop_status',
         'sensor_properties': 'status,cleaning_area,cleaning_time,water_check_status,battery_level,charging_state,'
                              'mop_life_level,brush_life_level,filter_life_level,detergent_left_level,'
