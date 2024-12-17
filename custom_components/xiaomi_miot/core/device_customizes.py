@@ -589,6 +589,13 @@ DEVICE_CUSTOMIZES = {
     'dmaker.fan.p15': {
         'percentage_property': 'prop.2.6',
     },
+    'dmaker.fan.p23': {
+        'percentage_property': 'speed_level',
+        'button_actions': 'toggle,toggle_mode,loop_gear',
+        'switch_properties': 'on,heating,horizontal_swing,symmetrical_swing,alarm',
+        'select_properties': 'fan.mode,swing_lr_manual',
+        'number_properties': 'target_temperature,left_angle,right_angle,off_delay_time',
+    },
     'dmaker.fan.p28': {
         'switch_properties': 'alarm,horizontal_swing,vertical_swing,swing_all,off_to_center',
         'percentage_property': 'speed_level',
