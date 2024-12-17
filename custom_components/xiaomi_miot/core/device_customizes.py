@@ -239,6 +239,14 @@ DEVICE_CUSTOMIZES = {
         **ENERGY_KWH,
         'value_ratio': 0.001,
     },
+    'chunmi.ihcooker.v2': {
+        'sensor_properties': 'left_time,working_time,temperature,target-temperature,fire-gears,phase,'
+                             'cook-time,appoint-time,pause-time,step-time,error-code,recpe-type',
+        'switch_properties': 'induction_cooker.on,buzzer-mark',
+        'number_properties': 'heat_level',
+        'button_actions': 'cancel_cooking,pause',
+        'select_actions': 'start_cook',
+    },
     'chunmi.health_pot.a1': {
         'select_actions': 'start_cook',
     },
@@ -2168,7 +2176,7 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'fan_level',
     },
     '*.ihcooker.*': {
-        'sensor_properties': 'left_time,working_time',
+        'sensor_properties': 'left_time,working_time,temperature',
         'switch_properties': 'induction_cooker.on',
         'number_properties': 'heat_level',
         'button_actions': 'start_cook,pause,cancel_cooking',
