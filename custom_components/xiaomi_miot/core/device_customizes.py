@@ -1678,6 +1678,14 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm,dry_switch,over_wet_protect,screen.on',
         'number_properties': 'off_delay_time',
     },
+    'xiaomi.plug.mcn003': {
+        'button_actions': 'toggle',
+        'sensor_properties': 'fault,electric_power',
+        'select_properties': 'default_power_on_state',
+        'stat_power_cost_key': '3.1',
+    },
+    'xiaomi.plug.mcn003:power_cost_today': ENERGY_KWH,
+    'xiaomi.plug.mcn003:power_cost_month': ENERGY_KWH,
     'xiaomi.tv.*': {
         'auto_cloud': True,
         'switch_properties': 'is_on',
