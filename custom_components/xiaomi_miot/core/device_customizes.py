@@ -1622,17 +1622,18 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'add-meal-state,food-intake-state,schedule-state,compensate_switch,prevent_accumulation',
         'select_properties': 'set-screen-display',
     },
-    'xiaomi.feeder.iv2001:pet_food_out': {
-        'action_params': 1,
-    },
     'xiaomi.feeder.pi2001': {
         'chunk_properties': 1,
         'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
         'number_properties':'target_feeding_measure',
-        'sensor_properties': 'pet_food_left_level,fault,desiccant_left_level,desiccant_left_time',
+        'sensor_properties': 'pet_food_left_level,fault,eaten_food_measure,desiccant_left_level,desiccant_left_time',
         'switch_properties': 'compensate_switch,prevent_accumulation',
     },
-    'xiaomi.feeder.pi2001:pet_food_out': {
+    'xiaomi.feeder.*:eaten_food_measure': {
+        'state_class': 'measurement',
+        'unit_of_measurement': 'g',
+    },
+    'xiaomi.feeder.*:pet_food_out': {
         'action_params': 1,
     },
     'xiaomi.health_pot.p1': {
