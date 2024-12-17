@@ -240,9 +240,9 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.001,
     },
     'chunmi.ihcooker.v2': {
-        'sensor_properties': 'left_time,working_time,temperature,target-temperature,fire-gears,phase,'
-                             'cook-time,appoint-time,pause-time,step-time,error-code,recpe-type',
-        'switch_properties': 'induction_cooker.on,buzzer-mark',
+        'sensor_properties': 'left_time,working_time,temperature,target_temperature,fire_gears,phase,'
+                             'cook_time,appoint_time,pause_time,step_time,error_code,recpe_type',
+        'switch_properties': 'induction_cooker.on,buzzer_mark',
         'number_properties': 'heat_level',
         'button_actions': 'cancel_cooking,pause',
         'select_actions': 'start_cook',
