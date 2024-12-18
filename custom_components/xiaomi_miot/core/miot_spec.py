@@ -895,8 +895,6 @@ class MiotProperty(MiotSpecInstance):
     def use_desc(self, domain=None):
         if domain not in ['sensor', 'select']:
             return False
-        if self.unit and self.unit not in ['none', 'null']:
-            return False
         if self.value_list:
             return True
         return False
