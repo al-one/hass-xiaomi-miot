@@ -339,7 +339,7 @@ class Device(CustomConfigHelper):
         if conv in self.converters:
             return
         if self.find_converter(conv.full_name):
-            self.log.info('Converter for %s already exists. Ignored.', c.full_name)
+            self.log.info('Converter for %s already exists. Ignored.', conv.full_name)
             return
         self.converters.append(conv)
 
