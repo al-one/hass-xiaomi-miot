@@ -192,7 +192,7 @@ class MiotBrightnessConv(MiotPropConv):
     def decode(self, device: 'Device', payload: dict, value: int):
         max = self.prop.range_max()
         if max != None:
-            super().encode(device, payload, value / max * 255.0)
+            super().decode(device, payload, value / max * 255.0)
 
     def encode(self, device: 'Device', payload: dict, value: float):
         max = self.prop.range_max()
