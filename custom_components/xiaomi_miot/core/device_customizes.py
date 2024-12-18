@@ -1342,6 +1342,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'ai_on',
         'select_properties': 'mode,hardness,memory_one,memory_two,sleep_lock',
         'number_properties': 'lumbar_angle,backrest_angle,leg_rest_angle',
+        'target_position_properties': 'lumbar_angle,backrest_angle,leg_rest_angle',
     },
     'qushui.blanket.mj1': {
         'chunk_properties': 1,
@@ -1353,6 +1354,11 @@ DEVICE_CUSTOMIZES = {
 
     'rhj.sensor_occupy.l730a': {
         'sensor_properties': 'illumination,no_one_duration,has_someone_duration',
+    },
+    'rmt.bed.zhsbed': {
+        'sensor_properties': 'fault',
+        'select_properties': 'mode',
+        'target_position_properties': 'backrest_angle,leg_rest_angle',
     },
     'roborock.vacuum.*': {
         'sensor_attributes': 'props:clean_area,props:clean_time',

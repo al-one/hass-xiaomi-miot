@@ -21,7 +21,11 @@ from .const import (
 )
 from .hass_entry import HassEntry
 from .hass_entity import XEntity, BasicEntity, convert_unique_id
-from .converters import BaseConv, InfoConv, MiotPropConv, MiotPropValueConv, MiotActionConv, AttrConv
+from .converters import (
+    BaseConv, InfoConv, MiotPropConv,
+    MiotPropValueConv, MiotActionConv,
+    AttrConv, MiotTargetPositionConv,
+)
 from .coordinator import DataCoordinator
 from .miot_spec import MiotSpec, MiotProperty, MiotResults, MiotResult
 from .miio2miot import Miio2MiotHelper
@@ -334,11 +338,16 @@ class Device(CustomConfigHelper):
     def add_converter(self, conv: BaseConv):
         if conv in self.converters:
             return
-        for c in self.converters:
-            if c.attr == conv.attr:
-                self.log.info('Converter for %s already exists. Ignored.', c.attr)
-                return
+        if self.find_converter(conv.full_name):
+            self.log.info('Converter for %s already exists. Ignored.', c.full_name)
+            return
         self.converters.append(conv)
+
+    def find_converter(self, full_name):
+        for c in self.converters:
+            if c.full_name == full_name:
+                return c
+        return None
 
     def init_converters(self):
         self.add_converter(InfoConverter)
@@ -380,11 +389,11 @@ class Device(CustomConfigHelper):
                             ac = c(attr, domain=d, prop=prop, desc=pc.get('desc'))
                             self.add_converter(ac)
                             if conv and not d:
-                                conv.attrs.add(attr)
+                                conv.attrs.add(ac.full_name)
 
         for d in [
             'button', 'sensor', 'binary_sensor', 'switch', 'number', 'select', 'text',
-            'number_select', 'scanner',
+            'number_select', 'scanner', 'target_position',
         ]:
             pls = self.custom_config_list(f'{d}_properties') or []
             if not pls:
@@ -401,6 +410,7 @@ class Device(CustomConfigHelper):
                 platform = {
                     'scanner': 'device_tracker',
                     'tracker': 'device_tracker',
+                    'target_position': 'cover',
                 }.get(d) or d
                 if platform == 'button':
                     if prop.value_list:
@@ -416,8 +426,14 @@ class Device(CustomConfigHelper):
                 elif platform == 'number' and not prop.value_range:
                     self.log.warning(f'Unsupported customize entity: %s for %s', platform, prop.full_name)
                     continue
+                elif d == 'target_position' and not prop.value_range:
+                    self.log.warning(f'Unsupported customize entity: %s for %s', d, prop.full_name)
+                    continue
                 else:
-                    conv = MiotPropConv(prop.full_name, platform, prop=prop)
+                    conv_cls = {
+                        'target_position': MiotTargetPositionConv,
+                    }.get(d) or MiotPropConv
+                    conv = conv_cls(prop.full_name, platform, prop=prop)
                     conv.with_option(
                         entity_type=None if platform == d else d,
                     )
@@ -534,7 +550,7 @@ class Device(CustomConfigHelper):
         for conv in self.converters:
             if conv.domain != domain:
                 continue
-            unique = convert_unique_id(conv)
+            unique = f'{domain}.{convert_unique_id(conv)}'
             entity = self.entities.get(unique)
             if entity:
                 continue
@@ -571,7 +587,7 @@ class Device(CustomConfigHelper):
 
     def dispatch(self, data: dict, only_info=False, log=True):
         if log:
-            self.log.info('Device updated: %s', data)
+            self.log.info('Device updated: %s', {**data, 'only_info': only_info})
         for handler in self.listeners:
             handler(data, only_info=only_info)
 
@@ -619,7 +635,7 @@ class Device(CustomConfigHelper):
         payload = {}
         for k, v in value.items():
             for conv in self.converters:
-                if conv.attr == k:
+                if conv.full_name == k:
                     conv.encode(self, payload, v)
         return payload
 

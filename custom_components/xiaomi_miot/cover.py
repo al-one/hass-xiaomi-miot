@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from homeassistant.components.cover import (
     DOMAIN as ENTITY_DOMAIN,
-    CoverEntity,
+    CoverEntity as BaseEntity,
     CoverEntityFeature,  # v2022.5
     CoverDeviceClass,
     ATTR_POSITION,
@@ -15,6 +15,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
+    XEntity,
     MiotEntity,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -22,7 +23,9 @@ from . import (
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+    MiotProperty,
 )
+from .core.converters import MiotPropConv, MiotTargetPositionConv
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -54,7 +57,75 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotCoverEntity(MiotEntity, CoverEntity):
+class CoverEntity(XEntity, BaseEntity):
+    _attr_is_closed = None
+    _attr_target_cover_position = None
+    _attr_supported_features = CoverEntityFeature(0)
+    _conv_status = None
+    _conv_motor: MiotPropConv = None
+    _conv_current_position = None
+    _conv_target_position = None
+    _current_range = None
+    _target_range = None
+
+    def on_init(self):
+        for conv in self.device.converters:
+            prop = getattr(conv, 'prop', None)
+            if not isinstance(prop, MiotProperty):
+                continue
+            elif prop.in_list(['status']):
+                self._conv_status = conv
+            elif prop.in_list(['motor_control']):
+                self._conv_motor = conv
+            elif prop.in_list(['current_position']) and prop.value_range:
+                self._conv_current_position = conv
+                self._current_range = (prop.range_min, prop.range_max)
+            elif prop.value_range and isinstance(conv, MiotTargetPositionConv):
+                self._conv_target_position = conv
+                self._target_range = conv.ranged
+                self._attr_supported_features |= CoverEntityFeature.SET_POSITION
+            elif prop.value_range and prop.in_list(['target_position']):
+                self._conv_target_position = conv
+                self._target_range = (prop.range_min(), prop.range_max())
+                self._attr_supported_features |= CoverEntityFeature.SET_POSITION
+
+    def set_state(self, data: dict):
+        if self._conv_current_position:
+            val = self._conv_current_position.value_from_dict(data)
+            if val is not None:
+                self._attr_current_cover_position = int(val)
+        if self._conv_target_position:
+            val = self._conv_target_position.value_from_dict(data)
+            if val is not None:
+                self._attr_target_cover_position = int(val)
+                if not self._conv_current_position:
+                    self._attr_current_cover_position = self._attr_target_cover_position
+
+    async def async_open_cover(self, **kwargs):
+        if self._conv_motor:
+            val = self._conv_motor.prop.list_first('Open', 'Up')
+            if val is not None:
+                await self.device.async_write({self._conv_motor.full_name: val})
+                return
+        await self.async_set_cover_position(100)
+
+    async def async_close_cover(self, **kwargs):
+        if self._conv_motor:
+            val = self._conv_motor.prop.list_first('Close', 'Down')
+            if val is not None:
+                await self.device.async_write({self._conv_motor.full_name: val})
+                return
+        await self.async_set_cover_position(0)
+
+    async def async_set_cover_position(self, position, **kwargs):
+        if not self._conv_target_position:
+            return
+        await self.device.async_write({self._conv_target_position.full_name: position})
+
+XEntity.CLS[ENTITY_DOMAIN] = CoverEntity
+
+
+class MiotCoverEntity(MiotEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 

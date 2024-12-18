@@ -110,6 +110,7 @@
                     "state_class": "state_class",
                     "state_property": "state_property",
                     "switch_properties": "switch_properties",
+                    "target_position_properties": "target_position_properties",
                     "television_name": "television_name",
                     "text_actions": "text_actions",
                     "turn_on_hvac": "turn_on_hvac",

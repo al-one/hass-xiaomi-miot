@@ -40,7 +40,7 @@ class TextEntity(XEntity, BaseEntity):
         return {self.attr: self._attr_native_value}
 
     def set_state(self, data: dict):
-        val = data.get(self.attr)
+        val = self.conv.value_from_dict(data)
         if isinstance(val, list):
             val = val[0] if val else None
         if val is None:

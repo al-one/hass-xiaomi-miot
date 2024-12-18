@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any
 from dataclasses import dataclass
-from homeassistant.util import color
+from homeassistant.util import color, percentage
 from miio.utils import (
     rgb_to_int,
     int_to_rgb,
@@ -29,9 +29,18 @@ class BaseConv:
         self.option.update(kwargs)
         return self
 
+    @property
+    def full_name(self):
+        if not self.domain:
+            return self.attr
+        return f'{self.domain}.{self.attr}'
+
+    def value_from_dict(self, data):
+        return data.get(self.full_name, data.get(self.attr))
+
     # to hass
     def decode(self, device: 'Device', payload: dict, value):
-        payload[self.attr] = value
+        payload[self.full_name] = value
 
     # from hass
     def encode(self, device: 'Device', payload: dict, value):
@@ -68,7 +77,7 @@ class InfoConv(BaseConv):
         payload.update({
             **infos,
             **device.props,
-            'converters': [c.attr for c in device.converters],
+            'converters': [c.full_name for c in device.converters],
             'customizes': device.customizes,
             **infos,
         })
@@ -111,7 +120,10 @@ class MiotPropConv(BaseConv):
     def encode(self, device: 'Device', payload: dict, value):
         if self.prop:
             if self.desc:
-                value = self.prop.list_value(value)
+                if isinstance(value, list):
+                    value = self.prop.list_first(value)
+                else:
+                    value = self.prop.list_value(value)
             elif self.prop.is_integer:
                 value = int(value) # bool to int
         super().encode(device, payload, value)
@@ -239,3 +251,25 @@ class MiotHsColorConv(MiotPropConv):
         rgb = color.color_hs_to_RGB(*value)
         num = rgb_to_int(rgb)
         super().encode(device, payload, num)
+
+@dataclass
+class PercentagePropConv(MiotPropConv):
+    ranged = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.prop and self.prop.value_range:
+            self.ranged = (self.prop.range_min(), self.prop.range_max())
+
+    def decode(self, device: 'Device', payload: dict, value: int):
+        if self.ranged:
+            value = int(percentage.ranged_value_to_percentage(self.ranged, value))
+        super().decode(device, payload, value)
+
+    def encode(self, device: 'Device', payload: dict, value: int):
+        if self.ranged:
+            value = int(percentage.percentage_to_ranged_value(self.ranged, value))
+        super().encode(device, payload, value)
+
+class MiotTargetPositionConv(PercentagePropConv):
+    pass

@@ -86,7 +86,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class BinarySensorEntity(XEntity, BaseEntity, RestoreEntity):
     def set_state(self, data: dict):
-        val = data.get(self.attr)
+        val = self.conv.value_from_dict(data)
         if val is None:
             return
         if self.custom_reverse:

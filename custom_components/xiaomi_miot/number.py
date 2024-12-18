@@ -69,8 +69,7 @@ class NumberEntity(XEntity, RestoreNumber):
         return {self.attr: self._attr_native_value}
 
     def set_state(self, data: dict):
-        val = data.get(self.attr)
-        self._attr_native_value = val
+        self._attr_native_value = self.conv.value_from_dict(data)
 
     async def async_set_native_value(self, value: float):
         await self.device.async_write({self.attr: value})
