@@ -2529,7 +2529,7 @@ MIIO_TO_MIOT_SPECS = {
         'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'mode', 'dict': {
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
                 'automode':   0,
                 'cooling':    1,
                 'arefaction': 2,
@@ -2545,12 +2545,12 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.4': {'prop': 'ptc', 'setter': True, 'format': 'onoff'},
             'prop.2.5': {'prop': 'silent', 'setter': True, 'format': 'onoff'},
             'prop.3.1': {'prop': 'speed_level', 'setter': 'set_spd_level', 'dict': {
-                0: 1,
-                1: 2,
-                2: 3,
-                3: 4,
-                4: 5,
-                5: 0,  # auto
+                0: 4, # quiet
+                1: 1, # low
+                2: 2, # medium
+                3: 3, # high
+                4: 5, # turbo
+                5: 0, # auto
             }},
             'prop.3.2': {'prop': 'vertical_swing', 'setter': 'set_vertical', 'format': 'onoff'},
             'prop.3.3': {'prop': 'vertical_rt', 'setter': 'set_ver_pos'},
@@ -2572,7 +2572,7 @@ MIIO_TO_MIOT_SPECS = {
         'chunk_properties': 1,
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'mode', 'dict': {
+            'prop.2.2': {'prop': 'mode', 'setter': True, 'dict': {
                 'cooling':    1,
                 'arefaction': 2,
                 'heat':       3,

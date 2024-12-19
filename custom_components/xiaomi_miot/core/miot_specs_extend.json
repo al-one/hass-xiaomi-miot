@@ -1637,6 +1637,24 @@
     }
   ],
 
+  "zhimi.aircondition.v1": [
+    {
+      "iid": 1,
+      "properties": [
+        {
+          "iid": 1,
+          "value-list": [
+            {"value": 0, "description": "Auto"},
+            {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Medium"},
+            {"value": 3, "description": "High"},
+            {"value": 4, "description": "Quiet"},
+            {"value": 5, "description": "Turbo"}
+          ]
+        }
+      ]
+    }
+  ],
   "zhimi.airfresh.va4":[
     {
       "iid": 2,

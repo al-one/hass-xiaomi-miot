@@ -1001,14 +1001,16 @@ class Device(CustomConfigHelper):
                     cloud_pms = pms
             elif self.local:
                 results = self.local.send('set_properties', [pms])
+            else:
+                cloud_pms = pms
             if self.cloud and cloud_pms:
                 results = self.cloud.set_props([pms])
             result = MiotResults(results).first
         except (DeviceException, MiCloudException) as exc:
             self.log.warning('Set miot property %s failed: %s', pms, exc)
             return MiotResult({}, code=-1, error=str(exc))
-        if not result.is_success:
-            self.log.warning('Set miot property %s failed, result: %s', pms, result)
+        if not result or not result.is_success:
+            self.log.warning('Set miot property %s failed, result: %s', pms, [results, m2m])
         else:
             self.log.info('Set miot property %s, result: %s', pms, result)
             result.value = value
