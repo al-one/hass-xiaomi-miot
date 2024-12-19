@@ -2545,12 +2545,12 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.4': {'prop': 'ptc', 'setter': True, 'format': 'onoff'},
             'prop.2.5': {'prop': 'silent', 'setter': True, 'format': 'onoff'},
             'prop.3.1': {'prop': 'speed_level', 'setter': 'set_spd_level', 'dict': {
-                0: 4, # quiet
-                1: 1, # low
-                2: 2, # medium
-                3: 3, # high
-                4: 5, # turbo
-                5: 0, # auto
+                0: 1,
+                1: 2,
+                2: 3,
+                3: 4,
+                4: 5,
+                5: 0,  # auto
             }},
             'prop.3.2': {'prop': 'vertical_swing', 'setter': 'set_vertical', 'format': 'onoff'},
             'prop.3.3': {'prop': 'vertical_rt', 'setter': 'set_ver_pos'},
@@ -2587,12 +2587,12 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.4': {'prop': 'silent', 'setter': True, 'format': 'onoff'},
             'prop.2.5': {'prop': 'ptc', 'setter': True, 'format': 'onoff'},
             'prop.3.1': {'prop': 'speed_level', 'setter': 'set_spd_level', 'dict': {
-                0: 1,
-                1: 2,
-                2: 3,
-                3: 4,
-                4: 5,
-                5: 0,  # auto
+                0: 4, # quiet
+                1: 1, # low
+                2: 2, # medium
+                3: 3, # high
+                4: 5, # turbo
+                5: 0, # auto
             }},
             'prop.3.2': {'prop': 'horizon_swing', 'setter': 'set_horizon', 'format': 'onoff'},
             'prop.3.3': {'prop': 'vertical_swing', 'setter': 'set_vertical', 'format': 'onoff'},
