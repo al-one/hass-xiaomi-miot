@@ -2568,6 +2568,48 @@ MIIO_TO_MIOT_SPECS = {
     'zhimi.aircondition.ma3': 'zhimi.aircondition.ma1',
     'zhimi.aircondition.ma4': 'zhimi.aircondition.ma1',
     'zhimi.aircondition.za1': 'zhimi.aircondition.ma1',
+    'zhimi.aircondition.v1': {
+        'chunk_properties': 1,
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'mode', 'dict': {
+                'cooling':    1,
+                'arefaction': 2,
+                'heat':       3,
+                'wind':       4,
+            }, 'default': 0},
+            'prop.2.3': {
+                'prop': 'st_temp_dec',
+                'setter': 'set_temperature',
+                'template': '{{ value|default(0,true)/10.0 }}',
+                'set_template': '{{ (value*10)|int(0) }}',
+            },
+            'prop.2.4': {'prop': 'silent', 'setter': True, 'format': 'onoff'},
+            'prop.2.5': {'prop': 'ptc', 'setter': True, 'format': 'onoff'},
+            'prop.3.1': {'prop': 'speed_level', 'setter': 'set_spd_level', 'dict': {
+                0: 1,
+                1: 2,
+                2: 3,
+                3: 4,
+                4: 5,
+                5: 0,  # auto
+            }},
+            'prop.3.2': {'prop': 'horizon_swing', 'setter': 'set_horizon', 'format': 'onoff'},
+            'prop.3.3': {'prop': 'vertical_swing', 'setter': 'set_vertical', 'format': 'onoff'},
+            'prop.3.4': {'prop': 'vertical_rt', 'setter': 'set_ver_pos'},
+            'prop.4.1': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
+            'prop.4.2': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
+            'prop.4.3': {'prop': 'humidity'},
+            'prop.4.4': {'prop': 'humidity'},
+            'prop.5.1': {
+                'prop': 'volume_level',
+                'setter': 'set_volume_sw',
+                'template': '{{ (value*14.286)|int }}',
+                'set_template': '{{ [(value/14.285)|int] }}',
+            },
+            'prop.6.1': {'prop': 'lcd_level', 'setter': 'set_lcd'},
+        },
+    },
 
     'zhimi.airmonitor.v1': {
         'miio_specs': {
