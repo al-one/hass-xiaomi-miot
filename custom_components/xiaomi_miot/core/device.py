@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
 from homeassistant.components import persistent_notification
+from homeassistant.helpers.event import async_call_later
 import homeassistant.helpers.device_registry as dr
 
 from .const import (
@@ -458,11 +459,11 @@ class Device(CustomConfigHelper):
         lst = await self.init_miot_coordinators(interval)
         if self.cloud_statistics_commands:
             lst.append(
-                DataCoordinator(self, self.update_cloud_statistics, update_interval=timedelta(seconds=interval*20)),
+                DataCoordinator(self, self.update_cloud_statistics, update_interval=timedelta(seconds=interval*10)),
             )
         if self.miio_cloud_records:
             lst.append(
-                DataCoordinator(self, self.update_miio_cloud_records, update_interval=timedelta(seconds=interval*20)),
+                DataCoordinator(self, self.update_miio_cloud_records, update_interval=timedelta(seconds=interval*10)),
             )
         if self.miio_cloud_props:
             lst.append(
@@ -479,6 +480,7 @@ class Device(CustomConfigHelper):
         self.coordinators.extend(lst)
         for coo in lst:
             await coo.async_config_entry_first_refresh()
+        async_call_later(self.hass, 10, self.update_all_status)
 
     async def init_miot_coordinators(self, interval=60):
         lst = []
@@ -544,6 +546,10 @@ class Device(CustomConfigHelper):
 
     async def update_main_status(self):
         for coo in self.main_coordinators:
+            await coo.async_request_refresh()
+
+    async def update_all_status(self, _=None):
+        for coo in self.coordinators:
             await coo.async_request_refresh()
 
     def add_entities(self, domain):

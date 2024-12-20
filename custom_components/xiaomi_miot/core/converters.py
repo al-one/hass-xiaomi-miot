@@ -74,11 +74,13 @@ class InfoConv(BaseConv):
             'updater': updater or 'none',
             'updated_at': str(device.data.get('updated', '')),
         }
+        customizes = {**device.customizes}
+        customizes.pop('extend_miot_specs', None)
         payload.update({
             **infos,
             **device.props,
             'converters': [c.full_name for c in device.converters],
-            'customizes': device.customizes,
+            'customizes': customizes,
             **infos,
         })
         if device.available:

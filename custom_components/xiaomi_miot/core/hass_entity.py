@@ -160,18 +160,19 @@ class XEntity(BasicEntity):
 
     def on_device_update(self, data: dict, only_info=False):
         state_change = False
-        self._attr_available = self.device.available
+        available = self.device.available
 
         if not only_info:
             pass
         elif isinstance(self.conv, InfoConv):
-            self._attr_available = True
+            self._attr_available = available = True
             self._attr_icon = data.get('icon', self._attr_icon)
-            self._attr_extra_state_attributes.update(data)
+            self._attr_extra_state_attributes = data
         else:
             return
 
         if keys := self.listen_attrs & data.keys():
+            self._attr_available = available
             self.set_state(data)
             state_change = True
             for key in keys:
