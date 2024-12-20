@@ -943,6 +943,7 @@ DEVICE_CUSTOMIZES = {
         'auto_cloud': True,
         'interval_seconds': 60,
         'chunk_properties': 8,
+        'sensor_properties': 'electric_power',
         'switch_properties': 'on,quick_cool_enable,indicator_light',
         'select_properties': 'fan_level,ac_mode',
         'miio_cloud_props': [],
