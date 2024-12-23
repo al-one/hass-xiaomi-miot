@@ -497,7 +497,11 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'V',
     },
     'cuco.switch.*': {
+        'interval_seconds': 180,
         'exclude_miot_services': 'setting,wireless_switch',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on'},
+        ],
     },
     'cykj.hood.jyj22': {
         'sensor_properties': 'left_stove_level,right_stove_level,left_stove_timer,right_stove_timer,timer_mode',
