@@ -496,12 +496,56 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'voltage',
         'unit_of_measurement': 'V',
     },
-    'cuco.switch.cs1': CHUNK_1,
-    'cuco.switch.cs2': CHUNK_1,
-    'cuco.switch.cs3': CHUNK_1,
-    'cuco.switch.*': {
+    'cuco.switch.cs1': {
         'interval_seconds': 180,
-        'exclude_miot_services': 'setting,wireless_switch',
+        'chunk_properties': 1,
+        'exclude_miot_services': 'wireless_switch',
+        'configuration_entities': 'setting',
+        'binary_sensor_properties': 'temperature',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on'},
+        ],
+    },
+    'cuco.switch.cs2': {
+        'interval_seconds': 180,
+        'chunk_properties': 1,
+        'exclude_miot_services': 'wireless_switch',
+        'configuration_entities': 'setting',
+        'binary_sensor_properties': 'temperature',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on'},
+        ],
+    },
+    'cuco.switch.cs3': {
+        'interval_seconds': 180,
+        'chunk_properties': 1,
+        'exclude_miot_services': 'wireless_switch',
+        'configuration_entities': 'setting',
+        'binary_sensor_properties': 'temperature',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on'},
+        ],
+    },
+    'cuco.switch.cs1d': {
+        'interval_seconds': 180,
+        'chunk_properties': 1,
+        'exclude_miot_services': 'wireless_switch,alarm,setting,switch_main',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on'},
+        ],
+    },
+    'cuco.switch.cs2d': {
+        'interval_seconds': 180,
+        'chunk_properties': 1,
+        'exclude_miot_services': 'wireless_switch,alarm,setting,switch_main',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on'},
+        ],
+    },
+    'cuco.switch.cs3d': {
+        'interval_seconds': 180,
+        'chunk_properties': 1,
+        'exclude_miot_services': 'wireless_switch,alarm,setting,switch_main',
         'chunk_coordinators': [
             {'interval': 10, 'props': 'on'},
         ],
