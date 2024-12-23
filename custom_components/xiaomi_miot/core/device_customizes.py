@@ -496,6 +496,9 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'voltage',
         'unit_of_measurement': 'V',
     },
+    'cuco.switch.cs1': CHUNK_1,
+    'cuco.switch.cs2': CHUNK_1,
+    'cuco.switch.cs3': CHUNK_1,
     'cuco.switch.*': {
         'interval_seconds': 180,
         'exclude_miot_services': 'setting,wireless_switch',
