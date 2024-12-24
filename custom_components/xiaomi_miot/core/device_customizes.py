@@ -496,58 +496,21 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'voltage',
         'unit_of_measurement': 'V',
     },
-    'cuco.switch.cs1': {
+    'cuco.switch.cs1': CHUNK_1,
+    'cuco.switch.cs1d': CHUNK_1,
+    'cuco.switch.cs2': CHUNK_1,
+    'cuco.switch.cs2d': CHUNK_1,
+    'cuco.switch.cs3': CHUNK_1,
+    'cuco.switch.cs3d': CHUNK_1,
+    'cuco.switch.*': {
         'interval_seconds': 180,
-        'chunk_properties': 1,
-        'exclude_miot_services': 'wireless_switch',
-        'configuration_entities': 'setting',
-        'binary_sensor_properties': 'temperature',
+        'sensor_properties': 'temperature',
+        'switch_properties': 'setting.switch,switch_main.on',
+        'select_properties': 'wireless_switch.on,left_switch,middle_switch,right_switch',
+        'configuration_entities': 'setting.switch,left_switch,middle_switch,right_switch,wireless_switch.on',
+        'diagnostic_entities': 'temperature',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'on'},
-        ],
-    },
-    'cuco.switch.cs2': {
-        'interval_seconds': 180,
-        'chunk_properties': 1,
-        'exclude_miot_services': 'wireless_switch',
-        'configuration_entities': 'setting',
-        'binary_sensor_properties': 'temperature',
-        'chunk_coordinators': [
-            {'interval': 10, 'props': 'on'},
-        ],
-    },
-    'cuco.switch.cs3': {
-        'interval_seconds': 180,
-        'chunk_properties': 1,
-        'exclude_miot_services': 'wireless_switch',
-        'configuration_entities': 'setting',
-        'binary_sensor_properties': 'temperature',
-        'chunk_coordinators': [
-            {'interval': 10, 'props': 'on'},
-        ],
-    },
-    'cuco.switch.cs1d': {
-        'interval_seconds': 180,
-        'chunk_properties': 1,
-        'exclude_miot_services': 'wireless_switch,alarm,setting,switch_main',
-        'chunk_coordinators': [
-            {'interval': 10, 'props': 'on'},
-        ],
-    },
-    'cuco.switch.cs2d': {
-        'interval_seconds': 180,
-        'chunk_properties': 1,
-        'exclude_miot_services': 'wireless_switch,alarm,setting,switch_main',
-        'chunk_coordinators': [
-            {'interval': 10, 'props': 'on'},
-        ],
-    },
-    'cuco.switch.cs3d': {
-        'interval_seconds': 180,
-        'chunk_properties': 1,
-        'exclude_miot_services': 'wireless_switch,alarm,setting,switch_main',
-        'chunk_coordinators': [
-            {'interval': 10, 'props': 'on'},
+            {'interval': 10, 'props': 'switch.on'},
         ],
     },
     'cykj.hood.jyj22': {
