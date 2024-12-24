@@ -1644,12 +1644,12 @@
         {
           "iid": 1,
           "value-list": [
-            {"value": 0, "description": "Auto"},
+            {"value": 4, "description": "Quiet"},
             {"value": 1, "description": "Low"},
             {"value": 2, "description": "Medium"},
             {"value": 3, "description": "High"},
-            {"value": 4, "description": "Quiet"},
-            {"value": 5, "description": "Turbo"}
+            {"value": 5, "description": "Turbo"},
+            {"value": 0, "description": "Auto"}
           ]
         }
       ]
@@ -1660,7 +1660,17 @@
         {
           "iid": 1,
           "access": ["read", "write"],
-          "value-range": [0, 70, 10]
+          "value-range": [0, 7, 1]
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 4,
+          "access": ["read", "write"],
+          "value-range": [0, 60, 1]
         }
       ]
     }
