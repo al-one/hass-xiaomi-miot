@@ -2596,18 +2596,17 @@ MIIO_TO_MIOT_SPECS = {
             }},
             'prop.3.2': {'prop': 'horizon_swing', 'setter': 'set_horizon', 'format': 'onoff'},
             'prop.3.3': {'prop': 'vertical_swing', 'setter': 'set_vertical', 'format': 'onoff'},
-            'prop.3.4': {'prop': 'vertical_rt', 'setter': 'set_ver_pos'},  # 该Setter不适用本空调
+            'prop.3.4': {'prop': 'vertical_rt', 'setter': 'set_ver_pos'},
             'prop.4.1': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
             'prop.4.2': {'prop': 'temp_dec', 'template': '{{ value|default(0,true)/10.0 }}'},
             'prop.4.3': {'prop': 'humidity'},
             'prop.4.4': {'prop': 'humidity'},
             'prop.5.1': {
-                'prop': 'volume', # 修改了适用本空调的Attributes
-                'setter': 'set_volume', # 修改了适用本空调的Setter
-                'template': '{{ (value/10)|int }}', # miio 取回的值为设定值的10倍，即0-70，步长10
-                'set_template': '{{ value|int }}', # miio 设定的值为0-7的整数，步长1
+                'prop': 'volume',
+                'setter': 'set_volume',
+                'set_template': '{{ (value/10)|int }}',
             },
-            'prop.6.1': {'prop': 'lcd_level', 'setter': 'set_lcd_level'}, # 修改了适用本空调的Attributes和Setter，miio 设定的值为0-7的整数，步长1
+            'prop.6.1': {'prop': 'lcd_level', 'setter': 'set_lcd_level'},
         },
     },
 
