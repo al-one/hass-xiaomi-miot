@@ -2602,12 +2602,11 @@ MIIO_TO_MIOT_SPECS = {
             'prop.4.3': {'prop': 'humidity'},
             'prop.4.4': {'prop': 'humidity'},
             'prop.5.1': {
-                'prop': 'volume_level',
-                'setter': 'set_volume_sw',
-                'template': '{{ (value*14.286)|int }}',
-                'set_template': '{{ [(value/14.285)|int] }}',
+                'prop': 'volume',
+                'setter': 'set_volume',
+                'set_template': '{{ (value/10)|int }}',
             },
-            'prop.6.1': {'prop': 'lcd_level', 'setter': 'set_lcd'},
+            'prop.6.1': {'prop': 'lcd_level', 'setter': 'set_lcd_level'},
         },
     },
 

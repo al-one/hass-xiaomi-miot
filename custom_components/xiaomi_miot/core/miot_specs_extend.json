@@ -1653,6 +1653,16 @@
           ]
         }
       ]
+    },
+    {
+      "iid": 5,
+      "properties": [
+        {
+          "iid": 1,
+          "access": ["read", "write"],
+          "value-range": [0, 70, 10]
+        }
+      ]
     }
   ],
   "zhimi.airfresh.va4":[
