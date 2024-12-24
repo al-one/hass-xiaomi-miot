@@ -710,14 +710,14 @@ class Device(CustomConfigHelper):
     def use_local(self):
         if self.cloud_only:
             return False
+        if not self.local:
+            return False
         if self.local_only:
             return True
         if self.miio2miot:
             return True
         if self.custom_config_bool('miot_local'):
             return True
-        if not self.local:
-            return False
         if self.model in MIOT_LOCAL_MODELS:
             return True
         return False
