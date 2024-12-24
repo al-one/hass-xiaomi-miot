@@ -2550,7 +2550,7 @@ GLOBAL_CONVERTERS = [
         ],
     },
     {
-        'services': ['illumination_sensor'],
+        'services': ['illumination_sensor', 'motion_sensor'],
         'converters' : [
             {'props': ['illumination'], 'domain': 'sensor'},
         ],
