@@ -497,13 +497,20 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'V',
     },
     'cuco.switch.cs1': CHUNK_1,
+    'cuco.switch.cs1d': CHUNK_1,
     'cuco.switch.cs2': CHUNK_1,
+    'cuco.switch.cs2d': CHUNK_1,
     'cuco.switch.cs3': CHUNK_1,
+    'cuco.switch.cs3d': CHUNK_1,
     'cuco.switch.*': {
         'interval_seconds': 180,
-        'exclude_miot_services': 'setting,wireless_switch',
+        'sensor_properties': 'temperature',
+        'switch_properties': 'setting.switch,switch_main.on',
+        'select_properties': 'wireless_switch.on,left_switch,middle_switch,right_switch',
+        'configuration_entities': 'setting.switch,left_switch,middle_switch,right_switch,wireless_switch.on',
+        'diagnostic_entities': 'temperature',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'on'},
+            {'interval': 10, 'props': 'switch.on'},
         ],
     },
     'cykj.hood.jyj22': {
