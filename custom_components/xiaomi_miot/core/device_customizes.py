@@ -1087,6 +1087,12 @@ DEVICE_CUSTOMIZES = {
                              'eco_code,ringer_music',
         'number_properties': 'videodelay,volume',
     },
+    'miaomiaoce.sensor_ht.t1': {
+        'exclude_miot_services': 'battery',  # -704002000
+    },
+    'miaomiaoce.sensor_ht.t6': {
+        'exclude_miot_services': 'battery',
+    },
     'mibx5.washer.*': {
         'sensor_properties': 'fault,left_time,door_state,run_status,detergent_left_level',
         'switch_properties': 'sleep_mode,steam_sterilization,detergent_self_delivery',
@@ -1096,6 +1102,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'shake_time,soak_time',
         'switch_properties': 'high_water_switch,steam_sterilization,sleep_mode',
     },
+    'midr.rv_mirror.*': {
+        'binary_sensor_properties': 'driving_status',
+        'miio_cloud_props': 'Status,Position',
+        'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
+    },
     'miir.aircondition.*': {
         'select_properties': 'ir_mode',
         'number_properties': 'ir_temperature',
@@ -1104,16 +1115,13 @@ DEVICE_CUSTOMIZES = {
     'mijia.light.*': {
         'cloud_delay_update': 7,
     },
-    'miaomiaoce.sensor_ht.t1': {
-        'exclude_miot_services': 'battery',  # -704002000
-    },
-    'miaomiaoce.sensor_ht.t6': {
-        'exclude_miot_services': 'battery',
-    },
-    'midr.rv_mirror.*': {
-        'binary_sensor_properties': 'driving_status',
-        'miio_cloud_props': 'Status,Position',
-        'miio_cloud_props_template': 'midr_rv_mirror_cloud_props',
+    'mike.bhf_light.2': {
+        'switch_properties': 'heating,blow,ventilation,mode,horizontal_swing',
+        'select_properties': None,
+        'number_properties': None,
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,heating,blow,ventilation'},
+        ],
     },
     'minij.washer.v20': {
         'descriptions_for_on': 'Busy,Delay,Run',
@@ -2141,6 +2149,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'heating,blow,ventilation,dryer',
         'select_properties': 'mode',
         'number_properties': 'target_temperature,off_delay_time',
+        'button_actions': 'stop_working',
         'chunk_coordinators': [
             {'interval': 10, 'props': 'on,mode,target_temperature,fan_level'},
         ],
