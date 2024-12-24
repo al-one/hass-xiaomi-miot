@@ -2113,6 +2113,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'fan_level',
         'number_properties': 'target_humidity',
         'fan_services': 'air_fresh',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level'},
+        ],
     },
     '*.airer.*': {
         'position_reverse': True,
@@ -2122,16 +2125,25 @@ DEVICE_CUSTOMIZES = {
     },
     '*.airrtc.*': {
         'switch_properties': 'air_conditioner.on',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level'},
+        ],
     },
     '*.airpurifier.*': {
         'switch_properties': 'air_purifier.on,alarm.alarm,anion,uv',
         'sensor_properties': 'relative_humidity,pm2_5_density,temperature,filter_life_level',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,mode,fan_level'},
+        ],
     },
     '*.bhf_light.*': {
         'sensor_properties': 'temperature',
         'switch_properties': 'heating,blow,ventilation,dryer',
         'select_properties': 'mode',
         'number_properties': 'target_temperature,off_delay_time',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level'},
+        ],
     },
     '*.blanket.*': {
         'sensor_properties': 'temperature',
@@ -2158,6 +2170,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,auto_keep_warm',
         'button_actions': 'pause,cancel_cooking',
         'select_actions': 'start_cook',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,status'},
+        ],
     },
     '*.curtain.*': {
         'switch_properties': 'motor_reverse',
@@ -2196,6 +2211,9 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'turn_left,turn_right',
         'number_properties': 'off_delay_time',
         'switch_properties': 'fan_init_power_opt',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,fan_level'},
+        ],
     },
     '*.fishbowl.*': {
         'select_actions': 'pet_food_out',
@@ -2220,6 +2238,9 @@ DEVICE_CUSTOMIZES = {
     '*.heater.*': {
         'switch_properties': 'heater.on,horizontal_swing,alarm.alarm,delay.delay',
         'number_properties': 'countdown_time,delay_time',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level'},
+        ],
     },
     '*.humidifier.*': {
         'select_properties': 'fan_level',
@@ -2233,6 +2254,9 @@ DEVICE_CUSTOMIZES = {
     '*.light.*': {
         'number_properties': 'off_delay_time',
         'switch_properties': 'init_power_opt,fan_init_power_opt',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,brightness,color_temperature,color,mode'},
+        ],
     },
     '*.litter_box.*': {
         'sensor_properties': 'usage_count,trash_can_status',
@@ -2268,9 +2292,6 @@ DEVICE_CUSTOMIZES = {
     '*.motion.*:trigger_at': {
         'device_class': 'timestamp',
     },
-    '*.sensor_occupy.*': {
-        'sensor_properties': 'illumination,has_someone_duration,no_one_duration',
-    },
     '*.oven.*': {
         'sensor_properties': 'temperature,left_time,cook_time,working_time',
         'number_properties': 'target_temperature',
@@ -2279,14 +2300,22 @@ DEVICE_CUSTOMIZES = {
     '*.plantmonitor.*': {
         'sensor_properties': 'soil_ec,illumination,temperature,relative_humidity',
     },
-    '*.senpres.*': {
-        'binary_sensor_properties': 'pressure_present_state',
-        'sensor_properties': 'pressure_not_present_duration',
+    '*.plug.*': {
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,electric_power'},
+        ],
     },
     '*.s_lamp.*': {
         'sensor_properties': 'left_time',
         'switch_properties': 'uv,radar_on,lighting.on',
         'number_properties': 'target_time',
+    },
+    '*.senpres.*': {
+        'binary_sensor_properties': 'pressure_present_state',
+        'sensor_properties': 'pressure_not_present_duration',
+    },
+    '*.sensor_occupy.*': {
+        'sensor_properties': 'illumination,has_someone_duration,no_one_duration',
     },
     '*.sensor_smoke.*': {
         'binary_sensor_attributes': 'smoke_status',
@@ -2301,6 +2330,11 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,engaged',
         'select_properties': 'mode',
         'number_properties': 'target_time',
+    },
+    '*.switch.*': {
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on'},
+        ],
     },
     '*.toothbrush.*': {
         'miio_cloud_props': 'event.16',
