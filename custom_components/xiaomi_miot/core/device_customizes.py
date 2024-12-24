@@ -1910,7 +1910,7 @@ DEVICE_CUSTOMIZES = {
 
     'zhimi.aircondition.v1': {
         'switch_properties': 'heater,sleep_mode,horizontal-swing,vertical-swing',
-        'number_properties': 'vertical-angle,volume,brightness',
+        'number_properties': 'vertical_angle,volume,brightness',
         'brightness_for_on': 5,
         'brightness_for_off': 0,
     },
