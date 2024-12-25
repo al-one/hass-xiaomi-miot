@@ -1808,6 +1808,36 @@ DEVICE_CUSTOMIZES = {
             {'interval': 15, 'props': 'mode,sweep_mop_type,sweep_type,clean_times'},
         ],
     },
+    'xiaomi.vacuum.d109gl': {
+        'interval_seconds': 120,
+        'exclude_miot_services': 'vacuum_map,custom,voice_management',
+        'binary_sensor_properties': 'mop_status,sleep_status',
+        'sensor_properties': 'status,cleaning_area,cleaning_time,mop_life_level,brush_life_level,filter_life_level,'
+                             'dust_bag_life_level',
+        'switch_properties': 'carpet_boost,carpet_avoidance,carpet_display,sweep_break_switch,enable_mop_wash,'
+                             'auto_dust_arrest,auto_mop_dry,auto_water_change,use_detergent,detergent_self_delivery,'
+                             'detergent_depletion_reminder,carpet_deep_cleaning,carpet_discriminate,sweep_carpet_first,'
+                             'mop_outer_swing,alarm,no_disturb',
+        'select_properties': 'sweep_mop_type,sweep_type,clean_times,mode,mop_water_output_level,frequency_mop_wash,'
+                             'water_output_for_washing_mop,drying_time,dust_arrest_frequency,auto_water_change,'
+                             'carpet_cleaning_method,sweep_route,obstacle_avoidance_strategy,mop_outer_swing_frequency,'
+                             'auto_dust_arrest_power_level,worry_free_clean_mode,wash_mop_water_temperature',
+        'number_properties': 'frequency_mop_wash_by_time,volume',
+        'button_actions': 'start_sweep,stop_sweeping,stop_and_gocharge,start_only_sweep,start_mop,start_sweep_mop,'
+                          'pause_sweeping,continue_sweep,start_dust_arrest,start_mop_wash,start_dry,start_eject,'
+                          'stop_mop_wash,stop_dry,back_mop_wash,start_charge,identify,'
+                          'reset_mop_life,reset_brush_life,reset_filter_life,reset_dust_bag_life',
+        'configuration_entities': 'carpet_boost,carpet_avoidance,carpet_display,sweep_break_switch,enable_mop_wash,'
+                                  'frequency_mop_wash,water_output_for_washing_mop,use_detergent,detergent_self_delivery,'
+                                  'detergent_depletion_reminder,carpet_cleaning_method,obstacle_avoidance_strategy,'
+                                  'carpet_deep_cleaning,carpet_discriminate,sweep_carpet_first,mop_outer_swing,'
+                                  'mop_outer_swing_frequency,frequency_mop_wash_by_time,auto_dust_arrest_power_level,'
+                                  'reset_mop_life,reset_brush_life,reset_filter_life',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
+            {'interval': 15, 'props': 'mode,sweep_mop_type,sweep_type,clean_times'},
+        ],
+    },
     'xiaomi.watch.*': {
         'sensor_properties': 'current_step_count,current_distance',
     },
