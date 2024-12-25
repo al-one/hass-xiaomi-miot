@@ -1740,11 +1740,25 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'speaker.volume',
     },
     'xiaomi.vacuum.b108gl': {
-        'sensor_properties': 'status,fault,cleaning_area,cleaning_time,status_extend',
+        'interval_seconds': 120,
+        'sensor_properties': 'status,fault,cleaning_area,cleaning_time,charging_state,status_extend,'
+                             'brush_life_level,filter_life_level',
         'binary_sensor_properties': 'mop_status',
-        'switch_properties': 'edge_swing_tail_sweep,carpet_discriminate,carpet_boost,sweep_break_switch',
-        'select_properties': 'sweep_mop_type,sweep_type,clean_times,suction_level,mop_water_output_level,mode,edge_sweep_frequency,carpet_cleaning_method',
+        'switch_properties': 'edge_swing_tail_sweep,carpet_discriminate,carpet_boost,alarm,dnd_switch,'
+                             'carpet_avoidance,carpet_display,sweep_break_switch',
+        'select_properties': 'sweep_mop_type,sweep_type,clean_times,suction_level,mop_water_output_level,mode,'
+                             'edge_sweep_frequency,carpet_cleaning_method',
+        'number_properties': 'volume',
+        'button_actions': 'start_sweep,stop_sweeping,start_only_sweep,start_mop,start_sweep_mop,stop_and_gocharge,'
+                          'pause_sweeping,continue_sweep,find_vacuum,start_charge,reset_brush_life,reset_filter_life',
         'exclude_miot_services': 'vacuum_map',
+        'configuration_entities': 'edge_swing_tail_sweep,carpet_discriminate,carpet_boost,alarm,dnd_switch,'
+                                  'carpet_avoidance,carpet_display,sweep_break_switch,edge_sweep_frequency,'
+                                  'carpet_cleaning_method,reset_brush_life,reset_filter_life',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'status,mop_status,cleaning_area,cleaning_time,charging_state', 'notify': True},
+            {'interval': 15, 'props': 'sweep_mop_type,sweep_type,mode,clean_times,suction_level'},
+        ],
     },
     'xiaomi.vacuum.b108gl:cleaning_area': {
         'value_ratio': 0.01,
