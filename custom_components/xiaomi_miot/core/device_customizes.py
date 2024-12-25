@@ -2562,6 +2562,14 @@ GLOBAL_CONVERTERS = [
         ],
     },
     {
+        'class': MiotCoverConv,
+        'services': ['airer', 'curtain', 'window_opener', 'motor_controller'],
+        'converters' : [
+            {'props': ['status', 'motor_control', 'current_position']},
+            {'props': ['target_position'], 'class': MiotTargetPositionConv},
+        ],
+    },
+    {
         'services': ['physical_control_locked', 'physical_controls_locked'],
         'converters' : [
             {
