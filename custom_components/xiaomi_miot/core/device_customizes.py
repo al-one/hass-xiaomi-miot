@@ -1876,6 +1876,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'fragrance_out_time,countdown_time,countdown,scent_mix_level,brightness,color',
     },
 
+    'yeelink.curtain.crc2': CHUNK_1,
+    'yeelink.curtain.ctmt1': CHUNK_1,
+    'yeelink.curtain.ctmt2': CHUNK_1,
     'yeelink.bhf_light.v5': {
         'select_properties': 'heat_mode,cold_mode,vent_mode',
     },
