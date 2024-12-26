@@ -924,7 +924,7 @@ MIOT_LOCAL_MODELS = [
     'yeelink.light.fancl2',
     'yeelink.light.fancl5',
     'yeelink.light.fancl6',
-    'yeelink.light.lamp15',
+    # 'yeelink.light.lamp15',  # miio2miot
     'yeelink.light.lamp22',
     'yeelink.light.lamp27',
     'yeelink.light.lamp28',
