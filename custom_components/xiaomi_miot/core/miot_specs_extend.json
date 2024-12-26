@@ -1552,6 +1552,39 @@
   ],
   "yeelink.light.panel1": "yeelink.light.ceiling1",
   "yeelink.light.panel3": "yeelink.light.ceiling1",
+  "yeelink.light.lamp15": [
+    {
+      "iid": 200,
+      "type": "urn:miot-spec-v2:service:ambient-light",
+      "description": "Ambient Light",
+      "properties": [
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:on",
+          "description": "Switch Status",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 202,
+          "type": "urn:miot-spec-v2:property:brightness",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [1, 100, 1]
+        },
+        {
+          "iid": 204,
+          "type": "urn:miot-spec-v2:property:color",
+          "description": "Color",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "rgb",
+          "value-range": [1, 16777215, 1]
+        }
+      ]
+    }
+  ],
 
   "yunmi.waterpuri.lx5": [
     {
