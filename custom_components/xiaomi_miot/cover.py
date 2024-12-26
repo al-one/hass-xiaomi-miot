@@ -63,7 +63,6 @@ class CoverEntity(XEntity, BaseEntity):
         self._close_texts = self.custom_config_list('close_texts', self._close_texts)
         if self._motor_reverse:
             self._open_texts, self._close_texts = self._close_texts, self._open_texts
-        self._target2current_position = self.custom_config_bool('target2current_position')
 
         for conv in self.device.converters:
             prop = getattr(conv, 'prop', None)
@@ -77,9 +76,9 @@ class CoverEntity(XEntity, BaseEntity):
                 self._attr_supported_features |= CoverEntityFeature.CLOSE
                 if prop.list_first('Stop', 'Pause') != None:
                     self._attr_supported_features |= CoverEntityFeature.STOP
-            elif prop.in_list(['current_position']) and prop.value_range:
+            elif prop.value_range and prop.in_list(['current_position']):
                 self._conv_current_position = conv
-                self._current_range = (prop.range_min, prop.range_max)
+                self._current_range = (prop.range_min(), prop.range_max())
             elif prop.value_range and isinstance(conv, MiotTargetPositionConv):
                 self._conv_target_position = conv
                 self._target_range = conv.ranged
@@ -89,13 +88,22 @@ class CoverEntity(XEntity, BaseEntity):
                 self._target_range = (prop.range_min(), prop.range_max())
                 self._attr_supported_features |= CoverEntityFeature.SET_POSITION
 
-        self._deviated_position = self.custom_config_integer('deviated_position', 1)
+        self._deviated_position = self.custom_config_integer('deviated_position', 2)
         if self._current_range:
-            if self._position_reverse:
-                pos = self._current_range[1] - self._deviated_position
-            else:
-                pos = self._current_range[0] + self._deviated_position
+            pos = self._current_range[0] + self._deviated_position
             self._closed_position = self.custom_config_integer('closed_position', pos)
+        self._target2current_position = self.custom_config_bool('target2current_position', not self._conv_current_position)
+
+        if self._motor_reverse or self._position_reverse:
+            self._attr_extra_state_attributes.update({
+                'motor_reverse': self._motor_reverse,
+                'position_reverse': self._position_reverse,
+            })
+        if self._closed_position:
+            self._attr_extra_state_attributes.update({
+                'closed_position': self._closed_position,
+                'deviated_position': self._deviated_position,
+            })
 
     def set_state(self, data: dict):
         prop_status = getattr(self._conv_status, 'prop', None) if self._conv_status else None
@@ -107,20 +115,24 @@ class CoverEntity(XEntity, BaseEntity):
         if self._conv_current_position:
             val = self._conv_current_position.value_from_dict(data)
             if val is not None:
-                self._attr_current_cover_position = int(val)
+                val = int(val)
+                if self._position_reverse:
+                    val = self._current_range[1] - val
+                self._attr_current_cover_position = val
         if self._conv_target_position:
             val = self._conv_target_position.value_from_dict(data)
             if val is not None:
-                self._attr_target_cover_position = int(val)
-                if not self._conv_current_position:
-                    self._attr_current_cover_position = self._attr_target_cover_position
+                val = int(val)
+                if self._position_reverse:
+                    val = self._target_range[1] - val
+                self._attr_target_cover_position = val
         if self._target2current_position:
             self._attr_current_cover_position = self._attr_target_cover_position
+            self._attr_extra_state_attributes.update({
+                'target2current_position': True,
+            })
         if (val := self._attr_current_cover_position) != None:
-            if self._position_reverse:
-                self._attr_is_closed = val >= self._closed_position
-            else:
-                self._attr_is_closed = val <= self._closed_position
+            self._attr_is_closed = val <= self._closed_position
 
     async def async_open_cover(self, **kwargs):
         if self._conv_motor:

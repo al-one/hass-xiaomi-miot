@@ -2170,10 +2170,14 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     '*.airer.*': {
+        'interval_seconds': 60,
         'position_reverse': True,
         'sensor_properties': 'left_time',
         'switch_properties': 'dryer,uv',
         'select_properties': 'drying_level',
+        'chunk_coordinators': [
+            {'interval': 15, 'props': 'status,current_position,target_position,dryer,drying_level'},
+        ],
     },
     '*.airrtc.*': {
         'switch_properties': 'air_conditioner.on',
@@ -2228,8 +2232,12 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     '*.curtain.*': {
+        'interval_seconds': 60,
         'switch_properties': 'motor_reverse',
         'select_properties': 'mode',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'status,current_position,target_position'},
+        ],
     },
     '*.derh.*': {
         'select_properties': 'fan_level',
@@ -2265,7 +2273,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'off_delay_time',
         'switch_properties': 'fan_init_power_opt',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'on,fan_level'},
+            {'interval': 10, 'props': 'on,mode,fan_level'},
         ],
     },
     '*.fishbowl.*': {
