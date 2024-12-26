@@ -266,7 +266,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'boil_point,oled_close_time',
     },
     'cubee.airrtc.*': {
-        'chunk_properties': 1,
+        **CHUNK_1,
         'switch_properties': 'childlock',
         'select_properties': 'tempactivate,tempcomp',
         'exclude_miot_properties': 'fault,sensortype,maxsettemp,minsettemp',
@@ -289,26 +289,29 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'change_speed',
     },
     'cuco.plug.co1': {
+        **CHUNK_1,
         'exclude_miot_services': 'setting,cycle',
     },
     'cuco.plug.cp1': {
-        'chunk_properties': 1,
+        **CHUNK_1,
         'exclude_miot_services': 'indicator_light',
     },
     'cuco.plug.cp1d': {
-        'chunk_properties': 1,
+        **CHUNK_1,
         'exclude_miot_services': 'indicator_light',
     },
     'cuco.plug.cp1m': {
-        'chunk_properties': 1,
+        **CHUNK_1,
         'exclude_miot_services': 'setting,cyc',  # issues/836
         'exclude_miot_properties': 'power_consumption,voltage,electric_current',
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
+    'cuco.plug.cp1m:power_cost_today': {'value_ratio': 0.001},
+    'cuco.plug.cp1m:power_cost_month': {'value_ratio': 0.001},
     'cuco.plug.cp1md': {
-        'chunk_properties': 1,
+        **CHUNK_1,
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
@@ -323,8 +326,10 @@ DEVICE_CUSTOMIZES = {
     'cuco.plug.cp1md:power': {
         'value_ratio': 1,
     },
+    'cuco.plug.cp1md:power_cost_today': {'value_ratio': 0.001},
+    'cuco.plug.cp1md:power_cost_month': {'value_ratio': 0.001},
     'cuco.plug.cp2': {
-        'chunk_properties': 1,
+        **CHUNK_1,
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
@@ -336,18 +341,14 @@ DEVICE_CUSTOMIZES = {
             'indicator_light.on': {'siid': 3, 'piid': 1},
         },
     },
-    'cuco.plug.cp2:power_cost_today': {
-        'value_ratio': 0.01,
-    },
-    'cuco.plug.cp2:power_cost_month': {
-        'value_ratio': 0.01,
-    },
+    'cuco.plug.cp2:power_cost_today': {'value_ratio': 0.01},
+    'cuco.plug.cp2:power_cost_month': {'value_ratio': 0.01},
     'cuco.plug.cp2a': {
-        'chunk_services': 1,
+        **CHUNK_1,
         'miot_type': 'urn:miot-spec-v2:device:outlet:0000A002:cuco-cp2a:2',
     },
     'cuco.plug.cp2d': {
-        'chunk_properties': 1,
+        **CHUNK_1,
         'exclude_miot_services': 'indicator_light,physical_controls_locked,other_setting',
         'exclude_miot_properties': 'power_consumption,electric_current,voltage',
         'sensor_properties': 'electric_power',
@@ -355,29 +356,34 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_type': 'stat_day_v3',
         'stat_power_cost_key': '3.1',
     },
-    'cuco.plug.cp2d:power_cost_today': {
-        'value_ratio': 0.01,
-    },
-    'cuco.plug.cp2d:power_cost_month': {
-        'value_ratio': 0.01,
-    },
+    'cuco.plug.cp2d:power_cost_today': {'value_ratio': 0.01},
+    'cuco.plug.cp2d:power_cost_month': {'value_ratio': 0.01},
     'cuco.plug.cp4': {
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
+    'cuco.plug.cp4:power_cost_today': {'value_ratio': 0.001},
+    'cuco.plug.cp4:power_cost_month': {'value_ratio': 0.001},
     'cuco.plug.cp4am': {
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
+    'cuco.plug.cp4am:power_cost_today': {'value_ratio': 0.001},
+    'cuco.plug.cp4am:power_cost_month': {'value_ratio': 0.001},
     'cuco.plug.cp4m': {
         'sensor_properties': 'power,voltage,electric_current',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '2.2',
     },
+    'cuco.plug.cp4m:power_cost_today': {'value_ratio': 0.001},
+    'cuco.plug.cp4m:power_cost_month': {'value_ratio': 0.001},
     'cuco.plug.cp5d': {
-        'exclude_miot_services': 'indicator_light',  # issues/836
+        **CHUNK_1,
+        'interval_seconds': 120,
+        'exclude_miot_services': 'custome',
+        'exclude_miot_properties': 'indicator_light.mode,start_time,end_time',
     },
     'cuco.plug.cp5prd': {
         'exclude_miot_services': 'device_setting,use_ele_alert',
@@ -386,29 +392,24 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '10.1',
     },
-    'cuco.plug.cp5prd:power_cost_today': {
-        'value_ratio': 1,
-    },
-    'cuco.plug.cp5prd:power_cost_month': {
-        'value_ratio': 1,
-    },
+    'cuco.plug.cp5prd:power_cost_today': {'value_ratio': 1},
+    'cuco.plug.cp5prd:power_cost_month': {'value_ratio': 1},
     'cuco.plug.cp5pro': {
         'exclude_miot_services': 'power_consumption,device_setting,use_ele_alert',  # issues/763
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '10.1',
     },
-    'cuco.plug.cp5pro:power_cost_today': {
-        'value_ratio': 1,
-    },
-    'cuco.plug.cp5pro:power_cost_month': {
-        'value_ratio': 1,
-    },
+    'cuco.plug.cp5pro:power_cost_today': {'value_ratio': 1},
+    'cuco.plug.cp5pro:power_cost_month': {'value_ratio': 1},
     'cuco.plug.p8amd': {
         'switch_properties': 'usb_switch.on,light,light.mode',
         'select_properties': 'default_power_on_state',
     },
     'cuco.plug.sp5': {
-        'exclude_miot_services': 'custome,physical_controls_locked,indicator_light',
+        **CHUNK_1,
+        'interval_seconds': 120,
+        'exclude_miot_services': 'custome',
+        'exclude_miot_properties': 'indicator_light.mode,start_time,end_time',
     },
     'cuco.plug.v2eur': {
         'sensor_properties': 'electric_power',
@@ -417,58 +418,31 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '11.1',
     },
-    'cuco.plug.v2eur:power_cost_today': {
-        **ENERGY_KWH,
-        'value_ratio': 0.01,
-    },
-    'cuco.plug.v2eur:power_cost_month': {
-        **ENERGY_KWH,
-        'value_ratio': 0.01,
-    },
+    'cuco.plug.v2eur:power_cost_today': {'value_ratio': 0.01},
+    'cuco.plug.v2eur:power_cost_month': {'value_ratio': 0.01},
     'cuco.plug.v3': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '11.1',
     },
-    'cuco.plug.v3:electric_power': {
-        'unit_of_measurement': 'W',
-    },
-    'cuco.plug.v3:power_cost_today': {
-        **ENERGY_KWH,
-        'value_ratio': 0.01,
-    },
-    'cuco.plug.v3:power_cost_month': {
-        **ENERGY_KWH,
-        'value_ratio': 0.01,
-    },
+    'cuco.plug.v3:electric_power': {'unit_of_measurement': 'W'},
+    'cuco.plug.v3:power_cost_today': {'value_ratio': 0.01},
+    'cuco.plug.v3:power_cost_month': {'value_ratio': 0.01},
     'cuco.plug.wp5m': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '3.1',
         'chunk_properties': 1,
     },
-    'cuco.plug.wp5m:electric_power': {
-        'unit_of_measurement': 'W',
-    },
-    'cuco.plug.wp5m:power_cost_today': {
-        **ENERGY_KWH,
-        'value_ratio': 0.01,
-    },
-    'cuco.plug.wp5m:power_cost_month': {
-        **ENERGY_KWH,
-        'value_ratio': 0.01,
-    },
+    'cuco.plug.wp5m:electric_power': {'unit_of_measurement': 'W'},
+    'cuco.plug.wp5m:power_cost_today': {'value_ratio': 0.01},
+    'cuco.plug.wp5m:power_cost_month': {'value_ratio': 0.01},
     'cuco.plug.wp12': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '11.1'
     },
-    'cuco.plug.wp12:power_cost_today': {
-        **ENERGY_KWH,
-        'value_ratio': 1,
-    },
-    'cuco.plug.wp12:power_cost_month': {
-        **ENERGY_KWH,
-        'value_ratio': 1,
-    },    
+    'cuco.plug.wp12:power_cost_today': {'value_ratio': 1},
+    'cuco.plug.wp12:power_cost_month': {'value_ratio': 1},
     'cuco.plug.*': {
+        'interval_seconds': 60,
         'parallel_updates': 3,
     },
     'cuco.plug.*:electric_current': {
@@ -482,14 +456,8 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'power',
         'unit_of_measurement': 'W',
     },
-    'cuco.plug.*:power_cost_today': {
-        **ENERGY_KWH,
-        'value_ratio': 0.001,
-    },
-    'cuco.plug.*:power_cost_month': {
-        **ENERGY_KWH,
-        'value_ratio': 0.001,
-    },
+    'cuco.plug.*:power_cost_today': ENERGY_KWH,
+    'cuco.plug.*:power_cost_month': ENERGY_KWH,
     'cuco.plug.*:voltage': {
         'value_ratio': 0.1,
         'state_class': 'measurement',
@@ -2365,8 +2333,9 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'soil_ec,illumination,temperature,relative_humidity',
     },
     '*.plug.*': {
+        'interval_seconds': 60,
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'on,electric_power'},
+            {'interval': 10, 'props': 'switch.on,electric_power'},
         ],
     },
     '*.s_lamp.*': {
