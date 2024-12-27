@@ -1062,9 +1062,15 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'battery',
     },
     'mibx5.washer.*': {
-        'sensor_properties': 'fault,left_time,door_state,run_status,detergent_left_level',
-        'switch_properties': 'sleep_mode,steam_sterilization,detergent_self_delivery',
-        'select_properties': 'soak_time,reservation_wash_status,reservation_left_time,detergent_self_delivery_level',
+        'sensor_properties': 'fault,left_time,door_state,run_status,power_consumption,water_consumption,clean_lefttime,'
+                             'detergent_left_level,fabric_softener_left_level,water_temperature',
+        'switch_properties': 'on,sleep_mode,steam_sterilization,high_water_switch,detergent_self_delivery,blue_oxygen,'
+                             'child_protected_enabled,self_delivery_auto_turnoff,laundry_beads,one_click_wash,ai_mode,'
+                             'disinfectant_mode,linkage_on',
+        'select_properties': 'mode,soak_time,drying_level,drying_degree,reservation_wash_status,'
+                             'detergent_self_delivery_level,softener_self_delivery_level',
+        'number_select_properties': 'target_temperature,rinsh_times,spin_speed,wash_time,shake_time,drying_time,reservation_left_time',
+        'button_actions': 'start_wash,stop_washing,pause,clean_start,clean_stop',
     },
     'midjd8.washer.*': {
         'select_properties': 'shake_time,soak_time',
@@ -2547,6 +2553,16 @@ GLOBAL_CONVERTERS = [
         'converters' : [
             {'props': ['status', 'motor_control', 'current_position']},
             {'props': ['target_position'], 'class': MiotTargetPositionConv},
+        ],
+    },
+    {
+        'services': ['alarm'],
+        'converters' : [
+            {
+                'props': ['alarm'],
+                'domain': 'switch',
+                'option': {'entity_category': 'config'},
+            },
         ],
     },
     {
