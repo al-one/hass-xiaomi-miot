@@ -514,6 +514,11 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 4,
         'exclude_miot_services': None,
     },
+    'deerma.humidifier.jsqs': {
+        'exclude_miot_services': None,
+        'binary_sensor_properties': 'fault',
+        'sensor_properties': 'filter_life_level',
+    },
     'deerma.humidifier.*': {
         'chunk_properties': 6,
         'exclude_miot_properties': 'humi_sensor_fault,temp_sensor_fault,overwet_protect,overtop_humidity',
@@ -2281,7 +2286,13 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     '*.humidifier.*': {
+        'interval_seconds': 120,
         'select_properties': 'fan_level',
+        'chunk_coordinators': [
+            {'interval': 20, 'props': 'on,mode,target_humidity,fan_level'},
+            {'interval': 25, 'props': 'relative_humidity,temperature'},
+            {'interval': 300, 'props': 'filter_life_level,filter_left_time,filter_used_time'},
+        ],
     },
     '*.ihcooker.*': {
         'sensor_properties': 'left_time,working_time,temperature',
