@@ -14,7 +14,7 @@ body:
   - type: input
     attributes:
       label: Component version / 插件版本
-      placeholder: 0.7.x
+      placeholder: 1.0.x
       description: |
         > [⚙️ Settings > System > Repairs > Three Dots in Upper Right > System information](https://my.home-assistant.io/redirect/system_health) > `Xiaomi Miot Auto`
         > [⚙️ 配置 > 系统 > 修复 > 右上角三个点 > 系统信息](https://my.home-assistant.io/redirect/system_health) > `Xiaomi Miot Auto`
