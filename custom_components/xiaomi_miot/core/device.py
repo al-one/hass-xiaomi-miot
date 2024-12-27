@@ -356,9 +356,6 @@ class Device(CustomConfigHelper):
 
         if not self.spec:
             return
-        if dby := self.hass_device_disabled:
-            self.log.debug('Device disabled by: %s', dby)
-            return
 
         for cfg in GLOBAL_CONVERTERS:
             cls = cfg.get('class')
@@ -453,6 +450,10 @@ class Device(CustomConfigHelper):
                 self.add_converter(AttrConv(attr, d))
 
     async def init_coordinators(self):
+        if dby := self.hass_device_disabled:
+            self.log.debug('Device disabled by: %s', dby)
+            return
+
         interval = 30
         interval = self.entry.get_config('scan_interval') or interval
         interval = self.custom_config_integer('interval_seconds') or interval

@@ -590,7 +590,7 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
         if device.disabled and miot_device.coordinators:
             await miot_device.async_unload()
         if not device.disabled and not miot_device.coordinators:
-            miot_device.init_converters()
+            await miot_device.init_coordinators()
     hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, updated)
 
 
