@@ -1707,6 +1707,21 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.plug.mcn003:power_cost_today': ENERGY_KWH,
     'xiaomi.plug.mcn003:power_cost_month': ENERGY_KWH,
+    'xiaomi.sensor_occupy.p1': {
+        'sensor_properties': 'occupancy_status,has_someone_duration,no_one_duration,illumination,people_num',
+        'switch_properties': 'enable_switch,installation_image',
+        'select_properties': 'installation_method,use_map_number,response_speed',
+        'number_properties': 'bio_sensitive',
+        'text_properties': 'one_map_name,two_map_name',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'occupancy_status'},
+            {'interval': 15, 'props': 'has_someone_duration'},
+            {'interval': 15, 'props': 'no_one_duration'},
+            {'interval': 20, 'props': 'illumination,people_num,one_map_name,two_map_name'},
+            {'interval': 300, 'props': 'enable_switch,installation_method,bio_sensitive,use_map_number,'
+                                       'installation_image,response_speed'},
+        ],
+    },
     'xiaomi.tv.*': {
         'auto_cloud': True,
         'switch_properties': 'is_on',
