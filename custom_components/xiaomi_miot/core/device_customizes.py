@@ -2437,7 +2437,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'fault,run_status,left_time,door_state',
         'switch_properties': 'on,sleep_mode,steam_sterilization,ai_mode,high_water_switch,one_click_wash',
         'select_properties': 'mode,drying_level,rinsh_times,drying_degree',
-        'number_select_properties': 'target_temperature,spin_speed,soak_time,wash_time,drying_time',
+        'number_select_properties': 'target_temperature,target_water_level,spin_speed,soak_time,wash_time,drying_time',
     },
     '*.waterheater.*': {
         'sensor_properties': 'water_velocity,tds_in,tds_out',
@@ -2574,11 +2574,8 @@ GLOBAL_CONVERTERS = [
     {
         'services': ['alarm'],
         'converters' : [
-            {
-                'props': ['alarm'],
-                'domain': 'switch',
-                'option': {'entity_category': 'config'},
-            },
+            {'props': ['alarm'], 'domain': 'switch', 'option': {'entity_category': 'config'}},
+            {'props': ['volume'], 'domain': 'number', 'option': {'entity_category': 'config'}},
         ],
     },
     {
