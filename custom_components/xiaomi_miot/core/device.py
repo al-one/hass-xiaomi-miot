@@ -471,7 +471,7 @@ class Device(CustomConfigHelper):
             self.log.debug('Device disabled by: %s', dby)
             return
 
-        interval = 30
+        interval = 60
         interval = self.entry.get_config('scan_interval') or interval
         interval = self.custom_config_integer('interval_seconds') or interval
         lst = await self.init_miot_coordinators(interval)

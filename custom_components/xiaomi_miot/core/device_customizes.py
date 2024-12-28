@@ -91,7 +91,6 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'occupancy',
     },
     'ainice.sensor_occupy.bt': {
-        'interval_seconds': 60,
         'parallel_updates': 1,
         'switch_properties': 'indicator_switch,bt_pair_switch',
         'select_properties': 'bt_power_level',
@@ -442,7 +441,6 @@ DEVICE_CUSTOMIZES = {
     'cuco.plug.wp12:power_cost_today': {'value_ratio': 1},
     'cuco.plug.wp12:power_cost_month': {'value_ratio': 1},
     'cuco.plug.*': {
-        'interval_seconds': 60,
         'parallel_updates': 3,
     },
     'cuco.plug.*:electric_current': {
@@ -534,7 +532,6 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'fast_update_switch',
     },
     'devcea.light.ls2307': {
-        'interval_seconds': 60,
         'exclude_miot_properties': 'update,colorful_set',
         'switch_properties': 'flex_switch,ac_status,power_on_state,custom_sleep_aid,custom_weak_up',
         'select_properties': 'ambient_light.mode',
@@ -929,7 +926,6 @@ DEVICE_CUSTOMIZES = {
     },
     'lumi.acpartner.mcn04': {
         'auto_cloud': True,
-        'interval_seconds': 60,
         'chunk_properties': 8,
         'sensor_properties': 'electric_power',
         'switch_properties': 'on,quick_cool_enable,indicator_light',
@@ -2151,11 +2147,10 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_humidity',
         'fan_services': 'air_fresh',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level'},
+            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level', 'notify': True},
         ],
     },
     '*.airer.*': {
-        'interval_seconds': 60,
         'position_reverse': True,
         'sensor_properties': 'left_time',
         'switch_properties': 'dryer,uv',
@@ -2164,10 +2159,10 @@ DEVICE_CUSTOMIZES = {
             {'interval': 15, 'props': 'status,current_position,target_position,dryer,drying_level'},
         ],
     },
-    '*.airrtc.*': {
-        'switch_properties': 'air_conditioner.on',
+    '*.airfresh.*': {
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level'},
+            {'interval': 10, 'props': 'on,mode,fan_level'},
+            {'interval': 300, 'props': 'filter_life_level,filter_left_time,filter_used_time'},
         ],
     },
     '*.airpurifier.*': {
@@ -2175,6 +2170,13 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'relative_humidity,pm2_5_density,temperature,filter_life_level',
         'chunk_coordinators': [
             {'interval': 10, 'props': 'on,mode,fan_level'},
+            {'interval': 300, 'props': 'filter_life_level,filter_left_time,filter_used_time'},
+        ],
+    },
+    '*.airrtc.*': {
+        'switch_properties': 'air_conditioner.on',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level', 'notify': True},
         ],
     },
     '*.bhf_light.*': {
@@ -2217,7 +2219,6 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     '*.curtain.*': {
-        'interval_seconds': 60,
         'switch_properties': 'motor_reverse',
         'select_properties': 'mode',
         'chunk_coordinators': [
@@ -2225,7 +2226,13 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     '*.derh.*': {
+        'interval_seconds': 120,
         'select_properties': 'fan_level',
+        'chunk_coordinators': [
+            {'interval': 20, 'props': 'on,mode,target_humidity,fan_level'},
+            {'interval': 25, 'props': 'relative_humidity,temperature'},
+            {'interval': 300, 'props': 'filter_life_level,filter_left_time,filter_used_time'},
+        ],
     },
     '*.desk.*': {
         'button_properties': 'motor_control,reset',
@@ -2252,6 +2259,9 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'left_time,water',
         'switch_properties': 'on',
         'number_select_properties': 'wash_mode,wash_time,target_water_level,water_level',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,wash_mode,wash_time,target_water_level,water_level,left_time'},
+        ],
     },
     '*.fan.*': {
         'button_actions': 'turn_left,turn_right',
@@ -2304,7 +2314,6 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'start_cook,pause,cancel_cooking',
     },
     '*.light.*': {
-        'interval_seconds': 60,
         'number_properties': 'off_delay_time,light_on_gradient_time,light_off_gradient_time',
         'switch_properties': 'flex_switch,night_light_switch',
         'button_actions': 'toggle',
@@ -2332,6 +2341,9 @@ DEVICE_CUSTOMIZES = {
     },
     '*.microwave.*': {
         'sensor_properties': 'left_time,heat_level,cook_time',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'status,left_time,heat_level,cook_time'},
+        ],
     },
     '*.mosq.*': {
         'sensor_properties': 'repellent_left_level,liquid_left',
@@ -2350,12 +2362,14 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'temperature,left_time,cook_time,working_time',
         'number_properties': 'target_temperature',
         'switch_properties': 'oven.on',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'oven.on,target_temperature,temperature,left_time,cook_time,working_time'},
+        ],
     },
     '*.plantmonitor.*': {
         'sensor_properties': 'soil_ec,illumination,temperature,relative_humidity',
     },
     '*.plug.*': {
-        'interval_seconds': 60,
         'chunk_coordinators': [
             {'interval': 10, 'props': 'switch.on,electric_power'},
         ],
@@ -2371,6 +2385,9 @@ DEVICE_CUSTOMIZES = {
     },
     '*.sensor_occupy.*': {
         'sensor_properties': 'illumination,has_someone_duration,no_one_duration',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'occupancy_status,has_someone_duration,no_one_duration'},
+        ],
     },
     '*.sensor_smoke.*': {
         'binary_sensor_attributes': 'smoke_status',
