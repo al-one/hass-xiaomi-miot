@@ -110,6 +110,10 @@ class DeviceInfo:
         return self.data.get('urn') or self.data.get('spec_type') or ''
 
     @property
+    def parent_id(self):
+        return self.data.get('parent_id', '')
+
+    @property
     def extra(self):
         return self.data.get('extra') or {}
 
@@ -157,6 +161,7 @@ class Device(CustomConfigHelper):
     miot_entity = None
     miot_results = None
     _local_state = None
+    _proxy_device = None
     _miot_mapping = None
     _exclude_miot_services = None
     _exclude_miot_properties = None
@@ -185,6 +190,14 @@ class Device(CustomConfigHelper):
             mps = self.custom_config_list('miio_properties')
             if mps and self.miio2miot:
                 self.miio2miot.extend_miio_props(mps)
+
+        if self.info.pid not in [18]:
+            """ not proxy device """
+        elif parent := await self.get_parent_device():
+            if parent.use_local:
+                self.local = parent.local
+                self._proxy_device = parent if self.local else None
+                self.log.info('Proxy local device: %s', self.local)
 
         self._exclude_miot_services = self.custom_config_list('exclude_miot_services', [])
         self._exclude_miot_properties = self.custom_config_list('exclude_miot_properties', [])
@@ -265,6 +278,9 @@ class Device(CustomConfigHelper):
 
     @property
     def hass_device_info(self):
+        via_device = None
+        if self._proxy_device:
+            via_device = next(iter(self._proxy_device.identifiers))
         return {
             'identifiers': self.identifiers,
             'name': self.name,
@@ -272,6 +288,7 @@ class Device(CustomConfigHelper):
             'manufacturer': (self.model or 'Xiaomi').split('.', 1)[0],
             'sw_version': self.sw_version,
             'suggested_area': self.info.room_name,
+            'via_device': via_device,
             'configuration_url': f'https://home.miot-spec.com/s/{self.model}',
         }
 
@@ -721,6 +738,8 @@ class Device(CustomConfigHelper):
             return True
         if self.model in MIOT_LOCAL_MODELS:
             return True
+        if self._proxy_device:
+            return True
         return False
 
     @property
@@ -742,6 +761,12 @@ class Device(CustomConfigHelper):
         if not self.cloud:
             return False
         return self.custom_config_bool('auto_cloud')
+
+    async def get_parent_device(self):
+        if not (pid := self.info.parent_id):
+            return None
+        info = await self.entry.get_cloud_device(pid)
+        return await self.entry.new_device(info)
 
     def miot_mapping(self):
         if self._miot_mapping:

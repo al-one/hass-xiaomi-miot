@@ -25,6 +25,7 @@ class HassEntry:
         self.adders: dict[str, AddEntitiesCallback] = {}
         self.devices: dict[str, 'Device'] = {}
         self.mac_to_did = {}
+        self.did_to_unique = {}
 
     @staticmethod
     def init(hass: HomeAssistant, entry: ConfigEntry):
@@ -93,8 +94,9 @@ class HassEntry:
         if device := self.devices.get(info.unique_id):
             return device
         device = Device(info, self)
-        await device.async_init()
         self.devices[info.unique_id] = device
+        self.did_to_unique[info.did] = info.unique_id
+        await device.async_init()
         return device
 
     def new_adder(self, domain, adder: AddEntitiesCallback):
