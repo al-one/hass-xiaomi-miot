@@ -11,6 +11,7 @@ import micloud
 import requests
 from datetime import datetime
 from functools import partial
+from typing import Optional
 from urllib import parse
 
 from homeassistant.const import (
@@ -38,6 +39,8 @@ UA = "Android-7.1.1-1.0.0-ONEPLUS A3010-136-%s APP/xiaomi.smarthome APPV/62830"
 
 
 class MiotCloud(micloud.MiCloud):
+    async_session: Optional[aiohttp.ClientSession] = None
+
     def __init__(self, hass, username, password, country=None, sid=None):
         try:
             super().__init__(username, password)
@@ -54,7 +57,6 @@ class MiotCloud(micloud.MiCloud):
         self.useragent = UA % self.client_id
         self.http_timeout = int(hass.data[DOMAIN].get('config', {}).get('http_timeout') or 10)
         self.login_times = 0
-        self.async_session = None
         self.attrs = {}
 
     @property
@@ -688,7 +690,8 @@ class MiotCloud(micloud.MiCloud):
             raise MiCloudException('Cannot execute request. service token or userId missing. Make sure to login.')
 
         if kwargs.get('async'):
-            if not (session := self.async_session):
+            session = self.async_session
+            if not session or session.closed:
                 session = async_create_clientsession(
                     self.hass,
                     headers=self.api_headers(),
