@@ -2795,7 +2795,7 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.4.2': {
                 'prop': 'f1_hour_used',
-                'template': '{{ value/(props.filter1_life|default(0,true)/100)-value }}',
+                'template': '{{ value/(props.filter1_life|default(1,true)/100)-value }}',
             },
             'prop.7.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
         },
