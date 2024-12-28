@@ -1897,7 +1897,7 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 7,
     },
     'yeelink.light.*': {
-        'switch_properties': 'bg_on',
+        'switch_properties': 'bg_on,init_power_opt,fan_init_power_opt',
     },
     'yeelink.switch.sw1': {
         'miot_mapping': {
@@ -2301,8 +2301,10 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'start_cook,pause,cancel_cooking',
     },
     '*.light.*': {
-        'number_properties': 'off_delay_time',
-        'switch_properties': 'init_power_opt,fan_init_power_opt',
+        'interval_seconds': 60,
+        'number_properties': 'off_delay_time,light_on_gradient_time,light_off_gradient_time',
+        'switch_properties': 'flex_switch,night_light_switch',
+        'button_actions': 'toggle',
         'chunk_coordinators': [
             {'interval': 10, 'props': 'on,brightness,color_temperature,color,mode'},
         ],
