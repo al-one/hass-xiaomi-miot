@@ -741,6 +741,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm_shielding,silent_mode,line_exchange',
     },
     'hyd.airer.lyjpro': {
+        **CHUNK_1,
         'position_reverse': True,
         'cover_position_mapping': {},
     },
