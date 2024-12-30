@@ -2086,10 +2086,12 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'horizontal_angle,vertical_angle,off_delay',
     },
     'zhimi.heater.na1': {
-        'switch_properties': 'return_to_middle,alarm',
+        'switch_properties': 'on,return_to_middle',
         'number_properties': 'countdown_time',
     },
     'zhimi.heater.nb1': {
+        'switch_properties': 'on,return_to_middle',
+        'number_properties': 'countdown_time',
         'brightness_for_on': 0,
         'brightness_for_off': 2,
     },
