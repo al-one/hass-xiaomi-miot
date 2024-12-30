@@ -1063,16 +1063,19 @@ DEVICE_CUSTOMIZES = {
     'miaomiaoce.sensor_ht.t6': {
         'exclude_miot_services': 'battery',
     },
+    'mibx5.washer.f28': {
+        'select_action': 'clean_start',
+    },
     'mibx5.washer.*': {
         'sensor_properties': 'fault,left_time,door_state,run_status,power_consumption,water_consumption,clean_lefttime,'
-                             'detergent_left_level,fabric_softener_left_level,water_temperature',
+                             'detergent_left_level,fabric_softener_left_level,water_temperature,has_washed_times,has_dried_times',
         'switch_properties': 'on,sleep_mode,steam_sterilization,high_water_switch,detergent_self_delivery,blue_oxygen,'
                              'child_protected_enabled,self_delivery_auto_turnoff,laundry_beads,one_click_wash,ai_mode,'
                              'disinfectant_mode,linkage_on',
-        'select_properties': 'mode,soak_time,drying_level,drying_degree,reservation_wash_status,'
+        'select_properties': 'mode,soak_time,drying_level,drying_degree,reservation_wash_status,card_slot,'
                              'detergent_self_delivery_level,softener_self_delivery_level',
         'number_select_properties': 'target_temperature,rinsh_times,spin_speed,wash_time,shake_time,drying_time,reservation_left_time',
-        'button_actions': 'start_wash,stop_washing,pause,clean_start,clean_stop',
+        'button_actions': 'start_wash,stop_washing,pause,clean_stop,make_cabin_openable',
     },
     'midjd8.washer.*': {
         'select_properties': 'shake_time,soak_time',
