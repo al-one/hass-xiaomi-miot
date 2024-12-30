@@ -858,7 +858,7 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'led_toggle,find_device'
     },
     'izq.sensor_occupy.trio': {
-        'sensor_properties': 'occupancy_status,illumination',
+        'sensor_properties': 'occupancy_status,occupancy_sensor.illumination',
         'number_properties': 'bio_sensitive',
         'switch_properties': 'indicator_light,shadow_tracking',
         'button_actions': 'led_toggle,find_device'
