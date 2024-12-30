@@ -1391,17 +1391,19 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 180,
         'button_actions': 'start_sweep,stop_sweeping,find_robot,stop_find_charge,continue_sweep,start_dust,pause,'
                           'pause_find_charge,continue_find_charge,reset_filter_life,reset_brush_life',
-        'sensor_properties': 'status,fault,clean_area,clean_time,filter_life_level,brush_life_level,sweep_mode',
-        'switch_properties': 'mop,auto_boost,double_clean,edge_sweep,led_switch,lidar_collision,mute,'
-                             'station_key,station_led,use_auto_area,map_memory',
+        'binary_sensor_properties': 'mop',
+        'sensor_properties': 'status,fault,clean_area,clean_time,filter_life_level,brush_life_level',
+        'switch_properties': 'auto_boost,double_clean,edge_sweep,led_switch,lidar_collision,mute,map_memory,'
+                             'station_key,station_led,use_auto_area',
         'select_properties': 'mode,sweep_type,work_station_freq,water_level,path_type',
         'number_properties': 'volume',
         'exclude_miot_services': None,
-        'exclude_miot_properties': 'vacuum.on',
+        'exclude_miot_properties': 'vacuum.on,custom.progress,station_type,voice_conf,app_state,sweep_mode',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'status,clean_area,clean_time,mode,sweep_type,water_level', 'notify': True},
+            {'interval': 15, 'props': 'status,clean_area,clean_time,mode,sweep_type,water_level', 'notify': True},
             {'interval': 60, 'props': 'mop,auto_boost,double_clean,edge_sweep,led_switch,lidar_collision,mute'},
             {'interval': 600, 'props': 'filter_life_level,filter_left_time,brush_life_level,brush_left_time'},
+            {'interval': 610, 'props': 'custom.uid,custom.timing,forbid_mode,current_audio,map_memory,use_auto_area'},
         ],
     },
     'roidmi.vacuum.*': {
