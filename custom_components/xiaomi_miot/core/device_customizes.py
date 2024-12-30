@@ -1491,13 +1491,13 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'duration',
     },
     'viomi.vacuum.*': {
-        'sensor_attributes': 'miio.s_area,miio.s_time',
+        'sensor_attributes': 'clean_area,clean_time',
         'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life',
     },
-    'viomi.vacuum.*:miio.s_area': {
+    'viomi.vacuum.*:clean_area': {
         'unit_of_measurement': '㎡',
     },
-    'viomi.vacuum.*:miio.s_time': {
+    'viomi.vacuum.*:clean_time': {
         'unit_of_measurement': 'min',
     },
     'viomi.washer.*': {
