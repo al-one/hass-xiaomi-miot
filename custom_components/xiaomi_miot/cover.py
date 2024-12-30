@@ -5,7 +5,8 @@ from datetime import timedelta
 from homeassistant.components.cover import (
     DOMAIN as ENTITY_DOMAIN,
     CoverEntity as BaseEntity,
-    CoverEntityFeature,  # v2022.5
+    CoverEntityFeature,
+    CoverDeviceClass,
 )
 
 from . import (
@@ -40,6 +41,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class CoverEntity(XEntity, BaseEntity):
     _attr_is_closed = None
+    _attr_device_class = None
     _attr_target_cover_position = None
     _attr_supported_features = CoverEntityFeature(0)
     _conv_status = None
@@ -50,13 +52,19 @@ class CoverEntity(XEntity, BaseEntity):
     _target_range = (0, 100)
     _motor_reverse = None
     _position_reverse = None
-    _open_texts = ['Open', 'Up']
-    _close_texts = ['Close', 'Down']
+    _open_texts = ['open', 'up']
+    _close_texts = ['close', 'down']
     _closed_position = 0
     _deviated_position = 0
     _target2current_position = None
 
     def on_init(self):
+        models = f'{self.device.model} {self.device.info.urn}'
+        if 'curtain' in models:
+            self._attr_device_class = CoverDeviceClass.CURTAIN
+        elif 'wopener' in models or 'window-opener' in models:
+            self._attr_device_class = CoverDeviceClass.WINDOW
+
         self._motor_reverse = self.custom_config_bool('motor_reverse', False)
         self._position_reverse = self.custom_config_bool('position_reverse', self._motor_reverse)
         self._open_texts = self.custom_config_list('open_texts', self._open_texts)
@@ -135,26 +143,28 @@ class CoverEntity(XEntity, BaseEntity):
             self._attr_is_closed = val <= self._closed_position
 
     async def async_open_cover(self, **kwargs):
-        if self._conv_motor:
-            val = self._conv_motor.prop.list_first(self._open_texts)
-            if val is not None:
-                await self.device.async_write({self._conv_motor.full_name: val})
+        if conv := self._conv_motor:
+            val = conv.prop.list_first(*self._open_texts)
+            if val != None:
+                await self.device.async_write({conv.full_name: val})
                 return
+            self.log.warning('No open command found in motor control property: %s', self._open_texts)
         await self.async_set_cover_position(0 if self._position_reverse else 100)
 
     async def async_close_cover(self, **kwargs):
-        if self._conv_motor:
-            val = self._conv_motor.prop.list_first(self._close_texts)
-            if val is not None:
-                await self.device.async_write({self._conv_motor.full_name: val})
+        if conv := self._conv_motor:
+            val = conv.prop.list_first(*self._close_texts)
+            if val != None:
+                await self.device.async_write({conv.full_name: val})
                 return
+            self.log.warning('No close command found in motor control property: %s', [self._close_texts, conv.prop.value_list])
         await self.async_set_cover_position(100 if self._position_reverse else 0)
 
     async def async_stop_cover(self, **kwargs):
         if not self._conv_motor:
             return
         val = self._conv_motor.prop.list_first('Stop', 'Pause')
-        if val is not None:
+        if val != None:
             await self.device.async_write({self._conv_motor.full_name: val})
 
     async def async_set_cover_position(self, position, **kwargs):
