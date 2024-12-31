@@ -404,6 +404,7 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
             adt['clean_time'] = props['miio.s_time']
         if adt:
             await self.async_update_attrs(adt)
+            self.device.dispatch(self.device.decode_attrs(adt))
 
     def locate(self, **kwargs):
         """Locate the vacuum cleaner."""
