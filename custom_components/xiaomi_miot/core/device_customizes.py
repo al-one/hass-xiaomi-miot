@@ -1363,9 +1363,11 @@ DEVICE_CUSTOMIZES = {
         'target_position_properties': 'backrest_angle,leg_rest_angle',
     },
     'roborock.vacuum.*': {
+        'interval_seconds': 30,
         'sensor_attributes': 'props:clean_area,props:clean_time',
         'sensor_properties': 'vacuum.status',
         'select_properties': 'water_level,mop_mode',
+        'chunk_coordinators': [],
     },
     'roborock.vacuum.*:props:clean_area': {
         'value_ratio': 0.000001,
