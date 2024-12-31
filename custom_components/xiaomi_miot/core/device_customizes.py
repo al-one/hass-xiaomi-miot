@@ -2414,8 +2414,11 @@ DEVICE_CUSTOMIZES = {
     },
     '*.s_lamp.*': {
         'sensor_properties': 'left_time',
-        'switch_properties': 'uv,radar_on,lighting.on',
+        'switch_properties': 'on,uv,radar_on',
         'number_properties': 'target_time',
+        'chunk_coordinators': [
+            {'interval': 20, 'props': 'on,uv,target_time,left_time'},
+        ],
     },
     '*.senpres.*': {
         'binary_sensor_properties': 'pressure_present_state',
