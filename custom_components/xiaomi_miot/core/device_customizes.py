@@ -848,20 +848,27 @@ DEVICE_CUSTOMIZES = {
     },
     'izq.sensor_occupy.24': {
         'interval_seconds': 15,
-        'sensor_properties': 'illumination,distance,has_someone_duration,no_one_duration',
-        'number_properties': 'no_one_determine_time',
+        'sensor_properties': 'occupancy_status,illumination,distance,has_someone_duration,no_one_duration',
+        'switch_properties': 'led_enable',
+        'number_properties': 'no_one_determine_time,detect_range,enterin_confirm_time',
     },
     'izq.sensor_occupy.solo': {
         'sensor_properties': 'occupancy_status,illumination',
         'number_properties': 'bio_sensitive',
-        'switch_properties': 'indicator_light,shadow_tracking',
-        'button_actions': 'led_toggle,find_device'
+        'switch_properties': 'shadow_tracking',
+        'button_actions': 'led_toggle,find_device,reset_occupy_state',
+        'chunk_coordinators': [
+            {'interval': 3, 'props': 'occupancy_status,illumination'},
+        ],
     },
     'izq.sensor_occupy.trio': {
-        'sensor_properties': 'occupancy_status,occupancy_sensor.illumination',
+        'sensor_properties': 'occupancy_status,illumination',
         'number_properties': 'bio_sensitive',
-        'switch_properties': 'indicator_light,shadow_tracking',
-        'button_actions': 'led_toggle,find_device'
+        'switch_properties': 'shadow_tracking',
+        'button_actions': 'led_toggle,find_device,reset_occupy_state',
+        'chunk_coordinators': [
+            {'interval': 3, 'props': 'occupancy_status,illumination'},
+        ],
     },
     'jyf.tow_w.ts03': {
         'auto_cloud': True,
