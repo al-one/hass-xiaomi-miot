@@ -2076,11 +2076,11 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_off': 2,
     },
     'zhimi.fan.fb1': {
-        'switch_properties': 'alarm,horizontal_swing,vertical_swing,oscillating,h_swing_back,v_swing_back,brightness',
+        'switch_properties': 'horizontal_swing,vertical_swing,oscillating,h_swing_back,v_swing_back,brightness,alarm',
         'number_properties': 'timing',
         'percentage_property': 'stepless_fan_level',
-        'select_properties': 'mode,horizontal_angle,vertical_angle',
-        'button_properties': 'h_swing_step_move,v_swing_step_move'
+        'select_properties': 'mode,fan_level,horizontal_angle,vertical_angle',
+        'button_properties': 'h_swing_step_move,v_swing_step_move',
     },
     'zhimi.fan.za3': {
         'miot_type': 'urn:miot-spec-v2:device:fan:0000A005:zhimi-za3:3',

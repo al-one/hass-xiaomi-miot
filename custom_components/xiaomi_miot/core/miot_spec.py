@@ -888,6 +888,8 @@ class MiotProperty(MiotSpecInstance):
             'uint8', 'uint16', 'uint32', 'uint64',
         ]:
             return True
+        if self.format in ['string']:
+            return False
         if self.value_list:
             return True
         return False
