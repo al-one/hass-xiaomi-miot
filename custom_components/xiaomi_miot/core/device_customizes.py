@@ -2332,7 +2332,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_time,target_temperature',
     },
     '*.fridge.*': {
+        'sensor_properties': 'temperature,door_not_close_remind',
         'switch_properties': 'on',
+        'select_properties': 'mode',
         'number_properties': 'target_temperature',
     },
     '*.health_pot.*': {
