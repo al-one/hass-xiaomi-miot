@@ -182,6 +182,9 @@ DEVICE_CUSTOMIZES = {
     'cgllc.motion.cgpr1': {
         'sensor_properties': 'illumination,no_motion_duration',
     },
+    'cgllc.sensor_ht.dk2': {
+        'sensor_properties': 'battery_level',
+    },
     'chuangmi.camera.051a01': {
         'switch_properties': 'on,time_watermark,motion_tracking,motion_detection,wdr_mode,glimmer_full_color,'
                              'face_switch,babycry_switch,pet_switch,gesture_switch,cruise_switch,smart_care_switch,'
