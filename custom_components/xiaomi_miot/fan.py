@@ -71,8 +71,21 @@ class FanEntity(XEntity, BaseEntity):
     _speed_list = None
     _speed_range = None
     _conv_oscillate = None
+    _prop_speed = None
+    _prop_percentage = None
 
     def on_init(self):
+        if self._miot_service:
+            if prop := self.custom_config('speed_property'):
+                self._prop_speed = self._miot_service.spec.get_property(prop)
+                if self._prop_speed:
+                    self._speed_list = self._prop_speed.list_descriptions()
+                    self._attr_supported_features |= FanEntityFeature.SET_SPEED
+            if prop := self.custom_config('percentage_property'):
+                self._prop_percentage = self._miot_service.spec.get_property(prop)
+                if self._prop_percentage:
+                    self._attr_supported_features |= FanEntityFeature.SET_SPEED
+
         for attr in self.conv.attrs:
             conv = self.device.find_converter(attr)
             prop = getattr(conv, 'prop', None) if conv else None
@@ -106,6 +119,17 @@ class FanEntity(XEntity, BaseEntity):
                 self._conv_oscillate = conv
                 self._attr_supported_features |= FanEntityFeature.OSCILLATE
 
+        # issues/617
+        if self.custom_config_bool('disable_preset_modes'):
+            self._supported_features &= ~FanEntityFeature.PRESET_MODE
+            self._attr_preset_modes = []
+        elif dpm := self.custom_config_list('disable_preset_modes'):
+            self._attr_preset_modes = [
+                mode
+                for mode in self._attr_preset_modes
+                if mode not in dpm
+            ]
+
     def set_state(self, data: dict):
         if self._conv_speed:
             val = self._conv_speed.value_from_dict(data)
@@ -115,6 +139,15 @@ class FanEntity(XEntity, BaseEntity):
                     self._attr_percentage = ranged_value_to_percentage(self._speed_range, val)
                 elif self._speed_list and des in self._speed_list:
                     self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, des)
+        if self._prop_speed:
+            val = self._prop_speed.from_device(self.device)
+            if val is not None:
+                des = self._prop_speed.list_description(val)
+                self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, des)
+        if self._prop_percentage:
+            val = self._prop_percentage.from_device(self.device)
+            if val is not None:
+                self._attr_percentage = val
         if self._conv_power:
             val = self._conv_power.value_from_dict(data)
             if val is not None:
@@ -141,14 +174,22 @@ class FanEntity(XEntity, BaseEntity):
         if self._conv_power and not self.is_on:
             dat[self._conv_power.attr] = True
         if percentage is not None:
-            if self._speed_range:
+            if self._prop_percentage:
+                await self.device.async_set_property(self._prop_percentage, percentage)
+            elif self._prop_speed:
+                des = percentage_to_ordered_list_item(self._speed_list, percentage)
+                val = self._prop_speed.list_value(des)
+                if val is not None:
+                    await self.device.async_set_property(self._prop_percentage, val)
+            elif self._speed_range:
                 dat[self._conv_speed.attr] = percentage_to_ranged_value(self._speed_range, percentage)
             elif self._speed_list:
-                val = percentage_to_ordered_list_item(self._speed_list, percentage)
-                dat[self._conv_speed.attr] = self._conv_speed.prop.list_value(val)
+                des = percentage_to_ordered_list_item(self._speed_list, percentage)
+                dat[self._conv_speed.attr] = self._conv_speed.prop.list_value(des)
         if preset_mode is not None:
             dat[self._conv_mode.attr] = preset_mode
-        await self.device.async_write(dat)
+        if dat:
+            await self.device.async_write(dat)
 
     async def async_turn_off(self, **kwargs):
         if not self._conv_power:
@@ -715,19 +756,3 @@ class MiotModesSubEntity(MiotPropertySubEntity, FanSubEntity):
         if self._miot_property.value_list:
             return len(self._miot_property.value_list)
         return 0
-
-
-class MiotWasherSubEntity(MiotModesSubEntity):
-
-    @property
-    def is_on(self):
-        if not self._parent.is_on:
-            return False
-        sta = self._state_attrs.get(self._attr)
-        if self._miot_property.name in ['spin_speed']:
-            return sta not in self._miot_property.list_search('no spin')
-        if self._miot_property.name in ['target_temperature']:
-            return sta not in self._miot_property.list_search('cold')
-        if self._miot_property.name in ['drying_level']:
-            return sta not in self._miot_property.list_search('none')
-        return True

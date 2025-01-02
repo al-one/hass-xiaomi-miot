@@ -988,6 +988,9 @@ class Device(CustomConfigHelper):
         result = MiotResults(results, mapping)
         return result.to_attributes()
 
+    async def async_set_property(self, *args, **kwargs):
+        return await self.hass.async_add_executor_job(partial(self.set_property,*args, **kwargs))
+
     def set_property(self, field, value):
         if isinstance(field, MiotProperty):
             siid = field.siid
