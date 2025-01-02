@@ -206,6 +206,8 @@
             "info": {"name": "Info"}
         },
         "sensor": {
+            "clean_area": {"name": "Clean Area"},
+            "clean_time": {"name": "Clean Time"},
             "power_cost_today": {"name": "Energy Today"},
             "power_cost_month": {"name": "Energy Month"},
             "power_cost_today_2": {"name": "Energy Today"},

@@ -142,6 +142,8 @@
             "info": {"name": "信息"}
         },
         "sensor": {
+            "clean_area": {"name": "清洁面积"},
+            "clean_time": {"name": "清洁时间"},
             "power_cost_today": {"name": "日电量"},
             "power_cost_month": {"name": "月电量"},
             "power_cost_today_2": {"name": "日电量"},
