@@ -125,32 +125,31 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
 
     def set_state(self, data: dict):
         val = data.get(self.attr)
-        if val != None:
-            val = bool(val)
-        self._attr_is_on = val
+        if val is not None:
+            self._attr_is_on = bool(val)
 
-        if (val := data.get(self._attr_names.get(ATTR_BRIGHTNESS))) != None:
+        if (val := data.get(self._attr_names.get(ATTR_BRIGHTNESS))) is not None:
             self._attr_brightness = val
-            if self._brightness_for_on != None:
+            if self._brightness_for_on is not None:
                 self._attr_is_on = val >= self._brightness_for_on
-        if (val := data.get(self._attr_names.get(ATTR_COLOR_TEMP_KELVIN))) != None:
+        if (val := data.get(self._attr_names.get(ATTR_COLOR_TEMP_KELVIN))) is not None:
             if val != self._attr_color_temp_kelvin:
                 self._attr_color_temp_kelvin = val
                 self._attr_color_mode = ColorMode.COLOR_TEMP
-        elif (val := data.get(self._attr_names.get(ATTR_COLOR_TEMP))) != None:
+        elif (val := data.get(self._attr_names.get(ATTR_COLOR_TEMP))) is not None:
             if val != self._attr_color_temp:
                 self._attr_color_temp = val
                 self._attr_color_mode = ColorMode.COLOR_TEMP
-        if (val := data.get(self._attr_names.get(ATTR_RGB_COLOR))) != None:
+        if (val := data.get(self._attr_names.get(ATTR_RGB_COLOR))) is not None:
             if val != self._attr_rgb_color:
                 self._attr_rgb_color = val
                 self._attr_color_mode = ColorMode.RGB
-        if (val := data.get(self._attr_names.get(ATTR_EFFECT))) != None:
+        if (val := data.get(self._attr_names.get(ATTR_EFFECT))) is not None:
             self._attr_effect = val
 
     async def async_turn_on(self, **kwargs):
         dat = {self.attr: True}
-        if self._brightness_for_on != None:
+        if self._brightness_for_on is not None:
             dat[self.attr] = self._brightness_for_on
         for k, v in kwargs.items():
             if attr := self._attr_names.get(k):
@@ -159,7 +158,7 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
 
     async def async_turn_off(self, **kwargs):
         dat = {self.attr: False}
-        if self._brightness_for_off != None:
+        if self._brightness_for_off is not None:
             dat[self.attr] = self._brightness_for_off
         await self.device.async_write(dat)
 
