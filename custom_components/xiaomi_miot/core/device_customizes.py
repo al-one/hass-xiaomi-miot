@@ -2636,6 +2636,16 @@ GLOBAL_CONVERTERS = [
         ],
     },
     {
+        'class': MiotFanConv,
+        'services': ['fan', 'ceiling_fan', 'air_fresh', 'air_purifier', 'hood'],
+        'converters' : [
+            {'props': ['on', 'fan_level', 'fan_control.fan_level']},
+            {'props': ['horizontal_swing', 'fan_control.horizontal_swing']},
+            {'props': ['vertical_swing', 'fan_control.vertical_swing']},
+            {'props': ['mode', 'fan_control.mode'], 'desc': True},
+        ],
+    },
+    {
         'class': MiotCoverConv,
         'services': ['airer', 'curtain', 'window_opener', 'motor_controller'],
         'converters' : [

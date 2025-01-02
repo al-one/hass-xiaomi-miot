@@ -255,6 +255,15 @@ class MiotHsColorConv(MiotPropConv):
         super().encode(device, payload, num)
 
 @dataclass
+class MiotFanConv(MiotServiceConv):
+    domain: str = 'fan'
+
+    def __post_init__(self):
+        if not self.main_props:
+            self.main_props = ['on', 'fan_level']
+        super().__post_init__()
+
+@dataclass
 class MiotCoverConv(MiotServiceConv):
     domain: str = 'cover'
 

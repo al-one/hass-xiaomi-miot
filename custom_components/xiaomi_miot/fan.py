@@ -3,8 +3,8 @@ import logging
 
 from homeassistant.components.fan import (
     DOMAIN as ENTITY_DOMAIN,
-    FanEntity,
-    FanEntityFeature,  # v2022.5
+    FanEntity as BaseEntity,
+    FanEntityFeature,
     DIRECTION_FORWARD,
     DIRECTION_REVERSE,
 )
@@ -14,6 +14,7 @@ from . import (
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
+    XEntity,
     MiotToggleEntity,
     MiirToggleEntity,
     MiotPropertySubEntity,
@@ -26,9 +27,11 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
 )
-from homeassistant.util.percentage import (  # v2021.3
+from homeassistant.util.percentage import (
     ordered_list_item_to_percentage,
     percentage_to_ordered_list_item,
+    ranged_value_to_percentage,
+    percentage_to_ranged_value,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,25 +55,126 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if isinstance(spec, MiotSpec):
-        for srv in spec.get_services(
-            ENTITY_DOMAIN, 'ceiling_fan', 'ir_fan_control',
-            'air_fresh', 'air_purifier', 'hood',
-        ):
-            if srv.name in ['ir_fan_control']:
-                entities.append(MiirFanEntity(config, srv))
-                continue
-            elif not srv.bool_property('on'):
-                continue
-            elif srv.name in ['air_fresh'] and spec.name not in ['air_fresh']:
-                continue
-            entities.append(MiotFanEntity(config, srv))
+        for srv in spec.get_services('ir_fan_control'):
+            entities.append(MiirFanEntity(config, srv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
     bind_services_to_entries(hass, SERVICE_TO_METHOD)
 
 
-class MiotFanEntity(MiotToggleEntity, FanEntity):
+class FanEntity(XEntity, BaseEntity):
+    _attr_device_class = None
+    _conv_power = None
+    _conv_mode = None
+    _conv_speed = None
+    _speed_list = None
+    _speed_range = None
+    _conv_oscillate = None
+
+    def on_init(self):
+        for attr in self.conv.attrs:
+            conv = self.device.find_converter(attr)
+            prop = getattr(conv, 'prop', None) if conv else None
+            if not isinstance(prop, MiotProperty):
+                continue
+            elif prop.in_list(['on']):
+                self._conv_power = conv
+                self._attr_supported_features |= FanEntityFeature.TURN_ON
+                self._attr_supported_features |= FanEntityFeature.TURN_OFF
+            elif prop.in_list(['mode']):
+                self._conv_mode = conv
+                self._attr_preset_modes = prop.list_descriptions()
+                self._attr_supported_features |= FanEntityFeature.PRESET_MODE
+            elif prop.in_list(['fan_level', 'speed_level']):
+                if prop.value_range:
+                    _min = prop.range_min()
+                    _max = prop.range_max()
+                    _stp = prop.range_step()
+                    self._speed_range = (_min, _max)
+                    self._attr_speed_count = (_max - _min) / _stp + 1
+                    self._attr_supported_features |= FanEntityFeature.SET_SPEED
+                elif prop.value_list and not self._conv_speed:
+                    self._speed_list = prop.list_descriptions()
+                    self._attr_speed_count = len(prop.value_list)
+                    self._attr_extra_state_attributes['speed_list'] = self._speed_list
+                else:
+                    continue
+                self._conv_speed = conv
+                self._attr_supported_features |= FanEntityFeature.SET_SPEED
+            elif prop.in_list(['horizontal_swing', 'vertical_swing']) and not self._conv_oscillate:
+                self._conv_oscillate = conv
+                self._attr_supported_features |= FanEntityFeature.OSCILLATE
+
+    def set_state(self, data: dict):
+        if self._conv_speed:
+            val = self._conv_speed.value_from_dict(data)
+            if val is not None:
+                des = self._conv_speed.prop.list_description(val)
+                if self._speed_range:
+                    self._attr_percentage = ranged_value_to_percentage(self._speed_range, val)
+                elif self._speed_list and des in self._speed_list:
+                    self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, des)
+        if self._conv_power:
+            val = self._conv_power.value_from_dict(data)
+            if val is not None:
+                self._attr_is_on = bool(val)
+                if not self._attr_is_on:
+                    self._attr_percentage = 0
+        if self._conv_mode:
+            val = self._conv_mode.value_from_dict(data)
+            if val is not None:
+                self._attr_preset_mode = val
+        if self._conv_oscillate:
+            val = self._conv_oscillate.value_from_dict(data)
+            if val is not None:
+                self._attr_oscillating = bool(val)
+
+    @property
+    def is_on(self):
+        if self._conv_power:
+            return self._attr_is_on
+        return self.percentage is not None and self.percentage > 0
+
+    async def async_turn_on(self, percentage=None, preset_mode=None, **kwargs):
+        dat = {}
+        if self._conv_power and not self.is_on:
+            dat[self._conv_power.attr] = True
+        if percentage is not None:
+            if self._speed_range:
+                dat[self._conv_speed.attr] = percentage_to_ranged_value(self._speed_range, percentage)
+            elif self._speed_list:
+                val = percentage_to_ordered_list_item(self._speed_list, percentage)
+                dat[self._conv_speed.attr] = self._conv_speed.prop.list_value(val)
+        if preset_mode is not None:
+            dat[self._conv_mode.attr] = preset_mode
+        await self.device.async_write(dat)
+
+    async def async_turn_off(self, **kwargs):
+        if not self._conv_power:
+            return
+        await self.device.async_write({self._conv_power.attr: False})
+
+    async def async_set_percentage(self, percentage: int):
+        if percentage == 0 and self._conv_power:
+            await self.async_turn_off()
+            return
+        await self.async_turn_on(percentage=percentage)
+
+    async def async_set_preset_mode(self, preset_mode: str):
+        if not self._conv_mode:
+            return
+        await self.device.async_write({self._conv_mode.attr: preset_mode})
+
+    async def async_oscillate(self, oscillating: bool):
+        if not self._conv_oscillate:
+            return
+        await self.device.async_write({self._conv_oscillate.attr: oscillating})
+
+XEntity.CLS[ENTITY_DOMAIN] = FanEntity
+
+
+class MiotFanEntity(MiotToggleEntity, BaseEntity):
     def __init__(self, config: dict, miot_service: MiotService, **kwargs):
         kwargs.setdefault('logger', _LOGGER)
         super().__init__(miot_service, config=config, **kwargs)
