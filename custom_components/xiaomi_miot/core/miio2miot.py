@@ -76,7 +76,7 @@ class Miio2MiotHelper:
                 pms = c.get('params', [])
                 try:
                     vls = device.send(c['method'], pms)
-                except (DeviceException, OSError) as exc:
+                except (DeviceException, OSError, TypeError, UnboundLocalError) as exc:
                     if is_offline_exception(exc):
                         raise exc
                     if not c.get('ignore_error'):
