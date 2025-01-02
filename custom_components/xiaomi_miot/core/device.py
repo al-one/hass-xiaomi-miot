@@ -766,6 +766,8 @@ class Device(CustomConfigHelper):
         if not (pid := self.info.parent_id):
             return None
         info = await self.entry.get_cloud_device(pid)
+        if not info:
+            return None
         return await self.entry.new_device(info)
 
     def miot_mapping(self):
