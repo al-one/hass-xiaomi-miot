@@ -2700,8 +2700,8 @@ GLOBAL_CONVERTERS = [
         'converters' : [
             {
                 'props': [
-                    'temperature', 'indoor_temperature', 'relative_humidity', 'humidity',
-                    'pm2_5_density', 'pm10_density', 'co2_density', 'tvoc_density', 'hcho_density',
+                    'temperature', 'indoor_temperature', 'outdoor_temperature', 'relative_humidity', 'humidity',
+                    'pm2_5_density', 'pm10_density', 'co2_density', 'tvoc_density', 'voc_density', 'hcho_density',
                     'air_quality', 'air_quality_index', 'illumination', 'atmospheric_pressure',
                 ],
                 'domain': 'sensor',
