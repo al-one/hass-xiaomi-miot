@@ -2182,6 +2182,14 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,light_off_time,children_mode_temp,comfort_mode_temp,adult_mode_temp,'
                              'kitchen_mode_temp,pet_mode_temp,custom_time,boost_value',
     },
+    'zinguo.motor.mk01': {
+        'sensor_properties': 'status,fault,block_alarm,unclosed_alarm',
+        'select_properties': 'mode,block_type',
+        'number_properties': 'block_devicealarm,unclosed_devicealarm,unclosed_set',
+    },
+    'zinguo.motor.mk01:motor_control': {
+        'device_class': 'garage',
+    },
     'zinguo.switch.b5m': {
         'sensor_properties': 'temperature',
         'switch_properties': 'heating,blow,ventilation',
@@ -2409,6 +2417,13 @@ DEVICE_CUSTOMIZES = {
     },
     '*.motion.*:trigger_at': {
         'device_class': 'timestamp',
+    },
+    '*.motor.*': {
+        'switch_properties': 'motor_reverse',
+        'select_properties': 'mode',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'status,current_position,target_position'},
+        ],
     },
     '*.oven.*': {
         'sensor_properties': 'temperature,left_time,cook_time,working_time',
