@@ -140,6 +140,12 @@ class CoverEntity(XEntity, BaseEntity):
                 'target2current_position': True,
             })
         if (val := self._attr_current_cover_position) != None:
+            if self._deviated_position is None:
+                pass
+            elif val <= self._deviated_position:
+                self._attr_current_cover_position = 0
+            elif val >= (100 - self._deviated_position):
+                self._attr_current_cover_position = 100
             self._attr_is_closed = val <= self._closed_position
 
     async def async_open_cover(self, **kwargs):
