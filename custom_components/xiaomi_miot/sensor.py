@@ -133,7 +133,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
         return {self.attr: self._attr_native_value}
 
     def set_state(self, data: dict):
-        value = data.get(self.attr)
+        value = self.conv.value_from_dict(data)
         prop = self._miot_property
         if prop and prop.value_range:
             if not prop.range_valid(value):
@@ -148,7 +148,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                 value = None
             if self.device_class == SensorDeviceClass.TIMESTAMP:
                 value = datetime_with_tzinfo(value)
-        self._attr_native_value = value
+            self._attr_native_value = value
 
     @cached_property
     def custom_value_ratio(self):

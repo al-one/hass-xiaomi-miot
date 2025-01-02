@@ -41,10 +41,12 @@ class TextEntity(XEntity, BaseEntity):
 
     def set_state(self, data: dict):
         val = self.conv.value_from_dict(data)
+        if val is None:
+            return
         if isinstance(val, list):
             val = val[0] if val else None
-        if val is None:
-            val = ''
+            if val is None:
+                val = ''
         self._attr_native_value = val
 
     async def async_set_value(self, value: str):

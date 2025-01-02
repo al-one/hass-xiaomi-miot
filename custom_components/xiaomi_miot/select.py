@@ -59,7 +59,9 @@ class SelectEntity(XEntity, BaseEntity, RestoreEntity):
         return {self.attr: self._attr_current_option}
 
     def set_state(self, data: dict):
-        val = data.get(self.attr)
+        val = self.conv.value_from_dict(data)
+        if val is None:
+            return
         self._attr_current_option = val
 
     async def async_select_option(self, option: str):

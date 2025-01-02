@@ -73,10 +73,10 @@ class SwitchEntity(XEntity, BaseEntity, RestoreEntity):
         return {self.attr: self._attr_is_on}
 
     def set_state(self, data: dict):
-        val = data.get(self.attr)
-        if val is not None:
-            val = bool(val)
-        self._attr_is_on = val
+        val = self.conv.value_from_dict(data)
+        if val is None:
+            return
+        self._attr_is_on = bool(val)
 
     async def async_turn_on(self):
         await self.device.async_write({self.attr: True})
