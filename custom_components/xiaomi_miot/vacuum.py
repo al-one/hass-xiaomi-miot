@@ -12,10 +12,6 @@ from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
     StateVacuumEntity,
     VacuumEntityFeature,  # v2022.5
-    STATE_CLEANING,
-    STATE_DOCKED,
-    STATE_RETURNING,
-    STATE_ERROR,
 )
 
 from . import (
@@ -147,17 +143,17 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 'Part Sweeping', 'Zone Sweeping', 'Select Sweeping', 'Spot Sweeping', 'Goto Target',
                 'Starting', 'Working', 'Busy', 'DustCollecting'
             ):
-                return STATE_CLEANING
+                return VacuumActivity.CLEANING
             elif val in self._prop_status.list_search('Idle', 'Sleep'):
                 return STATE_IDLE
             elif val in self._prop_status.list_search('Charging', 'Charging Completed', 'Fullcharge', 'Charge Done', 'Drying'):
-                return STATE_DOCKED
+                return VacuumActivity.DOCKED
             elif val in self._prop_status.list_search('Go Charging'):
-                return STATE_RETURNING
+                return VacuumActivity.RETURNING
             elif val in self._prop_status.list_search('Paused'):
                 return STATE_PAUSED
             elif val in self._prop_status.list_search('Error', 'Charging Problem'):
-                return STATE_ERROR
+                return VacuumActivity.ERROR
             else:
                 return self._prop_status.list_description(val)
         return None
@@ -193,7 +189,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
     def start_pause(self, **kwargs):
         sta = self.state
-        if sta == STATE_CLEANING:
+        if sta == VacuumActivity.CLEANING:
             return self.pause()
         return self.start()
 
@@ -367,7 +363,7 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
         if not segments:
             self.return_to_base()
             return False
-        if self.state == STATE_CLEANING:
+        if self.state == VacuumActivity.CLEANING:
             self.pause()
             time.sleep(1)
         if self.model in ['roborock.vacuum.m1s']:
