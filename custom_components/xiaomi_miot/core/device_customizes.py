@@ -2042,8 +2042,7 @@ DEVICE_CUSTOMIZES = {
     'zhimi.airp.rma3': {
         'sensor_properties': 'moto_speed_rpm',
         'switch_properties': 'alarm',
-        'select_properties': 'brightness',
-        'number_properties': 'air_purifier_favorite.fan_level',
+        'select_properties': 'brightness,air_purifier_favorite.fan_level',
     },
     'zhimi.airp.vb4:pm10_density': {
         'unit_of_measurement': 'µg/m³',
