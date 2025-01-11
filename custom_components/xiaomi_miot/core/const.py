@@ -102,3 +102,13 @@ except (ModuleNotFoundError, ImportError):
         ARMING = "arming"
         DISARMING = "disarming"
         TRIGGERED = "triggered"
+        
+try:
+    # hass 2025.1
+    from homeassistant.components.vacuum import VacuumActivity
+except (ModuleNotFoundError, ImportError):
+    class VacuumActivity(StrEnum):
+        CLEANING = "cleaning"
+        DOCKED = "docked"
+        RETURNING = "returning"
+        ERROR = "error"
