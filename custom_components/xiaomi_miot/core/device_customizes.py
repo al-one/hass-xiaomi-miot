@@ -502,6 +502,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,auto_flush,foot_sensing,moistening_wall,auto_clamshell',
         'select_properties': 'target_temperature,washing_strength,nozzle_position,sensing_distance',
     },
+    'deerma.humidifier.jsq': {
+        'chunk_properties': 1,
+    },
     'deerma.humidifier.jsq2w': {
         'exclude_miot_services': None,
     },
@@ -526,6 +529,10 @@ DEVICE_CUSTOMIZES = {
         'binary_sensor_properties': 'water_shortage_fault,the_tank_filed',
         'sensor_properties': 'fault',
         'switch_properties': 'alarm',
+        'chunk_coordinators': [
+            {'interval': 30, 'props': 'humidifier.on,mode,target_humidity,fan_level'},
+            {'interval': 300, 'props': 'filter_life_level,filter_left_time,filter_used_time'},
+        ],
     },
     'degree.lunar.smh013': {
         'exclude_miot_properties': 'search_report,set_sleep_time,user_info,user_info_down,set_sleep_time_down,'
@@ -2361,7 +2368,7 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 120,
         'select_properties': 'fan_level',
         'chunk_coordinators': [
-            {'interval': 20, 'props': 'on,mode,target_humidity,fan_level'},
+            {'interval': 20, 'props': 'humidifier.on,mode,target_humidity,fan_level'},
             {'interval': 25, 'props': 'relative_humidity,temperature'},
             {'interval': 300, 'props': 'filter_life_level,filter_left_time,filter_used_time'},
         ],
