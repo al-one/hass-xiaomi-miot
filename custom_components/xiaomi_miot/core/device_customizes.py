@@ -1449,9 +1449,11 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_off': 1,
     },
     'suittc.airrtc.wk168': {
+        'interval_seconds': 30,
         'sensor_properties': 'temperature',
         'switch_properties': 'on',
         'turn_on_hvac': 'heat',
+        'chunk_coordinators': [],
     },
 
     'topwit.bhf_light.rz01': {
