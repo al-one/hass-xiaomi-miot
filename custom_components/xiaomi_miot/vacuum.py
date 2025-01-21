@@ -30,6 +30,8 @@ from .core.miot_spec import (
     MiotService,
 )
 
+from .core.const import VacuumActivity
+
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 SCAN_INTERVAL = timedelta(seconds=60)
