@@ -1,0 +1,492 @@
+{
+    "config": {
+        "flow_title": "Xiaomi Miot Auto",
+        "step": {
+            "user": {
+                "title": "選擇操作",
+                "data": {
+                    "action": "操作"
+                }
+            },
+            "token": {
+                "description": "設定裝置資訊",
+                "data": {
+                    "host": "裝置 IP",
+                    "token": "Token",
+                    "name": "名稱",
+                    "scan_interval": "狀態更新頻率(秒)"
+                }
+            },
+            "cloud": {
+                "description": "設定小米帳號\n{tip}",
+                "data": {
+                    "username": "小米 ID / 電子郵件",
+                    "password": "小米密碼",
+                    "captcha": "驗證碼",
+                    "server_country": "小米伺服器",
+                    "conn_mode": "裝置連線模式",
+                    "trans_options": "翻譯屬性值描述",
+                    "filter_models": "透過型號/家庭/WiFi篩選裝置 (進階模式，新手勿選)"
+                }
+            },
+            "cloud_filter": {
+                "title": "篩選裝置",
+                "description": "你可以透過篩選只接入想要的裝置。在排除模式中，如果不勾選任何裝置，則相當於接入所有裝置。如果想整合網關子裝置，請直接選擇子裝置，接入網關不會自動整合子裝置。\n{tip}",
+                "data": {
+                    "filter_model": "篩選裝置型號",
+                    "model_list": "裝置型號列表",
+                    "filter_home_id": "篩選家庭",
+                    "home_id_list": "家庭列表",
+                    "filter_ssid": "篩選 WiFi SSID",
+                    "ssid_list": "WiFi SSID 列表",
+                    "filter_bssid": "篩選 WiFi BSSID",
+                    "bssid_list": "WiFi BSSID 列表",
+                    "filter_did": "篩選裝置",
+                    "did_list": "裝置列表",
+                    "home_ids": "篩選家庭 (留白儲存)"
+                }
+            },
+            "customizing": {
+                "title": "自訂實體 / 裝置",
+                "description": "{tip}",
+                "data": {
+                    "domain": "選擇實體類型",
+                    "entity": "選擇實體",
+                    "model": "選擇裝置型號",
+                    "model_specified": "指定裝置型號 (可選)",
+                    "only_main_entity": "僅主(父)實體",
+                    "reset_customizes": "重設為預設自訂",
+                    "bool2selects": "自訂選項"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "連線裝置失敗",
+            "cannot_login": "小米帳號登入失敗，請檢查帳號密碼。如多次嘗試仍登入失敗，請在與目前網路相同的環境下登入小米官網(mi.com)後重試",
+            "cannot_reach": "無法存取小米 API",
+            "tzinfo_error": "您的 Hass 環境看起來有點問題，請參考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "該小米帳號下沒有裝置"
+        },
+        "abort": {
+            "config_saved": "設定已儲存！[再次自訂](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自訂選項需要[重新載入整合](/developer-tools/yaml)才能生效。",
+            "already_configured": "該裝置已經設定過",
+            "not_xiaomi_miio": "該裝置不支援 miio/miot 協定"
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "設定裝置資訊",
+                "data": {
+                    "host": "裝置 IP",
+                    "token": "Token",
+                    "scan_interval": "狀態更新頻率(秒)",
+                    "miot_cloud": "開啟雲端模式(請先設定帳號密碼)"
+                }
+            },
+            "cloud": {
+                "description": "設定小米帳號\n{tip}",
+                "data": {
+                    "username": "小米 ID / 電子郵件",
+                    "password": "小米密碼",
+                    "captcha": "驗證碼",
+                    "server_country": "小米伺服器",
+                    "conn_mode": "裝置連線模式",
+                    "renew_devices": "更新裝置列表",
+                    "trans_options": "翻譯屬性值描述",
+                    "disable_message": "停用米家 APP 通知訊息實體",
+                    "disable_scene_history": "停用米家場景歷史實體"
+                }
+            },
+            "cloud_filter": {
+                "title": "篩選裝置",
+                "description": "你可以透過篩選只接入想要的裝置。在排除模式中，如果不勾選任何裝置，則相當於接入所有裝置。如果想整合網關子裝置，請直接選擇子裝置，接入網關不會自動整合子裝置。\n{tip}",
+                "data": {
+                    "filter_model": "篩選裝置型號",
+                    "model_list": "裝置型號列表",
+                    "filter_home_id": "篩選家庭",
+                    "home_id_list": "家庭列表",
+                    "filter_ssid": "篩選 WiFi SSID",
+                    "ssid_list": "WiFi SSID 列表",
+                    "filter_bssid": "篩選 WiFi BSSID",
+                    "bssid_list": "WiFi BSSID 列表",
+                    "filter_did": "篩選裝置",
+                    "did_list": "裝置列表",
+                    "home_ids": "篩選家庭 (留白儲存)"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "連線裝置失敗",
+            "cannot_login": "小米帳號登入失敗，請檢查帳號密碼。如多次嘗試仍登入失敗，請使用與 HA 主機同一區域網路下的其他裝置登入小米官網(mi.com)後重試",
+            "cannot_reach": "無法存取小米 API",
+            "tzinfo_error": "您的 Hass 環境看起來有點問題，請參考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "該小米帳號下沒有裝置"
+        },
+        "abort": {
+            "show_customizes": "[![新增整合](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n請再次添加[`Xiaomi Miot Auto`](/_my_redirect/config_flow_start?domain=xiaomi_miot)整合來修改自訂選項\n{tip}"
+        }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "自訂元件版本",
+            "can_reach_server": "可存取米家伺服器",
+            "can_reach_spec": "可取得 MIoT 規格",
+            "logged_accounts": "已登入的帳號數量",
+            "total_devices": "米家裝置總數量"
+        }
+    },
+    "entity": {
+        "button": {
+            "info": {"name": "資訊"}
+        },
+        "sensor": {
+            "clean_area": {"name": "清潔面積"},
+            "clean_time": {"name": "清潔時間"},
+            "power_cost_today": {"name": "日用電量"},
+            "power_cost_month": {"name": "月用電量"},
+            "power_cost_today_2": {"name": "日用電量"},
+            "power_cost_month_2": {"name": "月用電量"},
+            "prop_cal_day-power_cost-today": {"name": "日用電量"},
+            "prop_cal_day-power_cost-month": {"name": "月用電量"},
+            "props-clean_area": {"name": "清潔面積"},
+            "props-clean_time": {"name": "清潔時間"},
+            "lock": {
+                "state": {
+                    "bluetooth": "藍牙",
+                    "password": "密碼",
+                    "biological": "生物辨識",
+                    "key": "鑰匙",
+                    "turntable": "轉盤",
+                    "nfc": "NFC",
+                    "one_time_password": "一次性密碼",
+                    "two_step_verification": "兩步驟驗證",
+                    "coercion": "脅迫",
+                    "homekit": "HomeKit",
+                    "manual": "手動",
+                    "automatic": "自動"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "門外解鎖",
+                    "lock": "上鎖",
+                    "anti_lock_on": "開啟反鎖",
+                    "anti_lock_off": "解除反鎖",
+                    "inside_unlock": "門內解鎖",
+                    "lock_inside": "門內上鎖",
+                    "child_lock_on": "開啟兒童鎖",
+                    "child_lock_off": "關閉兒童鎖",
+                    "lock_outside": "門外上鎖"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "開門",
+                    "close": "關門",
+                    "close_timeout": "超時未關",
+                    "knock": "敲門",
+                    "breaking": "撬門",
+                    "stuck": "卡住"
+                }
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "自動",
+                            "low": "低速",
+                            "medium": "中速",
+                            "middle": "中速",
+                            "high": "高速",
+                            "quiet": "靜音",
+                            "turbo": "超強",
+                            "level1": "速度1",
+                            "level2": "速度2",
+                            "level3": "速度3",
+                            "level4": "速度4",
+                            "level5": "速度5",
+                            "level6": "速度6",
+                            "level7": "速度7",
+                            "level8": "速度8",
+                            "leve7": "速度7",
+                            "leve8": "速度8"
+                        }
+                    },
+                    "preset_mode": {
+                        "state": {
+                            "off": "關閉",
+                            "auto": "自動",
+                            "Heat": "暖氣",
+                            "Warm": "溫暖",
+                            "Natural Wind": "自然風"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "關閉",
+                            "vertical": "垂直",
+                            "horizontal": "水平",
+                            "both": "立體"
+                        }
+                    }
+                }
+            }
+        },
+        "fan": {
+            "fan": {
+                "state_attributes": {
+                    "preset_modes": {
+                        "state": {
+                            "Basic Wind": "標準風",
+                            "Straight Wind": "直吹風",
+                            "Natural Wind": "自然風",
+                            "Circular Wind": "循環風",
+                            "Baby": "嬰兒",
+                            "Sleep": "睡眠",
+                            "Smart": "智慧"
+                        }
+                    }
+                }
+            }
+        },
+        "light": {
+            "light": {
+                "state_attributes": {
+                    "effect_list": {
+                        "state": {
+                            "Day": "日光",
+                            "Night": "夜光",
+                            "Color": "彩光",
+                            "Scene": "場景",
+                            "Music": "音樂"
+                        }
+                    }
+                }
+            }
+        },
+        "select": {
+            "fan_control-fan_level": {
+                "state": {
+                    "auto": "自動",
+                    "low": "低速",
+                    "medium": "中速",
+                    "middle": "中速",
+                    "high": "高速",
+                    "Quiet": "靜音",
+                    "Turbo": "超強",
+                    "Level1": "速度1",
+                    "Level2": "速度2",
+                    "Level3": "速度3",
+                    "Level4": "速度4",
+                    "Level5": "速度5",
+                    "Level6": "速度6",
+                    "Level7": "速度7",
+                    "Level8": "速度8",
+                    "Leve7": "速度7",
+                    "Leve8": "速度8"
+                }
+            },
+            "light-mode": {
+                "Day": "日光",
+                "Night": "夜光",
+                "Color": "彩光",
+                "Scene": "場景",
+                "Music": "音樂"
+            }
+        }
+    },
+    "services": {
+        "send_command": {
+            "description": "發送 miio 指令",
+            "fields": {
+                "entity_id": {
+                    "description": "實體 ID"
+                },
+                "method": {
+                    "description": "Miio 方法"
+                },
+                "params": {
+                    "description": "Miio 參數"
+                }
+            }
+        },
+        "get_properties": {
+            "description": "取得 MIoT 屬性",
+            "fields": {
+                "entity_id": {
+                    "description": "實體 ID"
+                },
+                "mapping": {
+                    "description": "MIoT 規格"
+                },
+                "update_entity": {
+                    "description": "更新實體狀態屬性"
+                }
+            }
+        },
+        "set_property": {
+            "description": "設定 MIoT 屬性(透過屬性名)",
+            "fields": {
+                "entity_id": {
+                    "description": "實體 ID"
+                },
+                "field": {
+                    "description": "MIoT 屬性名"
+                },
+                "value": {
+                    "description": "MIoT 屬性值"
+                }
+            }
+        },
+        "set_miot_property": {
+            "description": "設定 MIoT 屬性(透過 siid/piid)",
+            "fields": {
+                "entity_id": {
+                    "description": "實體 ID"
+                },
+                "siid": {
+                    "description": "MIoT 服務 ID"
+                },
+                "piid": {
+                    "description": "MIoT 屬性 ID"
+                },
+                "value": {
+                    "description": "MIoT 屬性值"
+                }
+            }
+        },
+        "call_action": {
+            "description": "執行 MIoT 動作",
+            "fields": {
+                "entity_id": {
+                    "description": "實體 ID"
+                },
+                "siid": {
+                    "description": "MIoT 服務 ID"
+                },
+                "aiid": {
+                    "description": "MIoT 動作 ID"
+                },
+                "params": {
+                    "description": "MIoT 動作參數"
+                }
+            }
+        },
+        "intelligent_speaker": {
+            "description": "小愛 TTS 及執行語音指令",
+            "fields": {
+                "entity_id": {
+                    "description": "小愛實體 ID"
+                },
+                "text": {
+                    "description": "文字內容"
+                },
+                "execute": {
+                    "description": "執行語音指令，否則朗讀文字"
+                },
+                "silent": {
+                    "description": "靜默執行語音指令"
+                }
+            }
+        },
+        "xiaoai_wakeup": {
+            "description": "喚醒小愛音箱",
+            "fields": {
+                "entity_id": {
+                    "description": "小愛實體 ID"
+                },
+                "text": {
+                    "description": "文字內容"
+                }
+            }
+        },
+        "get_device_data": {
+            "description": "取得裝置資訊",
+            "fields": {
+                "entity_id": {
+                    "description": "實體 ID"
+                },
+                "type": {
+                    "name": "類型",
+                    "description": ""
+                },
+                "key": {
+                    "name": "金鑰",
+                    "description": ""
+                },
+                "time_start": {
+                    "name": "開始時間",
+                    "description": ""
+                },
+                "time_end": {
+                    "name": "結束時間",
+                    "description": ""
+                },
+                "limit": {
+                    "name": "限制",
+                    "description": ""
+                },
+                "group": {
+                    "name": "群組",
+                    "description": ""
+                }
+            }
+        },
+        "renew_devices": {
+            "description": "重新整理裝置列表",
+            "fields": {
+                "username": {
+                    "name": "小米帳號",
+                    "description": "小米 ID / 手機號碼 / 電子郵件"
+                }
+            }
+        },
+        "get_token": {
+            "description": "取得米家裝置令牌(token)",
+            "fields": {
+                "name": {
+                    "name": "關鍵字",
+                    "description": "米家 APP 中的裝置名稱關鍵字 / IP / 型號"
+                }
+            }
+        },
+        "get_bindkey": {
+            "description": "取得藍牙裝置 bindkey",
+            "fields": {
+                "entity_id": {
+                    "description": "實體 ID"
+                },
+                "did": {
+                    "description": "裝置 DID"
+                }
+            }
+        },
+        "request_xiaomi_api": {
+            "description": "呼叫小米雲端 API",
+            "fields": {
+                "entity_id": {
+                    "description": "實體 ID"
+                },
+                "api": {
+                    "description": "API 網址"
+                },
+                "data": {
+                    "description": "傳送資料"
+                },
+                "method": {
+                    "description": "呼叫方式"
+                },
+                "crypt": {
+                    "description": "是否加密"
+                },
+                "sid": {
+                    "description": "小米服務 ID"
+                }
+            }
+        }
+    }
+}
