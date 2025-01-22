@@ -2040,6 +2040,11 @@ DEVICE_CUSTOMIZES = {
     'zhimi.airp.meb1:pm10_density': {
         'unit_of_measurement': 'µg/m³',
     },
+    'zhimi.airp.rmb1': {
+        'switch_properties': 'alarm',
+        'select_properties': 'brightness',
+        'number_properties': 'favorite_level',
+    },
     'zhimi.airp.sa4': {
         'switch_properties': 'alarm',
         'number_properties': 'air_purifier_favorite.fan_level,aqi_updata_heartbeat',
