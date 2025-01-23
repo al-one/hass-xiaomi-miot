@@ -900,6 +900,11 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'flex_switch,wind_reverse',
         'select_properties': 'default.default',
     },
+    'lemesh.switch.sw0c01': {
+        'chunk_coordinators': [
+            {'interval': 20, 'props': 'on'},
+        ],
+    },
     'leshi.light.wy0b01': {
         'chunk_properties': 1,
         'exclude_miot_services': 'remote,default,scene',
