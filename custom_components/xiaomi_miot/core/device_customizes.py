@@ -1978,6 +1978,18 @@ DEVICE_CUSTOMIZES = {
             'extension.rc_list':   {'siid': 4, 'piid': 3},
         },
     },
+    'yeelink.light.ceiling22': {
+        'power_property': 'on',
+        'switch_properties': 'on',
+        'number_properties': 'color_temperature',
+        'select_properties': 'mode',
+        'chunk_properties': 1,
+        'miot_mapping': {
+            'light.on': {'siid': 2, 'piid': 1},
+        },
+        'brightness_for_on': None,  # Disable brightness-based state
+        'brightness_for_off': None,  # Disable brightness-based state
+    },
     'yunmi.kettle.*': {
         'button_actions': 'stop_work',
         'binary_sensor_properties': 'kettle_lifting',
