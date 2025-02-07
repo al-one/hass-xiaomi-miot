@@ -178,7 +178,7 @@ xiaoai_wakeup:
           integration: xiaomi_miot
           domain: media_player
     text:
-      description: Text content for weak up.
+      description: Text content for wake up.
       example: Livingroom light
       selector:
         text:
