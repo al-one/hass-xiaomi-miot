@@ -1648,6 +1648,11 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'homepage,light',
         'text_actions': 'play_text,execute_text_directive',
     },
+    'xiaomi.cooker.cmk7': {
+        'select_actions': None,  # issues/2347
+        'select_properties': 'cook_mode,texture',
+        'number_properties': 'target_time,reservation_left_time,keep_warm_time',
+    },
     'xiaomi.blanket.mj1': {
         'chunk_properties': 1,
         'switch_properties': 'anti_scald_switch,ab_sleep_switch,auto_screen_off',
