@@ -86,7 +86,7 @@ class CoverEntity(XEntity, BaseEntity):
                 self._attr_supported_features |= CoverEntityFeature.CLOSE
                 if prop.list_first('Stop', 'Pause') != None:
                     self._attr_supported_features |= CoverEntityFeature.STOP
-            elif prop.value_range and prop.in_list(['current_position']):
+            elif prop.in_list(['current_position']):
                 if prop.value_range:
                     self._conv_current_position = conv
                     self._current_range = (prop.range_min(), prop.range_max())
