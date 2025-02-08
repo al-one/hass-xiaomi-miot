@@ -752,6 +752,22 @@ DEVICE_CUSTOMIZES = {
         'position_reverse': True,
         'cover_position_mapping': {},
     },
+    'hyd.airer.pro': {
+        'append_converters': [
+            {
+                'services': ['set_night_light'],
+                'converters': [{'props': ['current_position']}],
+            }
+        ],
+    },
+    'hyd.airer.pro2': {
+        'append_converters': [
+            {
+                'services': ['set_night_light'],
+                'converters': [{'props': ['current_position']}],
+            }
+        ],
+    },
     'hyd.airer.znlyj5': {
         'cover_position_mapping': {0: 50, 1: 0, 2: 100},
     },
