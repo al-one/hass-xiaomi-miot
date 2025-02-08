@@ -759,6 +759,7 @@ DEVICE_CUSTOMIZES = {
                 'converters': [{'props': ['current_position']}],
             }
         ],
+        'cover_position_mapping': None,
     },
     'hyd.airer.pro2': {
         'append_converters': [
@@ -767,6 +768,7 @@ DEVICE_CUSTOMIZES = {
                 'converters': [{'props': ['current_position']}],
             }
         ],
+        'cover_position_mapping': None
     },
     'hyd.airer.znlyj5': {
         'cover_position_mapping': {0: 50, 1: 0, 2: 100},
