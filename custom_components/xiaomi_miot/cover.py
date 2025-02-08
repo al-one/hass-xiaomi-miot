@@ -72,6 +72,7 @@ class CoverEntity(XEntity, BaseEntity):
         self._close_texts = self.custom_config_list('close_texts', self._close_texts)
         if self._motor_reverse:
             self._open_texts, self._close_texts = self._close_texts, self._open_texts
+        self._cover_position_mapping = self.custom_config_json('cover_position_mapping') or {}
 
         for conv in self.device.converters:
             prop = getattr(conv, 'prop', None)
@@ -86,8 +87,12 @@ class CoverEntity(XEntity, BaseEntity):
                 if prop.list_first('Stop', 'Pause') != None:
                     self._attr_supported_features |= CoverEntityFeature.STOP
             elif prop.value_range and prop.in_list(['current_position']):
-                self._conv_current_position = conv
-                self._current_range = (prop.range_min(), prop.range_max())
+                if prop.value_range:
+                    self._conv_current_position = conv
+                    self._current_range = (prop.range_min(), prop.range_max())
+                elif prop.value_list and self._cover_position_mapping:
+                    self._conv_current_position = conv
+                    self._current_range = (0, 100)
             elif prop.value_range and isinstance(conv, MiotTargetPositionConv):
                 self._conv_target_position = conv
                 self._target_range = conv.ranged
@@ -97,7 +102,6 @@ class CoverEntity(XEntity, BaseEntity):
                 self._target_range = (prop.range_min(), prop.range_max())
                 self._attr_supported_features |= CoverEntityFeature.SET_POSITION
 
-        self._cover_position_mapping = self.custom_config_json('cover_position_mapping') or {}
         self._deviated_position = self.custom_config_integer('deviated_position', 2)
         if self._current_range:
             pos = self._current_range[0] + self._deviated_position
