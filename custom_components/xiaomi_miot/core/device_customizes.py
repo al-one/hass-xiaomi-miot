@@ -1468,7 +1468,7 @@ DEVICE_CUSTOMIZES = {
     },
 
     'uvfive.steriliser.maine': CHUNK_1,
-    
+
     'viomi.airer.xy108': {
         'switch_properties': 'dryer',
     },

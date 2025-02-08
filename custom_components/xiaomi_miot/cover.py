@@ -56,6 +56,7 @@ class CoverEntity(XEntity, BaseEntity):
     _close_texts = ['close', 'down']
     _closed_position = 0
     _deviated_position = 0
+    _cover_position_mapping = None
     _target2current_position = None
 
     def on_init(self):
@@ -96,6 +97,7 @@ class CoverEntity(XEntity, BaseEntity):
                 self._target_range = (prop.range_min(), prop.range_max())
                 self._attr_supported_features |= CoverEntityFeature.SET_POSITION
 
+        self._cover_position_mapping = self.custom_config_json('cover_position_mapping') or {}
         self._deviated_position = self.custom_config_integer('deviated_position', 2)
         if self._current_range:
             pos = self._current_range[0] + self._deviated_position
@@ -124,6 +126,8 @@ class CoverEntity(XEntity, BaseEntity):
             val = self._conv_current_position.value_from_dict(data)
             if val is not None:
                 val = int(val)
+                if self._cover_position_mapping:
+                    val = self._cover_position_mapping.get(val, val)
                 if self._position_reverse:
                     val = self._current_range[1] - val
                 self._attr_current_cover_position = val
