@@ -69,7 +69,14 @@ class XEntity(BasicEntity):
         self.attr = conv.full_name
         self.log = device.log
 
-        if isinstance(conv, MiotPropConv):
+        if isinstance(conv, MiotServiceConv):
+            self.entity_id = conv.service.generate_entity_id(self, conv.domain)
+            self._attr_name = str(conv.service.friendly_desc)
+            self._attr_translation_key = conv.service.name
+            self._miot_service = conv.service
+            self._miot_property = conv.prop
+
+        elif isinstance(conv, MiotPropConv):
             self.entity_id = conv.prop.generate_entity_id(self, conv.domain)
             self._attr_name = str(conv.prop.friendly_desc)
             self._attr_translation_key = conv.prop.friendly_name
@@ -86,13 +93,6 @@ class XEntity(BasicEntity):
             self._miot_action = conv.action
             self._miot_property = conv.prop
             self._attr_available = True
-
-        elif isinstance(conv, MiotServiceConv):
-            self.entity_id = conv.service.generate_entity_id(self, conv.domain)
-            self._attr_name = str(conv.service.friendly_desc)
-            self._attr_translation_key = conv.service.name
-            self._miot_service = conv.service
-            self._miot_property = conv.prop
 
         else:
             self.entity_id = device.spec.generate_entity_id(self, conv.attr, conv.domain)

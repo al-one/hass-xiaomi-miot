@@ -106,7 +106,6 @@ class FanEntity(XEntity, BaseEntity):
                     _stp = prop.range_step()
                     self._speed_range = (_min, _max)
                     self._attr_speed_count = (_max - _min) / _stp + 1
-                    self._attr_supported_features |= FanEntityFeature.SET_SPEED
                 elif prop.value_list and not self._conv_speed:
                     self._speed_list = prop.list_descriptions()
                     self._attr_speed_count = len(prop.value_list)
