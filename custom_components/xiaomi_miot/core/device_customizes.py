@@ -2245,8 +2245,7 @@ DEVICE_CUSTOMIZES = {
 
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
-        'switch_properties': 'air_conditioner.on,uv,heater,eco,dryer,sleep_mode,soft_wind,'
-                             'horizontal_swing,vertical_swing,alarm.alarm',
+        'switch_properties': 'air_conditioner.on,horizontal_swing,vertical_swing',
         'select_properties': 'fan_level',
         'number_properties': 'target_humidity',
         'fan_services': 'air_fresh',
@@ -2704,6 +2703,20 @@ GLOBAL_CONVERTERS = [
             {'props': ['horizontal_swing', 'fan_control.horizontal_swing']},
             {'props': ['vertical_swing', 'fan_control.vertical_swing']},
             {'props': ['mode', 'fan_control.mode'], 'desc': True},
+        ],
+    },
+    {
+        'class': MiotClimateConv,
+        'services': ['air_conditioner', 'heater', 'thermostat'],
+        'converters' : [
+            {'props': ['on', 'target_temperature']},
+            {'props': ['indoor_temperature', 'temperature']},
+            {'props': ['environment.indoor_temperature', 'environment.temperature']},
+            {'props': ['mode', 'fan_control.mode'], 'desc': True},
+            {'props': ['fan_level', 'fan_control.fan_level', 'heat_level'], 'desc': True},
+            {'props': ['horizontal_swing', 'fan_control.horizontal_swing']},
+            {'props': ['vertical_swing', 'fan_control.vertical_swing']},
+            {'props': ['uv', 'heater', 'eco', 'dryer', 'sleep_mode', 'soft_wind'], 'domain': 'switch'},
         ],
     },
     {

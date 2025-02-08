@@ -265,6 +265,15 @@ class MiotFanConv(MiotServiceConv):
         super().__post_init__()
 
 @dataclass
+class MiotClimateConv(MiotServiceConv):
+    domain: str = 'climate'
+
+    def __post_init__(self):
+        if not self.main_props:
+            self.main_props = ['mode']
+        super().__post_init__()
+
+@dataclass
 class MiotCoverConv(MiotServiceConv):
     domain: str = 'cover'
 
