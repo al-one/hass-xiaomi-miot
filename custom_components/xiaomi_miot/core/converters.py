@@ -75,6 +75,7 @@ class InfoConv(BaseConv):
             'updated_at': str(device.data.get('updated', '')),
         }
         customizes = {**device.customizes}
+        customizes.pop('append_converters', None)
         customizes.pop('extend_miot_specs', None)
         payload.update({
             **infos,

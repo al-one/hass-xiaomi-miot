@@ -374,7 +374,8 @@ class Device(CustomConfigHelper):
         if not self.spec:
             return
 
-        for cfg in GLOBAL_CONVERTERS:
+        appends = self.custom_config_list('append_converters') or []
+        for cfg in [*GLOBAL_CONVERTERS, *appends]:
             cls = cfg.get('class')
             kwargs = cfg.get('kwargs', {})
             if services := cfg.get('services'):
