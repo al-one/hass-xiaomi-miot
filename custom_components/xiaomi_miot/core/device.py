@@ -499,7 +499,6 @@ class Device(CustomConfigHelper):
         self.coordinators.extend(lst)
         for coo in lst:
             await coo.async_config_entry_first_refresh()
-        async_call_later(self.hass, 10, self.update_all_status)
 
     async def init_miot_coordinators(self, interval=60):
         lst = []
@@ -568,8 +567,11 @@ class Device(CustomConfigHelper):
             await coo.async_request_refresh()
 
     async def update_all_status(self, _=None):
+        all = []
         for coo in self.coordinators:
             await coo.async_request_refresh()
+            all.append(coo.name)
+        self.log.info('Update all coordinators: %s', all)
 
     def add_entities(self, domain):
         for conv in self.converters:
@@ -593,6 +595,7 @@ class Device(CustomConfigHelper):
 
         if domain == 'button':
             self.dispatch_info()
+            async_call_later(self.hass, 5, self.update_all_status)
 
     def add_entity(self, entity: 'BasicEntity', unique=None):
         if unique == None:
