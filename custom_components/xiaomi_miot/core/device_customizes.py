@@ -1922,10 +1922,13 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'flush_on',
     },
     'xjx.toilet.relaxp': {
-        'sensor_properties': 'status',
-        'switch_properties': 'status_seatheat,status_led,auto_led,switch_bubble,status_seat,status_cover,'
-                             'auto_seat_close,auto_cover_close,status_selfclean',
-        'select_properties': 'seat_temp',
+        'sensor_properties': 'status,bubble_level',
+        'switch_properties': 'status_seatheat,status_led,auto_led,flush_setting,statys_bubbleshield,'
+                             'status_seat,status_cover,auto_seat_close,auto_cover_close,status_microw_seat,'
+                             'status_microw_cover,status_footin_seat,status_footin_cover,status_selfclean,'
+                             'moving_t,moving_w,massage_temp',
+        'select_properties': 'water_temp_t,water_strong_t,water_pos_t,water_temp_w,water_strong_w,water_pos_w,'
+                             'seat_temp,status_massage_w,status_massage_t,fen_temp',
         'button_actions': 'stop_working,flush_work,start_foam,clean_work',
     },
     'xwhzp.diffuser.xwxfj': {
