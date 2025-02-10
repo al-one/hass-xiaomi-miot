@@ -772,7 +772,7 @@ DEVICE_CUSTOMIZES = {
     },
     'hyd.airer.znlyj5': {
         'cover_position_mapping': {0: 50, 1: 0, 2: 100},
-    },        
+    },       
     'hyd.airer.*': {
         'switch_properties': 'uv',
         'select_properties': 'mode,dryer',
