@@ -679,12 +679,12 @@ class Device(CustomConfigHelper):
                 result = await self.update_main_status()
 
             if method == 'set_properties':
+                result = []
                 params = data.get('params', [])
                 cloud_params = []
                 if not self._local_state or self.cloud_only:
                     cloud_params = params
                 elif self.miio2miot:
-                    result = []
                     for param in params:
                         siid = param['siid']
                         piid = param['piid']
@@ -697,6 +697,8 @@ class Device(CustomConfigHelper):
                     result = await self.local.async_send(method, params)
                 if self.cloud and cloud_params:
                     result = await self.cloud.async_set_props(cloud_params)
+                if err := MiotResults(result).has_error:
+                    self.log.warning('Device write error: %s', err)
 
             if method == 'action':
                 param = data.get('param', {})

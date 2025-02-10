@@ -1127,6 +1127,7 @@ class MiotResults:
     updater: str = None
     updated = None
     errors = None
+    has_error = None
 
     def __init__(self, results=None, mapping=None):
         self.mapping = mapping or {}
@@ -1143,6 +1144,8 @@ class MiotResults:
                 continue
             r = MiotResult(v)
             self.results.append(r)
+            if not self.has_error and not r.is_success:
+                self.has_error = r
         self.updated = now()
 
     @property
