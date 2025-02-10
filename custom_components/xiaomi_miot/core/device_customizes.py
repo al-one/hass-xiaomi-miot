@@ -770,9 +770,6 @@ DEVICE_CUSTOMIZES = {
         ],
         'cover_position_mapping': None
     },
-    'hyd.airer.znlyj5': {
-        'cover_position_mapping': {0: 50, 1: 0, 2: 100},
-    },
     'hyd.airer.*': {
         'switch_properties': 'uv',
         'select_properties': 'mode,dryer',
@@ -1915,9 +1912,10 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'flush_on',
     },
     'xjx.toilet.relaxp': {
-        'sensor_properties': 'status',
-        'switch_properties': 'status_seatheat,status_led,auto_led,switch_bubble,status_seat,status_cover,'
-                             'auto_seat_close,auto_cover_close,status_selfclean',
+        'sensor_properties': 'status,bubble-level',
+        'switch_properties': 'status_seatheat,status_led,auto_led,flush_setting,statys_bubbleshield,'
+                             'status_seat,status_cover,auto_seat_close,auto_cover_close,status_microw_seat,'
+                             'status_microw_cover,status_footin_seat,status_footin_cover',
         'select_properties': 'seat_temp',
         'button_actions': 'stop_working,flush_work,start_foam,clean_work',
     },
