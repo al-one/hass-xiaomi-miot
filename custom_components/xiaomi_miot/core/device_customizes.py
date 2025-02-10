@@ -1911,6 +1911,13 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.wifispeaker.l09a:wake_up': {'action_params': ''},
     'xiaomi.wifispeaker.lx04:wake_up': {'action_params': ''},
     'xiaomi.wifispeaker.x08a:wake_up': {'action_params': ''},
+    'xiaomi.ysj.v2': {
+        'binary_sensor_properties': 'whether_have_water',
+        'sensor_properties': 'status,temperature,rinse_progress,store_timeout',
+        'switch_properties': 'icing,child_lock,drink_remind,switch_button,buzzer_enable',
+        'select_properties': 'mode,rinse_status',
+        'number_properties': 'target_temperature',
+    },
     'xjx.toilet.relax': {
         'button_actions': 'flush_on',
     },
