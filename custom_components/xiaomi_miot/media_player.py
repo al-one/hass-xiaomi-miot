@@ -990,18 +990,6 @@ class MiirMediaPlayerEntity(MiirToggleEntity, MediaPlayerEntity):
             self._supported_features |= MediaPlayerEntityFeature.SELECT_SOURCE
             self._attr_source_list = self._miot_actions
 
-    async def async_added_to_hass(self):
-        await super().async_added_to_hass()
-
-        if act := self._miot_service.get_action('set_channel_number'):
-            prop = self._miot_service.get_property('channel_number')
-            add_numbers = self._add_entities.get('number')
-            if prop and add_numbers:
-                from .number import MiotNumberActionSubEntity
-                fnm = prop.unique_name
-                self._subs[fnm] = MiotNumberActionSubEntity(self, prop, act)
-                add_numbers([self._subs[fnm]], update_before_add=True)
-
     @property
     def state(self):
         """State of the player."""

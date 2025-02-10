@@ -15,14 +15,10 @@ from . import (
     XEntity,
     MiotEntity,
     BaseSubEntity,
-    MiotPropertySubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
-from .core.miot_spec import (
-    MiotService,
-    MiotProperty,
-)
+from .core.miot_spec import MiotService
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -85,35 +81,6 @@ class MiotSelectEntity(MiotEntity, BaseEntity):
     def select_option(self, option):
         """Change the selected option."""
         raise NotImplementedError()
-
-
-class MiotSelectSubEntity(BaseEntity, MiotPropertySubEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None):
-        MiotPropertySubEntity.__init__(self, parent, miot_property, option, domain=ENTITY_DOMAIN)
-        self._attr_options = miot_property.list_descriptions()
-
-    def update(self, data=None):
-        super().update(data)
-        if not self._available:
-            return
-        val = self._miot_property.from_device(self.device)
-        if val is None:
-            self._attr_current_option = None
-        else:
-            des = self._miot_property.list_description(val)
-            stp = self._miot_property.range_step()
-            if stp and stp % 1 > 0:
-                des = float(des)
-            self._attr_current_option = str(des)
-
-    def select_option(self, option):
-        """Change the selected option."""
-        val = self._miot_property.list_value(option)
-        if val is not None:
-            if bfs := self._option.get('before_select'):
-                bfs(self._miot_property, option)
-            return self.set_parent_property(val)
-        return False
 
 
 class SelectSubEntity(BaseEntity, BaseSubEntity):

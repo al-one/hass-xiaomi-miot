@@ -25,7 +25,6 @@ from . import (
     MiotEntity,
     BaseSubEntity,
     MiCoordinatorEntity,
-    MiotPropertySubEntity,
     MiotCloud,
     async_setup_config_entry,
     bind_services_to_entries,
@@ -33,7 +32,6 @@ from . import (
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
-    MiotProperty,
 )
 from .core.utils import local_zone, get_translation
 
