@@ -771,18 +771,7 @@ DEVICE_CUSTOMIZES = {
         'cover_position_mapping': None
     },
     'hyd.airer.znlyj5': {
-        'main_miot_services': 'airer',
-        'switch_properties': 'uv',
-        'select_properties': 'mode,dryer',
-        'number_properties': 'drying_time',
-        'exclude_miot_properties': 'motor_control',
-        'disable_target_position': True,
-        'position_reverse': False,
-        'cover_position_mapping': {
-            0: 50,
-            1: 100,
-            2: 0,
-        },
+        'cover_position_mapping': {0: 50, 1: 0, 2: 100},
     },        
     'hyd.airer.*': {
         'switch_properties': 'uv',
