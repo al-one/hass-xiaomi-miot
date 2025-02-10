@@ -254,10 +254,13 @@ class MiotSpec(MiotSpecInstance):
         return lst
 
     def generate_entity_id(self, entity, suffix=None, domain=None):
+        return self.generate_entity_id_by_mac(entity.unique_mac, suffix, domain)
+
+    def generate_entity_id_by_mac(self, mac, suffix=None, domain=None):
         mod = f'{self.type}::::'.split(':')[5]
         if not mod:
             return None
-        mac = re.sub(r'[\W_]+', '', entity.unique_mac)
+        mac = re.sub(r'[\W_]+', '', mac)
         eid = f'{mod}_{mac[-4:]}'
         if suffix:
             eid = f'{eid}_{suffix}'

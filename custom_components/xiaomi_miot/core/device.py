@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
 from homeassistant.components import persistent_notification
-from homeassistant.helpers.event import async_call_later
+from homeassistant.helpers.event import async_call_later, async_track_time_interval
 import homeassistant.helpers.device_registry as dr
 
 from .const import (
@@ -166,6 +166,7 @@ class Device(CustomConfigHelper):
     _exclude_miot_services = None
     _exclude_miot_properties = None
     _unreadable_properties = None
+    _unsub_purge = None
 
     def __init__(self, info: DeviceInfo, entry: HassEntry):
         self.data = {}
@@ -206,12 +207,19 @@ class Device(CustomConfigHelper):
         if not self.coordinators:
             await self.init_coordinators()
 
+        if not self._unsub_purge:
+            self._unsub_purge = async_track_time_interval(self.hass, self.async_purge_entities, timedelta(hours=12))
+
     async def async_unload(self):
         for coo in self.coordinators:
             await coo.async_shutdown()
 
         self.spec = None
         self.hass.data[DOMAIN].setdefault('miot_specs', {}).pop(self.model, None)
+
+        if self._unsub_purge:
+            self._unsub_purge()
+            self._unsub_purge = None
 
     @cached_property
     def did(self):
@@ -959,6 +967,16 @@ class Device(CustomConfigHelper):
                 notification_id,
             )
         self.data['offline_times'] = offline_times
+
+    async def async_purge_entities(self, _now):
+        if not self.spec:
+            return
+        glob = self.spec.generate_entity_id_by_mac(self.info.unique_id, 'info', 'button')
+        await self.hass.services.async_call('recorder', 'purge_entities', {
+            'keep_days': 1,
+            'entity_globs': [glob],
+        })
+        self.log.info('Purge entities: %s', glob)
 
     async def async_get_properties(self, mapping, update_entity=True, throw=False, **kwargs):
         if not self.spec:
