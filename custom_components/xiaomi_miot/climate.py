@@ -319,6 +319,11 @@ class ClimateEntity(XEntity, BaseClimateEntity):
 
         temp = kwargs.get(ATTR_TEMPERATURE)
         if temp and self._conv_target_temp:
+            prop = self._conv_target_temp.prop
+            if not isinstance(prop, MiotProperty):
+                pass
+            elif prop.is_integer or prop.range_step() == 1:
+                temp = int(temp)
             dat[self._conv_target_temp.attr] = temp
         await self.device.async_write(dat)
 

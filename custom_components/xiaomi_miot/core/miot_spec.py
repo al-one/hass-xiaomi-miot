@@ -1194,6 +1194,9 @@ class MiotResults:
     def __str__(self):
         return f'{self._results}'
 
+    def __repr__(self):
+        return f'{self._results}'
+
 
 class MiotResult:
     def __init__(self, result: dict, **kwargs):
@@ -1224,4 +1227,7 @@ class MiotResult:
         return self.result
 
     def __str__(self):
+        return f'{self.result}'
+
+    def __repr__(self):
         return f'{self.result}'
