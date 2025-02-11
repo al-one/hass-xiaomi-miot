@@ -763,6 +763,8 @@ DEVICE_CUSTOMIZES = {
         'cover_position_mapping': {},
     },
     'hyd.airer.pro': {
+        'switch_properties': 'mode,nightlight_switch',
+        'number_properties': 'brightness,upper_limit,lower_limit',
         'append_converters': [
             {
                 'services': ['set_night_light'],
@@ -773,6 +775,8 @@ DEVICE_CUSTOMIZES = {
         'cover_position_mapping': None,
     },
     'hyd.airer.pro2': {
+        'switch_properties': 'mode,nightlight_switch',
+        'number_properties': 'brightness,upper_limit,lower_limit',
         'append_converters': [
             {
                 'services': ['set_night_light'],
