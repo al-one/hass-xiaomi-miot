@@ -884,10 +884,12 @@ class Device(CustomConfigHelper):
                 log = self.log.error
                 if auto_cloud:
                     use_cloud = self.cloud
-                    log = self.log.warning if self._local_state else self.log.info
+                    log = self.log.warning
                 else:
                     self.miot_results.errors = exc
                     self.available = False
+                if self._local_state is False:
+                    log = self.log.info
                 self._local_state = False
                 props_count = len(mapping)
                 log(
