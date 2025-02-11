@@ -304,8 +304,9 @@ class MiotCloud(micloud.MiCloud):
             'get_split_device': False,
             'support_smart_home': True,
         }, debug=False, timeout=60) or {}
-        if rdt and 'result' in rdt:
-            return rdt['result']['list']
+        result = rdt.get('result')
+        if result:
+            return result['list']
         _LOGGER.warning('Got xiaomi devices for %s failed: %s', self.username, rdt)
         return None
 
@@ -332,12 +333,14 @@ class MiotCloud(micloud.MiCloud):
                     'get_cariot_device': True,
                     'get_third_device': True,
                 }, debug=False, timeout=20) or {}
-                rdt = rdt.get('result') or {}
-                for d in rdt.get('device_info') or []:
+                result = rdt.get('result') or {}
+                if not result:
+                    _LOGGER.warning('Got xiaomi devices for %s failed: %s', self.username, rdt)
+                for d in result.get('device_info') or []:
                     did = d.get('did')
                     devices.setdefault(did, {}).update(d)
-                start_did = rdt.get('max_did') or ''
-                has_more = rdt.get('has_more') and start_did
+                start_did = result.get('max_did') or ''
+                has_more = result.get('has_more') and start_did
         return list(devices.values())
 
     async def get_home_devices(self):
@@ -350,18 +353,20 @@ class MiotCloud(micloud.MiCloud):
             'app_ver': 7,
             'plat_form': 0,
         }, debug=False, timeout=60) or {}
-        rdt = rdt.get('result') or {}
-        rdt.setdefault('devices', {})
-        for h in rdt.get('homelist', []):
+        result = rdt.get('result') or {}
+        if not result:
+            _LOGGER.warning('Got xiaomi home devices for %s failed: %s', self.username, rdt)
+        devices = result.setdefault('devices', {})
+        for h in result.get('homelist', []):
             for r in h.get('roomlist', []):
                 for did in r.get('dids', []):
-                    rdt['devices'][did] = {
+                    devices[did] = {
                         'home_id': h.get('id'),
                         'room_id': r.get('id'),
                         'home_name': h.get('name'),
                         'room_name': r.get('name'),
                     }
-        return rdt
+        return result
 
     async def async_get_devices(self, renew=False, return_all=False):
         if not self.user_id:
