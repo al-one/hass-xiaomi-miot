@@ -158,6 +158,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     _conv_swing_h = None
     _conv_target_temp = None
     _conv_current_temp = None
+    _conv_target_humidity = None
     _conv_current_humidity = None
     _prop_temperature = None
 
@@ -222,6 +223,12 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                     self._attr_temperature_unit = self.prop_temperature_unit(prop)
             elif prop.in_list(['relative_humidity', 'humidity']):
                 self._conv_current_humidity = conv
+            elif prop.in_list(['target_humidity']):
+                self._conv_target_humidity = conv
+                if prop.value_range:
+                    self._attr_min_humidity = prop.range_min()
+                    self._attr_max_humidity = prop.range_max()
+                self._attr_supported_features |= ClimateEntityFeature.TARGET_HUMIDITY
 
     def set_state(self, data: dict):
         if self._conv_mode:
@@ -262,6 +269,11 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             val = self._conv_current_temp.value_from_dict(data)
             if val is not None:
                 self._attr_current_temperature = val
+
+        if self._conv_target_humidity:
+            val = self._conv_target_humidity.value_from_dict(data)
+            if val is not None:
+                self._attr_target_humidity = val
         if self._conv_current_humidity:
             val = self._conv_current_humidity.value_from_dict(data)
             if val is not None:
@@ -326,6 +338,11 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 temp = int(temp)
             dat[self._conv_target_temp.attr] = temp
         await self.device.async_write(dat)
+
+    async def async_set_humidity(self, humidity: int):
+        if not self._conv_target_humidity:
+            return
+        await self.device.async_write({self._conv_target_humidity.attr: humidity})
 
     async def async_set_fan_mode(self, fan_mode: str):
         if not self._conv_speed:

@@ -2746,6 +2746,8 @@ GLOBAL_CONVERTERS = [
             {'props': ['on', 'target_temperature']},
             {'props': ['indoor_temperature', 'temperature']},
             {'props': ['environment.indoor_temperature', 'environment.temperature']},
+            {'props': ['relative_humidity', 'humidity', 'target_humidity']},
+            {'props': ['environment.relative_humidity', 'environment.humidity']},
             {'props': ['mode', 'fan_control.mode'], 'desc': True},
             {'props': ['fan_level', 'fan_control.fan_level', 'heat_level'], 'desc': True},
             {'props': ['horizontal_swing', 'fan_control.horizontal_swing']},
