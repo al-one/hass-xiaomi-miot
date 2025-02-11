@@ -1595,17 +1595,23 @@ DEVICE_CUSTOMIZES = {
                              'key_ten,key_eleven,key_twelve,key_thirteen,key_fourteen,key_fifteen,key_sixteen',
     },
 
-    'xiaomi.airc.r34r00': {
-        'sensor_properties': 'power_consumption',
-    },
-    'xiaomi.airc.r24r00': {
-        'sensor_properties': 'power_consumption',
-    },
     'xiaomi.airc.r09h00': {
         'sensor_properties': 'outdoor_temp,mosquito_life,filter_life_level,power_consumption',
         'switch_properties': 'on,eco,heater,dryer,sleep_mode,vertical_swing,un_straight_blowing,favorite_on,alarm',
         'select_properties': 'vertical_angle,favorite_type,brightness,room_size',
         'number_properties': 'target_temperature,target_humidity,fan_percent',
+    },
+    'xiaomi.airc.r24r00': {
+        'sensor_properties': 'power_consumption,fault_value',
+    },
+    'xiaomi.airc.r34r00': {
+        'sensor_properties': 'power_consumption,fault_value',
+    },
+    'xiaomi.airc.*': {
+        'button_actions': 'favorite_toggle,reset_filter_life',
+        'switch_properties': 'on,favorite_on,un_straight_blowing,horizontal_swing,vertical_swing',
+        'select_properties': 'vertical_swing_included_angle,room_size',
+        'number_properties': 'fan_percent',
     },
     'xiaomi.airc.*:power_consumption': ENERGY_KWH,
     'xiaomi.aircondition.m9': {
