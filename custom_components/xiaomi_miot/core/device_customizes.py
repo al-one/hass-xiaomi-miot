@@ -120,6 +120,11 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'dakuo_mosq_dispeller.status',
         'select_properties': 'workmode',
     },
+    'aupu.bhf_light.a3spro': {
+        'sensor_properties': 'fault,left_time,count_down',
+        'switch_properties': 'external_light,night_light',
+        'select_properties': 'mode,ventilate_gear',
+    },
     'aupu.bhf_light.s368m': {
         'ignore_fan_switch': True,
         'switch_properties': 'fan_control.on,onoff.on,blow,ventilation,dryer',
