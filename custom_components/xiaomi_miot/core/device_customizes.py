@@ -140,10 +140,7 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,speed_level',
         'exclude_miot_properties': 'fault,speedselect',
         'chunk_coordinators': [
-            {'interval': 11, 'props': 'current_position'},
-            {'interval': 12, 'props': 'target_position'},
-            {'interval': 300, 'props': 'mode'},
-            {'interval': 301, 'props': 'speed_level'},
+            {'interval': 30, 'props': 'current_position,target_position'},
         ],
     },
     'babai.curtain.lsxf83': CHUNK_1,

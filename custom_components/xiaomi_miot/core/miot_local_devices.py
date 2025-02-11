@@ -45,7 +45,7 @@ MIOT_LOCAL_MODELS = [
     'babai.curtain.at5810',
     'babai.curtain.bb82cb',
     'babai.curtain.bb82mj',
-    'babai.curtain.cmb5',
+    # 'babai.curtain.cmb5',  # issues/2336
     'babai.curtain.lsxf83',
     'babai.curtain.m515e',
     'babai.curtain.mtx850',
