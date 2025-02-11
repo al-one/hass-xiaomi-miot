@@ -130,7 +130,17 @@ DEVICE_CUSTOMIZES = {
     'babai.curtain.at5810': CHUNK_1,
     'babai.curtain.bb82cb': CHUNK_1,
     'babai.curtain.bb82mj': CHUNK_1,
-    'babai.curtain.cmb5': CHUNK_1,
+    'babai.curtain.cmb5': {
+        'interval_seconds': 180,
+        'select_properties': 'mode,speed_level',
+        'exclude_miot_properties': 'fault,speedselect',
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'current_position'},
+            {'interval': 12, 'props': 'target_position'},
+            {'interval': 300, 'props': 'mode'},
+            {'interval': 301, 'props': 'speed_level'},
+        ],
+    },
     'babai.curtain.lsxf83': CHUNK_1,
     'babai.curtain.m515e': CHUNK_1,
     'babai.curtain.mtx850': CHUNK_1,
