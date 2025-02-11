@@ -369,6 +369,15 @@ class Device(CustomConfigHelper):
             return
         self.converters.append(conv)
 
+    def add_converter_by_property(self, prop: MiotProperty, domain=None, option=None, cls=None, **kwargs):
+        if not cls:
+            cls = MiotPropConv
+        conv = cls(prop.full_name, domain=domain, prop=prop, **kwargs)
+        if option:
+            conv.with_option(**option)
+        self.add_converter(conv)
+        return conv
+
     def find_converter(self, full_name):
         for c in self.converters:
             if c.full_name == full_name:

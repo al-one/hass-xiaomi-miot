@@ -56,6 +56,7 @@ class CoverEntity(XEntity, BaseEntity):
     _close_texts = ['close', 'down']
     _closed_position = 0
     _deviated_position = 0
+    _target_position_props = None
     _cover_position_mapping = None
     _target2current_position = None
 
@@ -72,6 +73,7 @@ class CoverEntity(XEntity, BaseEntity):
         self._close_texts = self.custom_config_list('close_texts', self._close_texts)
         if self._motor_reverse:
             self._open_texts, self._close_texts = self._close_texts, self._open_texts
+        self._target_position_props = self.custom_config_list('target_position_props') or ['target_position']
         self._cover_position_mapping = self.custom_config_json('cover_position_mapping') or {}
 
         for conv in self.device.converters:
@@ -97,7 +99,7 @@ class CoverEntity(XEntity, BaseEntity):
                 self._conv_target_position = conv
                 self._target_range = conv.ranged
                 self._attr_supported_features |= CoverEntityFeature.SET_POSITION
-            elif prop.value_range and prop.in_list(['target_position']):
+            elif prop.value_range and prop.in_list(self._target_position_props):
                 self._conv_target_position = conv
                 self._target_range = (prop.range_min(), prop.range_max())
                 self._attr_supported_features |= CoverEntityFeature.SET_POSITION

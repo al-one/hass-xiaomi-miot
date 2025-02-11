@@ -756,19 +756,21 @@ DEVICE_CUSTOMIZES = {
         'append_converters': [
             {
                 'services': ['set_night_light'],
-                'converters': [{'props': ['current_position']}],
+                'converters': [{'props': ['current_position', 'set_position']}],
             }
         ],
+        'target_position_props': 'set_position',
         'cover_position_mapping': None,
     },
     'hyd.airer.pro2': {
         'append_converters': [
             {
                 'services': ['set_night_light'],
-                'converters': [{'props': ['current_position']}],
+                'converters': [{'props': ['current_position', 'set_position']}],
             }
         ],
-        'cover_position_mapping': None
+        'target_position_props': 'set_position',
+        'cover_position_mapping': None,
     },
     'hyd.airer.znlyj5': {
         'cover_position_mapping': {0: 50, 1: 0, 2: 100},
