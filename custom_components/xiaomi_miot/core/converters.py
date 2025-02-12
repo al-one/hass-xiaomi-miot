@@ -270,7 +270,7 @@ class MiotClimateConv(MiotServiceConv):
 
     def __post_init__(self):
         if not self.main_props:
-            self.main_props = ['mode']
+            self.main_props = ['mode', 'target_temperature']
         super().__post_init__()
 
 @dataclass
