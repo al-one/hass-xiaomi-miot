@@ -120,7 +120,7 @@ class FanEntity(XEntity, BaseEntity):
 
         # issues/617
         if self.custom_config_bool('disable_preset_modes'):
-            self._supported_features &= ~FanEntityFeature.PRESET_MODE
+            self._attr_supported_features &= ~FanEntityFeature.PRESET_MODE
             self._attr_preset_modes = []
         elif dpm := self.custom_config_list('disable_preset_modes'):
             self._attr_preset_modes = [
