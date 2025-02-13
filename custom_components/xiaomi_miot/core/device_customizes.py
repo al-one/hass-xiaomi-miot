@@ -585,6 +585,12 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'air_purifier.on,screen.on,alarm',
         'number_properties': 'favorite_speed,moto_hz',
     },
+    'dmaker.derh.22ht': {
+        'sensor_properties': 'failure',
+    },
+    'dmaker.derh.50l': {
+        'sensor_properties': 'failure',
+    },
     'dmaker.fan.1e': {
         'button_actions': 'toggle_mode,loop_gear',
         'number_properties': 'off_delay_time,speed_level',
