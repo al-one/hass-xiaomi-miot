@@ -8,7 +8,6 @@ from homeassistant.components.light import (
     LightEntityFeature,  # v2022.5
     ColorMode,
     ATTR_BRIGHTNESS,
-    ATTR_COLOR_TEMP,
     ATTR_COLOR_TEMP_KELVIN,
     ATTR_RGB_COLOR,
     ATTR_HS_COLOR,
@@ -33,7 +32,6 @@ from . import (
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
-    MiotProperty,
 )
 from miio.utils import (
     rgb_to_int,
@@ -44,6 +42,7 @@ _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
 SERVICE_TO_METHOD = {}
+ATTR_COLOR_TEMP = 'color_temp'
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
