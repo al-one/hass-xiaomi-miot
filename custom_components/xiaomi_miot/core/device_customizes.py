@@ -279,6 +279,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'lock_temp,cold_mode,default_mode',
         'number_properties': 'boil_point,oled_close_time',
     },
+    'chunmi.oven.s1': {
+        'sensor_properties': 'status,fault,left_time,temperature,cook_time',
+        'button_actions': 'start_cooke,cancel_cooking,pause',
+        'select_properties': 'cook_mode',
+        'number_properties': 'target_temperature',
+    },
     'cubee.airrtc.*': {
         **CHUNK_1,
         'switch_properties': 'childlock',
@@ -1771,6 +1777,13 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.feeder.*:pet_food_out': {
         'action_params': 1,
+    },
+    'xiaomi.juicer.dems2': {
+        'button_actions': 'start_cook,cancel_cooking,resume_cook,set_recipe,pause',
+        'sensor_properties': 'status,fault,left_time,tank_status,timeout_time,boiling_point',
+        'switch_properties': 'alarm,pot_lift_memory,auto_keep_warm,auto_screen_on',
+        'select_properties': 'cook_mode',
+        'number_properties': 'keep_warm_time,target_temperature,working_level,target_time', 
     },
     'xiaomi.health_pot.p1': {
         'select_actions': 'start_cook',
