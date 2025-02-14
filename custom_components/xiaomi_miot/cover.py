@@ -125,9 +125,12 @@ class CoverEntity(XEntity, BaseEntity):
         prop_status = getattr(self._conv_status, 'prop', None) if self._conv_status else None
         if prop_status:
             val = self._conv_status.value_from_dict(data)
+            self._attr_is_closed  = val in prop_status.list_search('Closed')
             self._attr_is_opening = val in prop_status.list_search('Opening', 'Rising')
             self._attr_is_closing = val in prop_status.list_search('Closing', 'Falling')
-            self._attr_is_closed  = val in prop_status.list_search('Closed')
+            if self._position_reverse:
+                self._attr_is_opening = not self._attr_is_opening
+                self._attr_is_closing = not self._attr_is_closing
         if self._conv_current_position:
             val = self._conv_current_position.value_from_dict(data)
             if val is not None:
