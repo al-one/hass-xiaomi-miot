@@ -279,6 +279,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'lock_temp,cold_mode,default_mode',
         'number_properties': 'boil_point,oled_close_time',
     },
+    'chunmi.oven.s1': {
+        'sensor_properties': 'status,fault,left_time,temperature,cook_time',
+        'button_actions': 'start_cooke,cancel_cooking,pause',
+        'select_properties': 'cook_mode',
+        'number_properties': 'target_temperature',
+    },
     'cubee.airrtc.*': {
         **CHUNK_1,
         'switch_properties': 'childlock',
@@ -1505,12 +1511,6 @@ DEVICE_CUSTOMIZES = {
 
     'uvfive.steriliser.maine': CHUNK_1,
 
-    'viomi.aircondition.y116': {
-        'chunk_coordinators': [
-            {'interval': 15, 'props': 'on,mode,target_temperature,fan_level', 'notify': True},
-            {'interval': 300, 'props': 'auto_clean,autoclean_worktime'},
-        ],
-    },
     'viomi.airer.xy108': {
         'switch_properties': 'dryer',
     },
@@ -1525,11 +1525,6 @@ DEVICE_CUSTOMIZES = {
             1: 100,  # Rising-limit
             2: 0,    # Descent-limit
         },
-    },
-    'viomi.fan.v7': {
-        'switch_properties': 'screen.on',
-        'select_properties': 'horizontal_angle',
-        'number_properties': 'countdown_time',
     },
     'viomi.fridge.m1': {
         'sensor_properties': 'fridge.temperature',
@@ -1606,23 +1601,17 @@ DEVICE_CUSTOMIZES = {
                              'key_ten,key_eleven,key_twelve,key_thirteen,key_fourteen,key_fifteen,key_sixteen',
     },
 
+    'xiaomi.airc.r34r00': {
+        'sensor_properties': 'power_consumption',
+    },
+    'xiaomi.airc.r24r00': {
+        'sensor_properties': 'power_consumption',
+    },
     'xiaomi.airc.r09h00': {
         'sensor_properties': 'outdoor_temp,mosquito_life,filter_life_level,power_consumption',
         'switch_properties': 'on,eco,heater,dryer,sleep_mode,vertical_swing,un_straight_blowing,favorite_on,alarm',
         'select_properties': 'vertical_angle,favorite_type,brightness,room_size',
         'number_properties': 'target_temperature,target_humidity,fan_percent',
-    },
-    'xiaomi.airc.r24r00': {
-        'sensor_properties': 'power_consumption,fault_value',
-    },
-    'xiaomi.airc.r34r00': {
-        'sensor_properties': 'power_consumption,fault_value',
-    },
-    'xiaomi.airc.*': {
-        'button_actions': 'favorite_toggle,reset_filter_life',
-        'switch_properties': 'on,favorite_on,un_straight_blowing,horizontal_swing,vertical_swing',
-        'select_properties': 'vertical_swing_included_angle,room_size',
-        'number_properties': 'fan_percent',
     },
     'xiaomi.airc.*:power_consumption': ENERGY_KWH,
     'xiaomi.aircondition.m9': {
@@ -1771,6 +1760,13 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.feeder.*:pet_food_out': {
         'action_params': 1,
+    },
+    'xiaomi.juicer.dems2': {
+        'button_actions': 'start_cook,cancel_cooking,resume_cook,set_recipe,pause',
+        'sensor_properties': 'status,fault,left_time,tank_status,timeout_time,boiling_point',
+        'switch_properties': 'alarm,pot_lift_memory,auto_keep_warm,auto_screen_on',
+        'select_properties': 'cook_mode',
+        'number_properties': 'keep_warm_time,target_temperature,working_level,target_time',    
     },
     'xiaomi.health_pot.p1': {
         'select_actions': 'start_cook',
@@ -2290,7 +2286,7 @@ DEVICE_CUSTOMIZES = {
 
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
-        'switch_properties': 'air_conditioner.on',
+        'switch_properties': 'air_conditioner.on,horizontal_swing,vertical_swing',
         'select_properties': 'fan_level',
         'number_properties': 'target_humidity',
         'fan_services': 'air_fresh',
@@ -2757,12 +2753,10 @@ GLOBAL_CONVERTERS = [
             {'props': ['on', 'target_temperature']},
             {'props': ['indoor_temperature', 'temperature']},
             {'props': ['environment.indoor_temperature', 'environment.temperature']},
-            {'props': ['relative_humidity', 'humidity', 'target_humidity']},
-            {'props': ['environment.relative_humidity', 'environment.humidity']},
             {'props': ['mode', 'fan_control.mode'], 'desc': True},
             {'props': ['fan_level', 'fan_control.fan_level', 'heat_level'], 'desc': True},
-            {'props': ['horizontal_swing', 'fan_control.horizontal_swing'], 'domain': 'switch'},
-            {'props': ['vertical_swing', 'fan_control.vertical_swing'], 'domain': 'switch'},
+            {'props': ['horizontal_swing', 'fan_control.horizontal_swing']},
+            {'props': ['vertical_swing', 'fan_control.vertical_swing']},
             {'props': ['uv', 'heater', 'eco', 'dryer', 'sleep_mode', 'soft_wind'], 'domain': 'switch'},
         ],
     },
