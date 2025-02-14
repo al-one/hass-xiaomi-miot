@@ -1505,6 +1505,12 @@ DEVICE_CUSTOMIZES = {
 
     'uvfive.steriliser.maine': CHUNK_1,
 
+    'viomi.aircondition.y116': {
+        'chunk_coordinators': [
+            {'interval': 15, 'props': 'on,mode,target_temperature,fan_level', 'notify': True},
+            {'interval': 300, 'props': 'auto_clean,autoclean_worktime'},
+        ],
+    },
     'viomi.airer.xy108': {
         'switch_properties': 'dryer',
     },
@@ -2279,7 +2285,7 @@ DEVICE_CUSTOMIZES = {
 
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
-        'switch_properties': 'air_conditioner.on,horizontal_swing,vertical_swing',
+        'switch_properties': 'air_conditioner.on',
         'select_properties': 'fan_level',
         'number_properties': 'target_humidity',
         'fan_services': 'air_fresh',
@@ -2750,8 +2756,8 @@ GLOBAL_CONVERTERS = [
             {'props': ['environment.relative_humidity', 'environment.humidity']},
             {'props': ['mode', 'fan_control.mode'], 'desc': True},
             {'props': ['fan_level', 'fan_control.fan_level', 'heat_level'], 'desc': True},
-            {'props': ['horizontal_swing', 'fan_control.horizontal_swing']},
-            {'props': ['vertical_swing', 'fan_control.vertical_swing']},
+            {'props': ['horizontal_swing', 'fan_control.horizontal_swing'], 'domain': 'switch'},
+            {'props': ['vertical_swing', 'fan_control.vertical_swing'], 'domain': 'switch'},
             {'props': ['uv', 'heater', 'eco', 'dryer', 'sleep_mode', 'soft_wind'], 'domain': 'switch'},
         ],
     },
