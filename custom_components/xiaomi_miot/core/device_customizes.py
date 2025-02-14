@@ -1526,6 +1526,11 @@ DEVICE_CUSTOMIZES = {
             2: 0,    # Descent-limit
         },
     },
+    'viomi.fan.v7': {
+        'switch_properties': 'screen.on',
+        'select_properties': 'horizontal_angle',
+        'number_properties': 'countdown_time',
+    },
     'viomi.fridge.m1': {
         'sensor_properties': 'fridge.temperature',
     },
