@@ -1871,12 +1871,13 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.vacuum.c107': {
         'interval_seconds': 120,
-        'exclude_miot_services': 'vacuum_map,custom,ai_small_pictures,voice_management',
+        'exclude_miot_services': 'custom,ai_small_pictures,voice_management',
         'exclude_miot_properties': 'vacuum_frameware_version,restricted_sweep_areas,restricted_walls,room_information,'
                                    'order_clean,map_complete_dialog,carpet_deep_cleaning,carpet_discriminate,'
                                    'water_check_list,sweep_ai_object,sweep_furniture,carpet_object,vacuum_route,'
                                    'fault_ids,plugin_info_remind,enable_time_period,current_no_disturb,sweep_route,'
-                                   'current_physical_control_lock,current_no_disturb,obstacle_avoidance_strategy',
+                                   'current_physical_control_lock,current_no_disturb,obstacle_avoidance_strategy,'
+                                   'carpet_obj_name,map_3d_info',
         'binary_sensor_properties': 'mop_status',
         'sensor_properties': 'status,cleaning_area,cleaning_time,water_check_status,battery_level,charging_state,'
                              'mop_life_level,brush_life_level,filter_life_level,detergent_left_level,'
@@ -1905,7 +1906,10 @@ DEVICE_CUSTOMIZES = {
         'diagnostic_entities': 'voltage,water_check_status',
         'chunk_coordinators': [
             {'interval': 10, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
-            {'interval': 15, 'props': 'mode,sweep_mop_type,sweep_type,clean_times'},
+            {'interval': 15, 'props': 'mode,sweep_mop_type,sweep_type,clean_times,vacuum_position'},
+            {'interval': 300, 'props': 'mop_life_level,mop_left_time,user_define_sweep_cfg,auto_water_change_installed'},
+            {'interval': 301, 'props': 'filter_life_level,filter_left_time,dust_bag_life_level,dust_bag_left_time'},
+            {'interval': 302, 'props': 'brush_life_level,brush_left_time,detergent_left_level,detergent_left_time'},
         ],
     },
     'xiaomi.vacuum.d109gl': {
