@@ -1512,9 +1512,11 @@ DEVICE_CUSTOMIZES = {
     'uvfive.steriliser.maine': CHUNK_1,
 
     'viomi.aircondition.y116': {
+        'interval_seconds': 200,
         'chunk_coordinators': [
-            {'interval': 15, 'props': 'on,mode,target_temperature,fan_level', 'notify': True},
-            {'interval': 300, 'props': 'auto_clean,autoclean_worktime'},
+            {'interval': 25, 'props': 'air_conditioner.on,mode,target_temperature,fan_level'},
+            {'interval': 45, 'props': 'uv,horizontal_swing,vertical_swing,eco,sleep_mode'},
+            {'interval': 299, 'props': 'auto_clean,autoclean_worktime,indicator_light.on'},
         ],
     },
     'viomi.airer.xy108': {
