@@ -96,6 +96,7 @@ class BaseClimateEntity(BaseEntity):
     _hvac_modes = None
     _attr_is_on = None
     _attr_device_class = None
+    _attr_hvac_mode = None
     _attr_preset_mode = None
     _attr_swing_mode = None
     _attr_swing_modes = None
@@ -190,7 +191,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                         self._hvac_modes[mk]['value'] = val
                         self._hvac_modes[mk]['description'] = des
                         self._attr_preset_modes.remove(des)
-                    elif mk != HVACMode.OFF:
+                    elif mk not in [HVACMode.OFF, HVACMode.AUTO]:
                         remove_hvac_modes.append(mk)
                 for mk in remove_hvac_modes:
                     self._hvac_modes.pop(mk, None)
@@ -232,6 +233,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
 
     def set_state(self, data: dict):
         if self._conv_mode:
+            self.conv.attrs.add(self._conv_mode.full_name)
             val = self._conv_mode.value_from_dict(data)
             if val in self._attr_preset_modes:
                 self._attr_preset_mode = val
@@ -245,6 +247,8 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             self._attr_is_on = val
             if val in [False, 0]:
                 self._attr_hvac_mode = HVACMode.OFF
+            elif self._attr_hvac_mode in [None, HVACMode.OFF]:
+                self._attr_hvac_mode = HVACMode.AUTO
         self._attr_state = self._attr_hvac_mode
 
         if self._conv_speed:
@@ -262,6 +266,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
 
         self.update_bind_sensor()
         if self._conv_target_temp:
+            self.conv.attrs.add(self._conv_mode.full_name)
             val = self._conv_target_temp.value_from_dict(data)
             if val is not None:
                 self._attr_target_temperature = val
@@ -326,8 +331,8 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             mode = self._hvac_modes.get(hvac)
             if not mode:
                 self.log.warning('Unsupported hvac mode: %s', hvac)
-            else:
-                dat[self._conv_mode.attr] = mode.get('description')
+            elif (desc := mode.get('description')) is not None:
+                dat[self._conv_mode.attr] = desc
 
         temp = kwargs.get(ATTR_TEMPERATURE)
         if temp and self._conv_target_temp:
