@@ -929,7 +929,13 @@ DEVICE_CUSTOMIZES = {
             {'interval': 3, 'props': 'occupancy_status,illumination'},
         ],
     },
-    'jipin.blanket.tt7xxa': CHUNK_1,
+    'jipin.blanket.tt7xxa': {
+        **CHUNK_1,
+        'interval_seconds': 90,
+        'sensor_properties': 'left_time',
+        'switch_properties': 'left_speed_hot,right_speed_hot,anti_acne',
+        'number_properties': 'timer,left_gears,right_gears',
+    },
     'jyf.tow_w.ts03': {
         'auto_cloud': True,
         'interval_seconds': 120,
@@ -2365,9 +2371,13 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     '*.blanket.*': {
+        'interval_seconds': 120,
         'sensor_properties': 'temperature',
         'select_properties': 'mode,heat_level,water_level',
         'number_properties': 'target_temperature',
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'on,mode,heat_level,water_level,target_temperature,left_time'},
+        ],
     },
     '*.camera.*': {
         'miot_cloud_action': True,
