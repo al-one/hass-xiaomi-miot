@@ -929,6 +929,7 @@ DEVICE_CUSTOMIZES = {
             {'interval': 3, 'props': 'occupancy_status,illumination'},
         ],
     },
+    'jipin.blanket.tt7xxa': CHUNK_1,
     'jyf.tow_w.ts03': {
         'auto_cloud': True,
         'interval_seconds': 120,
