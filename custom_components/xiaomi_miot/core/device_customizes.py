@@ -285,6 +285,13 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'cook_mode',
         'number_properties': 'target_temperature',
     },
+    'chunmi.pre_cooker.mini1': {
+        'button_actions': 'cancel_cooking',
+        'select_actions': 'start_cook',
+        'binary_sensor_properties': 'cover_state,cook_finish_flag',
+        'sensor_properties': 'status,left_time,temperature,cook_time,taste,cook_status,press_status,error_code',
+        'switch_properties': 'finish_push',
+    },
     'cubee.airrtc.*': {
         **CHUNK_1,
         'switch_properties': 'childlock',
