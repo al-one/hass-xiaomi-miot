@@ -587,9 +587,9 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 schema.update({
                     vol.Optional('reset_customizes', default=False): cv.boolean,
                 })
-            customizes.pop('bool2selects', None)
-            if customizes:
-                tip += f'\n```yaml\n{yaml.dump(customizes)}\n```'
+                if customizes:
+                    customizes.pop('bool2selects', None)
+                    tip += f'\n```yaml\n{yaml.dump(customizes)}\n```'
 
         return self.async_show_form(
             step_id='customizing',
