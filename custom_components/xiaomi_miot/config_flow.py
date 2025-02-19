@@ -18,8 +18,9 @@ from homeassistant.const import (
 from homeassistant.core import callback, split_entity_id
 from homeassistant.util import yaml
 from homeassistant.components import persistent_notification
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.device_registry import format_mac
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.selector import ObjectSelector
 
 from . import (
     DOMAIN,
@@ -444,16 +445,23 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         if last_step and customize_key:
             reset = user_input.pop('reset_customizes', None)
             b2s = user_input.pop('bool2selects', None) or []
-            for k in b2s:
-                user_input[k] = True
-            entry_data.setdefault(via, {})
-            entry_data[via][customize_key] = {
-                k: v
-                for k, v in user_input.items()
-                if v not in [' ', '', None, vol.UNDEFINED]
-            }
+            customize_data = entry_data.setdefault(via, {})
             if reset:
                 entry_data[via].pop(customize_key, None)
+            elif self.context.get('yaml_mode'):
+                yml = user_input.get('yaml_customizes') or {}
+                if yml:
+                    customize_data[customize_key] = yml
+                else:
+                    entry_data[via].pop(customize_key, None)
+            else:
+                for k in b2s:
+                    user_input[k] = True
+                customize_data[customize_key] = {
+                    k: v
+                    for k, v in user_input.items()
+                    if v not in [' ', '', None, vol.UNDEFINED]
+                }
             if entry:
                 self.hass.config_entries.async_update_entry(entry, data=entry_data)
                 await self.hass.config_entries.async_reload(entry.entry_id)
@@ -497,6 +505,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 if entities:
                     schema.update({
                         vol.Required('entity'): vol.In(entities),
+                        vol.Optional('yaml_mode', default=user_input.get('yaml_mode', False)): cv.boolean,
                     })
                 else:
                     tip = f'None entities in `{domain}`'
@@ -545,6 +554,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                     })
                 schema.update({
                     vol.Optional('model_specified'): str,
+                    vol.Optional('yaml_mode', default=user_input.get('yaml_mode', False)): cv.boolean,
                 })
 
         if last_step := self.context.get('last_step', last_step):
@@ -556,22 +566,28 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             if not options:
                 tip += f'\n\n无可用的自定义选项。' if in_china(self.hass) else f'\n\nNo customizable options are available.'
 
-            if 'bool2selects' in options:
-                options['bool2selects'] = cv.multi_select(dict(zip(bool2selects, bool2selects)))
-                customizes['bool2selects'] = [
-                    k
-                    for k in bool2selects
-                    if customizes.get(k)
-                ]
-            schema.update({
-                vol.Optional(k, default=customizes.get(k, vol.UNDEFINED), description=k): v
-                for k, v in options.items()
-            })
-            schema.update({
-                vol.Optional('reset_customizes', default=False): cv.boolean,
-            })
-            customizes.pop('bool2selects', None)
             customizes.pop('extend_miot_specs', None)
+            self.context['yaml_mode'] = user_input.get('yaml_mode')
+            if self.context['yaml_mode']:
+                schema.update({
+                    vol.Optional('yaml_customizes', default=customizes): ObjectSelector(),
+                })
+            else:
+                if 'bool2selects' in options:
+                    options['bool2selects'] = cv.multi_select(dict(zip(bool2selects, bool2selects)))
+                    customizes['bool2selects'] = [
+                        k
+                        for k in bool2selects
+                        if customizes.get(k)
+                    ]
+                schema.update({
+                    vol.Optional(k, default=customizes.get(k, vol.UNDEFINED), description=k): v
+                    for k, v in options.items()
+                })
+                schema.update({
+                    vol.Optional('reset_customizes', default=False): cv.boolean,
+                })
+            customizes.pop('bool2selects', None)
             if customizes:
                 tip += f'\n```yaml\n{yaml.dump(customizes)}\n```'
 

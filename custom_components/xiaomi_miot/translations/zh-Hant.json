@@ -55,6 +55,8 @@
                     "model": "選擇裝置型號",
                     "model_specified": "指定裝置型號 (可選)",
                     "only_main_entity": "僅主(父)實體",
+                    "yaml_mode": "YAML模式",
+                    "yaml_customizes": "自訂選項代碼",
                     "reset_customizes": "重設為預設自訂",
                     "bool2selects": "自訂選項"
                 }

@@ -55,6 +55,8 @@
                     "model": "选择设备型号",
                     "model_specified": "指定设备型号 (可选)",
                     "only_main_entity": "仅主(父)实体",
+                    "yaml_mode": "YAML模式",
+                    "yaml_customizes": "自定义选项代码",
                     "reset_customizes": "重置为默认自定义",
                     "bool2selects": "自定义选项"
                 }

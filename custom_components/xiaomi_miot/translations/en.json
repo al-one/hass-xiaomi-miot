@@ -55,6 +55,8 @@
                     "model": "Select device model",
                     "model_specified": "Specified device model (Optional)",
                     "only_main_entity": "Only main (parent) entities",
+                    "yaml_mode": "YAML Mode",
+                    "yaml_customizes": "Customizes YAML Code",
                     "reset_customizes": "Reset to default customizes",
 
                     "binary_sensor_attributes": "binary_sensor_attributes",
