@@ -247,7 +247,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             self._attr_is_on = val
             if val in [False, 0]:
                 self._attr_hvac_mode = HVACMode.OFF
-            elif self._attr_hvac_mode in [None, HVACMode.OFF]:
+            elif val and self._attr_hvac_mode in [None, HVACMode.OFF]:
                 self._attr_hvac_mode = HVACMode.AUTO
         self._attr_state = self._attr_hvac_mode
 
