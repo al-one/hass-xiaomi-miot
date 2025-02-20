@@ -421,7 +421,7 @@ class Device(CustomConfigHelper):
                             d = pc.get('domain', None)
                             ac = c(attr, domain=d, prop=prop, desc=pc.get('desc'))
                             self.add_converter(ac)
-                            if conv and not d:
+                            if conv:
                                 conv.attrs.add(ac.full_name)
 
         for d in [
