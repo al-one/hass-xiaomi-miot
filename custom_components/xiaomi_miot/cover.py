@@ -61,6 +61,8 @@ class CoverEntity(XEntity, BaseEntity):
     _target2current_position = None
 
     def on_init(self):
+        self._attr_available = self.device.available
+
         models = f'{self.device.model} {self.device.info.urn}'
         if 'curtain' in models:
             self._attr_device_class = CoverDeviceClass.CURTAIN
