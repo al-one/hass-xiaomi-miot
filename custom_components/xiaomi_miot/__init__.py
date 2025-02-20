@@ -197,7 +197,11 @@ async def async_setup(hass, hass_config: dict):
 
     def extend_miot_specs():
         with open(os.path.dirname(__file__) + '/core/miot_specs_extend.json') as file:
-            models = json.load(file) or {}
+            try:
+                models = json.load(file) or {}
+            except ValueError as exc:
+                models = {}
+                _LOGGER.exception('Error parsing miot_specs_extend.json: %s', exc)
             for m, specs in models.items():
                 DEVICE_CUSTOMIZES.setdefault(m, {})
                 DEVICE_CUSTOMIZES[m]['extend_miot_specs'] = specs
