@@ -1829,6 +1829,14 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm,dry_switch,over_wet_protect,screen.on',
         'number_properties': 'off_delay_time',
     },
+    'xiaomi.kettle.v20': {
+        'button_actions': 'stop_work',
+        'binary_sensor_properties': 'kettle_lifting',
+        'sensor_properties': 'status,temperature,warming_time',
+        'switch_properties': 'on,auto_keep_warm,no_disturb,custom_knob_temp,lift_remember_temp,'
+                             'boiling_reminder,keep_warm_reminder',
+        'number_properties': 'target_temperature,keep_warm_temperature,keep_warm_time,target_mode',
+    },
     'xiaomi.plug.mcn003': {
         'button_actions': 'toggle',
         'sensor_properties': 'fault,electric_power',
