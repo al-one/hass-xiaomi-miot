@@ -1863,7 +1863,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'speaker.volume',
     },
     'xiaomi.vacuum.b108gl': {
-        'interval_seconds': 120,
+        'interval_seconds': 150,
         'sensor_properties': 'status,fault,cleaning_area,cleaning_time,charging_state,status_extend,'
                              'brush_life_level,filter_life_level',
         'binary_sensor_properties': 'mop_status',
@@ -1879,8 +1879,10 @@ DEVICE_CUSTOMIZES = {
                                   'carpet_avoidance,carpet_display,sweep_break_switch,edge_sweep_frequency,'
                                   'carpet_cleaning_method,reset_brush_life,reset_filter_life',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'status,mop_status,cleaning_area,cleaning_time,charging_state', 'notify': True},
-            {'interval': 15, 'props': 'sweep_mop_type,sweep_type,mode,clean_times,suction_level'},
+            {'interval': 21, 'props': 'status,mop_status,cleaning_area,cleaning_time,charging_state', 'notify': True},
+            {'interval': 31, 'props': 'sweep_mop_type,sweep_type,mode,clean_times,suction_level'},
+            {'interval': 301, 'props': 'brush_life_level,brush_left_time,filter_life_level,filter_left_time'},
+            {'interval': 302, 'props': 'frameware_version,current_physical_control_lock'},
         ],
     },
     'xiaomi.vacuum.b108gl:cleaning_area': {
