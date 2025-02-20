@@ -185,7 +185,6 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 hvac_modes.add(HVACMode.AUTO)
             elif prop.in_list(['mode']):
                 self._conv_mode = conv
-                self._attr_hvac_modes = []
                 self._attr_preset_modes = prop.list_descriptions()
                 for mk, mv in self._hvac_modes.items():
                     val = prop.list_first(*(mv.get('list') or []))
