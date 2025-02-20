@@ -319,6 +319,13 @@ DEVICE_CUSTOMIZES = {
         **CHUNK_1,
         'exclude_miot_services': 'setting,cycle',
     },
+    'cuco.plug.co3d': {
+        'binary_sensor_properties': 'temp_over,current_over',
+        'switch_properties': 'light,mode',
+        'select_properties': 'memory',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '8.1',
+    },
     'cuco.plug.cp1': {
         **CHUNK_1,
         'exclude_miot_services': 'indicator_light',
