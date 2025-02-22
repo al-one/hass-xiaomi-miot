@@ -105,7 +105,6 @@ class BaseClimateEntity(BaseEntity):
     _attr_swing_horizontal_mode = None
     _attr_swing_horizontal_modes = None
     _attr_temperature_unit = None
-    _attr_is_aux_heat = None
 
     def on_init(self):
         self._attr_hvac_modes = []
@@ -161,7 +160,6 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     _conv_speed = None
     _conv_swing = None
     _conv_swing_h = None
-    _conv_heater = None
     _conv_target_temp = None
     _conv_current_temp = None
     _conv_target_humidity = None
@@ -212,9 +210,6 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 self._conv_swing_h = conv
                 self._attr_swing_horizontal_modes = [SWING_ON, SWING_OFF]
                 self._attr_supported_features |= ClimateEntityFeature.SWING_HORIZONTAL_MODE
-            elif prop.in_list(['heater']):
-                self._conv_heater = conv
-                self._attr_supported_features |= ClimateEntityFeature.AUX_HEAT
             elif prop.in_list(['target_temperature']):
                 self._conv_target_temp = conv
                 self._attr_min_temp = prop.range_min()
@@ -270,10 +265,6 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 self._attr_swing_horizontal_mode = SWING_ON if val else SWING_OFF
 
         self.update_bind_sensor()
-        if self._conv_heater:
-            val = self._conv_heater.value_from_dict(data)
-            if val is not None:
-                self._attr_is_aux_heat = val in [True, 1, 'On']
         if self._conv_target_temp:
             val = self._conv_target_temp.value_from_dict(data)
             if val is not None:
@@ -371,16 +362,6 @@ class ClimateEntity(XEntity, BaseClimateEntity):
         if not self._conv_swing_h:
             return
         await self.device.async_write({self._conv_swing_h.full_name: swing_horizontal_mode == SWING_ON})
-
-    async def async_turn_aux_heat_on(self):
-        if not self._conv_heater:
-            return
-        await self.device.async_write({self._conv_heater.full_name: True})
-
-    async def async_turn_aux_heat_off(self):
-        if not self._conv_heater:
-            return
-        await self.device.async_write({self._conv_heater.full_name: False})
 
 XEntity.CLS[ENTITY_DOMAIN] = ClimateEntity
 
