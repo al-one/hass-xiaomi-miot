@@ -96,6 +96,8 @@ class BaseClimateEntity(BaseEntity):
     _hvac_modes = None
     _attr_is_on = None
     _attr_device_class = None
+    _attr_fan_mode = None
+    _attr_fan_modes = None
     _attr_hvac_mode = None
     _attr_preset_mode = None
     _attr_swing_mode = None
