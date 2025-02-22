@@ -1822,6 +1822,23 @@
     }
   ],
 
+  "xiaomi.heater.ma8": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:mode:00000008:xiaomi-ma8:1",
+          "value-list": [
+            {"value": 0, "description": "Constant Temperature"},
+            {"value": 1, "description": "Fan"},
+            {"value": 2, "description": "Auto"},
+            {"value": 3, "description": "Heat"}
+          ]
+        }
+      ]
+    }
+  ],
   "xjx.toilet.relax": [
     {
       "iid": 2,
