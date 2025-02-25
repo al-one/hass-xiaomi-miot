@@ -29,6 +29,9 @@ class DataCoordinator(DataUpdateCoordinator):
             **kwargs,
         )
         self.device = device
+        if not hasattr(self, 'setup_method'):
+            # hass v2024.7-
+            self.async_add_listener(self.coordinator_updated)
 
     async def _async_setup(self):
         """Set up coordinator."""
