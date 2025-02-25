@@ -127,7 +127,12 @@ class CoverEntity(XEntity, BaseEntity):
         prop_status = getattr(self._conv_status, 'prop', None) if self._conv_status else None
         if prop_status:
             val = self._conv_status.value_from_dict(data)
-            self._attr_is_closed  = val in prop_status.list_search('Closed')
+            if val in prop_status.list_search('Closed'):
+                self._attr_is_closed = True
+            elif val in prop_status.list_search('Opened'):
+                self._attr_is_closed = False
+            else:
+                self._attr_is_closed = None
             self._attr_is_opening = val in prop_status.list_search('Opening', 'Rising')
             self._attr_is_closing = val in prop_status.list_search('Closing', 'Falling')
             if self._position_reverse:
@@ -161,7 +166,11 @@ class CoverEntity(XEntity, BaseEntity):
                 self._attr_current_cover_position = 0
             elif val >= (100 - self._deviated_position):
                 self._attr_current_cover_position = 100
-            self._attr_is_closed = val <= self._closed_position
+            if self._attr_is_closed is None:
+                self._attr_is_closed = val <= self._closed_position
+        self._attr_extra_state_attributes.update({
+            'state_is_closed': self._attr_is_closed,
+        })
 
     async def async_open_cover(self, **kwargs):
         if conv := self._conv_motor:
