@@ -466,7 +466,9 @@ class MihomeMessageSensor(MiCoordinatorEntity, BaseEntity, RestoreEntity):
             if not self._has_none_message:
                 # Only raise a warning if there was a failure obtaining the xiaomi message
                 # Otherwise, a warning will show anytime that there are simply no messages waiting
-                if res['code'] == 0 and res['message'] == 'ok':
+                code = res.get('code')
+                message = res.get('message')
+                if code == 0 and message == 'ok':
                     _LOGGER.debug('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
                 else:
                     _LOGGER.warning('Get xiaomi message for %s failed: %s', self.cloud.user_id, res)
