@@ -93,8 +93,10 @@ class FanEntity(XEntity, BaseEntity):
                 continue
             elif prop.in_list(['on']):
                 self._conv_power = conv
-                self._attr_supported_features |= FanEntityFeature.TURN_ON
-                self._attr_supported_features |= FanEntityFeature.TURN_OFF
+                if hasattr(FanEntityFeature, 'TURN_ON'): # v2024.8
+                    self._attr_supported_features |= FanEntityFeature.TURN_ON
+                if hasattr(FanEntityFeature, 'TURN_OFF'):
+                    self._attr_supported_features |= FanEntityFeature.TURN_OFF
             elif prop.in_list(['mode']):
                 self._conv_mode = conv
                 self._attr_preset_modes = prop.list_descriptions()
