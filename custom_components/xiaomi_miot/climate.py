@@ -13,6 +13,7 @@ from homeassistant.components.climate.const import (
     ATTR_CURRENT_HUMIDITY,
     ATTR_CURRENT_TEMPERATURE,
     ATTR_HVAC_MODE,
+    ATTR_FAN_MODE,
     DEFAULT_MAX_HUMIDITY,
     DEFAULT_MIN_HUMIDITY,
     HVACAction,
@@ -294,15 +295,19 @@ class ClimateEntity(XEntity, BaseClimateEntity):
 
     async def async_turn_on(self):
         if self._conv_power:
-            await self.device.async_write({self._conv_power.full_name: True})
+            await self.async_turn_switch(True)
             return
         await super().async_turn_on()
 
     async def async_turn_off(self):
         if self._conv_power:
-            await self.device.async_write({self._conv_power.full_name: False})
+            await self.async_turn_switch(False)
             return
         await super().async_turn_off()
+
+    async def async_turn_switch(self, state):
+        if self._conv_power:
+            await self.device.async_write({self._conv_power.full_name: state})
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode):
         await self.async_set_temperature(**{ATTR_HVAC_MODE: hvac_mode})
@@ -319,13 +324,12 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     async def async_set_temperature(self, **kwargs):
         dat = {}
         hvac = kwargs.get(ATTR_HVAC_MODE)
+        if hvac == HVACMode.OFF:
+            await self.async_turn_switch(False)
+            return
 
-        if self._conv_power:
-            if hvac == HVACMode.OFF:
-                await self.device.async_write({self._conv_power.full_name: False})
-                return
-            if not self._attr_is_on:
-                dat[self._conv_power.full_name] = True
+        if self._conv_power and not self._attr_is_on:
+            dat[self._conv_power.full_name] = True
 
         if hvac and hvac != self._attr_hvac_mode and self._conv_mode:
             mode = self._hvac_modes.get(hvac)
@@ -342,6 +346,11 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             elif prop.is_integer or prop.range_step() == 1:
                 temp = int(temp)
             dat[self._conv_target_temp.full_name] = temp
+
+        fan_mode = kwargs.get(ATTR_FAN_MODE)
+        if fan_mode and self._conv_speed:
+            dat[self._conv_speed.full_name] = fan_mode
+
         await self.device.async_write(dat)
 
     async def async_set_humidity(self, humidity: int):
@@ -352,7 +361,12 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     async def async_set_fan_mode(self, fan_mode: str):
         if not self._conv_speed:
             return
-        await self.device.async_write({self._conv_speed.full_name: fan_mode})
+        dat = {
+            ATTR_FAN_MODE: fan_mode,
+        }
+        if not self._attr_is_on and HVACMode.FAN_ONLY in self.hvac_modes:
+            dat[ATTR_HVAC_MODE] = HVACMode.FAN_ONLY
+        await self.async_set_temperature(**dat)
 
     async def async_set_swing_mode(self, swing_mode: str):
         if not self._conv_swing:

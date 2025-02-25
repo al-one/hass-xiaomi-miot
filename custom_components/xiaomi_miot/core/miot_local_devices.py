@@ -436,7 +436,7 @@ MIOT_LOCAL_MODELS = [
     'loock.cateye.v06',
     'loock.cateye.v07',
     'lumi.acpartner.mcn04',
-    'lumi.acpartner.v1',
+    # 'lumi.acpartner.v1',  # miio2miot
     'lumi.airer.acn02',
     'lumi.curtain.acn014',
     'lumi.curtain.hagl05',
