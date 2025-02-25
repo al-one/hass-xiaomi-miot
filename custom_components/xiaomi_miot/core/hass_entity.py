@@ -99,7 +99,6 @@ class XEntity(BasicEntity):
             # self._attr_name = conv.attr.replace('_', '').title()
             self._attr_translation_key = conv.attr
             if isinstance(conv, InfoConv):
-                self.attr = conv.attr
                 self._attr_available = True
 
         self.listen_attrs = {self.attr} | set(conv.attrs)

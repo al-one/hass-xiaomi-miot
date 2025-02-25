@@ -61,7 +61,7 @@ class InfoConv(BaseConv):
     def decode(self, device: 'Device', payload: dict, value):
         updater = device.data.get('updater')
         infos = {
-            self.attr: device.name,
+            self.full_name: device.name,
             'model': device.model,
             'did': device.info.did,
             'mac': device.info.mac,
