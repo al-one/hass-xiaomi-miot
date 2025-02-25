@@ -524,6 +524,8 @@ class Device(CustomConfigHelper):
 
         all_mapping = {**self.miot_mapping()}
         chunks = self.custom_config_list('chunk_coordinators') or []
+        if self.miio2miot:
+            chunks = []
 
         def update_factory(mapping, notify=False):
             async def _update():
