@@ -1744,13 +1744,26 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.fryer.maf07d': {
         'interval_seconds': 120,
         'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
-        'sensor_properties': 'status,fault,left_time',
+        'sensor_properties': 'status,fault,left_time,turn_pot',
+        'switch_properties': 'auto_keep_warm,current_keep_warm,turn_pot_config',
+        'select_properties': 'mode,texture,target_cooking_measure',
+        'number_properties': 'target_time,target_temperature,reservation_left_time,cooking_weight',
+        'exclude_miot_properties': 'recipe_id,recipe_name,recipe_sync',
+        'chunk_coordinators': [
+            {'interval': 20, 'props': 'status,target_time,target_temperature,left_time,turn_pot'},
+            {'interval': 35, 'props': 'fault,mode,reservation_left_time,cooking_weight'},
+        ],
+    },
+    'xiaomi.fryer.maf14': {
+        'interval_seconds': 120,
+        'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
+        'sensor_properties': 'status,fault,left_time,turn_pot',
         'switch_properties': 'auto_keep_warm,current_keep_warm,turn_pot_config',
         'select_properties': 'mode,turn_pot,texture,target_cooking_measure',
         'number_properties': 'target_time,target_temperature,reservation_left_time,cooking_weight',
         'exclude_miot_properties': 'recipe_id,recipe_name,recipe_sync',
         'chunk_coordinators': [
-            {'interval': 20, 'props': 'status,target_time,target_temperature,left_time'},
+            {'interval': 20, 'props': 'status,target_time,target_temperature,left_time,turn_pot'},
             {'interval': 35, 'props': 'fault,mode,reservation_left_time,cooking_weight'},
         ],
     },
