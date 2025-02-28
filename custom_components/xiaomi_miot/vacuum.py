@@ -70,6 +70,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
+    _attr_activity = None
+
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 
@@ -124,19 +126,8 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         await super().async_update()
         if not self._available:
             return
-        self._prop_status.description_to_dict(self._state_attrs)
-
-    @property
-    def status(self):
         if self._prop_status:
-            val = self._prop_status.from_device(self.device)
-            if val is not None:
-                return self._prop_status.list_description(val)
-        return None
-
-    @property
-    def state(self):
-        if self._prop_status:
+            self._prop_status.description_to_dict(self._state_attrs)
             val = self._prop_status.from_device(self.device)
             if val is None:
                 pass
@@ -145,20 +136,20 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 'Part Sweeping', 'Zone Sweeping', 'Select Sweeping', 'Spot Sweeping', 'Goto Target',
                 'Starting', 'Working', 'Busy', 'DustCollecting'
             ):
-                return VacuumActivity.CLEANING
+                self._attr_activity = VacuumActivity.CLEANING
             elif val in self._prop_status.list_search('Idle', 'Sleep'):
-                return STATE_IDLE
+                self._attr_activity = VacuumActivity.IDLE
             elif val in self._prop_status.list_search('Charging', 'Charging Completed', 'Fullcharge', 'Charge Done', 'Drying'):
-                return VacuumActivity.DOCKED
+                self._attr_activity = VacuumActivity.DOCKED
             elif val in self._prop_status.list_search('Go Charging'):
-                return VacuumActivity.RETURNING
+                self._attr_activity = VacuumActivity.RETURNING
             elif val in self._prop_status.list_search('Paused'):
-                return STATE_PAUSED
+                self._attr_activity = STATE_PAUSED
             elif val in self._prop_status.list_search('Error', 'Charging Problem'):
-                return VacuumActivity.ERROR
+                self._attr_activity = VacuumActivity.ERROR
             else:
-                return self._prop_status.list_description(val)
-        return None
+                self._attr_activity = None
+                self._attr_state = self._prop_status.list_description(val)
 
     @property
     def battery_level(self):
