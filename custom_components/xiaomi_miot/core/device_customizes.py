@@ -1327,6 +1327,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'night_light,time_display,wake_up_at_night,voice',
         'select_properties': 'study_time',
         'number_properties': 'love_bright,love_color',
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,mode'},
+        ],
     },
     'ows.towel_w.mj1x0': {
         'sensor_properties': 'temperature',
