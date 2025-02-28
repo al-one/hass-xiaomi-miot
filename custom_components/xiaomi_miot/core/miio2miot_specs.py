@@ -2924,6 +2924,7 @@ MIIO_TO_MIOT_SPECS = {
         'chunk_properties': 1,
         'miio_specs': {
             'prop.2.3': {'prop': 'depth'},
+            'prop.2.101': {'prop': 'limit_hum', 'setter': True},
         },
     },
     'zhimi.humidifier.cb1': {

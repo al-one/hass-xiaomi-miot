@@ -1800,6 +1800,21 @@
     }
   ],
 
+  "zhimi.humidifier.ca1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:target-humidity",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [30, 80, 10]
+        }
+      ]
+    }
+  ],
   "zhimi.humidifier.ca4": [
     {
       "iid": 2,
@@ -1821,6 +1836,7 @@
       ]
     }
   ],
+  "zhimi.humidifier.cb1": "zhimi.humidifier.ca1",
 
   "xiaomi.heater.ma8": [
     {
