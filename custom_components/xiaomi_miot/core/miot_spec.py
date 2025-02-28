@@ -906,6 +906,8 @@ class MiotProperty(MiotSpecInstance):
 
     @property
     def unit_of_measurement(self):
+        if self.value_list:
+            return None
         name = self.name
         unit = self.unit
         aliases = {
