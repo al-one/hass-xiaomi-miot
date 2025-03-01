@@ -2280,6 +2280,19 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'screen.brightness',
         'number_properties': 'speed_level',
     },
+    'zhimi.toilet.pa5': {
+        'button_actions': 'flushing,open_cover_circle,close_cover_circle,stoving,hip_washing,women_washing,'
+                          'move_back_and_forth,child_washing,strong_washing,nozzle_selfclean,foam_shield,'
+                          'user_process_one,user_process_two,user_process_three,user_process_four,user_process_five,'
+                          'stop_working,reset_filter_life,ceramics_self_clean',
+        'chunk_services': 1,
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'status,seating_state,cover_circle_status'},
+            {'interval': 61, 'props': 'on,physical_controls_locked,alarm'},
+            {'interval': 301, 'props': 'fault,filter_life_level,device_version,start_time,end_time'},
+        ],
+        'interval_seconds': 120,
+    },
     'zhimi.toilet.*': {
         'sensor_properties': 'status,cover_circle_status,current_water_temp,current_seat_temp,flush_status,'
                              'radar_sensor_status',
