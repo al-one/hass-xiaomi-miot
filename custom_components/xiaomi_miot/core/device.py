@@ -160,6 +160,7 @@ class Device(CustomConfigHelper):
     available = True
     miot_entity = None
     miot_results = None
+    _local_fails = 0
     _local_state = None
     _proxy_device = None
     _miot_mapping = None
@@ -886,20 +887,23 @@ class Device(CustomConfigHelper):
                         )
                         results.extend(res)
                 self.available = True
+                self._local_fails = 0
                 self._local_state = True
                 self.miot_results.updater = 'local'
                 self.miot_results.set_results(results, mapping)
             except (DeviceException, OSError) as exc:
+                self._local_fails += 1
+                local_state = self._local_fails < 3
                 log = self.log.error
                 if auto_cloud:
                     use_cloud = self.cloud
                     log = self.log.warning
                 else:
                     self.miot_results.errors = exc
-                    self.available = False
+                    self.available = local_state
                 if self._local_state is False:
                     log = self.log.info
-                self._local_state = False
+                self._local_state = local_state
                 props_count = len(mapping)
                 log(
                     'Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',

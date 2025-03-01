@@ -1922,7 +1922,7 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'min',
     },
     'xiaomi.vacuum.c107': {
-        'interval_seconds': 120,
+        'interval_seconds': 121,
         'exclude_miot_services': 'custom,ai_small_pictures,voice_management',
         'exclude_miot_properties': 'vacuum_frameware_version,restricted_sweep_areas,restricted_walls,room_information,'
                                    'order_clean,map_complete_dialog,carpet_deep_cleaning,carpet_discriminate,'
@@ -1957,11 +1957,11 @@ DEVICE_CUSTOMIZES = {
                                   'vacuum.detergent_self_delivery,detergent_self_delivery_level',
         'diagnostic_entities': 'voltage,water_check_status',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
-            {'interval': 15, 'props': 'mode,sweep_mop_type,sweep_type,clean_times,vacuum_position'},
-            {'interval': 300, 'props': 'mop_life_level,mop_left_time,user_define_sweep_cfg,auto_water_change_installed'},
+            {'interval': 11, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
+            {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type,clean_times,vacuum_position'},
             {'interval': 301, 'props': 'filter_life_level,filter_left_time,dust_bag_life_level,dust_bag_left_time'},
             {'interval': 302, 'props': 'brush_life_level,brush_left_time,detergent_left_level,detergent_left_time'},
+            {'interval': 999, 'props': 'clean_record'},
         ],
     },
     'xiaomi.vacuum.d109gl': {
