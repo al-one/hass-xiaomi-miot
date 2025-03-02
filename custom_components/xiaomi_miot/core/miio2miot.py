@@ -105,7 +105,7 @@ class Miio2MiotHelper:
             if isinstance(pdt, dict):
                 dic.update(pdt)
         self.miio_props_values = dic
-        _LOGGER.info('%s: Got miio props for miot: %s', self.model, dic)
+        _LOGGER.debug('%s: Got miio props for miot: %s', self.model, dic)
         return dic
 
     async def async_get_miot_props(self, *args, **kwargs):
