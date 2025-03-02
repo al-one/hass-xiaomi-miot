@@ -1949,18 +1949,17 @@ DEVICE_CUSTOMIZES = {
                           'reset_mop_life,reset_brush_life,reset_filter_life,reset_detergent_management_level,'
                           'reset_dust_bag_life',
         'select_actions': 'remote_control',
-        'configuration_entities': 'ai_cleaning,ai_managed_cleaning,use_detergent,defecation_detection,cut_hair_config,'
-                                  'solid_dirt_detection,floor_material_detection,room_detection,liquid_dirt_detection,'
-                                  'mop_auto_lift,carpet_boost,carpet_avoidance,carpet_cleaning_method,object_detection,'
-                                  'dirt_detection,sweep_ai_detection,hot_water_mop_wash,physical_control_locked,volume,'
-                                  'auto_water_change,auto_mop_dry,auto_dust_arrest,dust_arrest_frequency,'
-                                  'vacuum.detergent_self_delivery,detergent_self_delivery_level',
-        'diagnostic_entities': 'voltage,water_check_status',
+        'configuration_entities': 'ai_cleaning,ai_managed_cleaning,use_detergent,*_detection,cut_hair_config,'
+                                  'mop_auto_lift,carpet_boost,carpet_avoidance,carpet_cleaning_method,'
+                                  'hot_water_mop_wash,physical_control_locked,volume,detergent_self_delivery*,'
+                                  'auto_water_change,auto_mop_dry,auto_dust_arrest,dust_arrest_frequency',
+        'diagnostic_entities': 'voltage,water_check_status,filter_l*,dust_bag_l*,brush_life_l*,detergent_l*',
         'chunk_coordinators': [
             {'interval': 11, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
             {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type,clean_times,vacuum_position'},
-            {'interval': 301, 'props': 'filter_life_level,filter_left_time,dust_bag_life_level,dust_bag_left_time'},
-            {'interval': 302, 'props': 'brush_life_level,brush_left_time,detergent_left_level,detergent_left_time'},
+            {'interval': 61, 'props': 'mop_status,battery_level,charging_state'},
+            {'interval': 130, 'props': 'auto_*,*_detection'},
+            {'interval': 300, 'props': 'filter_l*,dust_bag_l*,brush_life_l*,detergent_l*'},
             {'interval': 999, 'props': 'clean_record'},
         ],
     },
@@ -2285,10 +2284,14 @@ DEVICE_CUSTOMIZES = {
                           'move_back_and_forth,child_washing,strong_washing,nozzle_selfclean,foam_shield,'
                           'user_process_one,user_process_two,user_process_three,user_process_four,user_process_five,'
                           'stop_working,reset_filter_life,ceramics_self_clean',
-        'chunk_services': 1,
         'chunk_coordinators': [
             {'interval': 11, 'props': 'status,seating_state,cover_circle_status'},
             {'interval': 61, 'props': 'on,physical_controls_locked,alarm'},
+            {'interval': 131, 'props': 'user_*_one'},
+            {'interval': 132, 'props': 'user_*_two'},
+            {'interval': 133, 'props': 'user_*_three'},
+            {'interval': 134, 'props': 'user_*_four'},
+            {'interval': 135, 'props': 'user_*_five'},
             {'interval': 301, 'props': 'fault,filter_life_level,device_version,start_time,end_time'},
         ],
         'interval_seconds': 120,

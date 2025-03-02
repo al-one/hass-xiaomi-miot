@@ -32,7 +32,7 @@ from .const import (
     DOMAIN,
     TRANSLATION_LANGUAGES,
 )
-from .utils import get_translation_langs
+from .utils import get_translation_langs, convert_globs_to_pattern
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -498,11 +498,19 @@ class MiotService(MiotSpecInstance):
         self.extend_specs(properties=dat.get('properties') or [], actions=dat.get('actions') or [])
 
     def in_list(self, lst):
-        return self.name in lst \
-            or self.friendly_desc in lst \
-            or self.unique_name in lst \
-            or self.unique_prop in lst \
-            or self.desc_name in lst
+        pattern = convert_globs_to_pattern(lst)
+        if not pattern:
+            return False
+        names = [
+            self.name,
+            self.friendly_desc,
+            self.unique_name,
+            self.desc_name,
+        ]
+        for name in names:
+            if pattern.match(name):
+                return True
+        return False
 
     def extend_specs(self, properties: list, actions: list):
         for p in properties:
@@ -684,18 +692,27 @@ class MiotProperty(MiotSpecInstance):
         self.friendly_desc = self.short_desc
 
     def in_list(self, lst):
-        return self.name in lst \
-            or self.desc_name in lst \
-            or self.friendly_name in lst \
-            or self.unique_name in lst \
-            or self.unique_prop in lst \
-            or self.full_name in lst
+        pattern = convert_globs_to_pattern(lst)
+        if not pattern:
+            return False
+        names = [
+            self.name,
+            self.friendly_name,
+            self.full_name,
+            self.unique_name,
+            self.unique_prop,
+            self.desc_name,
+        ]
+        for name in names:
+            if pattern.match(name):
+                return True
+        return False
 
     @property
     def short_desc(self):
         serv = self.service
         sde = ''
-        if self.in_list(['on', 'switch']):
+        if self.name in ['on', 'switch']:
             sde = serv.get_spec_translation() or ''
         pde = self.get_spec_translation() or ''
         if sde and pde:
@@ -1065,12 +1082,20 @@ class MiotAction(MiotSpecInstance):
         self.out = dat.get('out') or []
 
     def in_list(self, lst):
-        return self.name in lst \
-            or self.friendly_name in lst \
-            or self.friendly_desc in lst \
-            or self.unique_name in lst \
-            or self.unique_prop in lst \
-            or self.full_name in lst
+        pattern = convert_globs_to_pattern(lst)
+        if not pattern:
+            return False
+        names = [
+            self.name,
+            self.friendly_name,
+            self.full_name,
+            self.unique_name,
+            self.unique_prop,
+        ]
+        for name in names:
+            if pattern.match(name):
+                return True
+        return False
 
     def in_properties(self):
         properties = []

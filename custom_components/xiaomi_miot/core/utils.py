@@ -3,6 +3,7 @@ import re
 import json
 import locale
 import tzlocal
+import fnmatch
 import voluptuous as vol
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
@@ -157,6 +158,19 @@ def wildcard_models(model):
         re.sub(r'^[^.]+\.', '*.', wil),
         '*',
     ]
+
+def convert_globs_to_pattern(globs: list[str] | None):
+    """Convert a list of globs to a re pattern list."""
+    if not globs:
+        return None
+    translated_patterns = [
+        pattern for glob in set(globs) if (pattern := fnmatch.translate(glob))
+    ]
+    if not translated_patterns:
+        return None
+    inner = '|'.join(translated_patterns)
+    combined = f'(?:{inner})'
+    return re.compile(combined)
 
 
 def get_translation(key, keys=None):
