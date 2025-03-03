@@ -2523,7 +2523,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'off_delay_time',
         'switch_properties': 'fan_init_power_opt',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'on,mode,fan_level'},
+            {'interval': 16, 'props': 'on,mode,fan_level,speed_level'},
         ],
     },
     '*.fishbowl.*': {
