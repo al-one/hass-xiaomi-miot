@@ -2256,6 +2256,18 @@ DEVICE_CUSTOMIZES = {
         'miot_type': 'urn:miot-spec-v2:device:fan:0000A005:zhimi-za4:3',
         'number_select_properties': 'fan_level',
     },
+    'zhimi.fan.za5': {
+        **CHUNK_1,
+        'percentage_property': 'speed_level',
+        'exclude_miot_properties': 'button_press,country_code',
+        'interval_seconds': 121,
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'on,speed_level,mode'},
+            {'interval': 61, 'props': 'fan_level,horizontal_swing,horizontal_angle,off_delay,anion,speed_now'},
+            {'interval': 91, 'props': 'temperature,relative_humidity,temp_sens'},
+            {'interval': 301, 'props': 'battery_state,ac_state'},
+        ],
+    },
     'zhimi.fan.*': {
         'switch_properties': 'anion,alarm,horizontal_swing,vertical_swing',
         'number_properties': 'horizontal_angle,vertical_angle,off_delay',
