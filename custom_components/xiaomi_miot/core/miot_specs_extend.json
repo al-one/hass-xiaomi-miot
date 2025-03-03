@@ -1387,37 +1387,6 @@
     }
   ],
 
-  "yeelink.light.color1": [
-    {
-      "iid": 2,
-      "properties": [
-        {
-          "iid": 101,
-          "type": "urn:miot-spec-v2:property:nl_br",
-          "description": "Nightlight Brightness",
-          "format": "uint8",
-          "access": ["read", "write"],
-          "unit": "percentage",
-          "value-range": [1, 100, 1]
-        },
-        {
-          "iid": 102,
-          "type": "urn:miot-spec-v2:property:off-delay-time",
-          "format": "uint32",
-          "access": ["read", "write"],
-          "unit": "minutes",
-          "value-range": [0, 60, 1]
-        }
-      ]
-    }
-  ],
-  "yeelink.light.color2": "yeelink.light.color1",
-  "yeelink.light.color3": "yeelink.light.color1",
-  "yeelink.light.color4": "yeelink.light.color1",
-  "yeelink.light.color5": "yeelink.light.color1",
-  "yeelink.light.color6": "yeelink.light.color1",
-  "yeelink.light.color7": "yeelink.light.color1",
-  "yeelink.light.color8": "yeelink.light.color1",
   "yeelink.light.ceiling1": [
     {
       "iid": 2,
@@ -1524,6 +1493,37 @@
   "yeelink.light.ceiling22": "yeelink.light.ceiling1",
   "yeelink.light.ceiling23": "yeelink.light.ceiling1",
   "yeelink.light.ceiling24": "yeelink.light.ceiling1",
+  "yeelink.light.color1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:nl_br",
+          "description": "Nightlight Brightness",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [1, 100, 1]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 60, 1]
+        }
+      ]
+    }
+  ],
+  "yeelink.light.color2": "yeelink.light.color1",
+  "yeelink.light.color3": "yeelink.light.color1",
+  "yeelink.light.color4": "yeelink.light.color1",
+  "yeelink.light.color5": "yeelink.light.color1",
+  "yeelink.light.color6": "yeelink.light.color1",
+  "yeelink.light.color7": "yeelink.light.color1",
+  "yeelink.light.color8": "yeelink.light.color1",
   "yeelink.light.fancl5": [
     {
       "iid": 3,
@@ -1550,8 +1550,6 @@
       ]
     }
   ],
-  "yeelink.light.panel1": "yeelink.light.ceiling1",
-  "yeelink.light.panel3": "yeelink.light.ceiling1",
   "yeelink.light.lamp15": [
     {
       "iid": 200,
@@ -1581,6 +1579,37 @@
           "access": ["read", "write"],
           "unit": "rgb",
           "value-range": [1, 16777215, 1]
+        }
+      ]
+    }
+  ],
+  "yeelink.light.panel1": "yeelink.light.ceiling1",
+  "yeelink.light.panel3": "yeelink.light.ceiling1",
+  "yeelink.mirror.bm1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 60, 1]
+        },
+        {
+          "iid": 201,
+          "type": "urn:miot-spec-v2:property:heat_control",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 202,
+          "type": "urn:miot-spec-v2:property:heat_delayoff",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 120, 5]
         }
       ]
     }

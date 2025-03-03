@@ -2084,6 +2084,18 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'yeelink.light._base': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.2.102': {
+                'prop': 'delayoff',
+                'setter': 'set_scene',
+                'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
+            },
+        },
+    },
     'yeelink.light.bslamp1': {
         'extend_model': 'yeelink.light.color1',
         'miio_specs': {
@@ -2180,7 +2192,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.light.ceiling6': {
-        'extend_model': 'yeelink.mirror.bm1',
+        'extend_model': 'yeelink.light._base',
         'miio_props': ['nl_br'],
         'miio_specs': {
             'prop.2.2': {
@@ -2326,6 +2338,29 @@ MIIO_TO_MIOT_SPECS = {
     'yeelink.light.strip4': 'yeelink.light.ceiling16',
     'yeelink.light.strip6': 'yeelink.light.strip2',
     'yeelink.light.strip8': 'yeelink.light.strip2',
+    'yeelink.mirror.bm1': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
+            'prop.2.102': {
+                'prop': 'delayoff',
+                'setter': 'set_scene',
+                'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
+            },
+            'prop.200.201': {
+                'prop': 'heat_control',
+                'setter': 'set_ps',
+                'template': '{{ value|int == 1 }}',
+                'set_template': '{{ ["heat_control",value|int] }}',
+            },
+            'prop.200.202': {
+                'prop': 'heat_delayoff',
+                'setter': 'set_ps',
+                'set_template': '{{ ["heat_delayoff",value] }}',
+            },
+        },
+    },
     'yeelink.ven_fan.vf1': {
         'miio_specs': {
             'prop.2.1': {
@@ -2343,18 +2378,6 @@ MIIO_TO_MIOT_SPECS = {
                 'setter': 'set_swing',
                 'template': '{{ value in ["swing"] }}',
                 'set_template': '{{ ["swing" if value else "stop"] }}',
-            },
-        },
-    },
-    'yeelink.mirror.bm1': {
-        'miio_specs': {
-            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
-            'prop.2.2': {'prop': 'bright', 'setter': True},
-            'prop.2.3': {'prop': 'ct', 'setter': 'set_ct_abx', 'set_template': '{{ [value,"smooth",500] }}'},
-            'prop.2.102': {
-                'prop': 'delayoff',
-                'setter': 'set_scene',
-                'set_template': '{{ ["auto_delay_off",props.bright|default(100)|int,value] }}',
             },
         },
     },

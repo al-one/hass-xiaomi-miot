@@ -2101,6 +2101,10 @@ DEVICE_CUSTOMIZES = {
     'yeelink.light.*': {
         'switch_properties': 'bg_on,init_power_opt,fan_init_power_opt',
     },
+    'yeelink.mirror.bm1': {
+        'switch_properties': 'heat_control',
+        'number_properties': 'off_delay_time,heat_delayoff',
+    },
     'yeelink.switch.sw1': {
         'miot_mapping': {
             'switch1.on':          {'siid': 2, 'piid': 1},
