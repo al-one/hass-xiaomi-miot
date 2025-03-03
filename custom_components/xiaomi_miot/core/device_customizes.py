@@ -2284,17 +2284,18 @@ DEVICE_CUSTOMIZES = {
                           'move_back_and_forth,child_washing,strong_washing,nozzle_selfclean,foam_shield,'
                           'user_process_one,user_process_two,user_process_three,user_process_four,user_process_five,'
                           'stop_working,reset_filter_life,ceramics_self_clean',
+        'sensor_properties': 'cover_circle_status',
+        'switch_properties': 'on,leave_auto_flushing,eco_smart,foot_feel_auto,flap_flushing,flap_footfeel_syn',
+        'select_properties': 'water_temperature,person_switch,wind_strength,wind_position,wind_temperature',
+        'number_properties': 'flap_auto_time,foamshield_time',
         'chunk_coordinators': [
-            {'interval': 11, 'props': 'status,seating_state,cover_circle_status'},
-            {'interval': 61, 'props': 'on,physical_controls_locked,alarm'},
-            {'interval': 131, 'props': 'user_*_one'},
-            {'interval': 132, 'props': 'user_*_two'},
-            {'interval': 133, 'props': 'user_*_three'},
-            {'interval': 134, 'props': 'user_*_four'},
-            {'interval': 135, 'props': 'user_*_five'},
+            {'interval': 16, 'props': 'status,seating_state,cover_circle_status'},
+            {'interval': 61, 'props': 'heat_level,washing_strength,nozzle_position,deodorization'},
+            {'interval': 71, 'props': 'on,physical_controls_locked,alarm'},
             {'interval': 301, 'props': 'fault,filter_life_level,device_version,start_time,end_time'},
         ],
         'interval_seconds': 120,
+        'exclude_miot_properties': 'user_*_one,user_*_two,user_*_three,user_*_four,user_*_five',
     },
     'zhimi.toilet.*': {
         'sensor_properties': 'status,cover_circle_status,current_water_temp,current_seat_temp,flush_status,'
@@ -2935,6 +2936,15 @@ GLOBAL_CONVERTERS = [
                 'domain': 'sensor',
             },
             {'props': ['charging_state'], 'domain': 'sensor', 'desc': True},
+        ],
+    },
+    {
+        'services': ['toilet', 'seat'],
+        'converters' : [
+            {'props': ['on', 'deodorization'], 'domain': 'switch'},
+            {'props': ['status'], 'domain': 'sensor'},
+            {'props': ['seating_state'], 'domain': 'binary_sensor'},
+            {'props': ['heat_level', 'washing_strength', 'nozzle_position'], 'domain': 'select'},
         ],
     },
     {
