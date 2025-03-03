@@ -2294,9 +2294,10 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'flap_auto_time,foamshield_time',
         'chunk_coordinators': [
             {'interval': 16, 'props': 'status,seating_state,cover_circle_status'},
-            {'interval': 61, 'props': 'heat_level,washing_strength,nozzle_position,deodorization'},
-            {'interval': 71, 'props': 'on,physical_controls_locked,alarm'},
-            {'interval': 301, 'props': 'fault,filter_life_level,device_version,start_time,end_time'},
+            {'interval': 61, 'props': 'toilet.on,heat_level,washing_strength,nozzle_position,deodorization'},
+            {'interval': 81, 'props': 'indicator_light.on,physical_controls_locked,alarm'},
+            {'interval': 91, 'props': 'night_light.on,start_time,end_time'},
+            {'interval': 301, 'props': 'fault,filter_life_level,device_version'},
         ],
         'interval_seconds': 120,
         'exclude_miot_properties': 'user_*_one,user_*_two,user_*_three,user_*_four,user_*_five',
