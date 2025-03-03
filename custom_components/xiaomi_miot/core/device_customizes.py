@@ -1538,7 +1538,7 @@ DEVICE_CUSTOMIZES = {
     'viomi.aircondition.y116': {
         **CHUNK_1,
         'interval_seconds': 200,
-        'switch_properties': 'air_conditioner.on,auto_clean',
+        'switch_properties': 'air_conditioner.on,uv,auto_clean',
         'exclude_miot_properties': 'fault,autoclean_worktime',
         'chunk_coordinators': [
             {'interval': 35, 'props': 'air_conditioner.on,mode,target_temperature,fan_level'},
