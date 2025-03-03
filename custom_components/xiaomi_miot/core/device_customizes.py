@@ -2307,8 +2307,9 @@ DEVICE_CUSTOMIZES = {
         'chunk_coordinators': [
             {'interval': 16, 'props': 'status,seating_state,cover_circle_status'},
             {'interval': 61, 'props': 'toilet.on,heat_level,washing_strength,nozzle_position,deodorization'},
+            {'interval': 71, 'props': 'water_temperature,eco_smart,wind_strength,wind_position,wind_temperature'},
             {'interval': 81, 'props': 'indicator_light.on,physical_controls_locked,alarm'},
-            {'interval': 91, 'props': 'night_light.on,start_time,end_time'},
+            {'interval': 91, 'props': 'night_save.on,start_time,end_time'},
             {'interval': 301, 'props': 'fault,filter_life_level,device_version'},
         ],
         'interval_seconds': 120,
