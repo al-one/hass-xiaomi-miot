@@ -1953,13 +1953,13 @@ DEVICE_CUSTOMIZES = {
                                   'mop_auto_lift,carpet_boost,carpet_avoidance,carpet_cleaning_method,'
                                   'hot_water_mop_wash,physical_control_locked,volume,detergent_self_delivery*,'
                                   'auto_water_change,auto_mop_dry,auto_dust_arrest,dust_arrest_frequency',
-        'diagnostic_entities': 'voltage,water_check_status,filter_l*,dust_bag_l*,brush_life_l*,detergent_l*',
+        'diagnostic_entities': 'voltage,water_check_status,filter_l*,dust_bag_l*,brush_l*,detergent_l*',
         'chunk_coordinators': [
             {'interval': 11, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
             {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type,clean_times,vacuum_position'},
             {'interval': 61, 'props': 'mop_status,battery_level,charging_state'},
             {'interval': 130, 'props': 'auto_*,*_detection'},
-            {'interval': 300, 'props': 'filter_l*,dust_bag_l*,brush_life_l*,detergent_l*'},
+            {'interval': 300, 'props': 'filter_l*,dust_bag_l*,brush_l*,detergent_l*'},
             {'interval': 999, 'props': 'clean_record'},
         ],
     },
@@ -2698,16 +2698,17 @@ DEVICE_CUSTOMIZES = {
         'binary_sensor_properties': 'mop_status',
         'sensor_properties': 'status,cleaning_area,cleaning_time,mop_life_level,brush_life_level,filter_life_level,'
                              'dust_bag_life_level',
-        'select_properties': 'mode,sweep_mop_type,sweep_type,clean_times',
+        'select_properties': 'mode,sweep_mop_type,sweep_type,suction_level,water_level,clean_times',
         'number_properties': 'volume',
         'button_actions': 'start_sweep,stop_sweeping,stop_and_gocharge,start_only_sweep,start_mop,start_sweep_mop,'
                           'pause_sweeping,continue_sweep,start_dust_arrest,start_mop_wash,start_dry,start_eject,'
-                          'stop_mop_wash,stop_dry,back_mop_wash,start_charge,identify,'
-                          'reset_mop_life,reset_brush_life,reset_filter_life,reset_dust_bag_life',
-        'configuration_entities': 'reset_mop_life,reset_brush_life,reset_filter_life,reset_dust_bag_life',
+                          'stop_mop_wash,stop_dry,back_mop_wash,start_charge,identify,reset_*',
+        'configuration_entities': 'reset_*',
+        'diagnostic_entities': 'filter_l*,brush_l*,detergent_l*,dust_bag_l*',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
-            {'interval': 15, 'props': 'mode,sweep_mop_type,sweep_type,clean_times'},
+            {'interval': 11, 'props': 'status,charging_state', 'notify': True},
+            {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type,suction_level,water_level'},
+            {'interval': 301, 'props': 'filter_l*,brush_l*,detergent_l*,dust_bag_l*'},
         ],
     },
     '*.walkingpad.*': {
