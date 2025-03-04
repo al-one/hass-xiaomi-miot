@@ -1,3 +1,24 @@
+"""
+This is a device customization built into the component, `DEVICE_CUSTOMIZES` is for device model customization.
+Through these customizations, you can expand the functionality of the device in HA, such as:
+- `sensor_properties`/`switch_properties` can map miot attributes to HA entities
+- `exclude_miot_properties` can exclude redundant miot attributes, as some devices may become unresponsive due to polling too many attributes
+- `chunk_coordinators` can group poll different attributes, which can synchronize the device's key attributes faster
+More customization options can be found at https://github.com/al-one/hass-xiaomi-miot/issues/600.
+If you want to change these customizations, you should prioritize defining them through the configuration stream (issues/600) or the `configuration.yaml` configuration file.
+Assuming one of your devices lacks a temperature and humidity sensor, you can first find the corresponding attribute name on the website home.miot-spec.com and configure it in the following format:
+```yaml
+xiaomi_miot:
+  device_customizes:
+    your.device.model: # <-- replace it
+      sensor_properties: temperature,relative_humidity
+      switch_properties: uv,switch
+```
+It is worth noting:
+- The `-` in miot property names needs to be replaced with `_`
+- Your configuration will override the built-in customizations of the component
+"""
+
 from .converters import *
 
 CHUNK_1 = {
