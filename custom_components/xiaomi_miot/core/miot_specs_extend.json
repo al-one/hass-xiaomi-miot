@@ -1596,7 +1596,13 @@
           "access": ["read", "write"],
           "unit": "minutes",
           "value-range": [0, 60, 1]
-        },
+        }
+      ]
+    },
+    {
+      "iid": 200,
+      "type": "urn:miot-spec:service:extra",
+      "properties": [
         {
           "iid": 201,
           "type": "urn:miot-spec-v2:property:heat_control",
