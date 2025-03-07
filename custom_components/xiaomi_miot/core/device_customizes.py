@@ -2304,6 +2304,12 @@ DEVICE_CUSTOMIZES = {
     'zhimi.fan.*': {
         'switch_properties': 'anion,alarm,horizontal_swing,vertical_swing',
         'number_properties': 'horizontal_angle,vertical_angle,off_delay',
+        'append_converters': [
+            {
+                'services': ['custom_service'],
+                'converters': [{'props': ['speed_level']}],
+            }
+        ],
     },
     'zhimi.heater.na1': {
         'switch_properties': 'on,return_to_middle',
