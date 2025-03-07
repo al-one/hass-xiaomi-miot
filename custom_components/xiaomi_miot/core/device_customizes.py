@@ -677,6 +677,12 @@ DEVICE_CUSTOMIZES = {
             {'interval': 16, 'props': 'on,mode,fan_level'},
             {'interval': 21, 'props': 'speed_level,off_delay_time,horizontal_swing*'},
         ],
+        'append_converters': [
+            {
+                'services': ['dm_service'],
+                'converters': [{'props': ['speed_level']}],
+            }
+        ],
     },
     'dmaker.humidifier.p2': {
         'auto_cloud': True,
