@@ -2075,8 +2075,14 @@ DEVICE_CUSTOMIZES = {
     },
 
     'yeelink.curtain.crc2': CHUNK_1,
-    'yeelink.curtain.ctmt1': CHUNK_1,
-    'yeelink.curtain.ctmt2': CHUNK_1,
+    'yeelink.curtain.ctmt1': {
+        **CHUNK_1,
+        'chunk_coordinators': [],
+    },
+    'yeelink.curtain.ctmt2': {
+        **CHUNK_1,
+        'chunk_coordinators': [],
+    },
     'yeelink.bhf_light.v1': {
         'interval_seconds': 30,
         'chunk_coordinators': [],
