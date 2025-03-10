@@ -1574,8 +1574,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'air_conditioner.on,uv,auto_clean',
         'exclude_miot_properties': 'fault,autoclean_worktime',
         'chunk_coordinators': [
-            {'interval': 35, 'props': 'air_conditioner.on,mode,target_temperature,fan_level'},
-            {'interval': 59, 'props': 'uv,horizontal_swing,vertical_swing,eco,sleep_mode'},
+            {'interval': 31, 'props': 'air_conditioner.on,mode'},
+            {'interval': 41, 'props': 'target_temperature,eco,sleep_mode'},
+            {'interval': 51, 'props': 'fan_level,horizontal_swing,vertical_swing'},
+            {'interval': 61, 'props': 'temperature,uv'},
             {'interval': 299, 'props': 'auto_clean,indicator_light.on'},
         ],
     },
