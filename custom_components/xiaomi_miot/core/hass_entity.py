@@ -180,7 +180,8 @@ class XEntity(BasicEntity):
 
         if state_change and self.added:
             self._async_write_ha_state()
-            _LOGGER.debug('%s: Entity state updated: %s', self.entity_id, self._attr_state)
+            state = data.get(self.attr, data)
+            _LOGGER.debug('%s: Entity state updated: %s', self.entity_id, state)
 
     def get_state(self) -> dict:
         """Run before entity remove if entity is subclass from RestoreEntity."""

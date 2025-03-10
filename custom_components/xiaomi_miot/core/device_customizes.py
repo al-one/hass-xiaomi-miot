@@ -1935,14 +1935,16 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'start_sweep,stop_sweeping,start_only_sweep,start_mop,start_sweep_mop,stop_and_gocharge,'
                           'pause_sweeping,continue_sweep,find_vacuum,start_charge,reset_brush_life,reset_filter_life',
         'exclude_miot_services': 'vacuum_map',
+        'exclude_miot_properties': 'zone_ids,restricted_sweep_areas,restricted_walls',
         'configuration_entities': 'edge_swing_tail_sweep,carpet_discriminate,carpet_boost,alarm,dnd_switch,'
                                   'carpet_avoidance,carpet_display,sweep_break_switch,edge_sweep_frequency,'
                                   'carpet_cleaning_method,reset_brush_life,reset_filter_life',
         'chunk_coordinators': [
-            {'interval': 21, 'props': 'status,mop_status,cleaning_area,cleaning_time,charging_state', 'notify': True},
+            {'interval': 21, 'props': 'status,mop_status,charging_state', 'notify': True},
             {'interval': 31, 'props': 'sweep_mop_type,sweep_type,mode,clean_times,suction_level'},
-            {'interval': 301, 'props': 'brush_life_level,brush_left_time,filter_life_level,filter_left_time'},
-            {'interval': 302, 'props': 'frameware_version,current_physical_control_lock'},
+            {'interval': 61, 'props': 'battery_level,cleaning_area,cleaning_time,mop_water_output_level'},
+            {'interval': 301, 'props': 'brush_l*,filter_l*'},
+            {'interval': 302, 'props': 'frameware_version,vacuum_room_ids,points,current_physical_control_lock'},
         ],
     },
     'xiaomi.vacuum.b108gl:cleaning_area': {
