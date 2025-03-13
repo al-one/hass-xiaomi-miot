@@ -2415,6 +2415,9 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.3': {'prop': 'bright', 'setter': True},
         },
     },
+    'yilai.light.ceiling1': 'yeelink.light._base',
+    'yilai.light.ceiling2': 'yeelink.light._base',
+    'yilai.light.ceiling3': 'yeelink.light._base',
 
     'yunmi.waterpuri.lx5': {
         'chunk_properties': 1,
