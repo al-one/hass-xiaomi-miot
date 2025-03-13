@@ -881,11 +881,11 @@ DEVICE_CUSTOMIZES = {
         'device_class': 'duration',
     },
     'ijai.vacuum.*': {
-        'sensor_properties': 'vacuum.status,main_brush_life,side_brush_life,hypa_life,mop_life',
+        'sensor_properties': 'vacuum.status,door_state,main_brush_life,side_brush_life,hypa_life,mop_life',
         'switch_properties': 'vacuum.on,repeat_state,alarm',
-        'select_properties': 'mode,sweep_type,water_state',
+        'select_properties': 'mode,sweep_type,suction_state,water_state',
         'exclude_miot_services': 'order',
-        'exclude_miot_properties': 'zone_points,restrict_points,target_point',
+        'exclude_miot_properties': 'zone_points,restrict_points,target_point,multi_prop_vacuum,consumablesinfo',
     },
     'ijomoo.toilet.zs320': {
         'state_property': 'toilet_jomoo.seat_status',
