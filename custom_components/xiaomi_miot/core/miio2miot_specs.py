@@ -124,7 +124,12 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff', 'set_template': '{{ [value|int] }}'},
             'prop.2.2': {'prop': 'speed', 'setter': 'set_wind', 'set_template': '{{ [props.mode, value|int] }}'},
-            'prop.2.3': {'prop': 'mode', 'setter': 'set_wind', 'set_template': '{{ [value|int, props.speed] }}'},
+            'prop.2.3': {
+                'prop': 'mode',
+                'setter': 'set_wind',
+                'dict': {1: 2, 2: 1},
+                'set_template': '{{ [value|int, props.speed] }}',
+            },
             'prop.3.1': {'prop': 'pm25'},
             'prop.4.1': {
                 'prop': 'lock', 'setter': True,
