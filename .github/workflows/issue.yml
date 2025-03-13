@@ -2,10 +2,13 @@ name: Add comment via ChatGPT
 
 on:
   issues:
-    types: [opened]
+    types: [opened, edited]
 
 jobs:
   chat:
+    if: |-
+      github.event.action == 'opened'
+      || (github.event.action == 'edited' && github.event.issue.comments <= 10)
     runs-on: ubuntu-latest
     steps:
       - name: Format Message
