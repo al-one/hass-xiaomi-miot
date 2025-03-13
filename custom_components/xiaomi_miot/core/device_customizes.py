@@ -1514,9 +1514,9 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'min',
     },
     'roidmi.vacuum.v60': {
-        'interval_seconds': 180,
-        'button_actions': 'start_sweep,stop_sweeping,find_robot,stop_find_charge,continue_sweep,start_dust,pause,'
-                          'pause_find_charge,continue_find_charge,reset_filter_life,reset_brush_life',
+        'interval_seconds': 81,
+        'button_actions': 'start_sweep,stop_sweeping,pause,continue_sweep,find_robot,start_charge,stop_find_charge,'
+                          'pause_find_charge,continue_find_charge,start_dust,reset_filter_life,reset_brush_life',
         'binary_sensor_properties': 'mop',
         'sensor_properties': 'status,fault,clean_area,clean_time,filter_life_level,brush_life_level',
         'switch_properties': 'auto_boost,double_clean,edge_sweep,led_switch,lidar_collision,mute,map_memory,'
@@ -1526,10 +1526,13 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': None,
         'exclude_miot_properties': 'vacuum.on,custom.progress,station_type,voice_conf,app_state,sweep_mode',
         'chunk_coordinators': [
-            {'interval': 15, 'props': 'status,clean_area,clean_time,mode,sweep_type,water_level', 'notify': True},
-            {'interval': 60, 'props': 'mop,auto_boost,double_clean,edge_sweep,led_switch,lidar_collision,mute'},
-            {'interval': 600, 'props': 'filter_life_level,filter_left_time,brush_life_level,brush_left_time'},
-            {'interval': 610, 'props': 'custom.uid,custom.timing,forbid_mode,current_audio,map_memory,use_auto_area'},
+            {'interval': 21, 'props': 'status,mode,sweep_type,charging_state', 'notify': True},
+            {'interval': 41, 'props': 'fault,mop,water_level'},
+            {'interval': 61, 'props': 'double_clean,edge_sweep,battery_level,clean_area,clean_time,work_station_freq'},
+            {'interval': 121, 'props': 'auto_boost,led_switch,lidar_collision,station_key,station_led,volume,mute'},
+            {'interval': 151, 'props': 'total_clean_time,total_clean_areas,clean_counts,path_type'},
+            {'interval': 600, 'props': 'filter_l*,brush_l*'},
+            {'interval': 610, 'props': 'custom.uid,timing,forbid_mode,current_audio,map_memory,use_auto_area'},
         ],
     },
     'roidmi.vacuum.*': {
