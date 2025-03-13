@@ -1757,6 +1757,14 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_off': 2,
         'exclude_miot_services': 'rfid,custom_service,filter_debug',
     },
+    'xiaomi.airp.va5': {
+        'sensor_properties': 'fault,air_quality,pm1',
+        'switch_properties': 'on,uv',
+        'select_properties': 'air_purifier_favorite.fan_level,brightness',
+        'number_properties': 'update_heartbeat',
+        'button_actions': 'toggle,reset_filter_life',
+        'exclude_miot_services': 'custom_service,filter_debug,filter_tag',
+    },
     'xiaomi.airp.*': {
         'exclude_miot_services': 'custom_service',
     },
