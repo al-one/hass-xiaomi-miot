@@ -285,13 +285,10 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'cancel_cooking,pause',
         'select_actions': 'start_cook',
     },
-    'chunmi.health_pot.a1': {
-        'select_actions': 'start_cook',
-    },
-    'chunmi.health_pot.cmpa1': {
-        'select_actions': 'start_cook',
-    },
-    'chunmi.health_pot.zwza1': {
+    'chunmi.health_pot.*': {
+        'sensor_properties': 'fault,left_time,temperature,kw_temperature,ctrl_temperature,power_value,cook_mode,'
+                             'cook_total_time,kw_left_time,kw_total_time,pre_left_time,cur_left_time',
+        'switch_properties': 'auto_keepwarm',
         'select_actions': 'start_cook',
     },
     'chunmi.microwave.n23l01': {
