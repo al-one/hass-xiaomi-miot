@@ -1822,8 +1822,16 @@ DEVICE_CUSTOMIZES = {
             {'interval': 35, 'props': 'fault,mode,reservation_left_time,cooking_weight'},
         ],
     },
+    'xiaomi.derh.13l': {
+        **CHUNK_1,
+        'binary_sensor_properties': 'is_warming_up',
+        'sensor_properties': 'fault,dry_left_time,delay_remain_time',
+        'switch_properties': 'delay,dry_after_off',
+        'select_properties': 'indicator_light.mode',
+        'number_properties': 'delay_time',
+    },
     'xiaomi.derh.lite': {
-        'chunk_properties': 1,
+        **CHUNK_1,
         'sensor_properties': 'fault,delay_remain_time',
         'switch_properties': 'alarm,delay',
         'select_properties': 'indicator_light.mode',
