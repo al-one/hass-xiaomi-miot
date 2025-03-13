@@ -31,7 +31,7 @@
             },
             "cloud_filter": {
                 "title": "Filter cloud devices",
-                "description": "You can include or exclude devices to integrate only the devices you want. In the exclude mode, if you do not check any option in the list, it is equivalent to including all options.\n{tip}",
+                "description": "You can include or exclude devices to integrate only the devices you want.\n{tip}",
                 "data": {
                     "filter_model": "Filter Device Model",
                     "model_list": "Device Model List",
@@ -44,6 +44,10 @@
                     "filter_did": "Filter Device",
                     "did_list": "Device List",
                     "home_ids": "Filter Home (Leave blank to save)"
+                },
+                "data_description": {
+                    "filter_did": "In the exclude mode, if you do not check any option in the list, it is equivalent to including all devices.",
+                    "home_ids": "After checking this option and submitting, you will return to the current page,\nand the device list will refresh and filter out the devices of the checked homes."
                 }
             },
             "customizing": {
@@ -167,7 +171,7 @@
             },
             "cloud_filter": {
                 "title": "Filter cloud devices",
-                "description": "You can include or exclude devices to integrate only the devices you want. In the exclude mode, if you do not check any option in the list, it is equivalent to including all options.\n{tip}",
+                "description": "You can include or exclude devices to integrate only the devices you want.\n{tip}",
                 "data": {
                     "filter_model": "Filter Device Model",
                     "model_list": "Device Model List",
@@ -180,6 +184,10 @@
                     "filter_did": "Filter Device",
                     "did_list": "Device List",
                     "home_ids": "Filter Home (Leave blank to save)"
+                },
+                "data_description": {
+                    "filter_did": "In the exclude mode, if you do not check any option in the list, it is equivalent to including all devices.",
+                    "home_ids": "After checking this option and submitting, you will return to the current page,\nand the device list will refresh and filter out the devices of the checked homes."
                 }
             }
         },
