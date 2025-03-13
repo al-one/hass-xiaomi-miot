@@ -2265,6 +2265,9 @@ DEVICE_CUSTOMIZES = {
     'zhimi.airp.vb4:pm10_density': {
         'unit_of_measurement': 'µg/m³',
     },
+    'zhimi.airp.*:moto_speed_rpm': {
+        'unit_of_measurement': 'rpm',
+    },
     'zhimi.airpurifier.*': {
         'speed_property': 'favorite_level,favorite_fan_level',
         'number_properties': 'favorite_level,favorite_fan_level',
