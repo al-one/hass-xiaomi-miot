@@ -831,9 +831,11 @@ DEVICE_CUSTOMIZES = {
     },
     'hyd.airer.pro2': {
         'switch_properties': 'mode,nightlight_switch',
+        'select_properties': None,
         'number_properties': 'brightness,upper_limit,lower_limit',
         'append_converters': [
             {
+                'class': MiotCoverConv,
                 'services': ['airer'],
                 'converters': [{'props': ['*.current_position', '*.set_position']}],
             }
