@@ -995,7 +995,10 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 120,
         'exclude_miot_properties': 'mode,fault',
         'chunk_coordinators': [
-            {'interval': 30, 'props': 'on,target-temperature,temperature,left_time'},
+            {'interval': 31, 'props': 'on'},
+            {'interval': 41, 'props': 'target_temperature'},
+            {'interval': 51, 'props': 'temperature'},
+            {'interval': 61, 'props': 'left_time'},
         ],
     },
     'leishi.bhf_light.lsyb01': {
