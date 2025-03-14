@@ -2178,7 +2178,9 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 7,
     },
     'yeelink.light.*': {
+        'interval_seconds': 20,
         'switch_properties': 'bg_on,init_power_opt,fan_init_power_opt',
+        'chunk_coordinators': [],
     },
     'yeelink.mirror.bm1': {
         'switch_properties': 'heat_control',
