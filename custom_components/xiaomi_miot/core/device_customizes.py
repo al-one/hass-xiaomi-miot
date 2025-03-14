@@ -822,8 +822,8 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'brightness,upper_limit,lower_limit',
         'append_converters': [
             {
-                'services': ['set_night_light'],
-                'converters': [{'props': ['current_position', 'set_position']}],
+                'services': ['airer'],
+                'converters': [{'props': ['*.current_position', '*.set_position']}],
             }
         ],
         'target_position_props': 'set_position',
@@ -834,8 +834,8 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'brightness,upper_limit,lower_limit',
         'append_converters': [
             {
-                'services': ['set_night_light'],
-                'converters': [{'props': ['current_position', 'set_position']}],
+                'services': ['airer'],
+                'converters': [{'props': ['*.current_position', '*.set_position']}],
             }
         ],
         'target_position_props': 'set_position',

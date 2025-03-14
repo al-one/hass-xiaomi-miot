@@ -362,10 +362,10 @@ class Device(CustomConfigHelper):
             return dev.disabled_by
         return None
 
-    def add_converter(self, conv: BaseConv):
+    def add_converter(self, conv: BaseConv, force=False):
         if conv in self.converters:
             return
-        if self.find_converter(conv.full_name):
+        if not force and self.find_converter(conv.full_name):
             self.log.info('Converter for %s already exists. Ignored.', conv.full_name)
             return
         self.converters.append(conv)
@@ -401,11 +401,13 @@ class Device(CustomConfigHelper):
                     conv = None
                     if cls and hasattr(cls, 'service'):
                         conv = cls(service=service, **kwargs)
-                        if getattr(conv, 'prop', None):
-                            self.add_converter(conv)
-                        else:
+                        if not getattr(conv, 'prop', None):
                             self.log.info('Converter has no main props: %s', conv)
                             conv = None
+                        elif exists := self.find_converter(conv.full_name):
+                            conv = exists  # for append_converters
+                        else:
+                            self.add_converter(conv, True)
 
                     for pc in cfg.get('converters') or []:
                         if not (props := pc.get('props')):
