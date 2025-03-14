@@ -814,7 +814,6 @@ DEVICE_CUSTOMIZES = {
     },
     'hyd.airer.lyjpro': {
         **CHUNK_1,
-        'position_reverse': True,
         'cover_position_mapping': {},
     },
     'hyd.airer.pro': {
@@ -851,7 +850,6 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,dryer',
         'number_properties': 'drying_time',
         'exclude_miot_properties': 'motor_control',
-        'position_reverse': False,
         'cover_position_mapping': {
             0: 50,
             1: 100,
@@ -1114,7 +1112,6 @@ DEVICE_CUSTOMIZES = {
     'lumi.airer.acn01': {
         'select_properties': 'dry_mode',
         'motor_reverse': False,
-        'position_reverse': True,
         'target2current_position': True,
     },
     'lumi.ctrl_ln2.aq1': {
@@ -1309,7 +1306,6 @@ DEVICE_CUSTOMIZES = {
         'miot_type': 'urn:miot-spec-v2:device:airer:0000A00D:mrbond-m1pro:1',
     },
     'mrbond.airer.m53pro': {
-        'position_reverse': False,
         'sensor_properties': 'fault,left_time',
         'select_properties': 'dryer,drying_level',
         'switch_properties': '',
@@ -1608,7 +1604,6 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': '',
         'select_properties': 'dryer,swing_mode',
         'number_properties': 'drying_time',
-        'position_reverse': False,
         'cover_position_mapping': {
             0: 50,   # Normal
             1: 100,  # Rising-limit
@@ -2497,7 +2492,6 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     '*.airer.*': {
-        'position_reverse': True,
         'sensor_properties': 'left_time',
         'switch_properties': 'dryer,uv',
         'select_properties': 'drying_level',
