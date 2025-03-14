@@ -851,7 +851,6 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,dryer',
         'number_properties': 'drying_time',
         'exclude_miot_properties': 'motor_control',
-        'disable_target_position': True,
         'position_reverse': False,
         'cover_position_mapping': {
             0: 50,

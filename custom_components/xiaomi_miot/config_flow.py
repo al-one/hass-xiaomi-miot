@@ -836,8 +836,7 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
 
     if domain == 'cover' or re.search(r'airer|curtain|wopener', model, re.I):
         bool2selects.extend([
-            'motor_reverse', 'auto_position_reverse', 'position_reverse',
-            'disable_target_position', 'target2current_position',
+            'motor_reverse', 'auto_position_reverse', 'position_reverse', 'target2current_position',
         ])
         options.update({
             'closed_position': cv.string,
