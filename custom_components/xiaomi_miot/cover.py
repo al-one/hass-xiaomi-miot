@@ -62,15 +62,17 @@ class CoverEntity(XEntity, BaseEntity):
 
     def on_init(self):
         self._attr_available = self.device.available
+        self._motor_reverse = self.custom_config_bool('motor_reverse', False)
+        self._position_reverse = self.custom_config_bool('position_reverse', self._motor_reverse)
 
         models = f'{self.device.model} {self.device.info.urn}'
         if 'curtain' in models:
             self._attr_device_class = CoverDeviceClass.CURTAIN
         elif 'wopener' in models or 'window-opener' in models:
             self._attr_device_class = CoverDeviceClass.WINDOW
+        elif 'airer' in models:
+            self._position_reverse = self.custom_config_bool('position_reverse', True)
 
-        self._motor_reverse = self.custom_config_bool('motor_reverse', False)
-        self._position_reverse = self.custom_config_bool('position_reverse', self._motor_reverse)
         self._open_texts = self.custom_config_list('open_texts', self._open_texts)
         self._close_texts = self.custom_config_list('close_texts', self._close_texts)
         if self._motor_reverse:
@@ -179,6 +181,7 @@ class CoverEntity(XEntity, BaseEntity):
             if self._attr_is_closed is None:
                 self._attr_is_closed = val <= self._closed_position
         self._attr_extra_state_attributes.update({
+            'current_position': self._attr_current_cover_position,
             'state_is_closed': self._attr_is_closed,
         })
 
