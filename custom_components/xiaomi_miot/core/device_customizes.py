@@ -1738,6 +1738,11 @@ DEVICE_CUSTOMIZES = {
         'speed_property': 'favorite_level',
         'exclude_miot_services': None,
         'exclude_miot_properties': 'country_code,filter_used_time_dbg',
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'on,mode,favorite_level'},
+            {'interval': 121, 'props': 'alarm,physical_controls_locked,brightness,aqi_updata_heartbeat'},
+            {'interval': 300, 'props': 'filter_*'},
+        ],
     },
     'xiaomi.airp.mp4': {
         'switch_properties': 'anion,alarm',
