@@ -132,9 +132,9 @@ class CoverEntity(XEntity, BaseEntity):
         prop_status = getattr(self._conv_status, 'prop', None) if self._conv_status else None
         if prop_status:
             val = self._conv_status.value_from_dict(data)
-            if val in prop_status.list_search('Closed'):
+            if val in prop_status.list_search('Closed', 'Stop Upper Limit', 'Stop At Highest', 'Ceiling'):
                 self._attr_is_closed = True
-            elif val in prop_status.list_search('Opened'):
+            elif val in prop_status.list_search('Opened', 'Stop Lower Limit', 'Stop At Lowest'):
                 self._attr_is_closed = False
             elif val in prop_status.list_search('Opening'):
                 self._attr_is_opening = True
@@ -142,8 +142,10 @@ class CoverEntity(XEntity, BaseEntity):
                 self._attr_is_closing = True
             elif val in prop_status.list_search('Rising'):
                 self._attr_is_closing = self._position_reverse
-            elif val in prop_status.list_search('Falling'):
+            elif val in prop_status.list_search('Falling', 'Dropping'):
                 self._attr_is_opening = self._position_reverse
+            elif self._is_airer and val in prop_status.list_search('Down'):
+                self._attr_is_closed = False
             else:
                 self._attr_is_closed = None
                 self._attr_is_opening = None
@@ -174,16 +176,17 @@ class CoverEntity(XEntity, BaseEntity):
                 'target2current_position': True,
             })
         if (val := self._attr_current_cover_position) != None:
+            closed = None
             if self._deviated_position is None:
                 pass
             elif val <= self._deviated_position:
                 self._attr_current_cover_position = 0
+                closed = True
             elif val >= (100 - self._deviated_position):
                 self._attr_current_cover_position = 100
+                closed = True if self._is_airer else False
             if self._attr_is_closed is None:
-                self._attr_is_closed = val <= self._closed_position
-        if self._is_airer and self._attr_is_closed is not None:
-            self._attr_is_closed = not self._attr_is_closed
+                self._attr_is_closed = closed
         self._attr_extra_state_attributes.update({
             'state_is_closed': self._attr_is_closed,
         })
