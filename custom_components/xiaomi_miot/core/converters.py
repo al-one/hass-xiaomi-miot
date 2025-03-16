@@ -283,6 +283,15 @@ class MiotCoverConv(MiotServiceConv):
         super().__post_init__()
 
 @dataclass
+class MiotHumidifierConv(MiotServiceConv):
+    domain: str = 'humidifier'
+
+    def __post_init__(self):
+        if not self.main_props:
+            self.main_props = ['on', 'target_humidity']
+        super().__post_init__()
+
+@dataclass
 class PercentagePropConv(MiotPropConv):
     ranged = None
 

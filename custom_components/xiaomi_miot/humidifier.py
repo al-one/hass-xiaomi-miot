@@ -1,36 +1,26 @@
 """Support for humidifier and dehumidifier."""
 import logging
 
-from homeassistant.components.humidifier.const import (
-    DEFAULT_MAX_HUMIDITY,
-    DEFAULT_MIN_HUMIDITY,
-)
 from homeassistant.components.humidifier import (
     DOMAIN as ENTITY_DOMAIN,
-    HumidifierEntity,
+    HumidifierEntity as BaseEntity,
     HumidifierEntityFeature,  # v2022.5
     HumidifierDeviceClass,
 )
 
 from . import (
     DOMAIN,
-    CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
-    MiotToggleEntity,
+    XEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
-from .core.miot_spec import (
-    MiotSpec,
-    MiotService,
-)
+from .core.miot_spec import MiotProperty
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 MODE_OFF = 'Off'
-
-SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -39,148 +29,92 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    hass.data.setdefault(DATA_KEY, {})
-    hass.data[DOMAIN]['add_entities'][ENTITY_DOMAIN] = async_add_entities
-    config['hass'] = hass
-    model = str(config.get(CONF_MODEL) or '')
-    spec = hass.data[DOMAIN]['miot_specs'].get(model)
-    entities = []
-    if isinstance(spec, MiotSpec):
-        for srv in spec.get_services(ENTITY_DOMAIN, 'dehumidifier'):
-            if not srv.get_property('on'):
+    bind_services_to_entries(hass, {})
+
+
+class HumidifierEntity(XEntity, BaseEntity):
+    _attr_mode = None
+    _attr_available_modes = []
+    _conv_power = None
+    _conv_mode = None
+    _conv_target_humidity = None
+    _conv_current_humidity = None
+    _target_humidity_ratio = 1
+    _target_humidity_step = None
+
+    def on_init(self):
+        for attr in self.conv.attrs:
+            conv = self.device.find_converter(attr)
+            prop = getattr(conv, 'prop', None) if conv else None
+            if not isinstance(prop, MiotProperty):
                 continue
-            entities.append(MiotHumidifierEntity(config, srv))
-    for entity in entities:
-        hass.data[DOMAIN]['entities'][entity.unique_id] = entity
-    async_add_entities(entities, update_before_add=True)
-    bind_services_to_entries(hass, SERVICE_TO_METHOD)
+            elif prop.in_list(['on']):
+                self._conv_power = conv
+                self._attr_available_modes.append(MODE_OFF)
+                self._attr_supported_features |= HumidifierEntityFeature.MODES
+            elif prop.in_list(['mode', 'fan_level']) and not self._conv_mode:
+                self._conv_mode = conv
+                self._attr_available_modes.extend(prop.list_descriptions())
+                self._attr_supported_features |= HumidifierEntityFeature.MODES
+            elif prop.in_list(['relative_humidity', 'humidity']):
+                self._conv_current_humidity = conv
+            elif prop.in_list(['target_humidity']):
+                self._conv_target_humidity = conv
+                if prop.value_range:
+                    self._attr_min_humidity = prop.range_min()
+                    self._attr_max_humidity = prop.range_max()
+                    self._target_humidity_step = prop.range_step()
 
-
-class MiotHumidifierEntity(MiotToggleEntity, HumidifierEntity):
-    def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(miot_service, config=config, logger=_LOGGER)
-
-        self._prop_power = miot_service.get_property('on')
-        self._prop_water_level = miot_service.get_property('water_level')
-        self._prop_temperature = miot_service.get_property('temperature')
-        self._prop_target_humi = miot_service.get_property('target_humidity')
-        self._prop_humidity = miot_service.get_property('relative_humidity', 'humidity')
-        self._environment = miot_service.spec.get_service('environment')
-        if self._environment:
-            self._prop_temperature = self._environment.get_property('temperature') or self._prop_temperature
-            self._prop_target_humi = self._environment.get_property('target_humidity') or self._prop_target_humi
-            self._prop_humidity = self._environment.get_property('relative_humidity', 'humidity') or self._prop_humidity
-
-        self._mode_props = list(filter(lambda x: x, [
-            miot_service.get_property('mode'),
-            miot_service.get_property('fan_level'),
-        ]))
-        self._prop_mode = self._mode_props[0] if self._mode_props else None
-        if prop := self.custom_config('mode_property'):
-            if prop := self._miot_service.spec.get_property(prop):
-                self._prop_mode = prop
-        if self._prop_mode:
-            self._supported_features = HumidifierEntityFeature.MODES
-    async def async_added_to_hass(self):
-        await super().async_added_to_hass()
-        self._vars['target_humidity_ratio'] = self.custom_config_number('target_humidity_ratio')
-
-    async def async_update(self):
-        await super().async_update()
-        if not self._available:
-            return
-
-        if self._prop_humidity:
-            self._attr_current_humidity = int(self._prop_humidity.from_device(self.device) or 0)
-
-        if self._prop_target_humi:
-            num = int(self._prop_target_humi.from_device(self.device) or 0)
-            if fac := self._vars.get('target_humidity_ratio'):
-                num = round(num * fac)
-            self._attr_target_humidity = num
-
-    @property
-    def device_class(self):
-        if cls := self.get_device_class(HumidifierDeviceClass):
-            return cls
         typ = f'{self.model} {self._miot_service.spec.type}'
         if 'dehumidifier' in typ or '.derh.' in typ:
-            return HumidifierDeviceClass.DEHUMIDIFIER
-        return HumidifierDeviceClass.HUMIDIFIER
+            self._attr_device_class = HumidifierDeviceClass.DEHUMIDIFIER
+        else:
+            self._attr_device_class = HumidifierDeviceClass.HUMIDIFIER
+        self._target_humidity_ratio = self.custom_config_number('target_humidity_ratio', 1)
 
-    def set_humidity(self, humidity: int):
-        if not self._prop_target_humi:
-            return False
-        num = humidity
-        if self._prop_target_humi.value_range:
-            stp = self._prop_target_humi.range_step()
-            num = round(humidity / stp) * stp
-            if fac := self._vars.get('target_humidity_ratio'):
-                num = round(num / fac)
-        elif self._prop_target_humi.value_list:
-            num = None
-            vls = self._prop_target_humi.list_value(None)
+    def set_state(self, data: dict):
+        if self._conv_mode:
+            val = self._conv_mode.value_from_dict(data)
+            if val is not None:
+                self._attr_mode = val
+        if self._conv_power:
+            val = self._conv_power.value_from_dict(data)
+            if val is not None:
+                self._attr_is_on = bool(val)
+                if not self._attr_is_on:
+                    self._attr_mode = MODE_OFF
+        if self._conv_target_humidity:
+            val = self._conv_target_humidity.value_from_dict(data)
+            if val is not None:
+                self._attr_target_humidity = round(val * self._target_humidity_ratio)
+        if self._conv_current_humidity:
+            val = self._conv_current_humidity.value_from_dict(data)
+            if val is not None:
+                self._attr_current_humidity = val
+
+    async def async_set_mode(self, mode: str):
+        if mode == MODE_OFF:
+            await self.async_turn_off()
+            return
+        if not self._conv_mode:
+            return
+        await self.device.async_write({self._conv_mode.full_name: mode})
+
+    async def async_set_humidity(self, humidity: int):
+        if not self._conv_target_humidity:
+            return
+        prop = getattr(self._conv_target_humidity, 'prop', None)
+        if self._target_humidity_step:
+            humidity = round(humidity / self._target_humidity_step) * self._target_humidity_step
+        elif prop and prop.value_list:
+            vls = prop.list_value(None)
             vls.sort()
             for n in vls:
-                if humidity >= n or num is None:
-                    num = n
-        if num is None:
-            return False
-        return self.set_property(self._prop_target_humi, num)
+                if humidity >= n:
+                    humidity = n
+                    break
+        if self._target_humidity_ratio:
+            humidity = round(humidity / self._target_humidity_ratio)
+        await self.device.async_write({self._conv_target_humidity.full_name: humidity})
 
-    @property
-    def min_humidity(self):
-        if not self._prop_target_humi:
-            return DEFAULT_MIN_HUMIDITY
-        if self._prop_target_humi.value_list:
-            vls = self._prop_target_humi.list_value(None)
-            vls.sort()
-            return vls[0]
-        num = self._prop_target_humi.range_min()
-        if fac := self._vars.get('target_humidity_ratio'):
-            num = round(num * fac)
-        return num
-
-    @property
-    def max_humidity(self):
-        if not self._prop_target_humi:
-            return DEFAULT_MAX_HUMIDITY
-        if self._prop_target_humi.value_list:
-            vls = self._prop_target_humi.list_value(None)
-            vls.sort()
-            return vls[-1]
-        num = self._prop_target_humi.range_max()
-        if fac := self._vars.get('target_humidity_ratio'):
-            num = round(num * fac)
-        return num
-
-    @property
-    def mode(self):
-        if not self.is_on:
-            return MODE_OFF
-        if not self._prop_mode:
-            return None
-        val = self._prop_mode.from_device(self.device)
-        if val is None:
-            return None
-        return self._prop_mode.list_description(val)
-
-    @property
-    def available_modes(self):
-        mds = [MODE_OFF]
-        if self._prop_mode:
-            mds.extend(self._prop_mode.list_descriptions() or [])
-        return mds
-
-    def set_mode(self, mode: str):
-        if mode == MODE_OFF:
-            return self.turn_off()
-        if not self._prop_mode:
-            return False
-        val = self._prop_mode.list_value(mode)
-        if val is None:
-            return False
-        if mode != MODE_OFF and not self.is_on:
-            if not self.turn_on():
-                return False
-        return self.set_property(self._prop_mode, val)
+XEntity.CLS[ENTITY_DOMAIN] = HumidifierEntity

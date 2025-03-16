@@ -307,6 +307,32 @@
                 "Scene": "场景",
                 "Music": "音乐"
             }
+        },
+        "humidifier": {
+            "humidifier": {
+                "state_attributes": {
+                    "available_modes": {
+                        "state": {
+                            "Off": "关闭",
+                            "Sleep": "睡眠",
+                            "Strong": "强力",
+                            "Constant Humidity": "恒湿"
+                        }
+                    }
+                }
+            },
+            "dehumidifier": {
+                "state_attributes": {
+                    "available_modes": {
+                        "state": {
+                            "Off": "关闭",
+                            "Sleep": "睡眠",
+                            "Strong": "强力",
+                            "Constant Humidity": "恒湿"
+                        }
+                    }
+                }
+            }
         }
     },
     "services": {
