@@ -2284,9 +2284,15 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'reset_filter_life',
     },
     'zhimi.airp.rma3': {
+        'interval_seconds': 150,
         'sensor_properties': 'moto_speed_rpm',
         'switch_properties': 'alarm',
         'select_properties': 'brightness,air_purifier_favorite.fan_level',
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'on,mode,fan_level'},
+            {'interval': 61, 'props': 'fault,relative_humidity,pm2_5_density,temperature,air_quality'},
+            {'interval': 301, 'props': 'filter_*'},
+        ],
     },
     'zhimi.airp.vb4:pm10_density': {
         'unit_of_measurement': 'µg/m³',
