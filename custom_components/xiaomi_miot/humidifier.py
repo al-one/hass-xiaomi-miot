@@ -1,5 +1,6 @@
 """Support for humidifier and dehumidifier."""
 import logging
+from bisect import bisect
 
 from homeassistant.components.humidifier import (
     DOMAIN as ENTITY_DOMAIN,
@@ -92,6 +93,16 @@ class HumidifierEntity(XEntity, BaseEntity):
             if val is not None:
                 self._attr_current_humidity = val
 
+    async def async_turn_on(self):
+        if not self._conv_power:
+            return
+        await self.device.async_write({self._conv_power.full_name: True})
+
+    async def async_turn_off(self):
+        if not self._conv_power:
+            return
+        await self.device.async_write({self._conv_power.full_name: False})
+
     async def async_set_mode(self, mode: str):
         if mode == MODE_OFF:
             await self.async_turn_off()
@@ -109,10 +120,8 @@ class HumidifierEntity(XEntity, BaseEntity):
         elif prop and prop.value_list:
             vls = prop.list_value(None)
             vls.sort()
-            for n in vls:
-                if humidity >= n:
-                    humidity = n
-                    break
+            idx = bisect(vls, humidity)
+            humidity = vls[idx - 1] if idx > 0 else vls[0]
         if self._target_humidity_ratio:
             humidity = round(humidity / self._target_humidity_ratio)
         await self.device.async_write({self._conv_target_humidity.full_name: humidity})
