@@ -2985,7 +2985,8 @@ GLOBAL_CONVERTERS = [
         'class': MiotHumidifierConv,
         'services': ['humidifier', 'dehumidifier'],
         'converters' : [
-            {'props': ['on', 'mode', 'target_humidity']},
+            {'props': ['on', 'target_humidity']},
+            {'props': ['mode'], 'desc': True},
             {'props': ['relative_humidity', 'humidity']},
             {'props': ['environment.relative_humidity', 'environment.humidity']},
             {'props': ['fan_level', 'fan_control.fan_level'], 'desc': True, 'domain': 'select'},
