@@ -679,8 +679,8 @@ DEVICE_CUSTOMIZES = {
         ],
         'append_converters': [
             {
-                'services': ['dm_service'],
-                'converters': [{'props': ['speed_level']}],
+                'services': ['fan'],
+                'converters': [{'props': ['dm_service.speed_level']}],
             }
         ],
     },
