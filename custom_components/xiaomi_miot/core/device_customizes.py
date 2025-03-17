@@ -1918,6 +1918,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm,dry_switch,over_wet_protect,screen.on',
         'number_properties': 'off_delay_time',
     },
+    'xiaomi.humidifier.p1200:water_level': {
+        'state_class': 'measurement',
+        'unit_of_measurement': '%',
+    },
     'xiaomi.kettle.v20': {
         'button_actions': 'stop_work',
         'binary_sensor_properties': 'kettle_lifting',
