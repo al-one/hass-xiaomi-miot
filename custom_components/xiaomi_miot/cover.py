@@ -175,19 +175,17 @@ class CoverEntity(XEntity, BaseEntity):
             self._attr_extra_state_attributes.update({
                 'target2current_position': True,
             })
-        if (val := self._attr_current_cover_position) != None:
-            closed = None
+        if (val := self._attr_current_cover_position) is not None:
+            closed = val <= self._closed_position
             if self._deviated_position is None:
                 pass
             elif val <= self._deviated_position:
                 self._attr_current_cover_position = 0
-                closed = True
+                closed = not self._is_airer
             elif val >= (100 - self._deviated_position):
                 self._attr_current_cover_position = 100
-                closed = True if self._is_airer else False
-            if closed is None:
-                closed = val <= self._closed_position
-            if self._attr_is_closed is None:
+                closed = self._is_airer
+            if self._attr_is_closed is None or not prop_status:
                 self._attr_is_closed = closed
         self._attr_extra_state_attributes.update({
             'state_is_closed': self._attr_is_closed,
