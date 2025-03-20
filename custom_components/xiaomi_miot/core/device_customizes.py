@@ -1576,7 +1576,7 @@ DEVICE_CUSTOMIZES = {
     },
 
     'topwit.bhf_light.rz01': {
-        'sensor_properties': 'temperature',
+        'sensor_attributes': 'ptc_bath_heater.temperature.error',
         'switch_properties': 'heating,blow,ventilation',
         'number_properties': 'ventilation_cnt_down',
     },
