@@ -2650,6 +2650,7 @@ DEVICE_CUSTOMIZES = {
     },
     '*.heater.*': {
         'switch_properties': 'heater.on,horizontal_swing,alarm.alarm,delay.delay',
+        'select_properties': 'heat_level',
         'number_properties': 'countdown_time,delay_time',
         'chunk_coordinators': [
             {'interval': 10, 'props': 'on,mode,target_temperature,fan_level'},
