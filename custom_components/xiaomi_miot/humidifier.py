@@ -45,6 +45,7 @@ class HumidifierEntity(XEntity, BaseEntity):
 
     def on_init(self):
         self._attr_available_modes = []
+        self._target_humidity_ratio = self.custom_config_number('target_humidity_ratio', 1)
 
         for attr in self.conv.attrs:
             conv = self.device.find_converter(attr)
@@ -67,13 +68,20 @@ class HumidifierEntity(XEntity, BaseEntity):
                     self._attr_min_humidity = prop.range_min()
                     self._attr_max_humidity = prop.range_max()
                     self._target_humidity_step = prop.range_step()
+                elif prop.value_list:
+                    vls = prop.list_value(None)
+                    vls.sort()
+                    self._attr_min_humidity = vls[0]
+                    self._attr_max_humidity = vls[-1]
+                if self._target_humidity_ratio:
+                    self._attr_min_humidity = round(self._attr_min_humidity * self._target_humidity_ratio)
+                    self._attr_max_humidity = round(self._attr_max_humidity * self._target_humidity_ratio)
 
         typ = f'{self.model} {self._miot_service.spec.type}'
         if 'dehumidifier' in typ or '.derh.' in typ:
             self._attr_device_class = HumidifierDeviceClass.DEHUMIDIFIER
         else:
             self._attr_device_class = HumidifierDeviceClass.HUMIDIFIER
-        self._target_humidity_ratio = self.custom_config_number('target_humidity_ratio', 1)
 
     def set_state(self, data: dict):
         if self._conv_mode:
