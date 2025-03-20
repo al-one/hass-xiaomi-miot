@@ -35,7 +35,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class HumidifierEntity(XEntity, BaseEntity):
     _attr_mode = None
-    _attr_available_modes = []
+    _attr_available_modes = None
     _conv_power = None
     _conv_mode = None
     _conv_target_humidity = None
@@ -44,6 +44,8 @@ class HumidifierEntity(XEntity, BaseEntity):
     _target_humidity_step = None
 
     def on_init(self):
+        self._attr_available_modes = []
+
         for attr in self.conv.attrs:
             conv = self.device.find_converter(attr)
             prop = getattr(conv, 'prop', None) if conv else None
