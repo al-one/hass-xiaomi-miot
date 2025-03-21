@@ -547,26 +547,42 @@ class MiotCloud(micloud.MiCloud):
         # 20003 InvalidUserNameException
         # 22009 PackageNameDeniedException
         # 70002 InvalidCredentialException
-        # 70016 InvalidCredentialException with captchaUrl
+        # 70016 InvalidCredentialException with captchaUrl / Password error
         # 81003 NeedVerificationException
         # 87001 InvalidResponseException captCode error
         # other NeedCaptchaException
         location = auth.get('location')
         if not location:
+            tip = None
+            lnk = f'/config/integrations/integration/{DOMAIN}'
             if cap := auth.get('captchaUrl'):
                 if cap[:4] != 'http':
                     cap = f'{ACCOUNT_BASE}{cap}'
                 if self._get_captcha(cap):
                     self.attrs['login_data'] = kwargs
+                tip = ('Your Xiaomi account login status has expired, but this time manual verification is required. '
+                       f'Please login again through [integrated configuration]({lnk}).\n'
+                       f'你的小米账号登陆状态已失效，但本次需要手动验证，请通过[集成配置]({lnk})重新登陆。')
             if ntf := auth.get('notificationUrl'):
                 if ntf[:4] != 'http':
                     ntf = f'{ACCOUNT_BASE}{ntf}'
-                self.attrs['notificationUrl'] = ntf
+                tip = (f'This login requires security verification for the Xiaomi account. '
+                       f'[Click here]({ntf}) to complete the verification and log in again through '
+                       f'[integrated configuration]({lnk}).\n'
+                       f'本次登录小米账号需要安全验证，[点击这里]({ntf})完成验证，并通过[集成配置]({lnk})重新登陆。'
+                       f'你需要在与HA宿主机同局域网的设备下完成安全验证，如果你的HA部署在云服务器，可能将无法验证通过。')
+            if tip:
+                persistent_notification.create(
+                    self.hass,
+                    tip,
+                    f'Login to Xiaomi: {self.username}',
+                    f'{DOMAIN}-login',
+                )
             _LOGGER.error(
                 'Xiaomi serviceLoginAuth2: %s',
                 [url, self.login_times, {**post, 'hash': '*'}, headers, cookies, response.text],
             )
-            raise MiCloudAccessDenied(f'Login to xiaomi error: {response.text}')
+            raise MiCloudAccessDenied(tip or f'Login to xiaomi error: {response.text}')
         self.user_id = str(auth.get('userId', ''))
         self.cuser_id = auth.get('cUserId')
         self.ssecurity = auth.get('ssecurity')

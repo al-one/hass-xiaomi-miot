@@ -145,18 +145,10 @@ class BaseFlowHandler:
         except (MiCloudException, MiCloudAccessDenied, Exception) as exc:
             err = f'{exc}'
             errors['base'] = 'cannot_login'
+            if not mic:
+                mic = self.cloud
             if isinstance(exc, MiCloudAccessDenied) and mic:
-                if url := mic.attrs.pop('notificationUrl', None):
-                    err = f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!\n' \
-                          f'本次登录小米账号需要安全验证，[点击这里]({url})继续！你需要在与HA宿主机同局域网的设备下完成安全验证，' \
-                          '如果你的HA部署在云服务器，可能将无法验证通过。'
-                    persistent_notification.create(
-                        self.hass,
-                        err,
-                        f'Login to Xiaomi: {mic.username}',
-                        f'{DOMAIN}-login',
-                    )
-                elif url := mic.attrs.pop('captchaImg', None):
+                if url := mic.attrs.pop('captchaImg', None):
                     err = f'Captcha:\n![captcha](data:image/jpeg;base64,{url})'
                     self.context['captchaIck'] = mic.attrs.get('captchaIck')
             if isinstance(exc, requests.exceptions.ConnectionError):
