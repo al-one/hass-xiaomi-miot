@@ -2203,6 +2203,13 @@ DEVICE_CUSTOMIZES = {
             'extension.rc_list':   {'siid': 4, 'piid': 3},
         },
     },
+    'yuemee.sensor_gas.56712': {
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'status'},
+            {'interval': 120, 'props': 'updown'},
+            {'interval': 300, 'props': 'read_log_data'},
+        ],
+    },
     'yunmi.kettle.*': {
         'button_actions': 'stop_work',
         'binary_sensor_properties': 'kettle_lifting',
