@@ -4,7 +4,6 @@ import re
 import copy
 import requests
 import voluptuous as vol
-import json
 
 from typing import Optional
 from homeassistant import config_entries
@@ -146,6 +145,8 @@ class BaseFlowHandler:
         except (MiCloudException, MiCloudAccessDenied, Exception) as exc:
             err = f'{exc}'
             errors['base'] = 'cannot_login'
+            if not mic:
+                mic = self.cloud
             if isinstance(exc, MiCloudAccessDenied) and mic:
                 if url := mic.attrs.pop('notificationUrl', None):
                     err = f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!\n' \
@@ -160,17 +161,6 @@ class BaseFlowHandler:
                 elif url := mic.attrs.pop('captchaImg', None):
                     err = f'Captcha:\n![captcha](data:image/jpeg;base64,{url})'
                     self.context['captchaIck'] = mic.attrs.get('captchaIck')
-            elif isinstance(exc, MiCloudAccessDenied):
-                msg = json.loads(exc.message.replace("Login to xiaomi error: &&&START&&&", "")) or {}
-                if (url := msg.get('notificationUrl')) and msg.get('code') == 0:
-                    err = f'The login of Xiaomi account needs security verification. [Click here]({url}) to continue!\n' \
-                          f'本次登录小米账号需要安全验证，[点击这里]({url})继续！你需要在与HA宿主机同局域网的设备下完成安全验证'
-                    persistent_notification.create(
-                        self.hass,
-                        err,
-                        f'Login to Xiaomi:',
-                        f'{DOMAIN}-login',
-                    )
             if isinstance(exc, requests.exceptions.ConnectionError):
                 errors['base'] = 'cannot_reach'
             elif 'ZoneInfoNotFoundError' in err:
