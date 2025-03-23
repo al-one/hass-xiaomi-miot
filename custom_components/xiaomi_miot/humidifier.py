@@ -119,6 +119,8 @@ class HumidifierEntity(XEntity, BaseEntity):
             return
         if not self._conv_mode:
             return
+        if mode != MODE_OFF and not self._attr_is_on:
+            await self.async_turn_on()
         await self.device.async_write({self._conv_mode.full_name: mode})
 
     async def async_set_humidity(self, humidity: int):
