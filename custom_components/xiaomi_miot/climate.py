@@ -243,14 +243,18 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 for mk, mv in self._hvac_modes.items():
                     if val == mv.get('description'):
                         self._attr_hvac_mode = mk
+                        self._attr_hvac_action = mv.get('action')
                         break
         if self._conv_power:
             val = self._conv_power.value_from_dict(data)
             self._attr_is_on = val
             if val in [False, 0]:
                 self._attr_hvac_mode = HVACMode.OFF
+                self._attr_hvac_action = None
             elif val and self._attr_hvac_mode in [None, HVACMode.OFF]:
                 self._attr_hvac_mode = HVACMode.AUTO
+            if val and self._miot_service.name in ['heater'] and self._attr_hvac_action is None:
+                self._attr_hvac_action = HVACAction.HEATING
         self._attr_state = self._attr_hvac_mode
 
         if self._conv_speed:
