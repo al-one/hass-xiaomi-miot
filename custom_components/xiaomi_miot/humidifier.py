@@ -117,13 +117,21 @@ class HumidifierEntity(XEntity, BaseEntity):
         if mode == MODE_OFF:
             await self.async_turn_off()
             return
-        if not self._conv_mode:
-            return
-        await self.device.async_write({self._conv_mode.full_name: mode})
+        data = {}
+        if not self._attr_is_on and self._conv_power:
+            data[self._conv_power.full_name] = True
+        if self._conv_mode:
+            data[self._conv_mode.full_name] = mode
+        if data:
+            await self.device.async_write(data)
 
     async def async_set_humidity(self, humidity: int):
         if not self._conv_target_humidity:
             return
+        data = {}
+        if not self._attr_is_on and self._conv_power:
+            data[self._conv_power.full_name] = True
+
         prop = getattr(self._conv_target_humidity, 'prop', None)
         if self._target_humidity_step:
             humidity = round(humidity / self._target_humidity_step) * self._target_humidity_step
@@ -134,6 +142,8 @@ class HumidifierEntity(XEntity, BaseEntity):
             humidity = vls[idx - 1] if idx > 0 else vls[0]
         if self._target_humidity_ratio:
             humidity = round(humidity / self._target_humidity_ratio)
-        await self.device.async_write({self._conv_target_humidity.full_name: humidity})
+
+        data[self._conv_target_humidity.full_name] = humidity
+        await self.device.async_write(data)
 
 XEntity.CLS[ENTITY_DOMAIN] = HumidifierEntity
