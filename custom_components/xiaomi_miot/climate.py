@@ -235,6 +235,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
         self._attr_hvac_modes = list(hvac_modes)
 
     def set_state(self, data: dict):
+        self._attr_hvac_action = None
         if self._conv_mode:
             val = self._conv_mode.value_from_dict(data)
             if val in self._attr_preset_modes:
