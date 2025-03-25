@@ -2169,6 +2169,15 @@ DEVICE_CUSTOMIZES = {
     'yeelink.light.fancl5': {
         'number_properties': 'fan_speed_std,fan_speed_rec,dl_brightness,nl_brightness',
     },
+    'yeelink.light.lamp22': {
+        'interval_seconds': 120,
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'on,brightness,color_temperature,mode'},
+            {'interval': 61, 'props': 'default_power_on_state,delay_*,scene_mode,work_minutes,break_minutes'},
+            {'interval': 71, 'props': 'mode_one_*,mode_two_*'},
+            {'interval': 76, 'props': 'mode_three_*,mode_four_*'},
+        ],
+    },
     'yeelink.light.nl1': {
         'use_ble_object': True,
         'motion_timeout': 120,
