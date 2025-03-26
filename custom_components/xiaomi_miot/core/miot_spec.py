@@ -200,7 +200,7 @@ class MiotSpec(MiotSpecInstance):
             if dat is None:
                 dat = {}
             nxt = s.mapping(excludes=eps, includes=ips, unreadable_properties=urp) or {}
-            dat = {**nxt, **dat}
+            dat.update({**nxt, **dat})
         return dat
 
     def set_custom_mapping(self, mapping: dict):

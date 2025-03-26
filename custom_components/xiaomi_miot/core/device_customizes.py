@@ -2182,10 +2182,11 @@ DEVICE_CUSTOMIZES = {
     'yeelink.light.lamp22': {
         'interval_seconds': 120,
         'chunk_coordinators': [
-            {'interval': 11, 'props': 'on,brightness,color_temperature,mode'},
-            {'interval': 61, 'props': 'default_power_on_state,delay_*,scene_mode,work_minutes,break_minutes'},
-            {'interval': 71, 'props': 'mode_one_*,mode_two_*'},
-            {'interval': 76, 'props': 'mode_three_*,mode_four_*'},
+            {'interval': 21, 'props': 'on,brightness'},
+            {'interval': 31, 'props': 'color_temperature,mode,default_power_on_state'},
+            {'interval': 81, 'props': 'delay_*,scene_mode,work_minutes,break_minutes'},
+            {'interval': 91, 'props': 'mode_one_*,mode_two_*'},
+            {'interval': 96, 'props': 'mode_three_*,mode_four_*'},
         ],
     },
     'yeelink.light.nl1': {
