@@ -674,8 +674,8 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'off_delay_time',
         'exclude_miot_properties': 'natural_*',
         'chunk_coordinators': [
-            {'interval': 16, 'props': 'on,mode,fan_level'},
-            {'interval': 21, 'props': 'speed_level,off_delay_time,horizontal_swing*'},
+            {'interval': 16, 'props': 'on,mode,fan_level,speed_level'},
+            {'interval': 21, 'props': 'off_delay_time,horizontal_swing*'},
         ],
         'append_converters': [
             {
@@ -1368,6 +1368,16 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'nursing_value,fan_level,buzzer_status',
         'number_properties': 'temp_set,fan_countdown_time',
         'percentage_property': 'fan_advance.speed',
+        'append_converters': [
+            {
+                'services': ['fan'],
+                'converters': [{'props': ['fan_advance.speed']}],
+            }
+        ],
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'light.on,mode,brightness,color_temperature'},
+            {'interval': 16, 'props': 'fan.on,speed,fan_level'},
+        ],
     },
     'opple.light.yrtd': {
         'switch_properties': 'night_light,time_display,wake_up_at_night,voice',
@@ -2383,8 +2393,8 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'horizontal_angle,vertical_angle,off_delay',
         'append_converters': [
             {
-                'services': ['custom_service'],
-                'converters': [{'props': ['speed_level']}],
+                'services': ['fan'],
+                'converters': [{'props': ['custom_service.speed_level']}],
             }
         ],
     },
