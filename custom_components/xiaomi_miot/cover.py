@@ -132,9 +132,9 @@ class CoverEntity(XEntity, BaseEntity):
         prop_status = getattr(self._conv_status, 'prop', None) if self._conv_status else None
         if prop_status:
             val = self._conv_status.value_from_dict(data)
-            if val in prop_status.list_search('Closed', 'Stop Upper Limit', 'Stop At Highest', 'Ceiling'):
+            if val in prop_status.list_search('Closed'):
                 self._attr_is_closed = True
-            elif val in prop_status.list_search('Opened', 'Stop Lower Limit', 'Stop At Lowest'):
+            elif val in prop_status.list_search('Opened'):
                 self._attr_is_closed = False
             elif val in prop_status.list_search('Opening'):
                 self._attr_is_opening = True
@@ -144,6 +144,10 @@ class CoverEntity(XEntity, BaseEntity):
                 self._attr_is_closing = self._position_reverse
             elif val in prop_status.list_search('Falling', 'Dropping'):
                 self._attr_is_opening = self._position_reverse
+            elif val in prop_status.list_search('Stop Lower Limit', 'Stop At Lowest', 'Floor'):
+                self._attr_is_closed = not self._position_reverse
+            elif val in prop_status.list_search('Stop Upper Limit', 'Stop At Highest', 'Ceiling'):
+                self._attr_is_closed = None if self._is_airer else self._position_reverse
             elif self._is_airer and val in prop_status.list_search('Down'):
                 self._attr_is_closed = False
             else:
