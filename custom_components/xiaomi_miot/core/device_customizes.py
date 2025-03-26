@@ -1907,7 +1907,7 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'g',
     },
     'xiaomi.feeder.*:pet_food_out': {
-        'action_params': 1,
+        'action_params': '{{ attrs["target_feeding_measure-2-7"]|default(1) }}',
     },
     'xiaomi.juicer.dems2': {
         'button_actions': 'start_cook,cancel_cooking,resume_cook,set_recipe,pause',

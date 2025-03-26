@@ -14,6 +14,7 @@ from . import (
     BaseSubEntity,
     async_setup_config_entry,
 )
+from .core.templates import template
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -43,6 +44,14 @@ class ButtonEntity(XEntity, BaseEntity):
         pms = getattr(self.conv, 'value', None)
         if self._miot_action and self._miot_action.ins:
             pms = self.custom_config_list('action_params', pms)
+            if pms:
+                vars = {
+                    'attrs': self.device.props,
+                }
+                pms = [
+                    v if not isinstance(v, str) else template(v, self.hass).async_render(vars)
+                    for v in pms
+                ]
         await self.device.async_write({self.attr: pms})
 
 XEntity.CLS[ENTITY_DOMAIN] = ButtonEntity
