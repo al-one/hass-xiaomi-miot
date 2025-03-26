@@ -1586,6 +1586,14 @@ DEVICE_CUSTOMIZES = {
         'chunk_coordinators': [],
     },
 
+    'tofan.airrtc.wk01': {
+        'append_converters': [
+            {
+                'services': ['thermostat'],
+                'converters': [{'props': ['air_conditioner.mode']}],
+            }
+        ],
+    },
     'topwit.bhf_light.rz01': {
         'sensor_attributes': 'ptc_bath_heater.temperature.error',
         'switch_properties': 'heating,blow,ventilation',
