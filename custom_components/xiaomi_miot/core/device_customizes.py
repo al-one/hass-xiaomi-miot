@@ -1930,6 +1930,13 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'indicator_light.brightness',
         'number_properties': 'delay_time',
     },
+    'xiaomi.humidifier.p800': {
+        'button_actions': 'loop_mode,reset_filter_life',
+        'select_properties': 'screen.brightness',
+        'sensor_properties': 'fault,water_level,air_dry_remain_time,clean_left_time,filter_life_level,delay_remain_time',
+        'switch_properties': 'overwet_protect,automatic_air_drying,alarm,dry_switch,over_wet_protect,screen.on,delay',
+        'number_properties': 'delay_time',
+    },
     'xiaomi.humidifier.p1200': {
         'button_actions': 'loop_mode,reset_filter_life',
         'select_properties': 'screen.brightness',
@@ -1937,7 +1944,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm,dry_switch,over_wet_protect,screen.on',
         'number_properties': 'off_delay_time',
     },
-    'xiaomi.humidifier.p1200:water_level': {
+    'xiaomi.humidifier.*:water_level': {
         'state_class': 'measurement',
         'unit_of_measurement': '%',
     },
