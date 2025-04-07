@@ -412,9 +412,10 @@ class Device(CustomConfigHelper):
                     for pc in cfg.get('converters') or []:
                         if not (props := pc.get('props')):
                             continue
+                        exclude_format = pc.get('exclude_format')
                         for p in props:
                             if '.' in p:
-                                prop = self.spec.get_property(p)
+                                prop = self.spec.get_property(p, exclude_format=exclude_format)
                             else:
                                 prop = service.get_property(p)
                             if not prop:

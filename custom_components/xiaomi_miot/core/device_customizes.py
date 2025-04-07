@@ -1933,6 +1933,23 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.heater.ma8': {
         'button_actions': 'toggle',
     },
+    'xiaomi.hood.jyjp2': {
+        'interval_seconds': 90,
+        'button_actions': 'toggle,stop_dry_cleaning',
+        'binary_sensor_properties': 'prop.12.2,prop.12.3',
+        'sensor_properties': 'status,stove_link_status,current_heat_level,left_time,stove_hood_linkage,charge_progress,'
+                             'dry_cleaning_status,dry_cleaning_left_time,pm1',
+        'switch_properties': 'delay,off_delay,power_on_with_light,power_off_with_light,clean_remind_on,gestures,'
+                             'auto_ventilation_on,*_auto_ventilation,dry_cleaning_timing_on,dry_cleaning_guide,'
+                             'auto_screen_off,delay_remain_time',
+        'select_properties': 'display_state,delay_time',
+        'number_properties': 'off_delay_time,countdown_time,clean_remind_time,working_remind_time,auto_screen_off_time,'
+                             'pm_trig_*_value,pm_auto_ventilation_time',
+        'chunk_coordinators': [
+            {'interval': 16, 'props': 'on,fan_level,current_heat_level'},
+            {'interval': 21, 'props': 'status,left_time'},
+        ],
+    },
     'xiaomi.humidifier.airmx': {
         'button_actions': 'toggle,reset_filter_life',
         'sensor_properties': 'water_level,air_dry_remain_time,remain_time,filter_life_level',
@@ -3095,10 +3112,12 @@ GLOBAL_CONVERTERS = [
             {
                 'props': [
                     'temperature', 'indoor_temperature', 'outdoor_temperature', 'relative_humidity', 'humidity',
-                    'pm2_5_density', 'pm10_density', 'co2_density', 'tvoc_density', 'voc_density', 'hcho_density',
-                    'air_quality', 'air_quality_index', 'illumination', 'atmospheric_pressure',
+                    'pm2_5_density', 'pm10_density', 'co_density', 'co2_density', 'tvoc_density', 'voc_density',
+                    'hcho_density', 'ch4_density', 'illumination', 'atmospheric_pressure',
+                    'air_quality', 'air_quality_index',
                 ],
                 'domain': 'sensor',
+                'exclude_format': ['bool'],
             },
         ],
     },

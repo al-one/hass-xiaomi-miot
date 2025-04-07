@@ -241,9 +241,9 @@ class MiotSpec(MiotSpecInstance):
             return s
         return None
 
-    def get_property(self, *args, only_format=None):
+    def get_property(self, *args, only_format=None, exclude_format=None):
         for srv in self.services.values():
-            if p := srv.get_property(*args, only_format=only_format):
+            if p := srv.get_property(*args, only_format=only_format, exclude_format=exclude_format):
                 return p
         return None
 
@@ -571,14 +571,18 @@ class MiotService(MiotSpecInstance):
             if not p.in_list(excludes) and (not args or p.in_list(args))
         ]
 
-    def get_property(self, *args, only_format=None):
+    def get_property(self, *args, only_format=None, exclude_format=None):
         if only_format:
             only_format = only_format if isinstance(only_format, list) else [only_format]
+        if exclude_format:
+            exclude_format = exclude_format if isinstance(exclude_format, list) else [exclude_format]
         for a in args:
             for p in self.properties.values():
                 if not p.in_list([a]):
                     continue
                 if only_format and p.format not in only_format:
+                    continue
+                if exclude_format and p.format in exclude_format:
                     continue
                 return p
         return None
