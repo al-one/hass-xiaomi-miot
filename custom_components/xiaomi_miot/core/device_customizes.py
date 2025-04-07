@@ -1574,6 +1574,17 @@ DEVICE_CUSTOMIZES = {
         'state_property': 'chanitex_wp_gs.rsysstate',
         'sensor_properties': 'tds_in,tds_out,rwaterconsumption,rfilterwaterlifei,rfilterwaterlifeii,rfilterwaterlifeiii',
     },
+    'shhf.light.sfla12': {
+        'button_actions': 'toggle,toggle_light_mode',
+        'switch_properties': 'ambient_light.on,switch.on,default_power_on_state,flex_switch,sleep_aid_mode,wake_up_mode,'
+                             'delay,off_to_center,vertical_swing,horizontal_swing',
+        'chunk_coordinators': [
+            {'interval': 16, 'props': 'light.on,brightness,color_temperature,mode'},
+            {'interval': 21, 'props': 'fan.on,fan_level,ambient_light.on,switch.on'},
+            {'interval': 61, 'props': 'default_power_on_state,flex_switch,sleep_aid_mode,wake_up_mode'},
+            {'interval': 71, 'props': 'delay*,off_to_center,vertical_swing,horizontal_swing'},
+        ],
+    },
     'shuii.humidifier.jsq002': {
         'brightness_for_on': 3,
         'brightness_for_off': 1,
