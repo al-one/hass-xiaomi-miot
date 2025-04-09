@@ -120,7 +120,7 @@ class BaseFlowHandler:
     hass = None
     context = None
     config_data = None
-    cloud: MiotCloud = None
+    cloud: Optional[MiotCloud] = None
     devices: Optional[list] = None
 
     async def get_cloud(self, user_input):
@@ -137,6 +137,7 @@ class BaseFlowHandler:
         dvs = []
         mic = None
         try:
+            self.cloud = None
             mic = await self.get_cloud(user_input)
             dvs = await mic.async_get_devices(renew=renew_devices) or []
             if renew_devices:
