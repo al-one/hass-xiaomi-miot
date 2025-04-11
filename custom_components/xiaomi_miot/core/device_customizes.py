@@ -1614,16 +1614,22 @@ DEVICE_CUSTOMIZES = {
     'uvfive.steriliser.maine': CHUNK_1,
 
     'viomi.aircondition.y116': {
-        **CHUNK_1,
         'interval_seconds': 200,
         'switch_properties': 'air_conditioner.on,uv,auto_clean',
         'exclude_miot_properties': 'fault,autoclean_worktime',
         'chunk_coordinators': [
-            {'interval': 31, 'props': 'air_conditioner.on,mode'},
-            {'interval': 41, 'props': 'target_temperature,eco,sleep_mode'},
-            {'interval': 51, 'props': 'fan_level,horizontal_swing,vertical_swing'},
-            {'interval': 61, 'props': 'temperature,uv'},
-            {'interval': 299, 'props': 'auto_clean,indicator_light.on'},
+            {'interval': 31, 'props': 'air_conditioner.on'},
+            {'interval': 36, 'props': 'mode'},
+            {'interval': 41, 'props': 'target_temperature'},
+            {'interval': 46, 'props': 'fan_level'},
+            {'interval': 51, 'props': 'horizontal_swing'},
+            {'interval': 56, 'props': 'vertical_swing'},
+            {'interval': 61, 'props': 'temperature'},
+            {'interval': 66, 'props': 'uv'},
+            {'interval': 71, 'props': 'eco'},
+            {'interval': 76, 'props': 'sleep_mode'},
+            {'interval': 199, 'props': 'indicator_light.on'},
+            {'interval': 299, 'props': 'auto_clean'},
         ],
     },
     'viomi.airer.xy108': {
