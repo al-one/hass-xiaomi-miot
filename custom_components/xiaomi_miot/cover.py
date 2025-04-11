@@ -99,7 +99,7 @@ class CoverEntity(XEntity, BaseEntity):
                 if prop.value_range:
                     self._conv_current_position = conv
                     self._current_range = (prop.range_min(), prop.range_max())
-                elif prop.value_list and self._cover_position_mapping:
+                elif prop.value_list and self._cover_position_mapping and not self._conv_current_position:
                     self._conv_current_position = conv
                     self._current_range = (0, 100)
             elif prop.value_range and isinstance(conv, MiotTargetPositionConv):
