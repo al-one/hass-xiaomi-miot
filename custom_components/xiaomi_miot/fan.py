@@ -136,7 +136,7 @@ class FanEntity(XEntity, BaseEntity):
         if not prop:
             return
         self._speed_list = prop.list_descriptions()
-        self._attr_speed_count = len(prop.value_list)
+        self._attr_speed_count = len(self._speed_list)
         self._attr_extra_state_attributes['speed_list'] = self._speed_list
         self._attr_supported_features |= FanEntityFeature.SET_SPEED
 
