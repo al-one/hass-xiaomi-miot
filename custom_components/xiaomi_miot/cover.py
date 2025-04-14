@@ -79,7 +79,7 @@ class CoverEntity(XEntity, BaseEntity):
         self._close_texts = self.custom_config_list('close_texts', self._close_texts)
         if self._motor_reverse:
             self._open_texts, self._close_texts = self._close_texts, self._open_texts
-        self._target_position_props = self.custom_config_list('target_position_props') or ['target_position']
+        self._target_position_props = self.custom_config_list('target_position_props') or []
         self._cover_position_mapping = self.custom_config_json('cover_position_mapping') or {}
 
         for attr in self.conv.attrs:
@@ -99,9 +99,11 @@ class CoverEntity(XEntity, BaseEntity):
                 if prop.value_range:
                     self._conv_current_position = conv
                     self._current_range = (prop.range_min(), prop.range_max())
+                    self.log.debug('current_position: %s', conv)
                 elif prop.value_list and self._cover_position_mapping and not self._conv_current_position:
                     self._conv_current_position = conv
                     self._current_range = (0, 100)
+                    self.log.debug('current_position: %s', conv)
             elif prop.value_range and isinstance(conv, MiotTargetPositionConv):
                 self._conv_target_position = conv
                 self._target_range = conv.ranged
@@ -110,6 +112,10 @@ class CoverEntity(XEntity, BaseEntity):
                 self._conv_target_position = conv
                 self._target_range = (prop.range_min(), prop.range_max())
                 self._attr_supported_features |= CoverEntityFeature.SET_POSITION
+
+        if self.custom_config_bool('disable_target_position'):
+            self._conv_target_position = None
+            self._attr_supported_features &= ~CoverEntityFeature.SET_POSITION
 
         self._deviated_position = self.custom_config_integer('deviated_position', 2)
         if self._current_range:
@@ -147,7 +153,7 @@ class CoverEntity(XEntity, BaseEntity):
             elif val in prop_status.list_search('Stop Lower Limit', 'Stop At Lowest', 'Floor'):
                 self._attr_is_closed = not self._position_reverse
             elif val in prop_status.list_search('Stop Upper Limit', 'Stop At Highest', 'Ceiling'):
-                self._attr_is_closed = None if self._is_airer else self._position_reverse
+                self._attr_is_closed = self._position_reverse
             elif self._is_airer and val in prop_status.list_search('Down'):
                 self._attr_is_closed = False
             else:

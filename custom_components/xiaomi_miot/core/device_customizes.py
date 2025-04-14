@@ -814,6 +814,15 @@ DEVICE_CUSTOMIZES = {
     },
     'hyd.airer.lyjpro': {
         **CHUNK_1,
+        'number_properties': 'target_position',
+        'append_converters': [
+            {
+                'class': MiotCoverConv,
+                'services': ['airer'],
+                'converters': [{'props': ['prop.2.11']}],
+            }
+        ],
+        'disable_target_position': True,
         'cover_position_mapping': {},
     },
     'hyd.airer.pro': {
@@ -821,6 +830,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'brightness,upper_limit,lower_limit',
         'append_converters': [
             {
+                'class': MiotCoverConv,
                 'services': ['airer'],
                 'converters': [{'props': ['*.current_position', '*.set_position']}],
             }
