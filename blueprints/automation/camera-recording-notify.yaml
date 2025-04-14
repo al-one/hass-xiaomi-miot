@@ -1,0 +1,154 @@
+blueprint:
+  name: Camera Recording and Notify / 摄像头或门铃录像并通知
+  description: |
+    ### 🎦 Guides:
+    Please first add the script for saving the video recording / 添加保存录像脚本
+    ```yaml
+    # configuration.yaml
+    shell_command:
+      # other commands ...
+      save_camera_video: |
+        bash -c '
+          dir="{{ dir|default('/media/camera') }}"
+          mkdir -p "$dir" && cd "$dir"
+          ffmpeg -i "{{ url }}" -c copy "{{ name|default('latest') }}.mp4"
+          ls *.mp4 | sort | head -n -{{ keep|default(100) }} | xargs rm -vf
+          if [ -n "{{ img }}" ]; then
+            curl -o "{{ name|default('latest') }}.jpg" "{{ img }}"
+            ls *.jpg | sort | head -n -{{ keep|default(100) }} | xargs rm -vf
+          fi
+        '
+    ```
+
+  domain: automation
+  input:
+    camera:
+      name: Camera or Doorbell
+      description: 通过Xiaomi Miot集成的摄像机或门铃实体
+      selector:
+        entity:
+          domain: camera
+          integration: xiaomi_miot
+
+    mihome_notify:
+      name: Mihome message entity
+      description: 米家消息实体，用于减小获取录像的延迟 `sensor.mi_xxxx_message`
+      selector:
+        entity:
+          domain: sensor
+          integration: xiaomi_miot
+
+    mihome_notify_kwd:
+      name: Camera name in mihome message
+      description: 米家消息中的摄像机名称，默认为摄像机名称
+      selector:
+        text:
+      default: ''
+
+    notify_device:
+      name: Device to Notify
+      description: |
+        Need to install the official Home Assistant app to receive notifications
+        需安装官方Home Assistant应用以接收通知的移动设备
+      selector:
+        device:
+          integration: mobile_app
+
+    notification_title:
+      name: Notification title
+      description: 通知标题
+      default: ''
+
+    notification_content:
+      name: Notification content
+      description: 通知内容
+      default: ''
+
+    save_dir:
+      name: Save dir
+      description: 保存路径，默认：`/media/camera`
+      default: ''
+
+    external_url:
+      name: External url
+      description: 外部访问地址，https://your.hass.domain:8123
+      default: ''
+
+    btn_mihome:
+      name: Button text of open in Mihome
+      description: 按钮文字
+      default: 打开米家
+
+    btn_okay:
+      name: Button text of Okay
+      description: 按钮文字
+      default: 我知道了
+
+mode: queued
+triggers:
+  - platform: state
+    entity_id: !input camera
+    attribute: motion_video_time
+    id: new_video
+  - platform: state
+    entity_id: !input mihome_notify
+    id: mihome_notify
+
+variables:
+  camera_entity_id: !input camera
+  camera_device_id: "{{ device_id(camera_entity_id) }}"
+  camera_device_name: "{{ device_attr(camera_device_id,'name') }}"
+  camera_info_id: "{{ device_entities(camera_device_id) | select('match','button.+_info') | join }}"
+  mihome_notify_kwd: !input mihome_notify_kwd
+  mihome_notify_name: "{{ mihome_notify_kwd or camera_device_name }}"
+  save_dir: !input save_dir
+  save_url: "{{ save_dir | replace('/media/','/media/local/') | replace('/config/www','/local') }}"
+  external_url: !input external_url
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: mihome_notify
+          - condition: template
+            value_template: "{{ mihome_notify_name in trigger.to_state.state }}"
+        sequence:
+          - action: homeassistant.update_entity
+            target:
+              entity_id: "{{ camera_entity_id }}"
+
+      - conditions:
+          - condition: trigger
+            id: new_video
+        sequence:
+          - variables:
+              motion_video_time: >-
+                {{ state_attr(camera_entity_id,'motion_video_time')|regex_replace('[\s:+-]','') }}
+              motion_video_type: >-
+                {{ state_attr(camera_entity_id,'motion_video_type')|regex_replace('[\s:+-]','') }}
+              mp4_name: "{{ motion_video_time }}-{{ motion_video_type }}"
+              img_path: "{{ (external_url ~ state_attr(camera_entity_id,'entity_picture')) if external_url else '' }}"
+          - action: shell_command.save_camera_video
+            data:
+              name: "{{ mp4_name }}"
+              dir: "{{ save_dir }}"
+              img: "{{ img_path }}"
+              url: "{{ state_attr(camera_entity_id,'stream_address')}}"
+            response_variable: action_result
+          - device_id: !input notify_device
+            domain: mobile_app
+            type: notify
+            title: "{{ notification_title or camera_device_name }}"
+            message: "{{ notification_message }}"
+            data:
+              image: "{{ img_path }}"
+              video: "{{ save_url }}/{{ mp4_name }}.mp4"
+              url: /config/devices/device/{{ camera_device_id }}
+              actions:
+                - action: URI
+                  title: !input btn_mihome
+                  uri: "{{ state_attr(camera_info_id,'app_link') }}"
+                - action: none
+                  title: !input btn_okay
+              push:
+                tag: "{{ camera_entity_id }}"
