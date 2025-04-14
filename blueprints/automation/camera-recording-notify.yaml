@@ -40,17 +40,17 @@ blueprint:
           integration: xiaomi_miot
 
     mihome_notify_kwd:
-      name: Camera name in mihome message
+      name: Camera name in mihome
       description: 摄像机在米家中的名称(关键词)，用于减小获取录像的延迟
       selector:
         text:
       default: ''
 
     notify_device:
-      name: Device to Notify
+      name: Device to notify
       description: |
         Need to install the official Home Assistant app to receive notifications
-        需安装官方Home Assistant应用以接收通知的移动设备
+        需安装官方[Home Assistant应用](https://companion.home-assistant.io)以接收通知的移动设备
       selector:
         device:
           integration: mobile_app
@@ -135,6 +135,7 @@ actions:
             id: new_video
         sequence:
           - variables:
+              stream_url: "{{ state_attr(camera_entity_id,'stream_address')}}"
               motion_video_time: >-
                 {{ state_attr(camera_entity_id,'motion_video_time')|regex_replace('[\s:+-]','') }}
               motion_video_type: >-
@@ -144,17 +145,17 @@ actions:
               img_path: "{{ (external_url~state_attr(camera_entity_id,'entity_picture')) if external_url else '' }}"
           - action: shell_command.save_camera_video
             data:
-              keep: !input keep_num
               name: "{{ mp4_name }}"
               dir: "{{ save_dir }}"
               img: "{{ img_path }}"
-              url: "{{ state_attr(camera_entity_id,'stream_address')}}"
+              url: "{{ stream_url }}"
+              keep: !input keep_num
             response_variable: action_result
           - device_id: !input notify_device
             domain: mobile_app
             type: notify
-            title: "{{ notification_title|default(camera_device_name,true) }}"
-            message: "{{ notification_message|default('') }}"
+            title: "{{ notification_title or camera_device_name }}"
+            message: "{{ notification_message }}"
             data:
               image: "{{ img_path }}"
               video: "{{ mp4_path }}"
