@@ -2,16 +2,16 @@ blueprint:
   name: Camera Recording and Notify / 摄像头或门铃录像并通知
   description: |
     ### 🎦 Guides:
-    Please first add the script for saving the video recording / 添加保存录像脚本
+    1. Add the script for saving the video recording / 添加保存录像脚本
     ```yaml
     # configuration.yaml
     shell_command:
       # other commands ...
       save_camera_video: |
         bash -c '
-          dir="{{ dir|default('/media/camera') }}"
+          dir="{{ dir|default('/media/camera',true) }}"
           mkdir -p "$dir" && cd "$dir"
-          ffmpeg -i "{{ url }}" -c copy "{{ name|default('latest') }}.mp4"
+          ffmpeg -y -i "{{ url }}" -c copy "{{ name|default('latest') }}.mp4"
           ls *.mp4 | sort | head -n -{{ keep|default(100) }} | xargs rm -vf
           if [ -n "{{ img }}" ]; then
             curl -o "{{ name|default('latest') }}.jpg" "{{ img }}"
@@ -19,6 +19,7 @@ blueprint:
           fi
         '
     ```
+    2. Restart Home Assistant / 重启 Home Assistant
 
   domain: automation
   input:
@@ -40,7 +41,7 @@ blueprint:
 
     mihome_notify_kwd:
       name: Camera name in mihome message
-      description: 米家消息中的摄像机名称，默认为摄像机名称
+      description: 摄像机在米家中的名称(关键词)，用于减小获取录像的延迟
       selector:
         text:
       default: ''
@@ -59,7 +60,7 @@ blueprint:
       description: 通知标题
       default: ''
 
-    notification_content:
+    notification_message:
       name: Notification content
       description: 通知内容
       default: ''
@@ -104,6 +105,8 @@ variables:
   save_dir: !input save_dir
   save_url: "{{ save_dir | replace('/media/','/media/local/') | replace('/config/www','/local') }}"
   external_url: !input external_url
+  notification_title: !input notification_title
+  notification_message: !input notification_message
 
 actions:
   - choose:
@@ -127,8 +130,9 @@ actions:
               motion_video_type: >-
                 {{ state_attr(camera_entity_id,'motion_video_type')|regex_replace('[\s:+-]','') }}
               mp4_name: "{{ motion_video_time }}-{{ motion_video_type }}"
-              img_path: "{{ (external_url ~ state_attr(camera_entity_id,'entity_picture')) if external_url else '' }}"
-          - action: shell_command.save_camera_video
+              mp4_path: "{{ save_url }}/{{ mp4_name }}.mp4"
+              img_path: "{{ (external_url~state_attr(camera_entity_id,'entity_picture')) if external_url else '' }}"
+          - action: shell_command.save_doorbell_video
             data:
               name: "{{ mp4_name }}"
               dir: "{{ save_dir }}"
@@ -138,11 +142,11 @@ actions:
           - device_id: !input notify_device
             domain: mobile_app
             type: notify
-            title: "{{ notification_title or camera_device_name }}"
-            message: "{{ notification_message }}"
+            title: "{{ notification_title|default(camera_device_name,true) }}"
+            message: "{{ notification_message|default('') }}"
             data:
               image: "{{ img_path }}"
-              video: "{{ save_url }}/{{ mp4_name }}.mp4"
+              video: "{{ mp4_path }}"
               url: /config/devices/device/{{ camera_device_id }}
               actions:
                 - action: URI
