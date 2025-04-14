@@ -132,7 +132,7 @@ actions:
               mp4_name: "{{ motion_video_time }}-{{ motion_video_type }}"
               mp4_path: "{{ save_url }}/{{ mp4_name }}.mp4"
               img_path: "{{ (external_url~state_attr(camera_entity_id,'entity_picture')) if external_url else '' }}"
-          - action: shell_command.save_doorbell_video
+          - action: shell_command.save_camera_video
             data:
               name: "{{ mp4_name }}"
               dir: "{{ save_dir }}"
