@@ -125,19 +125,27 @@ class BaseFlowHandler:
 
     async def get_cloud(self, user_input):
         if not self.cloud:
-            self.cloud = await MiotCloud.from_token(self.hass, user_input, login=False)
+            login_data = {
+                **user_input,
+                'auto_verify': True,
+            }
+            self.cloud = await MiotCloud.from_token(self.hass, login_data, login=False)
             self.cloud.login_times = 0
-            if not await self.cloud.async_check_auth(False):
-                raise MiCloudException('Login failed')
+        login_data = {}
+        if verify_ticket := user_input.get('verify_ticket'):
+            login_data['verify_ticket'] = verify_ticket
         if captcha := user_input.get('captcha'):
-            await self.cloud.async_login(captcha=captcha)
+            login_data['captcha'] = captcha
+        if login_data:
+            await self.cloud.async_login(auto_verify=True, login_data=login_data)
+        elif not await self.cloud.async_check_auth(notify=False, auto_verify=True):
+            raise MiCloudException('Login failed')
         return self.cloud
 
     async def check_xiaomi_account(self, user_input, errors, renew_devices=False):
         dvs = []
         mic = None
         try:
-            self.cloud = None
             mic = await self.get_cloud(user_input)
             dvs = await mic.async_get_devices(renew=renew_devices) or []
             if renew_devices:
@@ -149,7 +157,9 @@ class BaseFlowHandler:
             if not mic:
                 mic = self.cloud
             if isinstance(exc, MiCloudAccessDenied) and mic:
-                if url := mic.attrs.pop('captchaImg', None):
+                if identity_session := mic.attrs.get('identity_session'):
+                    self.context['identity_session'] = identity_session
+                elif url := mic.attrs.pop('captchaImg', None):
                     err = f'Captcha:\n![captcha](data:image/jpeg;base64,{url})'
                     self.context['captchaIck'] = mic.attrs.get('captchaIck')
             if isinstance(exc, requests.exceptions.ConnectionError):
@@ -332,6 +342,10 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 self.filter_models = user_input.get('filter_models')
                 return await self.async_step_cloud_filter(user_input)
         schema = {}
+        if self.context.get('identity_session'):
+            schema.update({
+                vol.Required('verify_ticket', default=''): str,
+            })
         if self.context.get('captchaIck'):
             schema.update({
                 vol.Required('captcha', default=''): str,
