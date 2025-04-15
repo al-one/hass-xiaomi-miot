@@ -695,6 +695,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
         else:
             user_input = prev_input
         schema = {}
+        if self.context.get('identity_session'):
+            schema.update({
+                vol.Required('verify_ticket', default=''): str,
+            })
         if self.context.get('captchaIck'):
             schema.update({
                 vol.Required('captcha', default=''): str,

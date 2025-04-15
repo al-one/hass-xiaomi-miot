@@ -678,7 +678,7 @@ class MiotCloud(micloud.MiCloud):
         if self.attrs.get('verify_phone'):
             api = '/identity/auth/verifyPhone'
             flg = 4
-        return self.account_post(
+        data = self.account_post(
             api,
             params={
                 '_dc': int(time.time() * 1000),
@@ -693,6 +693,9 @@ class MiotCloud(micloud.MiCloud):
                 'identity_session': self.attrs.get('identity_session'),
             },
         )
+        if data.get('code') == 0:
+            self.attrs.pop('identity_session', None)
+        return data
 
     def account_get(self, url, method='GET', **kwargs):
         return self.account_post(url, method, **kwargs)
@@ -715,7 +718,7 @@ class MiotCloud(micloud.MiCloud):
                 'response': resp.text,
             }
         self.cookies.update(resp.cookies.get_dict())
-        log = _LOGGER.warning if data.get('code') else _LOGGER.warning
+        log = _LOGGER.warning if data.get('code') else _LOGGER.info
         log('Account request: %s %s', [url, kwargs], data or resp.text)
         if response:
             return resp
