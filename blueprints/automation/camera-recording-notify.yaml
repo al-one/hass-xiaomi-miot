@@ -62,17 +62,17 @@ blueprint:
           title: '{{ camera_device_name }}'
           message: '{{ event }} 🔋{{ battery }}'
           data:
-            image: "{{ img_path }}"
-            video: "{{ mp4_path }}"
+            image: '{{ img_path }}'
+            video: '{{ mp4_path }}'
             url: /config/devices/device/{{ camera_device_id }}
             actions:
               - action: URI
                 title: 打开米家
-                uri: "{{ state_attr(camera_info_id,'app_link') }}"
+                uri: '{{ state_attr(camera_info_id,"app_link") }}'
               - action: none
                 title: 我知道了
             push:
-              tag: "{{ camera_entity_id }}"
+              tag: '{{ camera_entity_id }}'
         ```
       selector:
         action:
