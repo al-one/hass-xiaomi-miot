@@ -59,16 +59,16 @@ blueprint:
         ```yaml
         action: notify.mobile_app_your_iphone
         data:
-          title: '{{ camera_device_name }}'
-          message: '{{ event }} 🔋{{ battery }}'
+          title: '{{ home_name }}{{ camera_device_name }}'
+          message: '{{ event }} 🔋{{ battery }}%'
           data:
-            image: '{{ img_path }}'
             video: '{{ mp4_path }}'
+            image: '{{ img_path }}'
             url: /config/devices/device/{{ camera_device_id }}
             actions:
               - action: URI
                 title: 打开米家
-                uri: '{{ state_attr(camera_info_id,"app_link") }}'
+                uri: '{{ app_link }}'
               - action: none
                 title: 我知道了
             push:
@@ -160,6 +160,9 @@ actions:
               img_path: "{{ (external_url~state_attr(camera_entity_id,'entity_picture')) if external_url else '' }}"
               battery: "{{ states(camera_battery_id)|round }}"
               event: "{{ (video_events or {}).get(motion_video_type, motion_video_type) }}"
+              app_link: "{{ state_attr(camera_info_id,'app_link') }}"
+              home_room: "{{ state_attr(camera_info_id,'home_room') }}"
+              home_name: "{{ (home_room|default('')).split()[0] }}"
           - action: shell_command.save_xiaomi_video
             data:
               name: "{{ mp4_name }}"
