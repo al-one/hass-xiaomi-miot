@@ -3,22 +3,28 @@ blueprint:
   description: |
     ### 🎦 Guides:
     1. Add the script for saving the video recording / 添加保存录像脚本
-    ```yaml
-    # configuration.yaml
-    shell_command:
-      # other commands ...
-      save_camera_video: |
-        bash -c '
-          dir="{{ dir|default('/media/camera',true) }}"
-          mkdir -p "$dir" && cd "$dir"
-          ffmpeg -y -i "{{ url }}" -c copy "{{ name|default('latest') }}.mp4"
-          ls *.mp4 | sort | head -n -{{ keep|default(100) }} | xargs rm -vf
-          if [ -n "{{ img }}" ]; then
-            curl -o "{{ name|default('latest') }}.jpg" "{{ img }}"
-            ls *.jpg | sort | head -n -{{ keep|default(100) }} | xargs rm -vf
-          fi
-        '
-    ```
+        ```yaml
+        # configuration.yaml
+        shell_command:
+          # other commands ...
+          save_xiaomi_video: |
+            bash -c '
+              mp4="{{ name|default('latest') }}.mp4"
+              dir="{{ dir|default('/media/camera',true) }}"
+              mkdir -p "$dir" && cd "$dir"
+              script=/config/custom_components/xiaomi_miot/scripts/save_xiaomi_video.sh
+              if [ -f "$script" ]; then
+                bash "$script" "{{ url }}" "$mp4"
+              else
+                ffmpeg -y -i "{{ url }}" -c copy "$mp4"
+              fi
+              ls *.mp4 | sort | head -n -{{ keep|default(100) }} | xargs rm -vf
+              if [ -n "{{ img }}" ]; then
+                curl -o "{{ name|default('latest') }}.jpg" "{{ img }}"
+                ls *.jpg | sort | head -n -{{ keep|default(100) }} | xargs rm -vf
+              fi
+            '
+        ```
     2. Restart Home Assistant / 重启 Home Assistant
 
   domain: automation
@@ -46,23 +52,30 @@ blueprint:
         text:
       default: ''
 
-    notify_device:
-      name: Device to notify
+    notify_action:
+      name: Notify action
       description: |
-        Need to install the official Home Assistant app to receive notifications
-        需安装官方[Home Assistant应用](https://companion.home-assistant.io)以接收通知的移动设备
+        通知动作
+        ```yaml
+        action: notify.mobile_app_your_iphone
+        data:
+          title: '{{ camera_device_name }}'
+          message: '{{ event }} 🔋{{ battery }}'
+          data:
+            image: "{{ img_path }}"
+            video: "{{ mp4_path }}"
+            url: /config/devices/device/{{ camera_device_id }}
+            actions:
+              - action: URI
+                title: 打开米家
+                uri: "{{ state_attr(camera_info_id,'app_link') }}"
+              - action: none
+                title: 我知道了
+            push:
+              tag: "{{ camera_entity_id }}"
+        ```
       selector:
-        device:
-          integration: mobile_app
-
-    notification_title:
-      name: Notification title
-      description: 通知标题
-      default: ''
-
-    notification_message:
-      name: Notification content
-      description: 通知内容
+        action:
       default: ''
 
     save_dir:
@@ -85,15 +98,16 @@ blueprint:
       description: 外部访问地址，https://your.hass.domain:8123
       default: ''
 
-    btn_mihome:
-      name: Button text of open in Mihome
-      description: 按钮文字
-      default: 打开米家
-
-    btn_okay:
-      name: Button text of Okay
-      description: 按钮文字
-      default: 我知道了
+    video_events:
+      name: Video event mapping
+      description: 视频事件映射
+      selector:
+        object:
+      default:
+        ObjectMotion: 画面变动
+        Pass: 有人在门前经过
+        PassBell: 有人按门铃
+        PassStay: 有人在门前停留
 
 mode: queued
 triggers:
@@ -110,13 +124,14 @@ variables:
   camera_device_id: "{{ device_id(camera_entity_id) }}"
   camera_device_name: "{{ device_attr(camera_device_id,'name') }}"
   camera_info_id: "{{ device_entities(camera_device_id) | select('match','button.+_info') | join }}"
+  camera_battery_id: "{{ device_entities(camera_device_id) | select('match','sensor.*_battery') | join }}"
   mihome_notify_kwd: !input mihome_notify_kwd
   mihome_notify_name: "{{ mihome_notify_kwd or camera_device_name }}"
   save_dir: !input save_dir
   save_url: "{{ save_dir | replace('/media/','/media/local/') | replace('/config/www','/local') }}"
+  notify_action: !input notify_action
+  video_events: !input video_events
   external_url: !input external_url
-  notification_title: !input notification_title
-  notification_message: !input notification_message
 
 actions:
   - choose:
@@ -135,7 +150,7 @@ actions:
             id: new_video
         sequence:
           - variables:
-              stream_url: "{{ state_attr(camera_entity_id,'stream_address')}}"
+              stream_url: "{{ state_attr(camera_entity_id,'stream_address') }}"
               motion_video_time: >-
                 {{ state_attr(camera_entity_id,'motion_video_time')|regex_replace('[\s:+-]','') }}
               motion_video_type: >-
@@ -143,7 +158,9 @@ actions:
               mp4_name: "{{ motion_video_time }}-{{ motion_video_type }}"
               mp4_path: "{{ save_url }}/{{ mp4_name }}.mp4"
               img_path: "{{ (external_url~state_attr(camera_entity_id,'entity_picture')) if external_url else '' }}"
-          - action: shell_command.save_camera_video
+              battery: "{{ states(camera_battery_id)|round }}"
+              event: "{{ (video_events or {}).get(motion_video_type, motion_video_type) }}"
+          - action: shell_command.save_xiaomi_video
             data:
               name: "{{ mp4_name }}"
               dir: "{{ save_dir }}"
@@ -151,20 +168,4 @@ actions:
               url: "{{ stream_url }}"
               keep: !input keep_num
             response_variable: action_result
-          - device_id: !input notify_device
-            domain: mobile_app
-            type: notify
-            title: "{{ notification_title or camera_device_name }}"
-            message: "{{ notification_message }}"
-            data:
-              image: "{{ img_path }}"
-              video: "{{ mp4_path }}"
-              url: /config/devices/device/{{ camera_device_id }}
-              actions:
-                - action: URI
-                  title: !input btn_mihome
-                  uri: "{{ state_attr(camera_info_id,'app_link') }}"
-                - action: none
-                  title: !input btn_okay
-              push:
-                tag: "{{ camera_entity_id }}"
+          - sequence: !input notify_action
