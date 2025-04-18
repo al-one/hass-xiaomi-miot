@@ -164,7 +164,7 @@ def convert_globs_to_pattern(globs: list[str] | None):
     if not globs:
         return None
     translated_patterns = [
-        pattern for glob in set(globs) if (pattern := fnmatch.translate(glob))
+        pattern for glob in set(globs) if (pattern := fnmatch.translate(str(glob)))
     ]
     if not translated_patterns:
         return None
