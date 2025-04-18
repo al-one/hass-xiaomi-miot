@@ -131,14 +131,17 @@ class BaseFlowHandler:
             }
             self.cloud = await MiotCloud.from_token(self.hass, login_data, login=False)
             self.cloud.login_times = 0
+        identity_session = self.context.get('identity_session')
+        auto_verify = not identity_session
         login_data = {}
-        if verify_ticket := user_input.get('verify_ticket'):
-            login_data['verify_ticket'] = verify_ticket
-        if captcha := user_input.get('captcha'):
+        if verify_ticket := user_input.pop('verify_ticket', None):
+            if identity_session:
+                login_data['verify_ticket'] = verify_ticket
+        if captcha := user_input.pop('captcha', None):
             login_data['captcha'] = captcha
         if login_data:
-            await self.cloud.async_login(auto_verify=True, login_data=login_data)
-        elif not await self.cloud.async_check_auth(notify=False, auto_verify=True):
+            await self.cloud.async_login(auto_verify=auto_verify, login_data=login_data)
+        elif not await self.cloud.async_check_auth(notify=False, auto_verify=auto_verify):
             raise MiCloudException('Login failed')
         return self.cloud
 
@@ -344,11 +347,11 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         schema = {}
         if self.context.get('identity_session'):
             schema.update({
-                vol.Required('verify_ticket', default=''): str,
+                vol.Optional('verify_ticket', default=''): str,
             })
         if self.context.get('captchaIck'):
             schema.update({
-                vol.Required('captcha', default=''): str,
+                vol.Optional('captcha', default=''): str,
             })
         schema.update({
             vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
@@ -697,11 +700,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
         schema = {}
         if self.context.get('identity_session'):
             schema.update({
-                vol.Required('verify_ticket', default=''): str,
+                vol.Optional('verify_ticket', default=''): str,
             })
         if self.context.get('captchaIck'):
             schema.update({
-                vol.Required('captcha', default=''): str,
+                vol.Optional('captcha', default=''): str,
             })
         if user_input.get('trans_options') == None:
             user_input['trans_options'] = False
@@ -744,6 +747,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                 **user_input,
             })
             self.config_data.pop('filtering', None)
+            self.config_data.pop('verify_ticket', None)
             if self.filter_models:
                 self.config_data.pop('filter_did', None)
                 self.config_data.pop('did_list', None)

@@ -23,7 +23,7 @@ from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.components import persistent_notification
 
 from .const import DOMAIN, CONF_XIAOMI_CLOUD
-from .utils import RC4
+from .utils import RC4, logger_filter
 from micloud import miutils
 from micloud.micloudexception import MiCloudException
 
@@ -34,6 +34,8 @@ except (ModuleNotFoundError, ImportError):
         """ micloud==0.4 """
 
 _LOGGER = logging.getLogger(__name__)
+_LOGGER.addFilter(logger_filter)
+
 ACCOUNT_BASE = 'https://account.xiaomi.com'
 UA = "Android-7.1.1-1.0.0-ONEPLUS A3010-136-%s APP/xiaomi.smarthome APPV/62830"
 
@@ -601,7 +603,7 @@ class MiotCloud(micloud.MiCloud):
                     f'{DOMAIN}-login',
                 )
             _LOGGER.error(
-                'Xiaomi serviceLoginAuth2: %s',
+                'Xiaomi serviceLoginAuth2: %s' %
                 [url, self.login_times, {**post, 'hash': '*', 'auto_verify': auto_verify}, cookies, response.text],
             )
             raise MiCloudAccessDenied(tip or f'Login to xiaomi error: {response.text}')
@@ -719,7 +721,7 @@ class MiotCloud(micloud.MiCloud):
             }
         self.cookies.update(resp.cookies.get_dict())
         log = _LOGGER.warning if data.get('code') else _LOGGER.info
-        log('Account request: %s %s', [url, kwargs], data or resp.text)
+        log('Account request: %s' % [url, kwargs, resp.text])
         if response:
             return resp
         return data
