@@ -1,10 +1,6 @@
 from typing import TYPE_CHECKING, Any
 from dataclasses import dataclass
 from homeassistant.util import color, percentage
-from miio.utils import (
-    rgb_to_int,
-    int_to_rgb,
-)
 
 if TYPE_CHECKING:
     from .device import Device
@@ -238,22 +234,33 @@ class MiotColorTempConv(MiotPropConv):
 @dataclass
 class MiotRgbColorConv(MiotPropConv):
     def decode(self, device: 'Device', payload: dict, value: int):
-        super().decode(device, payload, int_to_rgb(value))
+        super().decode(device, payload, MiotRgbColorConv.int_to_rgb(value))
 
-    def encode(self, device: 'Device', payload: dict, value: tuple[int, int, int]):
-        super().encode(device, payload, rgb_to_int(value))
+    def encode(self, device: 'Device', payload: dict, rgb: tuple[int, int, int]):
+        super().encode(device, payload, MiotRgbColorConv.rgb_to_int(rgb))
+
+    @staticmethod
+    def rgb_to_int(rgb: tuple[int, int, int]):
+        num = int(rgb[0]) << 16 | int(rgb[1]) << 8 | int(rgb[3])
+        return int(num)
+
+    @staticmethod
+    def int_to_rgb(value: int):
+        x = int(value)
+        r = (x >> 16) & 0xFF
+        g = (x >> 8) & 0xFF
+        b = x & 0xFF
+        return r, g, b
 
 @dataclass
 class MiotHsColorConv(MiotPropConv):
     def decode(self, device: 'Device', payload: dict, value: int):
-        rgb = int_to_rgb(value)
-        hsc = color.color_RGB_to_hs(*rgb)
-        super().decode(device, payload, hsc)
+        rgb = MiotRgbColorConv.int_to_rgb(value)
+        super().decode(device, payload, color.color_RGB_to_hs(*rgb))
 
     def encode(self, device: 'Device', payload: dict, value: tuple):
         rgb = color.color_hs_to_RGB(*value)
-        num = rgb_to_int(rgb)
-        super().encode(device, payload, num)
+        super().encode(device, payload, MiotRgbColorConv.rgb_to_int(rgb))
 
 @dataclass
 class MiotFanConv(MiotServiceConv):
