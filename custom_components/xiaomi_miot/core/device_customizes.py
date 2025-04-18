@@ -3058,7 +3058,7 @@ GLOBAL_CONVERTERS = [
             {'props': ['fan_level', 'fan_control.fan_level', 'heat_level'], 'desc': True},
             {'props': ['horizontal_swing', 'fan_control.horizontal_swing'], 'domain': 'switch'},
             {'props': ['vertical_swing', 'fan_control.vertical_swing'], 'domain': 'switch'},
-            {'props': ['uv', 'heater', 'eco', 'dryer', 'sleep_mode', 'soft_wind'], 'domain': 'switch'},
+            {'props': ['*.uv', 'heater', 'eco', 'dryer', 'sleep_mode', 'soft_wind'], 'domain': 'switch'},
         ],
     },
     {
