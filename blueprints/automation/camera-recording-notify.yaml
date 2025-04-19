@@ -73,7 +73,9 @@ blueprint:
                 title: 我知道了
             push:
               tag: '{{ camera_entity_id }}'
-              interruption-level: "{{ 'critical' if 'Bell' in motion_video_type else 'active' }}"
+              sound:
+                critical: "{{ 1 if 'Bell' in motion_video_type else 0 }}"
+                volume: 0.3
         ```
       selector:
         action:
