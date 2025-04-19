@@ -158,7 +158,7 @@ actions:
               mp4_name: "{{ motion_video_time }}-{{ motion_video_type }}"
               mp4_path: "{{ save_url }}/{{ mp4_name }}.mp4"
               img_path: "{{ (external_url~state_attr(camera_entity_id,'entity_picture')) if external_url else '' }}"
-              battery: "{{ states(camera_battery_id)|round }}"
+              battery: "{{ states(camera_battery_id)|int(0) if camera_battery_id else '' }}"
               event: "{{ (video_events or {}).get(motion_video_type, motion_video_type) }}"
               app_link: "{{ state_attr(camera_info_id,'app_link') }}"
               home_room: "{{ state_attr(camera_info_id,'home_room') }}"
