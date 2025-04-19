@@ -80,8 +80,8 @@ blueprint:
 
     save_dir:
       name: Save dir
-      description: 保存路径，默认：`/media/camera`
-      default: ''
+      description: 保存路径，如：`/media/camera` `/config/www/doorbell`
+      default: /media/camera
 
     keep_num:
       name: The number of recorded videos to retain
@@ -104,6 +104,7 @@ blueprint:
       selector:
         object:
       default:
+        PeopleMotion: 有人移动
         ObjectMotion: 画面变动
         Pass: 有人在门前经过
         PassBell: 有人按门铃

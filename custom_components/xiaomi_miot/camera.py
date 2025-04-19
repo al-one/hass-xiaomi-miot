@@ -432,6 +432,8 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
     @property
     def motion_event_attributes(self):
         return {
+            'motion_video_time': self._state_attrs.get('motion_video_time'),
+            'motion_video_type': self._state_attrs.get('motion_video_type'),
             'stream_address': self.get_motion_stream_address(),
             # 'video_address': self.get_motion_video_address(),
             'image_address': self.get_motion_image_address(),
