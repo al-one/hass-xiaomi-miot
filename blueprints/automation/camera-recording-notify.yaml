@@ -130,7 +130,6 @@ variables:
   mihome_notify_name: "{{ mihome_notify_kwd or camera_device_name }}"
   save_dir: !input save_dir
   save_url: "{{ save_dir | replace('/media/','/media/local/') | replace('/config/www','/local') }}"
-  notify_action: !input notify_action
   video_events: !input video_events
   external_url: !input external_url
 
