@@ -241,7 +241,7 @@ class MiotRgbColorConv(MiotPropConv):
 
     @staticmethod
     def rgb_to_int(rgb: tuple[int, int, int]):
-        num = int(rgb[0]) << 16 | int(rgb[1]) << 8 | int(rgb[3])
+        num = int(rgb[0]) << 16 | int(rgb[1]) << 8 | int(rgb[2])
         return int(num)
 
     @staticmethod
