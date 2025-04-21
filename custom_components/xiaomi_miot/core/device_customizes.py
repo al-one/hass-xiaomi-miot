@@ -814,7 +814,7 @@ DEVICE_CUSTOMIZES = {
     },
     'hyd.airer.lyjpro': {
         **CHUNK_1,
-        'number_properties': 'target_position',
+        'number_properties': 'target_position,drying_time',
         'append_converters': [
             {
                 'class': MiotCoverConv,
