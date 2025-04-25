@@ -591,6 +591,9 @@ class MiotCloud(micloud.MiCloud):
                        f'[integrated configuration]({lnk}).\n'
                        f'本次登录小米账号需要安全验证，[点击这里]({ntf})完成验证，并通过[集成配置]({lnk})重新登陆。'
                        f'你需要在与HA宿主机同局域网的设备下完成安全验证，如果你的HA部署在云服务器，可能将无法验证通过。')
+                if self.attrs.get('verify_phone'):
+                    tip += (f'\n\n邮箱验证失败，可能该账号不支持邮箱验证，请[打开验证网页]({ntf})发送手机验证码，'
+                            f'收到验证码后不要在网页验证，回到HA在下方输入。')
                 if auto_verify and self.send_verify_ticket(ntf):
                     tip = ('This login requires security verification. The verification code has been sent to your email/phone. '
                            'Please enter it in the input box below after receiving it.\n'
@@ -696,7 +699,10 @@ class MiotCloud(micloud.MiCloud):
             },
         )
         if data.get('code') == 0:
+            self.attrs.pop('verify_phone', None)
             self.attrs.pop('identity_session', None)
+        else:
+            self.attrs['verify_phone'] = True
         return data
 
     def account_get(self, url, method='GET', **kwargs):
