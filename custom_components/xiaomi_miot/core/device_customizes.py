@@ -852,6 +852,7 @@ DEVICE_CUSTOMIZES = {
         'target_position_props': 'set_position',
         'cover_position_mapping': None,
     },
+    'hyd.airer.znlyj2': CHUNK_1,
     'hyd.airer.znlyj5': {
         'cover_position_mapping': {0: 50, 1: 0, 2: 100},
     },
