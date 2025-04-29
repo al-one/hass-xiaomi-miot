@@ -2606,7 +2606,9 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'dryer,uv',
         'select_properties': 'drying_level',
         'chunk_coordinators': [
-            {'interval': 15, 'props': 'status,current_position,target_position,dryer,drying_level'},
+            {'interval': 16, 'props': 'status,current_position,target_position'},
+            {'interval': 21, 'props': 'light.on'},
+            {'interval': 26, 'props': 'dryer,drying_level,uv'},
         ],
     },
     '*.airfresh.*': {
