@@ -1756,8 +1756,17 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.airc.*:power_consumption': ENERGY_KWH,
     'xiaomi.aircondition.m9': {
-        'exclude_miot_services': 'machine_state,flag_bit,single_smart_scene',
-        'exclude_miot_properties': 'enhance.timer,humidity_range',
+        'interval_seconds': 90,
+        'switch_properties': 'air_conditioner.on,un_straight_blowing,favorite_on',
+        'exclude_miot_services': 'electricity,maintenance,enhance,machine_state,flag_bit,single_smart_scene,system_parm,'
+                                 'mosquito_repellent,favorite_type_data,air_conditioner_dev_mode,product_appearance',
+        'exclude_miot_properties': 'fault,enhance.timer,humidity_range',
+        'chunk_coordinators': [
+            {'interval': 16, 'props': 'air_conditioner.on,mode,target_temperature,target_humidity'},
+            {'interval': 26, 'props': 'fan_level,vertical_swing,vertical_angle'},
+            {'interval': 56, 'props': 'eco,heater,dryer,sleep_mode,temperature,relative_humidity'},
+            {'interval': 299, 'props': 'filter_life_level'},
+        ],
     },
     'xiaomi.aircondition.ma1': {
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:xiaomi-ma1:4',
