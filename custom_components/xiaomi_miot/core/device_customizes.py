@@ -1817,6 +1817,10 @@ DEVICE_CUSTOMIZES = {
         'brightness_for_off': 2,
         'exclude_miot_services': 'rfid',
     },
+    'xiaomi.airp.va2b': {
+        'switch_properties': 'on,anion',
+        'exclude_miot_services': 'custom_service,rfid',
+    },
     'xiaomi.airp.va4': {
         'sensor_properties': 'relative_humidity,air_quality,pm2_5_density,temperature,hcho_density,filter_life_level',
         'switch_properties': 'on,anion,uv,alarm',
