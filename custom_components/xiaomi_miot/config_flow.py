@@ -44,6 +44,7 @@ from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
     MiCloudAccessDenied,
+    MiCloudNeedVerify,
 )
 
 from miio import (
@@ -123,25 +124,27 @@ class BaseFlowHandler:
     cloud: Optional[MiotCloud] = None
     devices: Optional[list] = None
 
+    @property
+    def placeholders(self):
+        return self.context.setdefault('placeholders', {})
+
+    def pop_placeholders(self):
+        return {
+            'tip': '',
+            **self.context.pop('placeholders', {}),
+        }
+
     async def get_cloud(self, user_input):
         if not self.cloud:
-            login_data = {
-                **user_input,
-                'auto_verify': True,
-            }
-            self.cloud = await MiotCloud.from_token(self.hass, login_data, login=False)
+            self.cloud = await MiotCloud.from_token(self.hass, user_input, login=False)
             self.cloud.login_times = 0
-        identity_session = self.context.get('identity_session')
-        auto_verify = not identity_session
+        self.cloud.merger_config(user_input)
         login_data = {}
         if verify_ticket := user_input.pop('verify_ticket', None):
-            if identity_session:
-                login_data['verify_ticket'] = verify_ticket
-        if captcha := user_input.pop('captcha', None):
-            login_data['captcha'] = captcha
+            login_data['verify_ticket'] = verify_ticket
         if login_data:
-            await self.cloud.async_login(auto_verify=auto_verify, login_data=login_data)
-        elif not await self.cloud.async_check_auth(notify=False, auto_verify=auto_verify):
+            await self.cloud.async_login(login_data=login_data)
+        elif not await self.cloud.async_check_auth(notify=False):
             raise MiCloudException('Login failed')
         return self.cloud
 
@@ -153,25 +156,25 @@ class BaseFlowHandler:
             dvs = await mic.async_get_devices(renew=renew_devices) or []
             if renew_devices:
                 await MiotSpec.async_get_model_type(self.hass, 'xiaomi.miot.auto', use_remote=True)
-            self.context.pop('captchaIck', None)
         except (MiCloudException, MiCloudAccessDenied, Exception) as exc:
             err = f'{exc}'
+            self.placeholders['tip'] = f'⚠️ {err}'
             errors['base'] = 'cannot_login'
             if not mic:
                 mic = self.cloud
-            if isinstance(exc, MiCloudAccessDenied) and mic:
-                if identity_session := mic.attrs.get('identity_session'):
-                    self.context['identity_session'] = identity_session
-                elif url := mic.attrs.pop('captchaImg', None):
-                    err = f'Captcha:\n![captcha](data:image/jpeg;base64,{url})'
-                    self.context['captchaIck'] = mic.attrs.get('captchaIck')
-            if isinstance(exc, requests.exceptions.ConnectionError):
+            if isinstance(exc, MiCloudNeedVerify) and mic:
+                errors['base'] = exc.message
+                self.context[exc.message] = True
+                self.placeholders.update({
+                    'url': exc.url,
+                    'tip': f'[打开验证网页 | Open the verification page]({exc.url})',
+                })
+            elif isinstance(exc, requests.exceptions.ConnectionError):
                 errors['base'] = 'cannot_reach'
             elif 'ZoneInfoNotFoundError' in err:
                 errors['base'] = 'tzinfo_error'
-            self.hass.data[DOMAIN]['placeholders'] = {'tip': f'⚠️ {err}'}
             unm = mic.username if mic else user_input.get(CONF_USERNAME)
-            _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', unm, exc)
+            _LOGGER.error('Setup xiaomi cloud for user: %s failed.', unm, exc_info=True)
         if not errors:
             self.devices = dvs
             persistent_notification.dismiss(self.hass, f'{DOMAIN}-login')
@@ -254,7 +257,7 @@ class BaseFlowHandler:
                       'If the devices that does not support the local miot protocol are included,' \
                       'they will be unavailable. It is recommended to include only ' \
                       f'[the devices that supports the local mode]({url}).'
-        self.hass.data[DOMAIN]['placeholders'] = {'tip': tip}
+        self.placeholders['tip'] = tip
         return schema
 
 
@@ -345,13 +348,9 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 self.filter_models = user_input.get('filter_models')
                 return await self.async_step_cloud_filter(user_input)
         schema = {}
-        if self.context.get('identity_session'):
+        if self.context.get('need_verify'):
             schema.update({
                 vol.Optional('verify_ticket', default=''): str,
-            })
-        if self.context.get('captchaIck'):
-            schema.update({
-                vol.Optional('captcha', default=''): str,
             })
         schema.update({
             vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
@@ -367,7 +366,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             step_id='cloud',
             data_schema=vol.Schema(schema),
             errors=errors,
-            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', {'tip': ''}),
+            description_placeholders=self.pop_placeholders(),
         )
 
     async def async_step_cloud_filter(self, user_input=None):
@@ -399,7 +398,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             step_id='cloud_filter',
             data_schema=schema,
             errors=errors,
-            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', {'tip': ''}),
+            description_placeholders=self.pop_placeholders(),
         )
 
     async def async_step_customizing(self, user_input=None):
@@ -698,13 +697,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
         else:
             user_input = prev_input
         schema = {}
-        if self.context.get('identity_session'):
+        if self.context.get('need_verify'):
             schema.update({
                 vol.Optional('verify_ticket', default=''): str,
-            })
-        if self.context.get('captchaIck'):
-            schema.update({
-                vol.Optional('captcha', default=''): str,
             })
         if user_input.get('trans_options') == None:
             user_input['trans_options'] = False
@@ -724,7 +719,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             step_id='cloud',
             data_schema=vol.Schema(schema),
             errors=errors,
-            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', {'tip': ''}),
+            description_placeholders=self.pop_placeholders(),
         )
 
     async def async_step_cloud_filter(self, user_input=None):
@@ -763,7 +758,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             step_id='cloud_filter',
             data_schema=schema,
             errors=errors,
-            description_placeholders=self.hass.data[DOMAIN].pop('placeholders', {'tip': ''}),
+            description_placeholders=self.pop_placeholders(),
         )
 
 

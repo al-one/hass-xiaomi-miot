@@ -72,7 +72,8 @@
             "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登录失败，请在与当前网络相同的环境下登录小米官网(mi.com)后重试",
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的 Hass 环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "该小米账户下没有设备"
+            "none_devices": "该小米账户下没有设备",
+            "need_verify": "本次登录需要安全验证，请打开验证网页发送手机/邮箱验证码，收到验证码后不要在网页验证，回到HomeAssistant填入下方输入框"
         },
         "abort": {
             "config_saved": "配置已保存！[再次自定义](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
@@ -134,7 +135,8 @@
             "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登录失败，请使用与HA宿主机同一局域网下的其他设备登录小米官网(mi.com)后重试",
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "该小米账户下没有设备"
+            "none_devices": "该小米账户下没有设备",
+            "need_verify": "本次登录需要安全验证，请打开验证网页发送手机/邮箱验证码，收到验证码后不要在网页验证，回到HomeAssistant填入下方输入框"
         },
         "abort": {
             "show_customizes": "[![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n请再次添加[`Xiaomi Miot Auto`](/_my_redirect/config_flow_start?domain=xiaomi_miot)集成来修改自定义选项\n{tip}"

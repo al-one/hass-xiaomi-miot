@@ -163,7 +163,7 @@ class MiotCloud(micloud.MiCloud):
             vls = [val]
         return vls.pop(0)
 
-    async def async_check_auth(self, notify=False, auto_verify=None):
+    async def async_check_auth(self, notify=False):
         if self.service_token:
             api = 'v2/message/v2/check_new_msg'
             dat = {
@@ -188,15 +188,20 @@ class MiotCloud(micloud.MiCloud):
             # auth err
             _LOGGER.info('Xiaomi auth failed, try relogin. %s', rdt)
         nid = f'xiaomi-miot-auth-warning-{self.user_id}'
-        if await self.async_relogin(auto_verify=auto_verify):
-            persistent_notification.dismiss(self.hass, nid)
-            return True
+        need_verify = None
+        try:
+            if await self.async_relogin():
+                persistent_notification.dismiss(self.hass, nid)
+                return True
+        except MiCloudNeedVerify as exc:
+            need_verify = exc
         if notify:
+            lnk = f'/config/integrations/integration/{DOMAIN}'
             persistent_notification.create(
                 self.hass,
                 f'Xiaomi account: {self.user_id} auth failed, '
-                'Please update option for this integration to refresh token.\n'
-                f'小米账号：{self.user_id} 登录失效，请重新保存集成选项以更新登录信息。',
+                f'Your Xiaomi account login status has expired, Please login again through [integrated configuration]({lnk}).\n'
+                f'你的小米账号登陆状态已失效，但本次需要手动验证，请通过[集成配置]({lnk})重新登陆。',
                 'Xiaomi Miot Warning',
                 nid,
             )
@@ -205,6 +210,8 @@ class MiotCloud(micloud.MiCloud):
                 self.user_id,
                 rdt,
             )
+        elif need_verify:
+            raise need_verify
         else:
             _LOGGER.warning('Retry login xiaomi account failed: %s', self.username)
         return False
@@ -470,7 +477,7 @@ class MiotCloud(micloud.MiCloud):
                 return True
         return False
 
-    async def async_login(self, auto_verify=None, login_data=None):
+    async def async_login(self, login_data=None):
         if self.login_times > 5:
             await self.async_stored_auth(remove=True)
         if self.login_times > 10:
@@ -479,22 +486,22 @@ class MiotCloud(micloud.MiCloud):
                 'please reload/config xiaomi_miot component.'
             )
         self.login_times += 1
-        ret = await self.hass.async_add_executor_job(self._login_request, auto_verify, login_data)
+        ret = await self.hass.async_add_executor_job(self._login_request, login_data)
         if ret:
             self.hass.data[DOMAIN]['sessions'][self.unique_id] = self
             await self.async_stored_auth(save=True)
             self.login_times = 0
         return ret
 
-    async def async_relogin(self, auto_verify=None):
+    async def async_relogin(self):
         self._logout()
-        return await self.async_login(auto_verify=auto_verify)
+        return await self.async_login()
 
     def _logout(self):
         self.service_token = None
         self.async_session = None
 
-    def _login_request(self, auto_verify=None, login_data=None):
+    def _login_request(self, login_data=None):
         self._init_session(True)
         location = ''
         auth = self.attrs.pop('login_data', {})
@@ -512,7 +519,6 @@ class MiotCloud(micloud.MiCloud):
         else:
             auth = self._login_step1()
         if not location:
-            auth['auto_verify'] = auto_verify
             location = self._login_step2(**auth)
         response = self._login_step3(location)
         http_code = response.status_code
@@ -545,7 +551,7 @@ class MiotCloud(micloud.MiCloud):
             self.async_session = None
         return auth
 
-    def _login_step2(self, auto_verify=None, captcha=None, **kwargs):
+    def _login_step2(self, **kwargs):
         url = '/pass/serviceLoginAuth2'
         post = {
             'user': self.username,
@@ -557,12 +563,8 @@ class MiotCloud(micloud.MiCloud):
         }
         params = {'_json': 'true'}
         cookies = {}
-        if captcha:
-            post['captCode'] = captcha
-            params['_dc'] = int(time.time() * 1000)
-            cookies['ick'] = self.attrs.pop('captchaIck', '')
         response = self.account_post(url, data=post, params=params, cookies=cookies, response=True)
-        auth = json.loads(response.text.replace('&&&START&&&', '')) or {}
+        auth = self.json_decode(response.text) or {}
         code = auth.get('code')
         # 20003 InvalidUserNameException
         # 22009 PackageNameDeniedException
@@ -573,43 +575,16 @@ class MiotCloud(micloud.MiCloud):
         # other NeedCaptchaException
         location = auth.get('location')
         if not location:
-            tip = None
-            lnk = f'/config/integrations/integration/{DOMAIN}'
-            if cap := auth.get('captchaUrl'):
-                if cap[:4] != 'http':
-                    cap = f'{ACCOUNT_BASE}{cap}'
-                if self._get_captcha(cap):
-                    self.attrs['login_data'] = kwargs
-                tip = ('Your Xiaomi account login status has expired, but this time manual verification is required. '
-                       f'Please login again through [integrated configuration]({lnk}).\n'
-                       f'你的小米账号登陆状态已失效，但本次需要手动验证，请通过[集成配置]({lnk})重新登陆。')
             if ntf := auth.get('notificationUrl'):
                 if ntf[:4] != 'http':
                     ntf = f'{ACCOUNT_BASE}{ntf}'
-                tip = (f'This login requires security verification for the Xiaomi account. '
-                       f'[Click here]({ntf}) to complete the verification and log in again through '
-                       f'[integrated configuration]({lnk}).\n'
-                       f'本次登录小米账号需要安全验证，[点击这里]({ntf})完成验证，并通过[集成配置]({lnk})重新登陆。'
-                       f'你需要在与HA宿主机同局域网的设备下完成安全验证，如果你的HA部署在云服务器，可能将无法验证通过。')
-                if self.attrs.get('verify_phone'):
-                    tip += (f'\n\n邮箱验证失败，可能该账号不支持邮箱验证，请[打开验证网页]({ntf})发送手机验证码，'
-                            f'收到验证码后不要在网页验证，回到HA在下方输入。')
-                if auto_verify and self.send_verify_ticket(ntf):
-                    tip = ('This login requires security verification. The verification code has been sent to your email/phone. '
-                           'Please enter it in the input box below after receiving it.\n'
-                           '本次登录小米账号需要安全验证，验证码已发送至你的邮箱/手机，请收到后填在下方输入框中。')
-            if tip:
-                persistent_notification.create(
-                    self.hass,
-                    tip,
-                    f'Login to Xiaomi: {self.username}',
-                    f'{DOMAIN}-login',
-                )
+                self.attrs['verify_url'] = ntf
+                raise MiCloudNeedVerify('need_verify').with_url(ntf)
             _LOGGER.error(
                 'Xiaomi serviceLoginAuth2: %s' %
-                [url, self.login_times, {**post, 'hash': '*', 'auto_verify': auto_verify}, cookies, response.text],
+                [url, self.login_times, {**post, 'hash': '*'}, cookies, response.text],
             )
-            raise MiCloudAccessDenied(tip or f'Login to xiaomi error: {response.text}')
+            raise MiCloudAccessDenied(f'Login to xiaomi error: {response.text}')
         self.user_id = str(auth.get('userId', ''))
         self.cuser_id = auth.get('cUserId')
         self.ssecurity = auth.get('ssecurity')
@@ -642,68 +617,49 @@ class MiotCloud(micloud.MiCloud):
             raise MiCloudAccessDenied(f'Login to xiaomi error: {err}')
         return response
 
-    def _get_captcha(self, url):
-        response = self.session.get(url)
-        if ick := response.cookies.get('ick'):
-            self.attrs['captchaIck'] = ick
-            self.attrs['captchaImg'] = base64.b64encode(response.content).decode()
-        return response
-
-    def send_verify_ticket(self, url):
-        if '/identity/authStart' not in url:
+    def check_identity_list(self, url, path='identity/authStart'):
+        if path not in url:
             return None
-        resp = self.account_get(url.replace('identity/authStart', 'identity/list'), response=True)
+        resp = self.account_get(url.replace(path, 'identity/list'), response=True)
         identity_session = resp.cookies.get('identity_session')
         if not identity_session:
             return False
-
-        post = {'retry': 0, 'icode': '', '_json': 'true'}
-        data = self.account_post(
-            '/identity/auth/sendEmailTicket',
-            data=post,
-        )
-        if data.get('code') == 0:
-            self.attrs['identity_session'] = identity_session
-            self.attrs.pop('verify_phone', None)
-            return True
-
-        data = self.account_post(
-            '/identity/auth/sendPhoneTicket',
-            data=post,
-        )
-        if data.get('code') == 0:
-            self.attrs['identity_session'] = identity_session
-            self.attrs['verify_phone'] = True
-            return True
-        return False
+        data = self.json_decode(resp.text) or {}
+        flag = data.get('flag', 4)
+        options = data.get('options', [flag])
+        return options
 
     def verify_ticket(self, ticket):
-        api = '/identity/auth/verifyEmail'
-        flg = 8
-        if self.attrs.get('verify_phone'):
-            api = '/identity/auth/verifyPhone'
-            flg = 4
-        data = self.account_post(
-            api,
-            params={
-                '_dc': int(time.time() * 1000),
-            },
-            data={
-                '_flag': flg,
-                'ticket': ticket,
-                'trust': 'true',
-                '_json': 'true',
-            },
-            cookies={
-                'identity_session': self.attrs.get('identity_session'),
-            },
-        )
-        if data.get('code') == 0:
-            self.attrs.pop('verify_phone', None)
-            self.attrs.pop('identity_session', None)
-        else:
-            self.attrs['verify_phone'] = True
-        return data
+        url = self.attrs.get('verify_url')
+        if not url:
+            return {}
+        options = self.check_identity_list(url) or []
+        for flag in options:
+            api = {
+                4: '/identity/auth/verifyPhone',
+                8: '/identity/auth/verifyEmail',
+            }.get(flag)
+            if not api:
+                continue
+            data = self.account_post(
+                api,
+                params={
+                    '_dc': int(time.time() * 1000),
+                },
+                data={
+                    '_flag': flag,
+                    'ticket': ticket,
+                    'trust': 'true',
+                    '_json': 'true',
+                },
+                cookies={
+                    'identity_session': self.attrs.get('identity_session'),
+                },
+            )
+            if data.get('code') == 0:
+                self.attrs.pop('identity_session', None)
+                return data
+        return {}
 
     def account_get(self, url, method='GET', **kwargs):
         return self.account_post(url, method, **kwargs)
@@ -719,7 +675,7 @@ class MiotCloud(micloud.MiCloud):
         response = kwargs.pop('response', None)
         resp = self.session.request(method, url, **kwargs)
         try:
-            data = json.loads(resp.text.replace('&&&START&&&', '')) or {}
+            data = self.json_decode(resp.text) or {}
         except Exception:
             data = {
                 'code': resp.status_code,
@@ -731,6 +687,9 @@ class MiotCloud(micloud.MiCloud):
         if response:
             return resp
         return data
+
+    def json_decode(self, text):
+        return json.loads(text.replace('&&&START&&&', ''))
 
     def to_config(self):
         return {
@@ -757,10 +716,7 @@ class MiotCloud(micloud.MiCloud):
         mic.user_id = str(config.get('user_id') or '')
         if a := hass.data[DOMAIN].get('sessions', {}).get(mic.unique_id):
             mic = a
-            mic.async_session = None
-            if mic.password != config.get(CONF_PASSWORD):
-                mic.password = config.get(CONF_PASSWORD)
-                mic.service_token = None
+            mic.merger_config(config)
         if not mic.service_token:
             sdt = await mic.async_stored_auth(save=False)
             config.update(sdt)
@@ -774,11 +730,25 @@ class MiotCloud(micloud.MiCloud):
             if not mic.service_token:
                 login = True
         if login:
-            auto_verify = config.get('auto_verify')
-            await mic.async_login(auto_verify=auto_verify)
+            await mic.async_login()
         else:
             hass.data[DOMAIN]['sessions'][mic.unique_id] = mic
         return mic
+
+    def merger_config(self, config: dict, changed=None):
+        if self.username != config.get(CONF_USERNAME):
+            self.username = config.get(CONF_USERNAME)
+            changed = True
+        if self.password != config.get(CONF_PASSWORD):
+            self.username = config.get(CONF_PASSWORD)
+            changed = True
+        if changed:
+            self.async_session = None
+            self.service_token = None
+            self.ssecurity = None
+            self.cookies = {}
+            self.attrs = {}
+        return self
 
     async def async_change_sid(self, sid: str, login=None):
         config = {
@@ -1017,3 +987,11 @@ class MiotCloud(micloud.MiCloud):
     def get_random_string(length):
         seq = string.ascii_uppercase + string.digits
         return ''.join((random.choice(seq) for _ in range(length)))
+
+
+class MiCloudNeedVerify(MiCloudException):
+    url = None
+
+    def with_url(self, url):
+        self.url = url
+        return self
