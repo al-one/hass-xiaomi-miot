@@ -740,7 +740,7 @@ class MiotCloud(micloud.MiCloud):
             self.username = config.get(CONF_USERNAME)
             changed = True
         if self.password != config.get(CONF_PASSWORD):
-            self.username = config.get(CONF_PASSWORD)
+            self.password = config.get(CONF_PASSWORD)
             changed = True
         if changed:
             self.async_session = None
