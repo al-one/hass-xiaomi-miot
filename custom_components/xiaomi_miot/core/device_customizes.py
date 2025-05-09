@@ -864,6 +864,9 @@ DEVICE_CUSTOMIZES = {
         'cover_position_mapping': None,
     },
     'hyd.airer.znlyj2': CHUNK_1,
+    'hyd.airer.znlyj4': {
+        'cover_position_mapping': {0: 50, 1: 0, 2: 100},
+    },
     'hyd.airer.znlyj5': {
         'cover_position_mapping': {0: 50, 1: 0, 2: 100},
     },
