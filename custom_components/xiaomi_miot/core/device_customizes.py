@@ -37,6 +37,13 @@ ENERGY_KWH = {
 DEVICE_CUSTOMIZES = {
     '090615.aircondition.ktf': {
         'current_temp_property': 'setmode.roomtemp',
+        'append_converters': [
+            {
+                'class': MiotClimateConv,
+                'services': ['air_conditioner'],
+                'converters': [{'props': ['setmode.roomtemp']}],
+            }
+        ],
     },
     '090615.curtain.wsdml1': {
         'switch_properties': 'on,wake_up_mode',
