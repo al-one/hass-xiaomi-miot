@@ -165,14 +165,12 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     _conv_current_temp = None
     _conv_target_humidity = None
     _conv_current_humidity = None
-    _prop_temperature = None
+    _prop_temperature_name = None
 
     def on_init(self):
         BaseClimateEntity.on_init(self)
 
-        if self._miot_service:
-            if prop := self.custom_config('current_temp_property'):
-                self._prop_temperature = self._miot_service.spec.get_property(prop)
+        self._prop_temperature_name = self.custom_config('temperature_property') or 'indoor_temperature'
 
         hvac_modes = set()
         for attr in self.conv.attrs:
@@ -219,10 +217,14 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 self._attr_target_temperature_step = prop.range_step()
                 self._attr_temperature_unit = self.prop_temperature_unit(prop)
                 self._attr_supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE
-            elif prop.in_list(['indoor_temperature', 'temperature']):
-                self._conv_current_temp = conv
-                if not self._attr_temperature_unit:
-                    self._attr_temperature_unit = self.prop_temperature_unit(prop)
+            elif prop.in_list([self._prop_temperature_name, 'temperature']):
+                if prop.in_list([self._prop_temperature_name]):
+                    self._conv_current_temp = conv
+                elif not self._conv_current_temp:
+                    self._conv_current_temp = conv
+                else:
+                    continue
+                self._attr_temperature_unit = self.prop_temperature_unit(prop)
             elif prop.in_list(['relative_humidity', 'humidity']):
                 self._conv_current_humidity = conv
             elif prop.in_list(['target_humidity']):

@@ -313,6 +313,17 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'status,left_time,temperature,cook_time,taste,cook_status,press_status,error_code',
         'switch_properties': 'finish_push',
     },
+    'cubee.airrtc.th123e': {
+        'sensor_properties': 'tempfloor',
+        'current_temp_property': 'tempfloor',
+        'append_converters': [
+            {
+                'class': MiotClimateConv,
+                'services': ['thermostat'],
+                'converters': [{'props': ['heatold.tempfloor']}],
+            }
+        ],
+    },
     'cubee.airrtc.*': {
         **CHUNK_1,
         'switch_properties': 'childlock',
