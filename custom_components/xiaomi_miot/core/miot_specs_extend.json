@@ -1888,6 +1888,23 @@
       ]
     }
   ],
+  "zhimi.humidifier.ca7": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 6,
+          "unit": "",
+          "value-list": [
+            {"value": 0, "description": "empty"},
+            {"value": 1, "description": "normal"},
+            {"value": 2, "description": "full"}
+          ],
+          "value-range": []
+        }
+      ]
+    }
+  ],
   "zhimi.humidifier.cb1": "zhimi.humidifier.ca1",
 
   "xiaomi.heater.ma8": [
