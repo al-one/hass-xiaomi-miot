@@ -473,7 +473,7 @@ async def async_setup_component_services(hass):
                     }
                     if not beaconkey and 'blt.' in did:
                         beaconkey = await cld.async_get_beaconkey(did)
-                        row['beaconkey'] = (beaconkey or {}).get('beaconkey')
+                        row['beaconkey'] = (beaconkey or {}).get('beaconkey', beaconkey)
                         row.pop(CONF_TOKEN, None)
                     elif dip and tok:
                         row['miio_cmd'] = f'miiocli device --ip {dip} --token {tok} info'

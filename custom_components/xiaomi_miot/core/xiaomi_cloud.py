@@ -464,7 +464,7 @@ class MiotCloud(micloud.MiCloud):
     async def async_get_beaconkey(self, did):
         dat = {'did': did, 'pdid': 1}
         rdt = await self.async_request_api('v2/device/blt_get_beaconkey', dat) or {}
-        return rdt.get('result')
+        return rdt.get('result', rdt)
 
     @staticmethod
     def is_hide(d):
