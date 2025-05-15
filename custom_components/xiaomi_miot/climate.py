@@ -344,7 +344,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 self.log.warning('Unsupported hvac mode: %s', hvac)
             elif (desc := mode.get('description')) is not None:
                 dat[self._conv_mode.full_name] = desc
-                if self._attr_target_temperature and self._conv_target_temp:
+                if self._conv_target_temp and self._attr_target_temperature and hvac in [HVACMode.HEAT, HVACMode.COOL]:
                     dat[self._conv_target_temp.full_name] = self._attr_target_temperature
 
         temp = kwargs.get(ATTR_TEMPERATURE)
