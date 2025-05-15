@@ -697,6 +697,7 @@ DEVICE_CUSTOMIZES = {
         ],
         'append_converters': [
             {
+                'class': MiotFanConv,
                 'services': ['fan'],
                 'converters': [{'props': ['dm_service.speed_level']}],
             }
@@ -1407,6 +1408,7 @@ DEVICE_CUSTOMIZES = {
         'percentage_property': 'fan_advance.speed',
         'append_converters': [
             {
+                'class': MiotFanConv,
                 'services': ['fan'],
                 'converters': [{'props': ['fan_advance.speed']}],
             }
@@ -2500,6 +2502,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'horizontal_angle,vertical_angle,off_delay',
         'append_converters': [
             {
+                'class': MiotFanConv,
                 'services': ['fan'],
                 'converters': [{'props': ['custom_service.speed_level']}],
             }
