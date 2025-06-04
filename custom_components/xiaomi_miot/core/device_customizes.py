@@ -2632,6 +2632,20 @@ DEVICE_CUSTOMIZES = {
             {'interval': 301, 'props': 'key_response,key_info,sensor_fault'},
         ],
     },
+    'zinguo.etool.tk01:energy': ENERGY_KWH,
+    'zinguo.etool.tk01:power': {
+        'state_class': 'measurement',
+        'device_class': 'power',
+        'unit_of_measurement': 'W',
+    },
+    'zinguo.etool.tk01:water_level': {
+        'unit_of_measurement': '%',
+    },
+    'zinguo.etool.tk01:temperature': {
+        'state_class': 'measurement',
+        'device_class': 'temperature',
+        'unit_of_measurement': '°C',
+    },
     'zinguo.motor.mk01': {
         'sensor_properties': 'status,fault,block_alarm,unclosed_alarm',
         'select_properties': 'mode,block_type',
