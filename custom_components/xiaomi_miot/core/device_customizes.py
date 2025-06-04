@@ -2613,6 +2613,25 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,light_off_time,children_mode_temp,comfort_mode_temp,adult_mode_temp,'
                              'kitchen_mode_temp,pet_mode_temp,custom_time,boost_value',
     },
+    'zinguo.etool.tk01': {
+        'binary_sensor_properties': 'boost,water_shortage,low_pressure,overflow,overload,leakage',
+        'sensor_properties': 'water_level,temperature,recircle_left,defreeze_status,power,energy',
+        'switch_properties': '*_enable,back_light,feed,heat,recircle,defreeze,overload_protect',
+        'select_properties': 'mode,pre_water_level,hengshui_level,show_set,sensility,*_feed_level,*_heat_temperature',
+        'number_properties': 'pre_temperature,wenkong_temperature,hengwen_temperature,recircle_time,shortage_delay_time',
+        'interval_seconds': 181,
+        'chunk_coordinators': [
+            {'interval': 31, 'props': 'mode,pre_water_level,hengshui_level'},
+            {'interval': 51, 'props': 'solar_water_heater.*_enable,back_light,feed,heat,recircle,defreeze'},
+            {'interval': 61, 'props': 'solar_water_heater.*temperature,water_level,recircle_left,power,energy'},
+            {'interval': 91, 'props': 'alarm_info.*'},
+            {'interval': 101, 'props': 'timer_mode.*'},
+            {'interval': 103, 'props': 'eco_mode.*'},
+            {'interval': 105, 'props': 'sunny_mode.*'},
+            {'interval': 106, 'props': 'rainy_mode.*'},
+            {'interval': 301, 'props': 'key_response,key_info,sensor_fault'},
+        ],
+    },
     'zinguo.motor.mk01': {
         'sensor_properties': 'status,fault,block_alarm,unclosed_alarm',
         'select_properties': 'mode,block_type',

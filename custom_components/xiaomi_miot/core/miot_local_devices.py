@@ -1111,6 +1111,7 @@ MIOT_LOCAL_MODELS = [
     'zhimi.waterpuri.ma1',
     'zimi.waterheater.h01',
     'zimi.waterheater.h03',
+    'zinguo.etool.tk01',
     'zinguo.etool.sc01',
     'zinguo.motor.mk01',
     'zinguo.switch.b3',
