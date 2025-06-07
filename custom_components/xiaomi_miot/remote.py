@@ -58,13 +58,19 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     spec = hass.data[DOMAIN]['miot_specs'].get(model)
     entities = []
     if isinstance(spec, MiotSpec):
+        host = config.get(CONF_HOST)
+        token = config.get(CONF_TOKEN)
         if spec.name in ['remote_control', 'ir_remote_control']:
             if 'chuangmi.remote.' in model or 'chuangmi.ir.' in model:
-                entities.append(MiotRemoteEntity(config, spec))
+                device = ChuangmiIr(host, token)
+                entities.append(MiotRemoteEntity(config, spec, device))
         elif model in [
             'xiaomi.wifispeaker.l05c',
             'xiaomi.wifispeaker.lx5a',
             'xiaomi.wifispeaker.lx06',
+            'lumi.acpartner.v1',
+            'lumi.acpartner.v2',
+            'lumi.acpartner.v3',
             'lumi.acpartner.mcn04',
         ]:
             entities.append(MiotRemoteEntity(config, spec))
@@ -75,12 +81,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class MiotRemoteEntity(MiotEntity, RemoteEntity):
-    def __init__(self, config, miot_spec: MiotSpec):
+    def __init__(self, config, miot_spec: MiotSpec, device=None):
         self._miot_spec = miot_spec
-        super().__init__(miot_service=None, config=config, logger=_LOGGER)
-        host = config.get(CONF_HOST)
-        token = config.get(CONF_TOKEN)
-        self._device = ChuangmiIr(host, token)
+        super().__init__(miot_service=None, device=device, config=config, logger=_LOGGER)
         self._attr_should_poll = False
         self._supported_features = RemoteEntityFeature.LEARN_COMMAND
         self._translations = get_translations('ir_devices')
@@ -142,8 +145,10 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                 try:
                     if f'{cmd}'[:4] == 'key:':
                         ret = self.send_cloud_command(did, cmd)
+                    elif f'{cmd}'.startswith('FE'):
+                        ret = self.miot_device.send('send_ir_code', [cmd])
                     else:
-                        ret = self._device.play(cmd)
+                        ret = self.miot_device.play(cmd)
                     self.logger.info('%s: Send IR command %s(%s) result: %s', self.name_model, cmd, kwargs, ret)
                 except (DeviceException, MiCloudException) as exc:
                     self.logger.error('%s: Send IR command %s(%s) failed: %s', self.name_model, cmd, kwargs, exc)
@@ -179,16 +184,27 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
 
     async def async_learn_command(self, **kwargs):
         """Learn a command from a device."""
+        if not self.miot_device:
+            return {'error': f'Not support for {self.model}'}
         timeout = int(kwargs.get(remote.ATTR_TIMEOUT) or 30)
         res = {}
+        key = int(kwargs.get(remote.ATTR_DEVICE, 999999))
+        learn = partial(self.miot_device.send, 'start_ir_learn', [key])
+        read = partial(self.miot_device.send, 'get_ir_learn_result')
+        if hasattr(self.miot_device, 'read'):
+            learn = partial(self.miot_device.learn, key)
+            read = partial(self.miot_device.read, key)
         try:
-            key = int(kwargs.get(remote.ATTR_DEVICE, 999999))
             for idx in range(timeout):
                 if idx == 0:
-                    await self.hass.async_add_executor_job(self._device.learn, key)
+                    await self.hass.async_add_executor_job(learn)
                 await asyncio.sleep(1)
-                res = await self.hass.async_add_executor_job(self._device.read, key)
+                res = await self.hass.async_add_executor_job(read)
                 if isinstance(res, dict) and res.get('code'):
+                    break
+                if isinstance(res, list) and res and str(res[0]).startswith('FE'):
+                    # lumi.acpartner.v*
+                    res = {'result': res}
                     break
         except (TypeError, ValueError, DeviceException) as exc:
             res = {'error': f'{exc}'}
