@@ -2614,11 +2614,11 @@ DEVICE_CUSTOMIZES = {
                              'kitchen_mode_temp,pet_mode_temp,custom_time,boost_value',
     },
     'zinguo.etool.tk01': {
-        'binary_sensor_properties': 'boost,water_shortage,low_pressure,overflow,overload,leakage',
-        'sensor_properties': 'water_level,temperature,recircle_left,defreeze_status,power,energy',
-        'switch_properties': '*_enable,back_light,feed,heat,recircle,defreeze,overload_protect',
-        'select_properties': 'mode,pre_water_level,hengshui_level,show_set,sensility,*_feed_level,*_heat_temperature',
-        'number_properties': 'pre_temperature,wenkong_temperature,hengwen_temperature,recircle_time,shortage_delay_time',
+        'binary_sensor_properties': 'boost,feed,heat,recircle,defreeze,water_shortage,low_pressure,overflow,overload,leakage',
+        'sensor_properties': 'water_level,temperature,sensor_fault,power,energy',
+        'switch_properties': '*_enable,back_light,overload_protect',
+        'select_properties': 'mode,pre_water_level,hengshui_level,sensility,*_feed_level,exe_*',
+        'number_properties': 'pre_temperature,wenkong_temperature,hengwen_temperature,recircle_time,shortage_delay_time,*_heat_temperature',
         'interval_seconds': 181,
         'chunk_coordinators': [
             {'interval': 31, 'props': 'mode,pre_water_level,hengshui_level'},
@@ -2632,11 +2632,15 @@ DEVICE_CUSTOMIZES = {
             {'interval': 301, 'props': 'key_response,key_info,sensor_fault'},
         ],
     },
-    'zinguo.etool.tk01:energy': ENERGY_KWH,
+    'zinguo.etool.tk01:energy': {
+        **ENERGY_KWH,
+        'value_ratio': 0.1,
+    },
     'zinguo.etool.tk01:power': {
         'state_class': 'measurement',
         'device_class': 'power',
         'unit_of_measurement': 'W',
+        'value_ratio': 0.1,
     },
     'zinguo.etool.tk01:water_level': {
         'unit_of_measurement': '%',
