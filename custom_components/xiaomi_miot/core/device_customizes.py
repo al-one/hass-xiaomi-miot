@@ -2621,9 +2621,10 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'pre_temperature,wenkong_temperature,hengwen_temperature,recircle_time,shortage_delay_time,*_heat_temperature',
         'interval_seconds': 181,
         'chunk_coordinators': [
-            {'interval': 11, 'props': 'water_level,temperature,boost,feed,heat,recircle,defreeze'},
-            {'interval': 21, 'props': 'water_shortage,low_pressure,overflow,overload,leakage,sensor_fault'},
-            {'interval': 31, 'props': 'exe_*,power,energy'},
+            {'interval': 21, 'props': 'water_level,temperature'},
+            {'interval': 31, 'props': 'boost,feed,heat,recircle,defreeze'},
+            {'interval': 41, 'props': 'water_shortage,low_pressure,overflow,overload,leakage,sensor_fault'},
+            {'interval': 51, 'props': 'power,energy'},
             {'interval': 91, 'props': 'mode,pre_water_level,hengshui_level,*_enable'},
             {'interval': 101, 'props': 'timer_mode.*'},
             {'interval': 103, 'props': 'eco_mode.*'},
