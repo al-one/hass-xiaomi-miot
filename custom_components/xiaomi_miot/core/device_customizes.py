@@ -2739,6 +2739,11 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on',
         'select_properties': 'mode',
     },
+    '*.coffee.*': {
+        'sensor_properties': 'status,fault',
+        'switch_properties': 'on',
+        'select_properties': 'mode',
+    },
     '*.cooker.*': {
         'sensor_properties': 'temperature,left_time',
         'switch_properties': 'on,auto_keep_warm',
