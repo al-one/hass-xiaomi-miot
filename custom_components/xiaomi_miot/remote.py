@@ -72,6 +72,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             'lumi.acpartner.v2',
             'lumi.acpartner.v3',
             'lumi.acpartner.mcn04',
+            'xiaomi.wifispeaker.oh2p'
         ]:
             entities.append(MiotRemoteEntity(config, spec))
     for entity in entities:
