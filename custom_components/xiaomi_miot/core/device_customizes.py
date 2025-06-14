@@ -36,7 +36,7 @@ ENERGY_KWH = {
 
 DEVICE_CUSTOMIZES = {
     '090615.aircondition.ktf': {
-        'current_temp_property': 'setmode.roomtemp',
+        'temperature_property': 'setmode.roomtemp',
         'append_converters': [
             {
                 'class': MiotClimateConv,
