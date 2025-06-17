@@ -121,6 +121,8 @@ class HassEntry:
         if isinstance(self.cloud_devices, dict):
             return self.cloud_devices
         cloud = await self.get_cloud()
+        if not cloud:
+            return {}
         config = self.get_config()
         self.cloud_devices = await cloud.async_get_devices_by_key('did', filters=config) or {}
         for did, info in self.cloud_devices.items():
