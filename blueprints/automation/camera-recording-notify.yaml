@@ -74,6 +74,7 @@ blueprint:
             push:
               tag: '{{ camera_entity_id }}'
               sound:
+                name: default
                 critical: "{{ 1 if 'Bell' in motion_video_type else 0 }}"
                 volume: 0.3
         ```
