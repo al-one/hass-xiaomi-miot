@@ -198,21 +198,12 @@ class MiotLightEntity(MiotToggleEntity, BaseEntity):
 
         self._attr_color_mode = None
         self._attr_supported_color_modes = set()
-        self._is_percentage_color_temp = None
         if self._prop_color_temp:
             self._attr_supported_color_modes.add(ColorMode.COLOR_TEMP)
-            self._is_percentage_color_temp = self._prop_color_temp.unit in ['percentage', '%']
-            if self._is_percentage_color_temp:
-                # issues/870
-                self._vars['color_temp_min'] = self._prop_color_temp.range_min()
-                self._vars['color_temp_max'] = self._prop_color_temp.range_max()
-                self._attr_min_mireds = self._vars['color_temp_min']
-                self._attr_max_mireds = self._vars['color_temp_max']
-            else:
-                self._vars['color_temp_min'] = self._prop_color_temp.range_min() or 3000
-                self._vars['color_temp_max'] = self._prop_color_temp.range_max() or 5700
-                self._attr_min_mireds = self.translate_mired(self._vars['color_temp_max'])
-                self._attr_max_mireds = self.translate_mired(self._vars['color_temp_min'])
+            self._vars['color_temp_min'] = self._prop_color_temp.range_min() or 3000
+            self._vars['color_temp_max'] = self._prop_color_temp.range_max() or 5700
+            self._attr_min_mireds = self.translate_mired(self._vars['color_temp_max'])
+            self._attr_max_mireds = self.translate_mired(self._vars['color_temp_min'])
             self._vars['color_temp_sum'] = self._vars['color_temp_min'] + self._vars['color_temp_max']
             self._vars['mireds_sum'] = self._attr_min_mireds + self._attr_max_mireds
         if self._prop_color:
@@ -386,9 +377,6 @@ class MiotLightEntity(MiotToggleEntity, BaseEntity):
         return ColorMode.UNKNOWN
 
     def translate_mired(self, num):
-        if self._is_percentage_color_temp:
-            # issues/870
-            return num
         try:
             return round(1000000 / num)
         except TypeError:
