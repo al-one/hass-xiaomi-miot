@@ -29,6 +29,9 @@ from . import (
     async_setup_config_entry,
     bind_services_to_entries,
 )
+from .core.converters import (
+    MiotColorTempConv,
+)
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -97,7 +100,17 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
             elif prop.in_list(['color_temperature', 'color_temp']):
                 self._attr_color_mode = ColorMode.COLOR_TEMP
                 modes.add(ColorMode.COLOR_TEMP)
-                if prop.unit in ['kelvin']:
+
+                # percentage may be incorrectly declared as kelvin
+                # e.g. https://home.miot-spec.com/spec/mrbond.airer.m33a
+                if prop.unit != 'percentage' and prop.range_max() == 100:
+                    prop.unit = 'percentage'
+                if prop.unit == 'percentage':
+                    self._is_percentage_color_temp = True
+                    self._attr_min_color_temp_kelvin = MiotColorTempConv.percentage_to_kelvin(prop.range_max())
+                    self._attr_max_color_temp_kelvin = MiotColorTempConv.percentage_to_kelvin(prop.range_min())
+                    self._attr_names[ATTR_COLOR_TEMP_KELVIN] = attr
+                elif prop.unit in ['kelvin']:
                     self._attr_min_color_temp_kelvin = prop.range_min()
                     self._attr_max_color_temp_kelvin = prop.range_max()
                     self._attr_names[ATTR_COLOR_TEMP_KELVIN] = attr

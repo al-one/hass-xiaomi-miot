@@ -214,22 +214,39 @@ class MiotBrightnessConv(MiotPropConv):
 @dataclass
 class MiotColorTempConv(MiotPropConv):
     def decode(self, device: 'Device', payload: dict, value: int):
-        if self.prop.unit not in ['kelvin']:
+        if self.prop.unit == 'percentage':
+            if not value:
+                return
+            value = self.percentage_to_kelvin(value)
+        elif self.prop.unit != 'kelvin':
             if not value:
                 return
             value = round(1000000.0 / value)
         super().decode(device, payload, value)
 
     def encode(self, device: 'Device', payload: dict, value: int):
-        if self.prop.unit not in ['kelvin']:
+        if self.prop.unit == 'percentage':
+            if not value:
+                return
+            value = self.kelvin_to_percentage(value)
+        elif self.prop.unit != 'kelvin':
             if not value:
                 return
             value = round(1000000.0 / value)
+
         if value < self.prop.range_min():
             value = self.prop.range_min()
         if value > self.prop.range_max():
             value = self.prop.range_max()
         super().encode(device, payload, value)
+
+    @staticmethod
+    def percentage_to_kelvin(p: int) -> int:
+        return 6500 - p * 40
+
+    @staticmethod
+    def kelvin_to_percentage(k: int) -> int:
+        return round((6500 - k) / 40)
 
 @dataclass
 class MiotRgbColorConv(MiotPropConv):
