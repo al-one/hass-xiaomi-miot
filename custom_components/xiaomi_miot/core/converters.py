@@ -17,7 +17,7 @@ class BaseConv:
 
     def __post_init__(self):
         if self.attrs is None:
-            self.attrs = set()
+            self.attrs = []
         if self.option is None:
             self.option = {}
 
