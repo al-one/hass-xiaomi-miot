@@ -22,10 +22,9 @@ from homeassistant.const import (
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.components import persistent_notification
-from homeassistant.util.dt import get_default_time_zone
 
 from .const import DOMAIN, CONF_XIAOMI_CLOUD
-from .utils import RC4, logger_filter
+from .utils import RC4, local_zone, logger_filter
 from micloud import miutils
 from micloud.micloudexception import MiCloudException
 
@@ -55,7 +54,7 @@ class MiotCloud(micloud.MiCloud):
     def __init__(self, hass, username, password, country=None, sid=None):
         try:
             super().__init__(username, password)
-            timezone = datetime.now(get_default_time_zone()).strftime('%z')
+            timezone = datetime.now(local_zone(hass)).strftime('%z')
             self.timezone = 'GMT{0}:{1}'.format(timezone[:-2], timezone[-2:])
             self.locale = locale.getlocale()[0]
         except Exception:
