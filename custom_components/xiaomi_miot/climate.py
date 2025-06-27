@@ -170,7 +170,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     def on_init(self):
         BaseClimateEntity.on_init(self)
 
-        self._prop_temperature_name = self.custom_config('temperature_property') or 'indoor_temperature'
+        self._prop_temperature_name = self.custom_config('current_temp_property') or 'indoor_temperature'
 
         hvac_modes = set()
         for attr in self.conv.attrs:
