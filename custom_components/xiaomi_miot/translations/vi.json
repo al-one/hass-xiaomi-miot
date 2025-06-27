@@ -1,0 +1,474 @@
+{
+    "config": {
+        "flow_title": "Xiaomi Miot Auto",
+        "step": {
+            "user": {
+                "title": "Chọn hành động",
+                "data": {
+                    "action": "Hành động"
+                }
+            },
+            "token": {
+                "description": "Cấu hình thông tin thiết bị.",
+                "data": {
+                    "host": "IP cục bộ",
+                    "token": "Token",
+                    "name": "Tên thiết bị",
+                    "scan_interval": "Chu kỳ cập nhật trạng thái (giây)"
+                }
+            },
+            "cloud": {
+                "description": "Cấu hình tài khoản Xiaomi Cloud.\n{tip}",
+                "data": {
+                    "username": "ID tài khoản Xiaomi / Email",
+                    "password": "Mật khẩu",
+                    "captcha": "Captcha",
+                    "verify_ticket": "Mã xác thực hai bước",
+                    "server_country": "Vị trí máy chủ MiCloud",
+                    "conn_mode": "Chế độ kết nối thiết bị",
+                    "trans_options": "Mô tả dịch thuộc tính",
+                    "filter_models": "Lọc thiết bị theo model/home/WiFi (Nâng cao)"
+                }
+            },
+            "cloud_filter": {
+                "title": "Lọc thiết bị cloud",
+                "description": "Bạn có thể bao gồm hoặc loại trừ thiết bị để chỉ tích hợp thiết bị mong muốn.\n{tip}",
+                "data": {
+                    "filter_model": "Lọc theo model thiết bị",
+                    "model_list": "Danh sách model thiết bị",
+                    "filter_home_id": "Lọc theo Home",
+                    "home_id_list": "Danh sách Home",
+                    "filter_ssid": "Lọc theo WiFi SSID",
+                    "ssid_list": "Danh sách WiFi SSID",
+                    "filter_bssid": "Lọc theo WiFi BSSID",
+                    "bssid_list": "Danh sách WiFi BSSID",
+                    "filter_did": "Lọc theo thiết bị",
+                    "did_list": "Danh sách thiết bị",
+                    "home_ids": "Lọc theo Home (Để trống để lưu)"
+                },
+                "data_description": {
+                    "filter_did": "Ở chế độ loại trừ, nếu không chọn mục nào, sẽ bao gồm tất cả thiết bị.",
+                    "home_ids": "Sau khi chọn và gửi, bạn sẽ quay lại trang này, danh sách thiết bị sẽ làm mới và lọc theo Home đã chọn."
+                }
+            },
+            "customizing": {
+                "title": "Tùy chỉnh thực thể / thiết bị",
+                "description": "{tip}",
+                "data": {
+                    "domain": "Chọn domain thực thể",
+                    "entity": "Chọn thực thể",
+                    "model": "Chọn model thiết bị",
+                    "model_specified": "Model thiết bị chỉ định (Tùy chọn)",
+                    "only_main_entity": "Chỉ thực thể chính (cha)",
+                    "yaml_mode": "Chế độ YAML",
+                    "yaml_customizes": "Mã YAML tùy chỉnh",
+                    "reset_customizes": "Khôi phục tùy chỉnh mặc định",
+                    "bool2selects": "Tùy chọn tùy chỉnh"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Không thể kết nối tới thiết bị",
+            "cannot_login": "Đăng nhập tài khoản Xiaomi thất bại. Vui lòng kiểm tra thông tin đăng nhập. Nếu thử nhiều lần vẫn không được, hãy thử đăng nhập lại trên trang chính thức Xiaomi (mi.com) cùng mạng.",
+            "cannot_reach": "Không thể truy cập API Xiaomi",
+            "tzinfo_error": "Có vẻ môi trường Hass của bạn gặp vấn đề. Xem: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Không tìm thấy thiết bị nào trong tài khoản Xiaomi này",
+            "need_verify": "Đăng nhập này cần xác thực bảo mật. Hãy mở trang xác thực để gửi mã xác minh qua điện thoại/email. Sau khi nhận mã, KHÔNG xác minh trên web mà quay lại Home Assistant để nhập mã vào ô bên dưới."
+        },
+        "abort": {
+            "config_saved": "Đã lưu cấu hình! [Tùy chỉnh lại](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nMột số tùy chọn cần [tải lại tích hợp](/developer-tools/yaml) để có hiệu lực.",
+            "already_configured": "Thiết bị này đã được cấu hình.",
+            "not_xiaomi_miio": "Thiết bị này không hỗ trợ giao thức miio/miot."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "Cấu hình thông tin thiết bị.",
+                "data": {
+                    "host": "IP thiết bị",
+                    "token": "Token",
+                    "scan_interval": "Chu kỳ cập nhật trạng thái (giây)",
+                    "miot_cloud": "Bật miot cloud (Cấu hình tài khoản trong YAML trước)"
+                }
+            },
+            "cloud": {
+                "description": "Cấu hình tài khoản Xiaomi Cloud.\n{tip}",
+                "data": {
+                    "username": "ID tài khoản Xiaomi / Email",
+                    "password": "Mật khẩu",
+                    "captcha": "Captcha",
+                    "verify_ticket": "Mã xác thực hai bước",
+                    "server_country": "Vị trí máy chủ MiCloud",
+                    "conn_mode": "Chế độ kết nối thiết bị",
+                    "renew_devices": "Làm mới danh sách thiết bị",
+                    "trans_options": "Mô tả dịch thuộc tính",
+                    "disable_message": "Tắt cảm biến thông báo Mihome",
+                    "disable_scene_history": "Tắt cảm biến lịch sử cảnh Mihome"
+                }
+            },
+            "cloud_filter": {
+                "title": "Lọc thiết bị cloud",
+                "description": "Bạn có thể bao gồm hoặc loại trừ thiết bị để chỉ tích hợp thiết bị mong muốn.\n{tip}",
+                "data": {
+                    "filter_model": "Lọc theo model thiết bị",
+                    "model_list": "Danh sách model thiết bị",
+                    "filter_home_id": "Lọc theo Home",
+                    "home_id_list": "Danh sách Home",
+                    "filter_ssid": "Lọc theo WiFi SSID",
+                    "ssid_list": "Danh sách WiFi SSID",
+                    "filter_bssid": "Lọc theo WiFi BSSID",
+                    "bssid_list": "Danh sách WiFi BSSID",
+                    "filter_did": "Lọc theo thiết bị",
+                    "did_list": "Danh sách thiết bị",
+                    "home_ids": "Lọc theo Home (Để trống để lưu)"
+                },
+                "data_description": {
+                    "filter_did": "Ở chế độ loại trừ, nếu không chọn mục nào, sẽ bao gồm tất cả thiết bị.",
+                    "home_ids": "Sau khi chọn và gửi, bạn sẽ quay lại trang này, danh sách thiết bị sẽ làm mới và lọc theo Home đã chọn."
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Không thể kết nối tới thiết bị",
+            "cannot_login": "Đăng nhập tài khoản Xiaomi thất bại. Vui lòng kiểm tra thông tin đăng nhập. Nếu thử nhiều lần vẫn không được, hãy thử đăng nhập lại trên trang chính thức Xiaomi (mi.com) cùng mạng.",
+            "cannot_reach": "Không thể truy cập API Xiaomi",
+            "tzinfo_error": "Có vẻ môi trường Hass của bạn gặp vấn đề. Xem: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Không tìm thấy thiết bị nào trong tài khoản Xiaomi này",
+            "need_verify": "Đăng nhập này cần xác thực bảo mật. Hãy mở trang xác thực để gửi mã xác minh qua điện thoại/email. Sau khi nhận mã, KHÔNG xác minh trên web mà quay lại Home Assistant để nhập mã vào ô bên dưới."
+        },
+        "abort": {
+            "show_customizes": "[![Thêm tích hợp mới](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Thêm tích hợp mới](/_my_redirect/config_flow_start?domain=xiaomi_miot) để chỉnh sửa tùy chỉnh.\n{tip}"
+        }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "Phiên bản custom component",
+            "can_reach_server": "Kết nối tới máy chủ API Xiaomi",
+            "can_reach_spec": "Kết nối tới máy chủ MIoT-Spec",
+            "logged_accounts": "Số tài khoản đã đăng nhập",
+            "total_devices": "Tổng số thiết bị MiHome"
+        }
+    },
+    "entity": {
+        "button": {
+            "info": {"name": "Thông tin"}
+        },
+        "sensor": {
+            "clean_area": {"name": "Diện tích đã làm sạch"},
+            "clean_time": {"name": "Thời gian làm sạch"},
+            "power_cost_today": {"name": "Năng lượng hôm nay"},
+            "power_cost_month": {"name": "Năng lượng tháng này"},
+            "power_cost_today_2": {"name": "Năng lượng hôm nay"},
+            "power_cost_month_2": {"name": "Năng lượng tháng này"},
+            "props-clean_area": {"name": "Diện tích đã làm sạch"},
+            "props-clean_time": {"name": "Thời gian làm sạch"},
+            "lock": {
+                "state": {
+                    "bluetooth": "Bluetooth",
+                    "password": "Mật khẩu",
+                    "biological": "Sinh trắc",
+                    "key": "Chìa khóa",
+                    "turntable": "Vặn tay",
+                    "nfc": "NFC",
+                    "one_time_password": "Mật khẩu 1 lần",
+                    "two_step_verification": "Xác thực 2 bước",
+                    "coercion": "Cưỡng chế",
+                    "homekit": "Homekit",
+                    "manual": "Thủ công",
+                    "automatic": "Tự động"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "Mở khóa từ ngoài",
+                    "lock": "Khóa",
+                    "anti_lock_on": "Bật chống khóa",
+                    "anti_lock_off": "Tắt chống khóa",
+                    "inside_unlock": "Mở khóa từ trong",
+                    "lock_inside": "Khóa từ trong",
+                    "child_lock_on": "Bật khóa trẻ em",
+                    "child_lock_off": "Tắt khóa trẻ em",
+                    "lock_outside": "Khóa từ ngoài"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "Mở",
+                    "close": "Đóng",
+                    "close_timeout": "Đóng quá thời gian",
+                    "knock": "Gõ cửa",
+                    "breaking": "Phá cửa",
+                    "stuck": "Kẹt"
+                }
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "Tự động",
+                            "low": "Thấp",
+                            "medium": "Trung bình",
+                            "middle": "Trung bình",
+                            "high": "Cao",
+                            "quiet": "Yên lặng",
+                            "turbo": "Turbo",
+                            "level1": "Mức 1",
+                            "level2": "Mức 2",
+                            "level3": "Mức 3",
+                            "level4": "Mức 4",
+                            "level5": "Mức 5",
+                            "level6": "Mức 6",
+                            "level7": "Mức 7"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "Tắt",
+                            "vertical": "Dọc",
+                            "horizontal": "Ngang",
+                            "both": "Cả hai"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "services": {
+        "send_command": {
+            "name": "Gửi lệnh",
+            "description": "Gửi lệnh miio",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Phương thức",
+                    "description": ""
+                },
+                "params": {
+                    "name": "Tham số",
+                    "description": ""
+                }
+            }
+        },
+        "get_properties": {
+            "name": "Lấy thuộc tính",
+            "description": "Lấy thuộc tính miot",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "mapping": {
+                    "name": "Ánh xạ",
+                    "description": ""
+                },
+                "update_entity": {
+                    "name": "Cập nhật thực thể",
+                    "description": ""
+                }
+            }
+        },
+        "set_property": {
+            "name": "Đặt thuộc tính",
+            "description": "Đặt thuộc tính miot",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "field": {
+                    "name": "Trường",
+                    "description": ""
+                },
+                "value": {
+                    "name": "Giá trị",
+                    "description": ""
+                }
+            }
+        },
+        "set_miot_property": {
+            "name": "Đặt thuộc tính miot",
+            "description": "Đặt thuộc tính miot theo siid/piid",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "piid": {
+                    "name": "",
+                    "description": ""
+                },
+                "value": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        },
+        "call_action": {
+            "name": "Gọi hành động",
+            "description": "Gọi action miot",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "aiid": {
+                    "name": "",
+                    "description": ""
+                },
+                "params": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        },
+        "intelligent_speaker": {
+            "name": "Loa thông minh",
+            "description": "Loa thông minh cho XiaoAi",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": "Xiaoai Entity ID"
+                },
+                "text": {
+                    "name": "Văn bản",
+                    "description": ""
+                },
+                "execute": {
+                    "name": "Thực thi",
+                    "description": ""
+                },
+                "silent": {
+                    "name": "Im lặng",
+                    "description": ""
+                }
+            }
+        },
+        "xiaoai_wakeup": {
+            "name": "Đánh thức XiaoAi",
+            "description": "Đánh thức loa XiaoAi",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": "Xiaoai Entity ID"
+                },
+                "text": {
+                    "name": "Văn bản",
+                    "description": ""
+                }
+            }
+        },
+        "get_device_data": {
+            "name": "Lấy dữ liệu thiết bị",
+            "description": "Lấy dữ liệu thiết bị xiaomi từ cloud",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "type": {
+                    "name": "Loại",
+                    "description": ""
+                },
+                "key": {
+                    "name": "Khóa",
+                    "description": ""
+                },
+                "time_start": {
+                    "name": "Thời gian bắt đầu",
+                    "description": ""
+                },
+                "time_end": {
+                    "name": "Thời gian kết thúc",
+                    "description": ""
+                },
+                "limit": {
+                    "name": "Giới hạn",
+                    "description": ""
+                },
+                "group": {
+                    "name": "Nhóm",
+                    "description": ""
+                }
+            }
+        },
+        "renew_devices": {
+            "name": "Làm mới thiết bị",
+            "description": "Làm mới cache thiết bị xiaomi",
+            "fields": {
+                "username": {
+                    "name": "Tên đăng nhập",
+                    "description": ""
+                }
+            }
+        },
+        "get_token": {
+            "name": "Lấy token",
+            "description": "Lấy token thiết bị xiaomi",
+            "fields": {
+                "name": {
+                    "name": "Tên",
+                    "description": ""
+                }
+            }
+        },
+        "get_bindkey": {
+            "name": "Lấy bindkey",
+            "description": "Lấy bindkey cho thiết bị ble",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "did": {
+                    "name": "DID",
+                    "description": ""
+                }
+            }
+        },
+        "request_xiaomi_api": {
+            "name": "Gọi API xiaomi",
+            "description": "Gọi API xiaomi",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity ID",
+                    "description": ""
+                },
+                "api": {
+                    "name": "API",
+                    "description": ""
+                },
+                "data": {
+                    "name": "Dữ liệu",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Phương thức",
+                    "description": ""
+                },
+                "crypt": {
+                    "name": "Mã hóa",
+                    "description": ""
+                },
+                "sid": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        }
+    }
+}
