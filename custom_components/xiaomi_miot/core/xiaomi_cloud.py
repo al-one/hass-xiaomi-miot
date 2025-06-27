@@ -6,6 +6,7 @@ import time
 import string
 import random
 import base64
+import locale
 import hashlib
 import micloud
 import requests
@@ -21,6 +22,7 @@ from homeassistant.const import (
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.components import persistent_notification
+from homeassistant.util.dt import get_default_time_zone
 
 from .const import DOMAIN, CONF_XIAOMI_CLOUD
 from .utils import RC4, logger_filter
@@ -41,13 +43,24 @@ UA = "Android-7.1.1-1.0.0-ONEPLUS A3010-136-%s APP/xiaomi.smarthome APPV/62830"
 
 
 class MiotCloud(micloud.MiCloud):
+    user_id = None
+    cuser_id = None
+    ssecurity = None
+    pass_token = None
+    service_token = None
+    failed_logins = 0
+    session = None
     async_session: Optional[aiohttp.ClientSession] = None
 
     def __init__(self, hass, username, password, country=None, sid=None):
         try:
             super().__init__(username, password)
-        except (FileNotFoundError, KeyError):
-            self.timezone = 'GMT+00:00'
+            timezone = datetime.now(get_default_time_zone()).strftime('%z')
+            self.timezone = 'GMT{0}:{1}'.format(timezone[:-2], timezone[-2:])
+            self.locale = locale.getlocale()[0]
+        except Exception:
+            self.timezone = 'GMT+08:00'
+            self.locale = 'zh_CN'
 
         self.hass = hass
         self.username = username
