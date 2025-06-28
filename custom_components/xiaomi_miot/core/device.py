@@ -727,7 +727,7 @@ class Device(CustomConfigHelper):
                 if self.cloud and cloud_params:
                     result = await self.cloud.async_set_props(cloud_params)
                 if err := MiotResults(result).has_error:
-                    self.log.warning('Device write error: %s', [payload, err])
+                    self.log.warning('Device write error: %s', [payload, data, err])
 
             if method == 'action':
                 param = data.get('param', {})
