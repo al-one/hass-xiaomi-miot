@@ -29,6 +29,9 @@ from . import (
     async_setup_config_entry,
     bind_services_to_entries,
 )
+from .core.converters import (
+    MiotColorTempConv,
+)
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -97,7 +100,17 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
             elif prop.in_list(['color_temperature', 'color_temp']):
                 self._attr_color_mode = ColorMode.COLOR_TEMP
                 modes.add(ColorMode.COLOR_TEMP)
-                if prop.unit in ['kelvin']:
+
+                # percentage may be incorrectly declared as kelvin
+                # e.g. https://home.miot-spec.com/spec/mrbond.airer.m33a
+                if prop.unit != 'percentage' and prop.range_max() == 100:
+                    prop.unit = 'percentage'
+                if prop.unit == 'percentage':
+                    self._is_percentage_color_temp = True
+                    self._attr_min_color_temp_kelvin = MiotColorTempConv.percentage_to_kelvin(prop.range_max())
+                    self._attr_max_color_temp_kelvin = MiotColorTempConv.percentage_to_kelvin(prop.range_min())
+                    self._attr_names[ATTR_COLOR_TEMP_KELVIN] = attr
+                elif prop.unit in ['kelvin']:
                     self._attr_min_color_temp_kelvin = prop.range_min()
                     self._attr_max_color_temp_kelvin = prop.range_max()
                     self._attr_names[ATTR_COLOR_TEMP_KELVIN] = attr
@@ -198,21 +211,12 @@ class MiotLightEntity(MiotToggleEntity, BaseEntity):
 
         self._attr_color_mode = None
         self._attr_supported_color_modes = set()
-        self._is_percentage_color_temp = None
         if self._prop_color_temp:
             self._attr_supported_color_modes.add(ColorMode.COLOR_TEMP)
-            self._is_percentage_color_temp = self._prop_color_temp.unit in ['percentage', '%']
-            if self._is_percentage_color_temp:
-                # issues/870
-                self._vars['color_temp_min'] = self._prop_color_temp.range_min()
-                self._vars['color_temp_max'] = self._prop_color_temp.range_max()
-                self._attr_min_mireds = self._vars['color_temp_min']
-                self._attr_max_mireds = self._vars['color_temp_max']
-            else:
-                self._vars['color_temp_min'] = self._prop_color_temp.range_min() or 3000
-                self._vars['color_temp_max'] = self._prop_color_temp.range_max() or 5700
-                self._attr_min_mireds = self.translate_mired(self._vars['color_temp_max'])
-                self._attr_max_mireds = self.translate_mired(self._vars['color_temp_min'])
+            self._vars['color_temp_min'] = self._prop_color_temp.range_min() or 3000
+            self._vars['color_temp_max'] = self._prop_color_temp.range_max() or 5700
+            self._attr_min_mireds = self.translate_mired(self._vars['color_temp_max'])
+            self._attr_max_mireds = self.translate_mired(self._vars['color_temp_min'])
             self._vars['color_temp_sum'] = self._vars['color_temp_min'] + self._vars['color_temp_max']
             self._vars['mireds_sum'] = self._attr_min_mireds + self._attr_max_mireds
         if self._prop_color:
@@ -386,9 +390,6 @@ class MiotLightEntity(MiotToggleEntity, BaseEntity):
         return ColorMode.UNKNOWN
 
     def translate_mired(self, num):
-        if self._is_percentage_color_temp:
-            # issues/870
-            return num
         try:
             return round(1000000 / num)
         except TypeError:
