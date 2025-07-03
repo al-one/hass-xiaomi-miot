@@ -563,7 +563,7 @@ class MiotCloud(micloud.MiCloud):
             self.async_session = None
         return auth
 
-    def _login_step2(self, **kwargs):
+    def _login_step2(self, captcha=None, **kwargs):
         url = '/pass/serviceLoginAuth2'
         post = {
             'user': self.username,
@@ -575,6 +575,10 @@ class MiotCloud(micloud.MiCloud):
         }
         params = {'_json': 'true'}
         cookies = {}
+        if captcha:
+            post['captCode'] = captcha
+            params['_dc'] = int(time.time() * 1000)
+            cookies['ick'] = self.attrs.pop('captchaIck', '')
         response = self.account_post(url, data=post, params=params, cookies=cookies, response=True)
         auth = self.json_decode(response.text) or {}
         code = auth.get('code')
@@ -592,6 +596,11 @@ class MiotCloud(micloud.MiCloud):
                     ntf = f'{ACCOUNT_BASE}{ntf}'
                 self.attrs['verify_url'] = ntf
                 raise MiCloudNeedVerify('need_verify').with_url(ntf)
+            if cap := auth.get('captchaUrl'):
+                if cap[:4] != 'http':
+                    cap = f'{ACCOUNT_BASE}{cap}'
+                if self._get_captcha(cap):
+                    self.attrs['login_data'] = kwargs
             _LOGGER.error(
                 'Xiaomi serviceLoginAuth2: %s' %
                 [url, self.login_times, {**post, 'hash': '*'}, cookies, response.text],
@@ -628,6 +637,13 @@ class MiotCloud(micloud.MiCloud):
             }
             raise MiCloudAccessDenied(f'Login to xiaomi error: {err}')
         return response
+
+    def _get_captcha(self, url):
+        response = self.session.get(url)
+        if ick := response.cookies.get('ick'):
+            self.attrs['captchaIck'] = ick
+            self.attrs['captchaImg'] = base64.b64encode(response.content).decode()
+        return ick
 
     def check_identity_list(self, url, path='identity/authStart'):
         if path not in url:

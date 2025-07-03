@@ -142,6 +142,8 @@ class BaseFlowHandler:
         login_data = {}
         if verify_ticket := user_input.pop('verify_ticket', None):
             login_data['verify_ticket'] = verify_ticket
+        if captcha := user_input.pop('captcha', None):
+            login_data['captcha'] = captcha
         if login_data:
             await self.cloud.async_login(login_data=login_data)
         elif not await self.cloud.async_check_auth(notify=False):
@@ -156,6 +158,7 @@ class BaseFlowHandler:
             dvs = await mic.async_get_devices(renew=renew_devices) or []
             if renew_devices:
                 await MiotSpec.async_get_model_type(self.hass, 'xiaomi.miot.auto', use_remote=True)
+            self.context.pop('captchaIck', None)
         except (MiCloudException, MiCloudAccessDenied, Exception) as exc:
             err = f'{exc}'
             self.placeholders['tip'] = f'⚠️ {err}'
@@ -169,6 +172,11 @@ class BaseFlowHandler:
                     'url': exc.url,
                     'tip': f'[打开验证网页 | Open the verification page]({exc.url})',
                 })
+            elif isinstance(exc, MiCloudAccessDenied) and mic:
+                if url := mic.attrs.pop('captchaImg', None):
+                    err = f'Captcha:\n![captcha](data:image/jpeg;base64,{url})'
+                    self.placeholders['tip'] = f'⚠️ {err}'
+                    self.context['captchaIck'] = mic.attrs.get('captchaIck')
             elif isinstance(exc, requests.exceptions.ConnectionError):
                 errors['base'] = 'cannot_reach'
             elif 'ZoneInfoNotFoundError' in err:
@@ -351,6 +359,10 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         if self.context.get('need_verify'):
             schema.update({
                 vol.Optional('verify_ticket', default=''): str,
+            })
+        if self.context.get('captchaIck'):
+            schema.update({
+                vol.Optional('captcha', default=''): str,
             })
         schema.update({
             vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
@@ -700,6 +712,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
         if self.context.get('need_verify'):
             schema.update({
                 vol.Optional('verify_ticket', default=''): str,
+            })
+        if self.context.get('captchaIck'):
+            schema.update({
+                vol.Optional('captcha', default=''): str,
             })
         if user_input.get('trans_options') == None:
             user_input['trans_options'] = False
