@@ -338,7 +338,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         self._message_router = miot_service.spec.get_service('message_router')
         self.xiaoai_cloud = None
         self.xiaoai_device = None
-        self._supported_features |= MediaPlayerEntityFeature.PLAY_MEDIA
+        self._supported_features |= MediaPlayerEntityFeature.PLAY_MEDIA | MediaPlayerEntityFeature.BROWSE_MEDIA
 
     @property
     def xiaoai_id(self):
@@ -506,6 +506,11 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             return self.call_action(self._act_turn_off)
         return False
 
+    async def async_browse_media(self, media_content_type=None, media_content_id=None):
+        return await media_source.async_browse_media(
+            self.hass, media_content_id,
+            content_filter=lambda item: item.media_content_type.startswith("audio/"))
+
     async def async_play_media(self, media_type, media_id, **kwargs):
         if not (aid := self.xiaoai_id):
             return
@@ -513,15 +518,10 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         if media_source.is_media_source_id(media_id):
             play_item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
             media_id = async_process_play_media_url(self.hass, play_item.url)
+            self.logger.debug('async_resolve_media(%s) -> %s -> URL(%s)', media_id, play_item, media_id)
 
-        typ = {
-            'audio': 1,
-            'music': 1,
-            'voice': 1,
-            'mp3': 1,
-            'tts': 1,
-        }.get(media_type, media_type)
-        if typ == 1:
+        # e.g. audio/mpeg, but also keeps backward compatibility with old enum keys
+        if media_type.startswith('audio/') or media_type in {'audio', 'music', 'voice', 'mp3', 'tts'}:
             return await self.async_play_music(media_id)
 
         api = 'https://api2.mina.mi.com/remote/ubus'
@@ -529,7 +529,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             'deviceId': aid,
             'path': 'mediaplayer',
             'method': 'player_play_url',
-            'message': json.dumps({'url': media_id, 'type': typ, 'media': 'app_ios'}),
+            'message': json.dumps({'url': media_id, 'type': media_type, 'media': 'app_ios'}),
         }
         rdt = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
         logger = rdt.get('code') and self.logger.warning or self.logger.info
@@ -656,7 +656,6 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             })
         self._keycodes = list(self._keycode_actions.keys())
         self._apps = {}
-        self._supported_features |= MediaPlayerEntityFeature.PLAY_MEDIA
 
     @property
     def device_class(self):
