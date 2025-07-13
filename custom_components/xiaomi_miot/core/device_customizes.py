@@ -2049,6 +2049,22 @@ DEVICE_CUSTOMIZES = {
                              'boiling_reminder,keep_warm_reminder',
         'number_properties': 'target_temperature,keep_warm_temperature,keep_warm_time,target_mode',
     },
+    'xiaomi.pet_waterer.70m2': {
+        'binary_sensor_properties': 'water_shortage_status,usb_insert_state,low_battery,pump_block,fault',
+        'button_actions': 'reset_filter_life',
+        'switch_properties': 'no_disturb,physical_controls_locked',
+        'sensor_properties': 'status,filter_life_level,filter_left_time,battery_level,charging_state',
+        'number_properties': 'out_water_interval,time_period_start,time_period_end',
+        'select_properties': 'mode',
+        'exclude_miot_properties': 'event_time,event_mode,event_water,event_timezone'
+    },
+    'xiaomi.pet_waterer.70m2:fault': {
+         'reverse_state': True,
+    },
+    'xiaomi.pet_waterer.70m2:filter_left_time': {
+         'state_class': 'measurement',
+         'unit_of_measurement': 'days',
+    },
     'xiaomi.plug.mcn003': {
         'button_actions': 'toggle',
         'sensor_properties': 'fault,electric_power',
