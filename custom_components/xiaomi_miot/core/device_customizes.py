@@ -1812,6 +1812,11 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.aircondition.ma4': {
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:xiaomi-ma4:2',
     },
+    'xiaomi.aircondition.mc8': {
+        'stat_power_cost_type': 'total_day',
+        'stat_power_cost_key': '8.1',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+    },
     'xiaomi.aircondition.mc9': {
         'exclude_miot_services': 'machine_state,flag_bit',
         'exclude_miot_properties': 'enhance.timer',
