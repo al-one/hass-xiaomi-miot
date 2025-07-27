@@ -1368,8 +1368,9 @@ DEVICE_CUSTOMIZES = {
     },
     'mxiang.cateye.*': {
         'miio_cloud_props': 'battery_level,is_can_open_video',
-        'miio_cloud_records': 'event.human_visit_details:1',
         'miio_cloud_props_template': 'mxiang_cateye_cloud_props',
+        'miio_cloud_records': 'event.human_visit_details:1',
+        'miio_cloud_records_interval': 120,
         'miio_event_human_visit_details_template': 'mxiang_cateye_human_visit_details',
     },
 

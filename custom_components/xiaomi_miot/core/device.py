@@ -502,8 +502,9 @@ class Device(CustomConfigHelper):
                 DataCoordinator(self, self.update_cloud_statistics, update_interval=timedelta(seconds=interval*10)),
             )
         if self.miio_cloud_records:
+            seconds = self.custom_config_integer('miio_cloud_records_interval') or interval*10
             lst.append(
-                DataCoordinator(self, self.update_miio_cloud_records, update_interval=timedelta(seconds=interval*10)),
+                DataCoordinator(self, self.update_miio_cloud_records, update_interval=timedelta(seconds=seconds)),
             )
         if self.miio_cloud_props:
             lst.append(
@@ -1239,10 +1240,11 @@ class Device(CustomConfigHelper):
                     for v in rdt
                     if 'value' in v
                 ]
-            if isinstance(rls, dict) and rls.pop('_entity_attrs', False):
+            if isinstance(rls, dict) and rls.get('_entity_attrs'):
                 attrs.update(rls)
             else:
                 attrs[f'{typ}.{key}'] = rls
+            attrs.pop('_entity_attrs', None)
         if attrs:
             self.available = True
             self.props.update(attrs)

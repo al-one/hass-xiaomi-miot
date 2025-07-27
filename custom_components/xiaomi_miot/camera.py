@@ -229,7 +229,6 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return STATE_IDLE
 
     async def async_update(self):
-        self._state_attrs.pop('motion_video_latest', None)  # remove
         await super().async_update()
         if not self._available:
             return
