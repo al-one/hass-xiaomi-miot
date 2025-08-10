@@ -178,8 +178,12 @@ class MiotServiceConv(MiotPropConv):
         if not self.prop and self.service and self.main_props:
             self.prop = self.service.get_property(*self.main_props)
         super().__post_init__()
-        if not self.attr and self.prop:
+        if self.attr:
+            pass
+        elif self.prop:
             self.attr = self.prop.full_name
+        elif self.service:
+            self.attr = self.service.desc_name
 
 @dataclass
 class MiotSensorConv(MiotServiceConv):
@@ -288,6 +292,10 @@ class MiotCoverConv(MiotServiceConv):
         if not self.main_props:
             self.main_props = ['motor_control']
         super().__post_init__()
+
+@dataclass
+class MiotCameraConv(MiotServiceConv):
+    domain: str = 'camera'
 
 @dataclass
 class MiotHumidifierConv(MiotServiceConv):

@@ -3186,6 +3186,13 @@ GLOBAL_CONVERTERS = [
         ],
     },
     {
+        'class': MiotCameraConv,
+        'services': ['camera_control', 'video_doorbell'],
+        'converters' : [
+            {'props': ['battery_level'], 'domain': 'sensor'},
+        ],
+    },
+    {
         'class': MiotHumidifierConv,
         'services': ['humidifier', 'dehumidifier'],
         'converters' : [

@@ -28,7 +28,9 @@ from . import (
     DOMAIN,
     CONF_MODEL,
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
+    Device,
     HassEntry,
+    XEntity,
     MiotToggleEntity,
     BaseSubEntity,
     MiotCloud,
@@ -63,7 +65,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entities = []
     if isinstance(spec, MiotSpec):
         svs = spec.get_services(ENTITY_DOMAIN, 'camera_control', 'video_doorbell')
-        if not svs and spec.services:
+        if svs:
+            svs = []  # migrate to converter
+        elif spec.services:
             srv = None
             if spec.name in ['video_doorbell']:
                 # loock.cateye.v02
@@ -91,6 +95,7 @@ class BaseCameraEntity(Camera):
     _last_url = None
     _url_expiration = 0
     _extra_arguments = None
+    device: Device = None
 
     def __init__(self, hass: HomeAssistant):
         super().__init__()
@@ -101,10 +106,21 @@ class BaseCameraEntity(Camera):
         self._ffmpeg_options = ''
         self._segment_iv_hex = urandom(16).hex()
         self._segment_iv_b64 = base64.b64encode(bytes.fromhex(self._segment_iv_hex)).decode()
+        if not hasattr(self, '_attr_extra_state_attributes'):
+            self._attr_extra_state_attributes = {}
 
     @property
     def brand(self):
         return self.device_info.get('manufacturer')
+
+    @property
+    def is_doorbell(self):
+        if '.lock.' in self.model:
+            return True
+        service = getattr(self, '_miot_service', None)
+        if service and service.name in ['video_doorbell']:
+            return True
+        return False
 
     async def image_source(self, **kwargs):
         raise NotImplementedError()
@@ -161,6 +177,168 @@ class BaseCameraEntity(Camera):
                 return
             _LOGGER.info('%s: ffmpeg stderr: %s', self.name, line.rstrip())
 
+    async def get_alarm_playlist(self, begin, ended=None, limit=2):
+        cloud = self.device.cloud
+        if not cloud:
+            return None
+        api = cloud.get_api_by_host('business.smartcamera.api.io.mi.com', 'miot/camera/app/v1/alarm/playlist/limit')
+        rqd = {
+            'did': self.device.did,
+            'region': str(cloud.default_server).upper(),
+            'language': locale.getlocale()[0],
+            'beginTime': begin,
+            'endTime': ended or int(time.time() * 1000 + 999),
+            'limit': limit,
+        }
+        rdt = await cloud.async_request_api(api, rqd, method='GET', crypt=True) or {}
+        rls = rdt.get('data', {}).get('playUnits') or []
+        adt = {}
+        if rls:
+            fst = rls[0] or {}
+            tim = fst.pop('createTime', 0) / 1000
+            adt = {
+                'motion_video_time': f'{datetime.fromtimestamp(tim)}',
+                'motion_video_type': ','.join(fst.get('tags') or []),
+                'motion_video_latest': fst,
+            }
+        else:
+            self.log.warning('Camera alarm playlist is empty. %s', rdt)
+        return adt
+
+    async def get_alarm_eventlist(self, begin, ended=None, doorbell=False, limit=2):
+        cloud = self.device.cloud
+        if not cloud:
+            return None
+        api = cloud.get_api_by_host('business.smartcamera.api.io.mi.com', 'common/app/get/eventlist')
+        rqd = {
+            'did': self.device.did,
+            'model': self.model,
+            'doorBell': doorbell,
+            'eventType': 'Default',
+            'needMerge': True,
+            'sortType': 'DESC',
+            'region': str(cloud.default_server).upper(),
+            'language': locale.getlocale()[0],
+            'beginTime': begin,
+            'endTime': ended or int(time.time() * 1000 + 999),
+            'limit': limit,
+        }
+        rdt = await cloud.async_request_api(api, rqd, method='GET', crypt=True) or {}
+        rls = rdt.get('data', {}).get('thirdPartPlayUnits') or []
+        adt = {}
+        if rls:
+            fst = rls[0] or {}
+            tim = fst.pop('createTime', 0) / 1000
+            adt = {
+                'motion_video_time': f'{datetime.fromtimestamp(tim)}',
+                'motion_video_type': fst.get('eventType'),
+                'motion_video_latest': fst,
+            }
+        else:
+            self.log.warning('Camera events is empty. %s', rdt)
+        return adt
+
+    def get_alarm_m3u8_url(self, fileId, isAlarm=False, videoCodec='H265'):
+        cloud = self.device.cloud
+        if not cloud or not fileId:
+            return None
+        pms = {
+            'did': str(self.device.did),
+            'model': self.device_info.get('model'),
+            'fileId': fileId,
+            'isAlarm': not not isAlarm,
+            'videoCodec': videoCodec,
+        }
+        api = cloud.get_api_by_host('business.smartcamera.api.io.mi.com', 'common/app/m3u8')
+        pms = cloud.rc4_params('GET', api, {'data': cloud.json_encode(pms)})
+        pms['yetAnotherServiceToken'] = cloud.service_token
+        return f'{api}?{urlencode(pms)}'
+
+    def get_alarm_image_address(self, fileId, storeId, crypto=False):
+        cloud = self.device.cloud
+        if not (cloud and fileId and storeId):
+            return None
+        dat = {
+            'did': str(self.device.did),
+            'fileId': fileId,
+            'stoId': storeId,
+            'segmentIv': self._segment_iv_b64,
+        }
+        api = cloud.get_api_by_host('processor.smartcamera.api.io.mi.com', 'miot/camera/app/v1/img')
+        pms = cloud.rc4_params('GET', api, {'data': cloud.json_encode(dat)})
+        pms['yetAnotherServiceToken'] = cloud.service_token
+        url = f'{api}?{urlencode(pms)}'
+        if crypto:
+            key = base64.b64decode(cloud.ssecurity).hex()
+            url = f'-decryption_key {key} -decryption_iv {self._segment_iv_hex} -i "crypto+{url}"'
+        return url
+
+
+class CameraEntity(XEntity, BaseCameraEntity):
+    _attr_should_poll = True
+    _attr_camera_image = None
+    _attr_stream_source = None
+    _last_motion_time = None
+
+    def on_init(self):
+        BaseCameraEntity.__init__(self, self.hass)
+        self._attr_brand = self.device_info.get('manufacturer')
+        self._attr_model = self.device_info.get('model')
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if self._attr_should_poll:
+            await self.async_update_ha_state()
+
+    def get_state(self) -> dict:
+        return {}
+
+    def set_state(self, data: dict):
+        if 'motion_video_latest' in self.device.props:
+            self._attr_should_poll = False
+            self.update_motion_video(self.device.props)
+
+    async def image_source(self):
+        return self._attr_camera_image
+
+    async def stream_source(self):
+        return self._attr_stream_source
+
+    def update_motion_video(self, data: dict):
+        tim = data.get('motion_video_time')
+        if self._last_motion_time == tim:
+            return
+        self._last_motion_time = tim
+        self._attr_extra_state_attributes.update({
+            'motion_video_time': tim,
+            'motion_video_type': data.get('motion_video_type'),
+        })
+        if adt := data.get('motion_video_latest'):
+            if fid := adt.get('fileId'):
+                self._attr_camera_image = self.get_alarm_image_address(fid, adt.get('imgStoreId'), True)
+                self._attr_stream_source = self.get_alarm_m3u8_url(fid, adt.get('isAlarm'))
+                self._attr_extra_state_attributes.update({
+                    'stream_address': self._attr_stream_source,
+                })
+
+    async def async_update(self):
+        adt = None
+        stm = int(time.time() - 86400 * 7) * 1000
+        if not self.device.cloud:
+            pass
+        elif self.custom_config_bool('miio_event_human_visit_details_template'):
+            await self.device.update_miio_cloud_records()
+        elif self.custom_config_bool('use_alarm_playlist'):
+            adt = await self.get_alarm_playlist(stm)
+        else:
+            adt = await self.get_alarm_eventlist(stm, None, self.is_doorbell)
+        if adt:
+            self.log.debug('Camera alarm data: %s', adt)
+            self._attr_available = True
+            self.update_motion_video(adt)
+
+XEntity.CLS[ENTITY_DOMAIN] = CameraEntity
+
 
 class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
     _srv_stream = None
@@ -172,7 +350,6 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
     _stream_refresh_unsub = None
     _motion_entity = None
     _motion_enable = None
-    _is_doorbell = None
     _use_motion_stream = False
     _sub_motion_stream = False
 
@@ -183,7 +360,6 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             self._supported_features |= CameraEntityFeature.ON_OFF
         if miot_service:
             self._prop_motion_tracking = miot_service.bool_property('motion_detection', 'motion_tracking')
-            self._is_doorbell = miot_service.name in ['video_doorbell'] or '.lock.' in self.model
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -208,7 +384,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if self._prop_stream_address:
             self._supported_features |= CameraEntityFeature.STREAM
             self._sub_motion_stream = True
-        elif self._miot_service.name in ['camera_control'] or self._is_doorbell:
+        elif self._miot_service.name in ['camera_control'] or self.is_doorbell:
             if self.custom_config_bool('use_motion_stream'):
                 pass
             elif self.custom_config_bool('sub_motion_stream'):
@@ -229,6 +405,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return STATE_IDLE
 
     async def async_update(self):
+        self._state_attrs.pop('motion_video_latest', None)  # remove
         await super().async_update()
         if not self._available:
             return
@@ -243,66 +420,19 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             add_cameras([self._motion_entity], update_before_add=True)
 
         adt = None
-        lag = locale.getlocale()[0]
         stm = int(time.time() - 86400 * 7) * 1000
-        etm = int(time.time() * 1000 + 999)
         if not self._motion_enable and not self._motion_entity:
             pass
         elif 'motion_video_latest' in self._state_attrs:
             adt = {
                 'motion_video_updated': 1,
             }
-        elif not (mic := self.xiaomi_cloud):
+        elif not self.xiaomi_cloud:
             pass
         elif self.custom_config_bool('use_alarm_playlist'):
-            api = mic.get_api_by_host('business.smartcamera.api.io.mi.com', 'miot/camera/app/v1/alarm/playlist/limit')
-            rqd = {
-                'did': self.miot_did,
-                'region': str(mic.default_server).upper(),
-                'language': lag,
-                'beginTime': stm,
-                'endTime': etm,
-                'limit': 2,
-            }
-            rdt = await mic.async_request_api(api, rqd, method='GET', crypt=True) or {}
-            rls = rdt.get('data', {}).get('playUnits') or []
-            if rls:
-                fst = rls[0] or {}
-                tim = fst.pop('createTime', 0) / 1000
-                adt = {
-                    'motion_video_time': f'{datetime.fromtimestamp(tim)}',
-                    'motion_video_type': ','.join(fst.get('tags') or []),
-                    'motion_video_latest': fst,
-                }
-            else:
-                _LOGGER.warning('%s: camera alarm playlist is empty. %s', self.name_model, rdt)
+            adt = await self.get_alarm_playlist(stm)
         else:
-            api = mic.get_api_by_host('business.smartcamera.api.io.mi.com', 'common/app/get/eventlist')
-            rqd = {
-                'did': self.miot_did,
-                'model': self.model,
-                'doorBell': self._is_doorbell,
-                'eventType': 'Default',
-                'needMerge': True,
-                'sortType': 'DESC',
-                'region': str(mic.default_server).upper(),
-                'language': lag,
-                'beginTime': stm,
-                'endTime': etm,
-                'limit': 2,
-            }
-            rdt = await mic.async_request_api(api, rqd, method='GET', crypt=True) or {}
-            rls = rdt.get('data', {}).get('thirdPartPlayUnits') or []
-            if rls:
-                fst = rls[0] or {}
-                tim = fst.pop('createTime', 0) / 1000
-                adt = {
-                    'motion_video_time': f'{datetime.fromtimestamp(tim)}',
-                    'motion_video_type': fst.get('eventType'),
-                    'motion_video_latest': fst,
-                }
-            else:
-                _LOGGER.warning('%s: camera events is empty. %s', self.name_model, rdt)
+            adt = await self.get_alarm_eventlist(stm, None, self.is_doorbell)
         if adt:
             self._supported_features |= CameraEntityFeature.STREAM
             await self.async_update_attrs(adt)
@@ -434,7 +564,6 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             'motion_video_time': self._state_attrs.get('motion_video_time'),
             'motion_video_type': self._state_attrs.get('motion_video_type'),
             'stream_address': self.get_motion_stream_address(),
-            # 'video_address': self.get_motion_video_address(),
             'image_address': self.get_motion_image_address(),
         }
 
@@ -448,17 +577,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if not fid:
             _LOGGER.info('%s: camera does not have motion file in cloud.', self.name)
             return None
-        pms = {
-            'did': str(self.miot_did),
-            'model': self.device_info.get('model'),
-            'fileId': fid,
-            'isAlarm': not not mvd.get('isAlarm'),
-            'videoCodec': 'H265',
-        }
-        api = mic.get_api_by_host('business.smartcamera.api.io.mi.com', 'common/app/m3u8')
-        pms = mic.rc4_params('GET', api, {'data': mic.json_encode(pms)})
-        pms['yetAnotherServiceToken'] = mic.service_token
-        url = f'{api}?{urlencode(pms)}'
+        url = self.get_alarm_m3u8_url(fid, mvd.get('isAlarm'))
         _LOGGER.debug('%s: Got stream url: %s', self.name_model, url)
         return url
 

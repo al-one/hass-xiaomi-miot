@@ -3,6 +3,7 @@ import re
 import json
 import locale
 import tzlocal
+import logging
 import fnmatch
 import voluptuous as vol
 from homeassistant.core import HomeAssistant
@@ -229,8 +230,12 @@ def update_attrs_with_suffix(attrs, new_dict):
     attrs.update(updated_attrs)
 
 def logger_filter(record):
-    record.msg = re.sub(r'[\w/+-]{30,}', '***', record.msg)
-    return True
+    def sub(msg):
+        return re.sub(r'[\w/+-]{30,}', '***', msg)
+    if isinstance(record, logging.LogRecord):
+        record.msg = sub(record.msg)
+        return True
+    return sub(str(record))
 
 
 async def async_analytics_track_event(hass: HomeAssistant, event, action, label, value=0, **kwargs):

@@ -401,13 +401,14 @@ class Device(CustomConfigHelper):
                     conv = None
                     if cls and hasattr(cls, 'service'):
                         conv = cls(service=service, **kwargs)
-                        if not getattr(conv, 'prop', None):
+                        if not getattr(conv, 'prop', None) and getattr(conv, 'main_props', None):
                             self.log.info('Converter has no main props: %s', conv)
                             conv = None
                         elif exists := self.find_converter(conv.full_name):
                             conv = exists  # for append_converters
                         else:
                             self.add_converter(conv, True)
+                            self.log.debug('Add converter: %s', conv)
 
                     for pc in cfg.get('converters') or []:
                         if not (props := pc.get('props')):
