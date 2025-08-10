@@ -669,6 +669,9 @@ DEVICE_CUSTOMIZES = {
     'dmaker.fan.p15': {
         'percentage_property': 'prop.2.6',
     },
+    'dmaker.fan.p18': {
+        'percentage_property': 'speed_level',
+    },
     'dmaker.fan.p23': {
         'percentage_property': 'speed_level',
         'button_actions': 'toggle,toggle_mode,loop_gear',
