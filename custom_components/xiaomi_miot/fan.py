@@ -98,7 +98,6 @@ class FanEntity(XEntity, BaseEntity):
                 else:
                     continue
                 self._conv_speed = conv
-                self._attr_supported_features |= FanEntityFeature.SET_SPEED
             elif prop.in_list(['horizontal_swing', 'vertical_swing']) and not self._conv_oscillate:
                 self._conv_oscillate = conv
                 self._attr_supported_features |= FanEntityFeature.OSCILLATE
@@ -108,8 +107,7 @@ class FanEntity(XEntity, BaseEntity):
                 self._prop_speed = self._miot_service.spec.get_property(prop)
                 self.set_speeds_property(self._prop_speed)
             if prop := self.custom_config('percentage_property'):
-                self._prop_percentage = self._miot_service.spec.get_property(prop)
-                self.set_percentage_property(self._prop_percentage)
+                self.set_percentage_property(self._miot_service.spec.get_property(prop))
 
         # issues/617
         if self.custom_config_bool('disable_preset_modes'):
@@ -125,6 +123,7 @@ class FanEntity(XEntity, BaseEntity):
     def set_percentage_property(self, prop):
         if not prop or not prop.value_range:
             return
+        self._prop_percentage = prop
         _min = prop.range_min()
         _max = prop.range_max()
         _stp = prop.range_step()
