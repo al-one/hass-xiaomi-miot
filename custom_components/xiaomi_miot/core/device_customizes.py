@@ -1930,6 +1930,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,heat_level',
         'number_properties': 'a_countdown,b_countdown',
     },
+    'xiaomi.fishbowl.m200': {
+        'sensor_properties': 'water_pump_status,temperature,light_water_use_time,today_feeded_num',
+        'switch_properties': 'on,water_pump,light_edit_on,off_flipcover_switch,feed_protect_switch,no_disturb',
+        'select_properties': 'pump_flux',
+        'number_properties': 'light_edit_color,light_edit_bright',
+    },
     'xiaomi.fryer.maf07d': {
         'interval_seconds': 120,
         'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
