@@ -1344,6 +1344,18 @@ DEVICE_CUSTOMIZES = {
     'mrbond.airer.m1s': {
         'miot_type': 'urn:miot-spec-v2:device:airer:0000A00D:mrbond-m1pro:1',
     },
+    'mrbond.airer.m31a': {
+        'cover_position_mapping': None,
+        'disable_target_position': True,
+        'number_properties': 'target_position',
+        'append_converters': [
+            {
+                'class': MiotCoverConv,
+                'services': ['airer'],
+                'converters': [{'props': ['prop.2.10']}],
+            }
+        ],
+    },
     'mrbond.airer.m53pro': {
         'sensor_properties': 'fault,left_time',
         'select_properties': 'dryer,drying_level',
@@ -1351,6 +1363,7 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
     },
     'mrbond.airer.*': {
+        'deviated_position': 0,
         'parallel_updates': 1,
     },
     'msj.f_washer.m2': {
@@ -1996,7 +2009,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'status,fault,left_time,tank_status,timeout_time,boiling_point',
         'switch_properties': 'alarm,pot_lift_memory,auto_keep_warm,auto_screen_on',
         'select_properties': 'cook_mode',
-        'number_properties': 'keep_warm_time,target_temperature,working_level,target_time', 
+        'number_properties': 'keep_warm_time,target_temperature,working_level,target_time',
     },
     'xiaomi.health_pot.p1': {
         'select_actions': 'start_cook',
@@ -3037,12 +3050,25 @@ DEVICE_CUSTOMIZES = {
 
 }
 
-DEVICE_CUSTOMIZES.update({
-    '*.airp.*': DEVICE_CUSTOMIZES.get('*.airpurifier.*') or {},
-    '*.door.*': DEVICE_CUSTOMIZES.get('*.lock.*') or {},
-    '*.dryer.*': DEVICE_CUSTOMIZES.get('*.dry.*') or {},
-    '*.pre_cooker.*': DEVICE_CUSTOMIZES.get('*.cooker.*') or {},
-})
+DEVICE_CUSTOMIZES.update({item: DEVICE_CUSTOMIZES[src] for src, dest in {
+    'mrbond.airer.m31a': [
+        'hyd.airer.h51a',
+        'hyd.airer.h51c',
+        'hyd.airer.hx1',
+        'hyd.airer.hx2',
+        'hyd.airer.hx3',
+        'mrbond.airer.m31a2',
+        'mrbond.airer.m31c',
+        'mrbond.airer.m31c2',
+        'mrbond.airer.m33a',
+        'mrbond.airer.m33c',
+    ],
+
+    '*.airpurifier.*': ['*.airp.*'],
+    '*.lock.*': ['*.door.*'],
+    '*.dry.*': ['*.dryer.*'],
+    '*.cooker.*': ['*.pre_cooker.*'],
+}.items() for item in dest})
 
 
 GLOBAL_CONVERTERS = [
