@@ -1810,6 +1810,11 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '8.1',
         'sensor_attributes': 'power_cost_today,power_cost_month',
     },
+    'xiaomi.aircondition.c24': {
+        'stat_power_cost_type': 'stat_day_v3',
+        'stat_power_cost_key': '8.1',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+    },
     'xiaomi.aircondition.m9': {
         'interval_seconds': 90,
         'switch_properties': 'air_conditioner.on,un_straight_blowing,favorite_on',
