@@ -60,6 +60,13 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'fault,mode,name,status,temperature',
     },
 
+    'adp.motor.adswb4': {
+        'button_actions': 'toggle',
+        'sensor_properties': 'battery_percentage,charging_status,total_movement',
+        'switch_properties': 'motor_control,switch_invert,click,adaptive_movement,ad_switch',
+        'select_properties': 'mode',
+        'number_properties': 'rotate_angle,sustain_time,resistance',
+    },
     'aice.motor.kzmu3': {
         'switch_properties': 'on',
         'button_properties': 'motor_control',
