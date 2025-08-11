@@ -2021,6 +2021,11 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'iot_linkage,machine_state,screen_show',
         'exclude_miot_properties': 'enhance.timer,humidity_range,filter_core_rest,sleep_diy_sign',
     },
+    'xiaomi.aircondition.mt7': {
+        'stat_power_cost_type': 'total_day',
+        'stat_power_cost_key': '8.1',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+    },
     'xiaomi.aircondition.*': {
         'exclude_miot_services': 'iot_linkage,machine_state,flag_bit',
         'exclude_miot_properties': 'enhance.timer',
