@@ -327,6 +327,12 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'status,left_time,temperature,cook_time,taste,cook_status,press_status,error_code',
         'switch_properties': 'finish_push',
     },
+    'cokit.mosq.coq5': {
+        'sensor_properties': 'replace_fluid',
+        'switch_properties': 'on',
+        'slectt_properties': 'timer',
+        'button_properties': 'reset',
+    },
     'cubee.airrtc.th123e': {
         'sensor_properties': 'tempfloor',
         'current_temp_property': 'tempfloor',
