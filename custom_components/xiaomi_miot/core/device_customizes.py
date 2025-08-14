@@ -2105,6 +2105,15 @@ DEVICE_CUSTOMIZES = {
          'state_class': 'measurement',
          'unit_of_measurement': 'days',
     },
+    'xiaomi.pet_waterer.iv02': {
+        'button_actions': 'reset_filter_life,low_battery,pump_block',
+        'binary_sensor_properties': 'water_shortage_status',
+        'sensor_properties': 'status,event_mode,event_water',
+        'switch_properties': 'on,no_disturb',
+        'number_properties': 'out_water_interval',
+        'select_properties': 'mode',
+        'exclude_miot_properties': 'time_period_start,time_period_end,event_timezone'
+    },
     'xiaomi.plug.mcn003': {
         'button_actions': 'toggle',
         'sensor_properties': 'fault,electric_power',
