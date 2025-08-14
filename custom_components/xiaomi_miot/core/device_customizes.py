@@ -887,23 +887,22 @@ DEVICE_CUSTOMIZES = {
         'target_position_props': 'set_position',
         'cover_position_mapping': None,
     },
-    'hyd.airer.znlyj2': CHUNK_1,
+    'hyd.airer.znlyj2': {
+        **CHUNK_1,
+        'cover_position_mapping': {0: 50, 1: 100, 2: 0},
+    },
     'hyd.airer.znlyj4': {
-        'cover_position_mapping': {0: 50, 1: 0, 2: 100},
+        'cover_position_mapping': {0: 50, 1: 100, 2: 0},
     },
     'hyd.airer.znlyj5': {
-        'cover_position_mapping': {0: 50, 1: 0, 2: 100},
+        'cover_position_mapping': {0: 50, 1: 100, 2: 0},
     },
     'hyd.airer.*': {
         'switch_properties': 'uv',
         'select_properties': 'mode,dryer',
         'number_properties': 'drying_time',
         'exclude_miot_properties': 'motor_control',
-        'cover_position_mapping': {
-            0: 50,
-            1: 100,
-            2: 0,
-        },
+        'cover_position_mapping': {0: 50, 1: 100, 2: 0},
     },
 
     'ijai.vacuum.v1': {
