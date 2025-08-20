@@ -68,7 +68,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             'xiaomi.wifispeaker.l05c',
             'xiaomi.wifispeaker.lx5a',
             'xiaomi.wifispeaker.lx06',
-            'xiaomi.wifispeaker.oh2p'
+            'xiaomi.wifispeaker.oh2p',
             'lumi.acpartner.v1',
             'lumi.acpartner.v2',
             'lumi.acpartner.v3',
