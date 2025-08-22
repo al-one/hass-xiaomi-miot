@@ -450,7 +450,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             'select_actions': cv.string,
             'text_actions': cv.string,
             'light_services': cv.string,
-            'fan_services': cv.string,
             'exclude_miot_services': cv.string,
             'exclude_miot_properties': cv.string,
             'configuration_entities': cv.string,

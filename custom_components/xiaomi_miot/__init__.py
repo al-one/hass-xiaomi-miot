@@ -1134,7 +1134,7 @@ class MiotEntity(MiioEntity):
 
     async def async_update_for_main_entity(self):
         if self._miot_service:
-            for d in ['light', 'fan']:
+            for d in ['light']:
                 pls = self.custom_config_list(f'{d}_services') or []
                 if pls:
                     self._update_sub_entities(None, pls, domain=d)
@@ -1227,7 +1227,6 @@ class MiotEntity(MiioEntity):
     def _update_sub_entities(self, properties, services=None, domain=None, option=None, **kwargs):
         actions = kwargs.get('actions', [])
         from .light import MiotLightSubEntity
-        from .fan import MiotFanSubEntity
         if isinstance(services, MiotService):
             sls = [services]
         elif services == '*':
@@ -1239,7 +1238,6 @@ class MiotEntity(MiioEntity):
         else:
             sls = [self._miot_service]
         add_lights = self._add_entities.get('light')
-        add_fans = self._add_entities.get('fan')
         exclude_services = self._state_attrs.get('exclude_miot_services') or []
         for s in sls:
             if s.name in exclude_services:
@@ -1260,11 +1258,6 @@ class MiotEntity(MiioEntity):
                     if pon and pon.full_name in self._state_attrs:
                         self._subs[fnm] = MiotLightSubEntity(self, s)
                         add_lights([self._subs[fnm]], update_before_add=True)
-                elif add_fans and domain == 'fan':
-                    pon = s.get_property('on', 'mode', 'fan_level')
-                    if pon and pon.full_name in self._state_attrs:
-                        self._subs[fnm] = MiotFanSubEntity(self, s)
-                        add_fans([self._subs[fnm]], update_before_add=True)
                 if new and fnm in self._subs:
                     self._check_same_sub_entity(fnm, domain, add=1)
                     self.logger.debug('%s: Added sub entity %s: %s', self.name_model, domain, fnm)

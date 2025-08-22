@@ -90,7 +90,6 @@
                     "exclude_miot_properties": "exclude_miot_properties",
                     "exclude_miot_services": "exclude_miot_services",
                     "exclude_type": "exclude_type",
-                    "fan_services": "fan_services",
                     "feeding_measure": "feeding_measure",
                     "filter_home": "filter_home",
                     "interval_seconds": "interval_seconds",

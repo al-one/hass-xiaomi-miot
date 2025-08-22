@@ -2740,7 +2740,6 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'air_conditioner.on',
         'select_properties': 'fan_level',
         'number_properties': 'target_humidity',
-        'fan_services': 'air_fresh',
         'chunk_coordinators': [
             {'interval': 10, 'props': 'on,mode,target_temperature,fan_level', 'notify': True},
         ],
