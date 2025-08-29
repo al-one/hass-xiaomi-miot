@@ -1829,12 +1829,6 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'electricity,maintenance,enhance,machine_state,flag_bit,single_smart_scene,system_parm,'
                                  'mosquito_repellent,favorite_type_data,air_conditioner_dev_mode,product_appearance',
         'exclude_miot_properties': 'fault,enhance.timer,humidity_range',
-        'chunk_coordinators': [
-            {'interval': 16, 'props': 'air_conditioner.on,mode,target_temperature,target_humidity'},
-            {'interval': 26, 'props': 'fan_level,vertical_swing,vertical_angle'},
-            {'interval': 56, 'props': 'eco,heater,dryer,sleep_mode,temperature,relative_humidity'},
-            {'interval': 299, 'props': 'filter_life_level'},
-        ],
     },
     'xiaomi.aircondition.ma1': {
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:xiaomi-ma1:4',
@@ -2746,7 +2740,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'fan_level',
         'number_properties': 'target_humidity',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level', 'notify': True},
+            {'interval': 11, 'props': 'air_conditioner.on,mode,target_temperature,fan_level', 'notify': True},
+            {'interval': 31, 'props': 'target_humidity,fan_percent,*_swing,*_angle'},
+            {'interval': 51, 'props': 'eco,heater,dryer,sleep_mode,temperature,relative_humidity'},
+            {'interval': 91, 'props': 'alarm,indicator_light.on,brightness'},
+            {'interval': 299, 'props': 'filter_life_*'},
         ],
     },
     '*.airer.*': {
