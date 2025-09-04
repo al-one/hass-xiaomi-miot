@@ -1130,6 +1130,9 @@ DEVICE_CUSTOMIZES = {
     'lumi.acpartner.mcn04:power_cost_month': {'value_ratio': 1, **ENERGY_KWH},
     'lumi.acpartner.mcn04:power_cost_today_2': ENERGY_KWH,
     'lumi.acpartner.mcn04:power_cost_month_2': ENERGY_KWH,
+    'lumi.acpartner.v2': {
+        'cloud_set_single': True,
+    },
     'lumi.acpartner.*': {
         'sensor_attributes': 'electric_power,power_cost_today,power_cost_month',
         'select_properties': 'fan_level',
