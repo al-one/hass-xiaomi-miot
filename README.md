@@ -380,5 +380,3 @@ logger:
 
 - [PyCharm](https://www.jetbrains.com/pycharm/)
 - [Dler](https://dler.pro/auth/register?affid=130833) (10% Discount coupon for new user: `CXVbfhHuSRsi`)
-
-[![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com "Powered by DartNode - Free VPS for Open Source")
