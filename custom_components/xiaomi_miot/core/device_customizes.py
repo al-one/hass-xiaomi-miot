@@ -1826,6 +1826,12 @@ DEVICE_CUSTOMIZES = {
         'stat_power_cost_key': '8.1',
         'sensor_attributes': 'power_cost_today,power_cost_month',
     },
+    'xiaomi.aircondition.m4': {
+        'switch_properties': 'air_conditioner.on,un_straight_blowing,favorite_on',
+        'exclude_miot_services': 'maintenance,machine_state,single_smart_scene,system_parm,favorite_type_data,'
+                                 'air_conditioner_dev_mode,product_appearance',
+        'exclude_miot_properties': 'fault,enhance.timer,humidity_range',
+    },
     'xiaomi.aircondition.m9': {
         'interval_seconds': 90,
         'switch_properties': 'air_conditioner.on,un_straight_blowing,favorite_on',
