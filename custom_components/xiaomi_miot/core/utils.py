@@ -203,6 +203,9 @@ def get_translation_langs(hass: HomeAssistant, langs=None):
     return language_util.matches(lang, langs)
 
 
+class DeviceException(Exception):
+    """Exception wrapping any communication errors with the device."""
+
 def is_offline_exception(exc):
     err = f'{exc}'
     ret = 'Unable to discover the device' in err

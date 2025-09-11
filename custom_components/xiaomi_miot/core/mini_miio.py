@@ -332,14 +332,16 @@ class AsyncMiIO(BasemiIO, BaseProtocol):
         _LOGGER.debug(f"{self.addr[0]} | No answer on {method} {params}")
         return {}
 
-    async def send_bulk(self, method: str, params: list) -> list:
+    async def send_bulk(self, method: str, params: list, chunk: int = 0) -> list:
         """Sends a command with a large number of parameters. Splits into
         multiple requests when the size of one request is exceeded.
         """
+        if not chunk:
+            chunk = 15
         try:
             result = []
-            for i in range(0, len(params), 15):
-                resp = await self.send(method, params[i : i + 15])
+            for i in range(0, len(params), chunk):
+                resp = await self.send(method, params[i : i + chunk])
                 result += resp["result"]
             return result
         except Exception:

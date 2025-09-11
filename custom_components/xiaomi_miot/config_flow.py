@@ -33,6 +33,7 @@ from . import (
     init_integration_data,
 )
 from .core.utils import (
+    DeviceException,
     get_customize_via_entity,
     get_customize_via_model,
     in_china,
@@ -47,10 +48,7 @@ from .core.xiaomi_cloud import (
     MiCloudNeedVerify,
 )
 
-from miio import (
-    Device as MiioDevice,
-    DeviceException,
-)
+from miio import Device as MiioDevice
 
 _LOGGER = logging.getLogger(__name__)
 DEFAULT_INTERVAL = 30

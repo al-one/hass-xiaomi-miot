@@ -30,23 +30,19 @@ from .converters import (
 from .coordinator import DataCoordinator
 from .miot_spec import MiotSpec, MiotProperty, MiotResults, MiotResult
 from .miio2miot import Miio2MiotHelper
+from .mini_miio import AsyncMiIO
 from .xiaomi_cloud import MiotCloud, MiCloudException
 from .utils import (
     CustomConfigHelper,
     get_customize_via_model,
     get_value,
+    DeviceException,
     is_offline_exception,
     update_attrs_with_suffix,
 )
 from .templates import template
 
-
-from miio import (  # noqa: F401
-    Device as MiioDevice,
-    DeviceException,
-)
 from miio.device import DeviceInfo as MiioInfoBase
-from miio.miot_device import MiotDevice as MiotDeviceBase
 
 if TYPE_CHECKING:
     from . import BasicEntity
@@ -894,7 +890,7 @@ class Device(CustomConfigHelper):
                 self.miot_results.updater = 'cloud'
                 results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
                 if check_lan and self.local:
-                    await self.hass.async_add_executor_job(partial(self.local.info, skip_cache=True))
+                    await self.local.async_info()
                 self.available = True
                 self.miot_results.set_results(results, mapping)
             except MiCloudException as exc:
@@ -1335,8 +1331,18 @@ class Device(CustomConfigHelper):
             self.log.info('%s: Got miio properties: %s', self.name_model, attrs)
 
 
-class MiotDevice(MiotDeviceBase):
+class MiotDevice():
     hass: HomeAssistant = None
+    miio: AsyncMiIO = None
+
+    def __init__(self, hass: HomeAssistant, miio: AsyncMiIO, logger=None):
+        self.hass = hass
+        self.miio = miio
+        self.log = logger or logging.getLogger(__name__)
+
+    @property
+    def host(self):
+        return self.miio.addr[0]
 
     @staticmethod
     def from_device(device: Device):
@@ -1348,43 +1354,54 @@ class MiotDevice(MiotDeviceBase):
             return None
         elif device.info.pid in [6, 15, 16, 17]:
             return None
-        mapping = {}
-        miot_device = None
+        miio = AsyncMiIO(host, token)
+        return MiotDevice(device.hass, miio, device.log)
+
+    async def async_info(self):
+        resp = await self.miio.send('miIO.info', tries=2)
+        self.handle_response(resp, False)
+        info = resp.get('result', {}) if resp else resp
+        if not info:
+            self.log.warning('Got miio info failed: %s', resp)
+        return MiioInfo(info)
+
+    async def async_send(self, *args, **kwargs):
+        resp = await self.miio.send(*args, **kwargs)
+        self.handle_response(resp)
         try:
-            miot_device = MiotDevice(ip=host, token=token, model=device.model, mapping=mapping or {})
-        except TypeError as exc:
-            err = f'{exc}'
-            if 'mapping' in err:
-                if 'unexpected keyword argument' in err:
-                    # for python-miio <= v0.5.5.1
-                    miot_device = MiotDevice(host, token)
-                    miot_device.mapping = mapping
-                elif 'required positional argument' in err:
-                    # for python-miio <= v0.5.4
-                    # https://github.com/al-one/hass-xiaomi-miot/issues/44#issuecomment-815474650
-                    miot_device = MiotDevice(mapping, host, token)  # noqa
-        except ValueError as exc:
-            device.log.warning('Initializing with host %s failed: %s', host, exc)
-        if miot_device:
-            miot_device.hass = device.hass
-        return miot_device
+            return resp['result']
+        except KeyError:
+            return resp
+
+    async def async_send_chunk(self, method: str, params: list, chunk: int = 0):
+        if not chunk:
+            chunk = 15
+        results = []
+        for i in range(0, len(params), chunk):
+            resp = await self.miio.send(method, params[i : i + chunk])
+            if not results:
+                self.handle_response(resp)
+            try:
+                results += resp['result']
+            except (KeyError, TypeError):
+                self.log.warning('Got miio chunked properties failed: %s', resp, exc_info=True)
+        return results
+
+    def handle_response(self, resp, with_empty=True):
+        if resp is None:
+            raise DeviceException(f'Unable to discover the device {self.host}')
+        if with_empty and not resp:
+            raise DeviceException(f'No response from the device {self.host}')
 
     async def async_get_prop(self, properties, *, max_properties=None, property_getter='get_prop'):
         return await self.async_get_properties(properties, max_properties=max_properties, property_getter=property_getter)
 
     async def async_get_properties(self, properties, *, max_properties=None, property_getter='get_properties'):
-        return await self.hass.async_add_executor_job(
-            partial(
-                self.get_properties,
-                properties,
-                property_getter=property_getter,
-                max_properties=max_properties,
-            )
-        )
+        return await self.async_send_chunk(property_getter, properties, max_properties)
 
     async def async_get_properties_for_mapping(self, *, max_properties=None, did=None, mapping=None):
         if mapping is None:
-            mapping = self.mapping
+            return None
         properties = [
             {'did': f'prop.{v["siid"]}.{v["piid"]}' if did is None else str(did), **v}
             for k, v in mapping.items()
@@ -1407,10 +1424,6 @@ class MiotDevice(MiotDeviceBase):
             10, 9, 9, 9, 9, 9, 10, 10, 10, 10,
         ]
         return 10 if idx >= len(chunks) else chunks[idx]
-
-    async def async_send(self, *args, **kwargs):
-        return await self.hass.async_add_executor_job(partial(self.send,*args, **kwargs))
-
 
 class MiioInfo(MiioInfoBase):
     @property

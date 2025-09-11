@@ -20,11 +20,11 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     MiotEntity,
-    DeviceException,
     MIOT_LOCAL_MODELS,
     async_setup_config_entry,
     bind_services_to_entries,
 )
+from .core.utils import DeviceException
 from .core.miot_spec import (
     MiotSpec,
     MiotService,

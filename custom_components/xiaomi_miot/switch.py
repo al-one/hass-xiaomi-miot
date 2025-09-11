@@ -22,7 +22,6 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     XEntity,
-    MiioDevice,
     MiioEntity,
     MiotToggleEntity,
     MiotPropertySubEntity,
@@ -36,6 +35,7 @@ from .core.miot_spec import (
     MiotProperty,
     MiotAction,
 )
+from miio import Device as MiioDevice
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
