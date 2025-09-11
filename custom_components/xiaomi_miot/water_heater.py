@@ -72,12 +72,19 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         self._prop_modes.extend(miot_service.get_properties('water_level'))
         self._prop_temperature = miot_service.get_property('temperature', 'indoor_temperature')
         self._prop_target_temp = miot_service.get_property('target_temperature')
+        self._prop_keep_warm_temp = miot_service.get_property("keep_warm_temperature")
+        self._prop_keep_warm_time = miot_service.get_property("keep_warm_time")
+
         self._prev_target_temp = None
 
         if self._prop_target_temp:
             self._supported_features |= WaterHeaterEntityFeature.TARGET_TEMPERATURE
         if self._prop_modes:
             self._supported_features |= WaterHeaterEntityFeature.OPERATION_MODE
+
+        # Defer dynamic button creation to async_added_to_hass where the button platform is guaranteed to be ready.
+        self._kettle_buttons_added = False
+
 
     async def async_update(self):
         await super().async_update()
@@ -220,3 +227,150 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     def turn_away_mode_off(self):
         """Turn away mode off."""
         raise NotImplementedError()
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+
+        # Create control buttons once the button platform adder is present.
+        if not self._kettle_buttons_added and self.model in ["xiaomi.kettle.v20", "xiaomi.kettle.v21"]:
+            add_buttons = self.device.entry.adders.get("button")
+            if not add_buttons:
+                return
+            from .button import ButtonSubEntity
+
+            btn_defs = [
+                ("boil", "start-boil", self.start_boil),
+                ("keep_warm", "start-keep-warm", self.start_keep_warm),
+                ("extended_mode", "start-extended-mode", self.start_extended_mode),
+            ]
+            subs = []
+            for key, ui_name, act in btn_defs:
+                if key in self._subs:
+                    continue
+                sub = ButtonSubEntity(
+                    self,
+                    key,
+                    option={
+                        "name": ui_name,
+                        "press_action": act,
+                    },
+                )
+                self._subs[key] = sub
+                subs.append(sub)
+
+            if subs:
+                add_buttons(subs, update_before_add=False)
+                self._kettle_buttons_added = True
+
+    def _send_kettle_props(self, props):
+        """Send a batch of set_properties payloads via Mi Cloud."""
+        # Prefer local communication when possible; fall back to cloud.
+        if self.device.use_local and self.device.local:
+            try:
+                res = self.device.local.send("set_properties", props)
+                if isinstance(res, list) and all(r.get("code", -1) == 0 for r in res):
+                    return True
+            except Exception:
+                pass
+        mic = self.miot_cloud_write or self.miot_cloud
+        if not mic:
+            self.logger.warning(
+                "%s: No connection available for kettle RPC commands.", self.name_model
+            )
+            return False
+        try:
+            res = mic.set_props(props)
+            ok = isinstance(res, list) and all(r.get("code", -1) == 0 for r in res)
+            if not ok:
+                self.logger.info(
+                    "%s: Cloud kettle RPC returned unexpected result: %s",
+                    self.name_model,
+                    res,
+                )
+            return ok
+        except Exception:
+            self.logger.warning(
+                "%s: Cloud kettle RPC command failed", self.name_model
+            )
+            return False
+
+    def _cur_target_temp(self, default):
+        val = self.target_temperature
+        if val is None and self._prop_target_temp:
+            val = self._prop_target_temp.from_device(self.device)
+        return val or default
+
+    def _cur_keep_warm_temp(self, default):
+        val = None
+        if self._prop_keep_warm_temp:
+            val = self._prop_keep_warm_temp.from_device(self.device)
+        return val or default
+
+    def _cur_keep_warm_time(self, default):
+        val = None
+        if self._prop_keep_warm_time:
+            val = self._prop_keep_warm_time.from_device(self.device)
+        return val or default
+
+    def start_boil(self, **kwargs):
+        """Trigger boiling mode via cloud RPC using current HA values."""
+        did = self.miot_did
+
+        target_temp = self._cur_target_temp(90)
+        keep_warm_temp = self._cur_keep_warm_temp(75)
+        keep_warm_time = self._cur_keep_warm_time(1440)
+
+        props = [
+            {"did": str(did), "siid": 2, "piid": 4, "value": 99},
+            {"did": str(did), "siid": 2, "piid": 5, "value": True},
+            {"did": str(did), "siid": 2, "piid": 6, "value": keep_warm_temp},
+            {"did": str(did), "siid": 3, "piid": 1, "value": keep_warm_time},
+            {"did": str(did), "siid": 3, "piid": 11, "value": 1},
+            {
+                "did": str(did),
+                "siid": 3,
+                "piid": 13,
+                "value": f"{99},1,{keep_warm_temp},{keep_warm_time}",
+            },
+        ]
+        return self._send_kettle_props(props)
+
+    def start_keep_warm(self, **kwargs):
+        """Trigger keep-warm mode via cloud RPC using current HA values."""
+        did = self.miot_did
+
+        target_temp = self._cur_target_temp(90)
+        keep_warm_temp = self._cur_keep_warm_temp(75)
+        keep_warm_time = self._cur_keep_warm_time(1440)
+
+        props = [
+            {"did": str(did), "siid": 2, "piid": 4, "value": keep_warm_temp},
+            {"did": str(did), "siid": 2, "piid": 5, "value": True},
+            {"did": str(did), "siid": 2, "piid": 6, "value": keep_warm_temp},
+            {"did": str(did), "siid": 3, "piid": 1, "value": keep_warm_time},
+            {"did": str(did), "siid": 3, "piid": 11, "value": 0},
+            {
+                "did": str(did),
+                "siid": 3,
+                "piid": 12,
+                "value": f"{keep_warm_temp},1,{keep_warm_temp},{keep_warm_time}",
+            },
+        ]
+        return self._send_kettle_props(props)
+
+    def start_extended_mode(self, **kwargs):
+        """Trigger the first extended mode via cloud RPC using current HA values."""
+        did = self.miot_did
+
+        target_temp = self._cur_target_temp(90)
+        keep_warm_temp = self._cur_keep_warm_temp(75)
+        keep_warm_time = self._cur_keep_warm_time(1440)
+
+        props = [
+            {"did": str(did), "siid": 2, "piid": 4, "value": target_temp},
+            {"did": str(did), "siid": 2, "piid": 5, "value": True},
+            {"did": str(did), "siid": 2, "piid": 6, "value": keep_warm_temp},
+            {"did": str(did), "siid": 3, "piid": 1, "value": keep_warm_time},
+            {"did": str(did), "siid": 3, "piid": 11, "value": 10},
+        ]
+        return self._send_kettle_props(props)
