@@ -1,6 +1,8 @@
 import logging
 from typing import TYPE_CHECKING
 
+from homeassistant.core import HassJob, HassJobType
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 if TYPE_CHECKING:
@@ -33,9 +35,18 @@ class DataCoordinator(DataUpdateCoordinator):
             # hass v2024.7-
             self.async_add_listener(self.coordinator_updated)
 
+    async def async_setup(self, index=0):
+        await self._async_setup()
+
+        job = HassJob(self._async_refresh_later, job_type=HassJobType.Coroutinefunction)
+        async_call_later(self.hass, index, job)
+
     async def _async_setup(self):
         """Set up coordinator."""
         self.async_add_listener(self.coordinator_updated)
 
     def coordinator_updated(self):
         _LOGGER.debug('%s: Coordinator updated: %s', self.device.name_model, [self.name, self.data])
+
+    async def _async_refresh_later(self, _=None):
+        await self.async_request_refresh()
