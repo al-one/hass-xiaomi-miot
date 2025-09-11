@@ -3,7 +3,7 @@ import copy
 import re
 from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
-from functools import partial, cached_property
+from functools import cached_property
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
@@ -520,8 +520,11 @@ class Device(CustomConfigHelper):
                 DataCoordinator(self, self.update_miio_commands, update_interval=timedelta(seconds=interval)),
             )
         self.coordinators.extend(lst)
+
+        idx = 0
         for coo in lst:
-            await coo.async_config_entry_first_refresh()
+            idx += 1
+            await coo.async_setup(index=idx)
 
     async def init_miot_coordinators(self, interval=60):
         lst = []
