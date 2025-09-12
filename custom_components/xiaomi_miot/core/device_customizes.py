@@ -2566,6 +2566,7 @@ DEVICE_CUSTOMIZES = {
     },
     'zhimi.fan.za5': {
         **CHUNK_1,
+        'number_properties': 'speed_level',
         'percentage_property': 'speed_level',
         'exclude_miot_properties': 'button_press,country_code',
         'interval_seconds': 121,
