@@ -1997,7 +1997,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'delay,horizontal_swing',
         'select_properties': 'horizontal_swing_included_angle',
         'number_properties': 'delay_time',
-        'percentage_property': 'prop.2.5',
+        'percentage_property': 'stepless_fan_level',
         'chunk_coordinators': [
             {'interval': 20, 'props': 'on,mode,fan_level'},
         ],
@@ -2007,7 +2007,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'delay',
         'select_properties': 'horizontal_swing_included_angle',
         'number_properties': 'delay_time',
-        'percentage_property': 'prop.2.6',
+        'percentage_property': 'stepless_fan_level',
     },
     'xiaomi.feeder.iv2001': {
         'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
