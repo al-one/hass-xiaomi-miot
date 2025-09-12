@@ -114,8 +114,6 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._supported_features |= VacuumEntityFeature.RETURN_HOME
         if self._prop_fan:
             self._supported_features |= VacuumEntityFeature.FAN_SPEED
-        if self._prop_battery:
-            self._supported_features |= VacuumEntityFeature.BATTERY
         if self._prop_status:
             self._supported_features |= VacuumEntityFeature.STATUS
             self._supported_features |= VacuumEntityFeature.STATE
@@ -150,12 +148,8 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             else:
                 self._attr_activity = None
                 self._attr_state = self._prop_status.list_description(val)
-
-    @property
-    def battery_level(self):
         if self._prop_battery:
-            return self._prop_battery.from_device(self.device)
-        return None
+            self._attr_battery_level = self._prop_battery.from_device(self.device)
 
     def turn_on(self, **kwargs):
         if self._prop_power:
