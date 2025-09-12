@@ -208,6 +208,11 @@ DEVICE_CUSTOMIZES = {
             {'interval': 35, 'props': 'fault,mode,appoint_time,reservation_left_time'},
         ],
     },
+    'cddz.switch.jhicw': {
+        'switch_properties': 'switch,one_key,two_key,three_key,four_key',
+        'select_properties': 'mode,default_power_on_state',
+        'number_properties': 'backlighting_br',
+    },
     'cgllc.airm.cgdn1': {
         'exclude_miot_services': 'mac,settings',
     },
