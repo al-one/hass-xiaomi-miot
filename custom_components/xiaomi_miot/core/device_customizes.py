@@ -2224,7 +2224,7 @@ DEVICE_CUSTOMIZES = {
             {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type,clean_times,vacuum_position'},
             {'interval': 61, 'props': 'mop_status,battery_level,charging_state'},
             {'interval': 130, 'props': 'auto_*,*_detection'},
-            {'interval': 300, 'props': 'filter_l*,dust_bag_l*,brush_l*,detergent_l*'},
+            {'interval': 300, 'props': 'filter_l*,mop_l*,dust_bag_l*,brush_l*,detergent_l*'},
             {'interval': 999, 'props': 'clean_record'},
         ],
     },
@@ -2253,9 +2253,18 @@ DEVICE_CUSTOMIZES = {
                                   'carpet_deep_cleaning,carpet_discriminate,sweep_carpet_first,mop_outer_swing,'
                                   'mop_outer_swing_frequency,frequency_mop_wash_by_time,auto_dust_arrest_power_level,'
                                   'reset_mop_life,reset_brush_life,reset_filter_life,reset_dust_bag_life',
+    },
+    'xiaomi.vacuum.*': {
+        'interval_seconds': 90,
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
-            {'interval': 15, 'props': 'mode,sweep_mop_type,sweep_type,clean_times'},
+            {'interval': 11, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
+            {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type,vacuum_position'},
+            {'interval': 61, 'props': 'mop_status,battery_level,charging_state,clean_times'},
+            {'interval': 150, 'props': 'auto_*,*_detection'},
+            {'interval': 200, 'props': 'carpet_*,water_*'},
+            {'interval': 250, 'props': 'map_*'},
+            {'interval': 300, 'props': 'filter_l*,mop_l*,dust_bag_l*,brush_l*,detergent_l*'},
+            {'interval': 999, 'props': 'clean_record,map_3d_info,room_information'},
         ],
     },
     'xiaomi.watch.*': {
