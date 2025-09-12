@@ -3,7 +3,7 @@ import copy
 import re
 from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
-from functools import partial, cached_property
+from functools import cached_property
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
