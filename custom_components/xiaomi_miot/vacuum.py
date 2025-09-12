@@ -4,14 +4,11 @@ import time
 from datetime import timedelta
 from functools import partial
 
-from homeassistant.const import (
-    STATE_IDLE,
-    STATE_PAUSED,
-)
 from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
     StateVacuumEntity,
     VacuumEntityFeature,  # v2022.5
+    VacuumActivity,
 )
 
 from . import (
@@ -114,8 +111,6 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._supported_features |= VacuumEntityFeature.RETURN_HOME
         if self._prop_fan:
             self._supported_features |= VacuumEntityFeature.FAN_SPEED
-        if self._prop_battery:
-            self._supported_features |= VacuumEntityFeature.BATTERY
         if self._prop_status:
             self._supported_features |= VacuumEntityFeature.STATUS
             self._supported_features |= VacuumEntityFeature.STATE
@@ -144,18 +139,11 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             elif val in self._prop_status.list_search('Go Charging'):
                 self._attr_activity = VacuumActivity.RETURNING
             elif val in self._prop_status.list_search('Paused'):
-                self._attr_activity = STATE_PAUSED
+                self._attr_activity = VacuumActivity.PAUSED
             elif val in self._prop_status.list_search('Error', 'Charging Problem'):
                 self._attr_activity = VacuumActivity.ERROR
             else:
-                self._attr_activity = None
-                self._attr_state = self._prop_status.list_description(val)
-
-    @property
-    def battery_level(self):
-        if self._prop_battery:
-            return self._prop_battery.from_device(self.device)
-        return None
+                self._attr_activity = VacuumActivity.IDLE
 
     def turn_on(self, **kwargs):
         if self._prop_power:

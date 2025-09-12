@@ -208,6 +208,11 @@ DEVICE_CUSTOMIZES = {
             {'interval': 35, 'props': 'fault,mode,appoint_time,reservation_left_time'},
         ],
     },
+    'cddz.switch.jhicw': {
+        'switch_properties': 'switch,one_key,two_key,three_key,four_key',
+        'select_properties': 'mode,default_power_on_state',
+        'number_properties': 'backlighting_br',
+    },
     'cgllc.airm.cgdn1': {
         'exclude_miot_services': 'mac,settings',
     },
@@ -1992,7 +1997,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'delay,horizontal_swing',
         'select_properties': 'horizontal_swing_included_angle',
         'number_properties': 'delay_time',
-        'percentage_property': 'prop.2.5',
+        'percentage_property': 'stepless_fan_level',
         'chunk_coordinators': [
             {'interval': 20, 'props': 'on,mode,fan_level'},
         ],
@@ -2002,7 +2007,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'delay',
         'select_properties': 'horizontal_swing_included_angle',
         'number_properties': 'delay_time',
-        'percentage_property': 'prop.2.6',
+        'percentage_property': 'stepless_fan_level',
     },
     'xiaomi.feeder.iv2001': {
         'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
@@ -2219,7 +2224,7 @@ DEVICE_CUSTOMIZES = {
             {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type,clean_times,vacuum_position'},
             {'interval': 61, 'props': 'mop_status,battery_level,charging_state'},
             {'interval': 130, 'props': 'auto_*,*_detection'},
-            {'interval': 300, 'props': 'filter_l*,dust_bag_l*,brush_l*,detergent_l*'},
+            {'interval': 300, 'props': 'filter_l*,mop_l*,dust_bag_l*,brush_l*,detergent_l*'},
             {'interval': 999, 'props': 'clean_record'},
         ],
     },
@@ -2248,9 +2253,18 @@ DEVICE_CUSTOMIZES = {
                                   'carpet_deep_cleaning,carpet_discriminate,sweep_carpet_first,mop_outer_swing,'
                                   'mop_outer_swing_frequency,frequency_mop_wash_by_time,auto_dust_arrest_power_level,'
                                   'reset_mop_life,reset_brush_life,reset_filter_life,reset_dust_bag_life',
+    },
+    'xiaomi.vacuum.*': {
+        'interval_seconds': 90,
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
-            {'interval': 15, 'props': 'mode,sweep_mop_type,sweep_type,clean_times'},
+            {'interval': 11, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
+            {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type,vacuum_position'},
+            {'interval': 61, 'props': 'mop_status,battery_level,charging_state,clean_times'},
+            {'interval': 150, 'props': 'auto_*,*_detection'},
+            {'interval': 200, 'props': 'carpet_*,water_*'},
+            {'interval': 250, 'props': 'map_*'},
+            {'interval': 300, 'props': 'filter_l*,mop_l*,dust_bag_l*,brush_l*,detergent_l*'},
+            {'interval': 999, 'props': 'clean_record,map_3d_info,room_information'},
         ],
     },
     'xiaomi.watch.*': {
@@ -2552,6 +2566,7 @@ DEVICE_CUSTOMIZES = {
     },
     'zhimi.fan.za5': {
         **CHUNK_1,
+        'number_properties': 'speed_level',
         'percentage_property': 'speed_level',
         'exclude_miot_properties': 'button_press,country_code',
         'interval_seconds': 121,
