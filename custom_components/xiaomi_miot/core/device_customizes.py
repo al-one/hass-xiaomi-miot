@@ -223,7 +223,18 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'V',
     },
     'cgllc.airm.cgd1st': {
-        'exclude_miot_services': 'mac,settings',
+        'interval_seconds': 180,
+        'select_properties': 'monitoring_frequency,screen_off,device_off,screensaver_type',
+        'number_properties': 'screensaver_time,auto_slideing_time',
+        'exclude_miot_services': 'mac',
+        'exclude_miot_properties': 'start_time,end_time,tempature_unit,time_zone,page_sequence,*_led_th',
+        'chunk_coordinators': [
+            {'interval': 51, 'props': 'pm2_5_density,pm10_density,co2_density'},
+            {'interval': 61, 'props': 'relative_humidity,temperature'},
+            {'interval': 71, 'props': 'battery_level,charging_state,voltage'},
+            {'interval': 121, 'props': 'monitoring_frequency,screen_off,device_off'},
+            {'interval': 131, 'props': 'screensaver_type,screensaver_time,auto_slideing_time'},
+        ],
     },
     'cgllc.airm.cgd1st:voltage': {
         'value_ratio': 0.001,
