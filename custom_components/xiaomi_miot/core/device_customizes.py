@@ -2849,6 +2849,7 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'image_rollover,alarm_interval',
     },
     '*.cateye.*': {
+        'auto_cloud': True,
         'use_motion_stream': True,
     },
     '*.chair.*': {
