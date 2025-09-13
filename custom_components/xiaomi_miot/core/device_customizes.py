@@ -34,6 +34,7 @@ ENERGY_KWH = {
     'unit_of_measurement': 'kWh',
 }
 
+
 DEVICE_CUSTOMIZES = {
     '090615.aircondition.ktf': {
         'current_temp_property': 'setmode.roomtemp',
@@ -982,6 +983,18 @@ DEVICE_CUSTOMIZES = {
     },
     'iot.plug.jdls1:power_cost_today': ENERGY_KWH,
     'iot.plug.jdls1:power_cost_month': ENERGY_KWH,
+    'iot.plug.pw6u1': {
+        'sensor_properties': 'fault',
+        'switch_properties': '*_switch.on,child_lock',
+        'select_properties': 'default_power_on_state',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '3.1',
+        'exclude_miot_properties': 'indicator_set,circle_task_*',
+        'chunk_coordinators': [
+            {'interval': 16, 'props': 'switch.on'},
+            {'interval': 21, 'props': '*_switch.on,electric_power'},
+        ],
+    },
     'iot.switch.padw2p': {
         'sensor_properties': 'temperature,electric_power,electric_current,voltage',
         'select_properties': 'default_power_on_state',
@@ -3112,7 +3125,6 @@ DEVICE_CUSTOMIZES = {
     },
 
 }
-
 DEVICE_CUSTOMIZES.update({item: DEVICE_CUSTOMIZES[src] for src, dest in {
     'mrbond.airer.m31a': [
         'hyd.airer.h51a',
