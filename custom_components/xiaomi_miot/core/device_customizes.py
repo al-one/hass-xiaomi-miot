@@ -713,6 +713,12 @@ DEVICE_CUSTOMIZES = {
         'open_texts': 'LEFT',
         'close_texts': 'RIGHT',
     },
+    'dmaker.fan.p39': {
+        'percentage_property': 'speed_level',
+        'switch_properties': 'brightness',
+        'select_properties': 'motor_control',
+        'button_actions': 'toggle,loop_gear,loop_mode',
+    },
     'dmaker.fan.p45': {
         'percentage_property': 'speed_level',
         'button_actions': 'turn_left,turn_right',
