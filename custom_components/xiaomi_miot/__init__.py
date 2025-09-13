@@ -38,15 +38,10 @@ import homeassistant.helpers.config_validation as cv
 from .core.const import *
 from .core.utils import (
     wildcard_models,
-    is_offline_exception,
-    async_analytics_track_event,
-)
-from .core import HassEntry, BasicEntity, XEntity # noqa
-from .core.device import (
-    Device,
-    MiioDevice,
     DeviceException,
 )
+from .core import HassEntry, BasicEntity, XEntity # noqa
+from .core.device import Device, AsyncMiIO
 from .core.miot_spec import (
     MiotService,
     MiotProperty,
@@ -479,10 +474,9 @@ async def async_setup_component_services(hass):
                         row['miio_cmd'] = f'miiocli device --ip {dip} --token {tok} info'
                         if not miio_info:
                             try:
-                                device = MiioDevice(dip, tok)
-                                miio_info = await hass.async_add_executor_job(device.info)
-                                miio_info = dict(miio_info.raw or {})
-                            except DeviceException as exc:
+                                miio = AsyncMiIO(dip, tok)
+                                miio_info = await miio.info()
+                            except Exception as exc:
                                 miio_info = {'error': str(exc)}
                             row['miio_info'] = miio_info
                     lst.append(row)

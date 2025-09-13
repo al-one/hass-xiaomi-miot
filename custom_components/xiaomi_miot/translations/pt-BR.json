@@ -1,6 +1,6 @@
 {
     "config": {
-        "flow_title": "Xiaomi Miot Auto",
+        "flow_title": "Xiaomi Miot",
         "step": {
             "user": {
                 "title": "Selecione a forma de integração",
