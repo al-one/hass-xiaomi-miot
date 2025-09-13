@@ -60,6 +60,19 @@ DEVICE_CUSTOMIZES = {
         'chunk_properties': 1,
         'exclude_miot_properties': 'fault,mode,name,status,temperature',
     },
+    '090615.switch.x6wtft': {
+        'select_properties': 'mode,default_power_on_state',
+        'text_properties': 'name,diy_words',
+        'exclude_miot_services': 'scene,location',
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'switch.on'},
+            {'interval': 21, 'props': 'light.*,diy_words'},
+            {'interval': 31, 'props': 'air_conditioner.*'},
+            {'interval': 61, 'props': 'environment.*'},
+            {'interval': 91, 'props': 'indicator_light.*'},
+            {'interval': 180, 'props': 'mode,name,default_power_on_state'},
+        ],
+    },
 
     'adp.motor.adswb4': {
         'button_actions': 'toggle',
