@@ -1720,6 +1720,12 @@ DEVICE_CUSTOMIZES = {
         'chunk_coordinators': [],
     },
 
+    'tmwl.valve.iotb2': {
+        'sensor_attributes': 'current_power,current_voltage,current_current,leakage_current,*_temperature',
+        'switch_properties': 'valve_switch',
+        'number_properties': 'target_water_level,over_current_off,overload_alarm,overload_device_off,leakage_alarm,'
+                             'mcu_over_temp_alarm,term_over_temp_alarm,term_over_temp_off,leakage_device_off',
+    },
     'tofan.airrtc.wk01': {
         'append_converters': [
             {
