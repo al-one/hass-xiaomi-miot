@@ -2304,6 +2304,18 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.watch.*': {
         'sensor_properties': 'current_step_count,current_distance',
     },
+    'xiaomi.waterheater.ymm6': {
+        'sensor_properties': 'status,input_water_temperature,water_flow,anti_icing_status,water_pump_volt,'
+                             'water_consumption,gas_consumption,temperature,filter_life_level',
+        'switch_properties': 'on,hot_water_recirculation,water_control_preheat,rapid_preheat,intelligent_preheat,boost,'
+                             'ventilation,cloud_preheater,inner_loop',
+        'select_properties': 'boost_mode,boost_level',
+        'number_properties': 'preheat_time,ventilation_time,auto_screen_off_time',
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'on,status,mode,target_temperature,temperature'},
+            {'interval': 21, 'props': 'hot_water_recirculation,*_preheat,boost*'},
+        ],
+    },
     'xiaomi.waterheater.yms2': {
         'sensor_properties': 'water_heater.status,water_level,temperature_tips,'
                              'input_water_temp,water_pump_volt,remaining_time',
