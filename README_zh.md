@@ -39,9 +39,9 @@
 
 #### 方法1: [HACS](https://github.com/hacs-china/integration)
 - 首次安装
-    > HACS > 集成 > ➕ 浏览并下载存储库 > [`Xiaomi Miot Auto`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > 下载此存储库
+    > HACS > 集成 > ➕ 浏览并下载存储库 > [`Xiaomi Miot`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > 下载此存储库
 - 升级插件
-    > HACS > 集成 > [`Xiaomi Miot Auto`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > 更新 / 重新下载
+    > HACS > 集成 > [`Xiaomi Miot`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > 更新 / 重新下载
 
 #### 方法2: 通过`Samba`或`SFTP`手动安装
 > 下载并复制`custom_components/xiaomi_miot`文件夹到HA根目录下的`custom_components`文件夹
@@ -71,7 +71,7 @@ wget -O - https://get.hacs.vip | DOMAIN=xiaomi_miot bash -
 <a name="config"></a>
 ## 配置
 
-> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设备与服务 > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > [➕ 添加集成](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 搜索 `Xiaomi Miot Auto`
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设备与服务 > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > [➕ 添加集成](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 搜索 `Xiaomi Miot`
 
 或者点击: [![添加集成](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
@@ -101,7 +101,7 @@ xiaomi_miot:
   # http_timeout: 15   # 请求小米接口的超时时间(秒)
 ```
 
-> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设备与服务 > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > 选项 > ☑️ 开启云端模式
+> [⚙️ 配置](https://my.home-assistant.io/redirect/config) > 设备与服务 > [🧩 集成](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot > 选项 > ☑️ 开启云端模式
 
 <a name="translations"></a>
 ### 配置翻译词典:
@@ -217,7 +217,7 @@ xiaomi_miot:
 <a name="yaml-configuration-reloading"></a>
 ### YAML配置重载
 本插件支持配置重载(修改YAML配置后无需重启[HomeAssistant](https://www.home-assistant.io)):
-> [🔨 开发者工具](https://my.home-assistant.io/redirect/developer_states) > [YAML 重载](https://my.home-assistant.io/redirect/server_controls) > 配置重载 > 🔍 `重载 XIAOMI MIOT AUTO`
+> [🔨 开发者工具](https://my.home-assistant.io/redirect/developer_states) > [YAML 重载](https://my.home-assistant.io/redirect/server_controls) > 配置重载 > 🔍 `重载 XIAOMI MIOT`
 
 
 <a name="supported-devices"></a>
