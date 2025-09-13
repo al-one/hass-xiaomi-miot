@@ -1,4 +1,12 @@
 {
+  "090615.switch.x6wtft": [
+    {
+      "iid": 7,
+      "properties": [
+        {"iid": 5, "type": "urn:miot-spec-v2:property:fan-level"}
+      ]
+    }
+  ],
   "aice.motor.kzmu3": [
     {
       "iid": 2,
