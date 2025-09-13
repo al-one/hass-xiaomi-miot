@@ -90,6 +90,7 @@ class SelectSubEntity(BaseEntity, BaseSubEntity):
         self._attr_current_option = None
         self._attr_options = self._option.get('options') or []
         self._select_option = self._option.get('select_option')
+        self._async_select_option = self._option.get('async_select_option')
 
     def update(self, data=None):
         super().update(data)
@@ -104,6 +105,19 @@ class SelectSubEntity(BaseEntity, BaseSubEntity):
                 'option': self._option,
             }
             if ret := self._select_option(option, **kws):
+                self._attr_current_option = option
+                self.schedule_update_ha_state()
+            return ret
+        raise NotImplementedError()
+
+    async def async_select_option(self, option: str):
+        """Change the selected option."""
+        if self._async_select_option:
+            kws = {
+                'attr': self._attr,
+                'option': self._option,
+            }
+            if ret := await self._async_select_option(option, **kws):
                 self._attr_current_option = option
                 self.schedule_update_ha_state()
             return ret

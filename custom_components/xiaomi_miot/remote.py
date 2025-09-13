@@ -1,7 +1,6 @@
 """Support remote entity for Xiaomi Miot."""
 import logging
 import asyncio
-import time
 from functools import partial
 
 from homeassistant.const import (
@@ -127,7 +126,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                         'name': d.get('name'),
                         'entity_id': f'remote_{ird}'.replace('.', '_'),
                         'options': ols,
-                        'select_option': self.press_ir_key,
+                        'async_select_option': self.async_press_ir_key,
                     })
                     add_selects([self._subs[ird]], update_before_add=False)
         if irs:
@@ -136,7 +135,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
     def is_on(self):
         return True
 
-    def send_remote_command(self, command, **kwargs):
+    async def async_send_command(self, command, **kwargs):
         """Send commands to a device."""
         repeat = kwargs.get(remote.ATTR_NUM_REPEATS, remote.DEFAULT_NUM_REPEATS)
         delays = kwargs.get(remote.ATTR_DELAY_SECS, remote.DEFAULT_DELAY_SECS)
@@ -145,17 +144,17 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
             for cmd in command:
                 try:
                     if f'{cmd}'[:4] == 'key:':
-                        ret = self.send_cloud_command(did, cmd)
+                        ret = await self.async_send_cloud_command(did, cmd)
                     elif f'{cmd}'.startswith('FE'):
-                        ret = self.miot_device.send('send_ir_code', [cmd])
+                        ret = await self.miot_device.async_send('send_ir_code', [cmd])
                     else:
-                        ret = self.miot_device.play(cmd)
+                        ret = self.hass.async_add_executor_job(self.miot_device.play, cmd)
                     self.logger.info('%s: Send IR command %s(%s) result: %s', self.name_model, cmd, kwargs, ret)
                 except (DeviceException, MiCloudException) as exc:
                     self.logger.error('%s: Send IR command %s(%s) failed: %s', self.name_model, cmd, kwargs, exc)
-                time.sleep(delays)
+                await asyncio.sleep(delays)
 
-    def send_cloud_command(self, did, command):
+    async def async_send_cloud_command(self, did, command):
         key = f'{command}'
         if key[:4] == 'key:':
             key = key[4:]
@@ -169,19 +168,13 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         mic = self.miot_cloud
         if not mic:
             return False
-        res = mic.request_miot_api('v2/irdevice/controller/key/click', {
+        res = await mic.async_request_api('v2/irdevice/controller/key/click', {
             'did': did,
             'key_id': key,
         }) or {}
         if res.get('code'):
             self.logger.warning('%s: Send IR command %s(%s) failed: %s', self.name_model, command, did, res)
         return res
-
-    async def async_send_command(self, command, **kwargs):
-        """Send commands to a device."""
-        await self.hass.async_add_executor_job(
-            partial(self.send_remote_command, command, **kwargs)
-        )
 
     async def async_learn_command(self, **kwargs):
         """Learn a command from a device."""
@@ -225,7 +218,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         """Delete commands from the database."""
         raise NotImplementedError()
 
-    def press_ir_key(self, select, **kwargs):
+    async def async_press_ir_key(self, select, **kwargs):
         key = None
         did = kwargs.get('attr')
         for d in self._state_attrs.get('ir_devices', []):
@@ -240,5 +233,5 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                     continue
                 key = k.get('id')
         if key:
-            return self.send_cloud_command(did, key)
+            return self.async_send_cloud_command(did, key)
         return False
