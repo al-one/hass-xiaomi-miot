@@ -1251,7 +1251,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'default_power_on_state',
         'switch_properties': 'electric_alarm_set,heat_alert_set,overcurrent_set,overvoltage_set,undervoltage_set',
         'number_properties': 'electric_alarm,heat_alert,overcurrent_alarm,overvoltage_alarm,undervoltage_alarm',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '3.1',
     },
+    'lxzn.switch.cbcsmj:voltage': {'value_ratio': 0.1},
+    'lxzn.switch.cbcsmj:electric_current': {'value_ratio': 0.001},
 
     'madv.cateye.mi3iot': {
         'binary_sensor_properties': 'madv_doorbell.motion_detection',
