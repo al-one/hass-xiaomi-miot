@@ -8,8 +8,8 @@ from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
     StateVacuumEntity,
     VacuumEntityFeature,  # v2022.5
-    VacuumActivity,
 )
+from .core.const import VacuumActivity
 
 from . import (
     DOMAIN,
@@ -26,8 +26,6 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
-
-from .core.const import VacuumActivity
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
