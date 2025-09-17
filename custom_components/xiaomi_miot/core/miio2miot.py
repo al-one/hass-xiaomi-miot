@@ -3,16 +3,17 @@ import logging
 import voluptuous as vol
 from typing import Tuple
 
-from .utils import is_offline_exception, DeviceException
+from .utils import (
+    DeviceException,
+    is_offline_exception,
+    rgb_to_int,
+    int_to_rgb,
+)
 from .templates import template
 from .miot_spec import (MiotSpec, MiotProperty, MiotAction)
 from .miio2miot_specs import MIIO_TO_MIOT_SPECS
 import homeassistant.helpers.config_validation as cv
 
-from miio.utils import (
-    rgb_to_int,
-    int_to_rgb,
-)
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -235,7 +235,7 @@ class BaseCameraEntity(Camera):
                 'motion_video_latest': fst,
             }
         else:
-            self.log.warning('Camera events is empty. %s', rdt)
+            self.log.info('Camera events is empty. %s', rdt)
         return adt
 
     def get_alarm_m3u8_url(self, fileId, isAlarm=False, videoCodec='H265'):

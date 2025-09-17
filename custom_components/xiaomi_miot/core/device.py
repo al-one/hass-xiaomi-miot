@@ -42,8 +42,6 @@ from .utils import (
 )
 from .templates import template
 
-from miio.device import DeviceInfo as MiioInfoBase
-
 if TYPE_CHECKING:
     from . import BasicEntity
 
@@ -628,7 +626,7 @@ class Device(CustomConfigHelper):
             async_call_later(self.hass, 5, self.update_all_status)
 
     def add_entity(self, entity: 'BasicEntity', unique=None):
-        if unique == None:
+        if unique is None:
             unique = entity.unique_id
         if unique in self.entities:
             return None
@@ -1143,7 +1141,6 @@ class Device(CustomConfigHelper):
                 })
         return commands
 
-
     async def update_cloud_statistics(self, commands=None):
         if not self.did or not self.cloud:
             return
@@ -1276,7 +1273,7 @@ class Device(CustomConfigHelper):
     async def update_miio_props(self, props=None):
         if not self.local:
             return
-        if props == None:
+        if props is None:
             props = self.custom_miio_properties
         if self.miio2miot:
             attrs = self.miio2miot.only_miio_props(props)
@@ -1303,7 +1300,7 @@ class Device(CustomConfigHelper):
     async def update_miio_commands(self, commands=None):
         if not self.local:
             return
-        if commands == None:
+        if commands is None:
             commands = self.custom_miio_commands
         if isinstance(commands, dict):
             commands = [
@@ -1425,11 +1422,18 @@ class MiotDevice():
         ]
         return 10 if idx >= len(chunks) else chunks[idx]
 
-class MiioInfo(MiioInfoBase):
+
+class MiioInfo(dict):
+    def __getattr__(self, item):
+        return self.get(item)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
     @property
     def firmware_version(self):
-        return self.data.get('fw_ver')
+        return self.get('fw_ver')
 
     @property
     def hardware_version(self):
-        return self.data.get('hw_ver')
+        return self.get('hw_ver')
