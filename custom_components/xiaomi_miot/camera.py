@@ -235,7 +235,7 @@ class BaseCameraEntity(Camera):
                 'motion_video_latest': fst,
             }
         else:
-            self.log.warning('Camera events is empty. %s', rdt)
+            self.log.info('Camera events is empty. %s', rdt)
         return adt
 
     def get_alarm_m3u8_url(self, fileId, isAlarm=False, videoCodec='H265'):
@@ -336,6 +336,7 @@ class CameraEntity(XEntity, BaseCameraEntity):
             self.log.debug('Camera alarm data: %s', adt)
             self._attr_available = True
             self.update_motion_video(adt)
+
 
 XEntity.CLS[ENTITY_DOMAIN] = CameraEntity
 
@@ -448,25 +449,23 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return True
 
     async def stream_source(self, **kwargs):
-        fun = self.get_stream_address
+        fun = self.async_get_stream_address()
         if self._motion_enable:
-            fun = self.get_motion_stream_address
+            kwargs['crypto'] = True
+            fun = self.hass.async_add_executor_job(partial(self.get_motion_stream_address, **kwargs))
             idx = self.custom_config_integer('motion_stream_slice')
             if idx is not None:
                 kwargs['index'] = idx
-                fun = self.get_motion_stream_slice_video
-            kwargs['crypto'] = True
-        return await self.hass.async_add_executor_job(partial(fun, **kwargs))
+                fun = self.hass.async_add_executor_job(partial(self.get_motion_stream_slice_video), **kwargs)
+        return await fun
 
     async def image_source(self, **kwargs):
         if self._motion_enable:
             kwargs['crypto'] = True
-            return await self.hass.async_add_executor_job(
-                partial(self.get_motion_image_address, **kwargs)
-            )
+            return self.get_motion_image_address(**kwargs)
         return await self.stream_source()
 
-    def get_stream_address(self, **kwargs):
+    async def async_get_stream_address(self, **kwargs):
         now = time.time()
         if now >= self._url_expiration:
             self._last_url = None
@@ -485,15 +484,8 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                     vav = (vap.value_list.pop(0) or {}).get('value')
                 if self.xiaomi_cloud:
                     if self._act_stop_stream:
-                        self.miot_action(
-                            self._srv_stream.iid,
-                            self._act_stop_stream.iid,
-                        )
-                    result = self.miot_action(
-                        self._srv_stream.iid,
-                        self._act_start_stream.iid,
-                        [] if vav is None else [vav],
-                    ) or {}
+                        await self.async_call_action(self._act_stop_stream)
+                    result = await self.async_call_action(self._act_start_stream, [] if vav is None else [vav]) or {}
                     updater = 'cloud'
                 if isinstance(result, dict):
                     _LOGGER.debug('%s: Get miot camera stream from %s: %s', self.name_model, updater, result)
@@ -676,14 +668,14 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             return self._prop_motion_tracking.from_device(self.device)
         return None
 
-    def enable_motion_detection(self):
+    async def async_enable_motion_detection(self):
         if self._prop_motion_tracking:
-            return self.set_property(self._prop_motion_tracking, True)
+            return await self.async_set_property(self._prop_motion_tracking, True)
         return False
 
-    def disable_motion_detection(self):
+    async def async_disable_motion_detection(self):
         if self._prop_motion_tracking:
-            return self.set_property(self._prop_motion_tracking, False)
+            return await self.async_set_property(self._prop_motion_tracking, False)
         return False
 
 
@@ -693,14 +685,6 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
         BaseCameraEntity.__init__(self, hass)
         self._available = True
         self._supported_features |= CameraEntityFeature.STREAM
-
-    @property
-    def state(self):
-        if self.is_recording:
-            return CameraState.RECORDING
-        if self.is_streaming:
-            return CameraState.STREAMING
-        return STATE_IDLE
 
     def update(self, data=None):
         super().update(data)
@@ -717,6 +701,4 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
 
     async def image_source(self, **kwargs):
         kwargs['crypto'] = True
-        return await self.hass.async_add_executor_job(
-            partial(self._parent.get_motion_image_address, **kwargs)
-        )
+        return self._parent.get_motion_image_address(**kwargs)

@@ -1,8 +1,7 @@
 """Support for Xiaomi vacuums."""
 import logging
-import time
+import asyncio
 from datetime import timedelta
-from functools import partial
 
 from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
@@ -17,11 +16,11 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     MiotEntity,
-    DeviceException,
     MIOT_LOCAL_MODELS,
     async_setup_config_entry,
     bind_services_to_entries,
 )
+from .core.utils import DeviceException
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -143,43 +142,37 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             else:
                 self._attr_activity = VacuumActivity.IDLE
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         if self._prop_power:
-            self.set_property(self._prop_power, True)
-        return self.start()
+            await self.async_set_property(self._prop_power, True)
+        return await self.async_start()
 
-    def turn_off(self, **kwargs):
-        return self.stop()
+    async def async_turn_off(self, **kwargs):
+        return await self.async_stop()
 
-    def start(self):
+    async def async_start(self):
         if self._act_start:
-            return self.miot_action(self._act_start.service.iid, self._act_start.iid)
+            return await self.async_call_action(self._act_start)
         return False
 
-    def stop(self, **kwargs):
+    async def async_stop(self, **kwargs):
         if self._act_stop:
-            return self.miot_action(self._act_stop.service.iid, self._act_stop.iid)
+            return await self.async_call_action(self._act_stop)
         return False
 
-    def pause(self):
+    async def async_pause(self):
         if self._act_pause:
-            return self.miot_action(self._act_pause.service.iid, self._act_pause.iid)
-        return self.stop()
+            return await self.async_call_action(self._act_pause)
+        return await self.async_stop()
 
-    def start_pause(self, **kwargs):
-        sta = self.state
-        if sta == VacuumActivity.CLEANING:
-            return self.pause()
-        return self.start()
-
-    def return_to_base(self, **kwargs):
+    async def async_return_to_base(self, **kwargs):
         if self._act_charge:
-            return self.miot_action(self._act_charge.service.iid, self._act_charge.iid)
+            return await self.async_call_action(self._act_charge)
         return self.stop()
 
-    def locate(self, **kwargs):
+    async def async_locate(self, **kwargs):
         if self._act_locate:
-            return self.miot_action(self._act_locate.service.iid, self._act_locate.iid)
+            return await self.async_call_action(self._act_locate)
         return False
 
     def clean_spot(self, **kwargs):
@@ -203,23 +196,17 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             return self._prop_fan.list_description(None) or []
         return None
 
-    def set_fan_speed(self, fan_speed, **kwargs):
+    async def async_set_fan_speed(self, fan_speed, **kwargs):
         if self._prop_fan:
             val = self._prop_fan.list_value(fan_speed)
-            return self.set_property(self._prop_fan, val)
+            return self.async_set_property(self._prop_fan, val)
         return False
-
-    def send_vacuum_command(self, command, params=None, **kwargs):
-        """Send a command to a vacuum cleaner."""
-        raise NotImplementedError()
 
     async def async_send_command(self, command, params=None, **kwargs):
         """Send a command to a vacuum cleaner.
         This method must be run in the event loop.
         """
-        await self.hass.async_add_executor_job(
-            partial(self.send_vacuum_command, command, params=params, **kwargs)
-        )
+        return await self.async_miio_command(command, params)
 
 
 class MiotRoborockVacuumEntity(MiotVacuumEntity):
@@ -242,13 +229,12 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
                 sub = f'segment_{rid}'
                 self._subs[sub] = ButtonSubEntity(self, sub, option={
                     'name': f'{self.device_name} {r[2]}',
-                    'press_action': self.start_clean_segment,
+                    'async_press_action': self.async_start_clean_segment,
                     'press_kwargs': {'segment': rid},
                     'state_attrs': {'room_id': r[1]},
                 })
                 add_buttons([self._subs[sub]], update_before_add=False)
         self.logger.info('Room buttons: %s', [rooms, add_buttons])
-
 
     async def async_update(self):
         await super().async_update()
@@ -296,58 +282,51 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
     def miio_props(self):
         return self._state_attrs.get('props') or {}
 
-    @property
-    def battery_level(self):
-        val = super().battery_level
-        if val is not None:
-            return val
-        return self.miio_props.get('battery')
-
-    def pause(self):
+    async def async_pause(self):
         """Pause the cleaning task."""
         if not self._act_pause:
-            return self.send_miio_command('app_pause')
-        return super().pause()
+            return await self.async_miio_command('app_pause')
+        return await super().async_pause()
 
-    def return_to_base(self, **kwargs):
+    async def async_return_to_base(self, **kwargs):
         if self.model in ['rockrobo.vacuum.v1']:
-            self.stop()
-        return super().return_to_base()
+            await self.async_stop()
+        return await super().async_return_to_base()
 
-    def clean_spot(self, **kwargs):
+    async def async_clean_spot(self, **kwargs):
         """Perform a spot clean-up."""
         if self._miio2miot:
-            return self.send_miio_command('app_spot')
-        return super().clean_spot()
+            return await self.async_miio_command('app_spot')
+        return await super().async_clean_spot()
 
-    def locate(self, **kwargs):
+    async def async_locate(self, **kwargs):
         """Locate the vacuum cleaner."""
         if not self._act_locate:
-            return self.send_miio_command('find_me', [''])
-        return super().locate()
+            return await self.async_miio_command('find_me', [''])
+        return await super().async_locate()
 
-    def send_vacuum_command(self, command, params=None, **kwargs):
+    async def async_send_command(self, command, params=None, **kwargs):
         """Send a command to a vacuum cleaner."""
         dvc = self.miot_device
         if not dvc:
             raise NotImplementedError()
-        return self.send_miio_command(command, params)
+        return await self.async_miio_command(command, params)
 
-    def start_clean_segment(self, segment, repeat=1, **kwargs):
+    async def async_start_clean_segment(self, segment, repeat=1, **kwargs):
         segments = []
         for r in self._state_attrs.get('room_mapping', []):
             if segment in r:
                 segments.append(r[0])
                 break
         if not segments:
-            self.return_to_base()
+            await self.async_return_to_base()
             return False
         if self.state == VacuumActivity.CLEANING:
-            self.pause()
-            time.sleep(1)
+            await self.async_pause()
+            await asyncio.sleep(1)
         if self.model in ['roborock.vacuum.m1s']:
-            return self.send_miio_command('app_segment_clean', segments)
-        return self.send_miio_command('app_segment_clean', [{'segments': segments, 'repeat': repeat}])
+            return await self.async_miio_command('app_segment_clean', segments)
+        return await self.async_miio_command('app_segment_clean', [{'segments': segments, 'repeat': repeat}])
 
 
 class MiotViomiVacuumEntity(MiotVacuumEntity):
@@ -369,8 +348,6 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
         await super().async_update()
         if not self._available:
             return
-        if self._miio2miot:
-            await self.async_update_miio_props(self._miio_props)
         props = self.device.props or {}
         adt = {}
         if 'miio.s_area' in props:
@@ -381,13 +358,13 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
             await self.async_update_attrs(adt)
             self.device.dispatch(self.device.decode_attrs(adt))
 
-    def locate(self, **kwargs):
+    async def async_locate(self, **kwargs):
         """Locate the vacuum cleaner."""
         if not self._act_locate:
-            return self.send_miio_command('set_resetpos', [1])
-        return super().locate()
+            return await self.async_miio_command('set_resetpos', [1])
+        return await super().async_locate()
 
-    def send_vacuum_command(self, command, params=None, **kwargs):
+    async def async_send_command(self, command, params=None, **kwargs):
         """Send a command to a vacuum cleaner."""
         dvc = self.miot_device
         if not dvc:
@@ -400,12 +377,12 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
             for z in params or []:
                 rpt = z.pop(-1)
                 lst.append(z)
-            return self.clean_zones(lst, rpt)
+            return await self.async_clean_zones(lst, rpt)
         elif command == 'app_goto_target':
-            return self.clean_point(params)
-        return self.send_miio_command(command, params)
+            return await self.async_clean_point(params)
+        return await self.async_miio_command(command, params)
 
-    def clean_zones(self, zones, repeats=1):
+    async def async_clean_zones(self, zones, repeats=1):
         result = []
         i = 0
         for z in zones:
@@ -415,10 +392,10 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
                 result.append(res)
                 i += 1
         result = [i, *result]
-        self.send_miio_command('set_uploadmap', [1])
-        self.send_miio_command('set_zone', result)
-        return self.send_miio_command('set_mode', [3, 1])
+        await self.async_miio_command('set_uploadmap', [1])
+        await self.async_miio_command('set_zone', result)
+        return await self.async_miio_command('set_mode', [3, 1])
 
-    def clean_point(self, point):
-        self.send_miio_command('set_uploadmap', [0])
-        return self.send_miio_command('set_pointclean', [1, *point])
+    async def async_clean_point(self, point):
+        await self.async_miio_command('set_uploadmap', [0])
+        return await self.async_miio_command('set_pointclean', [1, *point])

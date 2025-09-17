@@ -1,6 +1,6 @@
 {
   "domain": "xiaomi_miot",
-  "name": "Xiaomi Miot Auto",
+  "name": "Xiaomi Miot",
   "after_dependencies": ["homekit"],
   "codeowners": ["@al-one"],
   "config_flow": true,
@@ -17,5 +17,5 @@
     "python-miio>=0.5.12",
     "micloud>=0.5"
   ],
-  "version": "1.0.21"
+  "version": "1.1.0"
 }

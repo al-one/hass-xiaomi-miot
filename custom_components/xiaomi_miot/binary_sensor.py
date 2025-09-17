@@ -5,11 +5,6 @@ import json
 from datetime import datetime
 from functools import cached_property
 
-from homeassistant.const import (
-    STATE_OFF,
-    STATE_ON,
-    STATE_UNKNOWN,
-)
 from homeassistant.components.binary_sensor import (
     DOMAIN as ENTITY_DOMAIN,
     BinarySensorEntity as BaseEntity,
@@ -101,6 +96,7 @@ class BinarySensorEntity(XEntity, BaseEntity, RestoreEntity):
     def custom_reverse(self):
         return self.custom_config_bool('reverse_state', False)
 
+
 XEntity.CLS[ENTITY_DOMAIN] = BinarySensorEntity
 
 
@@ -177,13 +173,6 @@ class MiotBinarySensorEntity(MiotToggleEntity, BaseEntity):
         if self._vars.get('reverse_state'):
             ret = not ret
         return ret
-
-    @property
-    def state(self):
-        iso = self.is_on
-        if iso is None:
-            return STATE_UNKNOWN
-        return STATE_ON if iso else STATE_OFF
 
     @property
     def device_class(self):

@@ -12,7 +12,7 @@ class BaseConv:
     attr: str
     domain: str = None
     mi: str | int = None
-    attrs: set = None
+    attrs: list = None
     option: dict = None
 
     def __post_init__(self):

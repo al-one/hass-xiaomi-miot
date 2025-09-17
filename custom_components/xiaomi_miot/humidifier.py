@@ -146,4 +146,5 @@ class HumidifierEntity(XEntity, BaseEntity):
         data[self._conv_target_humidity.full_name] = humidity
         await self.device.async_write(data)
 
+
 XEntity.CLS[ENTITY_DOMAIN] = HumidifierEntity

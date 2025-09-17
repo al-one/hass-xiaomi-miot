@@ -4,8 +4,6 @@ import math
 
 from homeassistant.const import (
     ATTR_TEMPERATURE,
-    STATE_OFF,
-    STATE_ON,
     UnitOfTemperature,
 )
 from homeassistant.components.water_heater import (
@@ -94,24 +92,6 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                     })
 
     @property
-    def state(self):
-        """Return the current state."""
-        sta = self.current_operation
-        mds = []
-        if self._prop_mode:
-            mds = self._prop_mode.list_descriptions()
-        if sta is None or sta not in mds:
-            if self._prop_status:
-                val = self._prop_status.from_device(self.device)
-                if val is not None:
-                    sta = self._prop_status.list_description(val)
-        if sta is None and self._prop_power and self._prop_power.readable:
-            sta = STATE_ON if self._prop_power.from_device(self.device) else STATE_OFF
-        if sta:
-            sta = str(sta).lower()
-        return sta
-
-    @property
     def current_operation(self):
         """Return current operation ie. eco, electric, performance, ..."""
         for p in self._prop_modes:
@@ -127,11 +107,11 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
             return p.list_descriptions() or []
         return None
 
-    def set_operation_mode(self, mode):
+    async def async_set_operation_mode(self, mode):
         """Set new target operation mode."""
         for p in self._prop_modes:
             val = p.list_value(mode)
-            return self.set_property(p, val)
+            return await self.async_set_property(p, val)
         raise NotImplementedError()
 
     @property
@@ -153,7 +133,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                 return UnitOfTemperature.KELVIN
         return UnitOfTemperature.CELSIUS
 
-    def set_temperature(self, **kwargs):
+    async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         if self._prop_target_temp:
             val = kwargs.get(ATTR_TEMPERATURE) or 0
@@ -166,7 +146,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                 val = math.ceil(val)
             else:
                 val = int(val)
-            ret = self.set_property(self._prop_target_temp, val)
+            ret = await self.async_set_property(self._prop_target_temp, val)
             if ret:
                 self._prev_target_temp = val
             return ret

@@ -33,23 +33,21 @@ from . import (
     init_integration_data,
 )
 from .core.utils import (
+    DeviceException,
     get_customize_via_entity,
     get_customize_via_model,
     in_china,
     async_analytics_track_event,
 )
 from .core.const import SUPPORTED_DOMAINS, CLOUD_SERVERS, CONF_XIAOMI_CLOUD, HA_VERSION
+from .core.device import MiioInfo
 from .core.miot_spec import MiotSpec
+from .core.mini_miio import AsyncMiIO
 from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
     MiCloudAccessDenied,
     MiCloudNeedVerify,
-)
-
-from miio import (
-    Device as MiioDevice,
-    DeviceException,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,8 +69,10 @@ async def check_miio_device(hass, user_input, errors):
     host = user_input.get(CONF_HOST)
     token = user_input.get(CONF_TOKEN)
     try:
-        device = MiioDevice(host, token)
-        info = await hass.async_add_executor_job(device.info)
+        device = AsyncMiIO(host, token)
+        info = await device.info()
+        if info:
+            info = MiioInfo(info)
     except DeviceException:
         device = None
         info = None
@@ -449,7 +449,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             'button_actions': cv.string,
             'select_actions': cv.string,
             'text_actions': cv.string,
-            'light_services': cv.string,
             'exclude_miot_services': cv.string,
             'exclude_miot_properties': cv.string,
             'configuration_entities': cv.string,
@@ -822,10 +821,6 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'stat_power_cost_key': cv.string,
             'stat_power_cost_type': cv.string,
         })
-        if entity_class in ['MiotSwitchActionSubEntity']:
-            options.update({
-                'feeding_measure': cv.string,
-            })
 
     if domain == 'light' or re.search(r'light', model, re.I):
         bool2selects.extend(['color_temp_reverse'])

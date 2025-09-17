@@ -2,19 +2,18 @@ import time
 import logging
 import voluptuous as vol
 from typing import Tuple
-from functools import partial
 
-from .utils import is_offline_exception
+from .utils import (
+    DeviceException,
+    is_offline_exception,
+    rgb_to_int,
+    int_to_rgb,
+)
 from .templates import template
 from .miot_spec import (MiotSpec, MiotProperty, MiotAction)
 from .miio2miot_specs import MIIO_TO_MIOT_SPECS
 import homeassistant.helpers.config_validation as cv
 
-from miio import DeviceException
-from miio.utils import (
-    rgb_to_int,
-    int_to_rgb,
-)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,7 +54,7 @@ class Miio2MiotHelper:
         self.miio_props = list(dict(zip(self.miio_props, self.miio_props)).keys())
         return self.miio_props
 
-    def get_miio_props(self, device):
+    async def async_get_miio_props(self, device):
         dic = {}
         if not self.config.get('without_props'):
             try:
@@ -63,19 +62,21 @@ class Miio2MiotHelper:
             except (TypeError, ValueError):
                 num = None
             try:
-                vls = device.get_properties(self.miio_props, max_properties=num)
+                vls = await device.async_get_prop(self.miio_props, max_properties=num)
                 dic.update(dict(zip(self.miio_props, vls)))
             except (DeviceException, OSError) as exc:
                 if is_offline_exception(exc):
                     raise exc
-                _LOGGER.error('%s: Got MiioException: %s while get_properties(%s)', self.model, exc, self.miio_props)
+                _LOGGER.error('%s: Got MiioException: %s while get_prop(%s)', self.model, exc, self.miio_props)
+            except TypeError:
+                _LOGGER.error('%s: Got TypeError while get_prop(%s)', self.model, self.miio_props, exc_info=True)
         if cls := self.config.get('miio_commands'):
             for c in cls:
                 if dly := c.get('delay', 0):
                     time.sleep(dly)
                 pms = c.get('params', [])
                 try:
-                    vls = device.send(c['method'], pms)
+                    vls = await device.async_send(c['method'], pms)
                 except (DeviceException, OSError, TypeError, UnboundLocalError) as exc:
                     if is_offline_exception(exc):
                         raise exc
@@ -87,7 +88,7 @@ class Miio2MiotHelper:
                     kls = c.get('params', [])
                 if tpl := c.get('template'):
                     tpl = template(tpl, self.hass)
-                    pdt = tpl.render({'results': vls})
+                    pdt = tpl.async_render({'results': vls})
                     if isinstance(pdt, dict):
                         dic.update(pdt)
                 elif kls:
@@ -101,23 +102,18 @@ class Miio2MiotHelper:
                         i += 1
         if tpl := self.config.get('miio_template'):
             tpl = template(tpl, self.hass)
-            pdt = tpl.render({'props': dic})
+            pdt = tpl.async_render({'props': dic})
             if isinstance(pdt, dict):
                 dic.update(pdt)
         self.miio_props_values = dic
         _LOGGER.debug('%s: Got miio props for miot: %s', self.model, dic)
         return dic
 
-    async def async_get_miot_props(self, *args, **kwargs):
-        return await self.hass.async_add_executor_job(
-            partial(self.get_miot_props, *args, **kwargs)
-        )
-
-    def get_miot_props(self, device, mapping: dict = None):
+    async def async_get_miot_props(self, device, mapping: dict = None):
         if mapping is None:
             mapping = device.mapping or {}
         rls = []
-        if dic := self.get_miio_props(device):
+        if dic := await self.async_get_miio_props(device):
             for k, v in mapping.items():
                 u = MiotSpec.unique_prop(v, valid=True)
                 c = self.specs.get(u, {})
@@ -132,7 +128,7 @@ class Miio2MiotHelper:
                     try:
                         if tpl := c.get('template', {}):
                             tpl = template(tpl, self.hass)
-                            val = tpl.render({
+                            val = tpl.async_render({
                                 'value': val,
                                 'props': dic,
                                 'dict': c.get('dict', {}),
@@ -174,7 +170,7 @@ class Miio2MiotHelper:
         ret = self.specs.get(key, {}).get('setter')
         return ret
 
-    def set_property(self, device, siid, piid, value):
+    async def async_set_property(self, device, siid, piid, value):
         key = MiotSpec.unique_prop(siid=siid, piid=piid)
         cfg = self.specs.get(key, {})
         setter = cfg.get('setter')
@@ -189,7 +185,7 @@ class Miio2MiotHelper:
             fmt = cfg.get('format')
             if tpl := cfg.get('set_template'):
                 tpl = template(tpl, self.hass)
-                pms = tpl.render({
+                pms = tpl.async_render({
                     'value': value,
                     'props': self.miio_props_values,
                     'dict': cfg.get('dict', {}),
@@ -213,7 +209,7 @@ class Miio2MiotHelper:
             _LOGGER.warning('%s: Set miio prop via miot failed: %s', self.model, [key, setter, cfg])
             return None
         _LOGGER.info('%s: Set miio prop via miot: %s', self.model, [key, setter, pms])
-        ret = device.send(setter, pms) or ['']
+        ret = await device.async_send(setter, pms) or ['']
         iok = ret == ['ok']
         if self.config.get('ignore_result'):
             iok = ret or isinstance(ret, list)
@@ -227,7 +223,7 @@ class Miio2MiotHelper:
             'result': ret,
         }
 
-    def call_action(self, device, siid, aiid, params):
+    async def async_call_action(self, device, siid, aiid, params):
         key = MiotSpec.unique_prop(siid=siid, aiid=aiid)
         cfg = self.specs.get(key, {})
         setter = cfg.get('setter')
@@ -236,7 +232,7 @@ class Miio2MiotHelper:
         if act and isinstance(act, MiotAction):
             if tpl := cfg.get('set_template'):
                 tpl = template(tpl, self.hass)
-                pms = tpl.render({
+                pms = tpl.async_render({
                     'params': pms,
                     'props': self.miio_props_values,
                 }) or []
@@ -248,7 +244,7 @@ class Miio2MiotHelper:
             _LOGGER.warning('%s: Call miio method via miot action failed: %s', self.model, [key, setter, cfg])
             return None
         _LOGGER.info('%s: Call miio method via miot action: %s', self.model, [key, setter, pms])
-        ret = device.send(setter, pms) or ['']
+        ret = await device.async_send(setter, pms) or ['']
         iok = ret == ['ok']
         if self.config.get('ignore_result'):
             iok = ret or isinstance(ret, list)
