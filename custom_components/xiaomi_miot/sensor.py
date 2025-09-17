@@ -241,13 +241,6 @@ class MiotSensorEntity(MiotEntity, BaseEntity):
             val = None
         return val
 
-    def before_select_modes(self, prop, option, **kwargs):
-        if prop := self._miot_service.get_property('on'):
-            ion = prop.from_device(self.device)
-            if not ion:
-                return self.set_property(prop, True)
-        return False
-
 
 class MiotCookerEntity(MiotSensorEntity):
     def __init__(self, config, miot_service: MiotService):

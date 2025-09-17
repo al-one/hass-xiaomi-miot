@@ -676,14 +676,14 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             return self._prop_motion_tracking.from_device(self.device)
         return None
 
-    def enable_motion_detection(self):
+    async def async_enable_motion_detection(self):
         if self._prop_motion_tracking:
-            return self.set_property(self._prop_motion_tracking, True)
+            return await self.async_set_property(self._prop_motion_tracking, True)
         return False
 
-    def disable_motion_detection(self):
+    async def async_disable_motion_detection(self):
         if self._prop_motion_tracking:
-            return self.set_property(self._prop_motion_tracking, False)
+            return await self.async_set_property(self._prop_motion_tracking, False)
         return False
 
 
