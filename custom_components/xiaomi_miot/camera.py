@@ -448,25 +448,23 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return True
 
     async def stream_source(self, **kwargs):
-        fun = self.get_stream_address
+        fun = self.async_get_stream_address()
         if self._motion_enable:
-            fun = self.get_motion_stream_address
+            kwargs['crypto'] = True
+            fun = self.hass.async_add_executor_job(partial(self.get_motion_stream_address, **kwargs))
             idx = self.custom_config_integer('motion_stream_slice')
             if idx is not None:
                 kwargs['index'] = idx
-                fun = self.get_motion_stream_slice_video
-            kwargs['crypto'] = True
-        return await self.hass.async_add_executor_job(partial(fun, **kwargs))
+                fun = self.hass.async_add_executor_job(partial(self.get_motion_stream_slice_video), **kwargs)
+        return await fun
 
     async def image_source(self, **kwargs):
         if self._motion_enable:
             kwargs['crypto'] = True
-            return await self.hass.async_add_executor_job(
-                partial(self.get_motion_image_address, **kwargs)
-            )
+            return self.get_motion_image_address(**kwargs)
         return await self.stream_source()
 
-    def get_stream_address(self, **kwargs):
+    async def async_get_stream_address(self, **kwargs):
         now = time.time()
         if now >= self._url_expiration:
             self._last_url = None
@@ -485,15 +483,8 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                     vav = (vap.value_list.pop(0) or {}).get('value')
                 if self.xiaomi_cloud:
                     if self._act_stop_stream:
-                        self.miot_action(
-                            self._srv_stream.iid,
-                            self._act_stop_stream.iid,
-                        )
-                    result = self.miot_action(
-                        self._srv_stream.iid,
-                        self._act_start_stream.iid,
-                        [] if vav is None else [vav],
-                    ) or {}
+                        await self.async_call_action(self._act_stop_stream)
+                    result = await self.async_call_action(self._act_start_stream, [] if vav is None else [vav]) or {}
                     updater = 'cloud'
                 if isinstance(result, dict):
                     _LOGGER.debug('%s: Get miot camera stream from %s: %s', self.name_model, updater, result)
@@ -717,6 +708,4 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
 
     async def image_source(self, **kwargs):
         kwargs['crypto'] = True
-        return await self.hass.async_add_executor_job(
-            partial(self._parent.get_motion_image_address, **kwargs)
-        )
+        return self._parent.get_motion_image_address(**kwargs)
