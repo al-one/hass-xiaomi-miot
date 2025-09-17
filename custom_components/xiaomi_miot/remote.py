@@ -32,11 +32,6 @@ from .core.xiaomi_cloud import (
     MiCloudException,
 )
 
-try:
-    from miio import ChuangmiIr
-except (ModuleNotFoundError, ImportError):
-    from miio.integrations.chuangmi.remote import ChuangmiIr
-
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
@@ -60,6 +55,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         token = config.get(CONF_TOKEN)
         if spec.name in ['remote_control', 'ir_remote_control']:
             if 'chuangmi.remote.' in model or 'chuangmi.ir.' in model:
+                try:
+                    from miio import ChuangmiIr
+                except (ModuleNotFoundError, ImportError):
+                    from miio.integrations.chuangmi.remote import ChuangmiIr
                 device = ChuangmiIr(host, token)
                 entities.append(MiotRemoteEntity(config, spec, device))
         elif model in [
