@@ -154,27 +154,27 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
     async def async_start(self):
         if self._act_start:
-            return await self.async_call_action(self._act_start.service.iid, self._act_start.iid)
+            return await self.async_call_action(self._act_start)
         return False
 
     async def async_stop(self, **kwargs):
         if self._act_stop:
-            return await self.async_call_action(self._act_stop.service.iid, self._act_stop.iid)
+            return await self.async_call_action(self._act_stop)
         return False
 
     async def async_pause(self):
         if self._act_pause:
-            return await self.async_call_action(self._act_pause.service.iid, self._act_pause.iid)
+            return await self.async_call_action(self._act_pause)
         return await self.async_stop()
 
     async def async_return_to_base(self, **kwargs):
         if self._act_charge:
-            return await self.async_call_action(self._act_charge.service.iid, self._act_charge.iid)
+            return await self.async_call_action(self._act_charge)
         return self.stop()
 
     async def async_locate(self, **kwargs):
         if self._act_locate:
-            return await self.async_call_action(self._act_locate.service.iid, self._act_locate.iid)
+            return await self.async_call_action(self._act_locate)
         return False
 
     def clean_spot(self, **kwargs):
@@ -351,8 +351,6 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
         await super().async_update()
         if not self._available:
             return
-        if self._miio2miot:
-            await self.async_update_miio_props(self._miio_props)
         props = self.device.props or {}
         adt = {}
         if 'miio.s_area' in props:

@@ -2881,12 +2881,13 @@ DEVICE_CUSTOMIZES = {
     },
     '*.bhf_light.*': {
         'sensor_properties': 'temperature',
-        'switch_properties': 'heating,blow,ventilation,dryer',
-        'select_properties': 'mode',
-        'number_properties': 'target_temperature,off_delay_time',
+        'switch_properties': 'on,heating,blow,ventilation,dryer,vertical_swing',
+        'select_properties': 'mode,room_size,fan_level',
+        'number_properties': 'target_temperature,delay_time,off_delay_time',
         'button_actions': 'stop_working',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level'},
+            {'interval': 11, 'props': 'on,mode,target_temperature,fan_level'},
+            {'interval': 16, 'props': 'heating,blow,ventilation,dryer'},
         ],
     },
     '*.blanket.*': {
@@ -3328,7 +3329,7 @@ GLOBAL_CONVERTERS = [
     },
     {
         'class': MiotClimateConv,
-        'services': ['air_conditioner', 'heater', 'thermostat'],
+        'services': ['air_conditioner', 'heater', 'thermostat', 'ptc_bath_heater'],
         'converters' : [
             {'props': ['on', 'target_temperature']},
             {'props': ['indoor_temperature', 'temperature']},

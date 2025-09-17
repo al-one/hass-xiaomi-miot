@@ -821,10 +821,6 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
             'stat_power_cost_key': cv.string,
             'stat_power_cost_type': cv.string,
         })
-        if entity_class in ['MiotSwitchActionSubEntity']:
-            options.update({
-                'feeding_measure': cv.string,
-            })
 
     if domain == 'light' or re.search(r'light', model, re.I):
         bool2selects.extend(['color_temp_reverse'])

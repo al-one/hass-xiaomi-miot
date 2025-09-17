@@ -198,15 +198,6 @@ class MiotSensorEntity(MiotEntity, BaseEntity):
         if uom := self.custom_config('unit_of_measurement'):
             self._attr_native_unit_of_measurement = uom
 
-        if act := self._miot_service.get_action('pet_food_out'):
-            prop = self._miot_service.get_property('feeding_measure')
-            add_switches = self._add_entities.get('switch')
-            if prop and add_switches:
-                from .switch import MiotSwitchActionSubEntity
-                fnm = prop.unique_name
-                self._subs[fnm] = MiotSwitchActionSubEntity(self, prop, act)
-                add_switches([self._subs[fnm]], update_before_add=True)
-
     async def async_update(self):
         await super().async_update()
         if not self._available or not self._prop_state:
@@ -240,52 +231,6 @@ class MiotSensorEntity(MiotEntity, BaseEntity):
         if not prop.range_valid(val):
             val = None
         return val
-
-
-class MiotCookerEntity(MiotSensorEntity):
-    def __init__(self, config, miot_service: MiotService):
-        super().__init__(config, miot_service)
-        self._prop_state = miot_service.get_property('status')
-        self._action_start = miot_service.get_action('start_cook')
-        self._action_cancel = miot_service.get_action('cancel_cooking', 'pause')
-
-        self._values_on = []
-        self._values_off = []
-        if self._prop_state:
-            self._attr_icon = self._prop_state.entity_icon or 'mdi:chef-hat'
-            self._values_on = self._prop_state.list_search('Busy', 'Running', 'Cooking', 'Delay')
-            self._values_off = self._prop_state.list_search(
-                'Idle', 'Completed', 'Shutdown', 'CookFinish', 'Pause', 'Paused', 'Fault', 'Error', 'Stop', 'Off',
-            )
-
-    @property
-    def is_on(self):
-        val = self._prop_state.from_device(self.device)
-        return val not in [*self._values_off, None]
-
-    def turn_on(self, **kwargs):
-        return self.turn_action(True)
-
-    def turn_off(self, **kwargs):
-        return self.turn_action(False)
-
-    def turn_action(self, on):
-        ret = False
-        act = self._action_start if on else self._action_cancel
-        vls = self._values_on if on else self._values_off
-        if act:
-            pms = []
-            if on:
-                pms = self.custom_config_list('start_cook_params') or []
-            ret = self.call_action(act, pms)
-            sta = vls[0] if vls else None
-            if ret and sta is not None:
-                self.update_attrs({
-                    self._prop_state.full_name: sta,
-                })
-        else:
-            _LOGGER.warning('%s: Miot device has no turn_action: %s', self.name_model, on)
-        return ret
 
 
 class BaseSensorSubEntity(BaseSubEntity, BaseEntity):
