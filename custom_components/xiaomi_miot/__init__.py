@@ -1133,11 +1133,7 @@ class MiotEntity(MiioEntity):
         self.logger.debug('%s: Got new state: %s', self.name, attrs)
 
     async def async_update_for_main_entity(self):
-        if self._miot_service:
-            for d in ['light']:
-                pls = self.custom_config_list(f'{d}_services') or []
-                if pls:
-                    self._update_sub_entities(None, pls, domain=d)
+        pass
 
     async def async_update_miio_props(self, props):
         if not self.miot_device:
@@ -1223,44 +1219,6 @@ class MiotEntity(MiioEntity):
             if ret:
                 self._state = False
         return ret
-
-    def _update_sub_entities(self, properties, services=None, domain=None, option=None, **kwargs):
-        actions = kwargs.get('actions', [])
-        from .light import MiotLightSubEntity
-        if isinstance(services, MiotService):
-            sls = [services]
-        elif services == '*':
-            sls = list(self._miot_service.spec.services.values())
-        elif services:
-            sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
-        elif isinstance(properties, MiotProperty):
-            sls = [properties.service]
-        else:
-            sls = [self._miot_service]
-        add_lights = self._add_entities.get('light')
-        exclude_services = self._state_attrs.get('exclude_miot_services') or []
-        for s in sls:
-            if s.name in exclude_services:
-                continue
-            if not properties and not actions:
-                fnm = s.unique_name
-                tms = self._check_same_sub_entity(fnm, domain)
-                new = True
-                if fnm in self._subs:
-                    new = False
-                    self._subs[fnm].update_from_parent()
-                    self._check_same_sub_entity(fnm, domain, add=1)
-                elif tms > 0:
-                    if tms <= 1:
-                        self.logger.info('%s: Device sub entity %s: %s already exists.', self.name_model, domain, fnm)
-                elif add_lights and domain == 'light':
-                    pon = s.get_property('on', 'color', 'brightness')
-                    if pon and pon.full_name in self._state_attrs:
-                        self._subs[fnm] = MiotLightSubEntity(self, s)
-                        add_lights([self._subs[fnm]], update_before_add=True)
-                if new and fnm in self._subs:
-                    self._check_same_sub_entity(fnm, domain, add=1)
-                    self.logger.debug('%s: Added sub entity %s: %s', self.name_model, domain, fnm)
 
     async def async_get_device_data(self, key, did=None, throw=False, **kwargs):
         if did is None:

@@ -93,7 +93,6 @@
                     "feeding_measure": "feeding_measure",
                     "filter_home": "filter_home",
                     "interval_seconds": "interval_seconds",
-                    "light_services": "light_services",
                     "main_miot_services": "main_miot_services",
                     "miot_did": "miot_did",
                     "mitv_lan_host": "mitv_lan_host",
