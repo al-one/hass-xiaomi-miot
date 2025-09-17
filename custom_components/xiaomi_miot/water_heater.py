@@ -127,11 +127,11 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
             return p.list_descriptions() or []
         return None
 
-    def set_operation_mode(self, mode):
+    async def async_set_operation_mode(self, mode):
         """Set new target operation mode."""
         for p in self._prop_modes:
             val = p.list_value(mode)
-            return self.set_property(p, val)
+            return await self.async_set_property(p, val)
         raise NotImplementedError()
 
     @property
@@ -153,7 +153,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                 return UnitOfTemperature.KELVIN
         return UnitOfTemperature.CELSIUS
 
-    def set_temperature(self, **kwargs):
+    async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         if self._prop_target_temp:
             val = kwargs.get(ATTR_TEMPERATURE) or 0
@@ -166,7 +166,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                 val = math.ceil(val)
             else:
                 val = int(val)
-            ret = self.set_property(self._prop_target_temp, val)
+            ret = await self.async_set_property(self._prop_target_temp, val)
             if ret:
                 self._prev_target_temp = val
             return ret

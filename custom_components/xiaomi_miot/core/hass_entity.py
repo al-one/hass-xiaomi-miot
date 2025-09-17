@@ -1,6 +1,6 @@
 import logging
 from typing import TYPE_CHECKING, Optional, Callable
-from functools import partial, cached_property
+from functools import cached_property
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity, EntityCategory
@@ -34,7 +34,13 @@ class BasicEntity(Entity, CustomConfigHelper):
     async def async_set_miot_property(self, siid, piid, value, **kwargs):
         return await self.device.async_set_miot_property(siid, piid, value, **kwargs)
 
-    async def async_call_action(self, siid, aiid, params=None, **kwargs):
+    async def async_call_action(self, siid, aiid=None, params=None, **kwargs):
+        if isinstance(siid, MiotAction):
+            if params is None:
+                params = aiid
+            action = siid
+            siid = action.service.iid
+            aiid = action.iid
         return await self.device.async_call_action(siid, aiid, params, **kwargs)
 
     async def async_miio_command(self, method, params=None, **kwargs):

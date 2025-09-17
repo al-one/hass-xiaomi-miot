@@ -13,12 +13,10 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     XEntity,
-    MiotEntity,
     BaseSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
-from .core.miot_spec import MiotService
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -70,17 +68,8 @@ class SelectEntity(XEntity, BaseEntity, RestoreEntity):
             self._attr_current_option = ''
             async_call_later(self.hass, 0.5, self.schedule_update_ha_state)
 
+
 XEntity.CLS[ENTITY_DOMAIN] = SelectEntity
-
-
-class MiotSelectEntity(MiotEntity, BaseEntity):
-    def __init__(self, config, miot_service: MiotService):
-        super().__init__(miot_service, config=config, logger=_LOGGER)
-        self._attr_current_option = None
-
-    def select_option(self, option):
-        """Change the selected option."""
-        raise NotImplementedError()
 
 
 class SelectSubEntity(BaseEntity, BaseSubEntity):
