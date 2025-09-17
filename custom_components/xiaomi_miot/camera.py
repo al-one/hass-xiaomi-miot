@@ -337,6 +337,7 @@ class CameraEntity(XEntity, BaseCameraEntity):
             self._attr_available = True
             self.update_motion_video(adt)
 
+
 XEntity.CLS[ENTITY_DOMAIN] = CameraEntity
 
 
@@ -684,14 +685,6 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
         BaseCameraEntity.__init__(self, hass)
         self._available = True
         self._supported_features |= CameraEntityFeature.STREAM
-
-    @property
-    def state(self):
-        if self.is_recording:
-            return CameraState.RECORDING
-        if self.is_streaming:
-            return CameraState.STREAMING
-        return STATE_IDLE
 
     def update(self, data=None):
         super().update(data)

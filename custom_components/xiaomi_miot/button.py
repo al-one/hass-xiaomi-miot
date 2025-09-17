@@ -54,6 +54,7 @@ class ButtonEntity(XEntity, BaseEntity):
                 ]
         await self.device.async_write({self.attr: pms})
 
+
 XEntity.CLS[ENTITY_DOMAIN] = ButtonEntity
 
 

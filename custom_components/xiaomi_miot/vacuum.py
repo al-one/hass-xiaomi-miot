@@ -236,7 +236,6 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
                 add_buttons([self._subs[sub]], update_before_add=False)
         self.logger.info('Room buttons: %s', [rooms, add_buttons])
 
-
     async def async_update(self):
         await super().async_update()
         if not self._available:

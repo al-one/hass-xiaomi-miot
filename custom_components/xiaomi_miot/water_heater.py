@@ -4,8 +4,6 @@ import math
 
 from homeassistant.const import (
     ATTR_TEMPERATURE,
-    STATE_OFF,
-    STATE_ON,
     UnitOfTemperature,
 )
 from homeassistant.components.water_heater import (
@@ -92,24 +90,6 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                     await self.async_update_attrs({
                         self._prop_power.full_name: not off,
                     })
-
-    @property
-    def state(self):
-        """Return the current state."""
-        sta = self.current_operation
-        mds = []
-        if self._prop_mode:
-            mds = self._prop_mode.list_descriptions()
-        if sta is None or sta not in mds:
-            if self._prop_status:
-                val = self._prop_status.from_device(self.device)
-                if val is not None:
-                    sta = self._prop_status.list_description(val)
-        if sta is None and self._prop_power and self._prop_power.readable:
-            sta = STATE_ON if self._prop_power.from_device(self.device) else STATE_OFF
-        if sta:
-            sta = str(sta).lower()
-        return sta
 
     @property
     def current_operation(self):

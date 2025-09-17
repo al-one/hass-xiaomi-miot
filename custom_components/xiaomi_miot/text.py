@@ -81,7 +81,7 @@ class TextEntity(XEntity, BaseEntity):
                 """
                 if silent_prop.value_list:
                     val = silent_prop.list_value('On' if silent else 'Off')
-                    if val == None:
+                    if val is None:
                         val = 0 if silent else 1
                     silent = val
                 value = [value, silent]
@@ -91,5 +91,6 @@ class TextEntity(XEntity, BaseEntity):
         if self._miot_action:
             self._attr_native_value = ''
             self.schedule_update_ha_state()
+
 
 XEntity.CLS[ENTITY_DOMAIN] = TextEntity

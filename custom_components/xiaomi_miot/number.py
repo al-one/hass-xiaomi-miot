@@ -59,4 +59,5 @@ class NumberEntity(XEntity, RestoreNumber):
             self._attr_native_value = None
             async_call_later(self.hass, 0.5, self.schedule_update_ha_state)
 
+
 XEntity.CLS[ENTITY_DOMAIN] = NumberEntity

@@ -86,6 +86,7 @@ class ScannerEntity(XEntity, BaseScannerEntity, RestoreEntity):
     def get_state(self) -> dict:
         return {self.attr: self._attr_state}
 
+
 XEntity.CLS[ENTITY_DOMAIN] = ScannerEntity
 XEntity.CLS['scanner'] = ScannerEntity
 

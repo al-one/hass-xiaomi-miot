@@ -95,7 +95,6 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
                 # percentage may be incorrectly declared as kelvin
                 # e.g. https://home.miot-spec.com/spec/mrbond.airer.m33a
                 if prop.unit == 'percentage' or prop.range_max() == 100:
-                    self._is_percentage_color_temp = True
                     self._attr_min_color_temp_kelvin = MiotColorTempConv.percentage_to_kelvin(prop.range_max())
                     self._attr_max_color_temp_kelvin = MiotColorTempConv.percentage_to_kelvin(prop.range_min())
                     self._attr_names[ATTR_COLOR_TEMP_KELVIN] = attr
@@ -162,6 +161,7 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
         if self._brightness_for_off is not None:
             dat[self.attr] = self._brightness_for_off
         await self.device.async_write(dat)
+
 
 XEntity.CLS[ENTITY_DOMAIN] = LightEntity
 
