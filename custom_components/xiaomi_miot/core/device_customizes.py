@@ -2384,6 +2384,22 @@ DEVICE_CUSTOMIZES = {
                              'seat_temp,status_massage_w,status_massage_t,fen_temp',
         'button_actions': 'stop_working,flush_work,start_foam,clean_work',
     },
+    'xtl.vacuum.xm2216': {  # poorly spec
+        'button_actions': 'stop_clean,seek_robot',
+        'select_actions': 'pause_continue_work,set_clean_mode,set_fan_mode,set_water_mode,set_dust_collection,manual_control',
+        'sensor_properties': 'status,robot_status,clean_time,clean_area,error,message',
+        'switch_properties': 'disturb_switch,break_clean_switch,collect_dust,dry_mop,wash_mop,child_lock,drying_switch',
+        'select_properties': 'clean_mode,water_mode,fan_mode,carpet_clean_prefer',
+        'exclude_miot_properties': 'scheduled_timers,time_zone,clean_records,aw_check_*,room_edite_result,language_ver',
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'status,charging_state', 'notify': True},
+            {'interval': 21, 'props': 'mode,clean_mode,water_mode,fan_mode'},
+            {'interval': 61, 'props': 'robotic_vacuum.*_status,battery_level'},
+            {'interval': 71, 'props': 'robotic_vacuum.*_switch'},
+            {'interval': 81, 'props': 'clean_values,error,message,station_error'},
+            {'interval': 301, 'props': 'consumables,filter_l*,brush_l*,detergent_l*,dust_bag_l*'},
+        ],
+    },
     'xwhzp.diffuser.xwxfj': {
         'sensor_properties': 'fragrance_liquid_left_level',
         'switch_properties': 'anion',
