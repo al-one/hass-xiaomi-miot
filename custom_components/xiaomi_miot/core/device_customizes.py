@@ -209,6 +209,17 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'motor_control',
     },
 
+    'careco.evc.a07a01': {
+        'button_actions': 'start_charge,stop_charge',
+        'sensor_properties': 'status,4g_signal,electric_power,electric_current,charged_quantity,fault',
+        'switch_properties': 'timer_on,full_charge,authorize_mode,auto_upgrade',
+        'number_properties': 'maximum_current_regulation',
+    },
+    'careco.evc.a07a01:electric_power': {
+        'state_class': 'measurement',
+        'device_class': 'power',
+    },
+    'careco.evc.a07a01:charged_quantity': ENERGY_KWH,
     'careli.fryer.*': {
         'interval_seconds': 120,
         'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
@@ -2342,6 +2353,21 @@ DEVICE_CUSTOMIZES = {
             {'interval': 999, 'props': 'clean_record'},
         ],
     },
+    'xiaomi.vacuum.d102gl': {
+        'interval_seconds': 120,
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'status', 'notify': True},
+            {'interval': 21, 'props': 'mode,sweep_mop_type,sweep_type'},
+            {'interval': 31, 'props': 'charging_state,vacuum_position'},
+            {'interval': 41, 'props': 'cleaning_area,cleaning_time'},
+            {'interval': 61, 'props': 'mop_status,battery_level,clean_times'},
+            {'interval': 150, 'props': 'auto_*,*_detection'},
+            {'interval': 200, 'props': 'carpet_*,water_*'},
+            {'interval': 250, 'props': 'map_*'},
+            {'interval': 300, 'props': 'filter_l*,mop_l*,dust_bag_l*,brush_l*,detergent_l*'},
+            {'interval': 999, 'props': 'clean_record,map_3d_info,room_information'},
+        ],
+    },
     'xiaomi.vacuum.d109gl': {
         'interval_seconds': 120,
         'exclude_miot_services': 'vacuum_map,custom,voice_management',
@@ -2371,7 +2397,7 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.vacuum.*': {
         'interval_seconds': 90,
         'chunk_coordinators': [
-            {'interval': 11, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
+            {'interval': 11, 'props': 'status,cleaning_area,cleaning_time', 'notify': True},
             {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type,vacuum_position'},
             {'interval': 61, 'props': 'mop_status,battery_level,charging_state,clean_times'},
             {'interval': 150, 'props': 'auto_*,*_detection'},
@@ -2433,6 +2459,22 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'water_temp_t,water_strong_t,water_pos_t,water_temp_w,water_strong_w,water_pos_w,'
                              'seat_temp,status_massage_w,status_massage_t,fen_temp',
         'button_actions': 'stop_working,flush_work,start_foam,clean_work',
+    },
+    'xtl.vacuum.xm2216': {  # poorly spec
+        'button_actions': 'stop_clean,seek_robot',
+        'select_actions': 'pause_continue_work,set_clean_mode,set_fan_mode,set_water_mode,set_dust_collection,manual_control',
+        'sensor_properties': 'status,robot_status,clean_time,clean_area,error,message',
+        'switch_properties': 'disturb_switch,break_clean_switch,collect_dust,dry_mop,wash_mop,child_lock,drying_switch',
+        'select_properties': 'clean_mode,water_mode,fan_mode,carpet_clean_prefer',
+        'exclude_miot_properties': 'scheduled_timers,time_zone,clean_records,aw_check_*,room_edite_result,language_ver',
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'status,charging_state', 'notify': True},
+            {'interval': 21, 'props': 'mode,clean_mode,water_mode,fan_mode'},
+            {'interval': 61, 'props': 'robotic_vacuum.*_status,battery_level'},
+            {'interval': 71, 'props': 'robotic_vacuum.*_switch'},
+            {'interval': 81, 'props': 'clean_values,error,message,station_error'},
+            {'interval': 301, 'props': 'consumables,filter_l*,brush_l*,detergent_l*,dust_bag_l*'},
+        ],
     },
     'xwhzp.diffuser.xwxfj': {
         'sensor_properties': 'fragrance_liquid_left_level',

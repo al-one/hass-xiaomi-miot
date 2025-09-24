@@ -245,10 +245,12 @@ def update_attrs_with_suffix(attrs, new_dict):
 def logger_filter(record):
     def sub(msg):
         return re.sub(r'[\w/+-]{30,}', '***', msg)
+    if isinstance(record, str):
+        return sub(record)
     if isinstance(record, logging.LogRecord):
-        record.msg = sub(record.msg)
+        record.msg = sub(record.getMessage())
         return True
-    return sub(str(record))
+    return record
 
 
 def int_to_rgb(x: int) -> Tuple[int, int, int]:
