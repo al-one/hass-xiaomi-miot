@@ -232,10 +232,12 @@ def update_attrs_with_suffix(attrs, new_dict):
 def logger_filter(record):
     def sub(msg):
         return re.sub(r'[\w/+-]{30,}', '***', msg)
+    if isinstance(record, str):
+        return sub(record)
     if isinstance(record, logging.LogRecord):
-        record.msg = sub(record.msg)
+        record.msg = sub(record.getMessage())
         return True
-    return sub(str(record))
+    return record
 
 
 async def async_analytics_track_event(hass: HomeAssistant, event, action, label, value=0, **kwargs):

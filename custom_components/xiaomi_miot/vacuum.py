@@ -75,10 +75,10 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         self._act_pause = miot_service.get_action('pause_sweeping', 'pause')
         self._act_stop = miot_service.get_action('stop_sweeping')
         self._act_locate = miot_service.get_action('find_device', 'position')
-        self._prop_mode = miot_service.get_property('mode')
+        self._prop_mode = miot_service.get_property('mode', 'clean_mode')
         self._prop_fan = self._prop_mode
         for srv in [*miot_service.spec.get_services('sweep', 'clean'), miot_service]:
-            if prop := srv.get_property('fan_level', 'speed_level', 'suction_state', 'mode'):
+            if prop := srv.get_property('fan_level', 'speed_level', 'suction_state', 'fan_mode', 'mode'):
                 self._prop_fan = prop
                 break
         self._prop_battery = miot_service.get_property('battery_level')
