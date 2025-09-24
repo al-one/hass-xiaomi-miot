@@ -645,7 +645,7 @@ class MiotCloud(micloud.MiCloud):
             self.attrs['captchaImg'] = base64.b64encode(response.content).decode()
         return ick
 
-    def check_identity_list(self, url, path='identity/authStart'):
+    def check_identity_list(self, url, path='fe/service/identity/authStart'):
         if path not in url:
             return None
         resp = self.account_get(url.replace(path, 'identity/list'), response=True)
@@ -709,9 +709,10 @@ class MiotCloud(micloud.MiCloud):
                 'code': resp.status_code,
                 'response': resp.text,
             }
-        self.cookies.update(resp.cookies.get_dict())
+        cookies = resp.cookies.get_dict()
+        self.cookies.update(cookies)
         log = _LOGGER.warning if data.get('code') else _LOGGER.info
-        log('Account request: %s' % [url, kwargs, resp.text])
+        log('Account request: %s' % [url, kwargs, resp.text, cookies])
         if response:
             return resp
         return data
