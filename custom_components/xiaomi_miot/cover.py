@@ -82,6 +82,8 @@ class CoverEntity(XEntity, BaseEntity):
         self._target_position_props = self.custom_config_list('target_position_props') or []
         self._cover_position_mapping = self.custom_config_json('cover_position_mapping') or {}
 
+        if not self.conv.attrs:
+            self.conv.attrs.append(self.conv.full_name)
         for attr in self.conv.attrs:
             conv = self.device.find_converter(attr)
             prop = getattr(conv, 'prop', None) if conv else None
