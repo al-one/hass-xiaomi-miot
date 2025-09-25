@@ -105,7 +105,9 @@ class BaseClimateEntity(BaseEntity):
     _attr_swing_modes = None
     _attr_swing_horizontal_mode = None
     _attr_swing_horizontal_modes = None
-    _attr_temperature_unit = None
+    _attr_max_temp = None
+    _attr_min_temp = None
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
 
     def on_init(self):
         self._attr_hvac_modes = []
@@ -199,7 +201,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                     self._attr_supported_features |= ClimateEntityFeature.PRESET_MODE
             elif prop.in_list(['fan_level', 'speed_level', 'heat_level']):
                 self._conv_speed = conv
-                self._attr_fan_modes = prop.list_descriptions()
+                self._attr_fan_modes = prop.list_descriptions(lower=True)
                 self._attr_supported_features |= ClimateEntityFeature.FAN_MODE
             elif prop.in_list(['vertical_swing']):
                 self._conv_swing = conv
@@ -246,6 +248,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                     if val == mv.get('description'):
                         self._attr_hvac_mode = mk
                         self._attr_hvac_action = mv.get('action')
+                        self._attr_preset_mode = None
                         break
         if self._conv_power:
             val = self._conv_power.value_from_dict(data)
@@ -254,6 +257,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             if val in [False, 0]:
                 self._attr_hvac_mode = HVACMode.OFF
                 self._attr_hvac_action = HVACAction.OFF
+                self._attr_preset_mode = None
             elif val and self._attr_hvac_mode in [None, HVACMode.OFF]:
                 self._attr_hvac_mode = HVACMode.AUTO
             if val and self._miot_service.name in ['heater'] and self._attr_hvac_action is None:
@@ -320,18 +324,13 @@ class ClimateEntity(XEntity, BaseClimateEntity):
         await self.async_set_temperature(**{ATTR_HVAC_MODE: hvac_mode})
 
     async def async_set_preset_mode(self, preset_mode: str):
-        if not self._conv_mode:
-            return
-        for mk, mv in self._hvac_modes.items():
-            des = mv.get('description')
-            if preset_mode == des:
-                await self.device.async_write({self._conv_mode.full_name: des})
-                return
+        if self._conv_mode:
+            await self.device.async_write({self._conv_mode.full_name: preset_mode})
 
     async def async_set_temperature(self, **kwargs):
         dat = {}
         hvac = kwargs.get(ATTR_HVAC_MODE)
-        if hvac == HVACMode.OFF:
+        if hvac == HVACMode.OFF and self._conv_power:
             await self.async_turn_switch(False)
             return
 

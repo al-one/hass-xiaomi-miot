@@ -426,6 +426,7 @@ class Device(CustomConfigHelper):
                             d = pc.get('domain', None)
                             ac = c(attr, domain=d, prop=prop, desc=pc.get('desc'))
                             self.add_converter(ac)
+                            self.log.debug('Add converter: %s', [ac, pc])
                             if conv and ac.full_name not in conv.attrs:
                                 conv.attrs.append(ac.full_name)
 
