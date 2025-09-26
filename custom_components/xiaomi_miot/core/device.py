@@ -3,7 +3,7 @@ import copy
 import re
 from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
-from functools import partial, cached_property
+from functools import cached_property
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
@@ -30,23 +30,17 @@ from .converters import (
 from .coordinator import DataCoordinator
 from .miot_spec import MiotSpec, MiotProperty, MiotResults, MiotResult
 from .miio2miot import Miio2MiotHelper
+from .mini_miio import AsyncMiIO
 from .xiaomi_cloud import MiotCloud, MiCloudException
 from .utils import (
     CustomConfigHelper,
     get_customize_via_model,
     get_value,
+    DeviceException,
     is_offline_exception,
     update_attrs_with_suffix,
 )
 from .templates import template
-
-
-from miio import (  # noqa: F401
-    Device as MiioDevice,
-    DeviceException,
-)
-from miio.device import DeviceInfo as MiioInfoBase
-from miio.miot_device import MiotDevice as MiotDeviceBase
 
 if TYPE_CHECKING:
     from . import BasicEntity
@@ -633,7 +627,7 @@ class Device(CustomConfigHelper):
             async_call_later(self.hass, 5, self.update_all_status)
 
     def add_entity(self, entity: 'BasicEntity', unique=None):
-        if unique == None:
+        if unique is None:
             unique = entity.unique_id
         if unique in self.entities:
             return None
@@ -708,67 +702,34 @@ class Device(CustomConfigHelper):
         self.log.info('Device write data: %s', [payload, data])
         result = None
         method = data.get('method')
+        success = None
 
         try:
             if method == 'update_status':
                 result = await self.update_main_status()
 
             if method == 'set_properties':
-                result = []
                 params = data.get('params', [])
-                cloud_params = []
-                if not self._local_state or self.cloud_only:
-                    cloud_params = params
-                elif self.miio2miot:
-                    for param in params:
-                        siid = param['siid']
-                        piid = param['piid']
-                        if not self.miio2miot.has_setter(siid, piid=piid):
-                            cloud_params.append(param)
-                            continue
-                        cmd = partial(self.miio2miot.set_property, self.local, siid, piid, param['value'])
-                        result.append(await self.hass.async_add_executor_job(cmd))
-                elif self.local:
-                    result = await self.local.async_send(method, params)
-                if self.cloud and cloud_params:
-                    if self.custom_config_bool('cloud_set_single'):
-                        result = [
-                            res[0]
-                            for param in cloud_params
-                            if (res := await self.cloud.async_set_props([param]))
-                        ]
-                    else:
-                        result = await self.cloud.async_set_props(cloud_params)
+                result = await self.async_set_properties(params)
+                success = True if result else False
                 if err := MiotResults(result).has_error:
+                    success = False
                     self.log.warning('Device write error: %s', [payload, data, err])
 
             if method == 'action':
                 param = data.get('param', {})
-                cloud_param = None
                 siid = param['siid']
                 aiid = param['aiid']
                 ins = param.get('in') or []
-                if not self._local_state or self.cloud_only:
-                    cloud_param = param
-                elif self.miio2miot:
-                    if self.miio2miot.has_setter(siid, aiid=aiid):
-                        cmd = partial(self.miio2miot.call_action, self.local, siid, aiid, ins)
-                        result = await self.hass.async_add_executor_job(cmd)
-                    else:
-                        cloud_param = param
-                elif self.local:
-                    action = self.spec.services.get(siid, {}).actions.get(aiid) if self.spec else None
-                    if action and ins:
-                        param['in'] = action.in_params(ins)
-                    result = await self.local.async_send(method, param)
-                if self.cloud and cloud_param:
-                    result = await self.cloud.async_do_action(cloud_param)
+                result = await self.async_call_action(siid, aiid, ins)
+                success = result.is_success
 
         except (DeviceException, MiCloudException) as exc:
+            success = False
             self.log.exception('Device write failed: %s', [exc, payload, data])
 
         self.log.info('Device write result: %s', [payload, result])
-        if result:
+        if success:
             self.dispatch(payload)
         return result
 
@@ -922,8 +883,8 @@ class Device(CustomConfigHelper):
                 self._local_state = local_state
                 props_count = len(mapping)
                 log(
-                    'Got MiioException while fetching the state: %s, mapping: %s, max_properties: %s/%s',
-                    exc, mapping, max_properties or props_count, props_count
+                    '%s: %s, mapping: %s, max_properties: %s/%s',
+                    self.name, exc, mapping, max_properties or props_count, props_count
                 )
 
         if use_cloud:
@@ -931,16 +892,13 @@ class Device(CustomConfigHelper):
                 self.miot_results.updater = 'cloud'
                 results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
                 if check_lan and self.local:
-                    await self.hass.async_add_executor_job(partial(self.local.info, skip_cache=True))
+                    await self.local.async_info()
                 self.available = True
                 self.miot_results.set_results(results, mapping)
             except MiCloudException as exc:
                 self.available = False
                 self.miot_results.errors = exc
-                self.log.error(
-                    'Got MiCloudException while fetching the state: %s, mapping: %s',
-                    exc, mapping,
-                )
+                self.log.error('%s MiCloudException: %s, mapping: %s', self.name, exc, mapping)
 
         if results and self.miot_results.is_empty:
             self.log.warning(
@@ -1054,10 +1012,35 @@ class Device(CustomConfigHelper):
         result = MiotResults(results, mapping)
         return result.to_attributes()
 
-    async def async_set_property(self, *args, **kwargs):
-        return await self.hass.async_add_executor_job(partial(self.set_property,*args, **kwargs))
+    async def async_set_properties(self, params):
+        results = []
+        cloud_params = []
+        cloud_write = self.cloud and self.custom_config_bool('miot_cloud_write')
+        if not self._local_state or self.cloud_only or cloud_write:
+            cloud_params = params
+        elif self.miio2miot:
+            for param in params:
+                siid = param['siid']
+                piid = param['piid']
+                if not self.miio2miot.has_setter(siid, piid=piid):
+                    cloud_params.append(param)
+                    continue
+                results.append(await self.miio2miot.async_set_property(self.local, siid, piid, param['value']))
+        elif self.local:
+            results = await self.local.async_send('set_properties', params)
+        if self.cloud and cloud_params:
+            if self.custom_config_bool('cloud_set_single'):
+                results.extend([
+                    res[0]
+                    for param in cloud_params
+                    if (res := await self.cloud.async_set_props([param]))
+                ])
+            else:
+                results.extend(await self.cloud.async_set_props(cloud_params) or [])
+        self.log.debug('Set properties: %s', [params, cloud_params, results])
+        return results
 
-    def set_property(self, field, value):
+    async def async_set_property(self, field, value):
         if isinstance(field, MiotProperty):
             siid = field.siid
             piid = field.iid
@@ -1069,7 +1052,7 @@ class Device(CustomConfigHelper):
             siid = ext['siid']
             piid = ext['piid']
         try:
-            result = self.set_miot_property(siid, piid, value)
+            result = await self.async_set_miot_property(siid, piid, value)
         except (DeviceException, MiCloudException) as exc:
             self.log.error('Set miot property %s(%s) failed: %s', field, value, exc)
             return MiotResult({}, code=-1, error=str(exc))
@@ -1080,45 +1063,29 @@ class Device(CustomConfigHelper):
             self.log.info('Set miot property %s(%s) failed, result: %s', field, value, result)
         return ret
 
-    def set_miot_property(self, siid, piid, value, **kwargs):
+    async def async_set_miot_property(self, siid, piid, value, **kwargs):
         iid = MiotSpec.unique_prop(siid, piid)
-        did = self.did or iid
         pms = {
-            'did':  str(did),
+            'did':  str(self.did or iid),
             'siid': siid,
             'piid': piid,
             'value': value,
         }
-        cloud_pms = None
-        m2m = None if self.custom_config_bool('miot_cloud_write') else self.miio2miot
         try:
-            results = []
-            if not self._local_state or self.cloud_only:
-                cloud_pms = pms
-            elif m2m:
-                if m2m.has_setter(siid, piid=piid):
-                    results = [m2m.set_property(self.local, siid, piid, value)]
-                else:
-                    cloud_pms = pms
-            elif self.local:
-                results = self.local.send('set_properties', [pms])
-            else:
-                cloud_pms = pms
-            if self.cloud and cloud_pms:
-                results = self.cloud.set_props([pms])
+            results = await self.async_set_properties([pms])
             result = MiotResults(results).first
         except (DeviceException, MiCloudException) as exc:
             self.log.warning('Set miot property %s failed: %s', pms, exc)
             return MiotResult({}, code=-1, error=str(exc))
         if not result or not result.is_success:
-            self.log.warning('Set miot property %s failed, result: %s', pms, [results, m2m])
+            self.log.warning('Set miot property %s failed, result: %s', pms, results)
         else:
             self.log.info('Set miot property %s, result: %s', pms, result)
             result.value = value
             self.dispatch(self.decode(result.to_json()))
         return result
 
-    def call_action(self, siid, aiid, params=None, **kwargs):
+    async def async_call_action(self, siid, aiid, params=None, **kwargs):
         did = self.did or MiotSpec.unique_prop(siid, aiid=aiid)
         pms = {
             'did':  str(did),
@@ -1137,16 +1104,16 @@ class Device(CustomConfigHelper):
             cloud = self.cloud
         try:
             if self.miio2miot and self.miio2miot.has_setter(siid, aiid=aiid):
-                result = self.miio2miot.call_action(self.local, siid, aiid, params)
+                result = await self.miio2miot.async_call_action(self.local, siid, aiid, params)
             elif cloud:
-                result = cloud.do_action(pms)
+                result = await cloud.async_do_action(pms)
             else:
                 if not kwargs.get('force_params'):
                     action = kwargs.get('action')
                     if not action and self.spec:
                         action = self.spec.services.get(siid, {}).actions.get(aiid)
                     pms['in'] = action.in_params(params or [])
-                result = self.local.send('action', pms)
+                result = await self.local.async_send('action', pms)
             result = MiotResult(result)
         except (DeviceException, MiCloudException) as exc:
             self.log.warning('Call miot action %s failed: %s', pms, exc)
@@ -1174,7 +1141,6 @@ class Device(CustomConfigHelper):
                     'template': 'micloud_statistics_power_cost',
                 })
         return commands
-
 
     async def update_cloud_statistics(self, commands=None):
         if not self.did or not self.cloud:
@@ -1308,16 +1274,14 @@ class Device(CustomConfigHelper):
     async def update_miio_props(self, props=None):
         if not self.local:
             return
-        if props == None:
+        if props is None:
             props = self.custom_miio_properties
         if self.miio2miot:
             attrs = self.miio2miot.only_miio_props(props)
         else:
             try:
                 num = self.custom_config_integer('chunk_properties') or 15
-                attrs = await self.hass.async_add_executor_job(
-                    partial(self.local.get_properties, props, max_properties=num)
-                )
+                attrs = await self.local.async_get_properties(props, max_properties=num)
             except DeviceException as exc:
                 self.log.warning('%s: Got miio properties %s failed: %s', self.name_model, props, exc)
                 return
@@ -1337,7 +1301,7 @@ class Device(CustomConfigHelper):
     async def update_miio_commands(self, commands=None):
         if not self.local:
             return
-        if commands == None:
+        if commands is None:
             commands = self.custom_miio_commands
         if isinstance(commands, dict):
             commands = [
@@ -1365,8 +1329,18 @@ class Device(CustomConfigHelper):
             self.log.info('%s: Got miio properties: %s', self.name_model, attrs)
 
 
-class MiotDevice(MiotDeviceBase):
+class MiotDevice():
     hass: HomeAssistant = None
+    miio: AsyncMiIO = None
+
+    def __init__(self, hass: HomeAssistant, miio: AsyncMiIO, logger=None):
+        self.hass = hass
+        self.miio = miio
+        self.log = logger or logging.getLogger(__name__)
+
+    @property
+    def host(self):
+        return self.miio.addr[0]
 
     @staticmethod
     def from_device(device: Device):
@@ -1378,49 +1352,59 @@ class MiotDevice(MiotDeviceBase):
             return None
         elif device.info.pid in [6, 15, 16, 17]:
             return None
-        mapping = {}
-        miot_device = None
-        try:
-            miot_device = MiotDevice(ip=host, token=token, model=device.model, mapping=mapping or {})
-        except TypeError as exc:
-            err = f'{exc}'
-            if 'mapping' in err:
-                if 'unexpected keyword argument' in err:
-                    # for python-miio <= v0.5.5.1
-                    miot_device = MiotDevice(host, token)
-                    miot_device.mapping = mapping
-                elif 'required positional argument' in err:
-                    # for python-miio <= v0.5.4
-                    # https://github.com/al-one/hass-xiaomi-miot/issues/44#issuecomment-815474650
-                    miot_device = MiotDevice(mapping, host, token)  # noqa
-        except ValueError as exc:
-            device.log.warning('Initializing with host %s failed: %s', host, exc)
-        if miot_device:
-            miot_device.hass = device.hass
-        return miot_device
+        miio = AsyncMiIO(host, token)
+        return MiotDevice(device.hass, miio, device.log)
 
-    def get_properties_for_mapping(self, *, max_properties=12, did=None, mapping=None) -> list:
+    async def async_info(self):
+        resp = await self.miio.send('miIO.info', tries=2)
+        self.handle_response(resp, False)
+        info = resp.get('result', {}) if resp else resp
+        if not info:
+            self.log.warning('Got miio info failed: %s', resp)
+        return MiioInfo(info)
+
+    async def async_send(self, *args, **kwargs):
+        resp = await self.miio.send(*args, **kwargs)
+        self.handle_response(resp)
+        try:
+            return resp['result']
+        except KeyError:
+            return resp
+
+    async def async_send_chunk(self, method: str, params: list, chunk: int = 0):
+        if not chunk:
+            chunk = 15
+        results = []
+        for i in range(0, len(params), chunk):
+            resp = await self.miio.send(method, params[i : i + chunk])
+            if not results:
+                self.handle_response(resp)
+            try:
+                results += resp['result']
+            except (KeyError, TypeError):
+                self.log.warning('Got miio chunked properties failed: %s', resp, exc_info=True)
+        return results
+
+    def handle_response(self, resp, with_empty=True):
+        if resp is None:
+            raise DeviceException(f'Unable to discover the device {self.host}')
+        if with_empty and not resp:
+            raise DeviceException(f'No response from the device {self.host}')
+
+    async def async_get_prop(self, properties, *, max_properties=None, property_getter='get_prop'):
+        return await self.async_get_properties(properties, max_properties=max_properties, property_getter=property_getter)
+
+    async def async_get_properties(self, properties, *, max_properties=None, property_getter='get_properties'):
+        return await self.async_send_chunk(property_getter, properties, max_properties)
+
+    async def async_get_properties_for_mapping(self, *, max_properties=None, did=None, mapping=None):
         if mapping is None:
-            mapping = self.mapping
+            return None
         properties = [
             {'did': f'prop.{v["siid"]}.{v["piid"]}' if did is None else str(did), **v}
             for k, v in mapping.items()
         ]
-        return self.get_properties(
-            properties,
-            property_getter='get_properties',
-            max_properties=max_properties,
-        )
-
-    async def async_get_properties_for_mapping(self, *, max_properties=None, did=None, mapping=None) -> list:
-        return await self.hass.async_add_executor_job(
-            partial(
-                self.get_properties_for_mapping,
-                max_properties=max_properties,
-                did=did,
-                mapping=mapping,
-            )
-        )
+        return await self.async_get_properties(properties, max_properties=max_properties)
 
     def get_max_properties(self, mapping):
         idx = len(mapping)
@@ -1439,15 +1423,18 @@ class MiotDevice(MiotDeviceBase):
         ]
         return 10 if idx >= len(chunks) else chunks[idx]
 
-    async def async_send(self, *args, **kwargs):
-        return await self.hass.async_add_executor_job(partial(self.send,*args, **kwargs))
 
+class MiioInfo(dict):
+    def __getattr__(self, item):
+        return self.get(item)
 
-class MiioInfo(MiioInfoBase):
+    def __setattr__(self, key, value):
+        self[key] = value
+
     @property
     def firmware_version(self):
-        return self.data.get('fw_ver')
+        return self.get('fw_ver')
 
     @property
     def hardware_version(self):
-        return self.data.get('hw_ver')
+        return self.get('hw_ver')

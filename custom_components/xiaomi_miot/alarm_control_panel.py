@@ -96,39 +96,39 @@ class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
         else:
             self._attr_state = sta
 
-    def set_arm_mode(self, mode):
+    async def async_set_arm_mode(self, mode):
         ret = False
         val = self._prop_mode.list_value(mode)
         if val is not None:
-            ret = self.set_property(self._prop_mode, val)
+            ret = await self.async_set_property(self._prop_mode, val)
         if ret:
             self.update_state()
         return ret
 
-    def alarm_disarm(self, code=None):
+    async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
-        return self.set_arm_mode('basic_arming')
+        return await self.async_set_arm_mode('basic_arming')
 
-    def alarm_arm_home(self, code=None):
+    async def async_alarm_arm_home(self, code=None):
         """Send arm home command."""
-        return self.set_arm_mode('home_arming')
+        return await self.async_set_arm_mode('home_arming')
 
-    def alarm_arm_away(self, code=None):
+    async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""
-        return self.set_arm_mode('away_arming')
+        return await self.async_set_arm_mode('away_arming')
 
-    def alarm_arm_night(self, code=None):
+    async def async_alarm_arm_night(self, code=None):
         """Send arm night command."""
-        return self.set_arm_mode('sleep_arming')
+        return await self.async_set_arm_mode('sleep_arming')
 
     def alarm_arm_vacation(self, code=None):
         """Send arm vacation command."""
         raise NotImplementedError()
 
-    def alarm_trigger(self, code=None):
+    async def async_alarm_trigger(self, code=None):
         """Send alarm trigger command."""
         if self._is_mgl03:
-            return self.set_miot_property(3, 22, 1)
+            return await self.async_set_miot_property(3, 22, 1)
         raise NotImplementedError()
 
     def alarm_arm_custom_bypass(self, code=None):

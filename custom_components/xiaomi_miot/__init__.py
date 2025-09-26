@@ -5,7 +5,6 @@ import json
 import os
 import re
 from datetime import timedelta
-from functools import partial
 import voluptuous as vol
 
 from homeassistant import (
@@ -21,8 +20,6 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CONF_TOKEN,
     CONF_USERNAME,
-    STATE_OFF,
-    STATE_ON,
     STATE_UNKNOWN,
     SERVICE_RELOAD,
 )
@@ -36,21 +33,12 @@ import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
 
 from .core.const import *
-from .core.utils import (
-    wildcard_models,
-    is_offline_exception,
-    async_analytics_track_event,
-)
+from .core.utils import DeviceException, wildcard_models
 from .core import HassEntry, BasicEntity, XEntity # noqa
-from .core.device import (
-    Device,
-    MiioDevice,
-    DeviceException,
-)
+from .core.device import Device, AsyncMiIO
 from .core.miot_spec import (
     MiotService,
     MiotProperty,
-    MiotAction,
     MiotResult,
     MiotResults,
 )
@@ -479,10 +467,9 @@ async def async_setup_component_services(hass):
                         row['miio_cmd'] = f'miiocli device --ip {dip} --token {tok} info'
                         if not miio_info:
                             try:
-                                device = MiioDevice(dip, tok)
-                                miio_info = await hass.async_add_executor_job(device.info)
-                                miio_info = dict(miio_info.raw or {})
-                            except DeviceException as exc:
+                                miio = AsyncMiIO(dip, tok)
+                                miio_info = await miio.info()
+                            except Exception as exc:
                                 miio_info = {'error': str(exc)}
                             row['miio_info'] = miio_info
                     lst.append(row)
@@ -630,6 +617,7 @@ class BaseEntity(BasicEntity):
     device: Device = None
     _config = None
     _model = None
+    _unique_did = None
     _attr_device_class = None
     _attr_entity_category = None
     _attr_translation_key = None
@@ -771,14 +759,14 @@ class MiioEntity(BaseEntity):
         self._state_attrs = {}
         self._attr_device_info = self.device.hass_device_info
         self._supported_features = 0
-        self._props = ['power']
+        self._props = []
         self._success_result = ['ok']
         self._add_entities = {}
         self._vars = {}
         self._subs = {}
 
         self._vars['is_main_entity'] = not self.device.miot_entity
-        self.device.miot_entity = self # TODO
+        self.device.miot_entity = self
 
     @property
     def unique_id(self):
@@ -842,34 +830,14 @@ class MiioEntity(BaseEntity):
                 eid = self.platform.config_entry.entry_id
                 self._add_entities = self.hass.data[DOMAIN][eid].get('add_entities') or {}
 
-    async def _try_command(self, mask_error, func, *args, **kwargs):
-        try:
-            result = await self.hass.async_add_executor_job(partial(func, *args, **kwargs))
-            self.logger.debug('%s: Response received from miio: %s', self.name_model, result)
-            return result == self._success_result
-        except DeviceException as exc:
-            self.logger.error(mask_error, exc)
-            self._available = False
-        return False
-
-    def send_miio_command(self, method, params=None, **kwargs):
-        try:
-            result = self._device.send(method, params)
-        except DeviceException as ex:
-            self.logger.error('%s: Send miio command: %s(%s) failed: %s', self.name_model, method, params, ex)
-            return False
-        ret = result == self._success_result
-        if kwargs.get('return_result'):
-            return result
-        elif not ret:
-            self.logger.info('%s: Send miio command: %s(%s) failed, result: %s', self.name_model, method, params, result)
-        return ret
+    async def async_miio_command(self, method, params=None, **kwargs):
+        return await self.device.local.async_send(method, params, **kwargs)
 
     async def async_update(self):
+        if not self._props:
+            return
         try:
-            attrs = await self.hass.async_add_executor_job(
-                partial(self._device.get_properties, self._props)
-            )
+            attrs = await self.device.local.async_get_prop(self._props)
         except DeviceException as ex:
             self._available = False
             self.logger.error('%s: Got exception while fetching the state %s: %s', self.name_model, self._props, ex)
@@ -880,69 +848,14 @@ class MiioEntity(BaseEntity):
         self._state = attrs.get('power') == 'on'
         await self.async_update_attrs(attrs)
 
-    async def async_update_attr_sensor_entities(self, attrs, domain='sensor', option=None):
-        add_sensors = self._add_entities.get(domain)
-        opt = {**(option or {})}
-        for a in attrs:
-            p = a
-            if ':' in a:
-                p = a
-                kys = a.split(':')
-                a = kys[0]
-                opt['dict_key'] = kys[1]
-            if a not in self._state_attrs:
-                continue
-            if not add_sensors:
-                continue
-            tms = self._check_same_sub_entity(p, domain)
-            if p in self._subs:
-                self._subs[p].update_from_parent()
-                self._check_same_sub_entity(p, domain, add=1)
-            elif tms > 0:
-                if tms <= 1:
-                    self.logger.info('%s: Device sub entity %s: %s already exists.', self.name_model, domain, p)
-                continue
-            elif domain == 'sensor':
-                from .sensor import BaseSensorSubEntity
-                option = {'unique_id': f'{self._unique_did}-{p}', **opt}
-                self._subs[p] = BaseSensorSubEntity(self, a, option=option)
-                add_sensors([self._subs[p]], update_before_add=False)
-                self._check_same_sub_entity(p, domain, add=1)
-            elif domain == 'binary_sensor':
-                option = {'unique_id': f'{self._unique_did}-{p}', **opt}
-                self._subs[p] = ToggleSubEntity(self, a, option=option)
-                add_sensors([self._subs[p]], update_before_add=False)
-                self._check_same_sub_entity(p, domain, add=1)
-
-    def _check_same_sub_entity(self, name, domain=None, add=0):
-        uni = f'{self._unique_did}-{name}-{domain}'
-        pre = int(self.hass.data[DOMAIN]['sub_entities'].get(uni) or 0)
-        if add and pre < 999999:
-            self.hass.data[DOMAIN]['sub_entities'][uni] = pre + add
-        return pre
-
-    def turn_on(self, **kwargs):
-        ret = self._device.on()
-        if ret:
-            self._state = True
-            self.update_attrs({'power': 'on'})
-        return ret
-
-    def turn_off(self, **kwargs):
-        ret = self._device.off()
-        if ret:
-            self._state = False
-            self.update_attrs({'power': 'off'})
-        return ret
-
-    def update_attrs(self, attrs: dict, update_parent=False, update_subs=True):
+    def update_attrs(self, attrs: dict, update_parent=False):
         self._state_attrs.update(attrs or {})
         if update_parent and hasattr(self, '_parent'):
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
         return self._state_attrs
 
-    async def async_update_attrs(self, attrs: dict, update_parent=False, update_subs=True):
+    async def async_update_attrs(self, attrs: dict, update_subs=True):
         self._state_attrs.update(attrs or {})
         if update_subs:
             if self.hass and self.platform:
@@ -967,15 +880,6 @@ class MiotEntityInterface:
     _model = ''
     _state_attrs: dict
     _supported_features = 0
-
-    def set_property(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def set_miot_property(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def miot_action(self, *args, **kwargs):
-        raise NotImplementedError()
 
     def update_attrs(self, *args, **kwargs):
         raise NotImplementedError()
@@ -1087,27 +991,6 @@ class MiotEntity(MiioEntity):
             return None
         return self._miot_service.spec.generate_entity_id(self)
 
-    async def _try_command(self, mask_error, func, *args, **kwargs):
-        result = None
-        try:
-            results = await self.hass.async_add_executor_job(partial(func, *args, **kwargs)) or []
-            for result in results:
-                break
-            self.logger.debug('%s: Response received from miot: %s', self.name_model, result)
-            if isinstance(result, dict):
-                return dict(result or {}).get('code', 1) == self._success_code
-            else:
-                return result == self._success_result
-        except DeviceException as exc:
-            self.logger.error(mask_error, exc)
-            self._available = False
-        return False
-
-    def send_miio_command(self, method, params=None, **kwargs):
-        if self.miot_device:
-            return super().send_miio_command(method, params, **kwargs)
-        self.logger.error('%s: None local device for send miio command %s(%s)', self.name_model, method, params)
-
     async def async_update_from_device(self):
         self._available = self.device.available
         if self.is_main_entity:
@@ -1133,136 +1016,9 @@ class MiotEntity(MiioEntity):
         self.logger.debug('%s: Got new state: %s', self.name, attrs)
 
     async def async_update_for_main_entity(self):
-        if self._miot_service:
-            for d in ['light']:
-                pls = self.custom_config_list(f'{d}_services') or []
-                if pls:
-                    self._update_sub_entities(None, pls, domain=d)
+        pass
 
-    async def async_update_miio_props(self, props):
-        if not self.miot_device:
-            return
-        if self._miio2miot:
-            attrs = self._miio2miot.only_miio_props(props)
-        else:
-            try:
-                num = self.custom_config_integer('chunk_properties') or 15
-                attrs = await self.hass.async_add_executor_job(
-                    partial(self._device.get_properties, props, max_properties=num)
-                )
-            except DeviceException as exc:
-                self.logger.warning('%s: Got miio properties %s failed: %s', self.name_model, props, exc)
-                return
-            if len(props) != len(attrs):
-                await self.async_update_attrs({
-                    'miio.props': attrs,
-                })
-                return
-        attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
-        self.logger.debug('%s: Got miio properties: %s', self.name_model, attrs)
-        await self.async_update_attrs(attrs)
-
-    async def async_update_miio_commands(self, commands):
-        if not self.miot_device:
-            return
-        if isinstance(commands, dict):
-            commands = [
-                {'method': cmd, **(cfg if isinstance(cfg, dict) else {'values': cfg})}
-                for cmd, cfg in commands.items()
-            ]
-        elif not isinstance(commands, list):
-            commands = []
-        for cfg in commands:
-            cmd = cfg.get('method')
-            pms = cfg.get('params') or []
-            try:
-                attrs = await self.hass.async_add_executor_job(
-                    partial(self._device.send, cmd, pms)
-                )
-            except DeviceException as exc:
-                self.logger.warning('%s: Send miio command %s(%s) failed: %s', self.name_model, cmd, cfg, exc)
-                continue
-            props = cfg.get('values', pms) or []
-            if len(props) != len(attrs):
-                attrs = {
-                    f'miio.{cmd}': attrs,
-                }
-            else:
-                attrs = dict(zip(props, attrs))
-            self.logger.debug('%s: Got miio properties: %s', self.name_model, attrs)
-            await self.async_update_attrs(attrs)
-
-    def set_property(self, field, value):
-        return self.device.set_property(field, value)
-
-    def set_miot_property(self, siid, piid, value, **kwargs):
-        return self.device.set_miot_property(siid, piid, value, **kwargs)
-
-    def call_action(self, action: MiotAction, params=None, **kwargs):
-        aiid = action.iid
-        siid = action.service.iid
-        pms = params or []
-        kwargs['action'] = action
-        return self.miot_action(siid, aiid, pms, **kwargs)
-
-    def miot_action(self, siid, aiid, params=None, **kwargs):
-        return self.device.call_action(siid, aiid, params, **kwargs)
-
-    def turn_on(self, **kwargs):
-        ret = False
-        if hasattr(self, '_prop_power'):
-            ret = self.set_property(self._prop_power, True)
-            if ret:
-                self._state = True
-        return ret
-
-    def turn_off(self, **kwargs):
-        ret = False
-        if hasattr(self, '_prop_power'):
-            ret = self.set_property(self._prop_power, False)
-            if ret:
-                self._state = False
-        return ret
-
-    def _update_sub_entities(self, properties, services=None, domain=None, option=None, **kwargs):
-        actions = kwargs.get('actions', [])
-        from .light import MiotLightSubEntity
-        if isinstance(services, MiotService):
-            sls = [services]
-        elif services == '*':
-            sls = list(self._miot_service.spec.services.values())
-        elif services:
-            sls = self._miot_service.spec.get_services(*cv.ensure_list(services))
-        elif isinstance(properties, MiotProperty):
-            sls = [properties.service]
-        else:
-            sls = [self._miot_service]
-        add_lights = self._add_entities.get('light')
-        exclude_services = self._state_attrs.get('exclude_miot_services') or []
-        for s in sls:
-            if s.name in exclude_services:
-                continue
-            if not properties and not actions:
-                fnm = s.unique_name
-                tms = self._check_same_sub_entity(fnm, domain)
-                new = True
-                if fnm in self._subs:
-                    new = False
-                    self._subs[fnm].update_from_parent()
-                    self._check_same_sub_entity(fnm, domain, add=1)
-                elif tms > 0:
-                    if tms <= 1:
-                        self.logger.info('%s: Device sub entity %s: %s already exists.', self.name_model, domain, fnm)
-                elif add_lights and domain == 'light':
-                    pon = s.get_property('on', 'color', 'brightness')
-                    if pon and pon.full_name in self._state_attrs:
-                        self._subs[fnm] = MiotLightSubEntity(self, s)
-                        add_lights([self._subs[fnm]], update_before_add=True)
-                if new and fnm in self._subs:
-                    self._check_same_sub_entity(fnm, domain, add=1)
-                    self.logger.debug('%s: Added sub entity %s: %s', self.name_model, domain, fnm)
-
-    async def async_get_device_data(self, key, did=None, throw=False, **kwargs):
+    async def async_get_device_data(self, key, did=None, **kwargs):
         if did is None:
             did = self.miot_did
         mic = self.xiaomi_cloud
@@ -1316,27 +1072,27 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
                 val = not val
         return val
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         if self._prop_power:
             val = True
             if self._prop_power.value_range:
                 val = self._prop_power.range_max() or 1
             elif self._reverse_state:
                 val = not val
-            return self.set_property(self._prop_power, val)
+            return await self.async_set_property(self._prop_power, val)
         return False
 
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         if self._prop_power:
             val = False
             if self._prop_power.value_range:
                 val = self._prop_power.range_min() or 0
             elif self._reverse_state:
                 val = not val
-            return self.set_property(self._prop_power, val)
+            return await self.async_set_property(self._prop_power, val)
         act = self._miot_service.get_action('stop_working', 'power_off')
         if act:
-            return self.miot_action(self._miot_service.iid, act.iid)
+            return await self.async_call_action(self._miot_service.iid, act.iid)
         return False
 
 
@@ -1364,17 +1120,17 @@ class MiirToggleEntity(MiotEntity, ToggleEntity):
         """Return True if entity is on."""
         return self._attr_is_on
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
         if not self._act_turn_on:
             raise NotImplementedError()
-        return self.call_action(self._act_turn_on)
+        return await self.async_call_action(self._act_turn_on)
 
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
         if not self._act_turn_off:
             raise NotImplementedError()
-        return self.call_action(self._act_turn_off)
+        return await self.async_call_action(self._act_turn_off)
 
 
 class BaseSubEntity(BaseEntity):
@@ -1566,81 +1322,20 @@ class BaseSubEntity(BaseEntity):
             self.schedule_update_ha_state()
         return self._state_attrs
 
+    async def async_call_parent(self, method, *args, **kwargs):
+        ret = None
+        if fun := getattr(self, method, None):
+            ret = await fun(*args, **kwargs)
+        if ret:
+            await self.async_update()
+        return ret
+
     def call_parent(self, method, *args, **kwargs):
         ret = None
-        for f in cv.ensure_list(method):
-            if hasattr(self._parent, f):
-                ret = getattr(self._parent, f)(*args, **kwargs)
-                break
-            _LOGGER.info('%s: Parent entity has no method: %s', self.name_model, f)
+        if fun := getattr(self, method, None):
+            ret = fun(*args, **kwargs)
         if ret:
             self.update()
-        return ret
-
-    def set_parent_property(self, val, prop):
-        ret = self.call_parent('set_property', prop, val)
-        if ret:
-            key = prop.full_name if isinstance(prop, MiotProperty) else prop
-            self.update_attrs({
-                key: val,
-            }, update_parent=False)
-        return ret
-
-
-class MiotPropertySubEntity(BaseSubEntity):
-    def __init__(self, parent, miot_property: MiotProperty, option=None, **kwargs):
-        self._miot_service = miot_property.service
-        self._miot_property = miot_property
-        super().__init__(parent, miot_property.full_name, option, **kwargs)
-
-        if not self._option.get('name'):
-            self._name = self.format_name_by_property(miot_property)
-        if not self._option.get('unique_id'):
-            self._unique_id = f'{parent.unique_did}-{miot_property.unique_name}'
-        if not self._option.get('entity_id'):
-            self._option['entity_id'] = miot_property.generate_entity_id(self)
-        self.generate_entity_id()
-        if not miot_property.readable:
-            self._available = miot_property.writeable
-        if 'icon' not in self._option:
-            self._option['icon'] = miot_property.entity_icon
-        if 'device_class' not in self._option:
-            self._option['device_class'] = miot_property.device_class
-        if self._attr_native_unit_of_measurement is None:
-            self._attr_native_unit_of_measurement = miot_property.unit_of_measurement
-        if self._attr_entity_category is None:
-            self._attr_entity_category = miot_property.entity_category
-        self._attr_translation_key = self.custom_config('translation_key') or miot_property.friendly_name
-        self._extra_attrs.update({
-            'service_description': miot_property.service.description or miot_property.service.name,
-            'property_description': miot_property.description or miot_property.name,
-        })
-
-    def update_with_properties(self):
-        pls = self.custom_config_list('with_properties', [])
-        for p in pls:
-            prop = self._miot_service.get_property(p) or self._miot_service.spec.get_property(p)
-            if not prop:
-                continue
-            val = prop.from_device(self.device)
-            if not prop.range_valid(val):
-                val = None
-            self._extra_attrs[prop.name] = val
-
-    def update(self, data=None):
-        super().update(data)
-        if not self._available:
-            return
-        self.update_with_properties()
-
-    def set_parent_property(self, val, prop=None):
-        if prop is None:
-            prop = self._miot_property
-        ret = self.call_parent('set_miot_property', prop.service.iid, prop.iid, val)
-        if ret and prop.readable:
-            self.update_attrs({
-                prop.full_name: val,
-            })
         return ret
 
 
@@ -1664,29 +1359,23 @@ class ToggleSubEntity(BaseSubEntity, ToggleEntity):
             self._state = None
 
     @property
-    def state(self):
-        if (is_on := self.is_on) is None:
-            return None
-        return STATE_ON if is_on else STATE_OFF
-
-    @property
     def is_on(self):
         if self._reverse_state and self._state is not None:
             return not self._state
         return self._state
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         if self._prop_power:
-            ret = self.call_parent('set_property', self._prop_power.full_name, True)
+            ret = await self.async_call_parent('async_set_property', self._prop_power, True)
             if ret:
                 self._state = True
             return ret
-        return self.call_parent('turn_on', **kwargs)
+        return await self.async_call_parent('async_turn_on', **kwargs)
 
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         if self._prop_power:
-            ret = self.call_parent('set_property', self._prop_power.full_name, False)
+            ret = await self.async_call_parent('async_set_property', self._prop_power, False)
             if ret:
                 self._state = False
             return ret
-        return self.call_parent('turn_off', **kwargs)
+        return await self.async_call_parent('async_turn_off', **kwargs)

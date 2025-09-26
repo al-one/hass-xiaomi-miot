@@ -6,6 +6,7 @@ import tzlocal
 import logging
 import fnmatch
 import voluptuous as vol
+from typing import Tuple
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import language as language_util
@@ -32,6 +33,7 @@ def get_value(obj, key, def_value=None, sep='.'):
                 result = def_value
     return result
 
+
 def get_customize_via_model(model, key=None, default=None):
     cfg = {}
     for m in wildcard_models(model):
@@ -41,6 +43,7 @@ def get_customize_via_model(model, key=None, default=None):
         if cus:
             cfg = {**cus, **cfg}
     return cfg if key is None else cfg.get(key, default)
+
 
 def get_customize_via_entity(entity, key=None, default=None):
     if key is None:
@@ -64,6 +67,7 @@ def get_customize_via_entity(entity, key=None, default=None):
         cus = get_customize_via_model(mod)
         cfg = {**cus, **cfg}
     return cfg if key is None else cfg.get(key, default)
+
 
 class CustomConfigHelper:
     def custom_config(self, key=None, default=None):
@@ -123,8 +127,10 @@ def get_manifest(field=None, default=None):
         manifest = json.load(fil) or {}
     return manifest.get(field, default) if field else manifest
 
+
 async def async_get_manifest(hass: HomeAssistant, field=None, default=None):
     return await hass.async_add_executor_job(get_manifest, field, default)
+
 
 def local_zone(hass=None):
     try:
@@ -160,6 +166,7 @@ def wildcard_models(model):
         '*',
     ]
 
+
 def convert_globs_to_pattern(globs: list[str] | None):
     """Convert a list of globs to a re pattern list."""
     if not globs:
@@ -194,6 +201,7 @@ def get_translations(*keys):
         dic.update(tls)
     return dic
 
+
 def get_translation_langs(hass: HomeAssistant, langs=None):
     lang = hass.config.language
     if not langs:
@@ -201,6 +209,10 @@ def get_translation_langs(hass: HomeAssistant, langs=None):
     if 'en' not in langs:
         langs.append('en')
     return language_util.matches(lang, langs)
+
+
+class DeviceException(Exception):
+    """Exception wrapping any communication errors with the device."""
 
 
 def is_offline_exception(exc):
@@ -229,6 +241,7 @@ def update_attrs_with_suffix(attrs, new_dict):
         updated_attrs[updated_key] = value
     attrs.update(updated_attrs)
 
+
 def logger_filter(record):
     def sub(msg):
         return re.sub(r'[\w/+-]{30,}', '***', msg)
@@ -238,6 +251,19 @@ def logger_filter(record):
         record.msg = sub(record.getMessage())
         return True
     return record
+
+
+def int_to_rgb(x: int) -> Tuple[int, int, int]:
+    """Return a RGB tuple from integer."""
+    red = (x >> 16) & 0xFF
+    green = (x >> 8) & 0xFF
+    blue = x & 0xFF
+    return red, green, blue
+
+
+def rgb_to_int(x: Tuple[int, int, int]) -> int:
+    """Return an integer from RGB tuple."""
+    return int(x[0] << 16 | x[1] << 8 | x[2])
 
 
 async def async_analytics_track_event(hass: HomeAssistant, event, action, label, value=0, **kwargs):

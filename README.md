@@ -20,9 +20,9 @@ This component uses the **miot** protocol to automatically integrate Xiaomi devi
 
 #### Method 1: [HACS](https://hacs.xyz)
 - First installation
-    > HACS > Integrations > ➕ EXPLORE & DOWNLOAD REPOSITORIES > [`Xiaomi Miot Auto`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > DOWNLOAD THIS REPOSITORY
+    > HACS > Integrations > ➕ EXPLORE & DOWNLOAD REPOSITORIES > [`Xiaomi Miot`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > DOWNLOAD THIS REPOSITORY
 - Update component
-    > HACS > Integrations > [`Xiaomi Miot Auto`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > UPDATE / Redownload
+    > HACS > Integrations > [`Xiaomi Miot`](https://my.home-assistant.io/redirect/hacs_repository/?owner=al-one&repository=hass-xiaomi-miot) > UPDATE / Redownload
 
 #### Method 2: Manually installation via Samba / SFTP
 > Download and copy `custom_components/xiaomi_miot` folder to `custom_components` folder in your HomeAssistant config folder
@@ -50,7 +50,7 @@ wget -O - https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/insta
 
 ## Config
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Devices and Services > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > [➕ Add Integration](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 Search `Xiaomi Miot Auto`
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Devices and Services > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > [➕ Add Integration](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot) > 🔍 Search `Xiaomi Miot`
 
 Or click: [![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_miot)
 
@@ -76,7 +76,7 @@ xiaomi_miot:
   # http_timeout: 15   # Timeout (seconds) for requesting the xiaomi apis
 ```
 
-> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Devices and Services > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot Auto > Options > ☑️ Enable miot cloud
+> [⚙️ Configuration](https://my.home-assistant.io/redirect/config) > Devices and Services > [🧩 Integrations](https://my.home-assistant.io/redirect/integrations) > Xiaomi Miot > Options > ☑️ Enable miot cloud
 
 ### Translations
 
@@ -183,7 +183,7 @@ xiaomi_miot:
 
 ### YAML configuration reloading
 This component has added support for configuration reloading (to avoid having to restart [HomeAssistant](https://www.home-assistant.io) instance after a YAML configuration change):
-> [🔨 Developer tools](https://my.home-assistant.io/redirect/developer_states) > [YAML Configuration](https://my.home-assistant.io/redirect/server_controls) > YAML configuration reloading > 🔍 Look for `Xiaomi Miot Auto` (almost at the bottom of the list)
+> [🔨 Developer tools](https://my.home-assistant.io/redirect/developer_states) > [YAML Configuration](https://my.home-assistant.io/redirect/server_controls) > YAML configuration reloading > 🔍 Look for `Xiaomi Miot` (almost at the bottom of the list)
 
 
 ## [Supported Devices](https://github.com/al-one/hass-xiaomi-miot/issues/12)

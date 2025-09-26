@@ -93,8 +93,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entities = []
     if isinstance(spec, MiotSpec):
         for srv in spec.get_services(
-            'play_control', 'ir_tv_control', 'ir_projector_control',
-            'ir_box_control', 'ir_stb_control', 'doorbell',
+            'play_control', 'ir_tv_control', 'ir_projector_control', 'ir_box_control', 'ir_stb_control',
         ):
             if 'miir.' in model:
                 entities.append(MiirMediaPlayerEntity(config, srv))
@@ -105,8 +104,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 continue
             if spec.get_service('television', 'projector', 'tv_box'):
                 entities.append(MitvMediaPlayerEntity(config, srv))
-            elif srv.name in ['doorbell']:
-                entities.append(MiotDoorbellEntity(config, srv))
             else:
                 entities.append(MiotMediaPlayerEntity(config, srv))
     for entity in entities:
@@ -206,9 +203,9 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
             return self._prop_mute.from_device(self.device) and True
         return None
 
-    def mute_volume(self, mute):
+    async def async_mute_volume(self, mute):
         if self._prop_mute:
-            return self.set_property(self._prop_mute, True if mute else False)
+            return await self.async_set_property(self._prop_mute, True if mute else False)
         return False
 
     @property
@@ -222,33 +219,33 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
                     pass
         return self._attr_volume_level
 
-    def set_volume_level(self, volume):
+    async def async_set_volume_level(self, volume):
         if self._prop_volume:
             val = round(volume * (self._prop_volume.range_max() or 1))
             stp = self._prop_volume.range_step()
             if stp and stp > 1:
                 val = round(val / stp) * stp
-            return self.set_property(self._prop_volume, val)
+            return await self.async_set_property(self._prop_volume, val)
         return False
 
-    def volume_up(self):
+    async def async_volume_up(self):
         if self._prop_volume:
             stp = self._prop_volume.range_step() or 5
             val = round(self._prop_volume.from_device(self.device) or 0) + stp
-            return self.set_property(self._prop_volume, val)
+            return await self.async_set_property(self._prop_volume, val)
         return False
 
-    def volume_down(self):
+    async def async_volume_down(self):
         if self._prop_volume:
             stp = self._prop_volume.range_step() or 5
             val = round(self._prop_volume.from_device(self.device) or 0) - stp
-            return self.set_property(self._prop_volume, val)
+            return await self.async_set_property(self._prop_volume, val)
         return False
 
-    def media_play(self):
+    async def async_media_play(self):
         act = self._miot_service.get_action('play')
         if act:
-            if self.miot_action(self._miot_service.iid, act.iid):
+            if await self.async_call_action(act):
                 if self._prop_state:
                     self.update_attrs({
                         self._prop_state.full_name: self._prop_state.list_value('Playing'),
@@ -256,10 +253,10 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
                 return True
         return False
 
-    def media_pause(self):
+    async def async_media_pause(self):
         act = self._miot_service.get_action('pause')
         if act:
-            if self.miot_action(self._miot_service.iid, act.iid):
+            if await self.async_call_action(act):
                 if self._prop_state:
                     self.update_attrs({
                         self._prop_state.full_name: self._prop_state.list_value('Pause'),
@@ -267,10 +264,10 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
                 return True
         return False
 
-    def media_stop(self):
+    async def async_media_stop(self):
         act = self._miot_service.get_action('stop')
         if act:
-            if self.miot_action(self._miot_service.iid, act.iid):
+            if await self.async_call_action(act):
                 if self._prop_state:
                     self.update_attrs({
                         self._prop_state.full_name: self._prop_state.list_value('Stopped', 'Stop', 'Idle'),
@@ -278,16 +275,16 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
                 return True
         return self.media_pause()
 
-    def media_previous_track(self):
+    async def async_media_previous_track(self):
         act = self._miot_service.get_action('previous')
         if act:
-            return self.miot_action(self._miot_service.iid, act.iid)
+            return await self.async_call_action(act)
         return False
 
-    def media_next_track(self):
+    async def async_media_next_track(self):
         act = self._miot_service.get_action('next')
         if act:
-            return self.miot_action(self._miot_service.iid, act.iid)
+            return await self.async_call_action(act)
         return False
 
     def media_seek(self, position):
@@ -305,11 +302,11 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
                 return self._prop_input.list_description(val)
         return None
 
-    def select_source(self, source):
+    async def async_select_source(self, source):
         """Select input source."""
         val = self._prop_input.list_value(source)
         if val is not None:
-            return self.set_property(self._prop_input, val)
+            return await self.async_set_property(self._prop_input, val)
         return False
 
     def select_sound_mode(self, sound_mode):
@@ -395,7 +392,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 break
         return self.xiaoai_device
 
-    async def async_update_play_status(self, now=None):
+    async def async_update_play_status(self, _=None):
         if not (aid := self.xiaoai_id):
             return
         self.update_attrs({'xiaoai_id': aid})
@@ -496,14 +493,14 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             )
         return None
 
-    def turn_on(self):
+    async def async_turn_on(self):
         if self._act_turn_on:
-            return self.call_action(self._act_turn_on)
+            return await self.async_call_action(self._act_turn_on)
         return False
 
-    def turn_off(self):
+    async def async_turn_off(self):
         if self._act_turn_off:
-            return self.call_action(self._act_turn_off)
+            return await self.async_call_action(self._act_turn_off)
         return False
 
     async def async_browse_media(self, media_content_type=None, media_content_id=None):
@@ -575,7 +572,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         logger = rdt.get('code') and self.logger.warning or self.logger.info
         logger('%s: Play Music: %s', self.name_model, [dat, rdt])
 
-    def intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
+    async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         if srv := self._intelligent_speaker:
             anm = 'execute_text_directive' if execute else 'play_text'
             act = srv.get_action(anm)
@@ -589,7 +586,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                         if sil is None:
                             sil = 0 if silent else 1
                     pms.append(sil)
-                return self.miot_action(srv.iid, act.iid, pms, **kwargs)
+                return await self.async_call_action(srv.iid, act.iid, pms, **kwargs)
             else:
                 self.logger.warning('%s does not have action: %s', self.name_model, anm)
         elif self._message_router:
@@ -597,31 +594,21 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             if act:
                 if not execute:
                     text = f'跟我说 {text}'
-                return self.call_action(act, [text], **kwargs)
+                return await self.async_call_action(act, [text], **kwargs)
         else:
             self.logger.error('%s does not have service: %s', self.name_model, 'intelligent_speaker/message_router')
         return False
 
-    async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
-        return await self.hass.async_add_executor_job(
-            partial(self.intelligent_speaker, text, execute, silent, **kwargs)
-        )
-
-    def xiaoai_wakeup(self, text=None, **kwargs):
+    async def async_xiaoai_wakeup(self, text=None, **kwargs):
         if srv := self._intelligent_speaker:
             if act := srv.get_action('wake_up'):
                 pms = [text or ''] if act.ins else []
-                return self.miot_action(srv.iid, act.iid, pms, **kwargs)
+                return await self.async_call_action(srv.iid, act.iid, pms, **kwargs)
             else:
                 self.logger.warning('%s does not have action: %s', self.name_model, 'wake_up')
         else:
             self.logger.error('%s does not have service: %s', self.name_model, 'intelligent_speaker')
         return False
-
-    async def async_xiaoai_wakeup(self, text=None, **kwargs):
-        return await self.hass.async_add_executor_job(
-            partial(self.xiaoai_wakeup, text, **kwargs)
-        )
 
 
 class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
@@ -712,7 +699,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             sub = 'keycodes'
             self._subs[sub] = SelectSubEntity(self, sub, option={
                 'options': self._keycodes,
-                'select_option': self.press_key,
+                'async_select_option': self.async_press_key,
             })
             add_selects([self._subs[sub]], update_before_add=False)
 
@@ -789,7 +776,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 from .select import SelectSubEntity
                 self._subs[sub] = SelectSubEntity(self, 'app_current', option={
                     'options': als,
-                    'select_option': self.start_app,
+                    'async_select_option': self.async_start_app,
                 })
                 add_selects([self._subs[sub]], update_before_add=False)
 
@@ -803,38 +790,38 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
                 sta = MediaPlayerState.OFF
         return sta
 
-    def turn_on(self):
+    async def async_turn_on(self):
         if self._local_state and self._state_attrs.get('6095_state'):
             # tv is on
             pass
         elif self._speaker_mode_switch:
-            self.set_property(self._speaker_mode_switch, False)
+            await self.async_set_property(self._speaker_mode_switch, False)
         elif xai := self.bind_xiaoai:
             nam = self.mitv_name
             txt = f'{nam}亮屏' if self._local_state else f'打开{nam}'
-            self.hass.services.call(DOMAIN, 'intelligent_speaker', {
+            await self.hass.services.async_call(DOMAIN, 'intelligent_speaker', {
                 'entity_id': xai.entity_id,
                 'text': txt,
                 'execute': True,
                 'silent': self.custom_config_bool('xiaoai_silent', True),
             })
-        return super().turn_on()
+        return await super().async_turn_on()
 
-    def turn_off(self):
+    async def async_turn_off(self):
         if self.custom_config_bool('turn_off_screen'):
             act = self._message_router.get_action('post') if self._message_router else None
             if self._speaker_mode_switch:
-                return self.set_property(self._speaker_mode_switch, True)
+                return await self.async_set_property(self._speaker_mode_switch, True)
             elif xai := self.bind_xiaoai:
-                return self.hass.services.call(DOMAIN, 'intelligent_speaker', {
+                return await self.hass.services.async_call(DOMAIN, 'intelligent_speaker', {
                     'entity_id': xai.entity_id,
                     'text': f'{self.mitv_name}熄屏',
                     'execute': True,
                     'silent': self.custom_config_bool('xiaoai_silent', True),
                 })
             elif act:
-                return self.call_action(act, ['熄屏'])
-        return super().turn_off()
+                return await self.async_call_action(act, ['熄屏'])
+        return await super().async_turn_off()
 
     async def async_play_media(self, media_type, media_id, **kwargs):
         """Play a piece of media."""
@@ -861,22 +848,22 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             return self.app_name
         return super().source
 
-    def select_source(self, source):
+    async def async_select_source(self, source):
         """Select input source."""
         if source in self._apps:
-            return self.start_app(self._apps[source])
+            return await self.async_start_app(self._apps[source])
         if source in self._apps.values():
-            return self.start_app(source)
+            return await self.async_start_app(source)
         if source in self._keycodes:
-            ret = self.press_key(source)
+            ret = await self.async_press_key(source)
             self._attr_app_name = source
             self.schedule_update_ha_state()
             return ret
         if source in self.source_list:
-            return super().select_source(source)
+            return await super().async_select_source(source)
         return False
 
-    def start_app(self, app, **kwargs):
+    async def async_start_app(self, app, **kwargs):
         pkg = f'{app}'.split(' - ').pop(-1).strip()
         if pkg not in self._apps:
             pkg = None
@@ -891,18 +878,18 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
             'type': 'packagename',
             'packagename': pkg,
         }
-        return self.request_mitv_api('controller', params=pms)
+        return await self.async_request_mitv_api('controller', params=pms)
 
-    def press_key(self, key, **kwargs):
+    async def async_press_key(self, key, **kwargs):
         if self._remote_ctrl:
             act = self._keycode_actions.get(key) or key
             if act := self._remote_ctrl.get_action(act):
-                return self.call_action(act)
+                return await self.async_call_action(act)
         pms = {
             'action': 'keyevent',
             'keycode': key,
         }
-        return self.request_mitv_api('controller', params=pms)
+        return await self.async_request_mitv_api('controller', params=pms)
 
     async def async_homekit_remote_event_handler(self, event):
         eid = event.data.get('entity_id')
@@ -920,7 +907,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         key = dic.get(event.data.get('key_name', ''))
         if not key:
             return
-        return self.hass.async_add_executor_job(self.press_key, key)
+        return await self.async_press_key(key)
 
     def with_opaque(self, pms: dict, token=None):
         if token is None:
@@ -989,37 +976,27 @@ class MiirMediaPlayerEntity(MiirToggleEntity, MediaPlayerEntity):
             self._supported_features |= MediaPlayerEntityFeature.SELECT_SOURCE
             self._attr_source_list = self._miot_actions
 
-    @property
-    def state(self):
-        """State of the player."""
-        return None
-
-    def mute_volume(self, mute):
+    async def async_mute_volume(self, mute):
         """Mute the volume."""
         ret = None
         if not mute and self._act_mute_off:
-            ret = self.call_action(self._act_mute_off)
+            ret = await self.async_call_action(self._act_mute_off)
         elif mute and self._act_mute_on:
-            ret = self.call_action(self._act_mute_on)
+            ret = await self.async_call_action(self._act_mute_on)
         if ret:
             self._attr_is_volume_muted = mute
         return ret
 
-    def set_volume_level(self, volume):
+    async def async_set_volume_level(self, volume):
         """Set volume level, range 0..1."""
         if volume > self._attr_volume_level and self._act_volume_up:
-            return self.call_action(self._act_volume_up)
+            return await self.async_call_action(self._act_volume_up)
         elif volume < self._attr_volume_level and self._act_volume_dn:
-            return self.call_action(self._act_volume_dn)
+            return await self.async_call_action(self._act_volume_dn)
         raise NotImplementedError()
 
-    def select_source(self, source):
+    async def async_select_source(self, source):
         """Select input source."""
         if act := self._miot_service.get_action(source):
-            return self.call_action(act)
+            return await self.async_call_action(act)
         raise NotImplementedError()
-
-
-class MiotDoorbellEntity(MiotMediaPlayerEntity):
-    def __init__(self, config: dict, miot_service: MiotService):
-        super().__init__(config, miot_service)
