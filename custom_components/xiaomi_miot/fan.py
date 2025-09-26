@@ -75,6 +75,8 @@ class FanEntity(XEntity, BaseEntity):
     _prop_percentage = None
 
     def on_init(self):
+        speed_property = self.custom_config('speed_property', 'speed')
+        percentage_property = self.custom_config('percentage_property', 'fan_percent')
         for attr in self.conv.attrs:
             conv = self.device.find_converter(attr)
             prop = getattr(conv, 'prop', None) if conv else None
@@ -90,7 +92,7 @@ class FanEntity(XEntity, BaseEntity):
                 self._conv_mode = conv
                 self._attr_preset_modes = prop.list_descriptions()
                 self._attr_supported_features |= FanEntityFeature.PRESET_MODE
-            elif prop.in_list(['fan_level', 'speed_level', 'speed']):
+            elif prop.in_list(['fan_level', 'speed_level', 'stepless_fan_level', speed_property, percentage_property]):
                 if prop.value_range:
                     self.set_percentage_property(prop)
                 elif prop.value_list and not self._conv_speed:
@@ -101,13 +103,6 @@ class FanEntity(XEntity, BaseEntity):
             elif prop.in_list(['horizontal_swing', 'vertical_swing']) and not self._conv_oscillate:
                 self._conv_oscillate = conv
                 self._attr_supported_features |= FanEntityFeature.OSCILLATE
-
-        if self._miot_service:
-            if prop := self.custom_config('speed_property'):
-                self._prop_speed = self._miot_service.spec.get_property(prop)
-                self.set_speeds_property(self._prop_speed)
-            if prop := self.custom_config('percentage_property'):
-                self.set_percentage_property(self._miot_service.spec.get_property(prop))
 
         # issues/617
         if self.custom_config_bool('disable_preset_modes'):
@@ -146,17 +141,8 @@ class FanEntity(XEntity, BaseEntity):
                 des = self._conv_speed.prop.list_description(val)
                 if self._speed_range:
                     self._attr_percentage = ranged_value_to_percentage(self._speed_range, val)
-                elif self._speed_list and des in self._speed_list:
+                if self._speed_list and des in self._speed_list:
                     self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, des)
-        if self._prop_speed:
-            val = self._prop_speed.from_device(self.device)
-            if val is not None:
-                des = self._prop_speed.list_description(val)
-                self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, des)
-        if self._prop_percentage:
-            val = self._prop_percentage.from_device(self.device)
-            if val is not None:
-                self._attr_percentage = val
         if self._conv_power:
             val = self._conv_power.value_from_dict(data)
             if val is not None:
@@ -183,14 +169,7 @@ class FanEntity(XEntity, BaseEntity):
         if self._conv_power and not self.is_on:
             dat[self._conv_power.full_name] = True
         if percentage is not None:
-            if self._prop_percentage:
-                await self.device.async_set_property(self._prop_percentage, percentage)
-            elif self._prop_speed:
-                des = percentage_to_ordered_list_item(self._speed_list, percentage)
-                val = self._prop_speed.list_value(des)
-                if val is not None:
-                    await self.device.async_set_property(self._prop_speed, val)
-            elif self._speed_range:
+            if self._speed_range:
                 dat[self._conv_speed.full_name] = percentage_to_ranged_value(self._speed_range, percentage)
             elif self._speed_list:
                 des = percentage_to_ordered_list_item(self._speed_list, percentage)
