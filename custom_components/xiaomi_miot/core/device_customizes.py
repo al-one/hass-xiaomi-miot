@@ -2175,6 +2175,13 @@ DEVICE_CUSTOMIZES = {
                              'boiling_reminder,keep_warm_reminder',
         'number_properties': 'target_temperature,keep_warm_temperature,keep_warm_time,target_mode',
     },
+    'xiaomi.oven.cm30l': {
+        'select_actions': 'start_cook',
+        'sensor_properties': 'status,fault,left_time,working_time,temperature,'
+                             'timeout_time,cook_step,door_state,water_box_status',
+        'select_properties': 'furnace_light_mode',
+        'number_properties': 'target_temperature,cook_time,reservation_left_time',
+    },
     'xiaomi.pet_waterer.70m2': {
         'binary_sensor_properties': 'water_shortage_status,usb_insert_state,low_battery,pump_block,fault',
         'button_actions': 'reset_filter_life',
@@ -3110,6 +3117,7 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     '*.oven.*': {
+        'button_actions': 'pause,resume_cook,cancel_cooking',
         'sensor_properties': 'temperature,left_time,cook_time,working_time',
         'number_properties': 'target_temperature',
         'switch_properties': 'oven.on',
