@@ -701,10 +701,11 @@ class MiotProperty(MiotSpecInstance):
             return False
         names = [
             self.name,
-            self.friendly_name,
+            self.friendly_name,  # service.prop
             self.full_name,
-            self.unique_name,
-            self.unique_prop,
+            self.unique_name,  # service-2.prop-1
+            self.unique_prop,  # prop.2.1
+            f'{self.service.name}.{self.desc_name}',
             self.desc_name,
         ]
         for name in names:

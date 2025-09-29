@@ -734,25 +734,31 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'toggle_mode,loop_gear',
         'number_properties': 'off_delay_time,speed_level',
     },
-    'dmaker.fan.p5': {
-        'percentage_property': 'prop.2.6',
-    },
     'dmaker.fan.p5c': {
-        'percentage_property': 'speed_level',
         'button_actions': 'turn_left,turn_right,toggle_mode,loop_gear',
         'number_properties': 'off_delay_time',
     },
     'dmaker.fan.p11': {
-        'percentage_property': 'prop.2.6',  # issues/838
+        'percentage_property': 'fan.status',  # issues/838
+        'append_converters': [
+            {
+                'class': MiotFanConv,
+                'services': ['fan'],
+                'converters': [{'props': ['fan.status']}],
+            },
+        ],
     },
     'dmaker.fan.p15': {
-        'percentage_property': 'prop.2.6',
-    },
-    'dmaker.fan.p18': {
-        'percentage_property': 'speed_level',
+        'percentage_property': 'fan.status',
+        'append_converters': [
+            {
+                'class': MiotFanConv,
+                'services': ['fan'],
+                'converters': [{'props': ['fan.status']}],
+            },
+        ],
     },
     'dmaker.fan.p23': {
-        'percentage_property': 'speed_level',
         'button_actions': 'toggle,toggle_mode,loop_gear',
         'switch_properties': 'on,heating,horizontal_swing,symmetrical_swing,alarm',
         'select_properties': 'fan.mode,swing_lr_manual',
@@ -760,23 +766,27 @@ DEVICE_CUSTOMIZES = {
     },
     'dmaker.fan.p28': {
         'switch_properties': 'alarm,horizontal_swing,vertical_swing,swing_all,off_to_center',
-        'percentage_property': 'speed_level',
         'button_properties': 'swing_updown_manual,swing_lr_manual,back_to_center,start_left,start_right,start_up,start_down',
     },
     'dmaker.fan.p33': {
-        'percentage_property': 'prop.2.6',
         'select_properties': 'motor_control',
         'open_texts': 'LEFT',
         'close_texts': 'RIGHT',
+        'percentage_property': 'fan.status',
+        'append_converters': [
+            {
+                'class': MiotFanConv,
+                'services': ['fan'],
+                'converters': [{'props': ['fan.status']}],
+            },
+        ],
     },
     'dmaker.fan.p39': {
-        'percentage_property': 'speed_level',
         'switch_properties': 'brightness',
         'select_properties': 'motor_control',
         'button_actions': 'toggle,loop_gear,loop_mode',
     },
     'dmaker.fan.p45': {
-        'percentage_property': 'speed_level',
         'button_actions': 'turn_left,turn_right',
     },
     'dmaker.fan.*': {
@@ -1562,7 +1572,7 @@ DEVICE_CUSTOMIZES = {
                 'class': MiotFanConv,
                 'services': ['fan'],
                 'converters': [{'props': ['fan_advance.speed']}],
-            }
+            },
         ],
         'chunk_coordinators': [
             {'interval': 11, 'props': 'light.on,mode,brightness,color_temperature'},
@@ -1996,6 +2006,15 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'iot_linkage,machine_state,screen_show',
         'exclude_miot_properties': 'enhance.timer,humidity_range,filter_core_rest,sleep_diy_sign',
     },
+    'xiaomi.aircondition.mt5': {
+        'append_converters': [
+            {
+                'class': MiotFanConv,
+                'services': ['fan_control'],
+                'converters' : [{'props': ['air_conditioner.on', 'enhance.fan_percent', 'horizontal_swing']}],
+            },
+        ],
+    },
     'xiaomi.aircondition.mt6': {
         'select_properties': 'fan_level,horizontal_angle,vertical_angle',
         'number_properties': 'target_humidity,fan_percent',
@@ -2122,7 +2141,6 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'delay,horizontal_swing',
         'select_properties': 'horizontal_swing_included_angle',
         'number_properties': 'delay_time',
-        'percentage_property': 'stepless_fan_level',
         'chunk_coordinators': [
             {'interval': 20, 'props': 'on,mode,fan_level'},
         ],
@@ -2132,7 +2150,6 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'delay',
         'select_properties': 'horizontal_swing_included_angle',
         'number_properties': 'delay_time',
-        'percentage_property': 'stepless_fan_level',
     },
     'xiaomi.feeder.iv2001': {
         'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
@@ -2218,6 +2235,13 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,auto_keep_warm,no_disturb,custom_knob_temp,lift_remember_temp,'
                              'boiling_reminder,keep_warm_reminder',
         'number_properties': 'target_temperature,keep_warm_temperature,keep_warm_time,target_mode',
+    },
+    'xiaomi.oven.cm30l': {
+        'select_actions': 'start_cook',
+        'sensor_properties': 'status,fault,left_time,working_time,temperature,'
+                             'timeout_time,cook_step,door_state,water_box_status',
+        'select_properties': 'furnace_light_mode',
+        'number_properties': 'target_temperature,cook_time,reservation_left_time',
     },
     'xiaomi.pet_waterer.70m2': {
         'binary_sensor_properties': 'water_shortage_status,usb_insert_state,low_battery,pump_block,fault',
@@ -2718,7 +2742,6 @@ DEVICE_CUSTOMIZES = {
     'zhimi.fan.fb1': {
         'switch_properties': 'horizontal_swing,vertical_swing,oscillating,h_swing_back,v_swing_back,brightness,alarm',
         'number_properties': 'timing',
-        'percentage_property': 'stepless_fan_level',
         'select_properties': 'mode,fan_level,horizontal_angle,vertical_angle',
         'button_properties': 'h_swing_step_move,v_swing_step_move',
     },
@@ -2733,7 +2756,6 @@ DEVICE_CUSTOMIZES = {
     'zhimi.fan.za5': {
         **CHUNK_1,
         'number_properties': 'speed_level',
-        'percentage_property': 'speed_level',
         'exclude_miot_properties': 'button_press,country_code',
         'interval_seconds': 121,
         'chunk_coordinators': [
@@ -3148,6 +3170,7 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     '*.oven.*': {
+        'button_actions': 'pause,resume_cook,cancel_cooking',
         'sensor_properties': 'temperature,left_time,cook_time,working_time',
         'number_properties': 'target_temperature',
         'switch_properties': 'oven.on',
@@ -3391,6 +3414,7 @@ GLOBAL_CONVERTERS = [
         'converters' : [
             {'props': ['on']},
             {'props': ['mode', 'fan_control.mode'], 'desc': True},
+            {'props': ['*.stepless_fan_level', '*.speed_level']},
             {'props': ['fan_level', 'fan_control.fan_level'], 'desc': True},
             {'props': ['horizontal_swing', 'fan_control.horizontal_swing']},
             {'props': ['vertical_swing', 'fan_control.vertical_swing']},
