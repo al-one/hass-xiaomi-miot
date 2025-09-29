@@ -110,6 +110,9 @@ async def check_miio_device(hass, user_input, errors):
                             hass, 'miot', 'local', model,
                             firmware=info.firmware_version,
                             results=results,
+                            miot_urn=miot_type,
+                            ap_rssi=info.get('ap', {}).get('rssi', ''),
+                            wifi_fw_ver=info.get('wifi_fw_ver', ''),
                         )
                         break
             except DeviceException:
