@@ -1,6 +1,6 @@
 {
     "config": {
-        "flow_title": "Xiaomi Miot Auto",
+        "flow_title": "Xiaomi Miot",
         "step": {
             "user": {
                 "title": "選擇操作",
@@ -127,7 +127,7 @@
             "none_devices": "該小米帳號下沒有裝置"
         },
         "abort": {
-            "show_customizes": "[![新增整合](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n請再次添加[`Xiaomi Miot Auto`](/_my_redirect/config_flow_start?domain=xiaomi_miot)整合來修改自訂選項\n{tip}"
+            "show_customizes": "[![新增整合](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n請再次添加[`Xiaomi Miot`](/_my_redirect/config_flow_start?domain=xiaomi_miot)整合來修改自訂選項\n{tip}"
         }
     },
     "system_health": {

@@ -5,7 +5,6 @@ import json
 import os
 import re
 from datetime import timedelta
-from functools import partial
 import voluptuous as vol
 
 from homeassistant import (
@@ -21,8 +20,6 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CONF_TOKEN,
     CONF_USERNAME,
-    STATE_OFF,
-    STATE_ON,
     STATE_UNKNOWN,
     SERVICE_RELOAD,
 )
@@ -36,13 +33,9 @@ import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
 
 from .core.const import *
-from .core.utils import wildcard_models
+from .core.utils import DeviceException, wildcard_models
 from .core import HassEntry, BasicEntity, XEntity # noqa
-from .core.device import (
-    Device,
-    MiioDevice,
-    DeviceException,
-)
+from .core.device import Device, AsyncMiIO
 from .core.miot_spec import (
     MiotService,
     MiotProperty,
@@ -474,10 +467,9 @@ async def async_setup_component_services(hass):
                         row['miio_cmd'] = f'miiocli device --ip {dip} --token {tok} info'
                         if not miio_info:
                             try:
-                                device = MiioDevice(dip, tok)
-                                miio_info = await hass.async_add_executor_job(device.info)
-                                miio_info = dict(miio_info.raw or {})
-                            except DeviceException as exc:
+                                miio = AsyncMiIO(dip, tok)
+                                miio_info = await miio.info()
+                            except Exception as exc:
                                 miio_info = {'error': str(exc)}
                             row['miio_info'] = miio_info
                     lst.append(row)
@@ -774,7 +766,7 @@ class MiioEntity(BaseEntity):
         self._subs = {}
 
         self._vars['is_main_entity'] = not self.device.miot_entity
-        self.device.miot_entity = self # TODO
+        self.device.miot_entity = self
 
     @property
     def unique_id(self):
@@ -856,14 +848,14 @@ class MiioEntity(BaseEntity):
         self._state = attrs.get('power') == 'on'
         await self.async_update_attrs(attrs)
 
-    def update_attrs(self, attrs: dict, update_parent=False, update_subs=True):
+    def update_attrs(self, attrs: dict, update_parent=False):
         self._state_attrs.update(attrs or {})
         if update_parent and hasattr(self, '_parent'):
             if self._parent and hasattr(self._parent, 'update_attrs'):
                 getattr(self._parent, 'update_attrs')(attrs or {}, update_parent=False)
         return self._state_attrs
 
-    async def async_update_attrs(self, attrs: dict, update_parent=False, update_subs=True):
+    async def async_update_attrs(self, attrs: dict, update_subs=True):
         self._state_attrs.update(attrs or {})
         if update_subs:
             if self.hass and self.platform:
@@ -1026,7 +1018,7 @@ class MiotEntity(MiioEntity):
     async def async_update_for_main_entity(self):
         pass
 
-    async def async_get_device_data(self, key, did=None, throw=False, **kwargs):
+    async def async_get_device_data(self, key, did=None, **kwargs):
         if did is None:
             did = self.miot_did
         mic = self.xiaomi_cloud

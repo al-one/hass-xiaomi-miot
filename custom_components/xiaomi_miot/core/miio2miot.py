@@ -2,19 +2,18 @@ import time
 import logging
 import voluptuous as vol
 from typing import Tuple
-from functools import partial
 
-from .utils import is_offline_exception
+from .utils import (
+    DeviceException,
+    is_offline_exception,
+    rgb_to_int,
+    int_to_rgb,
+)
 from .templates import template
 from .miot_spec import (MiotSpec, MiotProperty, MiotAction)
 from .miio2miot_specs import MIIO_TO_MIOT_SPECS
 import homeassistant.helpers.config_validation as cv
 
-from miio import DeviceException
-from miio.utils import (
-    rgb_to_int,
-    int_to_rgb,
-)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,7 +67,9 @@ class Miio2MiotHelper:
             except (DeviceException, OSError) as exc:
                 if is_offline_exception(exc):
                     raise exc
-                _LOGGER.error('%s: Got MiioException: %s while get_properties(%s)', self.model, exc, self.miio_props)
+                _LOGGER.error('%s: Got MiioException: %s while get_prop(%s)', self.model, exc, self.miio_props)
+            except TypeError:
+                _LOGGER.error('%s: Got TypeError while get_prop(%s)', self.model, self.miio_props, exc_info=True)
         if cls := self.config.get('miio_commands'):
             for c in cls:
                 if dly := c.get('delay', 0):

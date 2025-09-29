@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
     DOMAIN as ENTITY_DOMAIN,
     SensorEntity as BaseEntity,
     SensorDeviceClass,
-    STATE_CLASSES,
+    SensorStateClass,
 )
 from homeassistant.helpers.restore_state import RestoreEntity, RestoredExtraData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -152,6 +152,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
     def custom_value_ratio(self):
         return self.custom_config_number('value_ratio') or 0
 
+
 XEntity.CLS[ENTITY_DOMAIN] = SensorEntity
 
 
@@ -190,8 +191,8 @@ class MiotSensorEntity(MiotEntity, BaseEntity):
             })
 
         cls = self.custom_config('state_class')
-        if cls in STATE_CLASSES:
-            self._attr_state_class = cls
+        if cls and cls in SensorStateClass:
+            self._attr_state_class = SensorStateClass(cls)
         elif cls in ['', False]:
             self._attr_state_class = None
 
@@ -256,8 +257,8 @@ class BaseSensorSubEntity(BaseSubEntity, BaseEntity):
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         cls = self.custom_config('state_class')
-        if cls in STATE_CLASSES:
-            self._attr_state_class = cls
+        if cls and cls in SensorStateClass:
+            self._attr_state_class = SensorStateClass(cls)
         elif cls in ['', False]:
             self._attr_state_class = None
 

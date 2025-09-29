@@ -114,7 +114,7 @@ class XEntity(BasicEntity):
         self._attr_device_class = self.custom_config('device_class') or conv.option.get('device_class')
 
         if self._attr_translation_key:
-            self._attr_translation_key = ( # hassfest
+            self._attr_translation_key = (  # hassfest
                 self._attr_translation_key
                 .replace(':', '-')
                 .replace('.', '-')

@@ -95,7 +95,7 @@ class CoverEntity(XEntity, BaseEntity):
                 self._conv_motor = conv
                 self._attr_supported_features |= CoverEntityFeature.OPEN
                 self._attr_supported_features |= CoverEntityFeature.CLOSE
-                if prop.list_first('Stop', 'Pause') != None:
+                if prop.list_first('Stop', 'Pause') is not None:
                     self._attr_supported_features |= CoverEntityFeature.STOP
             elif prop.in_list(['current_position']):
                 if prop.value_range:
@@ -202,7 +202,7 @@ class CoverEntity(XEntity, BaseEntity):
     async def async_open_cover(self, **kwargs):
         if conv := self._conv_motor:
             val = conv.prop.list_first(*self._open_texts)
-            if val != None:
+            if val is not None:
                 await self.device.async_write({conv.full_name: val})
                 return
             self.log.warning('No open command found in motor control property: %s', self._open_texts)
@@ -211,7 +211,7 @@ class CoverEntity(XEntity, BaseEntity):
     async def async_close_cover(self, **kwargs):
         if conv := self._conv_motor:
             val = conv.prop.list_first(*self._close_texts)
-            if val != None:
+            if val is not None:
                 await self.device.async_write({conv.full_name: val})
                 return
             self.log.warning('No close command found in motor control property: %s', [self._close_texts, conv.prop.value_list])
@@ -221,7 +221,7 @@ class CoverEntity(XEntity, BaseEntity):
         if not self._conv_motor:
             return
         val = self._conv_motor.prop.list_first('Stop', 'Pause')
-        if val != None:
+        if val is not None:
             await self.device.async_write({self._conv_motor.full_name: val})
 
     async def async_set_cover_position(self, position, **kwargs):
@@ -230,5 +230,6 @@ class CoverEntity(XEntity, BaseEntity):
         if self._position_reverse:
             position = self._target_range[1] - position
         await self.device.async_write({self._conv_target_position.full_name: position})
+
 
 XEntity.CLS[ENTITY_DOMAIN] = CoverEntity

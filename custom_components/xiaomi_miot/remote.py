@@ -20,11 +20,10 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     MiotEntity,
-    DeviceException,
     async_setup_config_entry,
     bind_services_to_entries,
 )
-from .core.utils import get_translations
+from .core.utils import get_translations, DeviceException
 from .core.miot_spec import (
     MiotSpec,
 )
@@ -33,15 +32,8 @@ from .core.xiaomi_cloud import (
     MiCloudException,
 )
 
-try:
-    from miio import ChuangmiIr
-except (ModuleNotFoundError, ImportError):
-    from miio.integrations.chuangmi.remote import ChuangmiIr
-
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
-
-SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -61,6 +53,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         token = config.get(CONF_TOKEN)
         if spec.name in ['remote_control', 'ir_remote_control']:
             if 'chuangmi.remote.' in model or 'chuangmi.ir.' in model:
+                ChuangmiIr = await hass.async_add_executor_job(import_miio_chuangmi_remote)
                 device = ChuangmiIr(host, token)
                 entities.append(MiotRemoteEntity(config, spec, device))
         elif model in [
@@ -77,7 +70,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities, update_before_add=True)
-    bind_services_to_entries(hass, SERVICE_TO_METHOD)
+
+
+def import_miio_chuangmi_remote():
+    try:
+        from miio import ChuangmiIr
+    except (ModuleNotFoundError, ImportError):
+        from miio.integrations.chuangmi.remote import ChuangmiIr
+    return ChuangmiIr
 
 
 class MiotRemoteEntity(MiotEntity, RemoteEntity):
@@ -183,24 +183,25 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         timeout = int(kwargs.get(remote.ATTR_TIMEOUT) or 30)
         res = {}
         key = int(kwargs.get(remote.ATTR_DEVICE, 999999))
-        learn = partial(self.miot_device.send, 'start_ir_learn', [key])
-        read = partial(self.miot_device.send, 'get_ir_learn_result')
-        if hasattr(self.miot_device, 'read'):
-            learn = partial(self.miot_device.learn, key)
-            read = partial(self.miot_device.read, key)
         try:
             for idx in range(timeout):
+                if hasattr(self.miot_device, 'read'):
+                    learn = self.hass.async_add_executor_job(self.miot_device.learn, key)
+                    read = self.hass.async_add_executor_job(self.miot_device.read, key)
+                else:
+                    learn = self.miot_device.async_send('start_ir_learn', [key])
+                    read = self.miot_device.async_send('get_ir_learn_result')
                 if idx == 0:
-                    await self.hass.async_add_executor_job(learn)
+                    await learn
                 await asyncio.sleep(1)
-                res = await self.hass.async_add_executor_job(read)
+                res = await read
                 if isinstance(res, dict) and res.get('code'):
                     break
                 if isinstance(res, list) and res and str(res[0]).startswith('FE'):
                     # lumi.acpartner.v*
                     res = {'result': res}
                     break
-        except (TypeError, ValueError, DeviceException) as exc:
+        except Exception as exc:
             res = {'error': f'{exc}'}
             self.logger.warning(
                 '%s: Learn command failed, the device ID must between 1 and 1000000. %s',

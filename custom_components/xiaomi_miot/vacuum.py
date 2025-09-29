@@ -16,11 +16,11 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     MiotEntity,
-    DeviceException,
     MIOT_LOCAL_MODELS,
     async_setup_config_entry,
     bind_services_to_entries,
 )
+from .core.utils import DeviceException
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -235,7 +235,6 @@ class MiotRoborockVacuumEntity(MiotVacuumEntity):
                 })
                 add_buttons([self._subs[sub]], update_before_add=False)
         self.logger.info('Room buttons: %s', [rooms, add_buttons])
-
 
     async def async_update(self):
         await super().async_update()

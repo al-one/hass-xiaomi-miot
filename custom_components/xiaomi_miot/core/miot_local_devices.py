@@ -374,7 +374,7 @@ MIOT_LOCAL_MODELS = [
     'iot.plug.jdls1',
     'iot.plug.pw6u1',
     'iot.plug.socn1',
-    'iot.switch.padw2p',
+    # 'iot.switch.padw2p',  # mesh
     'iot.switch.padwb1',
     'iot.tow_w.jd015',
     'isa.camera.500dh',

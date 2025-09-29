@@ -392,7 +392,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                 break
         return self.xiaoai_device
 
-    async def async_update_play_status(self, now=None):
+    async def async_update_play_status(self, _=None):
         if not (aid := self.xiaoai_id):
             return
         self.update_attrs({'xiaoai_id': aid})

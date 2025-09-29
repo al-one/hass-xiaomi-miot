@@ -511,6 +511,14 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 120,
         'exclude_miot_services': 'custome',
         'exclude_miot_properties': 'indicator_light.mode,start_time,end_time',
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'prop.2.*'},
+            {'interval': 23, 'props': 'prop.3.*'},
+            {'interval': 25, 'props': 'prop.4.*'},
+            {'interval': 27, 'props': 'prop.5.*'},
+            {'interval': 29, 'props': 'prop.6.*'},
+            {'interval': 31, 'props': 'prop.7.*'},
+        ],
     },
     'cuco.plug.cp5prd': {
         'exclude_miot_services': 'device_setting,use_ele_alert',
@@ -518,6 +526,14 @@ DEVICE_CUSTOMIZES = {
                                    'indicator_light.mode,start_time,end_time,data_values',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '10.1',
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'prop.2.*'},
+            {'interval': 23, 'props': 'prop.3.*'},
+            {'interval': 25, 'props': 'prop.4.*'},
+            {'interval': 27, 'props': 'prop.5.*'},
+            {'interval': 29, 'props': 'prop.6.*'},
+            {'interval': 31, 'props': 'prop.7.*'},
+        ],
     },
     'cuco.plug.cp5prd:power_cost_today': {'value_ratio': 1},
     'cuco.plug.cp5prd:power_cost_month': {'value_ratio': 1},
@@ -525,6 +541,14 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'power_consumption,device_setting,use_ele_alert',  # issues/763
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '10.1',
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'prop.2.*'},
+            {'interval': 23, 'props': 'prop.3.*'},
+            {'interval': 25, 'props': 'prop.4.*'},
+            {'interval': 27, 'props': 'prop.5.*'},
+            {'interval': 29, 'props': 'prop.6.*'},
+            {'interval': 31, 'props': 'prop.7.*'},
+        ],
     },
     'cuco.plug.cp5pro:power_cost_today': {'value_ratio': 1},
     'cuco.plug.cp5pro:power_cost_month': {'value_ratio': 1},
@@ -537,6 +561,14 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 120,
         'exclude_miot_services': 'custome',
         'exclude_miot_properties': 'indicator_light.mode,start_time,end_time',
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'prop.2.*'},
+            {'interval': 23, 'props': 'prop.3.*'},
+            {'interval': 25, 'props': 'prop.4.*'},
+            {'interval': 27, 'props': 'prop.5.*'},
+            {'interval': 29, 'props': 'prop.6.*'},
+            {'interval': 31, 'props': 'prop.7.*'},
+        ],
     },
     'cuco.plug.v2eur': {
         'sensor_properties': 'electric_power',
@@ -2823,13 +2855,7 @@ DEVICE_CUSTOMIZES = {
         'value_ratio': 0.01,
     },
     'zimi.powerstrip.v2': {
-        'sensor_attributes': 'electric_power,store.powerCost:today,store.powerCost:month',
-        'miio_commands': {
-            'get_prop': {
-                'params': ['power_consume_rate'],
-                'values': ['electric_power'],
-            },
-        },
+        'sensor_attributes': 'store.powerCost:today,store.powerCost:month',
         'miio_cloud_records': 'store.powerCost:31:day',
         'miio_store_powerCost_template': 'zimi_powerstrip_v2_power_cost',
     },

@@ -136,7 +136,11 @@ class BaseClimateEntity(BaseEntity):
             if num is not None:
                 cls = sta.attributes.get(ATTR_DEVICE_CLASS)
                 unit = sta.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
-                if cls == SensorDeviceClass.TEMPERATURE.value or unit in [UnitOfTemperature.CELSIUS, UnitOfTemperature.KELVIN, UnitOfTemperature.FAHRENHEIT]:
+                if cls == SensorDeviceClass.TEMPERATURE.value or unit in [
+                    UnitOfTemperature.CELSIUS,
+                    UnitOfTemperature.KELVIN,
+                    UnitOfTemperature.FAHRENHEIT,
+                ]:
                     ext[ATTR_CURRENT_TEMPERATURE] = self.hass.config.units.temperature(num, unit)
                 elif cls == SensorDeviceClass.HUMIDITY.value:
                     ext[ATTR_CURRENT_HUMIDITY] = num
@@ -373,6 +377,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
         if not self._conv_swing_h:
             return
         await self.device.async_write({self._conv_swing_h.full_name: swing_horizontal_mode == SWING_ON})
+
 
 XEntity.CLS[ENTITY_DOMAIN] = ClimateEntity
 
