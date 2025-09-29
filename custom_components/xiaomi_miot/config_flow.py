@@ -87,7 +87,7 @@ async def check_miio_device(hass, user_input, errors):
         if not user_input.get(CONF_MODEL):
             model = str(info.model or '')
             user_input[CONF_MODEL] = model
-        user_input['miio_info'] = dict(info.raw or {})
+        user_input['miio_info'] = dict(info or {})
         miot_type = await MiotSpec.async_get_model_type(hass, model)
         if not miot_type:
             miot_type = await MiotSpec.async_get_model_type(hass, model, use_remote=True)
@@ -100,7 +100,7 @@ async def check_miio_device(hass, user_input, errors):
                     {'did': 'miot', 'siid': 2, 'piid': 2},
                     {'did': 'miot', 'siid': 3, 'piid': 1},
                 ]
-                results = device.get_properties(pms, property_getter='get_properties') or []
+                results = await device.send('get_properties', pms) or []
                 for prop in results:
                     if not isinstance(prop, dict):
                         continue

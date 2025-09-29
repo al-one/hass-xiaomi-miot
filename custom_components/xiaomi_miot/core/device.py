@@ -1432,9 +1432,25 @@ class MiioInfo(dict):
         self[key] = value
 
     @property
+    def network_interface(self):
+        return self.get('netif', {})
+
+    @property
+    def ip_address(self):
+        return self.network_interface.get('localIp')
+
+    @property
+    def mac_address(self):
+        return self.get('mac')
+
+    @property
     def firmware_version(self):
         return self.get('fw_ver')
 
     @property
     def hardware_version(self):
         return self.get('hw_ver')
+
+    @property
+    def raw(self):
+        return dict(self)
