@@ -103,32 +103,14 @@ class MiotCloud(micloud.MiCloud):
             dls.append(v)
         return dls
 
-    def get_props(self, params=None):
-        return self.request_miot_spec('prop/get', params)
-
     async def async_get_props(self, params=None):
         return await self.async_request_miot_spec('prop/get', params)
-
-    def set_props(self, params=None):
-        return self.request_miot_spec('prop/set', params)
 
     async def async_set_props(self, params=None):
         return await self.async_request_miot_spec('prop/set', params)
 
-    def do_action(self, params=None):
-        return self.request_miot_spec('action', params)
-
     async def async_do_action(self, params=None):
         return await self.async_request_miot_spec('action', params)
-
-    def request_miot_spec(self, api, params=None):
-        rdt = self.request_miot_api('miotspec/' + api, {
-            'params': params or [],
-        }) or {}
-        rls = rdt.get('result')
-        if not rls and rdt.get('code'):
-            raise MiCloudException(json.dumps(rdt))
-        return rls
 
     async def async_request_miot_spec(self, api, params=None):
         rdt = await self.async_request_api('miotspec/' + api, {
@@ -139,12 +121,7 @@ class MiotCloud(micloud.MiCloud):
             raise MiCloudException(json.dumps(rdt))
         return rls
 
-    async def async_get_user_device_data(self, *args, **kwargs):
-        return await self.hass.async_add_executor_job(
-            partial(self.get_user_device_data, *args, **kwargs)
-        )
-
-    def get_user_device_data(self, did, key, typ='prop', raw=False, **kwargs):
+    async def async_get_user_device_data(self, did, key, typ='prop', raw=False, **kwargs):
         now = int(time.time())
         timeout = kwargs.pop('timeout', self.http_timeout)
         params = {
@@ -156,7 +133,7 @@ class MiotCloud(micloud.MiCloud):
             'limit': 5,
             **kwargs,
         }
-        rdt = self.request_miot_api('user/get_user_device_data', params, timeout=timeout) or {}
+        rdt = await self.async_request_api('user/get_user_device_data', params, timeout=timeout) or {}
         return rdt if raw else rdt.get('result')
 
     async def async_get_last_device_data(self, did, key, typ='prop', **kwargs):
@@ -267,43 +244,6 @@ class MiotCloud(micloud.MiCloud):
         if code == 3:
             self._logout()
             _LOGGER.warning('Unauthorized while request to %s, response: %s, logged out.', api, rsp)
-        elif code or not rdt:
-            fun = _LOGGER.info if rdt else _LOGGER.warning
-            fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp)
-        return rdt
-
-    def request_miot_api(self, api, data, method='POST', crypt=True, debug=True, **kwargs):
-        params = {}
-        if data is not None:
-            params['data'] = self.json_encode(data)
-        raw = kwargs.pop('raw', self.sid != 'xiaomiio')
-        rsp = None
-        try:
-            if raw:
-                rsp = self.request_raw(api, data, method, **kwargs)
-            elif crypt:
-                rsp = self.request_rc4_api(api, params, method, **kwargs)
-            else:
-                rsp = self.request(self.get_api_url(api), params, **kwargs)
-            rdt = json.loads(rsp)
-            if debug:
-                _LOGGER.debug(
-                    'Request miot api: %s %s result: %s',
-                    api, data, rsp,
-                )
-            self.attrs['timeouts'] = 0
-        except requests.exceptions.Timeout as exc:
-            rdt = None
-            self.attrs.setdefault('timeouts', 0)
-            self.attrs['timeouts'] += 1
-            if 5 < self.attrs['timeouts'] <= 10:
-                _LOGGER.error('Request xiaomi api: %s %s timeout, exception: %s', api, data, exc)
-        except (TypeError, ValueError):
-            rdt = None
-        code = rdt.get('code') if rdt else None
-        if code == 3:
-            self._logout()
-            _LOGGER.warning('Unauthorized while executing request to %s, logged out.', api)
         elif code or not rdt:
             fun = _LOGGER.info if rdt else _LOGGER.warning
             fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp)

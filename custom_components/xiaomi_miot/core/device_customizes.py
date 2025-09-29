@@ -868,23 +868,28 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'setting,msga,msgb',
     },
 
-    'hfjh.fishbowl.v1': {
-        'light_services': 'light',
-    },
     'hfjh.fishbowl.v2': {
         'switch_properties': 'water_pump,ledboard_time_switch,feed_time_switch,key_switch',
         'select_properties': 'ledboard_model',
         'number_properties': 'ledboard_brightness,ledboard_sun,ledboard_color,ledboard_stream,ledboard_speed,'
                              'pump_flux,feed_num',
         'select_actions': 'set_feed_single',
-        'light_services': 'fish_tank',
         'power_property': 'fish_tank.on',
         'mode_property': 'ledboard_model',
         'brightness_property': 'ledboard_brightness',
         'color_property': 'ledboard_color',
+        'append_converters': [
+            {
+                'class': MiotLightConv,
+                'services': ['fish_tank'],
+                'converters' : [
+                    {'props': ['ledboard_brightness'], 'class': MiotBrightnessConv},
+                    {'props': ['ledboard_color'], 'class': MiotRgbColorConv},
+                ],
+            },
+        ],
     },
     'hfjh.fishbowl.m100': {
-        'light_services': 'light',
         'sensor_properties': 'temperature,water_pump_status,filter_life_level,alarm.alarm',
         'switch_properties': 'water_pump,feed_protect_on,no_disturb,light_status_on,pump_status_on,temperature_warn_on',
         'select_properties': 'pump_flux,light_status_mode,light_status_flow,pump_status_flux,flow_speed_level',
@@ -1117,7 +1122,6 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     'leishi.bhf_light.lsyb01': {
-        'light_services': 'night_light',
         'switch_properties': 'heating,blow,ventilation,dryer',
         'select_properties': 'heat_level,fan_level',
         'button_actions': 'stop_working',
@@ -1165,7 +1169,18 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,default_power_on_state,auto_screen_off_time,screen_switch,sensitivity',
         'number_properties': 'brightness',
         'text_properties': 'text_a,text_b,text_c,text_s',
-        'light_services': 'vd_light_a,vd_light_b,vd_light_c',
+        'append_converters': [
+            {
+                'class': MiotLightConv,
+                'services': ['vd_light_a', 'vd_light_b', 'vd_light_c'],
+                'converters' : [
+                    {'props': ['brightness'], 'class': MiotBrightnessConv},
+                    {'props': ['color_temperature'], 'class': MiotColorTempConv},
+                    {'props': ['color'], 'class': MiotRgbColorConv},
+                    {'props': ['color_mode'], 'desc': True},
+                ],
+            },
+        ],
     },
     'lumi.acpartner.mcn02': {
         'sensor_attributes': 'power_cost_today,power_cost_month',
@@ -1500,9 +1515,18 @@ DEVICE_CUSTOMIZES = {
     'opple.bhf_light.acmoto': {
         'exclude_miot_services': 'pair,wifisinr,class_sku,fan_motor',
         'exclude_miot_properties': 'fault',
-        'light_services': 'aura_light',
         'number_properties': 'function_countdown.warm,function_countdown.blower,'
                              'function_countdown.breath,function_countdown,shutdown',
+        'append_converters': [
+            {
+                'class': MiotLightConv,
+                'services': ['aura_light'],
+                'converters' : [
+                    {'props': ['brightness'], 'class': MiotBrightnessConv},
+                    {'props': ['color'], 'class': MiotRgbColorConv},
+                ],
+            },
+        ],
     },
     'opple.light.dcfan2': {
         'sensor_properties': 'temperature',
@@ -1551,10 +1575,20 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'toggle_rhythm',
     },
     'pwzn.light.apple': {
-        'light_services': 'light_ct',
         'switch_properties': 'enable',
         'select_properties': 'mode,rgb_order',
         'number_properties': 'numleds,pixel_per_step,fade_delay,step_delay,stair_travel_time',
+        'append_converters': [
+            {
+                'class': MiotLightConv,
+                'services': ['light_ct', 'light_led_strip'],
+                'converters' : [
+                    {'props': ['brightness'], 'class': MiotBrightnessConv},
+                    {'props': ['color_temperature', 'color_temp'], 'class': MiotColorTempConv},
+                    {'props': ['color'], 'class': MiotRgbColorConv},
+                ],
+            },
+        ],
     },
     'qdhkl.aircondition.b23': {
         'local_delay_update': 8,
@@ -1978,9 +2012,7 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.airp.mp4': {
         'switch_properties': 'anion,alarm',
-        'light_services': 'screen',
-        'brightness_for_on': 0,
-        'brightness_for_off': 2,
+        'select_properties': 'brightness',
         'exclude_miot_services': 'rfid',
     },
     'xiaomi.airp.va2b': {
@@ -1990,12 +2022,9 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.airp.va4': {
         'sensor_properties': 'relative_humidity,air_quality,pm2_5_density,temperature,hcho_density,filter_life_level',
         'switch_properties': 'on,anion,uv,alarm',
-        'select_properties': 'air_purifier_favorite.fan_level',
+        'select_properties': 'air_purifier_favorite.fan_level,brightness',
         'number_properties': 'aqi_updata_heartbeat',
         'button_actions': 'reset_filter_life',
-        'light_services': 'screen',
-        'brightness_for_on': 0,
-        'brightness_for_off': 2,
         'exclude_miot_services': 'rfid,custom_service,filter_debug',
     },
     'xiaomi.airp.va5': {
@@ -2627,10 +2656,8 @@ DEVICE_CUSTOMIZES = {
     },
     'zhimi.airp.sa4': {
         'switch_properties': 'alarm',
+        'select_properties': 'brightness',
         'number_properties': 'air_purifier_favorite.fan_level,aqi_updata_heartbeat',
-        'light_services': 'screen',
-        'brightness_for_on': 0,
-        'brightness_for_off': 2,
         'button_actions': 'reset_filter_life',
     },
     'zhimi.airp.rma3': {
@@ -2871,7 +2898,6 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'temperature',
         'switch_properties': 'heating,blow,ventilation',
         'select_properties': 'link',
-        'light_services': 'light',
     },
 
     '*.aircondition.*': {
@@ -2919,12 +2945,13 @@ DEVICE_CUSTOMIZES = {
     },
     '*.bhf_light.*': {
         'sensor_properties': 'temperature',
-        'switch_properties': 'heating,blow,ventilation,dryer',
-        'select_properties': 'mode',
-        'number_properties': 'target_temperature,off_delay_time',
+        'switch_properties': 'on,heating,blow,ventilation,dryer,vertical_swing',
+        'select_properties': 'mode,room_size,fan_level',
+        'number_properties': 'target_temperature,delay_time,off_delay_time',
         'button_actions': 'stop_working',
         'chunk_coordinators': [
-            {'interval': 10, 'props': 'on,mode,target_temperature,fan_level'},
+            {'interval': 11, 'props': 'on,mode,target_temperature,fan_level'},
+            {'interval': 16, 'props': 'heating,blow,ventilation,dryer'},
         ],
     },
     '*.blanket.*': {
@@ -3369,7 +3396,7 @@ GLOBAL_CONVERTERS = [
     },
     {
         'class': MiotClimateConv,
-        'services': ['air_conditioner', 'heater', 'thermostat'],
+        'services': ['air_conditioner', 'heater', 'thermostat', 'ptc_bath_heater'],
         'converters' : [
             {'props': ['on', 'target_temperature']},
             {'props': ['indoor_temperature', 'temperature']},
