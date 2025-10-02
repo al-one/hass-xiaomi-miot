@@ -136,7 +136,9 @@ class FanEntity(XEntity, BaseEntity):
                 des = self._conv_speed.prop.list_description(val)
                 if self._speed_range:
                     self._attr_percentage = ranged_value_to_percentage(self._speed_range, val)
-                if self._speed_list and des in self._speed_list:
+                if self._speed_list and val in self._speed_list:
+                    self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, val)
+                elif self._speed_list and des in self._speed_list:
                     self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, des)
         if self._conv_power:
             val = self._conv_power.value_from_dict(data)
@@ -168,7 +170,7 @@ class FanEntity(XEntity, BaseEntity):
                 dat[self._conv_speed.full_name] = percentage_to_ranged_value(self._speed_range, percentage)
             elif self._speed_list:
                 des = percentage_to_ordered_list_item(self._speed_list, percentage)
-                dat[self._conv_speed.full_name] = self._conv_speed.prop.list_value(des)
+                dat[self._conv_speed.full_name] = des
         if preset_mode is not None:
             dat[self._conv_mode.full_name] = preset_mode
         if dat:
