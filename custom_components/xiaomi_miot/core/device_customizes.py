@@ -34,6 +34,18 @@ ENERGY_KWH = {
     'unit_of_measurement': 'kWh',
 }
 
+ENERGY_AC_0801 = {
+    'stat_power_cost_type': 'total_day',
+    'stat_power_cost_key': '8.1',
+    'sensor_attributes': 'power_cost_today,power_cost_month',
+}
+
+ENERGY_AC_2001 = {
+    'stat_power_cost_type': 'stat_day_v3',
+    'stat_power_cost_key': '20.1',
+    'sensor_attributes': 'power_cost_today,power_cost_month',
+}
+
 
 DEVICE_CUSTOMIZES = {
     '090615.aircondition.ktf': {
@@ -1895,16 +1907,25 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'fan_percent',
     },
     'xiaomi.airc.*:power_consumption': ENERGY_KWH,
-    'xiaomi.aircondition.c16': {
-        'stat_power_cost_type': 'total_day',
-        'stat_power_cost_key': '8.1',
-        'sensor_attributes': 'power_cost_today,power_cost_month',
-    },
+    'xiaomi.aircondition.c16': ENERGY_AC_0801,
     'xiaomi.aircondition.c24': {
+        **ENERGY_AC_0801,
         'stat_power_cost_type': 'stat_day_v3',
-        'stat_power_cost_key': '8.1',
-        'sensor_attributes': 'power_cost_today,power_cost_month',
     },
+    'xiaomi.aircondition.c26': {
+        **ENERGY_AC_0801,
+        'stat_power_cost_type': 'stat_day_v3',
+    },
+    'xiaomi.aircondition.c30': ENERGY_AC_2001,
+    'xiaomi.aircondition.c31': ENERGY_AC_2001,
+    'xiaomi.aircondition.c32': ENERGY_AC_2001,
+    'xiaomi.aircondition.c33': ENERGY_AC_2001,
+    'xiaomi.aircondition.c35': ENERGY_AC_2001,
+    'xiaomi.aircondition.c36': ENERGY_AC_2001,
+    'xiaomi.aircondition.c37': ENERGY_AC_2001,
+    'xiaomi.aircondition.c38': ENERGY_AC_2001,
+    'xiaomi.aircondition.c39': ENERGY_AC_2001,
+    'xiaomi.aircondition.c40': ENERGY_AC_2001,
     'xiaomi.aircondition.m4': {
         'switch_properties': 'air_conditioner.on,un_straight_blowing,favorite_on',
         'exclude_miot_services': 'maintenance,machine_state,single_smart_scene,system_parm,favorite_type_data,'
@@ -1918,6 +1939,13 @@ DEVICE_CUSTOMIZES = {
                                  'mosquito_repellent,favorite_type_data,air_conditioner_dev_mode,product_appearance',
         'exclude_miot_properties': 'fault,enhance.timer,humidity_range',
     },
+    'xiaomi.aircondition.m15': ENERGY_AC_2001,
+    'xiaomi.aircondition.m16': ENERGY_AC_2001,
+    'xiaomi.aircondition.m18': ENERGY_AC_2001,
+    'xiaomi.aircondition.m19': ENERGY_AC_2001,
+    'xiaomi.aircondition.m22': ENERGY_AC_2001,
+    'xiaomi.aircondition.m27': ENERGY_AC_2001,
+    'xiaomi.aircondition.m28': ENERGY_AC_2001,
     'xiaomi.aircondition.ma1': {
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:xiaomi-ma1:4',
     },
@@ -1927,20 +1955,30 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.aircondition.ma4': {
         'miot_type': 'urn:miot-spec-v2:device:air-conditioner:0000A004:xiaomi-ma4:2',
     },
-    'xiaomi.aircondition.mc8': {
-        'stat_power_cost_type': 'total_day',
-        'stat_power_cost_key': '8.1',
-        'sensor_attributes': 'power_cost_today,power_cost_month',
-    },
+    'xiaomi.aircondition.mc1': ENERGY_AC_0801,
+    'xiaomi.aircondition.mc2': ENERGY_AC_0801,
+    'xiaomi.aircondition.mc3': ENERGY_AC_0801,
+    'xiaomi.aircondition.mc4': ENERGY_AC_0801,
+    'xiaomi.aircondition.mc5': ENERGY_AC_0801,
+    'xiaomi.aircondition.mc6': ENERGY_AC_0801,
+    'xiaomi.aircondition.mc7': ENERGY_AC_0801,
+    'xiaomi.aircondition.mc8': ENERGY_AC_0801,
     'xiaomi.aircondition.mc9': {
+        **ENERGY_AC_0801,
         'exclude_miot_services': 'machine_state,flag_bit',
         'exclude_miot_properties': 'enhance.timer',
     },
     'xiaomi.aircondition.mt0': {
+        **ENERGY_AC_0801,
         'exclude_miot_services': 'iot_linkage,machine_state,screen_show',
         'exclude_miot_properties': 'enhance.timer,humidity_range,filter_core_rest,sleep_diy_sign',
     },
+    'xiaomi.aircondition.mt1': ENERGY_AC_0801,
+    'xiaomi.aircondition.mt2': ENERGY_AC_0801,
+    'xiaomi.aircondition.mt3': ENERGY_AC_0801,
+    'xiaomi.aircondition.mt4': ENERGY_AC_0801,
     'xiaomi.aircondition.mt5': {
+        **ENERGY_AC_0801,
         'append_converters': [
             {
                 'class': MiotFanConv,
@@ -1950,16 +1988,15 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     'xiaomi.aircondition.mt6': {
+        **ENERGY_AC_0801,
         'select_properties': 'fan_level,horizontal_angle,vertical_angle',
         'number_properties': 'target_humidity,fan_percent',
         'exclude_miot_services': 'iot_linkage,machine_state,screen_show',
         'exclude_miot_properties': 'enhance.timer,humidity_range,filter_core_rest,sleep_diy_sign',
     },
-    'xiaomi.aircondition.mt7': {
-        'stat_power_cost_type': 'total_day',
-        'stat_power_cost_key': '8.1',
-        'sensor_attributes': 'power_cost_today,power_cost_month',
-    },
+    'xiaomi.aircondition.mt7': ENERGY_AC_0801,
+    'xiaomi.aircondition.mt8': ENERGY_AC_0801,
+    'xiaomi.aircondition.mt9': ENERGY_AC_0801,
     'xiaomi.aircondition.*': {
         'exclude_miot_services': 'iot_linkage,machine_state,flag_bit',
         'exclude_miot_properties': 'enhance.timer',
