@@ -234,5 +234,5 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                     continue
                 key = k.get('id')
         if key:
-            return self.async_send_cloud_command(did, key)
+            return await self.async_send_cloud_command(did, key)
         return False
