@@ -592,8 +592,19 @@ DEVICE_CUSTOMIZES = {
     'cuco.plug.v2eur:power_cost_today': {'value_ratio': 0.01},
     'cuco.plug.v2eur:power_cost_month': {'value_ratio': 0.01},
     'cuco.plug.v3': {
+        'sensor_properties': 'electric_power,fault,temperature',
+        'switch_properties': 'on,cycle.status',
+        'number_properties': 'charging_protection.power,protect_time,max_power_limit.power,charge_prt_ext.power'
+                             'duration,over_ele_day,over_ele_month,power_ext',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '11.1',
+        'chunk_coordinators': [
+            {'interval': 16, 'props': 'switch.on'},
+            {'interval': 51, 'props': 'electric_power,temperature'},
+            {'interval': 71, 'props': 'prop.3.*,prop.4.*'},
+            {'interval': 81, 'props': 'prop.8.*,prop.9.*'},
+            {'interval': 91, 'props': 'prop.10.*,prop.12.*,prop.14.*,prop.15.*'},
+        ],
     },
     'cuco.plug.v3:electric_power': {'unit_of_measurement': 'W'},
     'cuco.plug.v3:power_cost_today': {'value_ratio': 0.01},
