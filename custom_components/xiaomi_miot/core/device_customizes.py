@@ -1973,6 +1973,9 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'fan_percent',
     },
     'xiaomi.airc.*:power_consumption': ENERGY_KWH,
+    'xiaomi.aircondition.c12': ENERGY_AC_0801,
+    'xiaomi.aircondition.c13': ENERGY_AC_0801,
+    'xiaomi.aircondition.c15': ENERGY_AC_0801,
     'xiaomi.aircondition.c16': ENERGY_AC_0801,
     'xiaomi.aircondition.c24': {
         **ENERGY_AC_0801,
@@ -2034,6 +2037,11 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_services': 'machine_state,flag_bit',
         'exclude_miot_properties': 'enhance.timer',
     },
+    'xiaomi.aircondition.mh1': ENERGY_AC_0801,
+    'xiaomi.aircondition.mh2': ENERGY_AC_0801,
+    'xiaomi.aircondition.mh3': ENERGY_AC_0801,
+    'xiaomi.aircondition.mh4': ENERGY_AC_0801,
+    'xiaomi.aircondition.mh6': ENERGY_AC_0801,
     'xiaomi.aircondition.mt0': {
         **ENERGY_AC_0801,
         'exclude_miot_services': 'iot_linkage,machine_state,screen_show',
