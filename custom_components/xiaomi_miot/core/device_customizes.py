@@ -2352,6 +2352,10 @@ DEVICE_CUSTOMIZES = {
                                        'installation_image,response_speed'},
         ],
     },
+    'xiaomi.sensor_occupy.p1:people_num': {
+        'state_class': 'measurement',
+        'unit_of_measurement': 'people',
+    },
     'xiaomi.tv.*': {
         'auto_cloud': True,
         'switch_properties': 'is_on',
