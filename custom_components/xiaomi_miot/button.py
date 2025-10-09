@@ -62,7 +62,7 @@ class ButtonSubEntity(BaseEntity, BaseSubEntity):
     def __init__(self, parent, attr, option=None):
         BaseSubEntity.__init__(self, parent, attr, option)
         self._available = True
-        self._async_press_action = self._option.get('async_press_action')
+        self._async_action = self._option.get('async_press_action')
         self._press_action = self._option.get('press_action')
         self._press_kwargs = {
             'attr': self._attr,
@@ -82,8 +82,8 @@ class ButtonSubEntity(BaseEntity, BaseSubEntity):
         return ret
 
     async def async_press(self):
-        if self._async_press_action:
-            if ret := await self._async_press_action(**self._press_kwargs):
+        if self._async_action:
+            if ret := await self._async_action(**self._press_kwargs):
                 self.schedule_update_ha_state()
             return ret
         await super().async_press()
