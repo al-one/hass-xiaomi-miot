@@ -135,7 +135,7 @@ class FanEntity(XEntity, BaseEntity):
             if val is not None:
                 des = self._conv_speed.prop.list_description(val)
                 if self._speed_range:
-                    self._attr_percentage = ranged_value_to_percentage(self._speed_range, val)
+                    self._attr_percentage = ranged_value_to_percentage(self._speed_range, float(val))
                 if self._speed_list and val in self._speed_list:
                     self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, val)
                 elif self._speed_list and des in self._speed_list:
