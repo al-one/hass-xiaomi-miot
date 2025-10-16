@@ -220,30 +220,20 @@ DEVICE_CUSTOMIZES = {
     'bofu.curtain.bfmh': {
         'select_properties': 'motor_control',
     },
-
-    'careco.evc.a07a01': {
+    'careco.evc.*': {
         'button_actions': 'start_charge,stop_charge',
         'sensor_properties': 'status,4g_signal,electric_power,electric_current,charged_quantity,fault',
         'switch_properties': 'timer_on,full_charge,authorize_mode,auto_upgrade',
         'number_properties': 'maximum_current_regulation',
     },
-    'careco.evc.a07a01:electric_power': {
+    'careco.evc.*:electric_power': {
         'state_class': 'measurement',
         'device_class': 'power',
     },
-    'careco.evc.a07a01:charged_quantity': ENERGY_KWH,
+    'careco.evc.*:charged_quantity': ENERGY_KWH,
     'careco.evc.a07b01': {
-        'button_actions': 'start_charge,stop_charge',
-        'sensor_properties': 'status,4g_signal,electric_power,electric_current,charged_quantity,fault',
-        'switch_properties': 'timer_on,full_charge,authorize_mode,auto_upgrade',
-        'number_properties': 'maximum_current_regulation',
         'select_properties': 'lock_status',
     },
-    'careco.evc.a07b01:electric_power': {
-        'state_class': 'measurement',
-        'device_class': 'power',
-    },
-    'careco.evc.a07b01:charged_quantity': ENERGY_KWH,
     'careli.fryer.*': {
         'interval_seconds': 120,
         'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
