@@ -654,12 +654,6 @@ class BaseEntity(BasicEntity):
     def name_model(self):
         return f'{self.name}({self.model})'
 
-    def global_config(self, key=None, default=None):
-        if not self.hass:
-            return default
-        cfg = self.hass.data[DOMAIN]['config'] or {}
-        return cfg if key is None else cfg.get(key, default)
-
     @property
     def conn_mode(self):
         return self._config.get(CONF_CONN_MODE)
@@ -724,16 +718,6 @@ class BaseEntity(BasicEntity):
             _LOGGER.debug('%s: Update custom parallel updates: %s', self.name_model, num)
         self.parallel_updates = pus
         return pus
-
-    def filter_state_attributes(self, dat: dict):
-        if exl := self.global_config('exclude_state_attributes'):
-            exl = cv.ensure_list(exl)
-            dat = {
-                k: v
-                for k, v in dat.items()
-                if k not in exl
-            }
-        return dat
 
 
 class MiCoordinatorEntity(CoordinatorEntity, BaseEntity):

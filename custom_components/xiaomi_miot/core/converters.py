@@ -68,7 +68,6 @@ class InfoConv(BaseConv):
             'home_room': device.info.home_room,
             'icon': self.option.get('icon') if device.available else 'mdi:information-off',
             'updater': updater or 'none',
-            'updated_at': str(device.data.get('updated', '')),
         }
         customizes = {**device.customizes}
         customizes.pop('append_converters', None)
