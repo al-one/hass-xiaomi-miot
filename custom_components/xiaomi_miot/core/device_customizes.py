@@ -3483,6 +3483,7 @@ GLOBAL_CONVERTERS = [
             {'props': ['mode', 'fan_control.mode'], 'desc': True},
             {'props': ['*.stepless_fan_level', '*.speed_level']},
             {'props': ['fan_level', 'fan_control.fan_level'], 'desc': True},
+            {'props': ['*.favorite_level']},
             {'props': ['horizontal_swing', 'fan_control.horizontal_swing']},
             {'props': ['vertical_swing', 'fan_control.vertical_swing']},
         ],
