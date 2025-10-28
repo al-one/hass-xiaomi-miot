@@ -295,6 +295,7 @@ class CameraEntity(XEntity, BaseCameraEntity):
 
     def set_state(self, data: dict):
         if 'motion_video_latest' in self.device.props:
+            self._attr_available = True
             self._attr_should_poll = False
             self.update_motion_video(self.device.props)
 
