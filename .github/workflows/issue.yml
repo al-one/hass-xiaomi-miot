@@ -39,7 +39,7 @@ jobs:
             ${{ steps.format.outputs.BODY }}
 
             > This is the title (first line) and content of the issue submitted by the user.
-            > The reply must be in the language of the "issue details" content, or in the language of the title if no content details are provided, and in English if it is unclear.
+            > The reply must be in the language of the "The problem" content, or in the language of the issue title if no content details are provided, and in English if it is unclear.
             > If the issue feedback is about a problem with a specific device, check if the user has provided the device model,
             > entity attributes, and ha logs; remind the user if they have not provided this information.
 
