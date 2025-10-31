@@ -1979,6 +1979,13 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.airc.r34r00': {
         'sensor_properties': 'power_consumption,fault_value',
     },
+    'xiaomi.airc.ra2r00': {
+        'sensor_properties': 'fault_value,outdoor_temp,power_consumption',
+        'switch_properties': 'auto_cooling,list_soft_wind,max_level,always_favorite_on',
+        'select_properties': 'low_watt_level,wind_direction,vertical_position,horizontal_position',
+        'number_properties': 'fan_percent',
+        'exclude_miot_services': 'air_conditioner_dev_mode,system_parm',
+    },
     'xiaomi.airc.*': {
         'button_actions': 'favorite_toggle,reset_filter_life',
         'switch_properties': 'on,favorite_on,un_straight_blowing,horizontal_swing,vertical_swing',
