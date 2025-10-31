@@ -2144,7 +2144,8 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'mute,sleep_mode,auto_screen_off,auto_screen_brightness,touch_sound,key_name_display',
         'select_properties': 'mode,mibrain_level,mico_level,display_state,wallpaper',
         'number_properties': 'speaker.volume,brightness,theme',
-        'button_actions': 'homepage,light',
+        'button_actions': 'wake_up,stop_alarm,homepage,light',
+        'select_actions': 'switch_page',
         'text_actions': 'play_text,execute_text_directive',
     },
     'xiaomi.cooker.cmk7': {
