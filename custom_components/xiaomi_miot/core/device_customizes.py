@@ -2105,9 +2105,10 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'favorite_level',
         'speed_property': 'favorite_level',
         'exclude_miot_services': None,
-        'exclude_miot_properties': 'country_code,filter_used_time_dbg',
+        'exclude_miot_properties': 'moto-speed-rpm,country_code,filter_used_time_dbg',
         'chunk_coordinators': [
-            {'interval': 11, 'props': 'on,mode,favorite_level'},
+            {'interval': 21, 'props': 'on,mode'},
+            {'interval': 51, 'props': 'favorite_level,pm2_5_density'},
             {'interval': 121, 'props': 'alarm,physical_controls_locked,brightness,aqi_updata_heartbeat'},
             {'interval': 300, 'props': 'filter_*'},
         ],
