@@ -783,6 +783,13 @@ DEVICE_CUSTOMIZES = {
             },
         ],
     },
+    'dmaker.fan.p18': {
+        'button_actions': 'toggle_mode,loop_gear',
+        'button_properties': 'motor_control',
+        'switch_properties': 'brightness,alarm',
+        'select_properties': 'fan_level,horizontal_angle',
+        'number_properties': 'speed_level,off_delay_time',
+    },
     'dmaker.fan.p23': {
         'button_actions': 'toggle,toggle_mode,loop_gear',
         'switch_properties': 'on,heating,horizontal_swing,symmetrical_swing,alarm',
