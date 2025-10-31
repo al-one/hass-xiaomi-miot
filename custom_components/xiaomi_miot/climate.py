@@ -188,7 +188,8 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                         hvac_modes.add(mk)
                         self._hvac_modes[mk]['value'] = val
                         self._hvac_modes[mk]['description'] = des
-                        self._attr_preset_modes.remove(des)
+                        if mk != HVACMode.OFF:
+                            self._attr_preset_modes.remove(des)
                 if self._attr_preset_modes:
                     self._attr_supported_features |= ClimateEntityFeature.PRESET_MODE
             elif prop.in_list(['fan_level', 'speed_level', 'heat_level']):
