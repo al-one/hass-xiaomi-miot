@@ -2746,6 +2746,9 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'brightness,temperature_display_unit',
         'number_properties': 'favorite_speed,favorite_level',
     },
+    'zhimi.airp.meb1': {
+        'select_properties': 'brightness,temperature_display_unit',
+    },
     'zhimi.airp.meb1:pm10_density': {
         'unit_of_measurement': 'µg/m³',
     },
@@ -3487,6 +3490,7 @@ GLOBAL_CONVERTERS = [
             {'props': ['*.favorite_level']},
             {'props': ['horizontal_swing', 'fan_control.horizontal_swing']},
             {'props': ['vertical_swing', 'fan_control.vertical_swing']},
+            {'props': ['*.uv', '*.anion', '*.plasma'], 'domain': 'switch'},
         ],
     },
     {
