@@ -5,7 +5,7 @@
         "state_attributes": {
           "preset_mode": {
             "state": {
-              "Warm": "mdi:weather-sunny"
+              "warm": "mdi:weather-sunny"
             }
           }
         }
@@ -16,14 +16,7 @@
         "state_attributes": {
           "preset_mode": {
             "state": {
-              "Auto": "mdi:fan-auto",
-              "Basic": "mdi:weather-windy",
-              "Sleep": "mdi:sleep",
-              "Strong": "mdi:wind-power",
-              "Natural Wind": "mdi:leaf",
-              "Straight Wind": "mdi:weather-dust",
-              "Baby Care": "mdi:baby",
-              "Favorite": "mdi:star"
+              "auto": "mdi:fan-auto"
             }
           }
         }
