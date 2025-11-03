@@ -1,0 +1,82 @@
+{
+  "entity": {
+    "climate": {
+      "heater": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "Constant Temperature": "mdi:thermometer",
+              "恒温": "mdi:thermometer",
+              "Natural Wind": "mdi:leaf",
+              "自然风": "mdi:leaf",
+              "Warm": "mdi:weather-sunny",
+              "暖风": "mdi:weather-sunny"
+            }
+          }
+        }
+      }
+    },
+    "fan": {
+      "fan": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "Auto": "mdi:fan-auto",
+              "自动": "mdi:fan-auto",
+              "Basic": "mdi:weather-windy",
+              "标准": "mdi:weather-windy",
+              "标准风": "mdi:weather-windy",
+              "Sleep": "mdi:sleep",
+              "睡眠": "mdi:sleep",
+              "睡眠风": "mdi:sleep",
+              "Strong": "mdi:wind-power",
+              "强力": "mdi:wind-power",
+              "强力风": "mdi:wind-power",
+              "Natural Wind": "mdi:leaf",
+              "自然风": "mdi:leaf",
+              "Straight Wind": "mdi:weather-dust",
+              "直吹风": "mdi:weather-dust",
+              "Baby Care": "mdi:baby",
+              "婴儿风": "mdi:baby",
+              "Favorite": "mdi:star",
+              "喜爱": "mdi:star",
+              "最爱": "mdi:star"
+            }
+          }
+        }
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "service": "mdi:powershell"
+    },
+    "get_properties": {
+      "service": "mdi:magnify"
+    },
+    "set_property": {
+      "service": "mdi:gamepad"
+    },
+    "set_miot_property": {
+      "service": "mdi:gamepad-up"
+    },
+    "call_action": {
+      "service": "mdi:gesture-tap"
+    },
+    "intelligent_speaker": {
+      "service": "mdi:speaker-message"
+    },
+    "xiaoai_wakeup": {
+      "service": "mdi:chat-sleep"
+    },
+    "renew_devices": {
+      "service": "mdi:autorenew"
+    },
+    "get_token": {
+      "service": "mdi:key-chain"
+    },
+    "request_xiaomi_api": {
+      "service": "mdi:cloud"
+    }
+  }
+}
