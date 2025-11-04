@@ -1060,9 +1060,10 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'vacuum.on,*_points,multi_prop_vacuum,cur_cleaning_path,consumablesinfo,'
                                    'dnd_start_*,dnd_end_*',
         'chunk_coordinators': [
-            {'interval': 21, 'props': 'status,mode,sweep_type,suction_state'},
-            {'interval': 31, 'props': 'water_state,repeat_state,mop_route'},
-            {'interval': 41, 'props': 'ai_recognize,dirt_recognize,pet_recognize,repeat_state,cloth_state'},
+            {'interval': 31, 'props': 'status,mode'},
+            {'interval': 41, 'props': 'sweep_type,suction_state'},
+            {'interval': 51, 'props': 'water_state,repeat_state,mop_route'},
+            {'interval': 71, 'props': 'ai_recognize,dirt_recognize,pet_recognize,cloth_state'},
             {'interval': 81, 'props': 'remember_state,cur_map_id,build_map,has_new_map'},
             {'interval': 91, 'props': 'alarm,volume,door_state,cleaning_time,cleaning_area,carpet_booster'},
             {'interval': 131, 'props': 'battery_level,tank_shake,shake_shift,map_encrypt,target_point'},
