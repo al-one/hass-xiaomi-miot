@@ -6,9 +6,17 @@ on:
       prompt:
         description: Prompt for Claude code
         default: ''
+      show_full_output:
+        description: Show full output
+        type: choice
+        default: ''
+        options:
+          - ''
+          - 'true'
+          - 'false'
 
 jobs:
-  trading:
+  claude:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
