@@ -6,6 +6,7 @@
   "config_flow": true,
   "dependencies": [
     "http",
+    "intent",
     "persistent_notification",
     "ffmpeg"
   ],

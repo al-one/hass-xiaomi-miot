@@ -25,7 +25,11 @@ from homeassistant.components.media_player import (
     MediaType,  # v2022.10
     RepeatMode,  # v2022.10
 )
-from homeassistant.components.media_player.browse_media import async_process_play_media_url
+from homeassistant.components.media_player.browse_media import (
+    async_process_play_media_url,
+    SearchMedia,
+    BrowseMedia,
+)
 from homeassistant.components.homekit.const import EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED
 from homeassistant.core import HassJob
 from homeassistant.util.dt import utcnow
@@ -46,6 +50,7 @@ from . import (
     async_setup_config_entry,
     bind_services_to_entries,
 )
+from .core.const import HA_VERSION
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -337,6 +342,9 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         self.xiaoai_device = None
         self._supported_features |= MediaPlayerEntityFeature.PLAY_MEDIA | MediaPlayerEntityFeature.BROWSE_MEDIA
 
+        if HA_VERSION >= '2025.5' and (self._intelligent_speaker or self._message_router):
+            self._supported_features |= MediaPlayerEntityFeature.SEARCH_MEDIA
+
     @property
     def xiaoai_id(self):
         if not self.xiaoai_device:
@@ -506,16 +514,39 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
     async def async_browse_media(self, media_content_type=None, media_content_id=None):
         return await media_source.async_browse_media(
             self.hass, media_content_id,
-            content_filter=lambda item: item.media_content_type.startswith("audio/"))
+            content_filter=lambda item: item.media_content_type.startswith('audio/'),
+        )
+
+    async def async_search_media(self, query):
+        return SearchMedia(
+            result=[
+                BrowseMedia(
+                    title=query.search_query,
+                    media_class='',
+                    media_content_id=query.search_query,
+                    media_content_type=query.media_content_type,
+                    can_play=True,
+                    can_expand=False,
+                ),
+            ],
+        )
 
     async def async_play_media(self, media_type, media_id, **kwargs):
-        if not (aid := self.xiaoai_id):
-            return
-
         if media_source.is_media_source_id(media_id):
             play_item = await media_source.async_resolve_media(self.hass, media_id, self.entity_id)
             media_id = async_process_play_media_url(self.hass, play_item.url)
             self.logger.debug('async_resolve_media(%s) -> %s -> URL(%s)', media_id, play_item, media_id)
+
+        if not media_id.startswith('http'):
+            cmd = f'播放{media_id}'
+            if media_type in ['music', 'mp3', '音乐', '歌曲']:
+                cmd = f'播放音乐{media_id}'
+            elif media_type in ['video', 'mp4', '视频']:
+                cmd = f'播放视频{media_id}'
+            return await self.async_intelligent_speaker(cmd, execute=True)
+
+        if not (aid := self.xiaoai_id):
+            return
 
         # e.g. audio/mpeg, but also keeps backward compatibility with old enum keys
         if media_type.startswith('audio/') or media_type in {'audio', 'music', 'voice', 'mp3', 'tts'}:
@@ -532,7 +563,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         logger = rdt.get('code') and self.logger.warning or self.logger.info
         logger('%s: Play media: %s', self.name_model, [dat, rdt])
 
-    async def async_play_music(self, media_id, audio_id="1582971365183456177", id="355454500", **kwargs):
+    async def async_play_music(self, media_id, audio_id='1582971365183456177', id='355454500', **kwargs):
         if not (aid := self.xiaoai_id):
             return
         music = {
