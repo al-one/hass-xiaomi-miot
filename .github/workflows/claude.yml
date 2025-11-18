@@ -1,0 +1,50 @@
+name: Claude code
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: Prompt for Claude code
+        default: ''
+
+jobs:
+  trading:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup git identity
+        run: |
+          git config --global user.name "claude[bot]"
+          git config --global user.email "claude[bot]@users.noreply.github.com"
+
+      - name: Checkout branch
+        run: |
+          BRANCH_NAME="claude/auto-${{ github.event.workflow_run.head_branch }}-${{ github.run_id }}"
+          git checkout -b "$BRANCH_NAME"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - uses: anthropics/claude-code-action@v1
+        id: claude
+        timeout-minutes: 30
+        env:
+          ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
+          ANTHROPIC_DEFAULT_OPUS_MODEL: ${{ vars.ANTHROPIC_DEFAULT_OPUS_MODEL || vars.CLAUDE_DEFAULT_MODEL }}
+          ANTHROPIC_DEFAULT_HAIKU_MODEL: ${{ vars.ANTHROPIC_DEFAULT_HAIKU_MODEL || vars.CLAUDE_DEFAULT_MODEL }}
+          ANTHROPIC_DEFAULT_SONNET_MODEL: ${{ vars.ANTHROPIC_DEFAULT_SONNET_MODEL || vars.CLAUDE_DEFAULT_MODEL }}
+        with:
+          prompt: |
+            Repository: ${{ github.repository }}
+            Branch Name: ${{ env.BRANCH_NAME }}
+            ${{ inputs.prompt }}
+          show_full_output: ${{ vars.CLAUDE_FULL_OUTPUT || 'false' }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
+          claude_args: |
+            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,Bash(git:*),Bash(gh:*),mcp__github"
