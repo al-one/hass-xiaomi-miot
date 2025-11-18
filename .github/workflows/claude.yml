@@ -51,7 +51,7 @@ jobs:
             Repository: ${{ github.repository }}
             Branch Name: ${{ env.BRANCH_NAME }}
             ${{ inputs.prompt }}
-          show_full_output: ${{ vars.CLAUDE_FULL_OUTPUT || 'false' }}
+          show_full_output: ${{ inputs.show_full_output || vars.CLAUDE_FULL_OUTPUT || 'false' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_code_oauth_token: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           claude_args: |
