@@ -38,6 +38,33 @@ jobs:
           git checkout -b "$BRANCH_NAME"
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python & Tools
+        run: |
+          uv python install
+          uv venv
+          uv pip install -U "fastmcp>=2.0.0"
+
+      - name: Create MCP Config
+        run: |
+          cat > /tmp/mcp-config.json << 'EOF'
+          {
+            "mcpServers": {
+              "tools": {
+                "command": "uv",
+                "args": [
+                  "--directory", "${{ github.workspace }}",
+                  "run", "scripts/mcp-server.py"
+                ]
+              }
+            }
+          }
+          EOF
+
       - uses: anthropics/claude-code-action@v1
         id: claude
         timeout-minutes: 30
@@ -55,4 +82,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_code_oauth_token: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           claude_args: |
-            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,Bash(git:*),Bash(gh:*),mcp__github"
+            --mcp-config /tmp/mcp-config.json
+            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),mcp__github,mcp_tools"
