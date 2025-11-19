@@ -38,11 +38,33 @@ jobs:
         run: |
           git config --global user.name "claude[bot]"
           git config --global user.email "claude[bot]@users.noreply.github.com"
+          echo "EVENT_KEY=$(date +ci-%y%m%d)" >> $GITHUB_ENV
+
+      - name: Check issue
+        if: github.event.issue.number
+        run: |
+          {
+            echo 'EVENT_PROMPT<<EOF'
+            echo "Issue number: #${{ github.event.issue.number }}"
+            echo "${{ github.event.comment.body }}"
+            echo EOF
+          } >> $GITHUB_ENV
+          echo "EVENT_KEY=issue-${{ github.event.issue.number }}" >> $GITHUB_ENV
+
+      - name: Check pull request
+        if: github.event.pull_request.number
+        run: |
+          {
+            echo 'EVENT_PROMPT<<EOF'
+            echo "Pull request number: #${{ github.event.pull_request.number }}"
+            echo "${{ github.event.comment.body || github.event.review.body }}"
+            echo EOF
+          } >> $GITHUB_ENV
+          echo "EVENT_KEY=pull-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
       - name: Checkout branch
         run: |
-          ymd=$(date +%Y%m%d)
-          BRANCH_NAME="claude/auto-$ymd-${{ github.run_id }}"
+          BRANCH_NAME="claude/${{ env.EVENT_KEY }}-${{ github.run_id }}"
           git checkout -b "$BRANCH_NAME"
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
@@ -56,26 +78,6 @@ jobs:
           uv venv
           uv python install
           uv pip install -r scripts/requirements.txt
-
-      - name: Check issue
-        if: github.event.issue.number
-        run: |
-          {
-            echo 'EVENT_PROMPT<<EOF'
-            echo "Issue number: #${{ github.event.issue.number }}"
-            echo "${{ github.event.comment.body }}"
-            echo EOF
-          } >> $GITHUB_ENV
-
-      - name: Check pull request
-        if: github.event.pull_request.number
-        run: |
-          {
-            echo 'EVENT_PROMPT<<EOF'
-            echo "Pull request number: #${{ github.event.pull_request.number }}"
-            echo "${{ github.event.comment.body || github.event.review.body }}"
-            echo EOF
-          } >> $GITHUB_ENV
 
       - uses: anthropics/claude-code-action@v1
         id: claude
