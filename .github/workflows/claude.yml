@@ -102,10 +102,4 @@ jobs:
           claude_args: |
             --mcp-config .mcp.json
             --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),mcp__github,mcp__tools,mcp__context7"
-
-      - name: Commit & Push
-        env:
-          GITHUB_TOKEN: ${{ steps.claude.outputs.github_token || secrets.GH_PUSH_TOKEN }}
-        run: |
-          git status
-          git push -u origin "${{ env.BRANCH_NAME }}"
+            --append-system-prompt "If any new git commit is made, always push to the remote."
