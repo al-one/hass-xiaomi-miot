@@ -34,7 +34,8 @@ jobs:
 
       - name: Checkout branch
         run: |
-          BRANCH_NAME="claude/auto-${{ github.event.workflow_run.head_branch }}-${{ github.run_id }}"
+          ymd=$(date +%Y%m%d)
+          BRANCH_NAME="claude/auto-$ymd-${{ github.run_id }}"
           git checkout -b "$BRANCH_NAME"
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
