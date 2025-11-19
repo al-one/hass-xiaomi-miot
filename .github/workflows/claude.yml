@@ -21,8 +21,6 @@ jobs:
     permissions:
       id-token: write
       contents: write
-    env:
-      UV_SYSTEM_PYTHON: 1
     steps:
       - uses: actions/checkout@v5
         with:
@@ -43,21 +41,26 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.13"
           enable-cache: true
 
       - name: Set up requirements
         run: |
+          uv venv
+          uv python install
           uv pip install -r scripts/requirements.txt
 
       - name: Create MCP Config
         run: |
+          ./.venv/bin/python scripts/mcp-tools.py
           cat > /tmp/mcp-config.json << 'EOF'
           {
             "mcpServers": {
               "tools": {
-                "command": "./.venv/bin/python",
-                "args": ["scripts/mcp-tools.py"]
+                "command": "${{ github.workspace }}/.venv/bin/python",
+                "args": [
+                  "--directory", "${{ github.workspace }}",
+                  "scripts/mcp-tools.py"
+                ]
               }
             }
           }
