@@ -81,3 +81,10 @@ jobs:
           claude_args: |
             --mcp-config /tmp/mcp-config.json
             --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),mcp__github,mcp__tools"
+
+      - name: Commit & Push
+        env:
+          GITHUB_TOKEN: ${{ steps.claude.outputs.github_token || secrets.GH_PUSH_TOKEN }}
+        run: |
+          git status
+          git push -u origin "${{ env.BRANCH_NAME }}"
