@@ -90,6 +90,28 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
                     await self.async_update_attrs({
                         self._prop_power.full_name: not off,
                     })
+        elif self._prop_status:
+            # For devices without power property but with status property (like kettle),
+            # try to infer power state from status value
+            val = self._prop_status.from_device(self.device)
+            if val is not None:
+                # Check if status indicates the device is on/active
+                status_vals_on = self._prop_status.list_search('On', 'Heating', 'Working', 'Boiling')
+                status_vals_off = self._prop_status.list_search('Off', 'Idle', 'Standby')
+
+                is_on = False
+                if val in status_vals_on:
+                    is_on = True
+                elif val in status_vals_off:
+                    is_on = False
+
+                # If we can determine power state from status, set it
+                if is_on is not None:
+                    await self.async_update_attrs({
+                        'power': is_on,
+                        'switch': is_on,
+                        'on': is_on,
+                    })
 
     @property
     def current_operation(self):

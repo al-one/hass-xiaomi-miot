@@ -1041,7 +1041,17 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
         super().__init__(miot_service, device, **kwargs)
         self._prop_power = None
         if miot_service:
+            # Standard power property lookup
             self._prop_power = miot_service.get_property('on', 'power', 'switch')
+
+            # For kettle devices, try additional power-related properties
+            if not self._prop_power and 'kettle' in (str(device.model) if device else '').lower():
+                kettle_power_props = ['status', 'work_state', 'running', 'heating']
+                for prop_name in kettle_power_props:
+                    power_prop = miot_service.get_property(prop_name)
+                    if power_prop:
+                        self._prop_power = power_prop
+                        break
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -1054,6 +1064,16 @@ class MiotToggleEntity(MiotEntity, ToggleEntity):
             val = not not self._state_attrs.get(self._prop_power.full_name)
             if self._reverse_state:
                 val = not val
+        else:
+            # For devices without power property, check manually set power attributes
+            # This handles kettle devices where power state is inferred from status
+            power_attrs = ['power', 'switch', 'on']
+            for attr in power_attrs:
+                if attr in self._state_attrs:
+                    val = not not self._state_attrs.get(attr)
+                    if self._reverse_state:
+                        val = not val
+                    break
         return val
 
     async def async_turn_on(self, **kwargs):
