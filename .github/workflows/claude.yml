@@ -51,7 +51,6 @@ jobs:
 
       - name: Create MCP Config
         run: |
-          ./.venv/bin/python scripts/mcp-tools.py
           cat > /tmp/mcp-config.json << 'EOF'
           {
             "mcpServers": {
@@ -65,6 +64,8 @@ jobs:
             }
           }
           EOF
+
+          ${{ github.workspace }}/.venv/bin/python --directory ${{ github.workspace }} scripts/mcp-tools.py
 
       - uses: anthropics/claude-code-action@v1
         id: claude
