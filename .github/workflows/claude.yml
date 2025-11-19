@@ -101,5 +101,5 @@ jobs:
           claude_code_oauth_token: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           claude_args: |
             --mcp-config .mcp.json
-            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),mcp__github,mcp__tools,mcp__context7"
+            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),mcp__tools,mcp__context7"
             --append-system-prompt "If any new git commit is made, always push to the remote."
