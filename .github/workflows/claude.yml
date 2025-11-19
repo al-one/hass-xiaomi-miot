@@ -45,9 +45,9 @@ jobs:
 
       - name: Set up Python & Tools
         run: |
-          uv python install
           uv venv
-          uv pip install -U "fastmcp>=2.0.0"
+          uv python install
+          uv pip install -r scripts/requirements.txt
 
       - name: Create MCP Config
         run: |
@@ -55,10 +55,10 @@ jobs:
           {
             "mcpServers": {
               "tools": {
-                "command": "uv",
+                "command": "./.venv/bin/python",
                 "args": [
                   "--directory", "${{ github.workspace }}",
-                  "run", "scripts/mcp-server.py"
+                  "run", "scripts/mcp-tools.py"
                 ]
               }
             }
@@ -83,4 +83,4 @@ jobs:
           claude_code_oauth_token: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           claude_args: |
             --mcp-config /tmp/mcp-config.json
-            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),mcp__github,mcp_tools"
+            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),mcp__github,mcp__tools"
