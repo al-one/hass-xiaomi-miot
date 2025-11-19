@@ -14,7 +14,7 @@ def device_specs(
 ):
     res = requests.get(f"https://home.miot-spec.com/spec/{model}", params={"ajax": 1})
     try:
-        return yaml.dump(res.json())
+        return yaml.dump(res.json(), allow_unicode=True, sort_keys=False)
     except Exception:
         return res.text
 

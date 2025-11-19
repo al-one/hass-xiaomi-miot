@@ -55,14 +55,12 @@ jobs:
           {
             "mcpServers": {
               "tools": {
-                "command": "${{ github.workspace }}/.venv/bin/python",
+                "command": ".venv/bin/python",
                 "args": ["scripts/mcp-tools.py"]
               }
             }
           }
           EOF
-
-          ${{ github.workspace }}/.venv/bin/python scripts/mcp-tools.py
 
       - uses: anthropics/claude-code-action@v1
         id: claude
