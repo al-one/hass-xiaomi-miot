@@ -48,6 +48,7 @@ jobs:
           uv venv
           uv python install
           uv pip install -r scripts/requirements.txt
+          ./.venv/bin/python scripts/mcp-tools.py --help
 
       - name: Create MCP Config
         run: |
@@ -58,7 +59,7 @@ jobs:
                 "command": "./.venv/bin/python",
                 "args": [
                   "--directory", "${{ github.workspace }}",
-                  "run", "scripts/mcp-tools.py"
+                  "scripts/mcp-tools.py"
                 ]
               }
             }
