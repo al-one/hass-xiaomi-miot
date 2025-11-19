@@ -46,9 +46,8 @@ jobs:
           python-version: "3.13"
           enable-cache: true
 
-      - name: Set up Python & Tools
+      - name: Set up requirements
         run: |
-          uv venv
           uv pip install -r scripts/requirements.txt
 
       - name: Create MCP Config
