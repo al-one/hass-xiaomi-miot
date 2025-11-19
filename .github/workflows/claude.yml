@@ -1,6 +1,8 @@
 name: Claude code
 
 on:
+  issue_comment:
+    types: [created]
   workflow_dispatch:
     inputs:
       prompt:
@@ -17,6 +19,11 @@ on:
 
 jobs:
   claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -50,6 +57,26 @@ jobs:
           uv python install
           uv pip install -r scripts/requirements.txt
 
+      - name: Check issue
+        if: github.event.issue.number
+        run: |
+          {
+            echo 'EVENT_PROMPT<<EOF'
+            echo "Issue number: #${{ github.event.issue.number }}"
+            echo "${{ github.event.comment.body }}"
+            echo EOF
+          } >> $GITHUB_ENV
+
+      - name: Check pull request
+        if: github.event.pull_request.number
+        run: |
+          {
+            echo 'EVENT_PROMPT<<EOF'
+            echo "Pull request number: #${{ github.event.pull_request.number }}"
+            echo "${{ github.event.comment.body || github.event.review.body }}"
+            echo EOF
+          } >> $GITHUB_ENV
+
       - uses: anthropics/claude-code-action@v1
         id: claude
         timeout-minutes: 30
@@ -66,6 +93,7 @@ jobs:
             Repository: ${{ github.repository }}
             Branch Name: ${{ env.BRANCH_NAME }}
             Context7 Library ID: `/home-assistant/developers.home-assistant`
+            ${{ env.EVENT_PROMPT }}
           show_full_output: ${{ inputs.show_full_output || vars.CLAUDE_FULL_OUTPUT || 'false' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_code_oauth_token: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
