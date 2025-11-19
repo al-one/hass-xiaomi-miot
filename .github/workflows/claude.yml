@@ -101,8 +101,8 @@ jobs:
           claude_code_oauth_token: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           claude_args: |
             --mcp-config .mcp.json
-            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),mcp__tools,mcp__context7"
-            --append-system-prompt "
-            Interact with GitHub using the GitHub CLI commands, such as reading issue and PR details.
-            If any new git commit is made, always push to the remote.
-            "
+            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),Bash(python:*),mcp__tools,mcp__context7"
+            --append-system-prompt '
+              Interact with GitHub using the GitHub CLI commands, such as reading issue and PR details.
+              If any new git commit is made, always push to the remote.
+            '
