@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 import re
+import traceback
 from datetime import timedelta
 import voluptuous as vol
 
@@ -382,8 +383,8 @@ def bind_services_to_entries(hass, services):
             })
         update_tasks = []
         for ent in target_entities:
-            if hasattr(ent, 'parent_entity'):
-                ent = getattr(ent, 'parent_entity') or ent
+            if parent := getattr(ent, 'parent_entity'):
+                ent = parent
             if not hasattr(ent, fun):
                 _LOGGER.warning('Call service failed: Entity %s have no method: %s', ent.entity_id, fun)
                 continue
@@ -391,7 +392,11 @@ def bind_services_to_entries(hass, services):
                 result = await getattr(ent, fun)(**params)
                 update_tasks.append(ent.async_update_ha_state(True))
             except Exception as exc:
-                result = {'error': str(exc)}
+                _LOGGER.warning('Call service failed', exc_info=True)
+                result = {
+                    'error': str(exc),
+                    'trace': traceback.format_exc(),
+                }
         if update_tasks:
             await asyncio.gather(*update_tasks)
         if isinstance(result, (MiotResult, MiotResults)):
