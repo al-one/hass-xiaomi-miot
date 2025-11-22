@@ -1,6 +1,8 @@
 name: Claude code
 
 on:
+  issue_comment:
+    types: [created]
   workflow_dispatch:
     inputs:
       prompt:
@@ -17,6 +19,11 @@ on:
 
 jobs:
   claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -31,12 +38,46 @@ jobs:
         run: |
           git config --global user.name "claude[bot]"
           git config --global user.email "claude[bot]@users.noreply.github.com"
+          echo "EVENT_KEY=$(date +ci-%y%m%d)" >> $GITHUB_ENV
+
+      - name: Check issue
+        if: github.event.issue.number
+        run: |
+          {
+            echo 'EVENT_PROMPT<<EOF'
+            echo "Issue number: #${{ github.event.issue.number }}"
+            echo "${{ github.event.comment.body }}"
+            echo EOF
+          } >> $GITHUB_ENV
+          echo "EVENT_KEY=issue-${{ github.event.issue.number }}" >> $GITHUB_ENV
+
+      - name: Check pull request
+        if: github.event.pull_request.number
+        run: |
+          {
+            echo 'EVENT_PROMPT<<EOF'
+            echo "Pull request number: #${{ github.event.pull_request.number }}"
+            echo "${{ github.event.comment.body || github.event.review.body }}"
+            echo EOF
+          } >> $GITHUB_ENV
+          echo "EVENT_KEY=pull-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
       - name: Checkout branch
         run: |
-          BRANCH_NAME="claude/auto-${{ github.event.workflow_run.head_branch }}-${{ github.run_id }}"
+          BRANCH_NAME="claude/${{ env.EVENT_KEY }}-${{ github.run_id }}"
           git checkout -b "$BRANCH_NAME"
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up requirements
+        run: |
+          uv venv
+          uv python install
+          uv pip install -r scripts/requirements.txt
 
       - uses: anthropics/claude-code-action@v1
         id: claude
@@ -46,13 +87,22 @@ jobs:
           ANTHROPIC_DEFAULT_OPUS_MODEL: ${{ vars.ANTHROPIC_DEFAULT_OPUS_MODEL || vars.CLAUDE_DEFAULT_MODEL }}
           ANTHROPIC_DEFAULT_HAIKU_MODEL: ${{ vars.ANTHROPIC_DEFAULT_HAIKU_MODEL || vars.CLAUDE_DEFAULT_MODEL }}
           ANTHROPIC_DEFAULT_SONNET_MODEL: ${{ vars.ANTHROPIC_DEFAULT_SONNET_MODEL || vars.CLAUDE_DEFAULT_MODEL }}
+          CONTEXT7_API_KEY: ${{ secrets.CONTEXT7_API_KEY }}
         with:
           prompt: |
+            ${{ inputs.prompt }}
+            ---
             Repository: ${{ github.repository }}
             Branch Name: ${{ env.BRANCH_NAME }}
-            ${{ inputs.prompt }}
+            Context7 Library ID: `/home-assistant/developers.home-assistant`
+            ${{ env.EVENT_PROMPT }}
           show_full_output: ${{ inputs.show_full_output || vars.CLAUDE_FULL_OUTPUT || 'false' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_code_oauth_token: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           claude_args: |
-            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,Bash(git:*),Bash(gh:*),mcp__github"
+            --mcp-config .mcp.json
+            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),Bash(python:*),mcp__tools,mcp__context7"
+            --append-system-prompt '
+              Interact with GitHub using the GitHub CLI commands, such as reading issue and PR details.
+              If any new git commit is made, always push to the remote.
+            '
