@@ -2506,6 +2506,44 @@ DEVICE_CUSTOMIZES = {
                                   'mop_outer_swing_frequency,frequency_mop_wash_by_time,auto_dust_arrest_power_level,'
                                   'reset_mop_life,reset_brush_life,reset_filter_life,reset_dust_bag_life',
     },
+    'xiaomi.vacuum.ov31gl': {
+        'interval_seconds': 120,
+        'exclude_miot_services': 'vacuum_map,custom,voice_management',
+        'binary_sensor_properties': 'mop_status,sleep_status,location_status,auto_water_change_installed',
+        'sensor_properties': 'status,cleaning_area,cleaning_time,last_clean_time,water_check_status,sweep_mop_status,'
+                             'sewage_tank_status,water_tank_status,base_station_water_tank_status,host_water_tank_status,'
+                             'mop_life_level,mop_left_time,brush_life_level,brush_left_time,filter_life_level,'
+                             'filter_left_time,dust_bag_life_level,dust_bag_left_time',
+        'switch_properties': 'carpet_boost,carpet_avoidance,sweep_break_switch,enable_mop_wash,auto_dust_arrest,'
+                             'auto_mop_dry,auto_water_change,carpet_deep_cleaning,carpet_discriminate,sweep_carpet_first,'
+                             'mop_outer_swing,brush_outswing,repeat_wash_mop,alarm,physical_controls_locked,no_disturb',
+        'select_properties': 'sweep_mop_type,sweep_type,clean_times,mode,mop_water_output_level,frequency_mop_wash,'
+                             'water_output_for_washing_mop,drying_time,dust_arrest_frequency,frequency_mop_wash_no_tank,'
+                             'carpet_cleaning_method,sweep_route,obstacle_avoidance_strategy,mop_outer_swing_frequency,'
+                             'auto_dust_arrest_power_level,worry_free_clean_mode,wash_mop_water_temperature',
+        'number_properties': 'frequency_mop_wash_by_time,volume,enable_time_period',
+        'button_actions': 'start_sweep,stop_sweeping,stop_and_gocharge,start_only_sweep,start_mop,start_sweep_mop,'
+                          'pause_sweeping,continue_sweep,start_dust_arrest,start_mop_wash,start_dry,stop_mop_wash,stop_dry,'
+                          'start_water_self_check,cancel_water_self_check,start_base_station_cleaning,'
+                          'start_sweep_before_mopping,stop_working,empty_base_station_water_tank,empty_host_water_tank,'
+                          'start_charge,identify,reset_mop_life,reset_main_cleaning_brush_life,'
+                          'reset_side_cleaning_brush_life,reset_filter_life,reset_dust_bag_life',
+        'configuration_entities': 'carpet_boost,carpet_avoidance,sweep_break_switch,enable_mop_wash,frequency_mop_wash,'
+                                  'water_output_for_washing_mop,drying_time,auto_dust_arrest,dust_arrest_frequency,'
+                                  'auto_mop_dry,auto_water_change,hot_water_mop_wash,mop_water_output_level_no_tank,'
+                                  'frequency_mop_wash_no_tank,carpet_cleaning_method,obstacle_avoidance_strategy,'
+                                  'carpet_deep_cleaning,carpet_discriminate,sweep_carpet_first,mop_outer_swing,'
+                                  'mop_outer_swing_frequency,frequency_mop_wash_by_time,auto_dust_arrest_power_level,'
+                                  'wash_mop_water_temperature,brush_outswing,repeat_wash_mop,alarm,volume,'
+                                  'physical_controls_locked,no_disturb,enable_time_period',
+        'diagnostic_entities': 'sleep_status,location_status,water_check_status,start_water_self_check,'
+                               'cancel_water_self_check,auto_water_change_installed,base_station_water_tank_status,'
+                               'host_water_tank_status,empty_base_station_water_tank,empty_host_water_tank,mop_life_level,'
+                               'mop_left_time,reset_mop_life,brush_life_level,brush_left_time,'
+                               'reset_main_cleaning_brush_life,reset_side_cleaning_brush_life,filter_life_level,'
+                               'filter_left_time,reset_filter_life,dust_bag_life_level,dust_bag_left_time,'
+                               'reset_dust_bag_life',
+    },
     'xiaomi.vacuum.*': {
         'interval_seconds': 90,
         'chunk_coordinators': [
