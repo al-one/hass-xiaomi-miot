@@ -972,8 +972,8 @@
           ]
         },
         {
-          "iid": 13, 
-          "description": "Mop Holder", 
+          "iid": 13,
+          "description": "Mop Holder",
           "type": "urn:miot-spec-v2:property:mop-state:0000007C:viomi-v18:1",
           "value-list": [
             {"value": 0, "description": "Removed"},
@@ -1942,6 +1942,28 @@
           "description": "Flush",
           "in": [],
           "out": []
+        }
+      ]
+    }
+  ],
+  "xiaomi.vacuum.ov31gl": [
+    {
+      "iid": 12,
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:reset-main-cleaning-brush-life",
+          "description": "Reset Main Cleaning Brush Life"
+        }
+      ]
+    },
+    {
+      "iid": 13,
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:reset-side-cleaning-brush-life",
+          "description": "Reset Side Cleaning Brush Life"
         }
       ]
     }
