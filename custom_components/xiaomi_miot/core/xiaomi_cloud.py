@@ -246,7 +246,7 @@ class MiotCloud(micloud.MiCloud):
             _LOGGER.warning('Unauthorized while request to %s, response: %s, logged out.', api, rsp)
         elif code or not rdt:
             fun = _LOGGER.info if rdt else _LOGGER.warning
-            fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp)
+            fun('Request xiaomi api: %s %s failed, response: %s' % (api, data, rsp))
         return rdt
 
     async def async_get_device(self, mac=None, host=None):
@@ -808,7 +808,7 @@ class MiotCloud(micloud.MiCloud):
             response = self.session.post(url, data=post_data, timeout=timeout)
             return response.text
         except requests.exceptions.HTTPError as exc:
-            _LOGGER.error('Error while executing request to %s: %s', url, exc)
+            _LOGGER.error('Error while executing request to %s: %s' % (url, exc))
         except MiCloudException as exc:
             _LOGGER.error('Error while decrypting response of request to %s: %s', url, exc)
 
@@ -829,7 +829,7 @@ class MiotCloud(micloud.MiCloud):
                 response = self.session.post(url, data=params, timeout=timeout)
             rsp = response.text
             if not rsp or 'error' in rsp or 'invalid' in rsp:
-                _LOGGER.warning('Error while executing request to %s: %s', url, rsp or response.status_code)
+                _LOGGER.warning('Error while executing request to %s: %s' % (url, rsp or response.status_code))
             elif 'message' not in rsp:
                 try:
                     rsp = MiotCloud.decrypt_data(signed_nonce, rsp)
@@ -837,7 +837,7 @@ class MiotCloud(micloud.MiCloud):
                     _LOGGER.warning('Error while decrypting response of request to %s :%s', url, rsp)
             return rsp
         except requests.exceptions.HTTPError as exc:
-            _LOGGER.warning('Error while executing request to %s: %s', url, exc)
+            _LOGGER.warning('Error while executing request to %s: %s' % (url, exc))
         except MiCloudException as exc:
             _LOGGER.warning('Error while decrypting response of request to %s :%s', url, exc)
 
@@ -857,7 +857,7 @@ class MiotCloud(micloud.MiCloud):
                 response = await session.post(url, data=params, timeout=timeout, headers=headers)
             rsp = await response.text()
             if not rsp or 'error' in rsp or 'invalid' in rsp:
-                _LOGGER.warning('Error while executing request to %s: %s', url, rsp or response.status)
+                _LOGGER.warning('Error while executing request to %s: %s' % (url, rsp or response.status))
             elif 'message' not in rsp:
                 try:
                     signed_nonce = self.signed_nonce(params['_nonce'])
@@ -866,7 +866,7 @@ class MiotCloud(micloud.MiCloud):
                     _LOGGER.warning('Error while decrypting response of request to %s :%s', url, rsp)
             return rsp
         except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
-            _LOGGER.warning('Error while executing request to %s: %s', url, exc)
+            _LOGGER.warning('Error while executing request to %s: %s' % (url, exc))
 
     def request_raw(self, url, data=None, method='GET', **kwargs):
         self.session = self.api_session()
@@ -881,10 +881,10 @@ class MiotCloud(micloud.MiCloud):
             rsp = response.text
             if not rsp or 'error' in rsp or 'invalid' in rsp:
                 log = _LOGGER.info if 'remote/ubus' in url else _LOGGER.warning
-                log('Error while executing request to %s: %s', url, rsp or response.status_code)
+                log('Error while executing request to %s: %s' % (url, rsp or response.status_code))
             return rsp
         except requests.exceptions.HTTPError as exc:
-            _LOGGER.warning('Error while executing request to %s: %s', url, exc)
+            _LOGGER.warning('Error while executing request to %s: %s' % (url, exc))
         return None
 
     def get_api_by_host(self, host, api=''):
