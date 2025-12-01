@@ -2735,6 +2735,7 @@ DEVICE_CUSTOMIZES = {
     },
     'zhimi.airfresh.va4': {
         'sensor_properties': 'motor_speed',
+        'select_properties': 'led_level',
         'brightness_for_on': 0,
         'brightness_for_off': 2,
     },
