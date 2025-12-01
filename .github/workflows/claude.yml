@@ -51,7 +51,7 @@ jobs:
         run: |
           {
             echo 'EVENT_PROMPT<<EOF'
-            echo "${{ github.event.label.name == 'claude' && 'Fix this issue and push code; Add a comment; Remove label: claude.' || '' }}"
+            echo "${{ github.event.label.name == 'claude' && 'Fix this issue and push code; Add a comment to this issue; Remove issue label: claude.' || '' }}"
             echo "Issue number: #${{ github.event.issue.number }}"
             echo "${{ github.event.comment.body }}"
             echo EOF
@@ -113,5 +113,5 @@ jobs:
             --append-system-prompt '
               Interact with GitHub using the GitHub CLI commands, such as reading issue and PR details.
               If any new git commit is made, MUST push to the remote.
-              Tasks and workflows should be completed continuously without interruption.
+              Tasks/workflows should be completed continuously without interruption.
             '
