@@ -42,14 +42,14 @@ jobs:
         run: |
           git config --global user.name "claude[bot]"
           git config --global user.email "claude[bot]@users.noreply.github.com"
-          echo "EVENT_KEY=$(date +ci-%y%m%d)" >> $GITHUB_ENV
+          echo "EVENT_KEY=$(date +ci-%y%m%d-${{ github.run_id }})" >> $GITHUB_ENV
 
       - name: Check issue
         if: github.event.issue.number
         run: |
           {
             echo 'EVENT_PROMPT<<EOF'
-            echo "${{ github.event.label.name == 'claude' && 'Fix this issue; Remove label `claude`; Add a comment.' || '' }}"
+            echo "${{ github.event.label.name == 'claude' && 'Fix this issue; Remove label: claude; Add a comment.' || '' }}"
             echo "Issue number: #${{ github.event.issue.number }}"
             echo "${{ github.event.comment.body }}"
             echo EOF
@@ -70,7 +70,7 @@ jobs:
 
       - name: Checkout branch
         run: |
-          BRANCH_NAME="claude/${{ env.EVENT_KEY }}-${{ github.run_id }}"
+          BRANCH_NAME="claude/${{ env.EVENT_KEY }}"
           git checkout "$BRANCH_NAME" 2>/dev/null || git checkout -b "$BRANCH_NAME"
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
