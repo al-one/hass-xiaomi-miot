@@ -247,10 +247,10 @@ class MiotSpec(MiotSpecInstance):
                 return p
         return None
 
-    def get_properties(self, *args):
+    def get_properties(self, *args, only_format=None, exclude_format=None):
         lst = []
         for srv in self.services.values():
-            lst.extend(srv.get_properties(*args))
+            lst.extend(srv.get_properties(*args, only_format=only_format, exclude_format=exclude_format))
         return lst
 
     def generate_entity_id(self, entity, suffix=None, domain=None):
@@ -563,26 +563,19 @@ class MiotService(MiotSpecInstance):
             }
         return dat
 
-    def get_properties(self, *args, **kwargs):
+    def get_properties(self, *args, only_format=None, exclude_format=None, **kwargs):
         excludes = kwargs.get('excludes') or []
         return [
             p
             for p in self.properties.values()
-            if not p.in_list(excludes) and (not args or p.in_list(args))
+            if not p.in_list(excludes)
+               and (not args or p.in_list(args, only_format=only_format, exclude_format=exclude_format))
         ]
 
     def get_property(self, *args, only_format=None, exclude_format=None):
-        if only_format:
-            only_format = only_format if isinstance(only_format, list) else [only_format]
-        if exclude_format:
-            exclude_format = exclude_format if isinstance(exclude_format, list) else [exclude_format]
         for a in args:
             for p in self.properties.values():
-                if not p.in_list([a]):
-                    continue
-                if only_format and p.format not in only_format:
-                    continue
-                if exclude_format and p.format in exclude_format:
+                if not p.in_list([a], only_format=only_format, exclude_format=exclude_format):
                     continue
                 return p
         return None
@@ -695,7 +688,25 @@ class MiotProperty(MiotSpecInstance):
             }
         self.friendly_desc = self.short_desc
 
-    def in_list(self, lst):
+    def in_list(self, lst, only_format=None, exclude_format=None):
+        value_type = self.format
+        if self.value_list:
+            value_type = 'list'
+        elif self.value_range:
+            value_type = 'range'
+        if only_format:
+            only_format = only_format if isinstance(only_format, list) else [only_format]
+            if self.format not in only_format:
+                return False
+            if value_type not in only_format:
+                return False
+        if exclude_format:
+            exclude_format = exclude_format if isinstance(exclude_format, list) else [exclude_format]
+            if self.format in exclude_format:
+                return False
+            if value_type in exclude_format:
+                return False
+
         pattern = convert_globs_to_pattern(lst)
         if not pattern:
             return False
