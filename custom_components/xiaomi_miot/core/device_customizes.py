@@ -2485,6 +2485,19 @@ DEVICE_CUSTOMIZES = {
                                   'mop_outer_swing_frequency,frequency_mop_wash_by_time,auto_dust_arrest_power_level,'
                                   'reset_mop_life,reset_brush_life,reset_filter_life,reset_dust_bag_life',
     },
+    'xiaomi.vacuum.ov31gl': {
+        'interval_seconds': 120,
+        'exclude_miot_services': 'vacuum_map,custom,voice_management',
+        'sensor_properties': 'sweep_mop_status,sewage_tank_status,water_tank_status,base_station_water_tank_status,'
+                             'host_water_tank_status',
+        'switch_properties': 'brush_outswing,repeat_wash_mop',
+        'number_properties': 'frequency_mop_wash_by_time',
+        'button_actions': 'start_sweep,stop_sweeping,stop_and_gocharge,start_only_sweep,start_mop,start_sweep_mop,'
+                          'pause_sweeping,continue_sweep,start_dust_arrest,start_mop_wash,start_dry,stop_mop_wash,stop_dry,'
+                          'start_water_self_check,cancel_water_self_check,start_base_station_cleaning,start_charge,'
+                          'start_sweep_before_mopping,stop_working,empty_base_station_water_tank,empty_host_water_tank,'
+                          'identify,reset_*_life',
+    },
     'xiaomi.vacuum.*': {
         'interval_seconds': 90,
         'chunk_coordinators': [

@@ -972,8 +972,8 @@
           ]
         },
         {
-          "iid": 13, 
-          "description": "Mop Holder", 
+          "iid": 13,
+          "description": "Mop Holder",
           "type": "urn:miot-spec-v2:property:mop-state:0000007C:viomi-v18:1",
           "value-list": [
             {"value": 0, "description": "Removed"},
