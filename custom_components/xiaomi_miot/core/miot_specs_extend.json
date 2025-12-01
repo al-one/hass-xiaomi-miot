@@ -1945,28 +1945,6 @@
         }
       ]
     }
-  ],
-  "xiaomi.vacuum.ov31gl": [
-    {
-      "iid": 12,
-      "actions": [
-        {
-          "iid": 1,
-          "type": "urn:miot-spec-v2:action:reset-main-cleaning-brush-life",
-          "description": "Reset Main Cleaning Brush Life"
-        }
-      ]
-    },
-    {
-      "iid": 13,
-      "actions": [
-        {
-          "iid": 1,
-          "type": "urn:miot-spec-v2:action:reset-side-cleaning-brush-life",
-          "description": "Reset Side Cleaning Brush Life"
-        }
-      ]
-    }
   ]
 
 }
