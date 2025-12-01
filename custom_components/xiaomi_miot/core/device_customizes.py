@@ -2467,6 +2467,7 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.vacuum.d102gl': {
         'interval_seconds': 120,
+        'select_properties': 'sweep_mop_type,sweep_type,clean_times,mode,mop_water_output_level,sweep_route',
         'chunk_coordinators': [
             {'interval': 11, 'props': 'status', 'notify': True},
             {'interval': 21, 'props': 'mode,sweep_mop_type,sweep_type'},
