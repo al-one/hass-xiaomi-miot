@@ -2432,19 +2432,6 @@ DEVICE_CUSTOMIZES = {
                                    'fault_ids,plugin_info_remind,enable_time_period,current_no_disturb,sweep_route,'
                                    'current_physical_control_lock,current_no_disturb,obstacle_avoidance_strategy,'
                                    'carpet_obj_name,map_3d_info',
-        'binary_sensor_properties': 'mop_status',
-        'sensor_properties': 'status,cleaning_area,cleaning_time,water_check_status,battery_level,charging_state,'
-                             'mop_life_level,brush_life_level,filter_life_level,detergent_left_level,'
-                             'dust_bag_life_level',
-        'switch_properties': 'enable_mop_wash,sweep_break_switch,auto_dust_arrest,ai_cleaning,hot_water_mop_wash,'
-                             'auto_mop_dry,auto_water_change,use_detergent,mop_auto_lift,carpet_boost,carpet_avoidance,'
-                             'sweep_ai_detection,dirt_detection,object_detection,room_detection,solid_dirt_detection,'
-                             'floor_material_detection,liquid_dirt_detection,defecation_detection,cut_hair_config,'
-                             'edge_swing_tail_sweep,detergent_self_delivery,ai_managed_cleaning',
-        'select_properties': 'mode,sweep_mop_type,sweep_type,clean_times,mop_water_output_level,drying_time,alarm'
-                             'water_output_for_washing_mop,dust_arrest_frequency,edge_sweep_frequency,'
-                             'carpet_cleaning_method,detergent_self_delivery_level',
-        'number_properties': 'volume',
         'button_actions': 'start_sweep,start_only_sweep,start_mop,start_sweep_mop,start_custom_sweep,start_dry,'
                           'pause_sweeping,continue_sweep,stop_and_gocharge,start_charge,start_mop_wash,start_cut_hair,'
                           'enter_remote,exit_remote,stop_mop_wash,back_mop_wash,stop_dry,stop_cut_hair,identify,'
@@ -2467,6 +2454,9 @@ DEVICE_CUSTOMIZES = {
     },
     'xiaomi.vacuum.d102gl': {
         'interval_seconds': 120,
+        'button_actions': 'start_sweep,start_only_sweep,start_mop,start_sweep_mop,start_custom_sweep,start_mop_wash,'
+                          'pause_sweeping,continue_sweep,start_dust_arrest,start_dry,start_eject,back_mop_wash,'
+                          'stop_sweeping,stop_and_gocharge,stop_mop_wash,stop_dry',
         'chunk_coordinators': [
             {'interval': 11, 'props': 'status', 'notify': True},
             {'interval': 21, 'props': 'mode,sweep_mop_type,sweep_type'},
@@ -2483,18 +2473,7 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.vacuum.d109gl': {
         'interval_seconds': 120,
         'exclude_miot_services': 'vacuum_map,custom,voice_management',
-        'binary_sensor_properties': 'mop_status,sleep_status',
-        'sensor_properties': 'status,cleaning_area,cleaning_time,mop_life_level,brush_life_level,filter_life_level,'
-                             'dust_bag_life_level',
-        'switch_properties': 'carpet_boost,carpet_avoidance,carpet_display,sweep_break_switch,enable_mop_wash,'
-                             'auto_dust_arrest,auto_mop_dry,auto_water_change,use_detergent,detergent_self_delivery,'
-                             'detergent_depletion_reminder,carpet_deep_cleaning,carpet_discriminate,sweep_carpet_first,'
-                             'mop_outer_swing,alarm,no_disturb',
-        'select_properties': 'sweep_mop_type,sweep_type,clean_times,mode,mop_water_output_level,frequency_mop_wash,'
-                             'water_output_for_washing_mop,drying_time,dust_arrest_frequency,carpet_cleaning_method,'
-                             'sweep_route,obstacle_avoidance_strategy,mop_outer_swing_frequency,worry_free_clean_mode,'
-                             'auto_dust_arrest_power_level,wash_mop_water_temperature',
-        'number_properties': 'frequency_mop_wash_by_time,volume',
+        'number_properties': 'frequency_mop_wash_by_time',
         'button_actions': 'start_sweep,stop_sweeping,stop_and_gocharge,start_only_sweep,start_mop,start_sweep_mop,'
                           'pause_sweeping,continue_sweep,start_dust_arrest,start_mop_wash,start_dry,start_eject,'
                           'stop_mop_wash,stop_dry,back_mop_wash,start_charge,identify,'
@@ -3576,6 +3555,34 @@ GLOBAL_CONVERTERS = [
         'services': ['tds_sensor'],
         'converters' : [
             {'props': ['tds_in', 'tds_out'], 'domain': 'sensor'},
+        ],
+    },
+    {
+        'services': ['vacuum'],
+        'converters' : [
+            {'domain': 'sensor', 'props': ['status', 'cleaning_area', 'cleaning_time']},
+            {'domain': 'sensor', 'props': ['water_check_status', '*_life_level', '*_left_level']},
+            {'domain': 'binary_sensor', 'props': ['mop_status', 'sleep_status']},
+            {'domain': 'switch', 'props': [
+                'sweep_break_switch', 'enable_mop_wash', 'auto_dust_arrest', 'auto_mop_dry',
+                'mop_auto_lift', 'mop_outer_swing', 'auto_water_change', 'no_disturb',
+            ], 'all_services': True},
+            {'domain': 'switch', 'props': [
+                'use_detergent', 'detergent_self_delivery', 'edge_swing_tail_sweep', 'detergent_depletion_reminder',
+                'carpet_boost', 'carpet_avoidance', 'carpet_display', 'carpet_deep_cleaning', 'carpet_discriminate',
+                'sweep_carpet_first', 'ai_cleaning', 'sweep_ai_detection', 'ai_managed_cleaning', 'defecation_detection',
+                'dirt_detection', 'object_detection', 'room_detection', 'solid_dirt_detection', 'liquid_dirt_detection',
+                'floor_material_detection', 'cut_hair_config', 'hot_water_mop_wash',
+            ], 'all_services': True, 'option': {'entity_category': 'config'}},
+            {'domain': 'select', 'props': [
+                'mode', 'sweep_mop_type', 'sweep_type', 'sweep_route', 'clean_times', 'edge_sweep_frequency',
+                'drying_time', 'dust_arrest_frequency', 'mop_water_output_level', 'mop_water_output_level_no_tank',
+            ], 'all_services': True},
+            {'domain': 'select', 'props': [
+                'frequency_mop_wash', 'frequency_mop_wash_no_tank', 'carpet_cleaning_method', 'mop_outer_swing_frequency',
+                'water_output_for_washing_mop', 'obstacle_avoidance_strategy', 'detergent_self_delivery_level',
+                'worry_free_clean_mode', 'auto_dust_arrest_power_level', 'wash_mop_water_temperature',
+            ], 'all_services': True, 'option': {'entity_category': 'config'}},
         ],
     },
     {

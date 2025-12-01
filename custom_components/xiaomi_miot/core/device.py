@@ -405,24 +405,26 @@ class Device(CustomConfigHelper):
                             self.log.debug('Add converter: %s', conv)
 
                     for pc in cfg.get('converters') or []:
-                        if not (props := pc.get('props')):
+                        if not (names := pc.get('props')):
                             continue
+                        only_format = pc.get('only_format')
                         exclude_format = pc.get('exclude_format')
-                        for p in props:
-                            if '.' in p:
-                                prop = self.spec.get_property(p, exclude_format=exclude_format)
+                        for p in names:
+                            if '.' in p or pc.get('all_services'):
+                                props = self.spec.get_properties(p, only_format=only_format, exclude_format=exclude_format)
                             else:
-                                prop = service.get_property(p)
-                            if not prop:
+                                props = service.get_properties(p, only_format=only_format, exclude_format=exclude_format)
+                            if not props:
                                 continue
-                            attr = pc.get('attr', prop.full_name)
-                            c = pc.get('class', MiotPropConv)
-                            d = pc.get('domain', None)
-                            ac = c(attr, domain=d, prop=prop, desc=pc.get('desc'))
-                            self.add_converter(ac)
-                            self.log.debug('Add converter: %s', [ac, pc])
-                            if conv and ac.full_name not in conv.attrs:
-                                conv.attrs.append(ac.full_name)
+                            for prop in props:
+                                attr = pc.get('attr', prop.full_name)
+                                c = pc.get('class', MiotPropConv)
+                                d = pc.get('domain', None)
+                                ac = c(attr, domain=d, prop=prop, desc=pc.get('desc'))
+                                self.add_converter(ac)
+                                self.log.debug('Add converter: %s', [ac, pc])
+                                if conv and ac.full_name not in conv.attrs:
+                                    conv.attrs.append(ac.full_name)
 
         for d in [
             'button', 'sensor', 'binary_sensor', 'switch', 'number', 'select', 'text',
