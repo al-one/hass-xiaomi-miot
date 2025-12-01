@@ -3,8 +3,6 @@ name: Claude code
 on:
   issues:
     types: [labeled]
-  issue_comment:
-    types: [created]
   pull_request:
     types: [opened]
   workflow_dispatch:
@@ -51,7 +49,7 @@ jobs:
         run: |
           {
             echo 'EVENT_PROMPT<<EOF'
-            echo "${{ github.event.label.name == 'claude' && 'Fix this issue:' || '' }}"
+            echo "${{ github.event.label.name == 'claude' && 'Fix this issue; Remove label `claude`; Add a comment.' || '' }}"
             echo "Issue number: #${{ github.event.issue.number }}"
             echo "${{ github.event.comment.body }}"
             echo EOF
@@ -63,7 +61,7 @@ jobs:
         run: |
           {
             echo 'EVENT_PROMPT<<EOF'
-            echo "${{ github.event.action == 'opened' && 'Review this pull request:' || '' }}"
+            echo "${{ github.event.action == 'opened' && 'Review this pull request and add a comment.' || '' }}"
             echo "Pull request number: #${{ github.event.pull_request.number }}"
             echo "${{ github.event.comment.body || github.event.review.body }}"
             echo EOF
@@ -73,7 +71,7 @@ jobs:
       - name: Checkout branch
         run: |
           BRANCH_NAME="claude/${{ env.EVENT_KEY }}-${{ github.run_id }}"
-          git checkout -b "$BRANCH_NAME"
+          git checkout "$BRANCH_NAME" 2>/dev/null || git checkout -b "$BRANCH_NAME"
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
       - name: Install uv
