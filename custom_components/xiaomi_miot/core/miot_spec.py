@@ -5,6 +5,7 @@ import random
 import time
 import re
 from functools import cached_property
+from collections.abc import Iterable
 
 from homeassistant.core import HomeAssistant
 from homeassistant.const import (
@@ -695,16 +696,12 @@ class MiotProperty(MiotSpecInstance):
         elif self.value_range:
             value_type = 'range'
         if only_format:
-            only_format = only_format if isinstance(only_format, list) else [only_format]
-            if self.format not in only_format:
-                return False
-            if value_type not in only_format:
+            only_format = set(only_format) if isinstance(only_format, Iterable) else {only_format}
+            if not (only_format & {value_type, self.format}):
                 return False
         if exclude_format:
-            exclude_format = exclude_format if isinstance(exclude_format, list) else [exclude_format]
-            if self.format in exclude_format:
-                return False
-            if value_type in exclude_format:
+            exclude_format = set(exclude_format) if isinstance(exclude_format, Iterable) else {exclude_format}
+            if exclude_format & {value_type, self.format}:
                 return False
 
         pattern = convert_globs_to_pattern(lst)
