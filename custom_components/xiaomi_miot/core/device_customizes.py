@@ -2456,7 +2456,7 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 120,
         'button_actions': 'start_sweep,start_only_sweep,start_mop,start_sweep_mop,start_custom_sweep,start_mop_wash,'
                           'pause_sweeping,continue_sweep,start_dust_arrest,start_dry,start_eject,back_mop_wash,'
-                          'stop_sweeping,stop_and_gocharge,stop_mop_wash,stop_dry',
+                          'stop_sweeping,stop_and_gocharge,stop_mop_wash,stop_dry,identify',
         'chunk_coordinators': [
             {'interval': 11, 'props': 'status', 'notify': True},
             {'interval': 21, 'props': 'mode,sweep_mop_type,sweep_type'},
