@@ -2471,8 +2471,11 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     'xiaomi.vacuum.d109gl': {
+        # Fix for issue #2706: Add missing water tank status entities for Xiaomi X20
+        # This adds sensors for clean water tank status and dirty water tank status
         'interval_seconds': 120,
         'exclude_miot_services': 'vacuum_map,custom,voice_management',
+        'sensor_properties': 'sewage_tank_status,water_tank_status,base_station_water_tank_status,host_water_tank_status',
         'number_properties': 'frequency_mop_wash_by_time',
         'button_actions': 'start_sweep,stop_sweeping,stop_and_gocharge,start_only_sweep,start_mop,start_sweep_mop,'
                           'pause_sweeping,continue_sweep,start_dust_arrest,start_mop_wash,start_dry,start_eject,'
