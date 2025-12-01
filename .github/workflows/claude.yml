@@ -32,6 +32,8 @@ jobs:
     permissions:
       id-token: write
       contents: write
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v5
         with:
@@ -110,5 +112,5 @@ jobs:
             --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),Bash(python:*),mcp__tools,mcp__context7"
             --append-system-prompt '
               Interact with GitHub using the GitHub CLI commands, such as reading issue and PR details.
-              If any new git commit is made, always push to the remote.
+              If any new git commit is made, MUST push to the remote.
             '
