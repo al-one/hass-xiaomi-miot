@@ -1,8 +1,12 @@
 name: Claude code
 
 on:
+  issues:
+    types: [labeled]
   issue_comment:
     types: [created]
+  pull_request:
+    types: [opened]
   workflow_dispatch:
     inputs:
       prompt:
@@ -20,9 +24,11 @@ on:
 jobs:
   claude:
     if: |
+      (github.event_name == 'issues' && github.event.label.name == 'claude') ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request' && github.event.action == 'opened') ||
       (github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
@@ -45,6 +51,7 @@ jobs:
         run: |
           {
             echo 'EVENT_PROMPT<<EOF'
+            echo "${{ github.event.label.name == 'claude' && 'Fix this issue:' || '' }}"
             echo "Issue number: #${{ github.event.issue.number }}"
             echo "${{ github.event.comment.body }}"
             echo EOF
@@ -56,6 +63,7 @@ jobs:
         run: |
           {
             echo 'EVENT_PROMPT<<EOF'
+            echo "${{ github.event.action == 'opened' && 'Review this pull request:' || '' }}"
             echo "Pull request number: #${{ github.event.pull_request.number }}"
             echo "${{ github.event.comment.body || github.event.review.body }}"
             echo EOF
