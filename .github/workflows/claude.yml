@@ -51,14 +51,11 @@ jobs:
       - name: Check issue
         if: github.event.issue.number
         run: |
-          comment=$(cat <<EOF
-          ${{ github.event.comment.body }}
-          EOF)
           {
             echo 'EVENT_PROMPT<<EOF'
             echo "${{ github.event.label.name == 'claude' && 'Fix this issue and push code; Add a comment to this issue; Remove issue label: claude.' || '' }}"
-            echo "Issue number: #${{ github.event.issue.number }}"
-            echo "$comment"
+            echo 'Issue number: #${{ github.event.issue.number }}'
+            echo '${{ github.event.comment.body }}'
             echo EOF
           } >> $GITHUB_ENV
           echo "EVENT_KEY=issue-${{ github.event.issue.number }}" >> $GITHUB_ENV
@@ -66,14 +63,11 @@ jobs:
       - name: Check pull request
         if: github.event.pull_request.number
         run: |
-          comment=$(cat <<EOF
-          ${{ github.event.comment.body || github.event.review.body }}
-          EOF)
           {
             echo 'EVENT_PROMPT<<EOF'
             echo "${{ github.event.action == 'opened' && 'Review this pull request and add a comment to this PR.' || '' }}"
-            echo "Pull request number: #${{ github.event.pull_request.number }}"
-            echo "$comment"
+            echo 'Pull request number: #${{ github.event.pull_request.number }}'
+            echo '${{ github.event.comment.body || github.event.review.body }}'
             echo EOF
           } >> $GITHUB_ENV
           echo "EVENT_KEY=pull-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
