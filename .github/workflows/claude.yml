@@ -51,7 +51,9 @@ jobs:
       - name: Check issue
         if: github.event.issue.number
         run: |
-          comment="${{ github.event.comment.body || '' }}"
+          comment=$(cat <<EOF
+          ${{ github.event.comment.body }}
+          EOF)
           {
             echo 'EVENT_PROMPT<<EOF'
             echo "${{ github.event.label.name == 'claude' && 'Fix this issue and push code; Add a comment to this issue; Remove issue label: claude.' || '' }}"
@@ -64,7 +66,9 @@ jobs:
       - name: Check pull request
         if: github.event.pull_request.number
         run: |
-          comment="${{ github.event.comment.body || github.event.review.body || '' }}"
+          comment=$(cat <<EOF
+          ${{ github.event.comment.body || github.event.review.body }}
+          EOF)
           {
             echo 'EVENT_PROMPT<<EOF'
             echo "${{ github.event.action == 'opened' && 'Review this pull request and add a comment to this PR.' || '' }}"
