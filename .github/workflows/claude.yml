@@ -3,6 +3,8 @@ name: Claude code
 on:
   issues:
     types: [labeled]
+  issue_comment:
+    types: [created]
   pull_request:
     types: [opened]
   workflow_dispatch:
@@ -63,7 +65,7 @@ jobs:
         run: |
           {
             echo 'EVENT_PROMPT<<EOF'
-            echo "${{ github.event.action == 'opened' && 'Review this pull request and add a comment.' || '' }}"
+            echo "${{ github.event.action == 'opened' && 'Review this pull request and add a comment to this PR.' || '' }}"
             echo "Pull request number: #${{ github.event.pull_request.number }}"
             echo "${{ github.event.comment.body || github.event.review.body }}"
             echo EOF
