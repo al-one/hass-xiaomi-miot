@@ -53,7 +53,7 @@ jobs:
         run: |
           {
             echo 'EVENT_PROMPT<<EOF'
-            echo "${{ github.event.label.name == 'claude' && 'Fix this issue and push code; Add a comment to this issue; Remove issue label: claude.' || '' }}"
+            echo '${{ github.event.label.name == 'claude' && 'Fix this issue and push code; Remove issue label `claude`.' || '' }}'
             echo 'Issue number: #${{ github.event.issue.number }}'
             echo '${{ github.event.comment.body }}'
             echo EOF
@@ -65,7 +65,7 @@ jobs:
         run: |
           {
             echo 'EVENT_PROMPT<<EOF'
-            echo "${{ github.event.action == 'opened' && 'Review this pull request and add a comment to this PR.' || '' }}"
+            echo '${{ github.event.action == 'opened' && 'Review this pull request.' || '' }}'
             echo 'Pull request number: #${{ github.event.pull_request.number }}'
             echo '${{ github.event.comment.body || github.event.review.body }}'
             echo EOF
@@ -114,6 +114,7 @@ jobs:
             --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),Bash(python:*),mcp__tools,mcp__context7"
             --append-system-prompt '
               Interact with GitHub using the GitHub CLI commands, such as reading issue and PR details.
-              If any new git commit is made, MUST push to the remote.
+              After modifying the code, your must be submitted to git and pushed to the remote.
+              If this task is related to a GitHub issue or PR, you need to add a comment after completing the task.
               Tasks/workflows should be completed continuously without interruption.
             '
