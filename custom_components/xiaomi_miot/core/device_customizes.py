@@ -1027,7 +1027,6 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'uv',
         'select_properties': 'mode,dryer',
         'number_properties': 'drying_time',
-        'exclude_miot_properties': 'motor_control',
         'cover_position_mapping': {0: 50, 1: 100, 2: 0},
     },
 
