@@ -156,6 +156,8 @@ class Device(CustomConfigHelper):
     miot_results = None
     _local_fails = 0
     _local_state = None
+    _cloud_fails = 0
+    _cloud_state = None
     _proxy_device = None
     _miot_mapping = None
     _exclude_miot_services = None
@@ -893,14 +895,35 @@ class Device(CustomConfigHelper):
             try:
                 self.miot_results.updater = 'cloud'
                 results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
+                if results is None:
+                    # Handle case where cloud API returns None (empty response)
+                    raise MiCloudException('Cloud API returned None response, possible timeout or empty data')
                 if check_lan and self.local:
                     await self.local.async_info()
                 self.available = True
+                self._cloud_fails = 0
+                self._cloud_state = True
                 self.miot_results.set_results(results, mapping)
             except MiCloudException as exc:
-                self.available = False
+                self._cloud_fails += 1
+                cloud_state = self._cloud_fails < 3
                 self.miot_results.errors = exc
-                self.log.error('%s MiCloudException: %s, mapping: %s', self.name, exc, mapping)
+
+                # Only mark device unavailable after 3 consecutive cloud failures
+                if self._cloud_fails >= 3:
+                    self.available = False
+                    self.log.error('%s: Cloud request failed %s times, marking unavailable. MiCloudException: %s',
+                                 self.name, self._cloud_fails, exc)
+                elif self._cloud_fails == 1:
+                    # Log first failure as warning
+                    self.log.warning('%s: Cloud request failed (1st time), will retry. MiCloudException: %s',
+                                   self.name, exc)
+                else:
+                    # Log subsequent failures as info
+                    self.log.info('%s: Cloud request failed (%sth time), will retry. MiCloudException: %s',
+                                self.name, self._cloud_fails, exc)
+
+                self._cloud_state = cloud_state
 
         if results and self.miot_results.is_empty:
             self.log.warning(
