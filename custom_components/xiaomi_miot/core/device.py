@@ -1116,7 +1116,7 @@ class Device(CustomConfigHelper):
                         action = self.spec.services.get(siid, {}).actions.get(aiid)
                     pms['in'] = action.in_params(params or [])
                 result = await self.local.async_send('action', pms)
-            result = MiotResult(result)
+            result = MiotResult(result or {})
         except (DeviceException, MiCloudException) as exc:
             self.log.warning('Call miot action %s failed: %s', pms, exc)
             return MiotResult({}, code=-1, error=str(exc))

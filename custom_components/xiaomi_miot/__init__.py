@@ -76,8 +76,6 @@ SERVICE_TO_METHOD_BASE = {
             {
                 vol.Required('method'): cv.string,
                 vol.Optional('params', default=[]): cv.ensure_list,
-                vol.Optional('throw', default=False): cv.boolean,  # Deprecated
-                vol.Optional('return_result', default=True): cv.boolean,
             },
         ),
     },
