@@ -2595,6 +2595,16 @@ DEVICE_CUSTOMIZES = {
     'yeelink.curtain.ctmt2': {
         **CHUNK_1,
         'chunk_coordinators': [],
+        'binary_sensor_properties': 'low-battery',
+        'switch_properties': 'motor_reverse',
+        'append_converters': [
+            {
+                'services': ['curtain'],
+                'converters': [
+                    {'props': ['motor_control', 'current_position', 'target_position']},
+                ],
+            },
+        ],
     },
     'yeelink.bhf_light.v1': {
         'interval_seconds': 30,
