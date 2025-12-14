@@ -2,11 +2,14 @@ import os
 import re
 import json
 import locale
+import aiohttp
+import asyncio
 import tzlocal
 import logging
 import fnmatch
 import voluptuous as vol
-from typing import Tuple
+from typing import Type, Tuple, Optional, Callable, Set
+from functools import wraps
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import language as language_util
@@ -264,6 +267,45 @@ def int_to_rgb(x: int) -> Tuple[int, int, int]:
 def rgb_to_int(x: Tuple[int, int, int]) -> int:
     """Return an integer from RGB tuple."""
     return int(x[0] << 16 | x[1] << 8 | x[2])
+
+
+def aiohttp_retry(
+    max_retries: int = 3,
+    backoff_factor: float = 2.0,
+    retry_on_status: Optional[Set[int]] = None,
+    exceptions: Tuple[Type[BaseException], ...] = (aiohttp.ClientError, asyncio.TimeoutError),
+    logger=None,
+):
+    if retry_on_status is None:
+        retry_on_status = {500, 502, 503, 504}
+
+    def decorator(func: Callable):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            last_exception = None
+            for attempt in range(max_retries + 1):
+                try:
+                    return await func(*args, **kwargs)
+                except exceptions as exc:
+                    if logger:
+                        logger.warning(
+                            "Error while executing request from %s, attempt: %s",
+                            func.__name__, attempt, exc_info=True,
+                        )
+                    last_exception = exc
+                    if attempt == max_retries:
+                        break
+                    is_retryable_status = isinstance(exc, aiohttp.ClientConnectorDNSError)
+                    if isinstance(exc, aiohttp.ClientResponseError) and exc.status in retry_on_status:
+                        is_retryable_status = True
+                    if not is_retryable_status:
+                        break
+                    delay = backoff_factor * (2 ** attempt)
+                    await asyncio.sleep(delay)
+            if last_exception:
+                raise last_exception
+        return wrapper
+    return decorator
 
 
 async def async_analytics_track_event(hass: HomeAssistant, event, action, label, value=0, **kwargs):
