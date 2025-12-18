@@ -2194,6 +2194,19 @@ DEVICE_CUSTOMIZES = {
             {'interval': 35, 'props': 'fault,mode,reservation_left_time,cooking_weight'},
         ],
     },
+    'xiaomi.fryer.jl12': {
+        'interval_seconds': 120,
+        'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook,air_fryer.wake_up,air_fryer-6.clear_pot,air_fryer-7.clear_pot',
+        'sensor_properties': 'status,fault,left_time,turn_pot,air_fryer-6.status,air_fryer-7.status,air_fryer-6.left_time,air_fryer-7.left_time',
+        'switch_properties': 'auto_keep_warm,current_keep_warm,preheat,turn_pot_config,air_fryer-6.turn_pot_config,air_fryer-7.turn_pot_config,end_cooking_together',
+        'select_properties': 'mode,texture,target_cooking_measure,air_fryer-6.mode,air_fryer-7.mode',
+        'number_properties': 'target_time,target_temperature,reservation_left_time,cooking_weight,air_fryer-6.target_time,air_fryer-6.target_temperature,air_fryer-7.target_time,air_fryer-7.target_temperature',
+        'exclude_miot_properties': 'recipe_id,recipe_name,recipe_sync',
+        'chunk_coordinators': [
+            {'interval': 20, 'props': 'status,target_time,target_temperature,left_time,turn_pot,air_fryer-6.status,air_fryer-6.target_time,air_fryer-6.target_temperature,air_fryer-6.left_time,air_fryer-6.turn_pot,air_fryer-7.status,air_fryer-7.target_time,air_fryer-7.target_temperature,air_fryer-7.left_time,air_fryer-7.turn_pot'},
+            {'interval': 35, 'props': 'fault,mode,reservation_left_time,cooking_weight,air_fryer-6.fault,air_fryer-6.mode,air_fryer-6.reservation_left_time,air_fryer-6.cooking_weight,air_fryer-7.fault,air_fryer-7.mode,air_fryer-7.reservation_left_time,air_fryer-7.cooking_weight'},
+        ],
+    },
     'xiaomi.derh.13l': {
         **CHUNK_1,
         'binary_sensor_properties': 'is_warming_up',
