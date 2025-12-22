@@ -2185,7 +2185,7 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 120,
         'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
         'sensor_properties': 'status,fault,left_time,turn_pot',
-        'switch_properties': 'auto_keep_warm,current_keep_warm,preheat,turn_pot_config',
+        'switch_properties': 'on,auto_keep_warm,current_keep_warm,preheat,turn_pot_config',
         'select_properties': 'mode,texture,target_cooking_measure',
         'number_properties': 'target_time,target_temperature,reservation_left_time,cooking_weight',
         'exclude_miot_properties': 'recipe_id,recipe_name,recipe_sync',
@@ -2193,6 +2193,18 @@ DEVICE_CUSTOMIZES = {
             {'interval': 20, 'props': 'status,target_time,target_temperature,left_time,turn_pot'},
             {'interval': 35, 'props': 'fault,mode,reservation_left_time,cooking_weight'},
         ],
+    },
+    'xiaomi.fryer.jl12': {
+        'switch_properties': 'on,*_keep_warm,end_cooking_together,turn_pot_config,*shake_food_switch,is_dual_baskets',
+        'select_properties': 'mode,double_pot_param_sync,currently_using_pot',
+    },
+    'xiaomi.fryer.jl12:left_time': {
+        'device_class': 'duration',
+        'unit_of_measurement': 'min',
+    },
+    'xiaomi.fryer.jl12:target_time': {
+        'device_class': 'duration',
+        'unit_of_measurement': 'min',
     },
     'xiaomi.derh.13l': {
         **CHUNK_1,
