@@ -2186,7 +2186,7 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
         'sensor_properties': 'status,fault,left_time,turn_pot',
         'switch_properties': 'on,auto_keep_warm,current_keep_warm,preheat,turn_pot_config',
-        'select_properties': 'mode,texture,target_cooking_measure,double_pot_param_sync',
+        'select_properties': 'mode,texture,target_cooking_measure',
         'number_properties': 'target_time,target_temperature,reservation_left_time,cooking_weight',
         'exclude_miot_properties': 'recipe_id,recipe_name,recipe_sync',
         'chunk_coordinators': [
