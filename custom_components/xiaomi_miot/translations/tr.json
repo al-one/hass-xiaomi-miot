@@ -1,0 +1,474 @@
+{
+    "config": {
+        "flow_title": "Xiaomi Miot",
+        "step": {
+            "user": {
+                "title": "Eylem Seçin",
+                "data": {
+                    "action": "Eylem"
+                }
+            },
+            "token": {
+                "description": "Cihaz bilgilerini yapılandırın.",
+                "data": {
+                    "host": "Yerel IP",
+                    "token": "Token",
+                    "name": "Cihaz adı",
+                    "scan_interval": "Durum güncelleme aralığı (saniye)"
+                }
+            },
+            "cloud": {
+                "description": "Xiaomi bulut hesabını yapılandırın.\n{tip}",
+                "data": {
+                    "username": "Xiaomi Hesap ID / E-posta",
+                    "password": "Şifre",
+                    "captcha": "Doğrulama Kodu",
+                    "verify_ticket": "İki faktörlü doğrulama kodu",
+                    "server_country": "MiCloud sunucu konumu",
+                    "conn_mode": "Cihaz bağlantı modu",
+                    "trans_options": "Özellik değeri açıklamasını çevir",
+                    "filter_models": "Cihazları model/ev/WiFi ile filtrele (Gelişmiş)"
+                }
+            },
+            "cloud_filter": {
+                "title": "Bulut cihazlarını filtrele",
+                "description": "Yalnızca istediğiniz cihazları entegre etmek için cihazları dahil edebilir veya hariç tutabilirsiniz.\n{tip}",
+                "data": {
+                    "filter_model": "Cihaz Modelini Filtrele",
+                    "model_list": "Cihaz Model Listesi",
+                    "filter_home_id": "Evi Filtrele",
+                    "home_id_list": "Ev Listesi",
+                    "filter_ssid": "WiFi SSID Filtrele",
+                    "ssid_list": "WiFi SSID Listesi",
+                    "filter_bssid": "WiFi BSSID Filtrele",
+                    "bssid_list": "WiFi BSSID Listesi",
+                    "filter_did": "Cihazı Filtrele",
+                    "did_list": "Cihaz Listesi",
+                    "home_ids": "Evi Filtrele (Kaydetmek için boş bırakın)"
+                },
+                "data_description": {
+                    "filter_did": "Hariç tutma modunda, listeden herhangi bir seçenek işaretlemezseniz, tüm cihazları dahil etmekle eşdeğerdir.",
+                    "home_ids": "Bu seçeneği işaretleyip gönderdikten sonra mevcut sayfaya döneceksiniz,\ncihaz listesi yenilenecek ve işaretlenen evlerin cihazları filtrelenecektir."
+                }
+            },
+            "customizing": {
+                "title": "Varlıkları / cihazları özelleştirme",
+                "description": "{tip}",
+                "data": {
+                    "domain": "Varlık alanını seçin",
+                    "entity": "Varlık seçin",
+                    "model": "Cihaz modelini seçin",
+                    "model_specified": "Belirli cihaz modeli (İsteğe bağlı)",
+                    "only_main_entity": "Yalnızca ana (üst) varlıklar",
+                    "yaml_mode": "YAML Modu",
+                    "yaml_customizes": "Özelleştirmeler YAML Kodu",
+                    "reset_customizes": "Varsayılan özelleştirmelere sıfırla",
+                    "bool2selects": "Seçenekleri özelleştir"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Cihaza bağlanılamadı",
+            "cannot_login": "Xiaomi hesabına giriş yapılamadı. Lütfen hesap bilgilerinizi kontrol edin. Giriş denemeleri birden fazla kez başarısız olursa, lütfen aynı ağ ortamında Xiaomi resmi web sitesinden (mi.com) tekrar giriş yapmayı deneyin.",
+            "cannot_reach": "Xiaomi API arayüzüne erişilemiyor",
+            "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
+            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen doğrulama sayfasını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. HomeAssistant'a dönün ve aşağıdaki giriş kutusuna girin."
+        },
+        "abort": {
+            "config_saved": "Yapılandırma kaydedildi! [Tekrar özelleştir](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nBazı özel seçeneklerin etkili olması için [entegrasyonun yeniden yüklenmesi](/developer-tools/yaml) gerekebilir.",
+            "already_configured": "Bu cihaz zaten yapılandırılmış.",
+            "not_xiaomi_miio": "Bu cihaz miio/miot protokolünü desteklemiyor."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "Cihaz bilgilerini yapılandırın.",
+                "data": {
+                    "host": "Cihaz IP",
+                    "token": "Token",
+                    "scan_interval": "Durum güncelleme aralığı (saniye)",
+                    "miot_cloud": "Miot bulutu etkinleştir (Önce YAML'da hesabı yapılandırın)"
+                }
+            },
+            "cloud": {
+                "description": "Xiaomi bulut hesabını yapılandırın.\n{tip}",
+                "data": {
+                    "username": "Xiaomi Hesap ID / E-posta",
+                    "password": "Şifre",
+                    "captcha": "Doğrulama Kodu",
+                    "verify_ticket": "İki faktörlü doğrulama kodu",
+                    "server_country": "MiCloud sunucu konumu",
+                    "conn_mode": "Cihaz bağlantı modu",
+                    "renew_devices": "Cihazları zorla yenile",
+                    "trans_options": "Özellik değeri açıklamasını çevir",
+                    "disable_message": "Mihome bildirim sensörünü devre dışı bırak",
+                    "disable_scene_history": "Mihome sahne geçmişi sensörünü devre dışı bırak"
+                }
+            },
+            "cloud_filter": {
+                "title": "Bulut cihazlarını filtrele",
+                "description": "Yalnızca istediğiniz cihazları entegre etmek için cihazları dahil edebilir veya hariç tutabilirsiniz.\n{tip}",
+                "data": {
+                    "filter_model": "Cihaz Modelini Filtrele",
+                    "model_list": "Cihaz Model Listesi",
+                    "filter_home_id": "Evi Filtrele",
+                    "home_id_list": "Ev Listesi",
+                    "filter_ssid": "WiFi SSID Filtrele",
+                    "ssid_list": "WiFi SSID Listesi",
+                    "filter_bssid": "WiFi BSSID Filtrele",
+                    "bssid_list": "WiFi BSSID Listesi",
+                    "filter_did": "Cihazı Filtrele",
+                    "did_list": "Cihaz Listesi",
+                    "home_ids": "Evi Filtrele (Kaydetmek için boş bırakın)"
+                },
+                "data_description": {
+                    "filter_did": "Hariç tutma modunda, listeden herhangi bir seçenek işaretlemezseniz, tüm cihazları dahil etmekle eşdeğerdir.",
+                    "home_ids": "Bu seçeneği işaretleyip gönderdikten sonra mevcut sayfaya döneceksiniz,\ncihaz listesi yenilenecek ve işaretlenen evlerin cihazları filtrelenecektir."
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Cihaza bağlanılamadı",
+            "cannot_login": "Xiaomi hesabına giriş yapılamadı. Lütfen hesap bilgilerinizi kontrol edin. Giriş denemeleri birden fazla kez başarısız olursa, lütfen aynı ağ ortamında Xiaomi resmi web sitesinden (mi.com) tekrar giriş yapmayı deneyin.",
+            "cannot_reach": "Xiaomi API arayüzüne erişilemiyor",
+            "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
+            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen doğrulama sayfasını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. HomeAssistant'a dönün ve aşağıdaki giriş kutusuna girin."
+        },
+        "abort": {
+            "show_customizes": "[![Yeni entegrasyon ekle](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\nÖzelleştirmeyi değiştirmek için [yeni bir entegrasyon ekleyin](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}"
+        }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "Özel bileşen sürümü",
+            "can_reach_server": "Xiaomi API sunucusuna erişim",
+            "can_reach_spec": "MIoT-Spec Sunucusuna erişim",
+            "logged_accounts": "Giriş yapılmış hesap sayısı",
+            "total_devices": "Toplam MiHome cihaz sayısı"
+        }
+    },
+    "entity": {
+        "button": {
+            "info": {"name": "Bilgi"}
+        },
+        "sensor": {
+            "clean_area": {"name": "Temizlenen Alan"},
+            "clean_time": {"name": "Temizlik Süresi"},
+            "power_cost_today": {"name": "Bugünkü Enerji"},
+            "power_cost_month": {"name": "Aylık Enerji"},
+            "power_cost_today_2": {"name": "Bugünkü Enerji"},
+            "power_cost_month_2": {"name": "Aylık Enerji"},
+            "props-clean_area": {"name": "Temizlenen Alan"},
+            "props-clean_time": {"name": "Temizlik Süresi"},
+            "lock": {
+                "state": {
+                    "bluetooth": "Bluetooth",
+                    "password": "Şifre",
+                    "biological": "Biyometrik",
+                    "key": "Anahtar",
+                    "turntable": "Döner Kadran",
+                    "nfc": "NFC",
+                    "one_time_password": "Tek Kullanımlık Şifre",
+                    "two_step_verification": "İki Adımlı Doğrulama",
+                    "coercion": "Zorlama",
+                    "homekit": "Homekit",
+                    "manual": "Manuel",
+                    "automatic": "Otomatik"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "Dışarıdan kilidi aç",
+                    "lock": "Kilitle",
+                    "anti_lock_on": "Anti-kilidi etkinleştir",
+                    "anti_lock_off": "Anti-kilidi devre dışı bırak",
+                    "inside_unlock": "İçeriden kilidi aç",
+                    "lock_inside": "İçeriden kilitle",
+                    "child_lock_on": "Çocuk kilidini etkinleştir",
+                    "child_lock_off": "Çocuk kilidini devre dışı bırak",
+                    "lock_outside": "Dışarıdan kilitle"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "Açık",
+                    "close": "Kapalı",
+                    "close_timeout": "Kapanma zaman aşımı",
+                    "knock": "Kapı çalındı",
+                    "breaking": "Zorla giriş",
+                    "stuck": "Sıkışmış"
+                }
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "Otomatik",
+                            "low": "Düşük",
+                            "medium": "Orta",
+                            "middle": "Orta",
+                            "high": "Yüksek",
+                            "quiet": "Sessiz",
+                            "turbo": "Turbo",
+                            "level1": "Seviye 1",
+                            "level2": "Seviye 2",
+                            "level3": "Seviye 3",
+                            "level4": "Seviye 4",
+                            "level5": "Seviye 5",
+                            "level6": "Seviye 6",
+                            "level7": "Seviye 7"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "Kapalı",
+                            "vertical": "Dikey",
+                            "horizontal": "Yatay",
+                            "both": "Her İkisi"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "services": {
+        "send_command": {
+            "name": "Komut gönder",
+            "description": "Miio komutu gönder",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık ID",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Metod",
+                    "description": ""
+                },
+                "params": {
+                    "name": "Parametreler",
+                    "description": ""
+                }
+            }
+        },
+        "get_properties": {
+            "name": "Özellikleri al",
+            "description": "Miot özelliklerini al",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık ID",
+                    "description": ""
+                },
+                "mapping": {
+                    "name": "Eşleme",
+                    "description": ""
+                },
+                "update_entity": {
+                    "name": "Varlığı güncelle",
+                    "description": ""
+                }
+            }
+        },
+        "set_property": {
+            "name": "Özellik ayarla",
+            "description": "Miot özelliğini ayarla",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık ID",
+                    "description": ""
+                },
+                "field": {
+                    "name": "Alan",
+                    "description": ""
+                },
+                "value": {
+                    "name": "Değer",
+                    "description": ""
+                }
+            }
+        },
+        "set_miot_property": {
+            "name": "Miot özelliği ayarla",
+            "description": "siid/piid ile miot özelliğini ayarla",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık ID",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "piid": {
+                    "name": "",
+                    "description": ""
+                },
+                "value": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        },
+        "call_action": {
+            "name": "Eylem çağır",
+            "description": "Miot eylemini çağır",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık ID",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "aiid": {
+                    "name": "",
+                    "description": ""
+                },
+                "params": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        },
+        "intelligent_speaker": {
+            "name": "Akıllı hoparlör",
+            "description": "XiaoAi için akıllı hoparlör",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık ID",
+                    "description": "XiaoAi Varlık ID"
+                },
+                "text": {
+                    "name": "Metin",
+                    "description": ""
+                },
+                "execute": {
+                    "name": "Çalıştır",
+                    "description": ""
+                },
+                "silent": {
+                    "name": "Sessiz",
+                    "description": ""
+                }
+            }
+        },
+        "xiaoai_wakeup": {
+            "name": "XiaoAi Uyandır",
+            "description": "XiaoAi hoparlörünü uyandır",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık ID",
+                    "description": "XiaoAi Varlık ID"
+                },
+                "text": {
+                    "name": "Metin",
+                    "description": ""
+                }
+            }
+        },
+        "get_device_data": {
+            "name": "Cihaz verisini al",
+            "description": "Buluttan xiaomi cihaz verisini al",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık ID",
+                    "description": ""
+                },
+                "type": {
+                    "name": "Tür",
+                    "description": ""
+                },
+                "key": {
+                    "name": "Anahtar",
+                    "description": ""
+                },
+                "time_start": {
+                    "name": "Başlangıç zamanı",
+                    "description": ""
+                },
+                "time_end": {
+                    "name": "Bitiş zamanı",
+                    "description": ""
+                },
+                "limit": {
+                    "name": "Limit",
+                    "description": ""
+                },
+                "group": {
+                    "name": "Grup",
+                    "description": ""
+                }
+            }
+        },
+        "renew_devices": {
+            "name": "Cihazları yenile",
+            "description": "Önbelleğe alınmış xiaomi cihazlarını yenile",
+            "fields": {
+                "username": {
+                    "name": "Kullanıcı adı",
+                    "description": ""
+                }
+            }
+        },
+        "get_token": {
+            "name": "Token al",
+            "description": "Xiaomi cihaz tokenını al",
+            "fields": {
+                "name": {
+                    "name": "Ad",
+                    "description": ""
+                }
+            }
+        },
+        "get_bindkey": {
+            "name": "Bindkey al",
+            "description": "BLE cihazı için bindkey al",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık ID",
+                    "description": ""
+                },
+                "did": {
+                    "name": "DID",
+                    "description": ""
+                }
+            }
+        },
+        "request_xiaomi_api": {
+            "name": "Xiaomi API isteği",
+            "description": "Xiaomi API'sine istek gönder",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık ID",
+                    "description": ""
+                },
+                "api": {
+                    "name": "API",
+                    "description": ""
+                },
+                "data": {
+                    "name": "Veri",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Metod",
+                    "description": ""
+                },
+                "crypt": {
+                    "name": "Şifreleme",
+                    "description": ""
+                },
+                "sid": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        }
+    }
+}
