@@ -2198,6 +2198,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'on,*_keep_warm,end_cooking_together,turn_pot_config,*shake_food_switch,is_dual_baskets',
         'select_properties': 'mode,double_pot_param_sync,currently_using_pot',
     },
+    'xiaomi.fryer.jl12:left_time': {
+        'device_class': 'duration',
+        'unit_of_measurement': 'min',
+    },
     'xiaomi.fryer.jl12:target_time': {
         'device_class': 'duration',
         'unit_of_measurement': 'min',
