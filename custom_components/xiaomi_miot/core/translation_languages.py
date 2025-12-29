@@ -808,7 +808,7 @@ TRANSLATION_LANGUAGES = {
             'strong': 'сильний',
             'none': 'ніякий',
             'sleep': 'сплячий',
-            'favorite': 'коханий',
+            'favorite': 'улюблений',
         },
 
         'battery': {
@@ -868,7 +868,7 @@ TRANSLATION_LANGUAGES = {
             'warmth': 'теплий',
             'tv': 'телевізор',
             'reading': 'читання',
-            'комп'ютер': 'комп'ютер',
+            'computer': 'комп'ютер',
             'hospitality': 'гостинність',
             'entertainment': 'розваги',
             'lighting': 'освітлення',
@@ -886,19 +886,19 @@ TRANSLATION_LANGUAGES = {
             'two_step_verification': 'двоетапна перевірка',
             'coercion': 'стримування',
             'homekit': 'Homekit',
-            'manual': 'керівництво',
+            'manual': 'ручний',
             'automatic': 'автоматичний',
         },
         'lock_action': {
             'outside_unlock': 'зовнішнє розблокування',
-            'lock': 'замок',
+            'lock': 'Замкнено',
             'anti_lock_on': 'антиблокування увімкнено',
-            'anti_lock_off': 'антиблокувальне відключення',
-            'inside_unlock': 'розблокувати всередині',
-            'lock_inside': 'замок усередині',
+            'anti_lock_off': 'антиблокування вимкнено',
+            'inside_unlock': 'Внутрішнє розблокування',
+            'lock_inside': 'Блокування зсередини',
             'child_lock_on': 'блокування від дітей увімкнено',
             'child_lock_off': 'блокування від дітей вимкнено',
-            'lock_outside': 'замок зовні',
+            'lock_outside': 'Блокування ззовні',
         },
 
         'magnet_sensor': {
@@ -999,7 +999,7 @@ TRANSLATION_LANGUAGES = {
             'Floor': 'Поверх',
         },
         'sweep': {
-            'sweep door-state': 'конейнер',
+            'sweep door-state': 'стан дверей',
             'sweep cloth-state': 'ганчірка',
             'sweep hypa-life': 'ресурс фільтра',
             'sweep mop-life': 'ресурс ганчірки',
@@ -1015,9 +1015,9 @@ TRANSLATION_LANGUAGES = {
             'sweep dirt-recognize': 'розпізнавання бруду',
         },
         'sweep.water_state': {
-            'з': 'Низьке',
-            'всього': 'Середнє',
-            'High': 'Високе',
+            '低': 'Низьке',
+            '中': 'Середнє',
+            '高': 'Високе',
         },
         'sweep.mop_route': {
             'Y 字': 'Покращена',
@@ -1037,11 +1037,11 @@ TRANSLATION_LANGUAGES = {
         'sweep.door_state': {
             '无': 'Вилучено',
             '尘盒': 'Для сміття',
-            'Мішки': 'Для води',
+            '水箱': 'Для води',
             '二合一水箱': 'Суміщений',
         },
         'sweep.cloth_state': {
-            '몰장': 'відсутнє',
+            '没装': 'відсутнє',
             '装了': 'встановлена',
         },
         'clean.mode': {
@@ -1090,7 +1090,7 @@ TRANSLATION_LANGUAGES = {
             'synthetic': 'синтетичний',
             'towel': 'рушник',
             'underwear': 'нижня білизна',
-            'user define': 'визначені користувачем',
+            'user define': 'Користувацький',
             'wash dry': 'вимити та висушити',
             'wool': 'вовна',
         },
