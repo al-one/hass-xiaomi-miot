@@ -786,7 +786,7 @@ TRANSLATION_LANGUAGES = {
             'high': 'високий',
             'sleep': 'сплячий',
             'smart': 'розумний',
-            'favorite': 'коханий',
+            'favorite': 'улюблений',
         },
 
         'air_conditioner': {
