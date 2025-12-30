@@ -65,7 +65,7 @@
             "none_devices": "Не знайдено пристроїв у хмарі Сяомі"
         },
         "abort": {
-            "config_saved": "Конфігурація збережена! [Налаштувати знову](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nДеякі опції потребують перезавантаження конфігурації [reload integration](/developer-tools/yaml) для
+            "config_saved": "Конфігурація збережена! [Налаштувати знову](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nДеякі опції потребують перезавантаження конфігурації [reload integration](/developer-tools/yaml) для ефекту.",
             "already_configured": "Пристрій вже налаштований",
             "not_xiaomi_miio": "Не є пристроєм miio/miot."
         }
