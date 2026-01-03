@@ -76,8 +76,6 @@ SERVICE_TO_METHOD_BASE = {
             {
                 vol.Required('method'): cv.string,
                 vol.Optional('params', default=[]): cv.ensure_list,
-                vol.Optional('throw', default=False): cv.boolean,  # Deprecated
-                vol.Optional('return_result', default=True): cv.boolean,
             },
         ),
     },
@@ -383,7 +381,7 @@ def bind_services_to_entries(hass, services):
             })
         update_tasks = []
         for ent in target_entities:
-            if parent := getattr(ent, 'parent_entity'):
+            if parent := getattr(ent, 'parent_entity', None):
                 ent = parent
             if not hasattr(ent, fun):
                 _LOGGER.warning('Call service failed: Entity %s have no method: %s', ent.entity_id, fun)
@@ -1253,7 +1251,7 @@ class BaseSubEntity(BaseEntity):
             elif self._attr:
                 mar.append(f'{mod}:{self._attr}')
             if hasattr(self, '_miot_property'):
-                prop = getattr(self, '_miot_property')
+                prop = getattr(self, '_miot_property', None)
                 if prop:
                     mar.append(f'{mod}:{prop.full_name}')
                     mar.append(f'{mod}:{prop.name}')
