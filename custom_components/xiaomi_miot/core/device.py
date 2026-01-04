@@ -204,6 +204,16 @@ class Device(CustomConfigHelper):
         if not self.coordinators:
             await self.init_coordinators()
 
+        # Add periodic auth check coordinator to prevent session expiration
+        if self.cloud and not any(c.name.endswith('auth_check') for c in self.coordinators):
+            auth_check_coordinator = DataCoordinator(
+                self, self.async_check_cloud_auth,
+                name='auth_check',
+                update_interval=timedelta(hours=6),  # Check every 6 hours
+            )
+            self.coordinators.append(auth_check_coordinator)
+            await auth_check_coordinator.async_setup()
+
         if not self._unsub_purge:
             self._unsub_purge = async_track_time_interval(self.hass, self.async_purge_entities, timedelta(hours=12))
 
@@ -1274,12 +1284,40 @@ class Device(CustomConfigHelper):
             attrs = tpl.async_render({'props': props})
         else:
             attrs = props
-        if attrs:
-            self.available = True
-            self.props.update(attrs)
-            self.data['updated'] = dt.now()
-            self.dispatch(self.decode_attrs(attrs))
         return attrs
+
+    async def async_check_cloud_auth(self):
+        """Periodic check to ensure cloud session is valid and refresh if needed."""
+        if not self.cloud:
+            return
+
+        try:
+            # First check if service_token exists
+            if not self.cloud.service_token:
+                self.log.info('Cloud service token missing for %s, attempting relogin', self.name)
+                if await self.cloud.async_relogin():
+                    self.log.info('Successfully refreshed cloud auth for %s', self.name)
+                else:
+                    self.log.error('Failed to refresh cloud auth for %s', self.name)
+                return
+
+            # Check if auth is still valid
+            auth_valid = await self.cloud.async_check_auth(notify=False)
+            if auth_valid is False:
+                # Auth failed, attempt relogin
+                self.log.info('Cloud auth check failed for %s, attempting relogin', self.name)
+                if await self.cloud.async_relogin():
+                    self.log.info('Successfully refreshed cloud auth for %s', self.name)
+                else:
+                    self.log.error('Failed to refresh cloud auth for %s', self.name)
+            elif auth_valid is None:
+                # Network issues, will retry next time
+                self.log.debug('Cloud auth check returned None (network issues) for %s', self.name)
+            else:
+                # Auth is valid
+                self.log.debug('Cloud auth check passed for %s', self.name)
+        except Exception as err:
+            self.log.error('Error during cloud auth check for %s: %s', self.name, err)
 
     @cached_property
     def custom_miio_properties(self):

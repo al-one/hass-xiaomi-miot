@@ -103,6 +103,7 @@ class MiotCloud(micloud.MiCloud):
             dls.append(v)
         return dls
 
+    @aiohttp_retry(3, logger=_LOGGER)
     async def async_get_props(self, params=None):
         return await self.async_request_miot_spec('prop/get', params)
 
@@ -110,6 +111,7 @@ class MiotCloud(micloud.MiCloud):
     async def async_set_props(self, params=None):
         return await self.async_request_miot_spec('prop/set', params, timeout=5, raise_timeout=True)
 
+    @aiohttp_retry(3, logger=_LOGGER)
     async def async_do_action(self, params=None):
         return await self.async_request_miot_spec('action', params)
 
@@ -122,6 +124,7 @@ class MiotCloud(micloud.MiCloud):
             raise MiCloudException(json.dumps(rdt))
         return rls
 
+    @aiohttp_retry(3, logger=_LOGGER)
     async def async_get_user_device_data(self, did, key, typ='prop', raw=False, **kwargs):
         now = int(time.time())
         timeout = kwargs.pop('timeout', self.http_timeout)
