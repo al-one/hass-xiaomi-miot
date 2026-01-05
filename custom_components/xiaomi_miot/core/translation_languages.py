@@ -741,7 +741,7 @@ TRANSLATION_LANGUAGES = {
         },
     },
 
-    'ua': {
+    'uk': {
         'off': 'Вимкнений',
         'idle': 'Бездіючий',
         'busy': 'Зайнятий',
@@ -868,7 +868,7 @@ TRANSLATION_LANGUAGES = {
             'warmth': 'теплий',
             'tv': 'телевізор',
             'reading': 'читання',
-            'computer': 'комп'ютер',
+            'computer': 'компютер',
             'hospitality': 'гостинність',
             'entertainment': 'розваги',
             'lighting': 'освітлення',
@@ -1059,7 +1059,7 @@ TRANSLATION_LANGUAGES = {
         },
         'washer.mode': {
             'baby care': 'піклування про дитину',
-            'boiling': 'кип'ятіння',
+            'boiling': 'кипіння',
             'color protection': 'захист кольору',
             'cotton': 'бавовна',
             'daily wash': 'щоденне прання',
