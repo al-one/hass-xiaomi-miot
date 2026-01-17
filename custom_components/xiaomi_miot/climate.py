@@ -236,7 +236,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             val = self._conv_mode.value_from_dict(data)
             if val in self._attr_preset_modes:
                 self._attr_preset_mode = val
-            elif val is not None:
+            if val is not None:
                 for mk, mv in self._hvac_modes.items():
                     if val == mv.get('description'):
                         self._attr_hvac_mode = mk
