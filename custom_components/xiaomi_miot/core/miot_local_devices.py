@@ -109,6 +109,7 @@ MIOT_LOCAL_MODELS = [
     'chuangmi.camera.079ac1',
     'chuangmi.camera.081ae2',
     'chuangmi.camera.81ac1',
+    'chuangmi.camera.112ae1',  # IMILAB C40
     'chuangmi.gateway.720',
     'chuangmi.plug.212a01',
     'chuangmi.vacuum.hmi707',

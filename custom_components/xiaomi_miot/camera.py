@@ -343,12 +343,14 @@ XEntity.CLS[ENTITY_DOMAIN] = CameraEntity
 
 
 class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
+    _attr_has_entity_name = True
     _srv_stream = None
     _act_start_stream = None
     _act_stop_stream = None
     _prop_stream_address = None
     _prop_expiration_time = None
     _prop_motion_tracking = None
+    _prop_human_tracking = None
     _stream_refresh_unsub = None
     _motion_entity = None
     _motion_enable = None
@@ -361,7 +363,11 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if self._prop_power:
             self._supported_features |= CameraEntityFeature.ON_OFF
         if miot_service:
+            # Support motion detection property (SIID 5)
             self._prop_motion_tracking = miot_service.bool_property('motion_detection', 'motion_tracking')
+            # Support human tracking property (SIID 2 PIID 9 for IMILAB C40)
+            if not self._prop_motion_tracking:
+                self._prop_human_tracking = miot_service.bool_property('human_tracking')
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -383,15 +389,22 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 self._prop_stream_address = srv.get_property('stream_address')
                 self._prop_expiration_time = srv.get_property('expiration_time')
                 break
-        if self._prop_stream_address:
+        # Enable STREAM feature if we have an action to start streaming
+        # The stream_address property may not be readable, but the action returns the URL
+        if self._act_start_stream:
             self._supported_features |= CameraEntityFeature.STREAM
-            self._sub_motion_stream = True
+            # When we have a streaming action, don't create motion entity or use motion stream by default
+            self._sub_motion_stream = False
+            self._use_motion_stream = False
         elif self._miot_service.name in ['camera_control'] or self.is_doorbell:
-            if self.custom_config_bool('use_motion_stream'):
-                pass
-            elif self.custom_config_bool('sub_motion_stream'):
-                pass
+            # Only use motion stream if explicitly enabled or no streaming action available
+            use_motion = self.custom_config_bool('use_motion_stream', None)
+            if use_motion is True:
+                self._use_motion_stream = True
+            elif use_motion is False:
+                self._use_motion_stream = False
             else:
+                # Default to motion stream only when no streaming action is available
                 self._use_motion_stream = True
 
     @property
@@ -505,8 +518,14 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 self._url_expiration -= 10
             else:
                 self._url_expiration = now + 60 * 4.5
+            # Get stream URL from the action output dict
+            # Try using the property parser first, fallback to direct dict access
             if self._prop_stream_address:
                 self._last_url = self._prop_stream_address.from_dict(odt)
+            else:
+                # Fallback: get stream_address directly from the output dict
+                self._last_url = odt.get('stream_address')
+            if self._last_url:
                 self.schedule_update_ha_state()
                 self.async_check_stream_address(self._last_url)
                 if not kwargs.get('scheduled') or self.custom_config('keep_streaming'):
@@ -665,18 +684,27 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
 
     @property
     def motion_detection_enabled(self):
+        """Return the status of motion detection (includes human tracking for PTZ cameras)."""
         if self._prop_motion_tracking:
             return self._prop_motion_tracking.from_device(self.device)
+        if self._prop_human_tracking:
+            return self._prop_human_tracking.from_device(self.device)
         return None
 
     async def async_enable_motion_detection(self):
+        """Enable motion detection (or human tracking for PTZ cameras like IMILAB C40)."""
         if self._prop_motion_tracking:
             return await self.async_set_property(self._prop_motion_tracking, True)
+        if self._prop_human_tracking:
+            return await self.async_set_property(self._prop_human_tracking, True)
         return False
 
     async def async_disable_motion_detection(self):
+        """Disable motion detection (or human tracking for PTZ cameras like IMILAB C40)."""
         if self._prop_motion_tracking:
             return await self.async_set_property(self._prop_motion_tracking, False)
+        if self._prop_human_tracking:
+            return await self.async_set_property(self._prop_human_tracking, False)
         return False
 
 

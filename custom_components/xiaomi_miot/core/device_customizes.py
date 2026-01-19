@@ -298,6 +298,53 @@ DEVICE_CUSTOMIZES = {
     'chuangmi.camera.v6': {
         'use_alarm_playlist': True,
     },
+    # IMILAB C40 - Full support for camera features
+    'chuangmi.camera.112ae1': {
+        'miot_cloud_action': True,
+        # Stream Configuration
+        # Real-time streaming uses SIID 28 (Google Home HLS) or SIID 29 (Amazon Alexa RTSP)
+        # Set use_rtsp_stream to True to use Amazon Alexa RTSP instead of Google Home HLS
+        'use_rtsp_stream': True,
+        # Set use_motion_stream to False to prefer real-time stream over motion event videos
+        'use_motion_stream': False,
+        # Disable sub motion stream entity to prevent motion events from overriding stream_address
+        'sub_motion_stream': False,
+        # Keep refreshing stream URL before expiration (default: 10 min)
+        'keep_streaming': True,
+        # Video resolution: 1=1080p, 2=720p, 3=768p
+        'video_attribute': 1,
+        # Camera Control (SIID 2)
+        'switch_properties': 'on,time_watermark,glimmer_full_color,human_tracking,'
+                             'image_distortion_correction',
+        'select_properties': 'night_shot,recording_mode,power_frequency',
+        'number_properties': 'image_rollover',
+        # Indicator Light (SIID 3)
+        'switch_properties@indicator_light': 'indicator_light.on',
+        # Memory Card Management (SIID 4)
+        'sensor_properties': 'memory_card_management.status,storage_total_space,'
+                             'storage_free_space,storage_used_space,remaining_recording_duration',
+        # Motion Detection (SIID 5)
+        'switch_properties@motion_detection': 'motion_detection.motion_detection',
+        'select_properties@motion_detection': 'motion_detection.detection_sensitivity',
+        'number_properties@motion_detection': 'motion_detection.alarm_interval',
+        # Speaker (SIID 6)
+        'number_properties@speaker': 'speaker.volume',
+        'switch_properties@speaker': 'speaker.mute',
+        # AI Detection (SIID 8)
+        'switch_properties@ai_detection': 'pet_detection_switch,human_detection,move_detection,'
+                                          'babycry_detection_switch,pet_tracking,abnormal_sound_detection',
+        'select_properties@ai_detection': 'ai_detection.detection_sensitivity',
+        # Cruise (SIID 11)
+        'switch_properties@cruise': 'cruise_switch',
+        'select_properties@cruise': 'cruise_mode',
+        'number_properties@cruise': 'cruise_cycle',
+        # Virtual Fence (SIID 15)
+        'switch_properties@virtual_fence': 'virtual_fence_switch,people_fence_in,people_fence_out,area_display_switch',
+        # Fire Smoke (SIID 19)
+        'switch_properties@fire_smoke': 'fire_smoke_switch,fire_smoke_alarm_switch',
+        # Actions
+        'button_actions': 'ptz_calibrate,restart_device,memory_card_management.format',
+    },
     'chuangmi.plug.212a01': {
         'chunk_properties': 7,
         'sensor_attributes': 'power_cost_today,power_cost_month',
