@@ -873,6 +873,8 @@ class MiotEntityInterface:
 
 
 class MiotEntity(MiioEntity):
+    _attr_has_entity_name = True
+
     def __init__(self, miot_service=None, device=None, **kwargs):
         self._config = dict(kwargs.get('config') or {})
         name = kwargs.get(CONF_NAME) or self._config.get(CONF_NAME) or ''
@@ -1121,6 +1123,8 @@ class MiirToggleEntity(MiotEntity, ToggleEntity):
 
 
 class BaseSubEntity(BaseEntity):
+    _attr_has_entity_name = True
+
     def __init__(self, parent, attr, option=None, **kwargs):
         self.hass = parent.hass
         self.device = parent.device

@@ -357,6 +357,14 @@
           "recording": "Recording"
         }
       },
+      "camera_control": {
+        "name": "Camera",
+        "state": {
+          "idle": "Idle",
+          "streaming": "Streaming",
+          "recording": "Recording"
+        }
+      },
       "motion_event": {
         "name": "Motion Event"
       }
