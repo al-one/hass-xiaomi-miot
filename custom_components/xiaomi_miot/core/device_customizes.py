@@ -303,6 +303,8 @@ DEVICE_CUSTOMIZES = {
         'miot_cloud_action': True,
         # Stream Configuration
         # Real-time streaming uses SIID 28 (Google Home HLS) or SIID 29 (Amazon Alexa RTSP)
+        # Set use_rtsp_stream to True to use Amazon Alexa RTSP instead of Google Home HLS
+        'use_rtsp_stream': True,
         # Set use_motion_stream to False to prefer real-time stream over motion event videos
         'use_motion_stream': False,
         # Keep refreshing stream URL before expiration (default: 10 min)
