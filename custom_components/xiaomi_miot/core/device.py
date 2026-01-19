@@ -164,6 +164,7 @@ class Device(CustomConfigHelper):
     _exclude_miot_properties = None
     _unreadable_properties = None
     _unsub_purge = None
+    _unsub_force_refresh = None
 
     def __init__(self, info: DeviceInfo, entry: HassEntry):
         self.data = {}
@@ -207,6 +208,16 @@ class Device(CustomConfigHelper):
         if not self._unsub_purge:
             self._unsub_purge = async_track_time_interval(self.hass, self.async_purge_entities, timedelta(hours=12))
 
+        # Setup force refresh if configured
+        force_refresh = self.custom_config_integer('force_refresh_interval')
+        if force_refresh and force_refresh > 0:
+            self.log.info('Setting up force refresh every %s seconds for %s', force_refresh, self.name_model)
+            self._unsub_force_refresh = async_track_time_interval(
+                self.hass,
+                self.async_force_refresh,
+                timedelta(seconds=force_refresh)
+            )
+
     async def async_unload(self):
         for coo in self.coordinators:
             await coo.async_shutdown()
@@ -217,6 +228,10 @@ class Device(CustomConfigHelper):
         if self._unsub_purge:
             self._unsub_purge()
             self._unsub_purge = None
+
+        if self._unsub_force_refresh:
+            self._unsub_force_refresh()
+            self._unsub_force_refresh = None
 
     @cached_property
     def did(self):
@@ -605,6 +620,15 @@ class Device(CustomConfigHelper):
             await coo.async_request_refresh()
             all.append(coo.name)
         self.log.info('Update all coordinators: %s', all)
+
+    async def async_force_refresh(self, _=None):
+        """Force refresh all coordinators to prevent disconnection issues."""
+        self.log.debug('Force refresh for %s', self.name_model)
+        # Reset fail counters to allow reconnection attempts
+        self._local_fails = 0
+        self._cloud_fails = 0
+        # Force refresh all coordinators
+        await self.update_all_status()
 
     def add_entities(self, domain):
         for conv in self.converters:

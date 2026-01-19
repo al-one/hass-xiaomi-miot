@@ -1432,6 +1432,13 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'ir_temperature',
         'button_actions': 'turn_on,turn_off,fan_speed_up,fan_speed_down,temperature_up,temperature_down',
     },
+    'mijia.light.group3': {
+        'cloud_delay_update': 7,
+        'chunk_coordinators': [
+            {'interval': 10, 'props': 'on,brightness,color_temperature,mode'},
+        ],
+        'force_refresh_interval': 3600,
+    },
     'mijia.light.*': {
         'cloud_delay_update': 7,
     },
