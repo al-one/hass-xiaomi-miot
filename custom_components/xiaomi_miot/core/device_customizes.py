@@ -2510,6 +2510,19 @@ DEVICE_CUSTOMIZES = {
                           'start_sweep_before_mopping,stop_working,empty_base_station_water_tank,empty_host_water_tank,'
                           'identify,reset_*_life',
     },
+    'xiaomi.vacuum.ov81gl': {
+        'interval_seconds': 90,
+        'exclude_miot_properties': 'room_information',
+        'exclude_miot_services': 'vacuum_map',
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'status,cleaning_area,cleaning_time', 'notify': True},
+            {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type'},
+            {'interval': 61, 'props': 'mop_status,battery_level,charging_state,clean_times'},
+            {'interval': 150, 'props': 'auto_*,*_detection'},
+            {'interval': 200, 'props': 'carpet_*,water_*'},
+            {'interval': 300, 'props': 'filter_l*,mop_l*,dust_bag_l*,brush_l*,detergent_l*'},
+        ],
+    },
     'xiaomi.vacuum.*': {
         'interval_seconds': 90,
         'chunk_coordinators': [
