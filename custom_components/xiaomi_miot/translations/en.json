@@ -218,7 +218,10 @@
       "info": { "name": "Info" },
       "ptz_calibrate": { "name": "PTZ Calibrate" },
       "restart_device": { "name": "Restart Device" },
-      "format": { "name": "Format SD Card" }
+      "format": { "name": "Format SD Card" },
+      "camera_control-ptz_calibrate": { "name": "PTZ Calibrate" },
+      "camera_control-restart_device": { "name": "Restart Device" },
+      "memory_card_management-format": { "name": "Format SD Card" }
     },
     "sensor": {
       "clean_area": { "name": "Clean Area" },
@@ -250,6 +253,27 @@
       "storage_free_space": { "name": "Free Space" },
       "storage_used_space": { "name": "Used Space" },
       "remaining_recording_duration": { "name": "Remaining Recording Time" },
+      "memory_card_management-status": {
+        "name": "SD Card Status",
+        "state": {
+          "normal": "Normal",
+          "non_existent": "Not Found",
+          "full": "Full",
+          "broken": "Damaged",
+          "formatting": "Formatting",
+          "ejected": "Ejected",
+          "fixing": "Repairing",
+          "ejecting": "Ejecting",
+          "uninitialized": "Uninitialized",
+          "not_enough_space": "Insufficient Space",
+          "file_err": "File Error",
+          "incompatible": "Incompatible"
+        }
+      },
+      "memory_card_management-storage_total_space": { "name": "Total Space" },
+      "memory_card_management-storage_free_space": { "name": "Free Space" },
+      "memory_card_management-storage_used_space": { "name": "Used Space" },
+      "memory_card_management-remaining_recording_duration": { "name": "Remaining Recording Time" },
       "lock": {
         "state": {
           "bluetooth": "Bluetooth",
@@ -373,6 +397,52 @@
           "panoramic_cruise": "Panoramic Cruise",
           "fixed_point_cruise": "Fixed Point Cruise"
         }
+      },
+      "camera_control-night_shot": {
+        "name": "Night Vision",
+        "state": {
+          "on": "On",
+          "off": "Off",
+          "auto": "Auto"
+        }
+      },
+      "camera_control-recording_mode": {
+        "name": "Recording Mode",
+        "state": {
+          "no_record": "No Recording",
+          "motion_record": "Motion Recording",
+          "all_record": "Continuous Recording"
+        }
+      },
+      "camera_control-power_frequency": {
+        "name": "Power Frequency",
+        "state": {
+          "50": "50Hz",
+          "60": "60Hz"
+        }
+      },
+      "motion_detection-detection_sensitivity": {
+        "name": "Detection Sensitivity",
+        "state": {
+          "low": "Low",
+          "middle": "Medium",
+          "high": "High"
+        }
+      },
+      "ai_detection-detection_sensitivity": {
+        "name": "AI Detection Sensitivity",
+        "state": {
+          "low": "Low",
+          "middle": "Medium",
+          "high": "High"
+        }
+      },
+      "cruise-cruise_mode": {
+        "name": "Cruise Mode",
+        "state": {
+          "panoramic_cruise": "Panoramic Cruise",
+          "fixed_point_cruise": "Fixed Point Cruise"
+        }
       }
     },
     "switch": {
@@ -398,13 +468,42 @@
       "indicator_light": { "name": "Indicator Light" },
       "mute": { "name": "Mute" },
       "wdr_mode": { "name": "WDR Mode" },
-      "motion_tracking": { "name": "Motion Tracking" }
+      "motion_tracking": { "name": "Motion Tracking" },
+      "camera_control-on": { "name": "Power" },
+      "camera_control-time_watermark": { "name": "Time Watermark" },
+      "camera_control-glimmer_full_color": { "name": "Low Light Full Color" },
+      "camera_control-human_tracking": { "name": "Human Tracking" },
+      "camera_control-image_distortion_correction": {
+        "name": "Distortion Correction"
+      },
+      "indicator_light-on": { "name": "Indicator Light" },
+      "motion_detection-motion_detection": { "name": "Motion Detection" },
+      "ai_detection-pet_detection_switch": { "name": "Pet Detection" },
+      "ai_detection-human_detection": { "name": "Human Detection" },
+      "ai_detection-move_detection": { "name": "Movement Detection" },
+      "ai_detection-babycry_detection_switch": { "name": "Baby Cry Detection" },
+      "ai_detection-pet_tracking": { "name": "Pet Tracking" },
+      "ai_detection-abnormal_sound_detection": {
+        "name": "Abnormal Sound Detection"
+      },
+      "cruise-cruise_switch": { "name": "Cruise" },
+      "virtual_fence-virtual_fence_switch": { "name": "Virtual Fence" },
+      "virtual_fence-people_fence_in": { "name": "Entry Alert" },
+      "virtual_fence-people_fence_out": { "name": "Exit Alert" },
+      "virtual_fence-area_display_switch": { "name": "Display Area" },
+      "fire_smoke-fire_smoke_switch": { "name": "Fire/Smoke Detection" },
+      "fire_smoke-fire_smoke_alarm_switch": { "name": "Fire/Smoke Alarm" },
+      "speaker-mute": { "name": "Mute" }
     },
     "number": {
       "image_rollover": { "name": "Image Rotation" },
       "alarm_interval": { "name": "Alarm Interval" },
       "volume": { "name": "Volume" },
-      "cruise_cycle": { "name": "Cruise Cycle" }
+      "cruise_cycle": { "name": "Cruise Cycle" },
+      "camera_control-image_rollover": { "name": "Image Rotation" },
+      "motion_detection-alarm_interval": { "name": "Alarm Interval" },
+      "speaker-volume": { "name": "Volume" },
+      "cruise-cruise_cycle": { "name": "Cruise Cycle" }
     }
   },
   "services": {
