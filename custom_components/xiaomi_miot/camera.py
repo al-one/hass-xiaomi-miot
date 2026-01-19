@@ -394,14 +394,17 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if self._act_start_stream:
             self._supported_features |= CameraEntityFeature.STREAM
             self._sub_motion_stream = True
+            # When we have a streaming action, don't use motion stream by default
+            self._use_motion_stream = False
         elif self._miot_service.name in ['camera_control'] or self.is_doorbell:
             # Only use motion stream if explicitly enabled or no streaming action available
-            if self.custom_config_bool('use_motion_stream'):
-                pass
-            elif self.custom_config_bool('sub_motion_stream'):
-                pass
-            elif not self.custom_config_bool('use_motion_stream', None) is False:
-                # Default to motion stream only if use_motion_stream is not explicitly False
+            use_motion = self.custom_config_bool('use_motion_stream', None)
+            if use_motion is True:
+                self._use_motion_stream = True
+            elif use_motion is False:
+                self._use_motion_stream = False
+            else:
+                # Default to motion stream only when no streaming action is available
                 self._use_motion_stream = True
 
     @property
