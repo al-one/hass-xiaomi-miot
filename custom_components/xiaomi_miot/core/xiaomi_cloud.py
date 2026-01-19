@@ -114,13 +114,21 @@ class MiotCloud(micloud.MiCloud):
         return await self.async_request_miot_spec('action', params)
 
     async def async_request_miot_spec(self, api, params=None, **kwargs):
-        rdt = await self.async_request_api('miotspec/' + api, {
+        resp = await self.async_request_api('miotspec/' + api, {
             'params': params or [],
         }, **kwargs) or {}
-        rls = rdt.get('result')
-        if not rls and rdt.get('code'):
-            raise MiCloudException(json.dumps(rdt))
-        return rls
+        result = resp.get('result')
+        if not result and self.is_token_expired(resp):
+            now = int(time.time())
+            tim = self.attrs.get('last_relogin_time', 0)
+            if now - tim > 600:
+                self.attrs['last_relogin_time'] = now
+                if await self.async_check_auth(notify=True):
+                    return await self.async_request_miot_spec(api, params, **kwargs)
+            raise MiCloudException(json.dumps(resp, ensure_ascii=False))
+        if not result and resp.get('code'):
+            raise MiCloudException(json.dumps(resp, ensure_ascii=False))
+        return result
 
     async def async_get_user_device_data(self, did, key, typ='prop', raw=False, **kwargs):
         now = int(time.time())
@@ -161,15 +169,7 @@ class MiotCloud(micloud.MiCloud):
             }
             try:
                 rdt = await self.async_request_api(api, dat, method='POST') or {}
-                eno = rdt.get('code', 0)
-                msg = rdt.get('message', '')
-                if eno in [2, 3]:
-                    pass
-                elif 'auth err' in msg:
-                    pass
-                elif msg in ['invalid signature', 'SERVICETOKEN_EXPIRED']:
-                    pass
-                else:
+                if not self.is_token_expired(rdt):
                     return True
             except requests.exceptions.ConnectionError:
                 return None
@@ -204,6 +204,17 @@ class MiotCloud(micloud.MiCloud):
             raise need_verify
         else:
             _LOGGER.warning('Retry login xiaomi account failed: %s', self.username)
+        return False
+
+    def is_token_expired(self, data: dict):
+        eno = data.get('code', 0)
+        msg = data.get('message', '')
+        if eno in [2, 3]:
+            return True
+        elif 'auth err' in msg:
+            return True
+        elif msg in ['invalid signature', 'SERVICETOKEN_EXPIRED']:
+            return True
         return False
 
     async def async_request_api(self, api, data, method='POST', crypt=True, debug=True, **kwargs):
