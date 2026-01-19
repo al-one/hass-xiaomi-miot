@@ -349,6 +349,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
     _prop_stream_address = None
     _prop_expiration_time = None
     _prop_motion_tracking = None
+    _prop_human_tracking = None
     _stream_refresh_unsub = None
     _motion_entity = None
     _motion_enable = None
@@ -361,7 +362,11 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if self._prop_power:
             self._supported_features |= CameraEntityFeature.ON_OFF
         if miot_service:
+            # Support motion detection property (SIID 5)
             self._prop_motion_tracking = miot_service.bool_property('motion_detection', 'motion_tracking')
+            # Support human tracking property (SIID 2 PIID 9 for IMILAB C40)
+            if not self._prop_motion_tracking:
+                self._prop_human_tracking = miot_service.bool_property('human_tracking')
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -665,18 +670,27 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
 
     @property
     def motion_detection_enabled(self):
+        """Return the status of motion detection (includes human tracking for PTZ cameras)."""
         if self._prop_motion_tracking:
             return self._prop_motion_tracking.from_device(self.device)
+        if self._prop_human_tracking:
+            return self._prop_human_tracking.from_device(self.device)
         return None
 
     async def async_enable_motion_detection(self):
+        """Enable motion detection (or human tracking for PTZ cameras like IMILAB C40)."""
         if self._prop_motion_tracking:
             return await self.async_set_property(self._prop_motion_tracking, True)
+        if self._prop_human_tracking:
+            return await self.async_set_property(self._prop_human_tracking, True)
         return False
 
     async def async_disable_motion_detection(self):
+        """Disable motion detection (or human tracking for PTZ cameras like IMILAB C40)."""
         if self._prop_motion_tracking:
             return await self.async_set_property(self._prop_motion_tracking, False)
+        if self._prop_human_tracking:
+            return await self.async_set_property(self._prop_human_tracking, False)
         return False
 
 

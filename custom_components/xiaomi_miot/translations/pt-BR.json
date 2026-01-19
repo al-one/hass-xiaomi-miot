@@ -1,445 +1,626 @@
 {
-    "config": {
-        "flow_title": "Xiaomi Miot",
-        "step": {
-            "user": {
-                "title": "Selecione a forma de integração",
-                "data": {
-                    "action": "Opções"
-                }
-            },
-            "token": {
-                "description": "Config infor do dispositivo.",
-                "data": {
-                    "host": "IP Local",
-                    "token": "Token",
-                    "name": "Nome do dispositivo",
-                    "scan_interval": "Intervalo de update do estado (segundos)"
-                }
-            },
-            "cloud": {
-                "description": "Configurar pela conta xiaomi.\n{tip}",
-                "data": {
-                    "username": "ID de conta Xiaomi / Email",
-                    "password": "Senha",
-                    "captcha": "Captcha",
-                    "server_country": "Região da MiCloud",
-                    "conn_mode": "Modo de conexão com o dispositivo",
-                    "filter_models": "Filtro de dispositivo via model/home/WiFi (Advanced)"
-                }
-            },
-            "cloud_filter": {
-                "title": "Filtro de dispositivos da nuvem",
-                "description": "Você pode incluir ou excluir dispositivos para a integrar só o que quiser. No modo de exclusão, se você não marcar nenhuma opção da lista, equivale a incluir todas as opções.\n{tip}",
-                "data": {
-                    "filter_model": "Filtro de Dispositivos",
-                    "model_list": "Lista de Dispositivos",
-                    "filter_home_id": "Filtro de Casa",
-                    "home_id_list": "Lista de Casa",
-                    "filter_ssid": "Filtro por WiFi SSID",
-                    "ssid_list": "Lista de WiFi SSID",
-                    "filter_bssid": "Filtro WiFi BSSID",
-                    "bssid_list": "Lista de WiFi BSSID",
-                    "filter_did": "Filtrar dispositivos",
-                    "did_list": "Lista de dispositivos"
-                }
-            },
-            "customizing": {
-                "title": "Customizando entidades / dispositivos",
-                "description": "{tip}",
-                "data": {
-                    "domain": "Selecione o domomínio da entidade",
-                    "entity": "Selecione a entidade",
-                    "model": "Selecione o modelo do dispositivo",
-                    "model_specified": "Modelo do dispositivo especificaco (Opcional)",
-                    "only_main_entity": "Apenas entidades principais (pais)",
-                    "reset_customizes": "Reiniciar para customização padrão",
-                    "bool2selects": "Opções de customização"
-                }
-            }
-        },
-        "error": {
-            "cannot_connect": "Falha em conectar o dispositivo",
-            "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
-            "cannot_reach": "Incapaz de accessar a API Xiaomi",
-            "tzinfo_error": "Aparentemente há um problema no seu ambiente Hass. Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Sem dispositivos na conta xiaomi"
-        },
-        "abort": {
-            "config_saved": "Configuração guardada! [Customize novamente](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlgumas opções de customização podem requerir [recarregar a integração](/developer-tools/yaml) para ter efeito.",
-            "already_configured": "O dispositivo já está configurado",
-            "not_xiaomi_miio": "Não é um dispositivo Xiaomi miio/miot."
+  "config": {
+    "flow_title": "Xiaomi Miot",
+    "step": {
+      "user": {
+        "title": "Selecione a forma de integração",
+        "data": {
+          "action": "Opções"
         }
+      },
+      "token": {
+        "description": "Config infor do dispositivo.",
+        "data": {
+          "host": "IP Local",
+          "token": "Token",
+          "name": "Nome do dispositivo",
+          "scan_interval": "Intervalo de update do estado (segundos)"
+        }
+      },
+      "cloud": {
+        "description": "Configurar pela conta xiaomi.\n{tip}",
+        "data": {
+          "username": "ID de conta Xiaomi / Email",
+          "password": "Senha",
+          "captcha": "Captcha",
+          "server_country": "Região da MiCloud",
+          "conn_mode": "Modo de conexão com o dispositivo",
+          "filter_models": "Filtro de dispositivo via model/home/WiFi (Advanced)"
+        }
+      },
+      "cloud_filter": {
+        "title": "Filtro de dispositivos da nuvem",
+        "description": "Você pode incluir ou excluir dispositivos para a integrar só o que quiser. No modo de exclusão, se você não marcar nenhuma opção da lista, equivale a incluir todas as opções.\n{tip}",
+        "data": {
+          "filter_model": "Filtro de Dispositivos",
+          "model_list": "Lista de Dispositivos",
+          "filter_home_id": "Filtro de Casa",
+          "home_id_list": "Lista de Casa",
+          "filter_ssid": "Filtro por WiFi SSID",
+          "ssid_list": "Lista de WiFi SSID",
+          "filter_bssid": "Filtro WiFi BSSID",
+          "bssid_list": "Lista de WiFi BSSID",
+          "filter_did": "Filtrar dispositivos",
+          "did_list": "Lista de dispositivos"
+        }
+      },
+      "customizing": {
+        "title": "Customizando entidades / dispositivos",
+        "description": "{tip}",
+        "data": {
+          "domain": "Selecione o domomínio da entidade",
+          "entity": "Selecione a entidade",
+          "model": "Selecione o modelo do dispositivo",
+          "model_specified": "Modelo do dispositivo especificaco (Opcional)",
+          "only_main_entity": "Apenas entidades principais (pais)",
+          "reset_customizes": "Reiniciar para customização padrão",
+          "bool2selects": "Opções de customização"
+        }
+      }
     },
-    "options": {
-        "step": {
-            "user": {
-                "title": "Xiaomi Miot",
-                "description": "Configurar info do dispositivo.",
-                "data": {
-                    "host": "IP Local",
-                    "token": "Token",
-                    "scan_interval": "Intervalo de update do estado (segundos)",
-                    "miot_cloud": "Habilitar miot cloud (Configurar conta no YAML)"
-                }
-            },
-            "cloud": {
-                "description": "Config conta xiaomi.\n{tip}",
-                "data": {
-                    "username": "ID de conta Xiaomi / Email",
-                    "password": "Senha",
-                    "captcha": "Captcha",
-                    "server_country": "Região da MiCloud",
-                    "conn_mode": "Modo de conexão com o dispositivo",
-                    "renew_devices": "Forçar renovar dispositivos",
-                    "disable_message": "Desabilitar o sensor de notificação Mihome",
-                    "disable_scene_history": "Desabilitar o histórico do sensor de cena"
-                }
-            },
-            "cloud_filter": {
-                "title": "Filtro de dispositivos da nuvem",
-                "description": "Você pode incluir ou excluir dispositivos para a integrar só o que quiser. No modo de exclusão, se você não marcar nenhuma opção da lista, equivale a incluir todas as opções.\n{tip}",
-                "data": {
-                    "filter_model": "Filtro de Dispositivos",
-                    "model_list": "Lista de Dispositivos",
-                    "filter_home_id": "Filtrar Casa",
-                    "home_id_list": "Lista Casa",
-                    "filter_ssid": "Filtro por WiFi SSID",
-                    "ssid_list": "Lista de WiFi SSID",
-                    "filter_bssid": "Filtro por WiFi BSSID",
-                    "bssid_list": "Lista de WiFi BSSID",
-                    "filter_did": "Filtrar Dispositivos",
-                    "did_list": "Lista de Dispositivos"
-                }
-            }
-        },
-        "error": {
-            "cannot_connect": "Falha em conectar o dispositivo",
-            "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
-            "cannot_reach": "Incapaz de accessar a API Xiaomi",
-            "tzinfo_error": "Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Sem dispositivos na conta xiaomi"
-        },
-        "abort": {
-            "show_customizes": "[![Adicionar nova integração](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Adicionar nova integração](/_my_redirect/config_flow_start?domain=xiaomi_miot) para modificar a customização.\n{tip}"
-        }
+    "error": {
+      "cannot_connect": "Falha em conectar o dispositivo",
+      "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
+      "cannot_reach": "Incapaz de accessar a API Xiaomi",
+      "tzinfo_error": "Aparentemente há um problema no seu ambiente Hass. Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+      "none_devices": "Sem dispositivos na conta xiaomi"
     },
-    "system_health": {
-        "info": {
-            "component_version": "Versião do componente",
-            "can_reach_server": "Acessar server Xiaomi API",
-            "can_reach_spec": "Acessar server MIoT-Spec",
-            "logged_accounts": "Contas logadas",
-            "total_devices": "Total de dispositivos MiHome"
-        }
-    },
-    "entity": {
-        "sensor": {
-            "lock": {
-                "state": {
-                    "bluetooth": "Bluetooth",
-                    "password": "Senha",
-                    "biological": "Biologico",
-                    "key": "Chave",
-                    "turntable": "Giratória",
-                    "nfc": "NFC",
-                    "one_time_password": "Senha de Única Vez",
-                    "two_step_verification": "Verificação de Dois Passos",
-                    "coercion": "Coerção",
-                    "homekit": "Homekit",
-                    "manual": "Manual",
-                    "automatic": "Automatico"
-                }
-            },
-            "lock_action": {
-                "state": {
-                    "outside_unlock": "Desbloquear de fora",
-                    "lock": "Bloquear",
-                    "anti_lock_on": "Habilitar anti-bloqueio",
-                    "anti_lock_off": "Desabilitar anti-bloqueio",
-                    "inside_unlock": "Desbloquear de dentro",
-                    "lock_inside": "Bloquear de dentro",
-                    "child_lock_on": "Habilitar bloqueio por criança",
-                    "child_lock_off": "Desabilitar bloqueio por criança",
-                    "lock_outside": "Bloquear de fora"
-                }
-            },
-            "door_state": {
-                "state": {
-                    "open": "Aberto",
-                    "close": "Fechado",
-                    "close_timeout": "Timeout de Fechamento",
-                    "knock": "Batido",
-                    "breaking": "Arrombado",
-                    "stuck": "Travado"
-                }
-            }
-        },
-        "climate": {
-            "air_conditioner": {
-                "state_attributes": {
-                    "fan_mode": {
-                        "state": {
-                            "auto": "Auto",
-                            "low": "Baixo",
-                            "medium": "Medio",
-                            "middle": "Meio",
-                            "high": "Alto",
-                            "quiet": "Silencioso",
-                            "turbo": "Turbo",
-                            "level1": "Nível 1",
-                            "level2": "Nível 2",
-                            "level3": "Nível 3",
-                            "level4": "Nível 4",
-                            "level5": "Nível 5",
-                            "level6": "Nível 6",
-                            "level7": "Nível 7"
-                        }
-                    },
-                    "swing_mode": {
-                        "state": {
-                            "off": "Desligado",
-                            "vertical": "Vertical",
-                            "horizontal": "Horizontal",
-                            "both": "Ambos"
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "services": {
-        "send_command": {
-            "name": "Enviar comando",
-            "description": "Enviar comando miio",
-            "fields": {
-                "entity_id": {
-                    "name": "ID da Entidade",
-                    "description": ""
-                },
-                "method": {
-                    "name": "Metodo",
-                    "description": ""
-                },
-                "params": {
-                    "name": "Parâmetros",
-                    "description": ""
-                }
-            }
-        },
-        "get_properties": {
-            "name": "Obter propriedades",
-            "description": "Obtem as propriedades miot",
-            "fields": {
-                "entity_id": {
-                    "name": "ID da Entidade",
-                    "description": ""
-                },
-                "mapping": {
-                    "name": "Mapeamento",
-                    "description": ""
-                },
-                "update_entity": {
-                    "name": "Atualizar entidade",
-                    "description": ""
-                }
-            }
-        },
-        "set_property": {
-            "name": "Definir propriedade",
-            "description": "Define a propriedade miot",
-            "fields": {
-                "entity_id": {
-                    "name": "ID da Entidade",
-                    "description": ""
-                },
-                "field": {
-                    "name": "Field",
-                    "description": ""
-                },
-                "value": {
-                    "name": "Value",
-                    "description": ""
-                }
-            }
-        },
-        "set_miot_property": {
-            "name": "Definir propriedade miot",
-            "description": "Define a propriedade miot por siid/piid",
-            "fields": {
-                "entity_id": {
-                    "name": "ID da Entidade",
-                    "description": ""
-                },
-                "siid": {
-                    "name": "",
-                    "description": ""
-                },
-                "piid": {
-                    "name": "",
-                    "description": ""
-                },
-                "value": {
-                    "name": "",
-                    "description": ""
-                }
-            }
-        },
-        "call_action": {
-            "name": "Chamar ação",
-            "description": "Chama uma ação miot",
-            "fields": {
-                "entity_id": {
-                    "name": "ID da Entidade",
-                    "description": ""
-                },
-                "siid": {
-                    "name": "",
-                    "description": ""
-                },
-                "aiid": {
-                    "name": "",
-                    "description": ""
-                },
-                "params": {
-                    "name": "",
-                    "description": ""
-                }
-            }
-        },
-        "intelligent_speaker": {
-            "name": "Caixa de som inteligenter",
-            "description": "Caixa de som inteligente para XiaoAi",
-            "fields": {
-                "entity_id": {
-                    "name": "ID da Entidade",
-                    "description": "ID da Entidade Xiaoai"
-                },
-                "text": {
-                    "name": "Texto",
-                    "description": ""
-                },
-                "execute": {
-                    "name": "Executar",
-                    "description": ""
-                },
-                "silent": {
-                    "name": "Silenciar",
-                    "description": ""
-                }
-            }
-        },
-        "xiaoai_wakeup": {
-            "name": "Despertar XiaoA",
-            "description": "Despertar a caixa de som XiaoAi",
-            "fields": {
-                "entity_id": {
-                    "name": "ID da Entidade",
-                    "description": "ID da Entidade Xiaoai"
-                },
-                "text": {
-                    "name": "Texto",
-                    "description": ""
-                }
-            }
-        },
-        "get_device_data": {
-            "name": "Obter dados do dispositivo",
-            "description": "Obtem dados do dispositivo pela cloud",
-            "fields": {
-                "entity_id": {
-                    "name": "ID da Entidade",
-                    "description": ""
-                },
-                "type": {
-                    "name": "Tipo",
-                    "description": ""
-                },
-                "key": {
-                    "name": "Chave",
-                    "description": ""
-                },
-                "time_start": {
-                    "name": "Hora de início",
-                    "description": ""
-                },
-                "time_end": {
-                    "name": "Hora de finalização",
-                    "description": ""
-                },
-                "limit": {
-                    "name": "Limite",
-                    "description": ""
-                },
-                "group": {
-                    "name": "Gropo",
-                    "description": ""
-                }
-            }
-        },
-        "renew_devices": {
-            "name": "Renovar dispositivos",
-            "description": "Renovar dispositivos xiaomi do cache",
-            "fields": {
-                "username": {
-                    "name": "Nome de usuário",
-                    "description": ""
-                }
-            }
-        },
-        "get_token": {
-            "name": "Obter token",
-            "description": "Obtem o token do dispositivo xiaomi",
-            "fields": {
-                "name": {
-                    "name": "Nome",
-                    "description": ""
-                }
-            }
-        },
-        "get_bindkey": {
-            "name": "Obter bindkey",
-            "description": "Obtem o bindkey para dispositivo ble",
-            "fields": {
-                "entity_id": {
-                    "name": "ID da Entidade",
-                    "description": ""
-                },
-                "did": {
-                    "name": "DID",
-                    "description": ""
-                }
-            }
-        },
-        "request_xiaomi_api": {
-            "name": "Solicitar API xiaomi",
-            "description": "Solicita API xiaomi",
-            "fields": {
-                "entity_id": {
-                    "name": "ID da Entidade",
-                    "description": ""
-                },
-                "api": {
-                    "name": "API",
-                    "description": ""
-                },
-                "data": {
-                    "name": "Dado",
-                    "description": ""
-                },
-                "method": {
-                    "name": "Metodo",
-                    "description": ""
-                },
-                "crypt": {
-                    "name": "Crypt",
-                    "description": ""
-                },
-                "sid": {
-                    "name": "",
-                    "description": ""
-                }
-            }
-        }
+    "abort": {
+      "config_saved": "Configuração guardada! [Customize novamente](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlgumas opções de customização podem requerir [recarregar a integração](/developer-tools/yaml) para ter efeito.",
+      "already_configured": "O dispositivo já está configurado",
+      "not_xiaomi_miio": "Não é um dispositivo Xiaomi miio/miot."
     }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "Xiaomi Miot",
+        "description": "Configurar info do dispositivo.",
+        "data": {
+          "host": "IP Local",
+          "token": "Token",
+          "scan_interval": "Intervalo de update do estado (segundos)",
+          "miot_cloud": "Habilitar miot cloud (Configurar conta no YAML)"
+        }
+      },
+      "cloud": {
+        "description": "Config conta xiaomi.\n{tip}",
+        "data": {
+          "username": "ID de conta Xiaomi / Email",
+          "password": "Senha",
+          "captcha": "Captcha",
+          "server_country": "Região da MiCloud",
+          "conn_mode": "Modo de conexão com o dispositivo",
+          "renew_devices": "Forçar renovar dispositivos",
+          "disable_message": "Desabilitar o sensor de notificação Mihome",
+          "disable_scene_history": "Desabilitar o histórico do sensor de cena"
+        }
+      },
+      "cloud_filter": {
+        "title": "Filtro de dispositivos da nuvem",
+        "description": "Você pode incluir ou excluir dispositivos para a integrar só o que quiser. No modo de exclusão, se você não marcar nenhuma opção da lista, equivale a incluir todas as opções.\n{tip}",
+        "data": {
+          "filter_model": "Filtro de Dispositivos",
+          "model_list": "Lista de Dispositivos",
+          "filter_home_id": "Filtrar Casa",
+          "home_id_list": "Lista Casa",
+          "filter_ssid": "Filtro por WiFi SSID",
+          "ssid_list": "Lista de WiFi SSID",
+          "filter_bssid": "Filtro por WiFi BSSID",
+          "bssid_list": "Lista de WiFi BSSID",
+          "filter_did": "Filtrar Dispositivos",
+          "did_list": "Lista de Dispositivos"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Falha em conectar o dispositivo",
+      "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
+      "cannot_reach": "Incapaz de accessar a API Xiaomi",
+      "tzinfo_error": "Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+      "none_devices": "Sem dispositivos na conta xiaomi"
+    },
+    "abort": {
+      "show_customizes": "[![Adicionar nova integração](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Adicionar nova integração](/_my_redirect/config_flow_start?domain=xiaomi_miot) para modificar a customização.\n{tip}"
+    }
+  },
+  "system_health": {
+    "info": {
+      "component_version": "Versão do componente",
+      "can_reach_server": "Acessar server Xiaomi API",
+      "can_reach_spec": "Acessar server MIoT-Spec",
+      "logged_accounts": "Contas logadas",
+      "total_devices": "Total de dispositivos MiHome"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Status do Cartão SD",
+        "state": {
+          "normal": "Normal",
+          "non_existent": "Não Existe",
+          "full": "Cheio",
+          "broken": "Danificado",
+          "formatting": "Formatando",
+          "ejected": "Ejetado",
+          "fixing": "Reparando",
+          "ejecting": "Ejetando",
+          "uninitialized": "Não Inicializado",
+          "not_enough_space": "Espaço Insuficiente",
+          "file_err": "Erro de Arquivo",
+          "incompatible": "Incompatível"
+        }
+      },
+      "storage_total_space": {
+        "name": "Espaço Total"
+      },
+      "storage_free_space": {
+        "name": "Espaço Livre"
+      },
+      "storage_used_space": {
+        "name": "Espaço Usado"
+      },
+      "remaining_recording_duration": {
+        "name": "Tempo de Gravação Restante"
+      },
+      "lock": {
+        "state": {
+          "bluetooth": "Bluetooth",
+          "password": "Senha",
+          "biological": "Biologico",
+          "key": "Chave",
+          "turntable": "Giratória",
+          "nfc": "NFC",
+          "one_time_password": "Senha de Única Vez",
+          "two_step_verification": "Verificação de Dois Passos",
+          "coercion": "Coerção",
+          "homekit": "Homekit",
+          "manual": "Manual",
+          "automatic": "Automatico"
+        }
+      },
+      "lock_action": {
+        "state": {
+          "outside_unlock": "Desbloquear de fora",
+          "lock": "Bloquear",
+          "anti_lock_on": "Habilitar anti-bloqueio",
+          "anti_lock_off": "Desabilitar anti-bloqueio",
+          "inside_unlock": "Desbloquear de dentro",
+          "lock_inside": "Bloquear de dentro",
+          "child_lock_on": "Habilitar bloqueio por criança",
+          "child_lock_off": "Desabilitar bloqueio por criança",
+          "lock_outside": "Bloquear de fora"
+        }
+      },
+      "door_state": {
+        "state": {
+          "open": "Aberto",
+          "close": "Fechado",
+          "close_timeout": "Timeout de Fechamento",
+          "knock": "Batido",
+          "breaking": "Arrombado",
+          "stuck": "Travado"
+        }
+      }
+    },
+    "climate": {
+      "air_conditioner": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Auto",
+              "low": "Baixo",
+              "medium": "Medio",
+              "middle": "Meio",
+              "high": "Alto",
+              "quiet": "Silencioso",
+              "turbo": "Turbo",
+              "level1": "Nível 1",
+              "level2": "Nível 2",
+              "level3": "Nível 3",
+              "level4": "Nível 4",
+              "level5": "Nível 5",
+              "level6": "Nível 6",
+              "level7": "Nível 7"
+            }
+          },
+          "swing_mode": {
+            "state": {
+              "off": "Desligado",
+              "vertical": "Vertical",
+              "horizontal": "Horizontal",
+              "both": "Ambos"
+            }
+          }
+        }
+      }
+    },
+    "camera": {
+      "camera": {
+        "name": "Câmera",
+        "state": {
+          "idle": "Inativo",
+          "streaming": "Transmitindo",
+          "recording": "Gravando"
+        }
+      },
+      "motion_event": {
+        "name": "Evento de Movimento"
+      }
+    },
+    "select": {
+      "night_shot": {
+        "name": "Visão Noturna",
+        "state": {
+          "on": "Ligado",
+          "off": "Desligado",
+          "auto": "Automático"
+        }
+      },
+      "recording_mode": {
+        "name": "Modo de Gravação",
+        "state": {
+          "no_record": "Sem Gravação",
+          "motion_record": "Gravar Movimento",
+          "all_record": "Gravação Contínua"
+        }
+      },
+      "power_frequency": {
+        "name": "Frequência de Energia",
+        "state": {
+          "50": "50Hz",
+          "60": "60Hz"
+        }
+      },
+      "detection_sensitivity": {
+        "name": "Sensibilidade de Detecção",
+        "state": {
+          "low": "Baixa",
+          "middle": "Média",
+          "high": "Alta"
+        }
+      },
+      "cruise_mode": {
+        "name": "Modo de Cruzeiro",
+        "state": {
+          "panoramic_cruise": "Cruzeiro Panorâmico",
+          "fixed_point_cruise": "Cruzeiro Ponto Fixo"
+        }
+      }
+    },
+    "switch": {
+      "on": {
+        "name": "Ligado"
+      },
+      "time_watermark": {
+        "name": "Marca d'Água de Hora"
+      },
+      "glimmer_full_color": {
+        "name": "Cor Completa em Baixa Luz"
+      },
+      "human_tracking": {
+        "name": "Rastreamento Humano"
+      },
+      "image_distortion_correction": {
+        "name": "Correção de Distorção"
+      },
+      "motion_detection": {
+        "name": "Detecção de Movimento"
+      },
+      "pet_detection_switch": {
+        "name": "Detecção de Pets"
+      },
+      "human_detection": {
+        "name": "Detecção Humana"
+      },
+      "move_detection": {
+        "name": "Detecção de Movimento"
+      },
+      "babycry_detection_switch": {
+        "name": "Detecção de Choro de Bebê"
+      },
+      "pet_tracking": {
+        "name": "Rastreamento de Pets"
+      },
+      "abnormal_sound_detection": {
+        "name": "Detecção de Som Anormal"
+      },
+      "cruise_switch": {
+        "name": "Cruzeiro"
+      },
+      "virtual_fence_switch": {
+        "name": "Cerca Virtual"
+      },
+      "people_fence_in": {
+        "name": "Alerta de Entrada"
+      },
+      "people_fence_out": {
+        "name": "Alerta de Saída"
+      },
+      "area_display_switch": {
+        "name": "Exibir Área"
+      },
+      "fire_smoke_switch": {
+        "name": "Detecção de Fogo/Fumaça"
+      },
+      "fire_smoke_alarm_switch": {
+        "name": "Alarme de Fogo/Fumaça"
+      },
+      "indicator_light": {
+        "name": "Luz Indicadora"
+      },
+      "mute": {
+        "name": "Silenciar"
+      },
+      "wdr_mode": {
+        "name": "Modo WDR"
+      },
+      "motion_tracking": {
+        "name": "Rastreamento de Movimento"
+      }
+    },
+    "number": {
+      "image_rollover": {
+        "name": "Rotação da Imagem"
+      },
+      "alarm_interval": {
+        "name": "Intervalo de Alarme"
+      },
+      "volume": {
+        "name": "Volume"
+      },
+      "cruise_cycle": {
+        "name": "Ciclo de Cruzeiro"
+      }
+    },
+    "button": {
+      "ptz_calibrate": {
+        "name": "Calibrar PTZ"
+      },
+      "restart_device": {
+        "name": "Reiniciar Dispositivo"
+      },
+      "format": {
+        "name": "Formatar Cartão SD"
+      },
+      "info": {
+        "name": "Informações"
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Enviar comando",
+      "description": "Enviar comando miio",
+      "fields": {
+        "entity_id": {
+          "name": "ID da Entidade",
+          "description": ""
+        },
+        "method": {
+          "name": "Metodo",
+          "description": ""
+        },
+        "params": {
+          "name": "Parâmetros",
+          "description": ""
+        }
+      }
+    },
+    "get_properties": {
+      "name": "Obter propriedades",
+      "description": "Obtem as propriedades miot",
+      "fields": {
+        "entity_id": {
+          "name": "ID da Entidade",
+          "description": ""
+        },
+        "mapping": {
+          "name": "Mapeamento",
+          "description": ""
+        },
+        "update_entity": {
+          "name": "Atualizar entidade",
+          "description": ""
+        }
+      }
+    },
+    "set_property": {
+      "name": "Definir propriedade",
+      "description": "Define a propriedade miot",
+      "fields": {
+        "entity_id": {
+          "name": "ID da Entidade",
+          "description": ""
+        },
+        "field": {
+          "name": "Field",
+          "description": ""
+        },
+        "value": {
+          "name": "Value",
+          "description": ""
+        }
+      }
+    },
+    "set_miot_property": {
+      "name": "Definir propriedade miot",
+      "description": "Define a propriedade miot por siid/piid",
+      "fields": {
+        "entity_id": {
+          "name": "ID da Entidade",
+          "description": ""
+        },
+        "siid": {
+          "name": "",
+          "description": ""
+        },
+        "piid": {
+          "name": "",
+          "description": ""
+        },
+        "value": {
+          "name": "",
+          "description": ""
+        }
+      }
+    },
+    "call_action": {
+      "name": "Chamar ação",
+      "description": "Chama uma ação miot",
+      "fields": {
+        "entity_id": {
+          "name": "ID da Entidade",
+          "description": ""
+        },
+        "siid": {
+          "name": "",
+          "description": ""
+        },
+        "aiid": {
+          "name": "",
+          "description": ""
+        },
+        "params": {
+          "name": "",
+          "description": ""
+        }
+      }
+    },
+    "intelligent_speaker": {
+      "name": "Caixa de som inteligenter",
+      "description": "Caixa de som inteligente para XiaoAi",
+      "fields": {
+        "entity_id": {
+          "name": "ID da Entidade",
+          "description": "ID da Entidade Xiaoai"
+        },
+        "text": {
+          "name": "Texto",
+          "description": ""
+        },
+        "execute": {
+          "name": "Executar",
+          "description": ""
+        },
+        "silent": {
+          "name": "Silenciar",
+          "description": ""
+        }
+      }
+    },
+    "xiaoai_wakeup": {
+      "name": "Despertar XiaoA",
+      "description": "Despertar a caixa de som XiaoAi",
+      "fields": {
+        "entity_id": {
+          "name": "ID da Entidade",
+          "description": "ID da Entidade Xiaoai"
+        },
+        "text": {
+          "name": "Texto",
+          "description": ""
+        }
+      }
+    },
+    "get_device_data": {
+      "name": "Obter dados do dispositivo",
+      "description": "Obtem dados do dispositivo pela cloud",
+      "fields": {
+        "entity_id": {
+          "name": "ID da Entidade",
+          "description": ""
+        },
+        "type": {
+          "name": "Tipo",
+          "description": ""
+        },
+        "key": {
+          "name": "Chave",
+          "description": ""
+        },
+        "time_start": {
+          "name": "Hora de início",
+          "description": ""
+        },
+        "time_end": {
+          "name": "Hora de finalização",
+          "description": ""
+        },
+        "limit": {
+          "name": "Limite",
+          "description": ""
+        },
+        "group": {
+          "name": "Gropo",
+          "description": ""
+        }
+      }
+    },
+    "renew_devices": {
+      "name": "Renovar dispositivos",
+      "description": "Renovar dispositivos xiaomi do cache",
+      "fields": {
+        "username": {
+          "name": "Nome de usuário",
+          "description": ""
+        }
+      }
+    },
+    "get_token": {
+      "name": "Obter token",
+      "description": "Obtem o token do dispositivo xiaomi",
+      "fields": {
+        "name": {
+          "name": "Nome",
+          "description": ""
+        }
+      }
+    },
+    "get_bindkey": {
+      "name": "Obter bindkey",
+      "description": "Obtem o bindkey para dispositivo ble",
+      "fields": {
+        "entity_id": {
+          "name": "ID da Entidade",
+          "description": ""
+        },
+        "did": {
+          "name": "DID",
+          "description": ""
+        }
+      }
+    },
+    "request_xiaomi_api": {
+      "name": "Solicitar API xiaomi",
+      "description": "Solicita API xiaomi",
+      "fields": {
+        "entity_id": {
+          "name": "ID da Entidade",
+          "description": ""
+        },
+        "api": {
+          "name": "API",
+          "description": ""
+        },
+        "data": {
+          "name": "Dado",
+          "description": ""
+        },
+        "method": {
+          "name": "Metodo",
+          "description": ""
+        },
+        "crypt": {
+          "name": "Crypt",
+          "description": ""
+        },
+        "sid": {
+          "name": "",
+          "description": ""
+        }
+      }
+    }
+  }
 }
