@@ -393,8 +393,8 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         # The stream_address property may not be readable, but the action returns the URL
         if self._act_start_stream:
             self._supported_features |= CameraEntityFeature.STREAM
-            self._sub_motion_stream = True
-            # When we have a streaming action, don't use motion stream by default
+            # When we have a streaming action, don't create motion entity or use motion stream by default
+            self._sub_motion_stream = False
             self._use_motion_stream = False
         elif self._miot_service.name in ['camera_control'] or self.is_doorbell:
             # Only use motion stream if explicitly enabled or no streaming action available

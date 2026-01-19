@@ -307,6 +307,8 @@ DEVICE_CUSTOMIZES = {
         'use_rtsp_stream': True,
         # Set use_motion_stream to False to prefer real-time stream over motion event videos
         'use_motion_stream': False,
+        # Disable sub motion stream entity to prevent motion events from overriding stream_address
+        'sub_motion_stream': False,
         # Keep refreshing stream URL before expiration (default: 10 min)
         'keep_streaming': True,
         # Video resolution: 1=1080p, 2=720p, 3=768p

@@ -874,6 +874,7 @@ class MiotEntityInterface:
 
 class MiotEntity(MiioEntity):
     _attr_has_entity_name = True
+    _attr_name = None  # Use translation_key instead of inherited name property
 
     def __init__(self, miot_service=None, device=None, **kwargs):
         self._config = dict(kwargs.get('config') or {})
@@ -1124,12 +1125,13 @@ class MiirToggleEntity(MiotEntity, ToggleEntity):
 
 class BaseSubEntity(BaseEntity):
     _attr_has_entity_name = True
+    _attr_name = None  # Use translation_key instead of name property
 
     def __init__(self, parent, attr, option=None, **kwargs):
         self.hass = parent.hass
         self.device = parent.device
         self._unique_id = f'{parent.unique_id}-{attr}'
-        self._name = f'{parent.name} {attr}'
+        self._name = f'{parent.name} {attr}'  # Keep for name_model, but _attr_name = None uses translation
         self._state = STATE_UNKNOWN
         self._attr_state = None
         self._available = False
