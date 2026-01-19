@@ -2510,6 +2510,35 @@ DEVICE_CUSTOMIZES = {
                           'start_sweep_before_mopping,stop_working,empty_base_station_water_tank,empty_host_water_tank,'
                           'identify,reset_*_life',
     },
+    'xiaomi.vacuum.ov81gl': {
+        'interval_seconds': 121,
+        'exclude_miot_services': 'custom,ai_small_pictures,voice_management',
+        'exclude_miot_properties': 'vacuum_frameware_version,restricted_sweep_areas,restricted_walls,room_information,'
+                                   'order_clean,map_complete_dialog,carpet_deep_cleaning,carpet_discriminate,'
+                                   'water_check_list,sweep_ai_object,sweep_furniture,carpet_object,vacuum_route,'
+                                   'fault_ids,plugin_info_remind,enable_time_period,current_no_disturb,sweep_route,'
+                                   'current_physical_control_lock,current_no_disturb,obstacle_avoidance_strategy,'
+                                   'carpet_obj_name,map_3d_info',
+        'button_actions': 'start_sweep,start_only_sweep,start_mop,start_sweep_mop,start_custom_sweep,start_dry,'
+                          'pause_sweeping,continue_sweep,stop_and_gocharge,start_charge,start_mop_wash,start_cut_hair,'
+                          'enter_remote,exit_remote,stop_mop_wash,back_mop_wash,stop_dry,stop_cut_hair,identify,'
+                          'reset_mop_life,reset_brush_life,reset_filter_life,reset_detergent_management_level,'
+                          'reset_dust_bag_life',
+        'select_actions': 'remote_control',
+        'configuration_entities': 'ai_cleaning,ai_managed_cleaning,use_detergent,*_detection,cut_hair_config,'
+                                  'mop_auto_lift,carpet_boost,carpet_avoidance,carpet_cleaning_method,'
+                                  'hot_water_mop_wash,physical_control_locked,volume,detergent_self_delivery*,'
+                                  'auto_water_change,auto_mop_dry,auto_dust_arrest,dust_arrest_frequency',
+        'diagnostic_entities': 'voltage,water_check_status,filter_l*,dust_bag_l*,brush_l*,detergent_l*',
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'status,cleaning_area,cleaning_time,charging_state', 'notify': True},
+            {'interval': 16, 'props': 'mode,sweep_mop_type,sweep_type,clean_times,vacuum_position'},
+            {'interval': 61, 'props': 'mop_status,battery_level,charging_state'},
+            {'interval': 130, 'props': 'auto_*,*_detection'},
+            {'interval': 300, 'props': 'filter_l*,mop_l*,dust_bag_l*,brush_l*,detergent_l*'},
+            {'interval': 999, 'props': 'clean_record'},
+        ],
+    },
     'xiaomi.vacuum.*': {
         'interval_seconds': 90,
         'chunk_coordinators': [
