@@ -301,6 +301,14 @@ DEVICE_CUSTOMIZES = {
     # IMILAB C40 - Full support for camera features
     'chuangmi.camera.112ae1': {
         'miot_cloud_action': True,
+        # Stream Configuration
+        # Real-time streaming uses SIID 28 (Google Home HLS) or SIID 29 (Amazon Alexa RTSP)
+        # Set use_motion_stream to False to prefer real-time stream over motion event videos
+        'use_motion_stream': False,
+        # Keep refreshing stream URL before expiration (default: 10 min)
+        'keep_streaming': True,
+        # Video resolution: 1=1080p, 2=720p, 3=768p
+        'video_attribute': 1,
         # Camera Control (SIID 2)
         'switch_properties': 'on,time_watermark,glimmer_full_color,human_tracking,'
                              'image_distortion_correction',

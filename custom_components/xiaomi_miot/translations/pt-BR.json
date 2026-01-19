@@ -184,7 +184,9 @@
       "memory_card_management-storage_total_space": { "name": "Espaço Total" },
       "memory_card_management-storage_free_space": { "name": "Espaço Livre" },
       "memory_card_management-storage_used_space": { "name": "Espaço Usado" },
-      "memory_card_management-remaining_recording_duration": { "name": "Tempo de Gravação Restante" },
+      "memory_card_management-remaining_recording_duration": {
+        "name": "Tempo de Gravação Restante"
+      },
       "lock": {
         "state": {
           "bluetooth": "Bluetooth",
@@ -428,17 +430,25 @@
       },
       "camera_control-on": { "name": "Ligado" },
       "camera_control-time_watermark": { "name": "Marca d'Água de Hora" },
-      "camera_control-glimmer_full_color": { "name": "Cor Completa em Baixa Luz" },
+      "camera_control-glimmer_full_color": {
+        "name": "Cor Completa em Baixa Luz"
+      },
       "camera_control-human_tracking": { "name": "Rastreamento Humano" },
-      "camera_control-image_distortion_correction": { "name": "Correção de Distorção" },
+      "camera_control-image_distortion_correction": {
+        "name": "Correção de Distorção"
+      },
       "indicator_light-on": { "name": "Luz Indicadora" },
       "motion_detection-motion_detection": { "name": "Detecção de Movimento" },
       "ai_detection-pet_detection_switch": { "name": "Detecção de Pets" },
       "ai_detection-human_detection": { "name": "Detecção Humana" },
       "ai_detection-move_detection": { "name": "Detecção de Movimento" },
-      "ai_detection-babycry_detection_switch": { "name": "Detecção de Choro de Bebê" },
+      "ai_detection-babycry_detection_switch": {
+        "name": "Detecção de Choro de Bebê"
+      },
       "ai_detection-pet_tracking": { "name": "Rastreamento de Pets" },
-      "ai_detection-abnormal_sound_detection": { "name": "Detecção de Som Anormal" },
+      "ai_detection-abnormal_sound_detection": {
+        "name": "Detecção de Som Anormal"
+      },
       "cruise-cruise_switch": { "name": "Cruzeiro" },
       "virtual_fence-virtual_fence_switch": { "name": "Cerca Virtual" },
       "virtual_fence-people_fence_in": { "name": "Alerta de Entrada" },

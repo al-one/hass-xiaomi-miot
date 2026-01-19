@@ -388,15 +388,19 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 self._prop_stream_address = srv.get_property('stream_address')
                 self._prop_expiration_time = srv.get_property('expiration_time')
                 break
-        if self._prop_stream_address:
+        # Enable STREAM feature if we have an action to start streaming
+        # The stream_address property may not be readable, but the action returns the URL
+        if self._act_start_stream:
             self._supported_features |= CameraEntityFeature.STREAM
             self._sub_motion_stream = True
         elif self._miot_service.name in ['camera_control'] or self.is_doorbell:
+            # Only use motion stream if explicitly enabled or no streaming action available
             if self.custom_config_bool('use_motion_stream'):
                 pass
             elif self.custom_config_bool('sub_motion_stream'):
                 pass
-            else:
+            elif not self.custom_config_bool('use_motion_stream', None) is False:
+                # Default to motion stream only if use_motion_stream is not explicitly False
                 self._use_motion_stream = True
 
     @property
@@ -510,8 +514,14 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
                 self._url_expiration -= 10
             else:
                 self._url_expiration = now + 60 * 4.5
+            # Get stream URL from the action output dict
+            # Try using the property parser first, fallback to direct dict access
             if self._prop_stream_address:
                 self._last_url = self._prop_stream_address.from_dict(odt)
+            else:
+                # Fallback: get stream_address directly from the output dict
+                self._last_url = odt.get('stream_address')
+            if self._last_url:
                 self.schedule_update_ha_state()
                 self.async_check_stream_address(self._last_url)
                 if not kwargs.get('scheduled') or self.custom_config('keep_streaming'):

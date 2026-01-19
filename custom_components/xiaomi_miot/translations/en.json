@@ -273,7 +273,9 @@
       "memory_card_management-storage_total_space": { "name": "Total Space" },
       "memory_card_management-storage_free_space": { "name": "Free Space" },
       "memory_card_management-storage_used_space": { "name": "Used Space" },
-      "memory_card_management-remaining_recording_duration": { "name": "Remaining Recording Time" },
+      "memory_card_management-remaining_recording_duration": {
+        "name": "Remaining Recording Time"
+      },
       "lock": {
         "state": {
           "bluetooth": "Bluetooth",
