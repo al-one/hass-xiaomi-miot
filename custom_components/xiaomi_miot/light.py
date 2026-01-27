@@ -68,6 +68,7 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
     _attr_names = None
     _brightness_for_on = None
     _brightness_for_off = None
+    _has_color_mode_prop = False
 
     def on_init(self):
         self._attr_names = {}
@@ -113,6 +114,8 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
                 self._attr_names[ATTR_EFFECT] = attr
                 self._attr_effect_list = prop.list_descriptions()
                 self._attr_supported_features |= LightEntityFeature.EFFECT
+                if prop.in_list(['mode', 'color_mode']):
+                    self._has_color_mode_prop = True
 
         self._attr_supported_color_modes = modes if modes else {self._attr_color_mode}
 
@@ -144,8 +147,33 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
             if val != self._attr_rgb_color:
                 self._attr_rgb_color = val
                 self._attr_color_mode = ColorMode.RGB
-        if (val := data.get(self._attr_names.get(ATTR_EFFECT))) is not None:
-            self._attr_effect = val
+        effect_key = self._attr_names.get(ATTR_EFFECT)
+        effect_val = data.get(effect_key) if effect_key else None
+        if effect_val is None and effect_key:
+            effect_val = self.device.props.get(effect_key)
+        if effect_val is not None:
+            self._attr_effect = effect_val
+
+            if (
+                self._has_color_mode_prop
+                and ColorMode.COLOR_TEMP in self._attr_supported_color_modes
+                and ColorMode.RGB in self._attr_supported_color_modes
+            ):
+                raw_color_mode = None
+                if self.device.miio2miot:
+                    raw_color_mode = self.device.miio2miot.miio_props_values.get('color_mode')
+                if raw_color_mode is not None:
+                    try:
+                        mode_val = int(raw_color_mode)
+                    except (ValueError, TypeError):
+                        mode_val = None
+                else:
+                    mode_val = int(effect_val) if str(effect_val).isdigit() else None
+
+                if mode_val == 2:
+                    self._attr_color_mode = ColorMode.COLOR_TEMP
+                elif mode_val in (1, 3):
+                    self._attr_color_mode = ColorMode.RGB
 
     async def async_turn_on(self, **kwargs):
         dat = {self.attr: True}
