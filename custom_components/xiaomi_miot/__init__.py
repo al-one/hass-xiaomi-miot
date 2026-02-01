@@ -32,6 +32,7 @@ from homeassistant.helpers.reload import async_integration_yaml_config
 from homeassistant.helpers.service import async_register_admin_service
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
+from homeassistant.util import slugify as ha_slugify
 
 from .core.const import *
 from .core.utils import DeviceException, wildcard_models
@@ -53,6 +54,13 @@ from .core.templates import CUSTOM_TEMPLATES
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=60)
+
+def slugify_object_id(value) -> str:
+    obj = ha_slugify(f'{value}')
+    if obj:
+        return obj
+    obj = re.sub(r'\W+', '_', f'{value}').lower().strip('_')
+    return obj or 'miot'
 
 XIAOMI_CONFIG_SCHEMA = cv.PLATFORM_SCHEMA_BASE.extend(
     {
@@ -897,7 +905,8 @@ class MiotEntity(MiioEntity):
         if not self.entity_id and self.model:
             mls = f'{self.model}..'.split('.')
             mac = re.sub(r'[\W_]+', '', self.unique_mac)
-            self.entity_id = f'{DOMAIN}.{mls[0]}_{mls[2]}_{mac[-4:]}_{mls[1]}'
+            obj = f'{mls[0]}_{mls[2]}_{mac[-4:]}_{mls[1]}'
+            self.entity_id = f'{DOMAIN}.{slugify_object_id(obj)}'
         self._success_code = 0
         self.logger.info('%s: Initializing miot device with mapping: %s', self.name_model, self._miot_mapping)
 
@@ -1170,11 +1179,12 @@ class BaseSubEntity(BaseEntity):
         if entity_id is None:
             pass
         elif f'{domain}.' in entity_id:
-            self.entity_id = entity_id
+            obj = hass_core.split_entity_id(entity_id)[1]
+            self.entity_id = f'{domain}.{slugify_object_id(obj)}'
         else:
             if '.' in entity_id:
                 entity_id = hass_core.split_entity_id(entity_id)[1]
-            self.entity_id = f'{domain}.{entity_id}'
+            self.entity_id = f'{domain}.{slugify_object_id(entity_id)}'
 
     @property
     def unique_id(self):
