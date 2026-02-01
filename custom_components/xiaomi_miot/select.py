@@ -74,7 +74,7 @@ XEntity.CLS[ENTITY_DOMAIN] = SelectEntity
 
 class SelectSubEntity(BaseEntity, BaseSubEntity):
     def __init__(self, parent, attr, option=None):
-        BaseSubEntity.__init__(self, parent, attr, option)
+        BaseSubEntity.__init__(self, parent, attr, option, domain=ENTITY_DOMAIN)
         self._available = True
         self._attr_current_option = None
         self._attr_options = self._option.get('options') or []

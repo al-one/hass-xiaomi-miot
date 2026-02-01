@@ -13,6 +13,7 @@ from homeassistant.components.remote import (
     RemoteEntity,
     RemoteEntityFeature,
 )
+from homeassistant import core as hass_core
 
 from . import (
     DOMAIN,
@@ -20,6 +21,7 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     MiotEntity,
+    slugify_object_id,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -87,6 +89,9 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         self._attr_should_poll = False
         self._supported_features = RemoteEntityFeature.LEARN_COMMAND
         self._translations = get_translations('ir_devices')
+        if self.entity_id:
+            obj = hass_core.split_entity_id(self.entity_id)[1]
+            self.entity_id = f'{ENTITY_DOMAIN}.{slugify_object_id(obj)}'
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -124,7 +129,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
                         ols.append(nam)
                     self._subs[ird] = SelectSubEntity(self, ird, option={
                         'name': d.get('name'),
-                        'entity_id': f'remote_{ird}'.replace('.', '_'),
+                        'entity_id': slugify_object_id(f'remote_{ird}'),
                         'options': ols,
                         'async_select_option': self.async_press_ir_key,
                     })
