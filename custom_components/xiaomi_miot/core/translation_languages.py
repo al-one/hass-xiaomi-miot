@@ -422,11 +422,11 @@ TRANSLATION_LANGUAGES = {
         },
 
         'fan_level': {
-            'auto': 'Αυτόματο',
-            # 'low': 'Χαμηλό',
-            # 'medium': 'Μεσαίο',
-            # 'middle': 'Μεσαίο',
-            # 'high': 'Υψηλό',
+            'auto': 'auto',
+            'low': 'low',
+            'medium': 'medium',
+            'middle': 'middle',
+            'high': 'high',
             'quiet': 'Ήσυχο',
             'turbo': 'Τούρμπο',
             'level1': 'Επίπεδο 1',
@@ -762,11 +762,11 @@ TRANSLATION_LANGUAGES = {
         },
 
         'fan_level': {
-            'auto': 'авто',
-            # 'low': 'низкий',
-            # 'medium': 'средний',
-            # 'middle': 'середина',
-            # 'high': 'высокий',
+            'auto': 'auto',
+            'low': 'low',
+            'medium': 'medium',
+            'middle': 'middle',
+            'high': 'high',
             'quiet': 'тихий',
             'turbo': 'турбо',
             'level1': '1-й уровень',
@@ -1169,10 +1169,10 @@ TRANSLATION_LANGUAGES = {
 
         'fan_level': {
             'auto': 'auto',
-            # 'low': 'niski',
-            # 'medium': 'średni',
-            # 'middle': 'średnio wysoki',
-            # 'high': 'wysoki',
+            'low': 'low',
+            'medium': 'medium',
+            'middle': 'middle',
+            'high': 'high',
             'quiet': 'cichy',
             'turbo': 'turbo',
             'level1': 'poziom1',
@@ -1415,10 +1415,10 @@ TRANSLATION_LANGUAGES = {
 
         'fan_level': {
             'auto': 'auto',
-            # 'low': 'alacsony',
-            # 'medium': 'közepes',
-            # 'middle': 'közepes',
-            # 'high': 'magas',
+            'low': 'low',
+            'medium': 'medium',
+            'middle': 'middle',
+            'high': 'high',
             'quiet': 'halk',
             'turbo': 'turbó',
             'level1': 'szint1',
@@ -1662,10 +1662,10 @@ TRANSLATION_LANGUAGES = {
 
         'fan_level': {
             'auto': 'auto',
-            # 'low': 'niedrig',
-            # 'medium': 'medium',
-            # 'middle': 'medium',
-            # 'high': 'hoch',
+            'low': 'low',
+            'medium': 'medium',
+            'middle': 'middle',
+            'high': 'high',
             'quiet': 'ruhig',
             'turbo': 'turbo',
             'level1': 'Level 1',
@@ -1954,22 +1954,13 @@ TRANSLATION_LANGUAGES = {
             'stop alarm': 'Alarmı Kapat'
         },
 
-        # 'fan_level': {
-        #     'auto': 'Otomatik',
-        #     'low': 'Düşük',
-        #     'medium': 'Orta',
-        #     'middle': 'Orta',
-        #     'high': 'Yüksek',
-        #     'quiet': 'Sessiz',
-        #     'turbo': 'Turbo',
-        #     'level1': '1. Seviye',
-        #     'level2': '2. Seviye',
-        #     'level3': '3. Seviye',
-        #     'level4': '4. Seviye',
-        #     'level5': '5. Seviye',
-        #     'level6': '6. Seviye',
-        #     'level7': '7. Seviye',
-        # },
+        'fan_level': {
+            'auto': 'auto',
+            'low': 'low',
+            'medium': 'medium',
+            'middle': 'middle',
+            'high': 'high',
+        },
 
         'mode': {
             'auto': 'Otomatik',
