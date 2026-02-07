@@ -121,7 +121,7 @@
             "none_devices": "Sem dispositivos na conta xiaomi"
         },
         "abort": {
-            "show_customizes": "[![Adicionar nova integração](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Adicionar nova integração](/_my_redirect/config_flow_start?domain=xiaomi_miot) para modificar a customização.\n{tip}"
+            "show_customizes": "[Adicionar nova integração](/_my_redirect/config_flow_start?domain=xiaomi_miot) para modificar a customização.\n{link}\n{tip}"
         }
     },
     "system_health": {

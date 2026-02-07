@@ -654,10 +654,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             return await self.async_step_cloud()
 
         if 'customizing_entity' in data or 'customizing_device' in data:
-            tip = f'```yaml\n{yaml.dump(dict(data))}\n```'
             return self.async_abort(
                 reason='show_customizes',
-                description_placeholders={'tip': tip},
+                description_placeholders={
+                    'tip': f'```yaml\n{yaml.dump(dict(data))}\n```',
+                    'link': '[![Add new integration](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)',
+                },
             )
 
         return await self.async_step_user()

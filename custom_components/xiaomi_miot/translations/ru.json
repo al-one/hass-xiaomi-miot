@@ -117,7 +117,7 @@
             "none_devices": "Не найдено устройств в облаке Сяоми"
         },
         "abort": {
-            "show_customizes": "[![Add new integration](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_miot) to modify customization.\n{tip}"
+            "show_customizes": "[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_miot) to modify customization.\n{link}\n{tip}"
         }
     },
     "system_health": {

@@ -139,7 +139,7 @@
             "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen doğrulama sayfasını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. HomeAssistant'a dönün ve aşağıdaki giriş kutusuna girin."
         },
         "abort": {
-            "show_customizes": "[![Yeni entegrasyon ekle](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\nÖzelleştirmeyi değiştirmek için [yeni bir entegrasyon ekleyin](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}"
+            "show_customizes": "Özelleştirmeyi değiştirmek için [yeni bir entegrasyon ekleyin](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{link}\n{tip}"
         }
     },
     "system_health": {

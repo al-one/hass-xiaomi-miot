@@ -139,7 +139,7 @@
             "need_verify": "Đăng nhập này cần xác thực bảo mật. Hãy mở trang xác thực để gửi mã xác minh qua điện thoại/email. Sau khi nhận mã, KHÔNG xác minh trên web mà quay lại Home Assistant để nhập mã vào ô bên dưới."
         },
         "abort": {
-            "show_customizes": "[![Thêm tích hợp mới](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Thêm tích hợp mới](/_my_redirect/config_flow_start?domain=xiaomi_miot) để chỉnh sửa tùy chỉnh.\n{tip}"
+            "show_customizes": "[Thêm tích hợp mới](/_my_redirect/config_flow_start?domain=xiaomi_miot) để chỉnh sửa tùy chỉnh.\n{link}\n{tip}"
         }
     },
     "system_health": {

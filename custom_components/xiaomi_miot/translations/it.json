@@ -121,7 +121,7 @@
             "none_devices": "Nessun dispositivo nell'account xiaomi cloud"
         },
         "abort": {
-            "show_customizes": "[![Aggiungi nuova integrazione](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Aggiungi nuova integrazione](/_my_redirect/config_flow_start?domain=xiaomi_miot) per modificare la personalizzazione.\n{tip}"
+            "show_customizes": "[Aggiungi nuova integrazione](/_my_redirect/config_flow_start?domain=xiaomi_miot) per modificare la personalizzazione.\n{link}\n{tip}"
         }
     },
     "system_health": {

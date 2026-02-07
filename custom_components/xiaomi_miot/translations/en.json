@@ -201,7 +201,7 @@
             "need_verify": "This login requires security verification. Please open the verification page to send the mobile/email verification code. After receiving the verification code, do not verify it on the webpage. Go back to HomeAssistant and enter it in the input box below."
         },
         "abort": {
-            "show_customizes": "[![Add new integration](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_miot) to modify customization.\n{tip}"
+            "show_customizes": "Add a new integration to modify customization.\n{link}\n{tip}"
         }
     },
     "system_health": {

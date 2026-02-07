@@ -120,7 +120,7 @@
       "none_devices": "No se encontraron dispositivos bajo esta cuenta de Xiaomi"
     },
     "abort": {
-      "show_customizes": "[![Agregar nueva integración](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Agregar una nueva integración](/_my_redirect/config_flow_start?domain=xiaomi_miot) para modificar la personalización.\n{tip}"
+      "show_customizes": "[Agregar una nueva integración](/_my_redirect/config_flow_start?domain=xiaomi_miot) para modificar la personalización.\n{link}\n{tip}"
     }
   },
   "system_health": {

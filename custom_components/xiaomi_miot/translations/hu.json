@@ -120,7 +120,7 @@
             "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt"
         },
         "abort": {
-            "show_customizes": "[![Új integráció hozzáadása](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Új integráció hozzáadása](/_my_redirect/config_flow_start?domain=xiaomi_miot) a testreszabás módosításához.\n{tip}"
+            "show_customizes": "[Új integráció hozzáadása](/_my_redirect/config_flow_start?domain=xiaomi_miot) a testreszabás módosításához.\n{link}\n{tip}"
         }
     },
     "system_health": {

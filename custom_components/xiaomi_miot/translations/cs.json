@@ -120,7 +120,7 @@
       "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi"
     },
     "abort": {
-      "show_customizes": "[![Přidat novou integraci](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n{tip}"
+      "show_customizes": "{link}\n{tip}"
     }
   },
   "system_health": {
