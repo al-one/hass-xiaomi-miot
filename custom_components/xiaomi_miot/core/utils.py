@@ -251,7 +251,7 @@ def logger_filter(record):
     if isinstance(record, str):
         return sub(record)
     if isinstance(record, logging.LogRecord):
-        record.msg = sub(record.getMessage())
+        record.msg = sub(record.msg)
         return True
     return record
 
