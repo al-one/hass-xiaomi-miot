@@ -40,7 +40,7 @@ def match_states_from_slots(intent_obj, slots, domains=None):
 
 class XiaoaiPlayText(intent.IntentHandler):
     intent_type = 'XiaoaiPlayText'
-    description = 'Convert text to sound and play on the Xiaoai speaker or Xiaomi TV'
+    description = 'Convert text to sound and play on the Xiaoai speaker or Xiaomi TV, cannot be used to execute commands.'
     slot_schema = {
         vol.Required('message', description='Message content'): intent.non_empty_string,
         vol.Optional('name', description='Name of the Xiaoai speaker or Xiaomi TV'): intent.non_empty_string,
@@ -90,9 +90,9 @@ class XiaoaiPlayText(intent.IntentHandler):
 
 class XiaoaiExecuteCommand(intent.IntentHandler):
     intent_type = 'XiaoaiExecuteCommand'
-    description = 'Execute commands on the Xiaoai speaker or Xiaomi TV'
+    description = 'Execute voice commands on the Xiaoai speaker or Xiaomi TV'
     slot_schema = {
-        vol.Required('command', description='Command content'): intent.non_empty_string,
+        vol.Required('command', description='Command content/message'): intent.non_empty_string,
         vol.Optional('name', description='Name of the Xiaoai speaker or Xiaomi TV'): intent.non_empty_string,
         vol.Optional('area'): intent.non_empty_string,
         vol.Optional('floor'): intent.non_empty_string,
