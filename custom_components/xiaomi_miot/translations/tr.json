@@ -73,7 +73,7 @@
             "cannot_reach": "Xiaomi API arayüzüne erişilemiyor",
             "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
-            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen doğrulama sayfasını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. HomeAssistant'a dönün ve aşağıdaki giriş kutusuna girin."
+            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen doğrulama sayfasını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. Home Assistant'a dönün ve aşağıdaki giriş kutusuna girin."
         },
         "abort": {
             "config_saved": "Yapılandırma kaydedildi! [Tekrar özelleştir](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nBazı özel seçeneklerin etkili olması için [entegrasyonun yeniden yüklenmesi](/developer-tools/yaml) gerekebilir.",
@@ -136,7 +136,7 @@
             "cannot_reach": "Xiaomi API arayüzüne erişilemiyor",
             "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
-            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen doğrulama sayfasını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. HomeAssistant'a dönün ve aşağıdaki giriş kutusuna girin."
+            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen doğrulama sayfasını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. Home Assistant'a dönün ve aşağıdaki giriş kutusuna girin."
         },
         "abort": {
             "show_customizes": "Özelleştirmeyi değiştirmek için [yeni bir entegrasyon ekleyin](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{link}\n{tip}"
