@@ -762,11 +762,11 @@ TRANSLATION_LANGUAGES = {
         },
 
         'fan_level': {
-            'auto': 'авто',
-            # 'low': 'низький',
-            # 'medium': 'середній',
-            # 'middle': 'середина',
-            # 'high': 'високий',
+            'auto': 'auto',
+            'low': 'low',
+            'medium': 'medium',
+            'middle': 'middle',
+            'high': 'high',
             'quiet': 'тихий',
             'turbo': 'турбо',
             'level1': '1-й рівень',
