@@ -1,543 +1,480 @@
 {
-  "config": {
-    "flow_title": "Xiaomi Miot",
-    "step": {
-      "user": {
-        "title": "Виберіть дію",
-        "data": {
-          "action": "Дія"
-        }
-      },
-      "token": {
-        "description": "Конфігурація пристрою.",
-        "data": {
-          "host": "Локальна IP-адреса",
-          "token": "Токен",
-          "name": "Назва пристрою",
-          "scan_interval": "Інтервал оновлення стану (секунди)"
-        }
-      },
-      "cloud": {
-        "description": "Налаштування облікового запису хмари Xiaomi.\n{tip}",
-        "data": {
-          "username": "Ідентифікатор акаунту Xiaomi / Електронна пошта",
-          "password": "Пароль",
-          "captcha": "Капча",
-          "verify_ticket": "Код двофакторної перевірки",
-          "server_country": "Розташування сервера MiCloud",
-          "conn_mode": "Режим підключення пристрою",
-          "trans_options": "Опис значень властивостей перекладу",
-          "filter_models": "Фільтрувати пристрої за моделлю/домом/WiFi (Розширено)"
-        }
-      },
-      "cloud_filter": {
-        "title": "Фільтрувати хмарні пристрої",
-        "description": "Ви можете включити або виключити пристрої для інтеграції лише бажаних пристроїв.\n{tip}",
-        "data": {
-          "filter_model": "Фільтр за моделлю пристрою",
-          "model_list": "Список моделей пристроїв",
-          "filter_home_id": "Фільтр за домом",
-          "home_id_list": "Список домів",
-          "filter_ssid": "Фільтр за SSID WiFi",
-          "ssid_list": "Список SSID WiFi",
-          "filter_bssid": "Фільтр за BSSID WiFi",
-          "bssid_list": "Список BSSID WiFi",
-          "filter_did": "Фільтр за пристроєм",
-          "did_list": "Список пристроїв",
-          "home_ids": "Фільтр за домом (залиште порожнім для збереження)"
-        },
-        "data_description": {
-          "filter_did": "У режимі виключення, якщо не вибрано жодного варіанту, це еквівалентно включенню всіх пристроїв.",
-          "home_ids": "Після вибору цієї опції та підтвердження ви повернетеся на поточну сторінку,\nі список пристроїв оновиться з урахуванням фільтрації за обраними домами."
-        }
-      },
-      "customizing": {
-        "title": "Налаштування сутностей / пристроїв",
-        "description": "{tip}",
-        "data": {
-          "domain": "Виберіть домен сутності",
-          "entity": "Виберіть сутність",
-          "model": "Виберіть модель пристрою",
-          "model_specified": "Вказана модель пристрою (необов'язково)",
-          "only_main_entity": "Лише головні (батьківські) сутності",
-          "yaml_mode": "Режим YAML",
-          "yaml_customizes": "Налаштування YAML-коду",
-          "reset_customizes": "Скинути до стандартних налаштувань",
-          "binary_sensor_attributes": "Атрибути бінарного сенсора",
-          "binary_sensor_properties": "Властивості бінарного сенсора",
-          "bind_sensor": "Прив'язати сенсор",
-          "bind_xiaoai": "Прив'язати XiaoAi",
-          "brightness_for_off": "Яскравість при вимкненні",
-          "brightness_for_on": "Яскравість при увімкненні",
-          "button_actions": "Дії кнопок",
-          "button_properties": "Властивості кнопок",
-          "chunk_properties": "Блокові властивості",
-          "close_texts": "Тексти для закриття",
-          "closed_position": "Позиція в закритому стані",
-          "cloud_delay_update": "Затримка оновлення через хмару",
-          "configuration_entities": "Конфігураційні сутності",
-          "coord_type": "Тип координат",
-          "current_temp_property": "Властивість поточної температури",
-          "descriptions_for_on": "Опис для увімкнення",
-          "descriptions_for_off": "Опис для вимкнення",
-          "deviated_position": "Відхилена позиція",
-          "device_class": "Клас пристрою",
-          "diagnostic_entities": "Діагностичні сутності",
-          "disable_location_name": "Вимкнути назву розташування",
-          "disable_preset_modes": "Вимкнути попередньо встановлені режими",
-          "entity_category": "Категорія сутності",
-          "exclude_miot_properties": "Виключити властивості MIoT",
-          "exclude_miot_services": "Виключити сервіси MIoT",
-          "exclude_type": "Тип виключення",
-          "feeding_measure": "Одиниця годування",
-          "filter_home": "Фільтр за домом",
-          "interval_seconds": "Інтервал в секундах",
-          "main_miot_services": "Основні сервіси MIoT",
-          "miot_did": "Miot DID",
-          "mitv_lan_host": "Локальний хост MiTV",
-          "motion_stream_slice": "Частина потоку руху",
-          "motion_timeout": "Тайм-аут руху",
-          "number_properties": "Числові властивості",
-          "open_texts": "Тексти для відкриття",
-          "percentage_property": "Властивість у відсотках",
-          "scanner_properties": "Властивості сканера",
-          "screenshot_compress": "Стиснення знімків екрану",
-          "select_actions": "Вибрати дії",
-          "select_properties": "Вибрати властивості",
-          "sensor_attributes": "Атрибути сенсора",
-          "sensor_properties": "Властивості сенсора",
-          "sources_via_apps": "Джерела через застосунки",
-          "sources_via_keycodes": "Джерела за кодами клавіш",
-          "speed_property": "Властивість швидкості",
-          "stat_power_cost_key": "Ключ вартості енергії",
-          "stat_power_cost_type": "Тип вартості енергії",
-          "state_class": "Клас стану",
-          "state_property": "Властивість стану",
-          "switch_properties": "Властивості перемикача",
-          "target_position_properties": "Властивості цільової позиції",
-          "television_name": "Назва телевізора",
-          "text_actions": "Текстові дії",
-          "turn_on_hvac": "Увімкнути HVAC",
-          "unit_of_measurement": "Одиниця виміру",
-          "value_ratio": "Коефіцієнт значення",
-          "video_attribute": "Атрибут відео",
-          "yeelight_smooth_off": "Плавне вимкнення Yeelight",
-          "yeelight_smooth_on": "Плавне увімкнення Yeelight",
-          "bool2selects": "Параметри налаштування"
-        }
-      }
-    },
-    "error": {
-      "cannot_connect": "Не вдалося підключитися до пристрою",
-      "cannot_login": "Не вдалося увійти до облікового запису Xiaomi. Перевірте облікові дані. Якщо спроби входу кілька разів завершились невдачею, спробуйте увійти на офіційному сайті Xiaomi (mi.com) з тієї ж мережі.",
-      "cannot_reach": "Неможливо отримати доступ до API Xiaomi",
-      "tzinfo_error": "Схоже, виникла проблема з вашим середовищем Hass. Дивіться: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-      "none_devices": "Не знайдено пристроїв у цьому обліковому записі Xiaomi",
-      "need_verify": "Цей вхід потребує перевірки безпеки. Відкрийте сторінку перевірки для надсилання коду перевірки на телефон або email. Після отримання коду поверніться до Home Assistant і введіть його в поле нижче."
-    },
-    "abort": {
-      "config_saved": "Конфігурацію збережено! [Налаштувати знову](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nДеякі параметри можуть вимагати [перезавантаження інтеграції](/developer-tools/yaml).",
-      "already_configured": "Цей пристрій вже налаштовано.",
-      "not_xiaomi_miio": "Цей пристрій не підтримує протокол miio/miot."
-    }
-  },
-  "options": {
-    "step": {
-      "user": {
-        "title": "Xiaomi Miot",
-        "description": "Конфігурація пристрою.",
-        "data": {
-          "host": "IP-адреса пристрою",
-          "token": "Токен",
-          "scan_interval": "Інтервал оновлення стану (секунди)",
-          "miot_cloud": "Увімкнути хмару MIoT (спочатку налаштуйте обліковий запис у YAML)"
-        }
-      },
-      "cloud": {
-        "description": "Налаштування облікового запису хмари Xiaomi.\n{tip}",
-        "data": {
-          "username": "Ідентифікатор акаунту Xiaomi / Електронна пошта",
-          "password": "Пароль",
-          "captcha": "Капча",
-          "verify_ticket": "Код двофакторної перевірки",
-          "server_country": "Розташування сервера MiCloud",
-          "conn_mode": "Режим підключення пристрою",
-          "renew_devices": "Примусове оновлення пристроїв",
-          "trans_options": "Опис значень властивостей перекладу",
-          "disable_message": "Вимкнути сенсор сповіщень Mihome",
-          "disable_scene_history": "Вимкнути сенсор історії сцен Mihome"
-        }
-      },
-      "cloud_filter": {
-        "title": "Фільтрувати хмарні пристрої",
-        "description": "Ви можете включити або виключити пристрої для інтеграції лише бажаних пристроїв.\n{tip}",
-        "data": {
-          "filter_model": "Фільтр за моделлю пристрою",
-          "model_list": "Список моделей пристроїв",
-          "filter_home_id": "Фільтр за домом",
-          "home_id_list": "Список домів",
-          "filter_ssid": "Фільтр за SSID WiFi",
-          "ssid_list": "Список SSID WiFi",
-          "filter_bssid": "Фільтр за BSSID WiFi",
-          "bssid_list": "Список BSSID WiFi",
-          "filter_did": "Фільтр за пристроєм",
-          "did_list": "Список пристроїв",
-          "home_ids": "Фільтр за домом (залиште порожнім для збереження)"
-        },
-        "data_description": {
-          "filter_did": "У режимі виключення, якщо не вибрано жодного варіанту, це еквівалентно включенню всіх пристроїв.",
-          "home_ids": "Після вибору цієї опції та підтвердження ви повернетеся на поточну сторінку,\nі список пристроїв оновиться з урахуванням фільтрації за обраними домами."
-        }
-      }
-    },
-    "error": {
-      "cannot_connect": "Не вдалося підключитися до пристрою",
-      "cannot_login": "Не вдалося увійти до облікового запису Xiaomi. Перевірте облікові дані. Якщо спроби входу кілька разів завершились невдачею, спробуйте увійти на офіційному сайті Xiaomi (mi.com) з тієї ж мережі.",
-      "cannot_reach": "Неможливо отримати доступ до API Xiaomi",
-      "tzinfo_error": "Схоже, виникла проблема з вашим середовищем Hass. Дивіться: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-      "none_devices": "Не знайдено пристроїв у цьому обліковому записі Xiaomi",
-      "need_verify": "Цей вхід потребує перевірки безпеки. Відкрийте сторінку перевірки для надсилання коду перевірки на телефон або email. Після отримання коду поверніться до Home Assistant і введіть його в поле нижче."
-    },
-    "abort": {
-      "show_customizes": "[![Додати нову інтеграцію](https://my.home-assistant.io/badges/config_flow_start.svg)](/_my_redirect/config_flow_start?domain=xiaomi_miot)\n[Додати нову інтеграцію](/_my_redirect/config_flow_start?domain=xiaomi_miot) для зміни налаштувань.\n{tip}"
-    }
-  },
-  "system_health": {
-    "info": {
-      "component_version": "Версія користувацького компонента",
-      "can_reach_server": "З'єднання з сервером Xiaomi API",
-      "can_reach_spec": "З'єднання з сервером MIoT-Spec",
-      "logged_accounts": "Кількість облікових записів",
-      "total_devices": "Загальна кількість пристроїв MiHome"
-    }
-  },
-  "entity": {
-    "button": {
-      "info": {
-        "name": "Інформація"
-      }
-    },
-    "sensor": {
-      "clean_area": {
-        "name": "Площа прибирання"
-      },
-      "clean_time": {
-        "name": "Час прибирання"
-      },
-      "power_cost_today": {
-        "name": "Енергія сьогодні"
-      },
-      "power_cost_month": {
-        "name": "Енергія за місяць"
-      },
-      "power_cost_today_2": {
-        "name": "Енергія сьогодні"
-      },
-      "power_cost_month_2": {
-        "name": "Енергія за місяць"
-      },
-      "props-clean_area": {
-        "name": "Площа прибирання"
-      },
-      "props-clean_time": {
-        "name": "Час прибирання"
-      },
-      "lock": {
-        "state": {
-          "bluetooth": "Bluetooth",
-          "password": "Пароль",
-          "biological": "Біометрія",
-          "key": "Ключ",
-          "turntable": "Поворотний механізм",
-          "nfc": "NFC",
-          "one_time_password": "Одноразовий пароль",
-          "two_step_verification": "Двоетапна перевірка",
-          "coercion": "Примус",
-          "homekit": "Homekit",
-          "manual": "Вручну",
-          "automatic": "Автоматично"
-        }
-      },
-      "lock_action": {
-        "state": {
-          "outside_unlock": "Розблокування ззовні",
-          "lock": "Заблоковано",
-          "anti_lock_on": "Увімкнути антиблокування",
-          "anti_lock_off": "Вимкнено антиблокування",
-          "inside_unlock": "Розблокування зсередини",
-          "lock_inside": "Заблоковано зсередини",
-          "child_lock_on": "Увімкнути дитячий замок",
-          "child_lock_off": "Вимкнути дитячий замок",
-          "lock_outside": "Заблоковано ззовні"
-        }
-      },
-      "door_state": {
-        "state": {
-          "open": "Відчинено",
-          "close": "Зачинено",
-          "close_timeout": "Тайм-аут закриття",
-          "knock": "Стук",
-          "breaking": "Вторгнення",
-          "stuck": "Заклинило"
-        }
-      }
-    },
-    "climate": {
-      "air_conditioner": {
-        "state_attributes": {
-          "fan_mode": {
-            "state": {
-              "auto": "Авто",
-              "low": "Низький",
-              "medium": "Середній",
-              "middle": "Середній",
-              "high": "Високий",
-              "quiet": "Тихо",
-              "turbo": "Турбо",
-              "level1": "Рівень 1",
-              "level2": "Рівень 2",
-              "level3": "Рівень 3",
-              "level4": "Рівень 4",
-              "level5": "Рівень 5",
-              "level6": "Рівень 6",
-              "level7": "Рівень 7"
+    "config": {
+        "flow_title": "Xiaomi Miot",
+        "step": {
+            "user": {
+                "title": "Виберіть дію",
+                "data": {
+                    "action": "Дія"
+                }
+            },
+            "token": {
+                "description": "Конфігурація пристрою.",
+                "data": {
+                    "host": "Локальна IP-адреса",
+                    "token": "Токен",
+                    "name": "Назва пристрою",
+                    "scan_interval": "Інтервал оновлення стану (секунди)"
+                }
+            },
+            "cloud": {
+                "description": "Налаштування облікового запису хмари Xiaomi.\n{tip}",
+                "data": {
+                    "username": "Ідентифікатор акаунту Xiaomi / Електронна пошта",
+                    "password": "Пароль",
+                    "captcha": "Капча",
+                    "verify_ticket": "Код двофакторної перевірки",
+                    "server_country": "Розташування сервера MiCloud",
+                    "conn_mode": "Режим підключення пристрою",
+                    "trans_options": "Опис значень властивостей перекладу",
+                    "filter_models": "Фільтрувати пристрої за моделлю/домом/WiFi (Розширено)"
+                }
+            },
+            "cloud_filter": {
+                "title": "Фільтрувати хмарні пристрої",
+                "description": "Ви можете включити або виключити пристрої для інтеграції лише бажаних пристроїв.\n{tip}",
+                "data": {
+                    "filter_model": "Фільтр за моделлю пристрою",
+                    "model_list": "Список моделей пристроїв",
+                    "filter_home_id": "Фільтр за домом",
+                    "home_id_list": "Список домів",
+                    "filter_ssid": "Фільтр за SSID WiFi",
+                    "ssid_list": "Список SSID WiFi",
+                    "filter_bssid": "Фільтр за BSSID WiFi",
+                    "bssid_list": "Список BSSID WiFi",
+                    "filter_did": "Фільтр за пристроєм",
+                    "did_list": "Список пристроїв",
+                    "home_ids": "Фільтр за домом (залиште порожнім для збереження)"
+                },
+                "data_description": {
+                    "filter_did": "У режимі виключення, якщо не вибрано жодного варіанту, це еквівалентно включенню всіх пристроїв.",
+                    "home_ids": "Після вибору цієї опції та підтвердження ви повернетеся на поточну сторінку,\nі список пристроїв оновиться з урахуванням фільтрації за обраними домами."
+                }
+            },
+            "customizing": {
+                "title": "Налаштування сутностей / пристроїв",
+                "description": "{tip}",
+                "data": {
+                    "domain": "Виберіть домен сутності",
+                    "entity": "Виберіть сутність",
+                    "model": "Виберіть модель пристрою",
+                    "model_specified": "Вказана модель пристрою (необов'язково)",
+                    "only_main_entity": "Лише головні (батьківські) сутності",
+                    "yaml_mode": "Режим YAML",
+                    "yaml_customizes": "Налаштування YAML-коду",
+                    "reset_customizes": "Скинути до стандартних налаштувань",
+                    "bool2selects": "Параметри налаштування"
+                }
             }
-          },
-          "swing_mode": {
-            "state": {
-              "off": "Вимкнено",
-              "vertical": "Вертикально",
-              "horizontal": "Горизонтально",
-              "both": "Обидва"
+        },
+        "error": {
+            "cannot_connect": "Не вдалося підключитися до пристрою",
+            "cannot_login": "Не вдалося увійти до облікового запису Xiaomi. Перевірте облікові дані. Якщо спроби входу кілька разів завершились невдачею, спробуйте увійти на офіційному сайті Xiaomi (mi.com) з тієї ж мережі.",
+            "cannot_reach": "Неможливо отримати доступ до API Xiaomi",
+            "tzinfo_error": "Схоже, виникла проблема з вашим середовищем Hass. Дивіться: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Не знайдено пристроїв у цьому обліковому записі Xiaomi",
+            "need_verify": "Цей вхід потребує перевірки безпеки. Відкрийте сторінку перевірки для надсилання коду перевірки на телефон або email. Після отримання коду поверніться до Home Assistant і введіть його в поле нижче."
+        },
+        "abort": {
+            "config_saved": "Конфігурацію збережено! [Налаштувати знову](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nДеякі параметри можуть вимагати [перезавантаження інтеграції](/developer-tools/yaml).",
+            "already_configured": "Цей пристрій вже налаштовано.",
+            "not_xiaomi_miio": "Цей пристрій не підтримує протокол miio/miot."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "Конфігурація пристрою.",
+                "data": {
+                    "host": "IP-адреса пристрою",
+                    "token": "Токен",
+                    "scan_interval": "Інтервал оновлення стану (секунди)",
+                    "miot_cloud": "Увімкнути хмару MIoT (спочатку налаштуйте обліковий запис у YAML)"
+                }
+            },
+            "cloud": {
+                "description": "Налаштування облікового запису хмари Xiaomi.\n{tip}",
+                "data": {
+                    "username": "Ідентифікатор акаунту Xiaomi / Електронна пошта",
+                    "password": "Пароль",
+                    "captcha": "Капча",
+                    "verify_ticket": "Код двофакторної перевірки",
+                    "server_country": "Розташування сервера MiCloud",
+                    "conn_mode": "Режим підключення пристрою",
+                    "renew_devices": "Примусове оновлення пристроїв",
+                    "trans_options": "Опис значень властивостей перекладу",
+                    "disable_message": "Вимкнути сенсор сповіщень Mihome",
+                    "disable_scene_history": "Вимкнути сенсор історії сцен Mihome"
+                }
+            },
+            "cloud_filter": {
+                "title": "Фільтрувати хмарні пристрої",
+                "description": "Ви можете включити або виключити пристрої для інтеграції лише бажаних пристроїв.\n{tip}",
+                "data": {
+                    "filter_model": "Фільтр за моделлю пристрою",
+                    "model_list": "Список моделей пристроїв",
+                    "filter_home_id": "Фільтр за домом",
+                    "home_id_list": "Список домів",
+                    "filter_ssid": "Фільтр за SSID WiFi",
+                    "ssid_list": "Список SSID WiFi",
+                    "filter_bssid": "Фільтр за BSSID WiFi",
+                    "bssid_list": "Список BSSID WiFi",
+                    "filter_did": "Фільтр за пристроєм",
+                    "did_list": "Список пристроїв",
+                    "home_ids": "Фільтр за домом (залиште порожнім для збереження)"
+                },
+                "data_description": {
+                    "filter_did": "У режимі виключення, якщо не вибрано жодного варіанту, це еквівалентно включенню всіх пристроїв.",
+                    "home_ids": "Після вибору цієї опції та підтвердження ви повернетеся на поточну сторінку,\nі список пристроїв оновиться з урахуванням фільтрації за обраними домами."
+                }
             }
-          }
+        },
+        "error": {
+            "cannot_connect": "Не вдалося підключитися до пристрою",
+            "cannot_login": "Не вдалося увійти до облікового запису Xiaomi. Перевірте облікові дані. Якщо спроби входу кілька разів завершились невдачею, спробуйте увійти на офіційному сайті Xiaomi (mi.com) з тієї ж мережі.",
+            "cannot_reach": "Неможливо отримати доступ до API Xiaomi",
+            "tzinfo_error": "Схоже, виникла проблема з вашим середовищем Hass. Дивіться: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Не знайдено пристроїв у цьому обліковому записі Xiaomi",
+            "need_verify": "Цей вхід потребує перевірки безпеки. Відкрийте сторінку перевірки для надсилання коду перевірки на телефон або email. Після отримання коду поверніться до Home Assistant і введіть його в поле нижче."
+        },
+        "abort": {
+            "show_customizes": "[Додати нову інтеграцію](/_my_redirect/config_flow_start?domain=xiaomi_miot) для зміни налаштувань.\n{link}\n{tip}"
         }
-      }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "Версія користувацького компонента",
+            "can_reach_server": "З'єднання з сервером Xiaomi API",
+            "can_reach_spec": "З'єднання з сервером MIoT-Spec",
+            "logged_accounts": "Кількість облікових записів",
+            "total_devices": "Загальна кількість пристроїв MiHome"
+        }
+    },
+    "entity": {
+        "button": {
+            "info": {
+                "name": "Інформація"
+            }
+        },
+        "sensor": {
+            "clean_area": {
+                "name": "Площа прибирання"
+            },
+            "clean_time": {
+                "name": "Час прибирання"
+            },
+            "power_cost_today": {
+                "name": "Енергія сьогодні"
+            },
+            "power_cost_month": {
+                "name": "Енергія за місяць"
+            },
+            "power_cost_today_2": {
+                "name": "Енергія сьогодні"
+            },
+            "power_cost_month_2": {
+                "name": "Енергія за місяць"
+            },
+            "props-clean_area": {
+                "name": "Площа прибирання"
+            },
+            "props-clean_time": {
+                "name": "Час прибирання"
+            },
+            "lock": {
+                "state": {
+                    "bluetooth": "Bluetooth",
+                    "password": "Пароль",
+                    "biological": "Біометрія",
+                    "key": "Ключ",
+                    "turntable": "Поворотний механізм",
+                    "nfc": "NFC",
+                    "one_time_password": "Одноразовий пароль",
+                    "two_step_verification": "Двоетапна перевірка",
+                    "coercion": "Примус",
+                    "homekit": "Homekit",
+                    "manual": "Вручну",
+                    "automatic": "Автоматично"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "Розблокування ззовні",
+                    "lock": "Заблоковано",
+                    "anti_lock_on": "Увімкнути антиблокування",
+                    "anti_lock_off": "Вимкнено антиблокування",
+                    "inside_unlock": "Розблокування зсередини",
+                    "lock_inside": "Заблоковано зсередини",
+                    "child_lock_on": "Увімкнути дитячий замок",
+                    "child_lock_off": "Вимкнути дитячий замок",
+                    "lock_outside": "Заблоковано ззовні"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "Відчинено",
+                    "close": "Зачинено",
+                    "close_timeout": "Тайм-аут закриття",
+                    "knock": "Стук",
+                    "breaking": "Вторгнення",
+                    "stuck": "Заклинило"
+                }
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "Авто",
+                            "low": "Низький",
+                            "medium": "Середній",
+                            "middle": "Середній",
+                            "high": "Високий",
+                            "quiet": "Тихо",
+                            "turbo": "Турбо",
+                            "level1": "Рівень 1",
+                            "level2": "Рівень 2",
+                            "level3": "Рівень 3",
+                            "level4": "Рівень 4",
+                            "level5": "Рівень 5",
+                            "level6": "Рівень 6",
+                            "level7": "Рівень 7"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "Вимкнено",
+                            "vertical": "Вертикально",
+                            "horizontal": "Горизонтально",
+                            "both": "Обидва"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "services": {
+        "send_command": {
+            "name": "Надіслати команду",
+            "description": "Надіслати команду miio",
+            "fields": {
+                "entity_id": {
+                    "name": "ID сутності",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Метод",
+                    "description": ""
+                },
+                "params": {
+                    "name": "Параметри",
+                    "description": ""
+                }
+            }
+        },
+        "get_properties": {
+            "name": "Отримати властивості",
+            "description": "Отримати властивості miot",
+            "fields": {
+                "entity_id": {
+                    "name": "ID сутності",
+                    "description": ""
+                },
+                "mapping": {
+                    "name": "Mapping",
+                    "description": ""
+                },
+                "update_entity": {
+                    "name": "Update entity",
+                    "description": ""
+                }
+            }
+        },
+        "set_property": {
+            "name": "Встановити властивість",
+            "description": "Встановити властивість miot",
+            "fields": {
+                "entity_id": {
+                    "name": "ID сутності",
+                    "description": ""
+                },
+                "field": {
+                    "name": "Поле",
+                    "description": ""
+                },
+                "value": {
+                    "name": "Значення",
+                    "description": ""
+                }
+            }
+        },
+        "set_miot_property": {
+            "name": "Встановити властивість miot",
+            "description": "Встановити властивість miot за siid/piid",
+            "fields": {
+                "entity_id": {
+                    "name": "ID сутності",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "piid": {
+                    "name": "",
+                    "description": ""
+                },
+                "value": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        },
+        "call_action": {
+            "name": "Викликати дію",
+            "description": "Викликати дію miot",
+            "fields": {
+                "entity_id": {
+                    "name": "ID сутності",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "aiid": {
+                    "name": "",
+                    "description": ""
+                },
+                "params": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        },
+        "intelligent_speaker": {
+            "name": "Розумна колонка",
+            "description": "Розумна колонка для XiaoAi",
+            "fields": {
+                "entity_id": {
+                    "name": "ID сутності",
+                    "description": "Xiaoai Entity ID"
+                },
+                "text": {
+                    "name": "Текст",
+                    "description": ""
+                },
+                "execute": {
+                    "name": "Виконати",
+                    "description": ""
+                },
+                "silent": {
+                    "name": "Тихо",
+                    "description": ""
+                }
+            }
+        },
+        "xiaoai_wakeup": {
+            "name": "Активація XiaoAi",
+            "description": "Активувати колонку XiaoAi",
+            "fields": {
+                "entity_id": {
+                    "name": "ID сутності",
+                    "description": "Xiaoai Entity ID"
+                },
+                "text": {
+                    "name": "Текст",
+                    "description": ""
+                }
+            }
+        },
+        "get_device_data": {
+            "name": "Отримати дані пристрою",
+            "description": "Отримати дані пристрою Xiaomi з хмари",
+            "fields": {
+                "entity_id": {
+                    "name": "ID сутності",
+                    "description": ""
+                },
+                "type": {
+                    "name": "Тип",
+                    "description": ""
+                },
+                "key": {
+                    "name": "Ключ",
+                    "description": ""
+                },
+                "time_start": {
+                    "name": "Час початку",
+                    "description": ""
+                },
+                "time_end": {
+                    "name": "Час завершення",
+                    "description": ""
+                },
+                "limit": {
+                    "name": "Ліміт",
+                    "description": ""
+                },
+                "group": {
+                    "name": "Група",
+                    "description": ""
+                }
+            }
+        },
+        "renew_devices": {
+            "description": "Примусове оновлення пристроїв"
+        },
+        "get_token": {
+            "name": "Отримати токен",
+            "description": "Отримати токен пристрою Xiaomi",
+            "fields": {
+                "name": {
+                    "name": "Назва",
+                    "description": ""
+                }
+            }
+        },
+        "get_bindkey": {
+            "name": "Отримати bindkey",
+            "description": "Отримати bindkey для BLE-пристрою",
+            "fields": {
+                "entity_id": {
+                    "name": "ID сутності",
+                    "description": ""
+                },
+                "did": {
+                    "name": "DID",
+                    "description": ""
+                }
+            }
+        },
+        "request_xiaomi_api": {
+            "description": "Запит до API Xiaomi",
+            "fields": {
+                "entity_id": {
+                    "name": "ID сутності",
+                    "description": ""
+                },
+                "api": {
+                    "name": "API",
+                    "description": ""
+                },
+                "data": {
+                    "name": "Дані",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Метод",
+                    "description": ""
+                },
+                "crypt": {
+                    "name": "Шифрування",
+                    "description": ""
+                }
+            }
+        }
     }
-  },
-  "services": {
-    "send_command": {
-      "name": "Надіслати команду",
-      "description": "Надіслати команду miio",
-      "fields": {
-        "entity_id": {
-          "name": "ID сутності",
-          "description": ""
-        },
-        "method": {
-          "name": "Метод",
-          "description": ""
-        },
-        "params": {
-          "name": "Параметри",
-          "description": ""
-        }
-      }
-    },
-    "get_properties": {
-      "name": "Отримати властивості",
-      "description": "Отримати властивості miot",
-      "fields": {
-        "entity_id": {
-          "name": "ID сутності",
-          "description": ""
-        },
-        "mapping": {
-          "name": "Mapping",
-          "description": ""
-        },
-        "update_entity": {
-          "name": "Update entity",
-          "description": ""
-        }
-      }
-    },
-    "set_property": {
-      "name": "Встановити властивість",
-      "description": "Встановити властивість miot",
-      "fields": {
-        "entity_id": {
-          "name": "ID сутності",
-          "description": ""
-        },
-        "field": {
-          "name": "Поле",
-          "description": ""
-        },
-        "value": {
-          "name": "Значення",
-          "description": ""
-        }
-      }
-    },
-    "set_miot_property": {
-      "name": "Встановити властивість miot",
-      "description": "Встановити властивість miot за siid/piid",
-      "fields": {
-        "entity_id": {
-          "name": "ID сутності",
-          "description": ""
-        },
-        "siid": {
-          "name": "",
-          "description": ""
-        },
-        "piid": {
-          "name": "",
-          "description": ""
-        },
-        "value": {
-          "name": "",
-          "description": ""
-        }
-      }
-    },
-    "call_action": {
-      "name": "Викликати дію",
-      "description": "Викликати дію miot",
-      "fields": {
-        "entity_id": {
-          "name": "ID сутності",
-          "description": ""
-        },
-        "siid": {
-          "name": "",
-          "description": ""
-        },
-        "aiid": {
-          "name": "",
-          "description": ""
-        },
-        "params": {
-          "name": "",
-          "description": ""
-        }
-      }
-    },
-    "intelligent_speaker": {
-      "name": "Розумна колонка",
-      "description": "Розумна колонка для XiaoAi",
-      "fields": {
-        "entity_id": {
-          "name": "ID сутності",
-          "description": "Xiaoai Entity ID"
-        },
-        "text": {
-          "name": "Текст",
-          "description": ""
-        },
-        "execute": {
-          "name": "Виконати",
-          "description": ""
-        },
-        "silent": {
-          "name": "Тихо",
-          "description": ""
-        }
-      }
-    },
-    "xiaoai_wakeup": {
-      "name": "Активація XiaoAi",
-      "description": "Активувати колонку XiaoAi",
-      "fields": {
-        "entity_id": {
-          "name": "ID сутності",
-          "description": "Xiaoai Entity ID"
-        },
-        "text": {
-          "name": "Текст",
-          "description": ""
-        }
-      }
-    },
-    "get_device_data": {
-      "name": "Отримати дані пристрою",
-      "description": "Отримати дані пристрою Xiaomi з хмари",
-      "fields": {
-        "entity_id": {
-          "name": "ID сутності",
-          "description": ""
-        },
-        "type": {
-          "name": "Тип",
-          "description": ""
-        },
-        "key": {
-          "name": "Ключ",
-          "description": ""
-        },
-        "time_start": {
-          "name": "Час початку",
-          "description": ""
-        },
-        "time_end": {
-          "name": "Час завершення",
-          "description": ""
-        },
-        "limit": {
-          "name": "Ліміт",
-          "description": ""
-        },
-        "group": {
-          "name": "Група",
-          "description": ""
-        }
-      }
-    },
-    "renew_devices": "Примусове оновлення пристроїв",
-    "get_token": {
-      "name": "Отримати токен",
-      "description": "Отримати токен пристрою Xiaomi",
-      "fields": {
-        "name": {
-          "name": "Назва",
-          "description": ""
-        }
-      }
-    },
-    "get_bindkey": {
-      "name": "Отримати bindkey",
-      "description": "Отримати bindkey для BLE-пристрою",
-      "fields": {
-        "entity_id": {
-          "name": "ID сутності",
-          "description": ""
-        },
-        "did": {
-          "name": "DID",
-          "description": ""
-        }
-      }
-    },
-    "request_xiaomi_api": {
-      "name": "Запит до API Xiaomi",
-      "description": "Запит до API Xiaomi",
-      "fields": {
-        "entity_id": {
-          "name": "ID сутності",
-          "description": ""
-        },
-        "api": {
-          "name": "API",
-          "description": ""
-        },
-        "data": {
-          "name": "Дані",
-          "description": ""
-        },
-        "method": {
-          "name": "Метод",
-          "description": ""
-        },
-        "crypt": {
-          "name": "Шифрування",
-          "description": ""
-        },
-        "sid": {
-          "name": "",
-          "description": ""
-        }
-      }
-    }
-  }
 }
