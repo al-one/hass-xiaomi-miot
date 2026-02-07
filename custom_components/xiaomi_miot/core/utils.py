@@ -10,10 +10,10 @@ import fnmatch
 import voluptuous as vol
 from typing import Type, Tuple, Optional, Callable, Set
 from functools import wraps
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
-from homeassistant.util import language as language_util
+from homeassistant.core import HomeAssistant, split_entity_id  # noqa
+from homeassistant.util import slugify, language as language_util
 from homeassistant.util.dt import DEFAULT_TIME_ZONE, get_time_zone
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 
@@ -35,6 +35,13 @@ def get_value(obj, key, def_value=None, sep='.'):
             except Exception:
                 result = def_value
     return result
+
+
+def slugify_object_id(value):
+    if obj := slugify(f'{value}'):
+        return obj
+    obj = re.sub(r'\W+', '_', f'{value}').lower().strip('_')
+    return obj or 'miot'
 
 
 def get_customize_via_model(model, key=None, default=None):

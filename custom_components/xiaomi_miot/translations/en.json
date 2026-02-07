@@ -133,7 +133,7 @@
             "cannot_connect": "Failed to connect to the device",
             "cannot_login": "Failed to login to the Xiaomi account. Please check your account credentials. If login attempts fail multiple times, please try logging in again on the Xiaomi official website (mi.com) using the same network environment.",
             "cannot_reach": "Unable to access the Xiaomi API interface",
-            "tzinfo_error": "There seems to be an issue with your Hass environment. Please refer to: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "tzinfo_error": "There seems to be an issue with your Hass environment. Check your time zone configuration",
             "none_devices": "No devices found under this Xiaomi account",
             "need_verify": "This login requires security verification. Please open the verification page to send the mobile/email verification code. After receiving the verification code, do not verify it on the webpage. Go back to HomeAssistant and enter it in the input box below."
         },
@@ -196,7 +196,7 @@
             "cannot_connect": "Failed to connect to the device",
             "cannot_login": "Failed to login to the Xiaomi account. Please check your account credentials. If login attempts fail multiple times, please try logging in again on the Xiaomi official website (mi.com) using the same network environment.",
             "cannot_reach": "Unable to access the Xiaomi API interface",
-            "tzinfo_error": "There seems to be an issue with your Hass environment. Please refer to: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "tzinfo_error": "There seems to be an issue with your Hass environment. Check your time zone configuration",
             "none_devices": "No devices found under this Xiaomi account",
             "need_verify": "This login requires security verification. Please open the verification page to send the mobile/email verification code. After receiving the verification code, do not verify it on the webpage. Go back to HomeAssistant and enter it in the input box below."
         },

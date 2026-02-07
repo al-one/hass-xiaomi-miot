@@ -13,7 +13,6 @@ from homeassistant.components.remote import (
     RemoteEntity,
     RemoteEntityFeature,
 )
-from homeassistant import core as hass_core
 
 from . import (
     DOMAIN,
@@ -21,14 +20,15 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     MiotEntity,
-    slugify_object_id,
     async_setup_config_entry,
-    bind_services_to_entries,
 )
-from .core.utils import get_translations, DeviceException
-from .core.miot_spec import (
-    MiotSpec,
+from .core.utils import (
+    split_entity_id,
+    slugify_object_id,
+    get_translations,
+    DeviceException,
 )
+from .core.miot_spec import MiotSpec
 from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
@@ -90,7 +90,7 @@ class MiotRemoteEntity(MiotEntity, RemoteEntity):
         self._supported_features = RemoteEntityFeature.LEARN_COMMAND
         self._translations = get_translations('ir_devices')
         if self.entity_id:
-            obj = hass_core.split_entity_id(self.entity_id)[1]
+            obj = split_entity_id(self.entity_id)[1]
             self.entity_id = f'{ENTITY_DOMAIN}.{slugify_object_id(obj)}'
 
     async def async_added_to_hass(self):

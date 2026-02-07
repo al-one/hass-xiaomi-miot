@@ -32,10 +32,9 @@ from homeassistant.helpers.reload import async_integration_yaml_config
 from homeassistant.helpers.service import async_register_admin_service
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.config_validation as cv
-from homeassistant.util import slugify as ha_slugify
 
 from .core.const import *
-from .core.utils import DeviceException, wildcard_models
+from .core.utils import DeviceException, slugify_object_id, wildcard_models
 from .core import HassEntry, BasicEntity, XEntity # noqa
 from .core.device import Device, AsyncMiIO
 from .core.miot_spec import (
@@ -54,13 +53,6 @@ from .core.templates import CUSTOM_TEMPLATES
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=60)
-
-def slugify_object_id(value) -> str:
-    obj = ha_slugify(f'{value}')
-    if obj:
-        return obj
-    obj = re.sub(r'\W+', '_', f'{value}').lower().strip('_')
-    return obj or 'miot'
 
 XIAOMI_CONFIG_SCHEMA = cv.PLATFORM_SCHEMA_BASE.extend(
     {

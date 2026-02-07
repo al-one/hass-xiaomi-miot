@@ -60,7 +60,7 @@ XEntity.CLS[ENTITY_DOMAIN] = ButtonEntity
 
 class ButtonSubEntity(BaseEntity, BaseSubEntity):
     def __init__(self, parent, attr, option=None):
-        BaseSubEntity.__init__(self, parent, attr, option)
+        BaseSubEntity.__init__(self, parent, attr, option, domain=ENTITY_DOMAIN)
         self._available = True
         self._async_action = self._option.get('async_press_action')
         self._press_action = self._option.get('press_action')
