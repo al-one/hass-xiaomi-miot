@@ -1221,6 +1221,14 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm,warm_wind_turn,turn_ovp,dry_turn,turn_off_dry_turn',
         'number_properties': 'screen_brightness,tsms_turn_off',
     },
+    'leshow.humidifier.jsq3': {
+        'miot_type': 'urn:miot-spec-v2:device:humidifier:0000A00E:leshow-jsq3:2',
+        'button_actions': 'filter.reset_filter_life',
+        'sensor_properties': 'humidifier.water_level',
+        'switch_properties': 'alarm,heater_turn,screen.on',
+        'number_properties': 'brightness',
+        'binary_sensor_attributes': 'push.humidity_fault,push.pb_com_fault,push.pump_fault,push.dump,push.water_over,push.water_lack,push.ptc_fault,push.wash_need',
+    },
     'linp.doorbell.g04': {
         'sensor_properties': 'pressed_key',
         'switch_properties': 'on',
