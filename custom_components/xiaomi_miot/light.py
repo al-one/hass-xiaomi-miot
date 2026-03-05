@@ -120,7 +120,7 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
         return {
             self.attr: self._attr_is_on,
             ATTR_BRIGHTNESS: self._attr_brightness,
-            ATTR_COLOR_TEMP: self._attr_color_temp,
+            ATTR_COLOR_TEMP: self._attr_color_temp_kelvin,
         }
 
     def set_state(self, data: dict):
