@@ -106,8 +106,8 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
                     # Convert mireds range to kelvin (mireds min -> kelvin max)
                     mireds_min = prop.range_min()
                     mireds_max = prop.range_max()
-                    self._attr_min_color_temp_kelvin = int(1000000 / mireds_max) if mireds_max else 2000
-                    self._attr_max_color_temp_kelvin = int(1000000 / mireds_min) if mireds_min else 6500
+                    self._attr_min_color_temp_kelvin = int(1_000_000 / mireds_max) if mireds_max else 2000
+                    self._attr_max_color_temp_kelvin = int(1_000_000 / mireds_min) if mireds_min else 6500
                     self._attr_names[ATTR_COLOR_TEMP] = attr
             elif prop.in_list(['color', color_property]) or isinstance(conv, MiotRgbColorConv):
                 self._attr_names[ATTR_RGB_COLOR] = attr
@@ -140,7 +140,7 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
                 self._attr_color_temp_kelvin = val
                 self._attr_color_mode = ColorMode.COLOR_TEMP
         elif (val := data.get(self._attr_names.get(ATTR_COLOR_TEMP))) is not None:
-            kelvin = int(1000000 / val) if val else None
+            kelvin = int(1_000_000 / val) if val else None
             if kelvin and kelvin != self._attr_color_temp_kelvin:
                 self._attr_color_temp_kelvin = kelvin
                 self._attr_color_mode = ColorMode.COLOR_TEMP
