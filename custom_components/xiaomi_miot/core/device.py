@@ -87,7 +87,22 @@ class DeviceInfo:
 
     @property
     def token(self):
-        return self.data.get(CONF_TOKEN) or self.miio_info.token or ''
+        token = self.data.get(CONF_TOKEN) or ''
+        # For Yi cameras and similar devices, the top-level token may not be valid hex
+        # Check if token is valid hexadecimal, otherwise try extra.token
+        if token:
+            try:
+                bytes.fromhex(token)
+            except ValueError:
+                # Top-level token is not valid hex, try extra.token
+                extra_token = self.data.get('extra', {}).get('token', '')
+                if extra_token:
+                    try:
+                        bytes.fromhex(extra_token)
+                        return extra_token
+                    except ValueError:
+                        pass
+        return token or self.miio_info.token
 
     @cached_property
     def pid(self):
