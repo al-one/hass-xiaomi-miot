@@ -87,24 +87,20 @@ class DeviceInfo:
 
     @property
     def token(self):
-        primary_token = self.data.get(CONF_TOKEN) or ''
-        # For Yi cameras and similar devices, the top-level token may not be valid hex
-        # Check if token is valid hexadecimal, otherwise try extra.token
-        if primary_token:
+        if token := self.data.get(CONF_TOKEN):
             try:
-                bytes.fromhex(primary_token)
-                return primary_token
+                # For Yi cameras and similar devices, the top-level token may not be valid hex
+                # Check if token is valid hexadecimal, otherwise try extra.token
+                bytes.fromhex(token)
+                return token
             except ValueError:
-                # Primary token is not valid hex, try extra.token
                 pass
-        
-        extra_token = self.data.get('extra', {}).get('token', '')
-        if extra_token:
+        extra = self.data.get('extra') or {}
+        if token := extra.get('token', ''):
             try:
-                bytes.fromhex(extra_token)
-                return extra_token
+                bytes.fromhex(token)
+                return token
             except ValueError:
-                # Extra token is also not valid hex, fall through to miio_info.token
                 pass
         return self.miio_info.token
 
