@@ -1576,7 +1576,9 @@ DEVICE_CUSTOMIZES = {
     'nwt.derh.wdh318efw1:tank_full': {
         'device_class': 'problem',
     },
-
+    'nwt.derh.lus12l:relative-humidity': {
+        'unit_of_measurement': '%',
+    },
     'opple.bhf_light.acmoto': {
         'exclude_miot_services': 'pair,wifisinr,class_sku,fan_motor',
         'exclude_miot_properties': 'fault',
