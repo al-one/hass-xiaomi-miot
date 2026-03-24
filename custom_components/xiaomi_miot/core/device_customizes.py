@@ -1570,14 +1570,14 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'fault',
         'select_properties': 'motor_control',
     },
+    'nwt.derh.lus12l:relative-humidity': {
+        'unit_of_measurement': '%',
+    },
     'nwt.derh.wdh318efw1': {
         'binary_sensor_properties': 'tank_full',
     },
     'nwt.derh.wdh318efw1:tank_full': {
         'device_class': 'problem',
-    },
-    'nwt.derh.lus12l:relative-humidity': {
-        'unit_of_measurement': '%',
     },
     'opple.bhf_light.acmoto': {
         'exclude_miot_services': 'pair,wifisinr,class_sku,fan_motor',
