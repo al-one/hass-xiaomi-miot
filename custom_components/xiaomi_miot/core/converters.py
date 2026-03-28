@@ -218,7 +218,7 @@ class MiotBrightnessConv(MiotPropConv):
 class MiotTimePropConv(MiotPropConv):
     def decode(self, device: 'Device', payload: dict, value: int):
         from datetime import time
-        h, remainder = divmod(int(value), 3600)
+        h, remainder = divmod(value, 3600)
         m, s = divmod(remainder, 60)
         super().decode(device, payload, time(h % 24, m, s))
 
