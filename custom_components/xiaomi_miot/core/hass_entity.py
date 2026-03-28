@@ -133,7 +133,7 @@ class XEntity(BasicEntity):
         self._attr_device_info = self.device.hass_device_info
         self._attr_extra_state_attributes = {}
 
-        self._attr_icon = conv.option.get('icon')
+        self._attr_icon = conv.option.get('icon') or self.custom_config('icon')
         self._attr_device_class = self.custom_config('device_class') or conv.option.get('device_class')
 
         if self._attr_translation_key:

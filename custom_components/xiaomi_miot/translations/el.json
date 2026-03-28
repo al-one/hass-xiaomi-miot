@@ -123,6 +123,29 @@
          "show_customizes":"[Προσθήκη νέας ενσωμάτωσης] (/_my_redirect/config_flow_start?domain=xiaomi_miot) για να τροποποιήσετε την προσαρμογή.\n{link}\n{tip}"
       }
    },
+   "entity":{
+      "binary_sensor":{
+         "pet_drinking_fountain-water_shortage_status":{"name":"Έλλειψη νερού"},
+         "pet_drinking_fountain-fault":{"name":"Σφάλμα"},
+         "pet_waterer_costom-usb_insert_state":{"name":"Τροφοδοσία USB"},
+         "pet_waterer_costom-low_battery":{"name":"Χαμηλή μπαταρία"},
+         "pet_waterer_costom-pump_block":{"name":"Μπλοκαρισμένη αντλία"}
+      },
+      "switch":{
+         "no_disturb-no_disturb":{"name":"Μην ενοχλείτε"},
+         "physical_controls_locked-physical_controls_locked":{"name":"Παιδικό κλείδωμα"}
+      },
+      "select":{
+         "pet_drinking_fountain-mode":{"name":"Λειτουργία νερού"}
+      },
+      "number":{
+         "pet_drinking_fountain-out_water_interval":{"name":"Διάστημα νερού"}
+      },
+      "time":{
+         "pet_waterer_costom-time_period_start":{"name":"Έναρξη DND"},
+         "pet_waterer_costom-time_period_end":{"name":"Λήξη DND"}
+      }
+   },
    "system_health":{
       "info":{
          "component_version":"Έκδοση στοιχείου",

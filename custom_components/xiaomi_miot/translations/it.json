@@ -175,6 +175,27 @@
                 }
             }
         },
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {"name": "Acqua insufficiente"},
+            "pet_drinking_fountain-fault": {"name": "Guasto"},
+            "pet_waterer_costom-usb_insert_state": {"name": "Alimentazione USB"},
+            "pet_waterer_costom-low_battery": {"name": "Batteria scarica"},
+            "pet_waterer_costom-pump_block": {"name": "Pompa bloccata"}
+        },
+        "switch": {
+            "no_disturb-no_disturb": {"name": "Non disturbare"},
+            "physical_controls_locked-physical_controls_locked": {"name": "Blocco bambini"}
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {"name": "Modalità acqua"}
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {"name": "Intervallo acqua"}
+        },
+        "time": {
+            "pet_waterer_costom-time_period_start": {"name": "Inizio DND"},
+            "pet_waterer_costom-time_period_end": {"name": "Fine DND"}
+        },
         "climate": {
             "air_conditioner": {
                 "state_attributes": {

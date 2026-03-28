@@ -206,6 +206,28 @@
                 }
             }
         }
+        ,
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {"name": "Kevés víz"},
+            "pet_drinking_fountain-fault": {"name": "Hiba"},
+            "pet_waterer_costom-usb_insert_state": {"name": "USB tápellátás"},
+            "pet_waterer_costom-low_battery": {"name": "Alacsony töltöttség"},
+            "pet_waterer_costom-pump_block": {"name": "Szivattyú elakadva"}
+        },
+        "switch": {
+            "no_disturb-no_disturb": {"name": "Ne zavarjanak"},
+            "physical_controls_locked-physical_controls_locked": {"name": "Gyerekzár"}
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {"name": "Víz mód"}
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {"name": "Víz intervallum"}
+        },
+        "time": {
+            "pet_waterer_costom-time_period_start": {"name": "DND kezdete"},
+            "pet_waterer_costom-time_period_end": {"name": "DND vége"}
+        }
     },
     "services": {
         "send_command": {

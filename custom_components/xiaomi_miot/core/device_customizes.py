@@ -2344,16 +2344,67 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'reset_filter_life',
         'switch_properties': 'no_disturb,physical_controls_locked',
         'sensor_properties': 'status,filter_life_level,filter_left_time,battery_level,charging_state',
-        'number_properties': 'out_water_interval,time_period_start,time_period_end',
+        'number_properties': 'out_water_interval',
+        'time_properties': 'time_period_start,time_period_end',
         'select_properties': 'mode',
-        'exclude_miot_properties': 'event_time,event_mode,event_water,event_timezone'
+        'exclude_miot_properties': 'event_time,event_mode,event_water,event_timezone,factory_mode_switch',
+        'chunk_coordinators': [
+            {'interval': 15, 'props': 'status,water_shortage_status,pump_block,fault'},
+            {'interval': 30, 'props': 'battery_level,charging_state,low_battery,usb_insert_state'},
+            {'interval': 60, 'props': 'mode,out_water_interval,no_disturb,physical_controls_locked,time_period_start,time_period_end'},
+            {'interval': 300, 'props': 'filter_life_level,filter_left_time'},
+        ],
     },
     'xiaomi.pet_waterer.70m2:fault': {
-         'reverse_state': True,
+        'reverse_state': True,
+    },
+    'xiaomi.pet_waterer.70m2:status': {
+        'icon': 'mdi:fountain',
+    },
+    'xiaomi.pet_waterer.70m2:water_shortage_status': {
+        'icon': 'mdi:water-alert',
+    },
+    'xiaomi.pet_waterer.70m2:pump_block': {
+        'icon': 'mdi:pump-off',
+    },
+    'xiaomi.pet_waterer.70m2:usb_insert_state': {
+        'icon': 'mdi:usb',
+    },
+    'xiaomi.pet_waterer.70m2:low_battery': {
+        'icon': 'mdi:battery-alert-variant-outline',
+    },
+    'xiaomi.pet_waterer.70m2:battery_level': {
+        'state_class': 'measurement',
+    },
+    'xiaomi.pet_waterer.70m2:charging_state': {
+        'icon': 'mdi:battery-charging',
+    },
+    'xiaomi.pet_waterer.70m2:filter_life_level': {
+        'state_class': 'measurement',
+        'icon': 'mdi:filter-check',
     },
     'xiaomi.pet_waterer.70m2:filter_left_time': {
-         'state_class': 'measurement',
-         'unit_of_measurement': 'days',
+        'state_class': 'measurement',
+        'unit_of_measurement': 'days',
+        'icon': 'mdi:filter-cog',
+    },
+    'xiaomi.pet_waterer.70m2:no_disturb': {
+        'icon': 'mdi:moon-waning-crescent',
+    },
+    'xiaomi.pet_waterer.70m2:physical_controls_locked': {
+        'icon': 'mdi:lock',
+    },
+    'xiaomi.pet_waterer.70m2:out_water_interval': {
+        'icon': 'mdi:timer-outline',
+    },
+    'xiaomi.pet_waterer.70m2:time_period_start': {
+        'icon': 'mdi:clock-start',
+    },
+    'xiaomi.pet_waterer.70m2:time_period_end': {
+        'icon': 'mdi:clock-end',
+    },
+    'xiaomi.pet_waterer.70m2:mode': {
+        'icon': 'mdi:water-pump',
     },
     'xiaomi.pet_waterer.iv02': {
         'button_actions': 'reset_filter_life,low_battery,pump_block',
