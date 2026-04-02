@@ -126,10 +126,7 @@
    "entity":{
       "binary_sensor":{
          "pet_drinking_fountain-water_shortage_status":{"name":"Έλλειψη νερού"},
-         "pet_drinking_fountain-fault":{"name":"Σφάλμα"},
-         "pet_waterer_costom-usb_insert_state":{"name":"Τροφοδοσία USB"},
-         "pet_waterer_costom-low_battery":{"name":"Χαμηλή μπαταρία"},
-         "pet_waterer_costom-pump_block":{"name":"Μπλοκαρισμένη αντλία"}
+         "pet_drinking_fountain-fault":{"name":"Σφάλμα"}
       },
       "switch":{
          "no_disturb-no_disturb":{"name":"Μην ενοχλείτε"},
@@ -140,10 +137,6 @@
       },
       "number":{
          "pet_drinking_fountain-out_water_interval":{"name":"Διάστημα νερού"}
-      },
-      "time":{
-         "pet_waterer_costom-time_period_start":{"name":"Έναρξη DND"},
-         "pet_waterer_costom-time_period_end":{"name":"Λήξη DND"}
       }
    },
    "system_health":{

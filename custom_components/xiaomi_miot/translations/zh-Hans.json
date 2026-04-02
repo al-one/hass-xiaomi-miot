@@ -315,10 +315,7 @@
         },
         "binary_sensor": {
             "pet_drinking_fountain-water_shortage_status": {"name": "缺水"},
-            "pet_drinking_fountain-fault": {"name": "故障"},
-            "pet_waterer_costom-usb_insert_state": {"name": "USB供电"},
-            "pet_waterer_costom-low_battery": {"name": "低电量"},
-            "pet_waterer_costom-pump_block": {"name": "水泵堵塞"}
+            "pet_drinking_fountain-fault": {"name": "故障"}
         },
         "switch": {
             "no_disturb-no_disturb": {"name": "勿扰模式"},
@@ -326,10 +323,6 @@
         },
         "number": {
             "pet_drinking_fountain-out_water_interval": {"name": "出水间隔"}
-        },
-        "time": {
-            "pet_waterer_costom-time_period_start": {"name": "勿扰开始"},
-            "pet_waterer_costom-time_period_end": {"name": "勿扰结束"}
         },
         "humidifier": {
             "humidifier": {

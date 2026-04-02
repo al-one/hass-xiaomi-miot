@@ -126,10 +126,7 @@
     "entity": {
         "binary_sensor": {
             "pet_drinking_fountain-water_shortage_status": {"name": "Brak wody"},
-            "pet_drinking_fountain-fault": {"name": "Usterka"},
-            "pet_waterer_costom-usb_insert_state": {"name": "Zasilanie USB"},
-            "pet_waterer_costom-low_battery": {"name": "Niski poziom baterii"},
-            "pet_waterer_costom-pump_block": {"name": "Zablokowana pompa"}
+            "pet_drinking_fountain-fault": {"name": "Usterka"}
         },
         "switch": {
             "no_disturb-no_disturb": {"name": "Nie przeszkadzać"},
@@ -140,10 +137,6 @@
         },
         "number": {
             "pet_drinking_fountain-out_water_interval": {"name": "Interwał wody"}
-        },
-        "time": {
-            "pet_waterer_costom-time_period_start": {"name": "Początek DND"},
-            "pet_waterer_costom-time_period_end": {"name": "Koniec DND"}
         }
     },
     "system_health": {

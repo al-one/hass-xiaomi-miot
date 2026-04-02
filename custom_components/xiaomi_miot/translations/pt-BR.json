@@ -177,10 +177,7 @@
         },
         "binary_sensor": {
             "pet_drinking_fountain-water_shortage_status": {"name": "Falta de água"},
-            "pet_drinking_fountain-fault": {"name": "Falha"},
-            "pet_waterer_costom-usb_insert_state": {"name": "Energia USB"},
-            "pet_waterer_costom-low_battery": {"name": "Bateria fraca"},
-            "pet_waterer_costom-pump_block": {"name": "Bomba bloqueada"}
+            "pet_drinking_fountain-fault": {"name": "Falha"}
         },
         "switch": {
             "no_disturb-no_disturb": {"name": "Não perturbe"},
@@ -191,10 +188,6 @@
         },
         "number": {
             "pet_drinking_fountain-out_water_interval": {"name": "Intervalo de água"}
-        },
-        "time": {
-            "pet_waterer_costom-time_period_start": {"name": "Início DND"},
-            "pet_waterer_costom-time_period_end": {"name": "Fim DND"}
         },
         "climate": {
             "air_conditioner": {

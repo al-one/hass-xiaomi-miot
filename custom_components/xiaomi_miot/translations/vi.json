@@ -206,10 +206,7 @@
         },
         "binary_sensor": {
             "pet_drinking_fountain-water_shortage_status": {"name": "Thiếu nước"},
-            "pet_drinking_fountain-fault": {"name": "Lỗi"},
-            "pet_waterer_costom-usb_insert_state": {"name": "Nguồn USB"},
-            "pet_waterer_costom-low_battery": {"name": "Pin yếu"},
-            "pet_waterer_costom-pump_block": {"name": "Bơm bị kẹt"}
+            "pet_drinking_fountain-fault": {"name": "Lỗi"}
         },
         "switch": {
             "no_disturb-no_disturb": {"name": "Không làm phiền"},
@@ -220,10 +217,6 @@
         },
         "number": {
             "pet_drinking_fountain-out_water_interval": {"name": "Chu kỳ nước"}
-        },
-        "time": {
-            "pet_waterer_costom-time_period_start": {"name": "Bắt đầu DND"},
-            "pet_waterer_costom-time_period_end": {"name": "Kết thúc DND"}
         },
         "climate": {
             "air_conditioner": {

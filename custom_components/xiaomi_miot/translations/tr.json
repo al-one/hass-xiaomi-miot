@@ -206,10 +206,7 @@
         },
         "binary_sensor": {
             "pet_drinking_fountain-water_shortage_status": {"name": "Su Az"},
-            "pet_drinking_fountain-fault": {"name": "Arıza"},
-            "pet_waterer_costom-usb_insert_state": {"name": "USB Gücü"},
-            "pet_waterer_costom-low_battery": {"name": "Düşük Pil"},
-            "pet_waterer_costom-pump_block": {"name": "Pompa Tıkalı"}
+            "pet_drinking_fountain-fault": {"name": "Arıza"}
         },
         "switch": {
             "no_disturb-no_disturb": {"name": "Rahatsız Etme"},
@@ -220,10 +217,6 @@
         },
         "number": {
             "pet_drinking_fountain-out_water_interval": {"name": "Su Aralığı"}
-        },
-        "time": {
-            "pet_waterer_costom-time_period_start": {"name": "DND Başlangıç"},
-            "pet_waterer_costom-time_period_end": {"name": "DND Bitiş"}
         },
         "climate": {
             "air_conditioner": {

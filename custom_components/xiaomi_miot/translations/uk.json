@@ -224,10 +224,7 @@
         },
         "binary_sensor": {
             "pet_drinking_fountain-water_shortage_status": {"name": "Нестача води"},
-            "pet_drinking_fountain-fault": {"name": "Несправність"},
-            "pet_waterer_costom-usb_insert_state": {"name": "Живлення USB"},
-            "pet_waterer_costom-low_battery": {"name": "Низький заряд"},
-            "pet_waterer_costom-pump_block": {"name": "Блокування помпи"}
+            "pet_drinking_fountain-fault": {"name": "Несправність"}
         },
         "switch": {
             "no_disturb-no_disturb": {"name": "Не турбувати"},
@@ -238,10 +235,6 @@
         },
         "number": {
             "pet_drinking_fountain-out_water_interval": {"name": "Інтервал води"}
-        },
-        "time": {
-            "pet_waterer_costom-time_period_start": {"name": "Початок DND"},
-            "pet_waterer_costom-time_period_end": {"name": "Кінець DND"}
         },
         "climate": {
             "air_conditioner": {
