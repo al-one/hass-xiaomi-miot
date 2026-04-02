@@ -60,6 +60,8 @@ Starting from the v0.4.4 version, the component has added support for selecting 
 - **Local**: All devices filtered by the integrated configuration will use local connection. If you check the devices that do not support miot in LAN, they will be unavailable
 - **Cloud**: All devices filtered by the integrated configuration will use cloud connection. It is recommended that miio, BLE, ZigBee devices use this mode
 
+**Note:** For **Local** mode, some devices require Home Assistant to be on the same subnet/VLAN. They will not respond to requests from a different subnet. A workaround is to NAT your Home Assistant IP to the device's subnet.
+
 ### Add device using host/token:
 Suitable for devices support miot-spec protocol in LAN
 
