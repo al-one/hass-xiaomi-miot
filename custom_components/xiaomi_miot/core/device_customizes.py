@@ -1570,6 +1570,9 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'fault',
         'select_properties': 'motor_control',
     },
+    'nwt.derh.lus12l:relative_humidity': {
+        'unit_of_measurement': '%',
+    },
     'nwt.derh.wdh318efw1': {
         'binary_sensor_properties': 'tank_full',
     },
