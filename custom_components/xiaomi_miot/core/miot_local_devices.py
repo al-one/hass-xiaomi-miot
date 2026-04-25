@@ -866,6 +866,7 @@ MIOT_LOCAL_MODELS = [
     'xiaomi.bhf_light.v2',
     'xiaomi.blanket.mj1',
     'xiaomi.blanket.mj2',
+    'xiaomi.blanket.mj3',
     'xiaomi.cooker.cmk7',
     'xiaomi.curtain.acn009',
     'xiaomi.derh.13l',

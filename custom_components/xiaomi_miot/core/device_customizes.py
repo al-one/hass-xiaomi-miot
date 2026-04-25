@@ -2178,6 +2178,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,heat_level',
         'number_properties': 'a_countdown,b_countdown',
     },
+    'xiaomi.blanket.mj3': {
+        'chunk_properties': 1,
+        'switch_properties': 'anti_scald_switch,ab_sleep_switch,auto_screen_off,mite_removal',
+        'select_properties': 'heat_level',
+        'number_properties': 'a_countdown,b_countdown',
+    },
     'xiaomi.fishbowl.m200': {
         'sensor_properties': 'water_pump_status,temperature,light_water_use_time,today_feeded_num',
         'switch_properties': 'on,water_pump,light_edit_on,off_flipcover_switch,feed_protect_switch,no_disturb',
