@@ -2246,6 +2246,12 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'horizontal_swing_included_angle',
         'number_properties': 'delay_time',
     },
+    'xiaomi.fan.p69': {
+        'button_actions': 'toggle,toggle_mode,loop_gear,turn_left,turn_right,turn_upward,turn_downward',
+        'switch_properties': 'alarm,delay,horizontal_swing,vertical_swing',
+        'select_properties': 'horizontal_swing_included_angle,vertical_swing_included_angle',
+        'number_properties': 'delay_time',
+    },
     'xiaomi.fan.p70': {
         'button_actions': 'toggle,toggle_mode,loop_gear,turn_left,turn_right,turn_upward,turn_downward',
         'switch_properties': 'indicator_light.on,alarm,physical_controls_locked,horizontal_swing,vertical_swing,delay',
