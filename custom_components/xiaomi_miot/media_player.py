@@ -27,7 +27,6 @@ from homeassistant.components.media_player import (
 )
 from homeassistant.components.media_player.browse_media import (
     async_process_play_media_url,
-    SearchMedia,
     BrowseMedia,
 )
 from homeassistant.components.homekit.const import EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED
@@ -518,6 +517,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         )
 
     async def async_search_media(self, query):
+        from homeassistant.components.media_player.browse_media import SearchMedia
         return SearchMedia(
             result=[
                 BrowseMedia(
