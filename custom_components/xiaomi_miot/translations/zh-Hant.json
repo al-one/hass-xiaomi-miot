@@ -271,6 +271,7 @@
             }
         },
         "select": {
+            "pet_drinking_fountain-mode": {"name": "出水模式"},
             "fan_control-fan_level": {
                 "state": {
                     "auto": "自動",
@@ -299,6 +300,17 @@
                 "Scene": "場景",
                 "Music": "音樂"
             }
+        },
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {"name": "缺水"},
+            "pet_drinking_fountain-fault": {"name": "故障"}
+        },
+        "switch": {
+            "no_disturb-no_disturb": {"name": "勿擾模式"},
+            "physical_controls_locked-physical_controls_locked": {"name": "童鎖"}
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {"name": "出水間隔"}
         }
     },
     "services": {

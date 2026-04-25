@@ -123,6 +123,22 @@
             "show_customizes": "[Neue Integration hinzufügen](/_my_redirect/config_flow_start?domain=xiaomi_miot) um Anpassungen zu bearbeiten.\n{link}\n{tip}"
         }
     },
+    "entity": {
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {"name": "Wassermangel"},
+            "pet_drinking_fountain-fault": {"name": "Fehler"}
+        },
+        "switch": {
+            "no_disturb-no_disturb": {"name": "Nicht stören"},
+            "physical_controls_locked-physical_controls_locked": {"name": "Kindersicherung"}
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {"name": "Wassermodus"}
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {"name": "Wasserintervall"}
+        }
+    },
     "system_health": {
         "info": {
             "component_version": "Komponenten-Version",

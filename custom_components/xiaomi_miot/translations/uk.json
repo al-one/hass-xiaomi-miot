@@ -222,6 +222,20 @@
                 }
             }
         },
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {"name": "Нестача води"},
+            "pet_drinking_fountain-fault": {"name": "Несправність"}
+        },
+        "switch": {
+            "no_disturb-no_disturb": {"name": "Не турбувати"},
+            "physical_controls_locked-physical_controls_locked": {"name": "Дитячий замок"}
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {"name": "Режим води"}
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {"name": "Інтервал води"}
+        },
         "climate": {
             "air_conditioner": {
                 "state_attributes": {

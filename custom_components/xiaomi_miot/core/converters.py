@@ -215,6 +215,20 @@ class MiotBrightnessConv(MiotPropConv):
             super().encode(device, payload, int(value))
 
 @dataclass
+class MiotTimePropConv(MiotPropConv):
+    def decode(self, device: 'Device', payload: dict, value: int):
+        from datetime import time
+        h, remainder = divmod(value, 3600)
+        m, s = divmod(remainder, 60)
+        super().decode(device, payload, time(h % 24, m, s))
+
+    def encode(self, device: 'Device', payload: dict, value):
+        from datetime import time as dt_time
+        if isinstance(value, dt_time):
+            seconds = value.hour * 3600 + value.minute * 60 + value.second
+            super().encode(device, payload, seconds)
+
+@dataclass
 class MiotColorTempConv(MiotPropConv):
     def decode(self, device: 'Device', payload: dict, value: int):
         if self.prop.unit == 'percentage':

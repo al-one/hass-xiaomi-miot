@@ -175,6 +175,20 @@
                 }
             }
         },
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {"name": "Acqua insufficiente"},
+            "pet_drinking_fountain-fault": {"name": "Guasto"}
+        },
+        "switch": {
+            "no_disturb-no_disturb": {"name": "Non disturbare"},
+            "physical_controls_locked-physical_controls_locked": {"name": "Blocco bambini"}
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {"name": "Modalità acqua"}
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {"name": "Intervallo acqua"}
+        },
         "climate": {
             "air_conditioner": {
                 "state_attributes": {

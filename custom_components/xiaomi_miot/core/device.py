@@ -25,7 +25,7 @@ from .hass_entity import XEntity, BasicEntity, convert_unique_id
 from .converters import (
     BaseConv, InfoConv, MiotPropConv,
     MiotPropValueConv, MiotActionConv,
-    AttrConv, MiotTargetPositionConv,
+    AttrConv, MiotTargetPositionConv, MiotTimePropConv,
 )
 from .coordinator import DataCoordinator
 from .miot_spec import MiotSpec, MiotProperty, MiotResults, MiotResult
@@ -445,7 +445,7 @@ class Device(CustomConfigHelper):
 
         for d in [
             'button', 'sensor', 'binary_sensor', 'switch', 'number', 'select', 'text',
-            'number_select', 'scanner', 'target_position',
+            'time', 'number_select', 'scanner', 'target_position',
         ]:
             pls = self.custom_config_list(f'{d}_properties') or []
             if not pls:
@@ -484,6 +484,7 @@ class Device(CustomConfigHelper):
                 else:
                     conv_cls = {
                         'target_position': MiotTargetPositionConv,
+                        'time': MiotTimePropConv,
                     }.get(d) or MiotPropConv
                     conv = conv_cls(prop.full_name, platform, prop=prop)
                     conv.with_option(

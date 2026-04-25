@@ -204,6 +204,20 @@
                 }
             }
         },
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {"name": "Su Az"},
+            "pet_drinking_fountain-fault": {"name": "Arıza"}
+        },
+        "switch": {
+            "no_disturb-no_disturb": {"name": "Rahatsız Etme"},
+            "physical_controls_locked-physical_controls_locked": {"name": "Çocuk Kilidi"}
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {"name": "Su Modu"}
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {"name": "Su Aralığı"}
+        },
         "climate": {
             "air_conditioner": {
                 "state_attributes": {

@@ -206,6 +206,21 @@
                 }
             }
         }
+        ,
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {"name": "Kevés víz"},
+            "pet_drinking_fountain-fault": {"name": "Hiba"}
+        },
+        "switch": {
+            "no_disturb-no_disturb": {"name": "Ne zavarjanak"},
+            "physical_controls_locked-physical_controls_locked": {"name": "Gyerekzár"}
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {"name": "Víz mód"}
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {"name": "Víz intervallum"}
+        }
     },
     "services": {
         "send_command": {

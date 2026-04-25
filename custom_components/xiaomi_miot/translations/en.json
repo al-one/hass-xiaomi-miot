@@ -118,6 +118,7 @@
                     "target_position_properties": "target_position_properties",
                     "television_name": "television_name",
                     "text_actions": "text_actions",
+                    "time_properties": "time_properties",
                     "turn_on_hvac": "turn_on_hvac",
                     "unit_of_measurement": "unit_of_measurement",
                     "value_ratio": "value_ratio",
@@ -265,6 +266,20 @@
                     "stuck": "Stuck"
                 }
             }
+        },
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {"name": "Water Shortage"},
+            "pet_drinking_fountain-fault": {"name": "Fault"}
+        },
+        "switch": {
+            "no_disturb-no_disturb": {"name": "Do Not Disturb"},
+            "physical_controls_locked-physical_controls_locked": {"name": "Child Lock"}
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {"name": "Water Mode"}
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {"name": "Water Interval"}
         },
         "climate": {
             "air_conditioner": {
