@@ -260,7 +260,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
         if self._conv_speed:
             val = self._conv_speed.value_from_dict(data)
             if val is not None:
-                self._attr_fan_mode = val
+                self._attr_fan_mode = str(val).lower()
         if self._conv_swing:
             val = self._conv_swing.value_from_dict(data)
             if val is not None:
