@@ -3066,6 +3066,11 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'target_temperature,light_off_time,children_mode_temp,comfort_mode_temp,adult_mode_temp,'
                              'kitchen_mode_temp,pet_mode_temp,custom_time,boost_value',
     },
+    'zinguo.etool.sc03': {
+        'power_property': 'status',
+        'descriptions_for_on': 'Kongwen,Kongshi',
+        'descriptions_for_off': 'Standby',
+    },
     'zinguo.etool.tk01': {
         'binary_sensor_properties': 'boost,feed,heat,recircle,defreeze,water_shortage,low_pressure,overflow,overload,leakage',
         'sensor_properties': 'water_level,temperature,sensor_fault,power,energy',
@@ -3625,7 +3630,7 @@ GLOBAL_CONVERTERS = [
         'class': MiotClimateConv,
         'services': ['air_conditioner', 'heater', 'thermostat', 'ptc_bath_heater'],
         'converters' : [
-            {'props': ['on', 'target_temperature']},
+            {'props': ['on', 'power', 'status', 'target_temperature']},
             {'props': ['indoor_temperature', 'temperature']},
             {'props': ['environment.indoor_temperature', 'environment.temperature']},
             {'props': ['relative_humidity', 'humidity', 'target_humidity']},

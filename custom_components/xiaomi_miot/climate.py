@@ -160,11 +160,18 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     _conv_target_humidity = None
     _conv_current_humidity = None
     _prop_temperature_name = None
+    _power_property = None
+    _custom_hvac_descriptions = None
 
     def on_init(self):
         BaseClimateEntity.on_init(self)
 
         self._prop_temperature_name = self.custom_config('current_temp_property') or 'indoor_temperature'
+        self._power_property = self.custom_config('power_property')
+        self._custom_hvac_descriptions = {
+            HVACMode.OFF: self.custom_config_list('descriptions_for_off') or [],
+            HVACMode.AUTO: self.custom_config_list('descriptions_for_on') or [],
+        }
 
         hvac_modes = set()
         for attr in self.conv.attrs:
@@ -172,24 +179,40 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             prop = getattr(conv, 'prop', None) if conv else None
             if not isinstance(prop, MiotProperty):
                 continue
-            elif prop.in_list(['on']):
+            elif prop.in_list(['on']) or (self._power_property and prop.in_list([self._power_property])):
                 self._conv_power = conv
-                self._attr_supported_features |= ClimateEntityFeature.TURN_ON
-                self._attr_supported_features |= ClimateEntityFeature.TURN_OFF
+                if prop.writeable:
+                    self._attr_supported_features |= ClimateEntityFeature.TURN_ON
+                    self._attr_supported_features |= ClimateEntityFeature.TURN_OFF
                 hvac_modes.add(HVACMode.OFF)
                 hvac_modes.add(HVACMode.AUTO)
             elif prop.in_list(['mode']):
                 self._conv_mode = conv
                 self._attr_preset_modes = prop.list_descriptions()
                 for mk, mv in self._hvac_modes.items():
-                    val = prop.list_first(*(mv.get('list') or []))
-                    if val is not None:
-                        des = prop.list_description(val)
-                        hvac_modes.add(mk)
-                        self._hvac_modes[mk]['value'] = val
-                        self._hvac_modes[mk]['description'] = des
-                        if mk != HVACMode.OFF:
-                            self._attr_preset_modes.remove(des)
+                    values = prop.list_search(*(mv.get('list') or [])) or []
+                    std_descriptions = [
+                        des
+                        for val in values
+                        if (des := prop.list_description(val)) is not None
+                    ]
+                    custom_descriptions = [
+                        des
+                        for des in self._custom_hvac_descriptions.get(mk, [])
+                        if prop.list_value(des) is not None and des not in std_descriptions
+                    ]
+                    descriptions = [*std_descriptions, *custom_descriptions]
+                    if not descriptions:
+                        continue
+                    hvac_modes.add(mk)
+                    self._hvac_modes[mk]['description'] = descriptions[0]
+                    self._hvac_modes[mk]['descriptions'] = descriptions
+                    if mk != HVACMode.OFF:
+                        self._attr_preset_modes = [
+                            des
+                            for des in self._attr_preset_modes
+                            if des not in descriptions
+                        ]
                 if self._attr_preset_modes:
                     self._attr_supported_features |= ClimateEntityFeature.PRESET_MODE
             elif prop.in_list(['fan_level', 'speed_level', 'heat_level']):
@@ -238,15 +261,17 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 self._attr_preset_mode = val
             if val is not None:
                 for mk, mv in self._hvac_modes.items():
-                    if val == mv.get('description'):
+                    descriptions = mv.get('descriptions') or [mv.get('description')]
+                    if val in descriptions:
                         self._attr_hvac_mode = mk
                         self._attr_hvac_action = mv.get('action')
-                        self._attr_preset_mode = None
+                        if val not in self._attr_preset_modes:
+                            self._attr_preset_mode = None
                         break
         if self._conv_power:
             val = self._conv_power.value_from_dict(data)
             if val is not None:
-                self._attr_is_on = val
+                self._attr_is_on = bool(val)
             if val in [False, 0]:
                 self._attr_hvac_mode = HVACMode.OFF
                 self._attr_hvac_action = HVACAction.OFF
@@ -298,19 +323,19 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             self._attr_current_humidity = humi
 
     async def async_turn_on(self):
-        if self._conv_power:
+        if self._conv_power and self._conv_power.prop.writeable:
             await self.async_turn_switch(True)
             return
         await super().async_turn_on()
 
     async def async_turn_off(self):
-        if self._conv_power:
+        if self._conv_power and self._conv_power.prop.writeable:
             await self.async_turn_switch(False)
             return
         await super().async_turn_off()
 
     async def async_turn_switch(self, state):
-        if self._conv_power:
+        if self._conv_power and self._conv_power.prop.writeable:
             await self.device.async_write({self._conv_power.full_name: state})
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode):
@@ -323,11 +348,11 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     async def async_set_temperature(self, **kwargs):
         dat = {}
         hvac = kwargs.get(ATTR_HVAC_MODE)
-        if hvac == HVACMode.OFF and self._conv_power:
+        if hvac == HVACMode.OFF and self._conv_power and self._conv_power.prop.writeable:
             await self.async_turn_switch(False)
             return
 
-        if hvac and self._conv_power and self._attr_is_on is False:
+        if hvac and self._conv_power and self._conv_power.prop.writeable and self._attr_is_on is False:
             dat[self._conv_power.full_name] = True
 
         if hvac and hvac != self._attr_hvac_mode and self._conv_mode:
