@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["requests", "fastmcp>=2.0.0"]
+# ///
 import yaml
 import requests
 from fastmcp import FastMCP

@@ -83,12 +83,6 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Set up requirements
-        run: |
-          uv venv
-          uv python install
-          uv pip install -r scripts/requirements.txt
-
       - uses: anthropics/claude-code-action@v1
         id: claude
         timeout-minutes: 30
@@ -104,14 +98,13 @@ jobs:
             ---
             Repository: ${{ github.repository }}
             Branch Name: ${{ env.BRANCH_NAME }}
-            Context7 Library ID: `/home-assistant/developers.home-assistant`
             ${{ env.EVENT_PROMPT }}
           show_full_output: ${{ inputs.show_full_output || vars.CLAUDE_FULL_OUTPUT || 'false' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_code_oauth_token: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           claude_args: |
             --mcp-config .mcp.json
-            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),Bash(python:*),mcp__tools,mcp__context7"
+            --allowedTools "Read,Edit,MultiEdit,Write,TodoWrite,Glob,Grep,LS,WebFetch,Bash(git:*),Bash(gh:*),Bash(python:*),mcp__tools"
             --append-system-prompt '
               Interact with GitHub using the GitHub CLI commands, such as reading issue and PR details.
               After modifying the code, your must be submitted to git and pushed to the remote.
