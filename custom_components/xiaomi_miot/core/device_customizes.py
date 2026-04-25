@@ -3121,9 +3121,9 @@ DEVICE_CUSTOMIZES = {
 
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
-        'switch_properties': 'air_conditioner.on',
+        'switch_properties': 'air_conditioner.on,un_straight_blowing',
         'select_properties': 'fan_level',
-        'number_properties': 'target_humidity',
+        'number_properties': 'target_humidity,fan_percent',
         'chunk_coordinators': [
             {'interval': 11, 'props': 'air_conditioner.on,mode,target_temperature,fan_level', 'notify': True},
             {'interval': 31, 'props': 'target_humidity,fan_percent,*_swing,*_angle'},
