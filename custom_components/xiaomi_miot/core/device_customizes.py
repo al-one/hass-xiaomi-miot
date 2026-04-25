@@ -2246,6 +2246,13 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'horizontal_swing_included_angle',
         'number_properties': 'delay_time',
     },
+    'xiaomi.fan.p70': {
+        'button_actions': 'toggle,toggle_mode,loop_gear,turn_left,turn_right,turn_upward,turn_downward',
+        'switch_properties': 'indicator_light.on,alarm,physical_controls_locked,horizontal_swing,vertical_swing,delay',
+        'number_select_properties': 'horizontal_swing_included_angle,vertical_swing_included_angle',
+        'number_properties': 'delay_time',
+        'sensor_properties': 'delay_remain_time',
+    },
     'xiaomi.feeder.iv2001': {
         'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
         'binary_sensor_properties': 'battery_level',
