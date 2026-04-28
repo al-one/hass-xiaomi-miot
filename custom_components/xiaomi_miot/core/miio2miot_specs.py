@@ -715,6 +715,42 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {'prop': 'light', 'setter': 'toggle_light', 'format': 'onoff'},
         },
     },
+    'lumi.gateway.v3': {
+        # rgb int packs brightness in the upper byte (1..100) and color in the lower 24 bits (RRGGBB).
+        # set_callback keeps the cached rgb in sync after every write, so successive
+        # brightness/color changes preserve each other instead of reading a stale value.
+        'miio_props': ['rgb'],
+        'miio_specs': {
+            'prop.4.1': {
+                'prop': 'rgb',
+                'setter': 'set_rgb',
+                'template': '{{ value|int(0) > 0 }}',
+                'set_template': '{{ '
+                                '[ props.rgb|int(0) if props.rgb|int(0) > 0 else 1694498815 ] '
+                                'if value else [0] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.4.2': {
+                'prop': 'rgb',
+                'setter': 'set_rgb',
+                'template': '{{ (value|int(0) // 16777216) % 256 }}',
+                'set_template': '{{ '
+                                '[ value|int(100) * 16777216 '
+                                '+ ((props.rgb|int(0)) % 16777216 or 16777215) ] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.4.3': {
+                'prop': 'rgb',
+                'setter': 'set_rgb',
+                'template': '{{ value|int(0) % 16777216 }}',
+                'set_template': '{{ '
+                                '[ ((((props.rgb|int(0)) // 16777216) % 256) or 100) * 16777216 '
+                                '+ (value|int(0) % 16777216) ] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.5.1': {'prop': 'illumination'},
+        },
+    },
 
     'midea.aircondition.v1': {
         'miio_specs': {

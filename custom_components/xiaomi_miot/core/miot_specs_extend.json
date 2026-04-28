@@ -424,6 +424,33 @@
     }
   ],
 
+  "lumi.gateway.v3": [
+    {
+      "iid": 4,
+      "type": "urn:miot-spec-v2:service:light",
+      "properties": [
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:brightness",
+          "description": "Brightness",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [1, 100, 1]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:color",
+          "description": "Color",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "rgb",
+          "value-range": [1, 16777215, 1]
+        }
+      ]
+    }
+  ],
+
   "lumi.motion.bmgl01": [
     {
       "iid": 2,
