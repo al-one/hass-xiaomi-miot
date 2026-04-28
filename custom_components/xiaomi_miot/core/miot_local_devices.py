@@ -458,6 +458,7 @@ MIOT_LOCAL_MODELS = [
     'lumi.curtain.hagl08',
     'lumi.curtain.hmcn01',
     'lumi.curtain.mcn005',
+    'lumi.gateway.v3',
     'lumi.sen_ill.mgl01',
     'lumi.sensor_gas.mcn02',
     'lumi.sensor_motion.aq2',

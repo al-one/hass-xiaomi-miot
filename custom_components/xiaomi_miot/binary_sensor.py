@@ -60,6 +60,18 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 pass
             elif not srv.mapping():
                 continue
+            if (
+                srv.name in ['motion_sensor']
+                and 'lumi.gateway.' in model
+                and not (
+                    srv.get_property('motion_state', 'no_motion_duration')
+                    or spec.get_service('nobody_time')
+                )
+            ):
+                # gateway hubs expose a "motion_sensor" service that only carries the
+                # illumination property — no real PIR. Skip the phantom binary sensor
+                # while leaving the illumination property in the polling mapping.
+                continue
             if srv.name in ['toilet']:
                 entities.append(MiotToiletEntity(config, srv))
             elif srv.name in ['seat'] and spec.name in ['toilet']:
