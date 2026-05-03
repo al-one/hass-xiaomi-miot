@@ -892,6 +892,8 @@ class Device(CustomConfigHelper):
                 self._local_fails += 1
                 local_state = self._local_fails < 3
                 log = self.log.error
+                if is_offline_exception(exc):
+                    log = self.log.warning
                 if auto_cloud:
                     use_cloud = self.cloud
                     log = self.log.warning
