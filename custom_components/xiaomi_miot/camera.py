@@ -788,8 +788,8 @@ class AlarmChannelCameraEntity(BaseSubEntity, BaseCameraEntity):
             parent,
             f'alarm_channel_{self._channel}',
             {
-                'entity_id': f'{parent.entity_id}_channel_{self._channel}',
-                'name': f'{parent.name} Channel {self._channel}',
+                'entity_id': f'{parent.entity_id}_package_camera',
+                'name': f'{parent.name} Package Camera',
                 'dict_key': self._channel,
             },
             domain=ENTITY_DOMAIN,
