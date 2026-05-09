@@ -315,9 +315,16 @@ class CameraEntity(XEntity, BaseCameraEntity):
         BaseCameraEntity.__init__(self, self.hass)
         self._attr_brand = self.device_info.get('manufacturer')
         self._attr_model = self.device_info.get('model')
+        if not hasattr(self, '_subs'):
+            self._subs = {}
+        self._alarm_channel_entities = {}
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        if 'sd400' in str(self.model or self._attr_model):
+            self.add_alarm_channel_entities({'10': {}})
+        if chs := self._attr_extra_state_attributes.get('motion_video_channels'):
+            self.add_alarm_channel_entities(chs)
         if self._attr_should_poll:
             await self.async_update_ha_state(True)
 
@@ -367,6 +374,29 @@ class CameraEntity(XEntity, BaseCameraEntity):
             chs[str(chn)] = itm
         if chs:
             self._attr_extra_state_attributes['motion_video_channels'] = chs
+            self.add_alarm_channel_entities(chs)
+
+    def add_alarm_channel_entities(self, channels):
+        if 'sd400' not in str(self.model or self._attr_model):
+            return
+        add_cameras = getattr(self, '_add_entities', {}).get(ENTITY_DOMAIN)
+        if not add_cameras:
+            add_cameras = self.hass.data.get(DOMAIN, {}).get('add_entities', {}).get(ENTITY_DOMAIN)
+        if not add_cameras:
+            return
+        entities = []
+        for chn in channels:
+            chn = str(chn)
+            if chn == '0' or chn in self._alarm_channel_entities:
+                continue
+            ent = AlarmChannelCameraEntity(self, self.hass, chn)
+            self._alarm_channel_entities[chn] = ent
+            self._subs[f'alarm_channel_{chn}'] = ent
+            entities.append(ent)
+        if entities:
+            add_cameras(entities, update_before_add=True)
+        for ent in self._alarm_channel_entities.values():
+            ent.update()
 
     async def async_update(self):
         adt = None
@@ -749,3 +779,37 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
     async def image_source(self, **kwargs):
         kwargs['crypto'] = True
         return self._parent.get_motion_image_address(**kwargs)
+
+
+class AlarmChannelCameraEntity(BaseSubEntity, BaseCameraEntity):
+    def __init__(self, parent, hass: HomeAssistant, channel):
+        self._channel = str(channel)
+        super().__init__(
+            parent,
+            f'alarm_channel_{self._channel}',
+            {
+                'entity_id': f'{parent.entity_id}_channel_{self._channel}',
+                'name': f'{parent.name} Channel {self._channel}',
+                'dict_key': self._channel,
+            },
+            domain=ENTITY_DOMAIN,
+        )
+        BaseCameraEntity.__init__(self, hass)
+        self._supported_features |= CameraEntityFeature.STREAM
+
+    def _channel_attrs(self):
+        channels = self._parent.extra_state_attributes.get('motion_video_channels') or {}
+        return channels.get(self._channel) or {}
+
+    def update(self, data=None):
+        super().update(data)
+        attrs = self._channel_attrs()
+        self._available = bool(attrs)
+        if attrs:
+            self.update_attrs(attrs, update_parent=False)
+
+    async def stream_source(self, **kwargs):
+        return self._channel_attrs().get('stream_address')
+
+    async def image_source(self, **kwargs):
+        return self._channel_attrs().get('image_address')
