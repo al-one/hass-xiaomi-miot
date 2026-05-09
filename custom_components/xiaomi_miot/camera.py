@@ -255,8 +255,12 @@ class BaseCameraEntity(Camera):
                 continue
             if typ and evt.get('eventType') != typ:
                 continue
-            chn = str(evt.get('channel', len(chs)))
-            chs[chn] = evt
+            chn = evt.get('channel')
+            if chn is None:
+                chn = len(chs)
+            chn = str(chn)
+            if chn not in chs:
+                chs[chn] = evt
         return chs
 
     def get_primary_alarm_event(self, events, channels=None):
