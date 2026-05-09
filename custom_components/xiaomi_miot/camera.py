@@ -227,16 +227,37 @@ class BaseCameraEntity(Camera):
         rls = rdt.get('data', {}).get('thirdPartPlayUnits') or []
         adt = {}
         if rls:
-            fst = rls[0] or {}
-            tim = fst.pop('createTime', 0) / 1000
+            fst = dict(rls[0] or {})
+            tim = fst.get('createTime', 0) / 1000
+            chs = self.get_latest_alarm_channels(rls)
             adt = {
                 'motion_video_time': f'{datetime.fromtimestamp(tim)}',
                 'motion_video_type': fst.get('eventType'),
                 'motion_video_latest': fst,
+                'motion_video_channels': chs,
             }
         else:
             self.log.info('Camera events is empty. %s', rdt)
         return adt
+
+    @staticmethod
+    def get_latest_alarm_channels(events, max_delta=5000):
+        if not events:
+            return {}
+        fst = events[0] or {}
+        stm = fst.get('createTime') or 0
+        typ = fst.get('eventType')
+        chs = {}
+        for evt in events:
+            evt = dict(evt or {})
+            tim = evt.get('createTime') or 0
+            if stm and abs(tim - stm) > max_delta:
+                continue
+            if typ and evt.get('eventType') != typ:
+                continue
+            chn = str(evt.get('channel', len(chs)))
+            chs[chn] = evt
+        return chs
 
     def get_alarm_m3u8_url(self, fileId, isAlarm=False, videoCodec='H265'):
         cloud = self.device.cloud
@@ -321,6 +342,21 @@ class CameraEntity(XEntity, BaseCameraEntity):
                 self._attr_extra_state_attributes.update({
                     'stream_address': self._attr_stream_source,
                 })
+        chs = {}
+        for chn, val in (data.get('motion_video_channels') or {}).items():
+            if not isinstance(val, dict):
+                continue
+            itm = {
+                k: v for k, v in val.items()
+                if k not in ['fileId', 'imgStoreId', 'videoStoreId']
+            }
+            fid = val.get('fileId')
+            if fid:
+                itm['stream_address'] = self.get_alarm_m3u8_url(fid, val.get('isAlarm'))
+                itm['image_address'] = self.get_alarm_image_address(fid, val.get('imgStoreId'), True)
+            chs[str(chn)] = itm
+        if chs:
+            self._attr_extra_state_attributes['motion_video_channels'] = chs
 
     async def async_update(self):
         adt = None
