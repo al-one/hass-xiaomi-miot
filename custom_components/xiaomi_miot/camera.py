@@ -227,9 +227,9 @@ class BaseCameraEntity(Camera):
         rls = rdt.get('data', {}).get('thirdPartPlayUnits') or []
         adt = {}
         if rls:
-            fst = dict(rls[0] or {})
-            tim = fst.get('createTime', 0) / 1000
             chs = self.get_latest_alarm_channels(rls)
+            fst = self.get_primary_alarm_event(rls, chs)
+            tim = fst.get('createTime', 0) / 1000
             adt = {
                 'motion_video_time': f'{datetime.fromtimestamp(tim)}',
                 'motion_video_type': fst.get('eventType'),
@@ -258,6 +258,12 @@ class BaseCameraEntity(Camera):
             chn = str(evt.get('channel', len(chs)))
             chs[chn] = evt
         return chs
+
+    def get_primary_alarm_event(self, events, channels=None):
+        channels = channels or {}
+        if self.model == 'midr.cateye.sd400' and channels.get('0'):
+            return dict(channels['0'])
+        return dict((events or [{}])[0] or {})
 
     def get_alarm_m3u8_url(self, fileId, isAlarm=False, videoCodec='H265'):
         cloud = self.device.cloud
