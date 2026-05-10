@@ -48,6 +48,11 @@ _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 SCAN_INTERVAL = timedelta(seconds=60)
 
+MULTI_CHANNEL_ALARM_MODELS = {
+    'midr.cateye.db400a',
+    'midr.cateye.sd400',
+}
+
 SERVICE_TO_METHOD = {}
 
 
@@ -265,9 +270,12 @@ class BaseCameraEntity(Camera):
 
     def get_primary_alarm_event(self, events, channels=None):
         channels = channels or {}
-        if self.model == 'midr.cateye.sd400' and channels.get('0'):
+        if self.is_multi_channel_alarm_model() and channels.get('0'):
             return dict(channels['0'])
         return dict((events or [{}])[0] or {})
+
+    def is_multi_channel_alarm_model(self):
+        return self.model in MULTI_CHANNEL_ALARM_MODELS
 
     def get_alarm_m3u8_url(self, fileId, isAlarm=False, videoCodec='H265'):
         cloud = self.device.cloud
@@ -321,7 +329,7 @@ class CameraEntity(XEntity, BaseCameraEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        if 'sd400' in str(self.model or self._attr_model):
+        if self.model == 'midr.cateye.sd400':
             self.add_alarm_channel_entities({'10': {}})
         if chs := self._attr_extra_state_attributes.get('motion_video_channels'):
             self.add_alarm_channel_entities(chs)
@@ -377,7 +385,7 @@ class CameraEntity(XEntity, BaseCameraEntity):
             self.add_alarm_channel_entities(chs)
 
     def add_alarm_channel_entities(self, channels):
-        if 'sd400' not in str(self.model or self._attr_model):
+        if not self.is_multi_channel_alarm_model():
             return
         add_cameras = getattr(self, '_add_entities', {}).get(ENTITY_DOMAIN)
         if not add_cameras:
