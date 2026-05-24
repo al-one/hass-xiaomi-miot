@@ -167,7 +167,21 @@ class FanEntity(XEntity, BaseEntity):
             dat[self._conv_power.full_name] = True
         if percentage is not None:
             if self._speed_range:
-                dat[self._conv_speed.full_name] = percentage_to_ranged_value(self._speed_range, percentage)
+                val = percentage_to_ranged_value(self._speed_range, percentage)
+                prop = self._prop_percentage
+                if prop:
+                    _min = prop.range_min()
+                    _max = prop.range_max()
+                    _stp = prop.range_step()
+                    if _min is not None and _stp:
+                        val = _min + round((val - _min) / _stp) * _stp
+                    if _min is not None:
+                        val = max(_min, val)
+                    if _max is not None:
+                        val = min(_max, val)
+                    if prop.is_integer:
+                        val = int(round(val))
+                dat[self._conv_speed.full_name] = val
             elif self._speed_list:
                 des = percentage_to_ordered_list_item(self._speed_list, percentage)
                 dat[self._conv_speed.full_name] = des
