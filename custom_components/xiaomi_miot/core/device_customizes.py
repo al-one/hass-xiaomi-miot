@@ -2259,6 +2259,20 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'delay_time',
         'sensor_properties': 'delay_remain_time',
     },
+    'xiaomi.fan.p85': {
+        'sensor_properties': 'fault,delay_remain_time',
+        'button_actions': 'loop_mode,loop_gear,toggle,turn_left,turn_right',
+        'number_select_properties': 'horizontal_swing_included_angle,fan.fan_level',
+        'switch_properties': 'delay',
+        'number_properties': 'delay_time',
+        'append_converters': [
+            {
+                'class': MiotFanConv,
+                'services': ['fan'],
+                'converters': [{'props': ['dm_service.fan_level']}],
+            }
+        ],
+    },
     'xiaomi.feeder.iv2001': {
         'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
         'binary_sensor_properties': 'battery_level',
