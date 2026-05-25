@@ -2262,7 +2262,7 @@ DEVICE_CUSTOMIZES = {
     'xiaomi.fan.p85': {
         'sensor_properties': 'fault,delay_remain_time',
         'button_actions': 'loop_mode,loop_gear,toggle,turn_left,turn_right',
-        'number_select_properties': 'horizontal_swing_included_angle',
+        'number_select_properties': 'horizontal_swing_included_angle,fan.fan_level',
         'switch_properties': 'delay',
         'number_properties': 'delay_time',
         'append_converters': [
