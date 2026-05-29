@@ -2703,6 +2703,9 @@ DEVICE_CUSTOMIZES = {
     'yeelink.curtain.ctmt2': {
         **CHUNK_1,
         'chunk_coordinators': [],
+        'sensor_properties': 'battery_level,battery_level_2',
+        'miio_cloud_props': 'get_child,battery,battery2',
+        'miio_cloud_props_template': 'yeelink_curtain_ctmt2_cloud_props',
     },
     'yeelink.bhf_light.v1': {
         'interval_seconds': 30,

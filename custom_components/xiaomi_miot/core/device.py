@@ -703,8 +703,12 @@ class Device(CustomConfigHelper):
         payload = {}
         for conv in self.converters:
             val = get_value(value, conv.attr, None, ':')
+            if val is None and conv.full_name != conv.attr:
+                val = value.get(conv.full_name)
             if val is not None:
                 conv.decode(self, payload, val)
+            elif conv.attr in value or conv.full_name in value:
+                conv.decode(self, payload, None)
         return payload
 
     def encode(self, value: dict) -> dict:

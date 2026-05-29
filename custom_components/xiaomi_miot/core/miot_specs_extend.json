@@ -1945,6 +1945,60 @@
         }
       ]
     }
+  ],
+  "yeelink.curtain.ctmt2": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 2,
+          "value-list": [
+            {"value": 0, "description": "Pause"},
+            {"value": 1, "description": "Close"},
+            {"value": 2, "description": "Open"}
+          ]
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:current-position",
+          "format": "uint8",
+          "access": ["read","notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:target-position",
+          "format": "uint8",
+          "access": ["read","write","notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 9,
+          "type": "urn:miot-spec-v2:property:battery-level",
+          "description": "Left Battery Level",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 10,
+          "type": "urn:yeelink-spec:property:battery-level-2:0000000A:yeelink-ctmt2:1",
+          "description": "Right Battery Level",
+          "format": "uint8",
+          "access": ["read", "notify"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        }
+      ]
+    }
   ]
 
 }

@@ -133,6 +133,9 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
     def set_state(self, data: dict):
         value = self.conv.value_from_dict(data)
         prop = self._miot_property
+        if value is None and (self.attr in data or self.conv.full_name in data):
+            self._attr_native_value = None
+            return
         if prop and prop.value_range:
             if not prop.range_valid(value):
                 value = None

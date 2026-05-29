@@ -121,6 +121,10 @@
         }
     },
     "entity": {
+        "sensor": {
+            "yl-curtain-battery_level": {"name": "Заряд левого мотора"},
+            "yl-curtain-battery_level_2": {"name": "Заряд правого мотора"}
+        },
         "binary_sensor": {
             "pet_drinking_fountain-water_shortage_status": {"name": "Недостаток воды"},
             "pet_drinking_fountain-fault": {"name": "Неисправность"}
