@@ -2427,22 +2427,6 @@ MIIO_TO_MIOT_SPECS = {
     'yilai.light.ceiling2': 'yeelink.light._base',
     'yilai.light.ceiling3': 'yeelink.light._base',
 
-    'yeelink.curtain.ctmt2': {
-        'miio_props': ['get_child', 'battery', 'battery2'],
-        'miio_template': 'yeelink_curtain_ctmt2_miio_props',
-        'miio_specs': {
-            'prop.3.9': {'prop': 'battery'},
-            'prop.3.10': {
-                'prop': 'battery2',
-                'template': '{{ value if props.get("get_child", 1)|int(1) == 2 else none }}',
-            },
-        },
-        'entity_attrs': {
-            'battery_level': 'battery',
-            'battery_level_2': 'battery2',
-        },
-    },
-
     'yunmi.waterpuri.lx5': {
         'chunk_properties': 1,
         'miio_props': ['run_status', 'f1_totalflow', 'f1_totaltime', 'f2_totalflow', 'f2_totaltime'],

@@ -153,10 +153,13 @@ CUSTOM_TEMPLATES = {
                                        "'battery_level': left | from_json | int if left not in [none, ''] else none,"
                                        "'battery_level_2': right | from_json | int if right not in [none, ''] else none,"
                                        "} }}",
-    'yeelink_curtain_ctmt2_miio_props': "{%- set motors = props.get('get_child', 1) | int(1) %}"
-                                       "{{ props | combine({"
-                                       "'battery2': none if motors != 2 else props.get('battery2'),"
-                                       "}) }}",
+    'yeelink_curtain_ctmt2_miio_properties': "{%- set motors = props.get('get_child', 1)|int(1) %}"
+                                       "{%- set left = props.get('battery') %}"
+                                       "{%- set right = props.get('battery2') if motors == 2 else none %}"
+                                       "{{ {"
+                                       "'battery_level': left|int if left not in [none, ''] else none,"
+                                       "'battery_level_2': right|int if right not in [none, ''] else none,"
+                                       "} }}",
     'yeelink_bhf_light_v2_fan_levels': "{%- set val = ('00000' ~ value)[-5:] %}"
                                        "{%- set mds = {"
                                        "'drying_cloth': val[0],"

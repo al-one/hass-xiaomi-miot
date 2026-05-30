@@ -705,9 +705,15 @@ class Device(CustomConfigHelper):
             val = get_value(value, conv.attr, None, ':')
             if val is None and conv.full_name != conv.attr:
                 val = value.get(conv.full_name)
+            if val is None and isinstance(conv, MiotPropConv) and conv.prop:
+                val = value.get(conv.prop.full_name)
+                if val is None:
+                    val = value.get(conv.prop.name)
             if val is not None:
                 conv.decode(self, payload, val)
             elif conv.attr in value or conv.full_name in value:
+                conv.decode(self, payload, None)
+            elif isinstance(conv, MiotPropConv) and conv.prop and conv.prop.name in value:
                 conv.decode(self, payload, None)
         return payload
 
@@ -864,22 +870,6 @@ class Device(CustomConfigHelper):
                     if attrs := self.miio2miot.entity_attrs():
                         self.props.update(attrs)
                         self.dispatch(self.decode_attrs(attrs))
-                    mapped = set(self.miio2miot.specs)
-                    remaining = {
-                        k: v for k, v in mapping.items()
-                        if MiotSpec.unique_prop(v, valid=True) not in mapped
-                    }
-                    if remaining:
-                        if not max_properties:
-                            max_properties = self.custom_config_integer('chunk_properties')
-                        if not max_properties:
-                            max_properties = self.local.get_max_properties(remaining)
-                        res = await self.local.async_get_properties_for_mapping(
-                            max_properties=max_properties,
-                            did=self.did,
-                            mapping=remaining,
-                        )
-                        results.extend(res)
                 else:
                     if not max_properties:
                         max_properties = self.custom_config_integer('chunk_properties')
@@ -1069,19 +1059,13 @@ class Device(CustomConfigHelper):
         if not self._local_state or self.cloud_only or cloud_write:
             cloud_params = params
         elif self.miio2miot:
-            local_params = []
             for param in params:
                 siid = param['siid']
                 piid = param['piid']
                 if not self.miio2miot.has_setter(siid, piid=piid):
-                    local_params.append(param)
+                    cloud_params.append(param)
                     continue
                 results.append(await self.miio2miot.async_set_property(self.local, siid, piid, param['value']))
-            if local_params:
-                if self.local and self._local_state:
-                    results.extend(await self.local.async_send('set_properties', local_params) or [])
-                else:
-                    cloud_params.extend(local_params)
         elif self.local:
             results = await self.local.async_send('set_properties', params)
         if self.cloud and cloud_params:
@@ -1332,22 +1316,37 @@ class Device(CustomConfigHelper):
             return
         if props is None:
             props = self.custom_miio_properties
+        if not props:
+            return
         if self.miio2miot:
-            attrs = self.miio2miot.only_miio_props(props)
+            vals = self.miio2miot.only_miio_props(props)
         else:
             try:
                 num = self.custom_config_integer('chunk_properties') or 15
-                attrs = await self.local.async_get_properties(props, max_properties=num)
+                getter = self.custom_config('miio_property_getter') or 'get_prop'
+                vals = await self.local.async_get_properties(
+                    props, max_properties=num, property_getter=getter,
+                )
             except DeviceException as exc:
                 self.log.warning('%s: Got miio properties %s failed: %s', self.name_model, props, exc)
                 return
-            if len(props) != len(attrs):
+            if len(props) != len(vals):
                 self.props.update({
-                    'miio.props': attrs,
+                    'miio.props': vals,
                 })
                 return
-        attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
+        raw = dict(zip(props, vals))
+        tpl = self.custom_config('miio_properties_template')
+        if tpl:
+            tpl = template(tpl, self.hass)
+            attrs = tpl.async_render({'props': raw})
+        else:
+            attrs = dict(zip(map(lambda x: f'miio.{x}', props), vals))
+        if not isinstance(attrs, dict):
+            return
         self.props.update(attrs)
+        self.data['updated'] = dt.now()
+        self.dispatch(self.decode_attrs(attrs))
         self.log.info('%s: Got miio properties: %s', self.name_model, attrs)
 
     @cached_property
