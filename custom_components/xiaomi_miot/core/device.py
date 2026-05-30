@@ -1306,22 +1306,41 @@ class Device(CustomConfigHelper):
             return
         if props is None:
             props = self.custom_miio_properties
+        if not props:
+            return
         if self.miio2miot:
-            attrs = self.miio2miot.only_miio_props(props)
+            raw = self.miio2miot.only_miio_props(props)
+            if not isinstance(raw, dict):
+                raw = dict(zip(props, raw))
         else:
             try:
                 num = self.custom_config_integer('chunk_properties') or 15
-                attrs = await self.local.async_get_properties(props, max_properties=num)
+                getter = self.custom_config('miio_property_getter') or 'get_properties'
+                if getter == 'get_prop':
+                    raw = await self.local.async_get_prop(props, max_properties=num)
+                else:
+                    raw = await self.local.async_get_properties(props, max_properties=num)
             except DeviceException as exc:
                 self.log.warning('%s: Got miio properties %s failed: %s', self.name_model, props, exc)
                 return
-            if len(props) != len(attrs):
+            if len(props) != len(raw):
                 self.props.update({
-                    'miio.props': attrs,
+                    'miio.props': raw,
                 })
                 return
-        attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
-        self.props.update(attrs)
+            raw = dict(zip(props, raw))
+        tpl = self.custom_config('miio_properties_template')
+        if tpl:
+            tpl = template(tpl, self.hass)
+            attrs = tpl.async_render({'props': raw})
+            if not isinstance(attrs, dict):
+                attrs = raw
+        else:
+            attrs = dict(zip(map(lambda x: f'miio.{x}', props), raw.values()))
+        if attrs:
+            self.props.update(attrs)
+            self.data['updated'] = dt.now()
+            self.dispatch(self.decode_attrs(attrs))
         self.log.info('%s: Got miio properties: %s', self.name_model, attrs)
 
     @cached_property

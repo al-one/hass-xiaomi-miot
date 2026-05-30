@@ -1945,6 +1945,32 @@
         }
       ]
     }
+  ],
+
+  "yeelink.curtain.ctmt2": [
+    {
+      "iid": 3,
+      "properties": [
+        {
+          "iid": 9,
+          "type": "urn:miot-spec-v2:property:battery-level",
+          "format": "uint8",
+          "access": ["read"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1],
+          "description": "Left"
+        },
+        {
+          "iid": 10,
+          "type": "urn:miot-spec-v2:property:battery-level-2",
+          "format": "uint8",
+          "access": ["read"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1],
+          "description": "Right"
+        }
+      ]
+    }
   ]
 
 }
