@@ -864,6 +864,22 @@ class Device(CustomConfigHelper):
                     if attrs := self.miio2miot.entity_attrs():
                         self.props.update(attrs)
                         self.dispatch(self.decode_attrs(attrs))
+                    mapped = set(self.miio2miot.specs)
+                    remaining = {
+                        k: v for k, v in mapping.items()
+                        if MiotSpec.unique_prop(v, valid=True) not in mapped
+                    }
+                    if remaining:
+                        if not max_properties:
+                            max_properties = self.custom_config_integer('chunk_properties')
+                        if not max_properties:
+                            max_properties = self.local.get_max_properties(remaining)
+                        res = await self.local.async_get_properties_for_mapping(
+                            max_properties=max_properties,
+                            did=self.did,
+                            mapping=remaining,
+                        )
+                        results.extend(res)
                 else:
                     if not max_properties:
                         max_properties = self.custom_config_integer('chunk_properties')
@@ -1053,13 +1069,19 @@ class Device(CustomConfigHelper):
         if not self._local_state or self.cloud_only or cloud_write:
             cloud_params = params
         elif self.miio2miot:
+            local_params = []
             for param in params:
                 siid = param['siid']
                 piid = param['piid']
                 if not self.miio2miot.has_setter(siid, piid=piid):
-                    cloud_params.append(param)
+                    local_params.append(param)
                     continue
                 results.append(await self.miio2miot.async_set_property(self.local, siid, piid, param['value']))
+            if local_params:
+                if self.local and self._local_state:
+                    results.extend(await self.local.async_send('set_properties', local_params) or [])
+                else:
+                    cloud_params.extend(local_params)
         elif self.local:
             results = await self.local.async_send('set_properties', params)
         if self.cloud and cloud_params:
