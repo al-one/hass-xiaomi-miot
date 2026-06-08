@@ -113,6 +113,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._supported_features |= VacuumEntityFeature.STATE
         if self._act_locate:
             self._supported_features |= VacuumEntityFeature.LOCATE
+        self._supported_features |= VacuumEntityFeature.SEND_COMMAND
 
     async def async_update(self):
         await super().async_update()
