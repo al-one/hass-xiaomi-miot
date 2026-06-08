@@ -132,7 +132,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 self._attr_activity = VacuumActivity.CLEANING
             elif val in self._prop_status.list_search('Idle', 'Sleep'):
                 self._attr_activity = VacuumActivity.IDLE
-            elif val in self._prop_status.list_search('Charging', 'Charging Completed', 'Fullcharge', 'Charge Done', 'Drying'):
+            elif val in self._prop_status.list_search('Charging', 'Charging Completed', 'Fullcharge', 'Charge Done', 'Charged', 'Drying'):
                 self._attr_activity = VacuumActivity.DOCKED
             elif val in self._prop_status.list_search('Go Charging'):
                 self._attr_activity = VacuumActivity.RETURNING
