@@ -1409,10 +1409,14 @@ class MiotDevice():
             resp = await self.miio.send(method, params[i : i + chunk])
             if not results:
                 self.handle_response(resp)
-            try:
-                results += resp['result']
-            except (KeyError, TypeError):
-                self.log.warning('Got miio chunked properties failed: %s', resp, exc_info=True)
+            if not isinstance(resp, dict) or 'result' not in resp:
+                self.log.warning('Got miio chunked properties failed: %s', resp)
+                return results
+            chunk_results = resp['result']
+            if not isinstance(chunk_results, list):
+                self.log.warning('Got invalid miio chunked properties result: %s', resp)
+                return results
+            results += chunk_results
         return results
 
     def handle_response(self, resp, with_empty=True):
