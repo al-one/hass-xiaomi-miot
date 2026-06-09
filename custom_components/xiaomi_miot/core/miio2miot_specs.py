@@ -719,7 +719,7 @@ MIIO_TO_MIOT_SPECS = {
         # rgb int packs brightness in the upper byte (1..100) and color in the lower 24 bits (RRGGBB).
         # set_callback keeps the cached rgb in sync after every write, so successive
         # brightness/color changes preserve each other instead of reading a stale value.
-        'miio_props': ['rgb'],
+        'miio_props': ['rgb', 'illumination'],
         'miio_specs': {
             'prop.4.1': {
                 'prop': 'rgb',
