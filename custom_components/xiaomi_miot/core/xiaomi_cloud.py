@@ -227,6 +227,7 @@ class MiotCloud(micloud.MiCloud):
         raise_timeout = kwargs.pop('raise_timeout', None)
         raw = kwargs.pop('raw', self.sid != 'xiaomiio')
         rsp = None
+        request_failure_logged = False
         try:
             if raw:
                 rsp = await self.hass.async_add_executor_job(
@@ -249,6 +250,7 @@ class MiotCloud(micloud.MiCloud):
             if raise_timeout:
                 raise exc
             rdt = None
+            request_failure_logged = True
             self.attrs.setdefault('timeouts', 0)
             self.attrs['timeouts'] += 1
             if 5 < self.attrs['timeouts'] <= 10:
@@ -257,6 +259,7 @@ class MiotCloud(micloud.MiCloud):
                 _LOGGER.warning('Request xiaomi api: %s timeout (%s times)', api, self.attrs['timeouts'])
         except asyncio.exceptions.CancelledError as exc:
             rdt = None
+            request_failure_logged = True
             _LOGGER.warning('Request xiaomi api: %s was cancelled, likely due to timeout: %s', api, exc)
         except (TypeError, ValueError):
             rdt = None
@@ -264,7 +267,7 @@ class MiotCloud(micloud.MiCloud):
         if code == 3:
             self._logout()
             _LOGGER.warning('Unauthorized while request to %s, response: %s, logged out.', api, rsp)
-        elif code or not rdt:
+        elif code or (not rdt and not request_failure_logged):
             fun = _LOGGER.info if rdt else _LOGGER.warning
             fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp)
         return rdt
