@@ -430,7 +430,7 @@
       "type": "urn:miot-spec-v2:service:light",
       "properties": [
         {
-          "iid": 2,
+          "iid": 101,
           "type": "urn:miot-spec-v2:property:brightness",
           "description": "Brightness",
           "format": "uint8",
@@ -439,7 +439,7 @@
           "value-range": [1, 100, 1]
         },
         {
-          "iid": 3,
+          "iid": 102,
           "type": "urn:miot-spec-v2:property:color",
           "description": "Color",
           "format": "uint32",

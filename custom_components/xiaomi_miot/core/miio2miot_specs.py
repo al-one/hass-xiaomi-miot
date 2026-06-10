@@ -730,7 +730,7 @@ MIIO_TO_MIOT_SPECS = {
                                 'if value else [0] }}',
                 'set_callback': set_callback_via_param_index(0),
             },
-            'prop.4.2': {
+            'prop.4.101': {
                 'prop': 'rgb',
                 'setter': 'set_rgb',
                 'template': '{{ (value|int(0) // 16777216) % 256 }}',
@@ -739,7 +739,7 @@ MIIO_TO_MIOT_SPECS = {
                                 '+ ((props.rgb|int(0)) % 16777216 or 16777215) ] }}',
                 'set_callback': set_callback_via_param_index(0),
             },
-            'prop.4.3': {
+            'prop.4.102': {
                 'prop': 'rgb',
                 'setter': 'set_rgb',
                 'template': '{{ value|int(0) % 16777216 }}',
