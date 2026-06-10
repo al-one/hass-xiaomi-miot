@@ -2092,6 +2092,18 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
 
+    'yeelink.curtain.ctmt2': {
+        'extend_miot_props': True,
+        'miio_props': ['get_child'],
+        'miio_specs': {
+            'prop.3.100': {'prop': 'battery'},
+            'prop.3.101': {
+                'prop': 'battery2',
+                'template': '{{ value|int(0) if props.get_child|int(1) == 2 else none }}',
+            },
+        },
+    },
+
     'yeelink.light._base': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},

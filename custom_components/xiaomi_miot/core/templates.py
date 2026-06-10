@@ -168,12 +168,6 @@ CUSTOM_TEMPLATES = {
                                        "'coolwind_gear': val[1],"
                                        "'venting_gear': val[2],"
                                        "} }}",
-    'yeelink_curtain_ctmt2_miio_properties': "{%- set child = props.get_child | default(1) | int %}"
-                                             "{{ {"
-                                             "'yl_curtain.battery_level': props.battery | int(0),"
-                                             "'yl_curtain.battery_level_2': props.battery2 | int(0)"
-                                             " if child == 2 else none,"
-                                             "} }}",
     'yeelink_curtain_ctmt2_cloud_props': "{%- set child = props.get('prop.get_child', 1) | int(1) %}"
                                          "{%- set bat = props.get('prop.battery') %}"
                                          "{%- set bat2 = props.get('prop.battery2') %}"

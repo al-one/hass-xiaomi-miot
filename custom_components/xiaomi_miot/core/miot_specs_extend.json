@@ -1952,7 +1952,7 @@
       "iid": 3,
       "properties": [
         {
-          "iid": 9,
+          "iid": 100,
           "type": "urn:miot-spec-v2:property:battery-level",
           "format": "uint8",
           "access": ["read"],
@@ -1961,7 +1961,7 @@
           "description": "Left"
         },
         {
-          "iid": 10,
+          "iid": 101,
           "type": "urn:miot-spec-v2:property:battery-level-2",
           "format": "uint8",
           "access": ["read"],
