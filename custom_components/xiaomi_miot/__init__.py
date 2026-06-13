@@ -1024,19 +1024,6 @@ class MiotEntity(MiioEntity):
         _LOGGER.info('%s: Xiaomi device bindkey/beaconkey: %s', self.name_model, result)
         return result
 
-    async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=True, **kwargs):
-        mic = self.xiaomi_cloud
-        if not isinstance(mic, MiotCloud):
-            return None
-        sid = kwargs.pop('sid', None) or 'xiaomiio'
-        if sid != mic.sid:
-            mic = await mic.async_change_sid(sid)
-        pms = kwargs.pop('params', None)
-        dat = data or pms
-        result = await mic.async_request_api(api, data=dat, method=method, crypt=crypt, **kwargs)
-        _LOGGER.debug('Xiaomi Api %s: %s', api, result)
-        return result
-
 
 class MiotToggleEntity(MiotEntity, ToggleEntity):
     _reverse_state = None

@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Optional, Callable
 from functools import cached_property
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraData
 
@@ -10,6 +11,7 @@ from .const import DOMAIN
 from .utils import get_customize_via_entity, wildcard_models, CustomConfigHelper
 from .miot_spec import MiotService, MiotProperty, MiotAction
 from .converters import BaseConv, InfoConv, MiotServiceConv, MiotPropConv, MiotActionConv
+from .xiaomi_cloud import MiotCloud
 
 if TYPE_CHECKING:
     from .device import Device
@@ -73,6 +75,19 @@ class BasicEntity(Entity, CustomConfigHelper):
             params = []
         _LOGGER.debug('%s: Send miio command: %s(%s)', self.device.name_model, method, params)
         return await self.device.local.async_send(method, params)
+
+    async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=True, **kwargs):
+        cloud = self.device.cloud
+        if not isinstance(cloud, MiotCloud):
+            raise HomeAssistantError('Xiaomi cloud not supported for this entity')
+        sid = kwargs.pop('sid', None) or 'xiaomiio'
+        if sid != cloud.sid:
+            cloud = await cloud.async_change_sid(sid)
+        pms = kwargs.pop('params', None)
+        dat = data or pms
+        result = await cloud.async_request_api(api, data=dat, method=method, crypt=crypt, **kwargs)
+        _LOGGER.debug('Xiaomi Api %s: %s', api, result)
+        return result
 
 
 class XEntity(BasicEntity):
