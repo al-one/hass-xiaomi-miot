@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "miot-spec": {
+      "type": "http",
+      "url": "https://home.miot-spec.com/mcp"
+    },
     "tools": {
       "command": "uv",
       "args": ["run", "scripts/mcp-tools.py"]
