@@ -876,6 +876,7 @@ MIOT_LOCAL_MODELS = [
     'xiaomi.fan.p45',
     'xiaomi.fan.p51',
     'xiaomi.fan.p69',
+    'xiaomi.fan.p85',
     'xiaomi.feeder.iv2001',
     'xiaomi.feeder.pi2001',
     'xiaomi.fishbowl.m200',
