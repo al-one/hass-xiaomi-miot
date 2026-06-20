@@ -137,7 +137,7 @@ class FanEntity(XEntity, BaseEntity):
                 des = self._conv_speed.prop.list_description(val)
                 if self._speed_range:
                     v = float(val)
-                    if v >= self._speed_range[0]:
+                    if v >= self._speed_range[0] or not self._conv_power:
                         self._attr_percentage = ranged_value_to_percentage(self._speed_range, v)
                 if self._speed_list and val in self._speed_list:
                     self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, val)
@@ -200,7 +200,7 @@ class FanEntity(XEntity, BaseEntity):
                             self.async_write_ha_state()
                     except Exception:
                         pass
-                if hasattr(self, 'hass'):
+                if getattr(self, 'hass', None):
                     async_call_later(self.hass, 1.0, _proactive_update)
 
     async def async_turn_off(self, **kwargs):
