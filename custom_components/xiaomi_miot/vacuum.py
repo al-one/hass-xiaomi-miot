@@ -425,15 +425,19 @@ class MiotXiaomiVacuumEntity(MiotVacuumEntity):
         if not add_buttons:
             return
         from .button import ButtonSubEntity
+        entities = []
         for rid, rname in rooms:
             sub = f'room_{rid}'
-            self._subs[sub] = ButtonSubEntity(self, sub, option={
+            entity = ButtonSubEntity(self, sub, option={
                 'name': f'{self.device_name} {rname}',
                 'async_press_action': self.async_start_room_sweep,
                 'press_kwargs': {'room_id': rid},
                 'state_attrs': {'room_id': rid, 'room_name': rname},
             })
-            add_buttons([self._subs[sub]], update_before_add=False)
+            self._subs[sub] = entity
+            entities.append(entity)
+        if entities:
+            add_buttons(entities, update_before_add=False)
         self.logger.info('Room buttons added: %s', rooms)
 
     async def _get_rooms(self):
@@ -445,9 +449,13 @@ class MiotXiaomiVacuumEntity(MiotVacuumEntity):
         seen = set()
         deduped = []
         for rid, name in rooms:
-            if rid not in seen:
-                seen.add(rid)
-                deduped.append((rid, name))
+            entry = self._normalize_room_entry(rid, name)
+            if not entry or entry[0] in seen:
+                continue
+            seen.add(entry[0])
+            deduped.append(entry)
+        if not deduped:
+            return None
         self._state_attrs['room_mapping'] = deduped
         return deduped
 
@@ -505,11 +513,41 @@ class MiotXiaomiVacuumEntity(MiotVacuumEntity):
             if target_home_id is not None and home.get('id') != target_home_id:
                 continue
             for room in home.get('roomlist', []):
-                rooms.append((str(room['id']), room['name']))
+                if not isinstance(room, dict):
+                    continue
+                entry = self._normalize_room_entry(room.get('id'), room.get('name'))
+                if entry:
+                    rooms.append(entry)
         return rooms or None
 
     @staticmethod
-    def _parse_room_data(data):
+    def _normalize_room_id(rid):
+        if rid is None:
+            return None
+        rid = str(rid).strip()
+        if not rid or rid == 'None':
+            return None
+        return rid
+
+    @classmethod
+    def _normalize_room_name(cls, name, rid):
+        rid = cls._normalize_room_id(rid) or str(rid)
+        if name is None:
+            return f'Room {rid}'
+        name = str(name).strip()
+        if not name or name == 'None':
+            return f'Room {rid}'
+        return name
+
+    @classmethod
+    def _normalize_room_entry(cls, rid, name=None):
+        rid = cls._normalize_room_id(rid)
+        if not rid:
+            return None
+        return rid, cls._normalize_room_name(name, rid)
+
+    @classmethod
+    def _parse_room_data(cls, data):
         if not data:
             return None
         if isinstance(data, str):
@@ -520,21 +558,30 @@ class MiotXiaomiVacuumEntity(MiotVacuumEntity):
         rooms = []
         if isinstance(data, list):
             for item in data:
+                if item is None:
+                    continue
                 if isinstance(item, (list, tuple)):
-                    rid = str(item[0])
-                    name = str(item[1]) if len(item) > 1 else f'Room {rid}'
-                    rooms.append((rid, name))
+                    if not item:
+                        continue
+                    entry = cls._normalize_room_entry(
+                        item[0], item[1] if len(item) > 1 else None,
+                    )
                 elif isinstance(item, dict):
-                    rid = str(item.get('id') or item.get('ID'))
-                    name = str(item.get('name') or item.get('Name') or f'Room {rid}')
-                    rooms.append((rid, name))
+                    rid = item.get('id')
+                    if rid is None:
+                        rid = item.get('ID')
+                    entry = cls._normalize_room_entry(
+                        rid, item.get('name') or item.get('Name'),
+                    )
                 else:
-                    rid = str(item)
-                    rooms.append((rid, f'Room {rid}'))
+                    entry = cls._normalize_room_entry(item)
+                if entry:
+                    rooms.append(entry)
         elif isinstance(data, dict):
             for rid, name in data.items():
-                rid = str(rid)
-                rooms.append((rid, str(name) if name else f'Room {rid}'))
+                entry = cls._normalize_room_entry(rid, name)
+                if entry:
+                    rooms.append(entry)
         return rooms or None
 
     async def _process_room_mapping(self, data):
@@ -546,19 +593,30 @@ class MiotXiaomiVacuumEntity(MiotVacuumEntity):
                 homes = await self.xiaomi_cloud.async_get_homerooms() or []
                 for home in homes:
                     for room in home.get('roomlist', []):
-                        cloud_rooms[room['id']] = room['name']
+                        if not isinstance(room, dict):
+                            continue
+                        cloud_id = room.get('id')
+                        if cloud_id is not None:
+                            cloud_rooms[cloud_id] = room.get('name')
             except Exception:
                 pass
         rooms = []
         for item in data:
-            if isinstance(item, (list, tuple)) and len(item) >= 2:
-                seg_id = str(item[0])
-                cloud_id = item[1]
-                name = str(item[2]) if len(item) > 2 else cloud_rooms.get(cloud_id, f'Room {seg_id}')
-                rooms.append((seg_id, name))
+            if item is None or not isinstance(item, (list, tuple)) or len(item) < 2:
+                continue
+            seg_id = self._normalize_room_id(item[0])
+            if not seg_id:
+                continue
+            name = None
+            if len(item) > 2 and item[2] is not None:
+                name = item[2]
+            elif item[1] is not None:
+                name = cloud_rooms.get(item[1])
+            rooms.append((seg_id, self._normalize_room_name(name, seg_id)))
         return rooms or None
 
     async def async_start_room_sweep(self, room_id, **kwargs):
+        room_id = self._normalize_room_id(room_id)
         if not self._act_room_sweep or not room_id:
             return False
         params = self._act_room_sweep.in_params([str(room_id)])
