@@ -1,6 +1,7 @@
 """Support for Xiaomi vacuums."""
 import logging
 import asyncio
+import json
 from datetime import timedelta
 
 from homeassistant.components.vacuum import (  # noqa: F401
@@ -49,7 +50,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(ENTITY_DOMAIN, 'mopping_machine'):
             if not srv.get_property('status'):
                 continue
-            if model in MIOT_LOCAL_MODELS:
+            if model in ['xiaomi.vacuum.d103cn']:
+                entities.append(MiotXiaomiVacuumEntity(config, srv))
+            elif model in MIOT_LOCAL_MODELS:
                 entities.append(MiotVacuumEntity(config, srv))
             elif 'roborock.' in model or 'rockrobo.' in model:
                 entities.append(MiotRoborockVacuumEntity(config, srv))
@@ -399,3 +402,164 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
     async def async_clean_point(self, point):
         await self.async_miio_command('set_uploadmap', [0])
         return await self.async_miio_command('set_pointclean', [1, *point])
+
+
+class MiotXiaomiVacuumEntity(MiotVacuumEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(config, miot_service)
+        self._act_room_sweep = miot_service.get_action('start_room_sweep', 'start_room_clean')
+        if self._act_room_sweep:
+            self._supported_features |= VacuumEntityFeature.SEND_COMMAND
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if not self._act_room_sweep:
+            return
+        await self._setup_room_buttons()
+
+    async def _setup_room_buttons(self):
+        rooms = await self._get_rooms()
+        if not rooms:
+            return
+        add_buttons = self.device.entry.adders.get('button')
+        if not add_buttons:
+            return
+        from .button import ButtonSubEntity
+        for rid, rname in rooms:
+            sub = f'room_{rid}'
+            self._subs[sub] = ButtonSubEntity(self, sub, option={
+                'name': f'{self.device_name} {rname}',
+                'async_press_action': self.async_start_room_sweep,
+                'press_kwargs': {'room_id': rid},
+                'state_attrs': {'room_id': rid, 'room_name': rname},
+            })
+            add_buttons([self._subs[sub]], update_before_add=False)
+        self.logger.info('Room buttons added: %s', rooms)
+
+    async def _get_rooms(self):
+        rooms = await self._get_device_rooms()
+        if not rooms:
+            rooms = await self._get_cloud_rooms()
+        if not rooms:
+            return None
+        seen = set()
+        deduped = []
+        for rid, name in rooms:
+            if rid not in seen:
+                seen.add(rid)
+                deduped.append((rid, name))
+        self._state_attrs['room_mapping'] = deduped
+        return deduped
+
+    async def _get_device_rooms(self):
+        # Try to read room data from device props
+        props = self.device.props or {}
+        for key in ('room_information', 'vacuum_extend.room_information',
+                     'room_ids', 'vacuum.room_ids',
+                     'vacuum_room_ids', 'clean_room_ids'):
+            val = props.get(key)
+            if val:
+                rooms = self._parse_room_data(val)
+                if rooms:
+                    return rooms
+        # Try to fetch room_information directly from device
+        prop = self._miot_service.get_property('room_information')
+        if prop:
+            try:
+                mapping = {prop.full_name: {'siid': self._miot_service.iid, 'piid': prop.iid}}
+                vals = await self.device.async_get_properties(mapping, update_entity=False)
+                if vals:
+                    val = vals.get(prop.full_name)
+                    if val:
+                        rooms = self._parse_room_data(val)
+                        if rooms:
+                            return rooms
+            except Exception:
+                pass
+        # Try miio get_room_mapping command (like Roborock)
+        if self.miot_device:
+            try:
+                result = await self.miot_device.async_send('get_room_mapping')
+                if result and result != 'unknown_method':
+                    return await self._process_room_mapping(result)
+            except Exception:
+                pass
+        return None
+
+    async def _get_cloud_rooms(self):
+        if not self.xiaomi_cloud:
+            return None
+        homes = await self.xiaomi_cloud.async_get_homerooms() or []
+        if not homes:
+            return None
+        # Find the home that this device belongs to
+        device_did = self.device.did
+        target_home_id = None
+        if device_did:
+            devices = await self.xiaomi_cloud.async_get_devices_by_key('did') or {}
+            dev = devices.get(device_did)
+            if dev:
+                target_home_id = dev.get('home_id')
+        rooms = []
+        for home in homes:
+            if target_home_id is not None and home.get('id') != target_home_id:
+                continue
+            for room in home.get('roomlist', []):
+                rooms.append((str(room['id']), room['name']))
+        return rooms or None
+
+    @staticmethod
+    def _parse_room_data(data):
+        if not data:
+            return None
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        rooms = []
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, (list, tuple)):
+                    rid = str(item[0])
+                    name = str(item[1]) if len(item) > 1 else f'Room {rid}'
+                    rooms.append((rid, name))
+                elif isinstance(item, dict):
+                    rid = str(item.get('id') or item.get('ID'))
+                    name = str(item.get('name') or item.get('Name') or f'Room {rid}')
+                    rooms.append((rid, name))
+                else:
+                    rid = str(item)
+                    rooms.append((rid, f'Room {rid}'))
+        elif isinstance(data, dict):
+            for rid, name in data.items():
+                rid = str(rid)
+                rooms.append((rid, str(name) if name else f'Room {rid}'))
+        return rooms or None
+
+    async def _process_room_mapping(self, data):
+        if not data or not isinstance(data, list):
+            return None
+        cloud_rooms = {}
+        if self.xiaomi_cloud:
+            try:
+                homes = await self.xiaomi_cloud.async_get_homerooms() or []
+                for home in homes:
+                    for room in home.get('roomlist', []):
+                        cloud_rooms[room['id']] = room['name']
+            except Exception:
+                pass
+        rooms = []
+        for item in data:
+            if isinstance(item, (list, tuple)) and len(item) >= 2:
+                seg_id = str(item[0])
+                cloud_id = item[1]
+                name = str(item[2]) if len(item) > 2 else cloud_rooms.get(cloud_id, f'Room {seg_id}')
+                rooms.append((seg_id, name))
+        return rooms or None
+
+    async def async_start_room_sweep(self, room_id, **kwargs):
+        if not self._act_room_sweep or not room_id:
+            return False
+        params = self._act_room_sweep.in_params([str(room_id)])
+        return await self.async_call_action(self._act_room_sweep, params=params)
