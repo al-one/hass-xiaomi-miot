@@ -8,7 +8,7 @@ def set_callback_via_param_index(index=0, key=None):
         if prop in props:
             if isinstance(params, dict):
                 props[prop] = params.get(key or prop)
-            elif len(params) > index:
+            elif isinstance(params, (list, tuple)) and len(params) > index:
                 value = params[index]
                 if key and isinstance(value, dict):
                     value = value.get(key)
