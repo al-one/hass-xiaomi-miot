@@ -1,6 +1,7 @@
 """Support for Xiaomi vacuums."""
 import logging
 import asyncio
+import json
 from datetime import timedelta
 
 from homeassistant.components.vacuum import (  # noqa: F401
@@ -49,7 +50,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(ENTITY_DOMAIN, 'mopping_machine'):
             if not srv.get_property('status'):
                 continue
-            if model in MIOT_LOCAL_MODELS:
+            if model in ['xiaomi.vacuum.d106gl']:
+                entities.append(MiotXiaomiD106GLVacuumEntity(config, srv))
+            elif model in MIOT_LOCAL_MODELS:
                 entities.append(MiotVacuumEntity(config, srv))
             elif 'roborock.' in model or 'rockrobo.' in model:
                 entities.append(MiotRoborockVacuumEntity(config, srv))
@@ -207,6 +210,146 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         This method must be run in the event loop.
         """
         return await self.async_miio_command(command, params)
+
+
+class MiotXiaomiD106GLVacuumEntity(MiotVacuumEntity):
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(config, miot_service)
+        self._srv_map = miot_service.spec.get_service('map')
+        self._prop_map_id = None
+        self._act_get_rooms = None
+        self._act_room_sweep = miot_service.get_action('start_room_sweep')
+        self._act_vacuum_room_sweep = miot_service.get_action('start_vacuum_room_sweep')
+        self._d106gl_room_buttons_added = False
+        if self._srv_map:
+            self._prop_map_id = self._srv_map.get_property('cur_map_id')
+            self._act_get_rooms = self._srv_map.get_action('get_map_room_list')
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        await self.async_refresh_d106gl_rooms()
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available:
+            return
+        if not self._state_attrs.get('d106gl_rooms'):
+            await self.async_refresh_d106gl_rooms()
+
+    def d106gl_current_map_id(self):
+        if self._prop_map_id:
+            val = self._prop_map_id.from_device(self.device)
+            if val is not None:
+                return val
+            for key in [self._prop_map_id.full_name, self._prop_map_id.unique_name, 'map.cur_map_id']:
+                if key in self._state_attrs:
+                    return self._state_attrs[key]
+        return self._state_attrs.get('map.cur_map_id') or self._state_attrs.get('cur_map_id')
+
+    async def async_refresh_d106gl_rooms(self):
+        if not (self._act_get_rooms and self._prop_map_id):
+            return []
+        map_id = self.d106gl_current_map_id()
+        if map_id in [None, '']:
+            return []
+        try:
+            result = await self.async_call_action(self._act_get_rooms, [map_id])
+        except (DeviceException, Exception) as exc:
+            self.logger.info('%s: D106GL room discovery failed: %s', self.name_model, exc)
+            return []
+        payload = self.d106gl_extract_action_payload(result)
+        rooms = self.d106gl_parse_rooms(payload)
+        self._state_attrs['d106gl_room_payload'] = payload
+        self._state_attrs['d106gl_rooms'] = rooms
+        self._state_attrs['d106gl_map_id'] = map_id
+        await self.async_update_attrs({
+            'd106gl_room_payload': payload,
+            'd106gl_rooms': rooms,
+            'd106gl_map_id': map_id,
+        })
+        if rooms:
+            self.async_add_d106gl_room_buttons(rooms)
+        return rooms
+
+    def d106gl_extract_action_payload(self, result):
+        if hasattr(result, 'to_json'):
+            result = result.to_json()
+        if isinstance(result, dict):
+            for key in ['value', 'out', 'result', 'results']:
+                val = result.get(key)
+                if val not in [None, []]:
+                    if isinstance(val, list) and len(val) == 1:
+                        return val[0]
+                    return val
+        return result
+
+    def d106gl_parse_rooms(self, payload):
+        data = payload
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except (TypeError, ValueError):
+                data = [p for p in data.replace(';', ',').split(',') if p]
+        if isinstance(data, dict):
+            for key in ['rooms', 'room_info', 'room_list', 'roomIdNameList']:
+                if isinstance(data.get(key), list):
+                    data = data[key]
+                    break
+        rooms = []
+        if isinstance(data, list):
+            for idx, item in enumerate(data, 1):
+                rid = None
+                name = None
+                if isinstance(item, dict):
+                    rid = item.get('room_id') or item.get('roomId') or item.get('id')
+                    name = item.get('name') or item.get('room_name') or item.get('roomName')
+                elif isinstance(item, (list, tuple)) and item:
+                    rid = item[0]
+                    name = item[1] if len(item) > 1 else None
+                elif isinstance(item, str):
+                    parts = item.split(':', 1)
+                    rid = parts[0]
+                    name = parts[1] if len(parts) > 1 else None
+                if rid in [None, '']:
+                    continue
+                rooms.append({
+                    'id': str(rid),
+                    'name': str(name or f'Room {idx}'),
+                })
+        return rooms
+
+    def async_add_d106gl_room_buttons(self, rooms):
+        if self._d106gl_room_buttons_added:
+            return
+        if not (add_buttons := self.device.entry.adders.get('button')):
+            return
+        from .button import ButtonSubEntity
+        for room in rooms:
+            rid = room.get('id')
+            name = room.get('name') or rid
+            if rid in [None, '']:
+                continue
+            sub = f'd106gl_room_{rid}'
+            if sub in self._subs:
+                continue
+            self._subs[sub] = ButtonSubEntity(self, sub, option={
+                'name': f'{self.device_name} {name}',
+                'async_press_action': self.async_start_d106gl_room_sweep,
+                'press_kwargs': {'room_id': rid},
+                'state_attrs': {'room_id': rid, 'room_name': name},
+            })
+            add_buttons([self._subs[sub]], update_before_add=False)
+        self._d106gl_room_buttons_added = True
+
+    async def async_start_d106gl_room_sweep(self, room_id, **kwargs):
+        params = [str(room_id)]
+        for act in [self._act_room_sweep, self._act_vacuum_room_sweep]:
+            if not act:
+                continue
+            result = await self.async_call_action(act, params)
+            if getattr(result, 'is_success', False):
+                return result
+        return False
 
 
 class MiotRoborockVacuumEntity(MiotVacuumEntity):
