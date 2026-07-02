@@ -173,12 +173,26 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             if not isinstance(prop, MiotProperty):
                 continue
             elif prop.in_list(['on']):
+                # Skip secondary 'on' prop (e.g. floor heating on cnhdm.wkq01)
+                if self._conv_power is not None:
+                    _LOGGER.debug(
+                        "Skipping duplicate '%s' property (iid=%s, already assigned iid=%s)",
+                        prop.name, prop.iid, self._conv_power.prop.iid
+                    )
+                    continue
                 self._conv_power = conv
                 self._attr_supported_features |= ClimateEntityFeature.TURN_ON
                 self._attr_supported_features |= ClimateEntityFeature.TURN_OFF
                 hvac_modes.add(HVACMode.OFF)
                 hvac_modes.add(HVACMode.AUTO)
             elif prop.in_list(['mode']):
+                # Skip secondary 'mode' prop if already assigned
+                if self._conv_mode is not None:
+                    _LOGGER.debug(
+                        "Skipping duplicate '%s' property (iid=%s, already assigned iid=%s)",
+                        prop.name, prop.iid, self._conv_mode.prop.iid
+                    )
+                    continue
                 self._conv_mode = conv
                 self._attr_preset_modes = prop.list_descriptions()
                 for mk, mv in self._hvac_modes.items():
@@ -193,6 +207,13 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 if self._attr_preset_modes:
                     self._attr_supported_features |= ClimateEntityFeature.PRESET_MODE
             elif prop.in_list(['fan_level', 'speed_level', 'heat_level']):
+                # Skip secondary fan-level (e.g. fresh-air fan on cnhdm)
+                if self._conv_speed is not None:
+                    _LOGGER.debug(
+                        "Skipping duplicate '%s' property (iid=%s, already assigned iid=%s)",
+                        prop.name, prop.iid, self._conv_speed.prop.iid
+                    )
+                    continue
                 self._conv_speed = conv
                 self._attr_fan_modes = prop.list_descriptions(lower=True)
                 self._attr_supported_features |= ClimateEntityFeature.FAN_MODE
@@ -206,6 +227,13 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                     self._attr_swing_horizontal_modes = [SWING_ON, SWING_OFF]
                     self._attr_supported_features |= ClimateEntityFeature.SWING_HORIZONTAL_MODE
             elif prop.in_list(['target_temperature']):
+                # Skip secondary target-temp (e.g. floor heating on cnhdm.wkq01)
+                if self._conv_target_temp is not None:
+                    _LOGGER.debug(
+                        "Skipping duplicate '%s' property (iid=%s, already assigned iid=%s)",
+                        prop.name, prop.iid, self._conv_target_temp.prop.iid
+                    )
+                    continue
                 self._conv_target_temp = conv
                 self._attr_min_temp = prop.range_min()
                 self._attr_max_temp = prop.range_max()
