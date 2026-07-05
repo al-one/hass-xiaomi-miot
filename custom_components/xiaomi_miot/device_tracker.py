@@ -5,12 +5,10 @@ from datetime import timedelta
 
 from homeassistant.components.device_tracker import (
     DOMAIN as ENTITY_DOMAIN,
-)
-from homeassistant.components.device_tracker.const import SourceType
-from homeassistant.components.device_tracker.config_entry import (
     TrackerEntity as BaseTrackerEntity,
     ScannerEntity as BaseScannerEntity,
 )
+from homeassistant.components.device_tracker.const import SourceType
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
