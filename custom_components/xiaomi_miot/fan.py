@@ -1,5 +1,6 @@
 """Support for Xiaomi fans."""
 import logging
+from homeassistant.helpers.event import async_call_later
 
 from homeassistant.components.fan import (
     DOMAIN as ENTITY_DOMAIN,
@@ -135,7 +136,9 @@ class FanEntity(XEntity, BaseEntity):
             if val is not None:
                 des = self._conv_speed.prop.list_description(val)
                 if self._speed_range:
-                    self._attr_percentage = ranged_value_to_percentage(self._speed_range, float(val))
+                    v = float(val)
+                    if v >= self._speed_range[0] or not self._conv_power:
+                        self._attr_percentage = ranged_value_to_percentage(self._speed_range, v)
                 if self._speed_list and val in self._speed_list:
                     self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, val)
                 elif self._speed_list and des in self._speed_list:
@@ -189,6 +192,16 @@ class FanEntity(XEntity, BaseEntity):
             dat[self._conv_mode.full_name] = preset_mode
         if dat:
             await self.device.async_write(dat)
+            if self._conv_power and dat.get(self._conv_power.full_name) is True and percentage is None:
+                async def _proactive_update(now):
+                    try:
+                        await self.async_update()
+                        if hasattr(self, 'async_write_ha_state'):
+                            self.async_write_ha_state()
+                    except Exception:
+                        pass
+                if getattr(self, 'hass', None):
+                    async_call_later(self.hass, 1.0, _proactive_update)
 
     async def async_turn_off(self, **kwargs):
         if not self._conv_power:
