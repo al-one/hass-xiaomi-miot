@@ -93,7 +93,11 @@
                     "conn_mode": "Modalità di connessione dispositivo",
                     "renew_devices": "Forza rinnovo dispositivi",
                     "disable_message": "Disattiva il sensore di notifica di Mihome",
-                    "disable_scene_history": "Disabilita sensore cronologia scene Mihome"
+                    "disable_scene_history": "Disabilita sensore cronologia scene Mihome",
+                    "micoapi_verify": "Verifica controllo riproduzione XiaoAI"
+                },
+                "data_description": {
+                    "micoapi_verify": "Attiva questa opzione e invia la pagina per aprire il passaggio di verifica aggiuntivo per XiaoAI Play Control. Non modifica le normali impostazioni dell’account Xiaomi. Usalo quando Play Control richiede la verifica, non è disponibile o non riesce a leggere lo stato di riproduzione."
                 }
             },
             "cloud_filter": {
@@ -110,6 +114,13 @@
                     "bssid_list": "WiFi BSSID List",
                     "filter_did": "Filtro Dispositivo",
                     "did_list": "Lista Dispositivi"
+                }
+            },
+            "micoapi": {
+                "title": "Verifica controllo riproduzione XiaoAI",
+                "description": "XiaoAI Play Control richiede una verifica di sicurezza separata.\n{tip}",
+                "data": {
+                    "verify_ticket": "Codice di verifica telefono/e-mail"
                 }
             }
         },
@@ -176,18 +187,30 @@
             }
         },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Acqua insufficiente"},
-            "pet_drinking_fountain-fault": {"name": "Guasto"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Acqua insufficiente"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Guasto"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Non disturbare"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Blocco bambini"}
+            "no_disturb-no_disturb": {
+                "name": "Non disturbare"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Blocco bambini"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Modalità acqua"}
+            "pet_drinking_fountain-mode": {
+                "name": "Modalità acqua"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Intervallo acqua"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Intervallo acqua"
+            }
         },
         "climate": {
             "air_conditioner": {

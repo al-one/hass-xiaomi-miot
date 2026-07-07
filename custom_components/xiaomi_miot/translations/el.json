@@ -1,151 +1,174 @@
 {
-   "config":{
-      "flow_title":"Xiaomi Miot",
-      "step":{
-         "user":{
-            "title":"Επιλέξτε Ενέργεια",
-            "data":{
-               "action":"Ενέργεια"
+    "config": {
+        "flow_title": "Xiaomi Miot",
+        "step": {
+            "user": {
+                "title": "Επιλέξτε Ενέργεια",
+                "data": {
+                    "action": "Ενέργεια"
+                }
+            },
+            "token": {
+                "description": "Ρύθμιση παραμέτρων πληροφοριών συσκευής.",
+                "data": {
+                    "host": "Τοπική IP",
+                    "token": "Σημείο",
+                    "name": "Όνομα συσκευής",
+                    "scan_interval": "Διάστημα κατάστασης ενημέρωσης (δευτερόλεπτα)"
+                }
+            },
+            "cloud": {
+                "description": "Διαμορφώστε τον λογαριασμό cloud της Xiaomi.\n{tip}",
+                "data": {
+                    "username": "Αναγνωριστικό λογαριασμού / email Xiaomi",
+                    "password": "Κωδικός πρόσβασης",
+                    "captcha": "Captcha",
+                    "server_country": "Τοποθεσία διακομιστή του MiCloud",
+                    "conn_mode": "Λειτουργία σύνδεσης για τη συσκευή",
+                    "filter_models": "Φιλτράρισμα συσκευών μέσω μοντέλου/σπιτιού/WiFi (Για προχωρημένους)"
+                }
+            },
+            "cloud_filter": {
+                "title": "Φιλτράρισμα συσκευών cloud",
+                "description": "Μπορείτε να συμπεριλάβετε ή να εξαιρέσετε συσκευές για να ενσωματώσετε μόνο τις συσκευές που θέλετε. Στη λειτουργία εξαίρεσης, εάν δεν επιλέξετε καμία επιλογή στη λίστα, είναι ισοδύναμη με τη συμπερίληψη όλων των επιλογών.\n{tip}",
+                "data": {
+                    "filter_model": "Φιλτράρισμα μοντέλου συσκευής",
+                    "model_list": "Λίστα μοντέλων συσκευών",
+                    "filter_home_id": "Αρχική σελίδα φίλτρου",
+                    "home_id_list": "Αρχική Λίστα",
+                    "filter_ssid": "Φίλτρο WiFi SSID",
+                    "ssid_list": "Λίστα SSID WiFi",
+                    "filter_bssid": "Φιλτράρισμα WiFi BSSID",
+                    "bssid_list": "Λίστα BSSID WiFi",
+                    "filter_did": "Συσκευή φίλτρου",
+                    "did_list": "Λίστα συσκευών"
+                }
+            },
+            "customizing": {
+                "title": "Προσαρμογή οντοτήτων / συσκευών",
+                "description": "{tip}",
+                "data": {
+                    "domain": "Επιλέξτε τομέα οντότητας",
+                    "entity": "Επιλέξτε οντότητα",
+                    "model": "Επιλέξτε μοντέλο συσκευής",
+                    "model_specified": "Καθορισμένο μοντέλο συσκευής (Προαιρετικό)",
+                    "only_main_entity": "Μόνο κύριες (μητρικές) οντότητες",
+                    "reset_customizes": "Επαναφορά στις προεπιλεγμένες προσαρμογές",
+                    "bool2selects": "Προσαρμογή επιλογών"
+                }
             }
-         },
-         "token":{
-            "description":"Ρύθμιση παραμέτρων πληροφοριών συσκευής.",
-            "data":{
-               "host":"Τοπική IP",
-               "token":"Σημείο",
-               "name":"Όνομα συσκευής",
-               "scan_interval":"Διάστημα κατάστασης ενημέρωσης (δευτερόλεπτα)"
+        },
+        "error": {
+            "cannot_connect": "Αποτυχία σύνδεσης της συσκευής",
+            "cannot_login": "Αποτυχία σύνδεσης στον λογαριασμό cloud xiaomi, ελέγξτε τον κωδικό πρόσβασης. Εάν αποτύχετε πάντα να συνδεθείτε, συνδεθείτε για να mi.com στο ίδιο περιβάλλον με το τρέχον δίκτυο και προσπαθήστε ξανά.",
+            "cannot_reach": "Δεν είναι δυνατή η πρόσβαση στο API της Xiaomi",
+            "tzinfo_error": "Βλ.: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Καμία συσκευή στον λογαριασμό cloud xiaomi"
+        },
+        "abort": {
+            "config_saved": "Η διαμόρφωση αποθηκεύτηκε! [Προσαρμογή ξανά] (/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nΟρισμένες προσαρμόσιμες επιλογές απαιτούν [επαναφόρτωση ενοποίησης] (/εργαλεία προγραμματιστή/yaml) για να τεθούν σε ισχύ.",
+            "already_configured": "Η συσκευή έχει ήδη ρυθμιστεί",
+            "not_xiaomi_miio": "Δεν είναι συσκευή Xiaomi miio / miot."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "Ρύθμιση παραμέτρων πληροφοριών συσκευής.",
+                "data": {
+                    "host": "Τοπική IP",
+                    "token": "Σημείο",
+                    "scan_interval": "Διάστημα κατάστασης ενημέρωσης (δευτερόλεπτα)",
+                    "miot_cloud": "Ενεργοποίηση του miot cloud (Λογαριασμός Config σε YAML)"
+                }
+            },
+            "cloud": {
+                "description": "Διαμορφώστε τον λογαριασμό cloud της Xiaomi.\n{tip}",
+                "data": {
+                    "username": "Αναγνωριστικό λογαριασμού / email Xiaomi",
+                    "password": "Κωδικός πρόσβασης",
+                    "captcha": "Κάπτσα",
+                    "server_country": "Τοποθεσία διακομιστή του MiCloud",
+                    "conn_mode": "Λειτουργία σύνδεσης για τη συσκευή",
+                    "renew_devices": "Αναγκαστική ανανέωση συσκευών",
+                    "disable_message": "Απενεργοποιήστε τον αισθητήρα ειδοποιήσεων Mihome",
+                    "micoapi_verify": "Επαλήθευση ελέγχου αναπαραγωγής XiaoAI"
+                },
+                "data_description": {
+                    "micoapi_verify": "Ενεργοποιήστε το και υποβάλετε αυτή τη σελίδα για να ανοίξει το επιπλέον βήμα επαλήθευσης για το XiaoAI Play Control. Δεν αλλάζει τις κανονικές ρυθμίσεις του λογαριασμού Xiaomi. Χρησιμοποιήστε το όταν το Play Control ζητά επαλήθευση, δεν είναι διαθέσιμο ή δεν μπορεί να διαβάσει την κατάσταση αναπαραγωγής."
+                }
+            },
+            "cloud_filter": {
+                "title": "Φιλτράρισμα συσκευών cloud",
+                "description": "Μπορείτε να συμπεριλάβετε ή να εξαιρέσετε συσκευές για να ενσωματώσετε μόνο τις συσκευές που θέλετε. Στη λειτουργία εξαίρεσης, εάν δεν επιλέξετε καμία επιλογή στη λίστα, είναι ισοδύναμη με τη συμπερίληψη όλων των επιλογών.\n{tip}",
+                "data": {
+                    "filter_model": "Φιλτράρισμα μοντέλου συσκευής",
+                    "model_list": "Λίστα μοντέλων συσκευών",
+                    "filter_home_id": "Αρχική σελίδα φίλτρου",
+                    "home_id_list": "Αρχική Λίστα",
+                    "filter_ssid": "Φίλτρο WiFi SSID",
+                    "ssid_list": "Λίστα SSID WiFi",
+                    "filter_bssid": "Φιλτράρισμα WiFi BSSID",
+                    "bssid_list": "Λίστα BSSID WiFi",
+                    "filter_did": "Συσκευή φίλτρου",
+                    "did_list": "Λίστα συσκευών"
+                }
+            },
+            "micoapi": {
+                "title": "Επαλήθευση ελέγχου αναπαραγωγής XiaoAI",
+                "description": "Το XiaoAI Play Control χρειάζεται ξεχωριστή επαλήθευση ασφαλείας.\n{tip}",
+                "data": {
+                    "verify_ticket": "Κωδικός επαλήθευσης τηλεφώνου/email"
+                }
             }
-         },
-         "cloud":{
-            "description":"Διαμορφώστε τον λογαριασμό cloud της Xiaomi.\n{tip}",
-            "data":{
-               "username":"Αναγνωριστικό λογαριασμού / email Xiaomi",
-               "password":"Κωδικός πρόσβασης",
-               "captcha":"Captcha",
-               "server_country":"Τοποθεσία διακομιστή του MiCloud",
-               "conn_mode":"Λειτουργία σύνδεσης για τη συσκευή",
-               "filter_models":"Φιλτράρισμα συσκευών μέσω μοντέλου/σπιτιού/WiFi (Για προχωρημένους)"
+        },
+        "error": {
+            "cannot_connect": "Αποτυχία σύνδεσης της συσκευής",
+            "cannot_login": "Η σύνδεση στο λογαριασμό Mi απέτυχε, ελέγξτε τον κωδικό πρόσβασης του λογαριασμού. Εάν η σύνδεση αποτύχει μετά από αρκετές προσπάθειες, χρησιμοποιήστε μια άλλη συσκευή στο ίδιο LAN με τον κεντρικό υπολογιστή HA για να συνδεθείτε στον επίσημο ιστότοπο της Xiaomi (mi.com) και να προσπαθήσετε ξανά.",
+            "cannot_reach": "Δεν είναι δυνατή η πρόσβαση στο API της Xiaomi",
+            "tzinfo_error": "Βλ.: https://github.com/al-one/hass-xiaomi-miot/issues/260",
+            "none_devices": "Καμία συσκευή στον λογαριασμό cloud xiaomi"
+        },
+        "abort": {
+            "show_customizes": "[Προσθήκη νέας ενσωμάτωσης] (/_my_redirect/config_flow_start?domain=xiaomi_miot) για να τροποποιήσετε την προσαρμογή.\n{link}\n{tip}"
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Έλλειψη νερού"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Σφάλμα"
             }
-         },
-         "cloud_filter":{
-            "title":"Φιλτράρισμα συσκευών cloud",
-            "description":"Μπορείτε να συμπεριλάβετε ή να εξαιρέσετε συσκευές για να ενσωματώσετε μόνο τις συσκευές που θέλετε. Στη λειτουργία εξαίρεσης, εάν δεν επιλέξετε καμία επιλογή στη λίστα, είναι ισοδύναμη με τη συμπερίληψη όλων των επιλογών.\n{tip}",
-            "data":{
-               "filter_model":"Φιλτράρισμα μοντέλου συσκευής",
-               "model_list":"Λίστα μοντέλων συσκευών",
-               "filter_home_id":"Αρχική σελίδα φίλτρου",
-               "home_id_list":"Αρχική Λίστα",
-               "filter_ssid":"Φίλτρο WiFi SSID",
-               "ssid_list":"Λίστα SSID WiFi",
-               "filter_bssid":"Φιλτράρισμα WiFi BSSID",
-               "bssid_list":"Λίστα BSSID WiFi",
-               "filter_did":"Συσκευή φίλτρου",
-               "did_list":"Λίστα συσκευών"
+        },
+        "switch": {
+            "no_disturb-no_disturb": {
+                "name": "Μην ενοχλείτε"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Παιδικό κλείδωμα"
             }
-         },
-         "customizing":{
-            "title":"Προσαρμογή οντοτήτων / συσκευών",
-            "description":"{tip}",
-            "data":{
-               "domain":"Επιλέξτε τομέα οντότητας",
-               "entity":"Επιλέξτε οντότητα",
-               "model":"Επιλέξτε μοντέλο συσκευής",
-               "model_specified":"Καθορισμένο μοντέλο συσκευής (Προαιρετικό)",
-               "only_main_entity":"Μόνο κύριες (μητρικές) οντότητες",
-               "reset_customizes":"Επαναφορά στις προεπιλεγμένες προσαρμογές",
-               "bool2selects":"Προσαρμογή επιλογών"
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {
+                "name": "Λειτουργία νερού"
             }
-         }
-      },
-      "error":{
-         "cannot_connect":"Αποτυχία σύνδεσης της συσκευής",
-         "cannot_login":"Αποτυχία σύνδεσης στον λογαριασμό cloud xiaomi, ελέγξτε τον κωδικό πρόσβασης. Εάν αποτύχετε πάντα να συνδεθείτε, συνδεθείτε για να mi.com στο ίδιο περιβάλλον με το τρέχον δίκτυο και προσπαθήστε ξανά.",
-         "cannot_reach":"Δεν είναι δυνατή η πρόσβαση στο API της Xiaomi",
-         "tzinfo_error":"Βλ.: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-         "none_devices":"Καμία συσκευή στον λογαριασμό cloud xiaomi"
-      },
-      "abort":{
-         "config_saved":"Η διαμόρφωση αποθηκεύτηκε! [Προσαρμογή ξανά] (/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nΟρισμένες προσαρμόσιμες επιλογές απαιτούν [επαναφόρτωση ενοποίησης] (/εργαλεία προγραμματιστή/yaml) για να τεθούν σε ισχύ.",
-         "already_configured":"Η συσκευή έχει ήδη ρυθμιστεί",
-         "not_xiaomi_miio":"Δεν είναι συσκευή Xiaomi miio / miot."
-      }
-   },
-   "options":{
-      "step":{
-         "user":{
-            "title":"Xiaomi Miot",
-            "description":"Ρύθμιση παραμέτρων πληροφοριών συσκευής.",
-            "data":{
-               "host":"Τοπική IP",
-               "token":"Σημείο",
-               "scan_interval":"Διάστημα κατάστασης ενημέρωσης (δευτερόλεπτα)",
-               "miot_cloud":"Ενεργοποίηση του miot cloud (Λογαριασμός Config σε YAML)"
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Διάστημα νερού"
             }
-         },
-         "cloud":{
-            "description":"Διαμορφώστε τον λογαριασμό cloud της Xiaomi.\n{tip}",
-            "data":{
-               "username":"Αναγνωριστικό λογαριασμού / email Xiaomi",
-               "password":"Κωδικός πρόσβασης",
-               "captcha":"Κάπτσα",
-               "server_country":"Τοποθεσία διακομιστή του MiCloud",
-               "conn_mode":"Λειτουργία σύνδεσης για τη συσκευή",
-               "renew_devices":"Αναγκαστική ανανέωση συσκευών",
-               "disable_message":"Απενεργοποιήστε τον αισθητήρα ειδοποιήσεων Mihome"
-            }
-         },
-         "cloud_filter":{
-            "title":"Φιλτράρισμα συσκευών cloud",
-            "description":"Μπορείτε να συμπεριλάβετε ή να εξαιρέσετε συσκευές για να ενσωματώσετε μόνο τις συσκευές που θέλετε. Στη λειτουργία εξαίρεσης, εάν δεν επιλέξετε καμία επιλογή στη λίστα, είναι ισοδύναμη με τη συμπερίληψη όλων των επιλογών.\n{tip}",
-            "data":{
-               "filter_model":"Φιλτράρισμα μοντέλου συσκευής",
-               "model_list":"Λίστα μοντέλων συσκευών",
-               "filter_home_id":"Αρχική σελίδα φίλτρου",
-               "home_id_list":"Αρχική Λίστα",
-               "filter_ssid":"Φίλτρο WiFi SSID",
-               "ssid_list":"Λίστα SSID WiFi",
-               "filter_bssid":"Φιλτράρισμα WiFi BSSID",
-               "bssid_list":"Λίστα BSSID WiFi",
-               "filter_did":"Συσκευή φίλτρου",
-               "did_list":"Λίστα συσκευών"
-            }
-         }
-      },
-      "error":{
-         "cannot_connect":"Αποτυχία σύνδεσης της συσκευής",
-         "cannot_login":"Η σύνδεση στο λογαριασμό Mi απέτυχε, ελέγξτε τον κωδικό πρόσβασης του λογαριασμού. Εάν η σύνδεση αποτύχει μετά από αρκετές προσπάθειες, χρησιμοποιήστε μια άλλη συσκευή στο ίδιο LAN με τον κεντρικό υπολογιστή HA για να συνδεθείτε στον επίσημο ιστότοπο της Xiaomi (mi.com) και να προσπαθήσετε ξανά.",
-         "cannot_reach":"Δεν είναι δυνατή η πρόσβαση στο API της Xiaomi",
-         "tzinfo_error":"Βλ.: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-         "none_devices":"Καμία συσκευή στον λογαριασμό cloud xiaomi"
-      },
-      "abort":{
-         "show_customizes":"[Προσθήκη νέας ενσωμάτωσης] (/_my_redirect/config_flow_start?domain=xiaomi_miot) για να τροποποιήσετε την προσαρμογή.\n{link}\n{tip}"
-      }
-   },
-   "entity":{
-      "binary_sensor":{
-         "pet_drinking_fountain-water_shortage_status":{"name":"Έλλειψη νερού"},
-         "pet_drinking_fountain-fault":{"name":"Σφάλμα"}
-      },
-      "switch":{
-         "no_disturb-no_disturb":{"name":"Μην ενοχλείτε"},
-         "physical_controls_locked-physical_controls_locked":{"name":"Παιδικό κλείδωμα"}
-      },
-      "select":{
-         "pet_drinking_fountain-mode":{"name":"Λειτουργία νερού"}
-      },
-      "number":{
-         "pet_drinking_fountain-out_water_interval":{"name":"Διάστημα νερού"}
-      }
-   },
-   "system_health":{
-      "info":{
-         "component_version":"Έκδοση στοιχείου",
-         "can_reach_server":"Επικοινωνήστε με τον διακομιστή API της Xiaomi",
-         "can_reach_spec":"Επικοινωνήστε με τον διακομιστή προδιαγραφών MIoT",
-         "logged_accounts":"Συνδεδεμένοι λογαριασμοί",
-         "total_devices":"Σύνολο συσκευών MiHome"
-      }
-   }
+        }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "Έκδοση στοιχείου",
+            "can_reach_server": "Επικοινωνήστε με τον διακομιστή API της Xiaomi",
+            "can_reach_spec": "Επικοινωνήστε με τον διακομιστή προδιαγραφών MIoT",
+            "logged_accounts": "Συνδεδεμένοι λογαριασμοί",
+            "total_devices": "Σύνολο συσκευών MiHome"
+        }
+    }
 }

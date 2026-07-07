@@ -105,7 +105,11 @@
                     "renew_devices": "Làm mới danh sách thiết bị",
                     "trans_options": "Mô tả dịch thuộc tính",
                     "disable_message": "Tắt cảm biến thông báo Mihome",
-                    "disable_scene_history": "Tắt cảm biến lịch sử cảnh Mihome"
+                    "disable_scene_history": "Tắt cảm biến lịch sử cảnh Mihome",
+                    "micoapi_verify": "Xác minh điều khiển phát XiaoAI"
+                },
+                "data_description": {
+                    "micoapi_verify": "Bật mục này rồi gửi trang để mở bước xác minh bổ sung cho XiaoAI Play Control. Mục này không thay đổi cấu hình tài khoản Xiaomi thông thường. Dùng khi Play Control yêu cầu xác minh, không khả dụng hoặc không đọc được trạng thái phát."
                 }
             },
             "cloud_filter": {
@@ -127,6 +131,13 @@
                 "data_description": {
                     "filter_did": "Ở chế độ loại trừ, nếu không chọn mục nào, sẽ bao gồm tất cả thiết bị.",
                     "home_ids": "Sau khi chọn và gửi, bạn sẽ quay lại trang này, danh sách thiết bị sẽ làm mới và lọc theo Home đã chọn."
+                }
+            },
+            "micoapi": {
+                "title": "Xác minh điều khiển phát XiaoAI",
+                "description": "XiaoAI Play Control cần một bước xác minh bảo mật riêng.\n{tip}",
+                "data": {
+                    "verify_ticket": "Mã xác minh điện thoại/email"
                 }
             }
         },
@@ -153,17 +164,35 @@
     },
     "entity": {
         "button": {
-            "info": {"name": "Thông tin"}
+            "info": {
+                "name": "Thông tin"
+            }
         },
         "sensor": {
-            "clean_area": {"name": "Diện tích đã làm sạch"},
-            "clean_time": {"name": "Thời gian làm sạch"},
-            "power_cost_today": {"name": "Năng lượng hôm nay"},
-            "power_cost_month": {"name": "Năng lượng tháng này"},
-            "power_cost_today_2": {"name": "Năng lượng hôm nay"},
-            "power_cost_month_2": {"name": "Năng lượng tháng này"},
-            "props-clean_area": {"name": "Diện tích đã làm sạch"},
-            "props-clean_time": {"name": "Thời gian làm sạch"},
+            "clean_area": {
+                "name": "Diện tích đã làm sạch"
+            },
+            "clean_time": {
+                "name": "Thời gian làm sạch"
+            },
+            "power_cost_today": {
+                "name": "Năng lượng hôm nay"
+            },
+            "power_cost_month": {
+                "name": "Năng lượng tháng này"
+            },
+            "power_cost_today_2": {
+                "name": "Năng lượng hôm nay"
+            },
+            "power_cost_month_2": {
+                "name": "Năng lượng tháng này"
+            },
+            "props-clean_area": {
+                "name": "Diện tích đã làm sạch"
+            },
+            "props-clean_time": {
+                "name": "Thời gian làm sạch"
+            },
             "lock": {
                 "state": {
                     "bluetooth": "Bluetooth",
@@ -205,18 +234,30 @@
             }
         },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Thiếu nước"},
-            "pet_drinking_fountain-fault": {"name": "Lỗi"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Thiếu nước"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Lỗi"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Không làm phiền"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Khóa trẻ em"}
+            "no_disturb-no_disturb": {
+                "name": "Không làm phiền"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Khóa trẻ em"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Chế độ nước"}
+            "pet_drinking_fountain-mode": {
+                "name": "Chế độ nước"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Chu kỳ nước"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Chu kỳ nước"
+            }
         },
         "climate": {
             "air_conditioner": {

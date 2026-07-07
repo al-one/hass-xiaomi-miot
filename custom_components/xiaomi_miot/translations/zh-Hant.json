@@ -98,7 +98,11 @@
                     "renew_devices": "更新裝置列表",
                     "trans_options": "翻譯屬性值描述",
                     "disable_message": "停用米家 APP 通知訊息實體",
-                    "disable_scene_history": "停用米家場景歷史實體"
+                    "disable_scene_history": "停用米家場景歷史實體",
+                    "micoapi_verify": "驗證小愛音箱播放控制"
+                },
+                "data_description": {
+                    "micoapi_verify": "開啟後送出此頁，會進入小愛音箱 Play Control 的額外驗證頁面；不會修改目前的一般小米帳號設定。用於處理 Play Control 提示需要驗證、不可用或無法取得播放狀態的問題。"
                 }
             },
             "cloud_filter": {
@@ -116,6 +120,13 @@
                     "filter_did": "篩選裝置",
                     "did_list": "裝置列表",
                     "home_ids": "篩選家庭 (留白儲存)"
+                }
+            },
+            "micoapi": {
+                "title": "驗證小愛音箱播放控制",
+                "description": "小愛音箱 Play Control 需要另外完成一次安全驗證。\n{tip}",
+                "data": {
+                    "verify_ticket": "手機/電子郵件驗證碼"
                 }
             }
         },
@@ -141,19 +152,41 @@
     },
     "entity": {
         "button": {
-            "info": {"name": "資訊"}
+            "info": {
+                "name": "資訊"
+            }
         },
         "sensor": {
-            "clean_area": {"name": "清潔面積"},
-            "clean_time": {"name": "清潔時間"},
-            "power_cost_today": {"name": "日用電量"},
-            "power_cost_month": {"name": "月用電量"},
-            "power_cost_today_2": {"name": "日用電量"},
-            "power_cost_month_2": {"name": "月用電量"},
-            "prop_cal_day-power_cost-today": {"name": "日用電量"},
-            "prop_cal_day-power_cost-month": {"name": "月用電量"},
-            "props-clean_area": {"name": "清潔面積"},
-            "props-clean_time": {"name": "清潔時間"},
+            "clean_area": {
+                "name": "清潔面積"
+            },
+            "clean_time": {
+                "name": "清潔時間"
+            },
+            "power_cost_today": {
+                "name": "日用電量"
+            },
+            "power_cost_month": {
+                "name": "月用電量"
+            },
+            "power_cost_today_2": {
+                "name": "日用電量"
+            },
+            "power_cost_month_2": {
+                "name": "月用電量"
+            },
+            "prop_cal_day-power_cost-today": {
+                "name": "日用電量"
+            },
+            "prop_cal_day-power_cost-month": {
+                "name": "月用電量"
+            },
+            "props-clean_area": {
+                "name": "清潔面積"
+            },
+            "props-clean_time": {
+                "name": "清潔時間"
+            },
             "lock": {
                 "state": {
                     "bluetooth": "藍牙",
@@ -271,7 +304,9 @@
             }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "出水模式"},
+            "pet_drinking_fountain-mode": {
+                "name": "出水模式"
+            },
             "fan_control-fan_level": {
                 "state": {
                     "auto": "自動",
@@ -302,15 +337,25 @@
             }
         },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "缺水"},
-            "pet_drinking_fountain-fault": {"name": "故障"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "缺水"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "故障"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "勿擾模式"},
-            "physical_controls_locked-physical_controls_locked": {"name": "童鎖"}
+            "no_disturb-no_disturb": {
+                "name": "勿擾模式"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "童鎖"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "出水間隔"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "出水間隔"
+            }
         }
     },
     "services": {

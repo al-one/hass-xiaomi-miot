@@ -92,7 +92,11 @@
                     "server_country": "Lokalizacja serwera MiCloud",
                     "conn_mode": "Tryb połączenia dla urządzenia",
                     "renew_devices": "Wymuś odnowienie urządzeń",
-                    "disable_message": "Wyłącz sensor powiadomień Mihome"
+                    "disable_message": "Wyłącz sensor powiadomień Mihome",
+                    "micoapi_verify": "Zweryfikuj sterowanie odtwarzaniem XiaoAI"
+                },
+                "data_description": {
+                    "micoapi_verify": "Włącz tę opcję i wyślij tę stronę, aby otworzyć dodatkowy krok weryfikacji dla XiaoAI Play Control. Nie zmienia to zwykłych ustawień konta Xiaomi. Użyj, gdy Play Control wymaga weryfikacji, jest niedostępny lub nie może odczytać stanu odtwarzania."
                 }
             },
             "cloud_filter": {
@@ -110,6 +114,13 @@
                     "filter_did": "Filtruj urządzenia",
                     "did_list": "Lista urządzeń"
                 }
+            },
+            "micoapi": {
+                "title": "Zweryfikuj sterowanie odtwarzaniem XiaoAI",
+                "description": "XiaoAI Play Control wymaga oddzielnej weryfikacji bezpieczeństwa.\n{tip}",
+                "data": {
+                    "verify_ticket": "Kod weryfikacyjny z telefonu/e-maila"
+                }
             }
         },
         "error": {
@@ -125,18 +136,30 @@
     },
     "entity": {
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Brak wody"},
-            "pet_drinking_fountain-fault": {"name": "Usterka"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Brak wody"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Usterka"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Nie przeszkadzać"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Blokada rodzicielska"}
+            "no_disturb-no_disturb": {
+                "name": "Nie przeszkadzać"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Blokada rodzicielska"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Tryb wody"}
+            "pet_drinking_fountain-mode": {
+                "name": "Tryb wody"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Interwał wody"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Interwał wody"
+            }
         }
     },
     "system_health": {

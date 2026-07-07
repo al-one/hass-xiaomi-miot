@@ -91,7 +91,11 @@
                     "server_country": "Регион сервера MiCloud",
                     "conn_mode": "Режим подключения устройств",
                     "renew_devices": "Заставлять устройства обновляться",
-                    "disable_message": "Выключить датчик уведомлений от Mi Home"
+                    "disable_message": "Выключить датчик уведомлений от Mi Home",
+                    "micoapi_verify": "Проверить управление воспроизведением XiaoAI"
+                },
+                "data_description": {
+                    "micoapi_verify": "Включите этот пункт и отправьте страницу, чтобы открыть дополнительный шаг проверки для XiaoAI Play Control. Обычные настройки аккаунта Xiaomi не изменяются. Используйте, если Play Control требует проверку, недоступен или не может прочитать состояние воспроизведения."
                 }
             },
             "cloud_filter": {
@@ -106,6 +110,13 @@
                     "bssid_list": "СписокWiFi BSSID",
                     "filter_did": "Фильтр устройств",
                     "did_list": "Список устройств"
+                }
+            },
+            "micoapi": {
+                "title": "Проверить управление воспроизведением XiaoAI",
+                "description": "Для XiaoAI Play Control нужна отдельная проверка безопасности.\n{tip}",
+                "data": {
+                    "verify_ticket": "Код подтверждения по телефону/e-mail"
                 }
             }
         },
@@ -122,18 +133,30 @@
     },
     "entity": {
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Недостаток воды"},
-            "pet_drinking_fountain-fault": {"name": "Неисправность"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Недостаток воды"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Неисправность"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Не беспокоить"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Детский замок"}
+            "no_disturb-no_disturb": {
+                "name": "Не беспокоить"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Детский замок"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Режим воды"}
+            "pet_drinking_fountain-mode": {
+                "name": "Режим воды"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Интервал воды"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Интервал воды"
+            }
         }
     },
     "system_health": {

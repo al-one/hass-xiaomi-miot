@@ -15,7 +15,7 @@ from homeassistant.const import (
     ATTR_FRIENDLY_NAME,
     CONF_HOST,
 )
-from homeassistant.components import media_source
+from homeassistant.components import media_source, persistent_notification
 from homeassistant.components.media_player import (
     DOMAIN as ENTITY_DOMAIN,
     MediaPlayerDeviceClass,
@@ -50,6 +50,7 @@ from . import (
     bind_services_to_entries,
 )
 from .core.const import HA_VERSION
+from .core.xiaomi_cloud import MiCloudNeedVerify
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -355,7 +356,34 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         if self._intelligent_speaker:
             mic = self.miot_cloud
             if isinstance(mic, MiotCloud):
-                self.xiaoai_cloud = await mic.async_change_sid('micoapi')
+                try:
+                    self.xiaoai_cloud = await mic.async_change_sid('micoapi')
+                    persistent_notification.async_dismiss(
+                        self.hass,
+                        f'{DOMAIN}-micoapi-verify-{self.unique_id}',
+                    )
+                except MiCloudNeedVerify as exc:
+                    url = getattr(exc, 'url', None)
+                    message = (
+                        f'{self.name_model}: micoapi login requires Xiaomi security verification. '
+                        'Open the verification page to send the mobile/email code, then complete '
+                        'the micoapi verification from Xiaomi Miot options in Home Assistant.'
+                        '\n\nOpen [Xiaomi Miot options](/config/integrations/integration/xiaomi_miot), '
+                        'choose "Verify XiaoAI / micoapi", then paste the code.'
+                    )
+                    if url:
+                        message += f'\n\n[Open Xiaomi verification page]({url})'
+                    persistent_notification.async_create(
+                        self.hass,
+                        message,
+                        'Xiaomi Miot micoapi verification required',
+                        f'{DOMAIN}-micoapi-verify-{self.unique_id}',
+                    )
+                    self.logger.warning(
+                        '%s: micoapi login requires verification: %s',
+                        self.name_model,
+                        url or exc,
+                    )
 
     async def async_update(self):
         await super().async_update()

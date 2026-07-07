@@ -73,7 +73,7 @@
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的 Hass 环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备",
-            "need_verify": "本次登录需要安全验证，请打开验证网页发送手机/邮箱验证码，收到验证码后不要在网页验证，回到HomeAssistant填入下方输入框"
+            "need_verify": "本次登录需要安全验证。请打开下方验证链接发送手机/邮箱验证码，收到验证码后不要在网页验证，回到 Home Assistant 填入下方输入框。"
         },
         "abort": {
             "config_saved": "配置已保存！[再次自定义](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
@@ -105,7 +105,18 @@
                     "renew_devices": "更新设备列表",
                     "trans_options": "翻译属性值描述",
                     "disable_message": "禁用米家APP通知消息实体",
-                    "disable_scene_history": "禁用米家场景历史实体"
+                    "disable_scene_history": "禁用米家场景历史实体",
+                    "micoapi_verify": "验证小爱音箱播放控制"
+                },
+                "data_description": {
+                    "micoapi_verify": "打开后提交此页，会进入小爱音箱 Play Control 的额外验证码页面；不会修改当前普通小米账号配置。用于处理 Play Control 提示需要验证、不可用或无法获取播放状态的问题。"
+                }
+            },
+            "micoapi": {
+                "title": "验证小爱音箱播放控制",
+                "description": "小爱音箱 Play Control 需要单独完成一次安全验证。\n{tip}",
+                "data": {
+                    "verify_ticket": "Mobile/email verification code"
                 }
             },
             "cloud_filter": {
@@ -136,7 +147,7 @@
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备",
-            "need_verify": "本次登录需要安全验证，请打开验证网页发送手机/邮箱验证码，收到验证码后不要在网页验证，回到HomeAssistant填入下方输入框"
+            "need_verify": "本次登录需要安全验证。请打开下方验证链接发送手机/邮箱验证码，收到验证码后不要在网页验证，回到 Home Assistant 填入下方输入框。"
         },
         "abort": {
             "show_customizes": "请再次添加[`Xiaomi Miot`](/_my_redirect/config_flow_start?domain=xiaomi_miot)集成来修改自定义选项\n{link}\n{tip}"
@@ -153,19 +164,41 @@
     },
     "entity": {
         "button": {
-            "info": {"name": "信息"}
+            "info": {
+                "name": "信息"
+            }
         },
         "sensor": {
-            "clean_area": {"name": "清洁面积"},
-            "clean_time": {"name": "清洁时间"},
-            "power_cost_today": {"name": "日电量"},
-            "power_cost_month": {"name": "月电量"},
-            "power_cost_today_2": {"name": "日电量"},
-            "power_cost_month_2": {"name": "月电量"},
-            "prop_cal_day-power_cost-today": {"name": "日电量"},
-            "prop_cal_day-power_cost-month": {"name": "月电量"},
-            "props-clean_area": {"name": "清洁面积"},
-            "props-clean_time": {"name": "清洁时间"},
+            "clean_area": {
+                "name": "清洁面积"
+            },
+            "clean_time": {
+                "name": "清洁时间"
+            },
+            "power_cost_today": {
+                "name": "日电量"
+            },
+            "power_cost_month": {
+                "name": "月电量"
+            },
+            "power_cost_today_2": {
+                "name": "日电量"
+            },
+            "power_cost_month_2": {
+                "name": "月电量"
+            },
+            "prop_cal_day-power_cost-today": {
+                "name": "日电量"
+            },
+            "prop_cal_day-power_cost-month": {
+                "name": "月电量"
+            },
+            "props-clean_area": {
+                "name": "清洁面积"
+            },
+            "props-clean_time": {
+                "name": "清洁时间"
+            },
             "lock": {
                 "state": {
                     "bluetooth": "蓝牙",
@@ -283,7 +316,9 @@
             }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "出水模式"},
+            "pet_drinking_fountain-mode": {
+                "name": "出水模式"
+            },
             "fan_control-fan_level": {
                 "state": {
                     "auto": "自动",
@@ -314,15 +349,25 @@
             }
         },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "缺水"},
-            "pet_drinking_fountain-fault": {"name": "故障"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "缺水"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "故障"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "勿扰模式"},
-            "physical_controls_locked-physical_controls_locked": {"name": "童锁"}
+            "no_disturb-no_disturb": {
+                "name": "勿扰模式"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "童锁"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "出水间隔"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "出水间隔"
+            }
         },
         "humidifier": {
             "humidifier": {

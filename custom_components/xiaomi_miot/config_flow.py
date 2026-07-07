@@ -1,5 +1,6 @@
 """Config flow to configure Xiaomi Miot."""
 import logging
+import asyncio
 import re
 import copy
 import requests
@@ -137,6 +138,14 @@ class BaseFlowHandler:
             **self.context.pop('placeholders', {}),
         }
 
+    def is_micoapi_sts_unauthorized(self, exc):
+        err = f'{exc}'
+        return (
+            isinstance(exc, MiCloudAccessDenied)
+            and 'api2.mina.mi.com/sts' in err
+            and "'status_code': 401" in err
+        )
+
     async def get_cloud(self, user_input):
         if not self.cloud:
             self.cloud = await MiotCloud.from_token(self.hass, user_input, login=False)
@@ -171,6 +180,7 @@ class BaseFlowHandler:
             if isinstance(exc, MiCloudNeedVerify) and mic:
                 errors['base'] = exc.message
                 self.context[exc.message] = True
+                self.context['verify_url'] = exc.url
                 self.placeholders.update({
                     'url': exc.url,
                     'tip': f'[打开验证网页 | Open the verification page]({exc.url})',
@@ -626,6 +636,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
     def __init__(self, config_entry: config_entries.ConfigEntry):
         if HA_VERSION < '2024.12':
             self.config_entry = config_entry
+        self.micoapi_cloud: Optional[MiotCloud] = None
 
     @property
     def saved_config(self):
@@ -651,7 +662,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
         data = self.config_entry.data
         if CONF_USERNAME in data:
             self.config_data = self.saved_config
-            return await self.async_step_cloud()
+            return await self.async_step_cloud(user_input)
 
         if 'customizing_entity' in data or 'customizing_device' in data:
             return self.async_abort(
@@ -703,6 +714,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                 **prev_input,
                 **user_input,
             }
+            if user_input.pop('micoapi_verify', False):
+                return await self.async_step_micoapi()
             renew = not not user_input.pop('renew_devices', False)
             await self.check_xiaomi_account(user_input, errors, renew_devices=renew)
             if not errors:
@@ -733,9 +746,95 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             vol.Optional('trans_options', default=user_input.get('trans_options', False)): bool,
             vol.Optional('disable_message', default=user_input.get('disable_message', False)): bool,
             vol.Optional('disable_scene_history', default=user_input.get('disable_scene_history', False)): bool,
+            vol.Optional('micoapi_verify', default=False): bool,
         })
         return self.async_show_form(
             step_id='cloud',
+            data_schema=vol.Schema(schema),
+            errors=errors,
+            description_placeholders=self.pop_placeholders(),
+        )
+
+    async def async_step_micoapi(self, user_input=None):
+        errors = {}
+        cfg = {
+            **self.saved_config,
+            'sid': 'micoapi',
+            'service_token': None,
+            'ssecurity': None,
+        }
+        try:
+            if not self.micoapi_cloud:
+                self.micoapi_cloud = await MiotCloud.from_token(self.hass, cfg, login=False)
+                self.micoapi_cloud.login_times = 0
+            if not isinstance(user_input, dict):
+                self.micoapi_cloud.service_token = None
+                self.micoapi_cloud.ssecurity = None
+                self.micoapi_cloud.async_session = None
+                self.micoapi_cloud.attrs.pop('verify_url', None)
+                self.micoapi_cloud.attrs.pop('identity_session', None)
+            if isinstance(user_input, dict):
+                ticket = (user_input.get('verify_ticket') or '').strip()
+                if not ticket:
+                    errors['base'] = 'need_verify'
+                else:
+                    try:
+                        await self.micoapi_cloud.async_login({'verify_ticket': ticket})
+                    except MiCloudAccessDenied as exc:
+                        if not self.is_micoapi_sts_unauthorized(exc):
+                            raise
+                        _LOGGER.warning(
+                            'Xiaomi micoapi STS returned 401 after verification; retrying login once.'
+                        )
+                        await asyncio.sleep(3)
+                        self.micoapi_cloud.service_token = None
+                        self.micoapi_cloud.ssecurity = None
+                        self.micoapi_cloud.async_session = None
+                        self.micoapi_cloud.attrs.pop('identity_session', None)
+                        self.micoapi_cloud.attrs.pop('verify_url', None)
+                        await self.micoapi_cloud.async_login()
+                    self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
+                    return self.async_create_entry(title='', data={})
+            elif await self.micoapi_cloud.async_login():
+                self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
+                return self.async_create_entry(title='', data={})
+            else:
+                errors['base'] = 'cannot_login'
+        except (MiCloudException, MiCloudAccessDenied, Exception) as exc:
+            err = f'{exc}'
+            self.placeholders['tip'] = f'⚠️ {err}'
+            errors['base'] = 'cannot_login'
+            if isinstance(exc, MiCloudNeedVerify):
+                errors['base'] = exc.message
+                self.context[exc.message] = True
+                self.context['verify_url'] = exc.url
+                self.placeholders.update({
+                    'url': exc.url,
+                    'tip': (
+                        f'[打开 micoapi 验证网页 | Open micoapi verification page]({exc.url})\n\n'
+                        '在网页里发送手机/邮箱验证码，收到后不要在网页提交，回到这里填写验证码。'
+                    ),
+                })
+            elif isinstance(exc, requests.exceptions.ConnectionError):
+                errors['base'] = 'cannot_reach'
+            if isinstance(exc, MiCloudNeedVerify):
+                _LOGGER.info('Setup xiaomi micoapi for entry: %s needs verification.', self.config_entry.entry_id)
+            else:
+                _LOGGER.error('Setup xiaomi micoapi for entry: %s failed.', self.config_entry.entry_id, exc_info=True)
+
+        schema = {}
+        if self.context.get('need_verify'):
+            if url := self.context.get('verify_url'):
+                self.placeholders.setdefault('url', url)
+                self.placeholders.setdefault('tip', (
+                    f'[打开 micoapi 验证网页 | Open micoapi verification page]({url})\n\n'
+                    '在网页里发送手机/邮箱验证码，收到后不要在网页提交，回到这里填写验证码。'
+                ))
+            schema.update({
+                vol.Required('verify_ticket', default=''): str,
+            })
+        return self.async_show_form(
+            step_id='micoapi',
             data_schema=vol.Schema(schema),
             errors=errors,
             description_placeholders=self.pop_placeholders(),
