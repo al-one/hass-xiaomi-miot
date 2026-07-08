@@ -63,7 +63,8 @@
             "cannot_login": "Login all'account xiaomi cloud fallito, per favore controlla che la password sia corretta. Seil login continua a fallrie, effettua il login a mi.com inello stesso ambiente del corrente network e riprova.",
             "cannot_reach": " Impossibile accedere all'API Xiaomi",
             "tzinfo_error": "Guardare: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Nessun dispositivo nell'account xiaomi cloud"
+            "none_devices": "Nessun dispositivo nell'account xiaomi cloud",
+            "need_verify": "Questo accesso richiede una verifica di sicurezza. Apri il link di verifica qui sotto per inviare il codice tramite telefono/e-mail. Dopo aver ricevuto il codice, non verificarlo nella pagina web. Torna in Home Assistant e inseriscilo nel campo sottostante."
         },
         "abort": {
             "config_saved": "Configurazione salvata! [Personalizza di nuovo](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlcune opzioni di personalizzazione richiedono [reload integration](/developer-tools/yaml) per avere effetto.",
@@ -129,7 +130,8 @@
             "cannot_login": "Login all'account xiaomi cloud fallito, per favore controlla che la password sia corretta. Seil login continua a fallrie, effettua il login a mi.com inello stesso ambiente del corrente network e riprova.",
             "cannot_reach": " Impossibile accedere all'API Xiaomi",
             "tzinfo_error": "Guardare: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Nessun dispositivo nell'account xiaomi cloud"
+            "none_devices": "Nessun dispositivo nell'account xiaomi cloud",
+            "need_verify": "Questo accesso richiede una verifica di sicurezza. Apri il link di verifica qui sotto per inviare il codice tramite telefono/e-mail. Dopo aver ricevuto il codice, non verificarlo nella pagina web. Torna in Home Assistant e inseriscilo nel campo sottostante."
         },
         "abort": {
             "show_customizes": "[Aggiungi nuova integrazione](/_my_redirect/config_flow_start?domain=xiaomi_miot) per modificare la personalizzazione.\n{link}\n{tip}"

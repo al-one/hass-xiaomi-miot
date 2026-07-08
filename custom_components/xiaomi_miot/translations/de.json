@@ -63,7 +63,8 @@
             "cannot_login": "Login in das Xiaomi Cloud-Konto fehlgeschlagen. Bitte überprüfe das Passwort. Wenn die Anmeldung nach mehreren Versuchen fehlschlägt, verwenden Sie bitte ein anderes Gerät im selben LAN wie der HA-Host, um sich auf der offiziellen Xiaomi-Website (mi.com) anzumelden, und versuchen Sie es erneut.",
             "cannot_reach": "Zugriff auf Xiaomi-API nicht möglich",
             "tzinfo_error": "Weitere Informationen: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Keine Geräte im Xiaomi Cloud-Konto"
+            "none_devices": "Keine Geräte im Xiaomi Cloud-Konto",
+            "need_verify": "Diese Anmeldung erfordert eine Sicherheitsverifizierung. Öffnen Sie den unten stehenden Verifizierungslink, um den Telefon-/E-Mail-Code zu senden. Nach Erhalt des Codes verifizieren Sie ihn nicht auf der Webseite. Kehren Sie zu Home Assistant zurück und geben Sie ihn unten ein."
         },
         "abort": {
             "config_saved": "Konfiguration gespeichert! [Erneut anpassen](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nEinige anpassbare Einstellungen müssen [neu geladen werden](/developer-tools/yaml) um wirksam zu werden.",
@@ -128,7 +129,8 @@
             "cannot_login": "Login in das Xiaomi Cloud-Konto fehlgeschlagen. Bitte überprüfe das Passwort. Wenn die Anmeldung nach mehreren Versuchen fehlschlägt, verwenden Sie bitte ein anderes Gerät im selben LAN wie der HA-Host, um sich auf der offiziellen Xiaomi-Website (mi.com) anzumelden, und versuchen Sie es erneut.",
             "cannot_reach": "Zugriff auf Xiaomi-API nicht möglich",
             "tzinfo_error": "See: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Keine Geräte im Xiaomi Cloud Konto"
+            "none_devices": "Keine Geräte im Xiaomi Cloud Konto",
+            "need_verify": "Diese Anmeldung erfordert eine Sicherheitsverifizierung. Öffnen Sie den unten stehenden Verifizierungslink, um den Telefon-/E-Mail-Code zu senden. Nach Erhalt des Codes verifizieren Sie ihn nicht auf der Webseite. Kehren Sie zu Home Assistant zurück und geben Sie ihn unten ein."
         },
         "abort": {
             "show_customizes": "[Neue Integration hinzufügen](/_my_redirect/config_flow_start?domain=xiaomi_miot) um Anpassungen zu bearbeiten.\n{link}\n{tip}"

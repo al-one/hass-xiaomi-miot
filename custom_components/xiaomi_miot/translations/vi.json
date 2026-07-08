@@ -73,7 +73,7 @@
             "cannot_reach": "Không thể truy cập API Xiaomi",
             "tzinfo_error": "Có vẻ môi trường Hass của bạn gặp vấn đề. Xem: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Không tìm thấy thiết bị nào trong tài khoản Xiaomi này",
-            "need_verify": "Đăng nhập này cần xác thực bảo mật. Hãy mở trang xác thực để gửi mã xác minh qua điện thoại/email. Sau khi nhận mã, KHÔNG xác minh trên web mà quay lại Home Assistant để nhập mã vào ô bên dưới."
+            "need_verify": "Đăng nhập này cần xác thực bảo mật. Hãy mở liên kết xác thực bên dưới để gửi mã xác minh qua điện thoại/email. Sau khi nhận mã, không xác minh trên trang web. Quay lại Home Assistant và nhập mã vào ô bên dưới."
         },
         "abort": {
             "config_saved": "Đã lưu cấu hình! [Tùy chỉnh lại](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nMột số tùy chọn cần [tải lại tích hợp](/developer-tools/yaml) để có hiệu lực.",
@@ -147,7 +147,7 @@
             "cannot_reach": "Không thể truy cập API Xiaomi",
             "tzinfo_error": "Có vẻ môi trường Hass của bạn gặp vấn đề. Xem: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Không tìm thấy thiết bị nào trong tài khoản Xiaomi này",
-            "need_verify": "Đăng nhập này cần xác thực bảo mật. Hãy mở trang xác thực để gửi mã xác minh qua điện thoại/email. Sau khi nhận mã, KHÔNG xác minh trên web mà quay lại Home Assistant để nhập mã vào ô bên dưới."
+            "need_verify": "Đăng nhập này cần xác thực bảo mật. Hãy mở liên kết xác thực bên dưới để gửi mã xác minh qua điện thoại/email. Sau khi nhận mã, không xác minh trên trang web. Quay lại Home Assistant và nhập mã vào ô bên dưới."
         },
         "abort": {
             "show_customizes": "[Thêm tích hợp mới](/_my_redirect/config_flow_start?domain=xiaomi_miot) để chỉnh sửa tùy chỉnh.\n{link}\n{tip}"

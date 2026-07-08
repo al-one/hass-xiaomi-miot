@@ -63,7 +63,8 @@
             "cannot_login": "Nem sikerült bejelentkezni a Xiaomi fiókba. Kérjük, ellenőrizze a fiók adatait. Ha a bejelentkezési kísérletek többször is sikertelenek, próbálkozzon újra a Xiaomi hivatalos weboldalán (mi.com) ugyanazon hálózati környezetben.",
             "cannot_reach": "Nem sikerült elérni a Xiaomi API felületet",
             "tzinfo_error": "Probléma van a Hass környezetével. Kérjük, olvassa el a következő leírást: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt"
+            "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt",
+            "need_verify": "Ez a bejelentkezés biztonsági ellenőrzést igényel. Nyisd meg az alábbi ellenőrzési linket a telefonos/e-mailes kód elküldéséhez. A kód megérkezése után ne a weboldalon ellenőrizd. Térj vissza a Home Assistantba, és írd be az alábbi mezőbe."
         },
         "abort": {
             "config_saved": "Konfiguráció mentve! [Testreszabás újra](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nNéhány testreszabási lehetőség érvénybe léptetéséhez [újra kell tölteni az integrációt](/developer-tools/yaml).",
@@ -128,7 +129,8 @@
             "cannot_login": "Nem sikerült bejelentkezni a Xiaomi fiókba. Kérjük, ellenőrizze a fiók adatait. Ha a bejelentkezési kísérletek többször is sikertelenek, próbálkozzon újra a Xiaomi hivatalos weboldalán (mi.com) ugyanazon hálózati környezetben.",
             "cannot_reach": "Nem sikerült elérni a Xiaomi API felületet",
             "tzinfo_error": "Probléma van a Hass környezetével. Kérjük, olvassa el a következő leírást: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt"
+            "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt",
+            "need_verify": "Ez a bejelentkezés biztonsági ellenőrzést igényel. Nyisd meg az alábbi ellenőrzési linket a telefonos/e-mailes kód elküldéséhez. A kód megérkezése után ne a weboldalon ellenőrizd. Térj vissza a Home Assistantba, és írd be az alábbi mezőbe."
         },
         "abort": {
             "show_customizes": "[Új integráció hozzáadása](/_my_redirect/config_flow_start?domain=xiaomi_miot) a testreszabás módosításához.\n{link}\n{tip}"

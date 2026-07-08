@@ -116,7 +116,7 @@
                 "title": "验证小爱音箱播放控制",
                 "description": "小爱音箱 Play Control 需要单独完成一次安全验证。\n{tip}",
                 "data": {
-                    "verify_ticket": "Mobile/email verification code"
+                    "verify_ticket": "手机/邮箱验证码"
                 }
             },
             "cloud_filter": {

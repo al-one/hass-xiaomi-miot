@@ -384,6 +384,13 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                         self.name_model,
                         url or exc,
                     )
+                except Exception as exc:
+                    self.logger.warning(
+                        '%s: micoapi login failed: %s',
+                        self.name_model,
+                        exc,
+                        exc_info=True,
+                    )
 
     async def async_update(self):
         await super().async_update()

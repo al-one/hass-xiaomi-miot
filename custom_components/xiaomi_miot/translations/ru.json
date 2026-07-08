@@ -62,7 +62,8 @@
             "cannot_login": "Не удалось подключиться к аккаунту Сяоми. Проверьте пароль. При повторных ошибках авторизируйтесь на mi.com в той же среде и попробуйте снова.",
             "cannot_reach": "Нет доступа к API Сяоми",
             "tzinfo_error": "Перейдите по ссылке: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Не найдено устройств в облаке Сяоми"
+            "none_devices": "Не найдено устройств в облаке Сяоми",
+            "need_verify": "Этот вход требует проверки безопасности. Откройте ссылку проверки ниже, чтобы отправить код на телефон или e-mail. После получения кода не подтверждайте его на веб-странице. Вернитесь в Home Assistant и введите его в поле ниже."
         },
         "abort": {
             "config_saved": "Конфигурация сохранена! [Настроить снова](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nНекоторые опции требуют перезагрузки конфигурации [reload integration](/developer-tools/yaml) для эффекта.",
@@ -125,7 +126,8 @@
             "cannot_login": "Не удалось полключиться к аккаунту Сяоми. Проверьте пароль. При повторных ошибках авторизируйтесь на mi.com в той же среде и попробуйте снова.",
             "cannot_reach": "Нет доступа к API Сяоми",
             "tzinfo_error": "Перейдите по ссылке: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Не найдено устройств в облаке Сяоми"
+            "none_devices": "Не найдено устройств в облаке Сяоми",
+            "need_verify": "Этот вход требует проверки безопасности. Откройте ссылку проверки ниже, чтобы отправить код на телефон или e-mail. После получения кода не подтверждайте его на веб-странице. Вернитесь в Home Assistant и введите его в поле ниже."
         },
         "abort": {
             "show_customizes": "[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_miot) to modify customization.\n{link}\n{tip}"

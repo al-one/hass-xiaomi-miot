@@ -715,6 +715,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                 **user_input,
             }
             if user_input.pop('micoapi_verify', False):
+                user_input.pop('renew_devices', None)
+                user_input.pop('verify_ticket', None)
+                user_input.pop('captcha', None)
+                self.config_data.update(user_input)
                 return await self.async_step_micoapi()
             renew = not not user_input.pop('renew_devices', False)
             await self.check_xiaomi_account(user_input, errors, renew_devices=renew)
@@ -758,7 +762,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
     async def async_step_micoapi(self, user_input=None):
         errors = {}
         cfg = {
-            **self.saved_config,
+            **self.config_data,
             'sid': 'micoapi',
             'service_token': None,
             'ssecurity': None,
@@ -793,11 +797,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                         self.micoapi_cloud.attrs.pop('identity_session', None)
                         self.micoapi_cloud.attrs.pop('verify_url', None)
                         await self.micoapi_cloud.async_login()
-                    self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
-                    return self.async_create_entry(title='', data={})
+                    return self._finish_micoapi()
             elif await self.micoapi_cloud.async_login():
-                self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
-                return self.async_create_entry(title='', data={})
+                return self._finish_micoapi()
             else:
                 errors['base'] = 'cannot_login'
         except (MiCloudException, MiCloudAccessDenied, Exception) as exc:
@@ -839,6 +841,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             errors=errors,
             description_placeholders=self.pop_placeholders(),
         )
+
+    def _finish_micoapi(self):
+        self.config_data.pop('micoapi_verify', None)
+        self.config_data.pop('renew_devices', None)
+        self.config_data.pop('verify_ticket', None)
+        self.config_data.pop('captcha', None)
+        self.hass.config_entries.async_update_entry(self.config_entry, data=self.config_data)
+        self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
+        return self.async_create_entry(title='', data={})
 
     async def async_step_cloud_filter(self, user_input=None):
         errors = {}

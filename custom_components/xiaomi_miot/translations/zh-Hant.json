@@ -67,7 +67,8 @@
             "cannot_login": "小米帳號登入失敗，請檢查帳號密碼。如多次嘗試仍登入失敗，請在與目前網路相同的環境下登入小米官網(mi.com)後重試",
             "cannot_reach": "無法存取小米 API",
             "tzinfo_error": "您的 Hass 環境看起來有點問題，請參考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "該小米帳號下沒有裝置"
+            "none_devices": "該小米帳號下沒有裝置",
+            "need_verify": "本次登入需要安全驗證。請開啟下方驗證連結發送手機/電子郵件驗證碼，收到驗證碼後不要在網頁驗證，回到 Home Assistant 填入下方輸入框。"
         },
         "abort": {
             "config_saved": "設定已儲存！[再次自訂](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自訂選項需要[重新載入整合](/developer-tools/yaml)才能生效。",
@@ -135,7 +136,8 @@
             "cannot_login": "小米帳號登入失敗，請檢查帳號密碼。如多次嘗試仍登入失敗，請使用與 HA 主機同一區域網路下的其他裝置登入小米官網(mi.com)後重試",
             "cannot_reach": "無法存取小米 API",
             "tzinfo_error": "您的 Hass 環境看起來有點問題，請參考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "該小米帳號下沒有裝置"
+            "none_devices": "該小米帳號下沒有裝置",
+            "need_verify": "本次登入需要安全驗證。請開啟下方驗證連結發送手機/電子郵件驗證碼，收到驗證碼後不要在網頁驗證，回到 Home Assistant 填入下方輸入框。"
         },
         "abort": {
             "show_customizes": "請再次添加[`Xiaomi Miot`](/_my_redirect/config_flow_start?domain=xiaomi_miot)整合來修改自訂選項\n{link}\n{tip}"

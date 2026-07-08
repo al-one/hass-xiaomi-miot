@@ -63,7 +63,8 @@
             "cannot_login": "Přihlášení k účtu Mi se nezdařilo, zkontrolujte prosím heslo účtu. Pokud se přihlášení po několika pokusech nezdaří, použijte k přihlášení na oficiální webové stránky Xiaomi (mi.com) jiné zařízení ve stejné síti LAN jako hostitel HA a zkuste to znovu.",
             "cannot_reach": "Nelze získat přístup k Xiaomi API",
             "tzinfo_error": "Viz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi"
+            "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi",
+            "need_verify": "Toto přihlášení vyžaduje bezpečnostní ověření. Otevřete níže uvedený ověřovací odkaz a odešlete kód pro telefon/e-mail. Po obdržení kódu jej neověřujte na webové stránce. Vraťte se do Home Assistantu a zadejte jej do pole níže."
         },
         "abort": {
             "config_saved": "Konfigurace uložena! [Přizpůsobit znovu](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nNěkteré přizpůsobitelné možnosti vyžadují [obnovení integrace](/developer-tools/yaml), aby se projevily.",
@@ -128,7 +129,8 @@
             "cannot_login": "Přihlášení k účtu Mi se nezdařilo, zkontrolujte heslo účtu. ",
             "cannot_reach": "Nelze získat přístup k Xiaomi API",
             "tzinfo_error": "Viz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi"
+            "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi",
+            "need_verify": "Toto přihlášení vyžaduje bezpečnostní ověření. Otevřete níže uvedený ověřovací odkaz a odešlete kód pro telefon/e-mail. Po obdržení kódu jej neověřujte na webové stránce. Vraťte se do Home Assistantu a zadejte jej do pole níže."
         },
         "abort": {
             "show_customizes": "{link}\n{tip}"

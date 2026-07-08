@@ -63,7 +63,8 @@
             "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
             "cannot_reach": "Incapaz de accessar a API Xiaomi",
             "tzinfo_error": "Aparentemente há um problema no seu ambiente Hass. Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Sem dispositivos na conta xiaomi"
+            "none_devices": "Sem dispositivos na conta xiaomi",
+            "need_verify": "Este login requer verificação de segurança. Abra o link de verificação abaixo para enviar o código por celular/e-mail. Depois de receber o código, não o verifique na página web. Volte para o Home Assistant e digite-o no campo abaixo."
         },
         "abort": {
             "config_saved": "Configuração guardada! [Customize novamente](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlgumas opções de customização podem requerir [recarregar a integração](/developer-tools/yaml) para ter efeito.",
@@ -129,7 +130,8 @@
             "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
             "cannot_reach": "Incapaz de accessar a API Xiaomi",
             "tzinfo_error": "Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Sem dispositivos na conta xiaomi"
+            "none_devices": "Sem dispositivos na conta xiaomi",
+            "need_verify": "Este login requer verificação de segurança. Abra o link de verificação abaixo para enviar o código por celular/e-mail. Depois de receber o código, não o verifique na página web. Volte para o Home Assistant e digite-o no campo abaixo."
         },
         "abort": {
             "show_customizes": "[Adicionar nova integração](/_my_redirect/config_flow_start?domain=xiaomi_miot) para modificar a customização.\n{link}\n{tip}"
