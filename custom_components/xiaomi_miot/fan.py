@@ -71,6 +71,9 @@ class FanEntity(XEntity, BaseEntity):
     _conv_oscillate = None
     _act_turn_left = None
     _act_turn_right = None
+    _prop_direction = None
+    _direction_left = None
+    _direction_right = None
     _prop_speed = None
     _prop_percentage = None
 
@@ -113,6 +116,16 @@ class FanEntity(XEntity, BaseEntity):
             else:
                 self._act_turn_left = None
                 self._act_turn_right = None
+                for prop in self._miot_service.spec.get_properties('motor_control'):
+                    left = prop.list_first('left')
+                    right = prop.list_first('right')
+                    if not prop.writeable or left is None or right is None:
+                        continue
+                    self._prop_direction = prop
+                    self._direction_left = left
+                    self._direction_right = right
+                    self._attr_supported_features |= FanEntityFeature.DIRECTION
+                    break
 
         # issues/617
         if self.custom_config_bool('disable_preset_modes'):
@@ -239,17 +252,20 @@ class FanEntity(XEntity, BaseEntity):
         await self.device.async_write({self._conv_oscillate.full_name: oscillating})
 
     async def async_set_direction(self, direction: str):
-        action = {
-            DIRECTION_REVERSE: self._act_turn_left,
-            DIRECTION_FORWARD: self._act_turn_right,
-            'left': self._act_turn_left,
-            'right': self._act_turn_right,
-        }.get(direction)
-        if not action:
+        if direction in [DIRECTION_REVERSE, 'left']:
+            action = self._act_turn_left
+            value = self._direction_left
+        elif direction in [DIRECTION_FORWARD, 'right']:
+            action = self._act_turn_right
+            value = self._direction_right
+        else:
             return
         if self._conv_oscillate and self._attr_oscillating:
             await self.async_oscillate(False)
-        return await self.async_call_action(action)
+        if action:
+            return await self.async_call_action(action)
+        if self._prop_direction:
+            return await self.async_set_property(self._prop_direction, value)
 
 
 XEntity.CLS[ENTITY_DOMAIN] = FanEntity
