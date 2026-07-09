@@ -4,6 +4,8 @@ from homeassistant.helpers.event import async_call_later
 
 from homeassistant.components.fan import (
     DOMAIN as ENTITY_DOMAIN,
+    DIRECTION_FORWARD,
+    DIRECTION_REVERSE,
     FanEntity as BaseEntity,
     FanEntityFeature,
 )
@@ -67,6 +69,8 @@ class FanEntity(XEntity, BaseEntity):
     _speed_list = None
     _speed_range = None
     _conv_oscillate = None
+    _act_turn_left = None
+    _act_turn_right = None
     _prop_speed = None
     _prop_percentage = None
 
@@ -99,6 +103,16 @@ class FanEntity(XEntity, BaseEntity):
             elif prop.in_list(['horizontal_swing', 'vertical_swing']) and not self._conv_oscillate:
                 self._conv_oscillate = conv
                 self._attr_supported_features |= FanEntityFeature.OSCILLATE
+
+        if self._miot_service:
+            self._act_turn_left = self._miot_service.get_action('turn_left')
+            self._act_turn_right = self._miot_service.get_action('turn_right')
+            direction_actions = (self._act_turn_left, self._act_turn_right)
+            if all(action and not action.ins for action in direction_actions):
+                self._attr_supported_features |= FanEntityFeature.DIRECTION
+            else:
+                self._act_turn_left = None
+                self._act_turn_right = None
 
         # issues/617
         if self.custom_config_bool('disable_preset_modes'):
@@ -223,6 +237,19 @@ class FanEntity(XEntity, BaseEntity):
         if not self._conv_oscillate:
             return
         await self.device.async_write({self._conv_oscillate.full_name: oscillating})
+
+    async def async_set_direction(self, direction: str):
+        action = {
+            DIRECTION_REVERSE: self._act_turn_left,
+            DIRECTION_FORWARD: self._act_turn_right,
+            'left': self._act_turn_left,
+            'right': self._act_turn_right,
+        }.get(direction)
+        if not action:
+            return
+        if self._conv_oscillate and self._attr_oscillating:
+            await self.async_oscillate(False)
+        return await self.async_call_action(action)
 
 
 XEntity.CLS[ENTITY_DOMAIN] = FanEntity
