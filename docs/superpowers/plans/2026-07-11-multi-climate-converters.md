@@ -19,7 +19,7 @@
 - `option.hvac_mode` applies only to a Climate with power and without a real mode converter; a real mode converter always wins.
 - A power-only Climate without `option.hvac_mode` must retain its current `OFF/AUTO` behavior.
 - Fixed-mode Climate power-present payloads deterministically update `is_on`, HVAC mode, and HVAC action; power-absent payloads preserve all three.
-- The authoritative checked-in entity set is exactly Info, Air Conditioner, Floor Heating, Fresh Air, Temperature, and Physical Controls Locked.
+- The authoritative checked-in entity set is exactly Info, Thermostat, Floor Heating, Fresh Air, Temperature, and Physical Controls Locked.
 - Do not add global duplicate-property precedence, global converter extraction, `RestoreEntity` behavior, coverage tooling, or a multi-version pytest matrix.
 - Preserve the existing stable/dev/2023.7 Home Assistant configuration-validation matrix unchanged.
 
@@ -843,7 +843,6 @@ Create `tests/test_cnhdm_airrtc_wkq01.py`:
 from custom_components.xiaomi_miot.climate import ClimateEntity
 from custom_components.xiaomi_miot.fan import FanEntity
 from custom_components.xiaomi_miot.core.converters import MiotClimateConv, MiotFanConv
-from custom_components.xiaomi_miot.core.hass_entity import convert_unique_id
 
 MODEL = "cnhdm.airrtc.wkq01"
 
@@ -864,9 +863,12 @@ def test_exact_model_converter_mapping(make_device, load_miot_spec):
     assert len(climates) == 2
     assert len(fans) == 1
 
-    air_conditioner = next(c for c in climates if convert_unique_id(c) == 2)
-    floor_heating = device.find_converter("climate.floor_heating")
-    fresh_air = device.find_converter("fan.fresh_air")
+    air_conditioner = climates[0]
+    floor_heating = climates[1]
+    fresh_air = fans[0]
+
+    assert floor_heating.full_name == "climate.floor_heating"
+    assert fresh_air.full_name == "fan.fresh_air"
 
     def unique_props(parent):
         return {
@@ -875,10 +877,10 @@ def test_exact_model_converter_mapping(make_device, load_miot_spec):
         }
 
     assert unique_props(air_conditioner) == {
-        "prop.2.3", "prop.2.1", "prop.2.5", "prop.2.2", "prop.3.1",
+        "prop.2.1", "prop.2.2", "prop.2.3", "prop.2.5", "prop.3.1",
     }
-    assert unique_props(floor_heating) == {"prop.2.10", "prop.2.8", "prop.3.1"}
-    assert unique_props(fresh_air) == {"prop.2.9", "prop.2.7"}
+    assert unique_props(floor_heating) == {"prop.2.8", "prop.2.10", "prop.3.1"}
+    assert unique_props(fresh_air) == {"prop.2.7", "prop.2.9"}
 
     assert all(device.find_converter(attr).domain is None for parent in [*climates, *fans] for attr in parent.attrs)
     assert device.find_converter("button.info") is not None
@@ -890,9 +892,10 @@ def test_exact_model_converter_mapping(make_device, load_miot_spec):
 def test_parent_entity_metadata_and_identity(make_device, load_miot_spec):
     device = model_device(make_device, load_miot_spec)
     climates = [c for c in device.converters if isinstance(c, MiotClimateConv)]
-    air_converter = next(c for c in climates if convert_unique_id(c) == 2)
-    floor_converter = device.find_converter("climate.floor_heating")
-    fan_converter = device.find_converter("fan.fresh_air")
+    fans = [c for c in device.converters if isinstance(c, MiotFanConv)]
+    air_converter = climates[0]
+    floor_converter = climates[1]
+    fan_converter = fans[0]
 
     air = ClimateEntity(device, air_converter)
     floor = ClimateEntity(device, floor_converter)
@@ -904,10 +907,10 @@ def test_parent_entity_metadata_and_identity(make_device, load_miot_spec):
         f"{device.unique_id}-fresh_air",
     ]
     assert len({air.unique_id, floor.unique_id, fresh.unique_id}) == 3
-    assert air._attr_name == "Air Conditioner"
+    assert air._attr_name == "Thermostat"
     assert floor._attr_name == "Floor Heating"
     assert fresh._attr_name == "Fresh Air"
-    assert air._attr_translation_key is None
+    assert air._attr_translation_key == "thermostat"
     assert floor._attr_translation_key is None
     assert fresh._attr_translation_key is None
     assert "thermostat" in air.entity_id
@@ -937,13 +940,12 @@ Add this entry to `DEVICE_CUSTOMIZES` in `custom_components/xiaomi_miot/core/dev
                 'services': ['thermostat'],
                 'kwargs': {
                     'main_props': ['prop.2.1'],
-                    'option': {'name': 'Air Conditioner'},
                 },
                 'converters': [
-                    {'props': ['prop.2.3']},
                     {'props': ['prop.2.1'], 'desc': True},
-                    {'props': ['prop.2.5']},
                     {'props': ['prop.2.2'], 'desc': True},
+                    {'props': ['prop.2.3']},
+                    {'props': ['prop.2.5']},
                     {'props': ['prop.3.1']},
                 ],
             },
@@ -960,8 +962,8 @@ Add this entry to `DEVICE_CUSTOMIZES` in `custom_components/xiaomi_miot/core/dev
                     },
                 },
                 'converters': [
-                    {'props': ['prop.2.10']},
                     {'props': ['prop.2.8']},
+                    {'props': ['prop.2.10']},
                     {'props': ['prop.3.1']},
                 ],
             },
@@ -977,8 +979,8 @@ Add this entry to `DEVICE_CUSTOMIZES` in `custom_components/xiaomi_miot/core/dev
                     },
                 },
                 'converters': [
-                    {'props': ['prop.2.9']},
                     {'props': ['prop.2.7'], 'desc': True},
+                    {'props': ['prop.2.9']},
                 ],
             },
         ],
@@ -1071,7 +1073,7 @@ def test_complete_entity_set(make_device, load_miot_spec):
         "sensor": 1,
         "switch": 1,
     }
-    assert sorted(entity._attr_name for entity in entities["climate"]) == ["Air Conditioner", "Floor Heating"]
+    assert sorted(entity._attr_name for entity in entities["climate"]) == ["Floor Heating", "Thermostat"]
     assert entities["fan"][0]._attr_name == "Fresh Air"
     assert entities["sensor"][0]._miot_property.unique_prop == "prop.3.1"
     assert entities["switch"][0]._miot_property.unique_prop == "prop.5.1"
@@ -1084,11 +1086,17 @@ Append:
 
 ```python
 def control_entities(device):
-    climates = [ClimateEntity(device, c) for c in device.converters if isinstance(c, MiotClimateConv)]
-    air = next(entity for entity in climates if entity.unique_id.endswith("-2"))
-    floor = next(entity for entity in climates if entity.unique_id.endswith("-floor_heating"))
-    fresh = FanEntity(device, device.find_converter("fan.fresh_air"))
-    return air, floor, fresh
+    climates = [
+        ClimateEntity(device, converter)
+        for converter in device.converters
+        if isinstance(converter, MiotClimateConv)
+    ]
+    fans = [
+        FanEntity(device, converter)
+        for converter in device.converters
+        if isinstance(converter, MiotFanConv)
+    ]
+    return climates[0], climates[1], fans[0]
 
 
 def test_air_conditioner_modes_and_ventilation_preset(make_device, load_miot_spec):

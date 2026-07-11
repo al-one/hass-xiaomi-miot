@@ -145,15 +145,12 @@ Add the following customization for `cnhdm.airrtc.wkq01`:
             'services': ['thermostat'],
             'kwargs': {
                 'main_props': ['prop.2.1'],
-                'option': {
-                    'name': 'Air Conditioner',
-                },
             },
             'converters': [
-                {'props': ['prop.2.3']},
                 {'props': ['prop.2.1'], 'desc': True},
-                {'props': ['prop.2.5']},
                 {'props': ['prop.2.2'], 'desc': True},
+                {'props': ['prop.2.3']},
+                {'props': ['prop.2.5']},
                 {'props': ['prop.3.1']},
             ],
         },
@@ -170,8 +167,8 @@ Add the following customization for `cnhdm.airrtc.wkq01`:
                 },
             },
             'converters': [
-                {'props': ['prop.2.10']},
                 {'props': ['prop.2.8']},
+                {'props': ['prop.2.10']},
                 {'props': ['prop.3.1']},
             ],
         },
@@ -187,8 +184,8 @@ Add the following customization for `cnhdm.airrtc.wkq01`:
                 },
             },
             'converters': [
-                {'props': ['prop.2.9']},
                 {'props': ['prop.2.7'], 'desc': True},
+                {'props': ['prop.2.9']},
             ],
         },
     ],
@@ -203,7 +200,7 @@ Add the following customization for `cnhdm.airrtc.wkq01`:
 - `_attr_translation_key` is cleared so Home Assistant does not translate `thermostat` over the configured name.
 - The configured name is not localized; further languages must use translation keys in code if needed.
 
-When `option.use_unique_attr: true` is also set, the suggested entity ID is generated from `conv.attr` rather than the underlying service or property identifier. The existing air-conditioner Climate uses the fixed `Air Conditioner` display name but does not enable `use_unique_attr`, so it keeps the entity ID derived from the `thermostat` service.
+When `option.use_unique_attr: true` is also set, the suggested entity ID is generated from `conv.attr` rather than the underlying service or property identifier. The existing air-conditioner Climate does not set `option.name` or enable `use_unique_attr`, so it keeps the service-derived `Thermostat` display name, the `thermostat` translation key, and the entity ID derived from the `thermostat` service.
 
 ## Fixed HVAC Mode for Power-Only Climate Entities
 
@@ -367,7 +364,7 @@ The custom entity ID represents a user-renamed existing entity. After loading th
 - Fresh air is registered with unique ID `<device unique ID>-fresh_air` and suggested entity ID suffix `fresh_air`.
 - The registry contains exactly two Climate entities and one Fan entity for these controls.
 - No duplicate thermostat or air-conditioner Climate is created.
-- Updating the air-conditioner display name to `Air Conditioner` does not alter its registry entity ID.
+- The service-derived `Thermostat` display name and `thermostat` translation key do not alter reuse of the existing registry entry.
 
 Unload and reload the config entry, then verify:
 
@@ -407,7 +404,7 @@ Use the fixed local MIoT spec fixture and verify that the complete approved enti
 | Domain | Entity |
 | --- | --- |
 | `button` | Info |
-| `climate` | Air Conditioner |
+| `climate` | Thermostat |
 | `climate` | Floor Heating |
 | `fan` | Fresh Air |
 | `sensor` | Temperature |
@@ -423,7 +420,7 @@ Also verify:
 - No residual global thermostat converter creates an extra Climate or Fan entity.
 - Properties of the `function` service, including weekly-program data, are not exposed as an accidental side effect.
 - The air-conditioner entity retains its previous unique ID and service-derived entity ID.
-- `option.name` sets the fixed display name and clears the service translation key.
+- The air-conditioner parent uses the service-derived `Thermostat` display name and `thermostat` translation key; floor heating and fresh air use fixed names and clear their service translation keys.
 - Floor heating and fresh air use `floor_heating` and `fresh_air` as their suggested entity ID suffixes.
 - Writes from each entity target only its assigned power, mode, temperature, and fan-level properties.
 

@@ -297,13 +297,12 @@ DEVICE_CUSTOMIZES = {
                 'services': ['thermostat'],
                 'kwargs': {
                     'main_props': ['prop.2.1'],
-                    'option': {'name': 'Air Conditioner'},
                 },
                 'converters': [
-                    {'props': ['prop.2.3']},
                     {'props': ['prop.2.1'], 'desc': True},
-                    {'props': ['prop.2.5']},
                     {'props': ['prop.2.2'], 'desc': True},
+                    {'props': ['prop.2.3']},
+                    {'props': ['prop.2.5']},
                     {'props': ['prop.3.1']},
                 ],
             },
@@ -320,8 +319,8 @@ DEVICE_CUSTOMIZES = {
                     },
                 },
                 'converters': [
-                    {'props': ['prop.2.10']},
                     {'props': ['prop.2.8']},
+                    {'props': ['prop.2.10']},
                     {'props': ['prop.3.1']},
                 ],
             },
@@ -337,8 +336,8 @@ DEVICE_CUSTOMIZES = {
                     },
                 },
                 'converters': [
-                    {'props': ['prop.2.9']},
                     {'props': ['prop.2.7'], 'desc': True},
+                    {'props': ['prop.2.9']},
                 ],
             },
         ],
