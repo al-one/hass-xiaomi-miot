@@ -47,7 +47,8 @@ def make_device(hass, request):
     ) -> Device:
         if model not in originals:
             originals[model] = DEVICE_CUSTOMIZES.get(model)
-        DEVICE_CUSTOMIZES[model] = customizes or {}
+        if customizes is not None:
+            DEVICE_CUSTOMIZES[model] = customizes
 
         entry = SimpleNamespace(
             hass=hass,
