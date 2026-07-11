@@ -2,3 +2,4 @@ pytest-homeassistant-custom-component
 construct>=2.10.68
 python-miio>=0.5.12
 micloud>=0.5
+ha-ffmpeg

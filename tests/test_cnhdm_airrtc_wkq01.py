@@ -1,15 +1,18 @@
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.components.climate.const import HVACAction, HVACMode
 from homeassistant.components.fan import FanEntityFeature
-from homeassistant.const import ATTR_TEMPERATURE
+from homeassistant.const import ATTR_TEMPERATURE, CONF_HOST, CONF_NAME, CONF_TOKEN
+from homeassistant.helpers import entity_registry as er
 from homeassistant.util.percentage import ordered_list_item_to_percentage
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.xiaomi_miot import button, sensor, switch  # noqa: F401
+from custom_components.xiaomi_miot import DOMAIN, button, sensor, switch  # noqa: F401
 from custom_components.xiaomi_miot.climate import ClimateEntity
 from custom_components.xiaomi_miot.fan import FanEntity
 from custom_components.xiaomi_miot.core.converters import MiotClimateConv, MiotFanConv
+from custom_components.xiaomi_miot.core.device import Device
 from custom_components.xiaomi_miot.core.hass_entity import convert_unique_id
 
 MODEL = "cnhdm.airrtc.wkq01"
@@ -346,3 +349,115 @@ async def test_fresh_air_write_matrix(make_device, load_miot_spec):
         for params in payloads
         for item in params
     )
+
+
+@pytest.mark.asyncio
+async def test_registry_preserves_air_conditioner_identity_across_reload(
+    hass,
+    load_miot_spec,
+):
+    mac = "aa:bb:cc:dd:ee:ff"
+    air_unique_id = f"{mac}-2"
+    floor_unique_id = f"{mac}-floor_heating"
+    fresh_unique_id = f"{mac}-fresh_air"
+    registry = er.async_get(hass)
+    old = registry.async_get_or_create(
+        "climate",
+        DOMAIN,
+        air_unique_id,
+        suggested_object_id="living_room_ac",
+    )
+    registry.async_update_entity(
+        old.entity_id,
+        new_entity_id="climate.living_room_ac",
+    )
+    original_registry_id = old.id
+
+    spec = load_miot_spec("cnhdm.airrtc.wkq01.json")
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "did": "test-device",
+            "mac": mac,
+            CONF_NAME: "Living Room Air System",
+            CONF_HOST: "127.0.0.1",
+            CONF_TOKEN: "0" * 32,
+            "model": MODEL,
+            "urn": spec.type,
+        },
+    )
+    entry.add_to_hass(hass)
+
+    async def async_init_from_fixture(device):
+        device.spec = load_miot_spec("cnhdm.airrtc.wkq01.json")
+        device.init_converters()
+
+    def control_entries():
+        return {
+            item.unique_id: item
+            for item in registry.entities.values()
+            if item.platform == DOMAIN
+            and item.domain in {"climate", "fan"}
+        }
+
+    with (
+        patch.object(Device, "async_init", async_init_from_fixture),
+        patch(
+            "custom_components.xiaomi_miot.SUPPORTED_DOMAINS",
+            ["climate", "fan"],
+        ),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        first = control_entries()
+        assert set(first) == {air_unique_id, floor_unique_id, fresh_unique_id}
+        assert first[air_unique_id].id == original_registry_id
+        assert first[air_unique_id].entity_id == "climate.living_room_ac"
+        assert first[floor_unique_id].entity_id.endswith("_floor_heating")
+        assert first[fresh_unique_id].entity_id.endswith("_fresh_air")
+        assert len([
+            item for item in first.values()
+            if item.domain == "climate"
+        ]) == 2
+        assert len([
+            item for item in first.values()
+            if item.domain == "fan"
+        ]) == 1
+        first_ids = {
+            unique_id: item.entity_id
+            for unique_id, item in first.items()
+        }
+
+        assert await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+
+        reloaded = control_entries()
+        assert set(reloaded) == {air_unique_id, floor_unique_id, fresh_unique_id}
+        assert {
+            unique_id: item.entity_id
+            for unique_id, item in reloaded.items()
+        } == first_ids
+        assert reloaded[air_unique_id].id == original_registry_id
+        assert len([
+            item for item in reloaded.values()
+            if item.domain == "climate"
+        ]) == 2
+        assert len([
+            item for item in reloaded.values()
+            if item.domain == "fan"
+        ]) == 1
+        assert not reloaded[floor_unique_id].entity_id.endswith(("_2", "_3"))
+        assert not reloaded[fresh_unique_id].entity_id.endswith(("_2", "_3"))
+
+        floor = next(
+            entity
+            for entity in hass.data[DOMAIN]["entities"].values()
+            if entity.unique_id == floor_unique_id
+        )
+        floor.set_state({floor._conv_power.full_name: True})
+        assert (floor._attr_is_on, floor.hvac_mode, floor.hvac_action) == (
+            True,
+            HVACMode.HEAT,
+            HVACAction.HEATING,
+        )
