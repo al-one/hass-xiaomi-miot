@@ -23,7 +23,7 @@ jobs:
         run: pip install -r requirements_test.txt
 
       - name: 🧪 Run focused tests
-        run: pytest -q
+        run: python -m pytest -q
 
   validate-hassfest:
     runs-on: ubuntu-latest
