@@ -615,6 +615,7 @@ class MiotCloud(micloud.MiCloud):
         identity_session = resp.cookies.get('identity_session')
         if not identity_session:
             return False
+        self.attrs['identity_session'] = identity_session
         data = self.json_decode(resp.text) or {}
         flag = data.get('flag', 4)
         options = data.get('options', [flag])

@@ -73,7 +73,7 @@
             "cannot_reach": "Неможливо отримати доступ до API Xiaomi",
             "tzinfo_error": "Схоже, виникла проблема з вашим середовищем Hass. Дивіться: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Не знайдено пристроїв у цьому обліковому записі Xiaomi",
-            "need_verify": "Цей вхід потребує перевірки безпеки. Відкрийте сторінку перевірки для надсилання коду перевірки на телефон або email. Після отримання коду поверніться до Home Assistant і введіть його в поле нижче."
+            "need_verify": "Цей вхід потребує перевірки безпеки. Відкрийте посилання перевірки нижче, щоб надіслати код на телефон або email. Після отримання коду не підтверджуйте його на веб-сторінці. Поверніться до Home Assistant і введіть його в поле нижче."
         },
         "abort": {
             "config_saved": "Конфігурацію збережено! [Налаштувати знову](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nДеякі параметри можуть вимагати [перезавантаження інтеграції](/developer-tools/yaml).",
@@ -105,7 +105,11 @@
                     "renew_devices": "Примусове оновлення пристроїв",
                     "trans_options": "Опис значень властивостей перекладу",
                     "disable_message": "Вимкнути сенсор сповіщень Mihome",
-                    "disable_scene_history": "Вимкнути сенсор історії сцен Mihome"
+                    "disable_scene_history": "Вимкнути сенсор історії сцен Mihome",
+                    "micoapi_verify": "Перевірити керування відтворенням XiaoAI"
+                },
+                "data_description": {
+                    "micoapi_verify": "Увімкніть цей пункт і надішліть сторінку, щоб відкрити додатковий крок перевірки для XiaoAI Play Control. Звичайні налаштування облікового запису Xiaomi не змінюються. Використовуйте, якщо Play Control просить перевірку, недоступний або не може прочитати стан відтворення."
                 }
             },
             "cloud_filter": {
@@ -128,6 +132,13 @@
                     "filter_did": "У режимі виключення, якщо не вибрано жодного варіанту, це еквівалентно включенню всіх пристроїв.",
                     "home_ids": "Після вибору цієї опції та підтвердження ви повернетеся на поточну сторінку,\nі список пристроїв оновиться з урахуванням фільтрації за обраними домами."
                 }
+            },
+            "micoapi": {
+                "title": "Перевірити керування відтворенням XiaoAI",
+                "description": "XiaoAI Play Control потребує окремої перевірки безпеки.\n{tip}",
+                "data": {
+                    "verify_ticket": "Код підтвердження з телефону/e-mail"
+                }
             }
         },
         "error": {
@@ -136,7 +147,7 @@
             "cannot_reach": "Неможливо отримати доступ до API Xiaomi",
             "tzinfo_error": "Схоже, виникла проблема з вашим середовищем Hass. Дивіться: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Не знайдено пристроїв у цьому обліковому записі Xiaomi",
-            "need_verify": "Цей вхід потребує перевірки безпеки. Відкрийте сторінку перевірки для надсилання коду перевірки на телефон або email. Після отримання коду поверніться до Home Assistant і введіть його в поле нижче."
+            "need_verify": "Цей вхід потребує перевірки безпеки. Відкрийте посилання перевірки нижче, щоб надіслати код на телефон або email. Після отримання коду не підтверджуйте його на веб-сторінці. Поверніться до Home Assistant і введіть його в поле нижче."
         },
         "abort": {
             "show_customizes": "[Додати нову інтеграцію](/_my_redirect/config_flow_start?domain=xiaomi_miot) для зміни налаштувань.\n{link}\n{tip}"
@@ -223,18 +234,30 @@
             }
         },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Нестача води"},
-            "pet_drinking_fountain-fault": {"name": "Несправність"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Нестача води"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Несправність"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Не турбувати"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Дитячий замок"}
+            "no_disturb-no_disturb": {
+                "name": "Не турбувати"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Дитячий замок"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Режим води"}
+            "pet_drinking_fountain-mode": {
+                "name": "Режим води"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Інтервал води"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Інтервал води"
+            }
         },
         "climate": {
             "air_conditioner": {

@@ -62,7 +62,8 @@
             "cannot_login": "Не удалось подключиться к аккаунту Сяоми. Проверьте пароль. При повторных ошибках авторизируйтесь на mi.com в той же среде и попробуйте снова.",
             "cannot_reach": "Нет доступа к API Сяоми",
             "tzinfo_error": "Перейдите по ссылке: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Не найдено устройств в облаке Сяоми"
+            "none_devices": "Не найдено устройств в облаке Сяоми",
+            "need_verify": "Этот вход требует проверки безопасности. Откройте ссылку проверки ниже, чтобы отправить код на телефон или e-mail. После получения кода не подтверждайте его на веб-странице. Вернитесь в Home Assistant и введите его в поле ниже."
         },
         "abort": {
             "config_saved": "Конфигурация сохранена! [Настроить снова](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nНекоторые опции требуют перезагрузки конфигурации [reload integration](/developer-tools/yaml) для эффекта.",
@@ -91,7 +92,11 @@
                     "server_country": "Регион сервера MiCloud",
                     "conn_mode": "Режим подключения устройств",
                     "renew_devices": "Заставлять устройства обновляться",
-                    "disable_message": "Выключить датчик уведомлений от Mi Home"
+                    "disable_message": "Выключить датчик уведомлений от Mi Home",
+                    "micoapi_verify": "Проверить управление воспроизведением XiaoAI"
+                },
+                "data_description": {
+                    "micoapi_verify": "Включите этот пункт и отправьте страницу, чтобы открыть дополнительный шаг проверки для XiaoAI Play Control. Обычные настройки аккаунта Xiaomi не изменяются. Используйте, если Play Control требует проверку, недоступен или не может прочитать состояние воспроизведения."
                 }
             },
             "cloud_filter": {
@@ -107,6 +112,13 @@
                     "filter_did": "Фильтр устройств",
                     "did_list": "Список устройств"
                 }
+            },
+            "micoapi": {
+                "title": "Проверить управление воспроизведением XiaoAI",
+                "description": "Для XiaoAI Play Control нужна отдельная проверка безопасности.\n{tip}",
+                "data": {
+                    "verify_ticket": "Код подтверждения по телефону/e-mail"
+                }
             }
         },
         "error": {
@@ -114,7 +126,8 @@
             "cannot_login": "Не удалось полключиться к аккаунту Сяоми. Проверьте пароль. При повторных ошибках авторизируйтесь на mi.com в той же среде и попробуйте снова.",
             "cannot_reach": "Нет доступа к API Сяоми",
             "tzinfo_error": "Перейдите по ссылке: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Не найдено устройств в облаке Сяоми"
+            "none_devices": "Не найдено устройств в облаке Сяоми",
+            "need_verify": "Этот вход требует проверки безопасности. Откройте ссылку проверки ниже, чтобы отправить код на телефон или e-mail. После получения кода не подтверждайте его на веб-странице. Вернитесь в Home Assistant и введите его в поле ниже."
         },
         "abort": {
             "show_customizes": "[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_miot) to modify customization.\n{link}\n{tip}"
@@ -122,18 +135,30 @@
     },
     "entity": {
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Недостаток воды"},
-            "pet_drinking_fountain-fault": {"name": "Неисправность"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Недостаток воды"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Неисправность"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Не беспокоить"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Детский замок"}
+            "no_disturb-no_disturb": {
+                "name": "Не беспокоить"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Детский замок"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Режим воды"}
+            "pet_drinking_fountain-mode": {
+                "name": "Режим воды"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Интервал воды"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Интервал воды"
+            }
         }
     },
     "system_health": {

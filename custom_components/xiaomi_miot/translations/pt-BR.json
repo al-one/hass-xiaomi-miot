@@ -63,7 +63,8 @@
             "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
             "cannot_reach": "Incapaz de accessar a API Xiaomi",
             "tzinfo_error": "Aparentemente há um problema no seu ambiente Hass. Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Sem dispositivos na conta xiaomi"
+            "none_devices": "Sem dispositivos na conta xiaomi",
+            "need_verify": "Este login requer verificação de segurança. Abra o link de verificação abaixo para enviar o código por celular/e-mail. Depois de receber o código, não o verifique na página web. Volte para o Home Assistant e digite-o no campo abaixo."
         },
         "abort": {
             "config_saved": "Configuração guardada! [Customize novamente](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlgumas opções de customização podem requerir [recarregar a integração](/developer-tools/yaml) para ter efeito.",
@@ -93,7 +94,11 @@
                     "conn_mode": "Modo de conexão com o dispositivo",
                     "renew_devices": "Forçar renovar dispositivos",
                     "disable_message": "Desabilitar o sensor de notificação Mihome",
-                    "disable_scene_history": "Desabilitar o histórico do sensor de cena"
+                    "disable_scene_history": "Desabilitar o histórico do sensor de cena",
+                    "micoapi_verify": "Verificar controle de reprodução XiaoAI"
+                },
+                "data_description": {
+                    "micoapi_verify": "Ative esta opção e envie esta página para abrir a etapa extra de verificação do XiaoAI Play Control. Isso não altera as configurações normais da conta Xiaomi. Use quando o Play Control pedir verificação, estiver indisponível ou não conseguir ler o status de reprodução."
                 }
             },
             "cloud_filter": {
@@ -111,6 +116,13 @@
                     "filter_did": "Filtrar Dispositivos",
                     "did_list": "Lista de Dispositivos"
                 }
+            },
+            "micoapi": {
+                "title": "Verificar controle de reprodução XiaoAI",
+                "description": "O XiaoAI Play Control precisa de uma verificação de segurança separada.\n{tip}",
+                "data": {
+                    "verify_ticket": "Código de verificação por telefone/e-mail"
+                }
             }
         },
         "error": {
@@ -118,7 +130,8 @@
             "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
             "cannot_reach": "Incapaz de accessar a API Xiaomi",
             "tzinfo_error": "Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Sem dispositivos na conta xiaomi"
+            "none_devices": "Sem dispositivos na conta xiaomi",
+            "need_verify": "Este login requer verificação de segurança. Abra o link de verificação abaixo para enviar o código por celular/e-mail. Depois de receber o código, não o verifique na página web. Volte para o Home Assistant e digite-o no campo abaixo."
         },
         "abort": {
             "show_customizes": "[Adicionar nova integração](/_my_redirect/config_flow_start?domain=xiaomi_miot) para modificar a customização.\n{link}\n{tip}"
@@ -176,18 +189,30 @@
             }
         },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Falta de água"},
-            "pet_drinking_fountain-fault": {"name": "Falha"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Falta de água"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Falha"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Não perturbe"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Trava infantil"}
+            "no_disturb-no_disturb": {
+                "name": "Não perturbe"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Trava infantil"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Modo de água"}
+            "pet_drinking_fountain-mode": {
+                "name": "Modo de água"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Intervalo de água"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Intervalo de água"
+            }
         },
         "climate": {
             "air_conditioner": {

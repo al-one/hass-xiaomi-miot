@@ -73,7 +73,7 @@
             "cannot_reach": "Xiaomi API arayüzüne erişilemiyor",
             "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
-            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen doğrulama sayfasını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. Home Assistant'a dönün ve aşağıdaki giriş kutusuna girin."
+            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen aşağıdaki doğrulama bağlantısını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. Home Assistant'a dönün ve aşağıdaki giriş kutusuna girin."
         },
         "abort": {
             "config_saved": "Yapılandırma kaydedildi! [Tekrar özelleştir](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nBazı özel seçeneklerin etkili olması için [entegrasyonun yeniden yüklenmesi](/developer-tools/yaml) gerekebilir.",
@@ -105,7 +105,11 @@
                     "renew_devices": "Cihazları zorla yenile",
                     "trans_options": "Özellik değeri açıklamasını çevir",
                     "disable_message": "Mihome bildirim sensörünü devre dışı bırak",
-                    "disable_scene_history": "Mihome sahne geçmişi sensörünü devre dışı bırak"
+                    "disable_scene_history": "Mihome sahne geçmişi sensörünü devre dışı bırak",
+                    "micoapi_verify": "XiaoAI oynatma kontrolünü doğrula"
+                },
+                "data_description": {
+                    "micoapi_verify": "Bunu açıp bu sayfayı göndererek XiaoAI Play Control için ek doğrulama adımını açın. Normal Xiaomi hesap ayarlarını değiştirmez. Play Control doğrulama istediğinde, kullanılamadığında veya oynatma durumunu okuyamadığında kullanın."
                 }
             },
             "cloud_filter": {
@@ -128,6 +132,13 @@
                     "filter_did": "Hariç tutma modunda, listeden herhangi bir seçenek işaretlemezseniz, tüm cihazları dahil etmekle eşdeğerdir.",
                     "home_ids": "Bu seçeneği işaretleyip gönderdikten sonra mevcut sayfaya döneceksiniz,\ncihaz listesi yenilenecek ve işaretlenen evlerin cihazları filtrelenecektir."
                 }
+            },
+            "micoapi": {
+                "title": "XiaoAI oynatma kontrolünü doğrula",
+                "description": "XiaoAI Play Control ayrı bir güvenlik doğrulaması gerektirir.\n{tip}",
+                "data": {
+                    "verify_ticket": "Telefon/e-posta doğrulama kodu"
+                }
             }
         },
         "error": {
@@ -136,7 +147,7 @@
             "cannot_reach": "Xiaomi API arayüzüne erişilemiyor",
             "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
-            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen doğrulama sayfasını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. Home Assistant'a dönün ve aşağıdaki giriş kutusuna girin."
+            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen aşağıdaki doğrulama bağlantısını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. Home Assistant'a dönün ve aşağıdaki giriş kutusuna girin."
         },
         "abort": {
             "show_customizes": "Özelleştirmeyi değiştirmek için [yeni bir entegrasyon ekleyin](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{link}\n{tip}"
@@ -153,17 +164,35 @@
     },
     "entity": {
         "button": {
-            "info": {"name": "Bilgi"}
+            "info": {
+                "name": "Bilgi"
+            }
         },
         "sensor": {
-            "clean_area": {"name": "Temizlenen Alan"},
-            "clean_time": {"name": "Temizlik Süresi"},
-            "power_cost_today": {"name": "Bugünkü Enerji"},
-            "power_cost_month": {"name": "Aylık Enerji"},
-            "power_cost_today_2": {"name": "Bugünkü Enerji"},
-            "power_cost_month_2": {"name": "Aylık Enerji"},
-            "props-clean_area": {"name": "Temizlenen Alan"},
-            "props-clean_time": {"name": "Temizlik Süresi"},
+            "clean_area": {
+                "name": "Temizlenen Alan"
+            },
+            "clean_time": {
+                "name": "Temizlik Süresi"
+            },
+            "power_cost_today": {
+                "name": "Bugünkü Enerji"
+            },
+            "power_cost_month": {
+                "name": "Aylık Enerji"
+            },
+            "power_cost_today_2": {
+                "name": "Bugünkü Enerji"
+            },
+            "power_cost_month_2": {
+                "name": "Aylık Enerji"
+            },
+            "props-clean_area": {
+                "name": "Temizlenen Alan"
+            },
+            "props-clean_time": {
+                "name": "Temizlik Süresi"
+            },
             "lock": {
                 "state": {
                     "bluetooth": "Bluetooth",
@@ -205,18 +234,30 @@
             }
         },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Su Az"},
-            "pet_drinking_fountain-fault": {"name": "Arıza"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Su Az"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Arıza"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Rahatsız Etme"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Çocuk Kilidi"}
+            "no_disturb-no_disturb": {
+                "name": "Rahatsız Etme"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Çocuk Kilidi"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Su Modu"}
+            "pet_drinking_fountain-mode": {
+                "name": "Su Modu"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Su Aralığı"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Su Aralığı"
+            }
         },
         "climate": {
             "air_conditioner": {

@@ -63,7 +63,8 @@
             "cannot_login": "Login all'account xiaomi cloud fallito, per favore controlla che la password sia corretta. Seil login continua a fallrie, effettua il login a mi.com inello stesso ambiente del corrente network e riprova.",
             "cannot_reach": " Impossibile accedere all'API Xiaomi",
             "tzinfo_error": "Guardare: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Nessun dispositivo nell'account xiaomi cloud"
+            "none_devices": "Nessun dispositivo nell'account xiaomi cloud",
+            "need_verify": "Questo accesso richiede una verifica di sicurezza. Apri il link di verifica qui sotto per inviare il codice tramite telefono/e-mail. Dopo aver ricevuto il codice, non verificarlo nella pagina web. Torna in Home Assistant e inseriscilo nel campo sottostante."
         },
         "abort": {
             "config_saved": "Configurazione salvata! [Personalizza di nuovo](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlcune opzioni di personalizzazione richiedono [reload integration](/developer-tools/yaml) per avere effetto.",
@@ -93,7 +94,11 @@
                     "conn_mode": "Modalità di connessione dispositivo",
                     "renew_devices": "Forza rinnovo dispositivi",
                     "disable_message": "Disattiva il sensore di notifica di Mihome",
-                    "disable_scene_history": "Disabilita sensore cronologia scene Mihome"
+                    "disable_scene_history": "Disabilita sensore cronologia scene Mihome",
+                    "micoapi_verify": "Verifica controllo riproduzione XiaoAI"
+                },
+                "data_description": {
+                    "micoapi_verify": "Attiva questa opzione e invia la pagina per aprire il passaggio di verifica aggiuntivo per XiaoAI Play Control. Non modifica le normali impostazioni dell’account Xiaomi. Usalo quando Play Control richiede la verifica, non è disponibile o non riesce a leggere lo stato di riproduzione."
                 }
             },
             "cloud_filter": {
@@ -111,6 +116,13 @@
                     "filter_did": "Filtro Dispositivo",
                     "did_list": "Lista Dispositivi"
                 }
+            },
+            "micoapi": {
+                "title": "Verifica controllo riproduzione XiaoAI",
+                "description": "XiaoAI Play Control richiede una verifica di sicurezza separata.\n{tip}",
+                "data": {
+                    "verify_ticket": "Codice di verifica telefono/e-mail"
+                }
             }
         },
         "error": {
@@ -118,7 +130,8 @@
             "cannot_login": "Login all'account xiaomi cloud fallito, per favore controlla che la password sia corretta. Seil login continua a fallrie, effettua il login a mi.com inello stesso ambiente del corrente network e riprova.",
             "cannot_reach": " Impossibile accedere all'API Xiaomi",
             "tzinfo_error": "Guardare: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Nessun dispositivo nell'account xiaomi cloud"
+            "none_devices": "Nessun dispositivo nell'account xiaomi cloud",
+            "need_verify": "Questo accesso richiede una verifica di sicurezza. Apri il link di verifica qui sotto per inviare il codice tramite telefono/e-mail. Dopo aver ricevuto il codice, non verificarlo nella pagina web. Torna in Home Assistant e inseriscilo nel campo sottostante."
         },
         "abort": {
             "show_customizes": "[Aggiungi nuova integrazione](/_my_redirect/config_flow_start?domain=xiaomi_miot) per modificare la personalizzazione.\n{link}\n{tip}"
@@ -176,18 +189,30 @@
             }
         },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Acqua insufficiente"},
-            "pet_drinking_fountain-fault": {"name": "Guasto"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Acqua insufficiente"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Guasto"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Non disturbare"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Blocco bambini"}
+            "no_disturb-no_disturb": {
+                "name": "Non disturbare"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Blocco bambini"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Modalità acqua"}
+            "pet_drinking_fountain-mode": {
+                "name": "Modalità acqua"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Intervallo acqua"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Intervallo acqua"
+            }
         },
         "climate": {
             "air_conditioner": {

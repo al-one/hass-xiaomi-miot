@@ -67,7 +67,8 @@
             "cannot_login": "小米帳號登入失敗，請檢查帳號密碼。如多次嘗試仍登入失敗，請在與目前網路相同的環境下登入小米官網(mi.com)後重試",
             "cannot_reach": "無法存取小米 API",
             "tzinfo_error": "您的 Hass 環境看起來有點問題，請參考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "該小米帳號下沒有裝置"
+            "none_devices": "該小米帳號下沒有裝置",
+            "need_verify": "本次登入需要安全驗證。請開啟下方驗證連結發送手機/電子郵件驗證碼，收到驗證碼後不要在網頁驗證，回到 Home Assistant 填入下方輸入框。"
         },
         "abort": {
             "config_saved": "設定已儲存！[再次自訂](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自訂選項需要[重新載入整合](/developer-tools/yaml)才能生效。",
@@ -98,7 +99,11 @@
                     "renew_devices": "更新裝置列表",
                     "trans_options": "翻譯屬性值描述",
                     "disable_message": "停用米家 APP 通知訊息實體",
-                    "disable_scene_history": "停用米家場景歷史實體"
+                    "disable_scene_history": "停用米家場景歷史實體",
+                    "micoapi_verify": "驗證小愛音箱播放控制"
+                },
+                "data_description": {
+                    "micoapi_verify": "開啟後送出此頁，會進入小愛音箱 Play Control 的額外驗證頁面；不會修改目前的一般小米帳號設定。用於處理 Play Control 提示需要驗證、不可用或無法取得播放狀態的問題。"
                 }
             },
             "cloud_filter": {
@@ -117,6 +122,13 @@
                     "did_list": "裝置列表",
                     "home_ids": "篩選家庭 (留白儲存)"
                 }
+            },
+            "micoapi": {
+                "title": "驗證小愛音箱播放控制",
+                "description": "小愛音箱 Play Control 需要另外完成一次安全驗證。\n{tip}",
+                "data": {
+                    "verify_ticket": "手機/電子郵件驗證碼"
+                }
             }
         },
         "error": {
@@ -124,7 +136,8 @@
             "cannot_login": "小米帳號登入失敗，請檢查帳號密碼。如多次嘗試仍登入失敗，請使用與 HA 主機同一區域網路下的其他裝置登入小米官網(mi.com)後重試",
             "cannot_reach": "無法存取小米 API",
             "tzinfo_error": "您的 Hass 環境看起來有點問題，請參考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "該小米帳號下沒有裝置"
+            "none_devices": "該小米帳號下沒有裝置",
+            "need_verify": "本次登入需要安全驗證。請開啟下方驗證連結發送手機/電子郵件驗證碼，收到驗證碼後不要在網頁驗證，回到 Home Assistant 填入下方輸入框。"
         },
         "abort": {
             "show_customizes": "請再次添加[`Xiaomi Miot`](/_my_redirect/config_flow_start?domain=xiaomi_miot)整合來修改自訂選項\n{link}\n{tip}"
@@ -141,19 +154,41 @@
     },
     "entity": {
         "button": {
-            "info": {"name": "資訊"}
+            "info": {
+                "name": "資訊"
+            }
         },
         "sensor": {
-            "clean_area": {"name": "清潔面積"},
-            "clean_time": {"name": "清潔時間"},
-            "power_cost_today": {"name": "日用電量"},
-            "power_cost_month": {"name": "月用電量"},
-            "power_cost_today_2": {"name": "日用電量"},
-            "power_cost_month_2": {"name": "月用電量"},
-            "prop_cal_day-power_cost-today": {"name": "日用電量"},
-            "prop_cal_day-power_cost-month": {"name": "月用電量"},
-            "props-clean_area": {"name": "清潔面積"},
-            "props-clean_time": {"name": "清潔時間"},
+            "clean_area": {
+                "name": "清潔面積"
+            },
+            "clean_time": {
+                "name": "清潔時間"
+            },
+            "power_cost_today": {
+                "name": "日用電量"
+            },
+            "power_cost_month": {
+                "name": "月用電量"
+            },
+            "power_cost_today_2": {
+                "name": "日用電量"
+            },
+            "power_cost_month_2": {
+                "name": "月用電量"
+            },
+            "prop_cal_day-power_cost-today": {
+                "name": "日用電量"
+            },
+            "prop_cal_day-power_cost-month": {
+                "name": "月用電量"
+            },
+            "props-clean_area": {
+                "name": "清潔面積"
+            },
+            "props-clean_time": {
+                "name": "清潔時間"
+            },
             "lock": {
                 "state": {
                     "bluetooth": "藍牙",
@@ -271,7 +306,9 @@
             }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "出水模式"},
+            "pet_drinking_fountain-mode": {
+                "name": "出水模式"
+            },
             "fan_control-fan_level": {
                 "state": {
                     "auto": "自動",
@@ -302,15 +339,25 @@
             }
         },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "缺水"},
-            "pet_drinking_fountain-fault": {"name": "故障"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "缺水"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "故障"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "勿擾模式"},
-            "physical_controls_locked-physical_controls_locked": {"name": "童鎖"}
+            "no_disturb-no_disturb": {
+                "name": "勿擾模式"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "童鎖"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "出水間隔"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "出水間隔"
+            }
         }
     },
     "services": {

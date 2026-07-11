@@ -63,7 +63,8 @@
             "cannot_login": "Nem sikerült bejelentkezni a Xiaomi fiókba. Kérjük, ellenőrizze a fiók adatait. Ha a bejelentkezési kísérletek többször is sikertelenek, próbálkozzon újra a Xiaomi hivatalos weboldalán (mi.com) ugyanazon hálózati környezetben.",
             "cannot_reach": "Nem sikerült elérni a Xiaomi API felületet",
             "tzinfo_error": "Probléma van a Hass környezetével. Kérjük, olvassa el a következő leírást: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt"
+            "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt",
+            "need_verify": "Ez a bejelentkezés biztonsági ellenőrzést igényel. Nyisd meg az alábbi ellenőrzési linket a telefonos/e-mailes kód elküldéséhez. A kód megérkezése után ne a weboldalon ellenőrizd. Térj vissza a Home Assistantba, és írd be az alábbi mezőbe."
         },
         "abort": {
             "config_saved": "Konfiguráció mentve! [Testreszabás újra](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nNéhány testreszabási lehetőség érvénybe léptetéséhez [újra kell tölteni az integrációt](/developer-tools/yaml).",
@@ -92,7 +93,11 @@
                     "server_country": "MiCloud szerver régió",
                     "conn_mode": "Kapcsolat módja az eszközhöz",
                     "renew_devices": "Eszközök kényszerített frissítése",
-                    "disable_message": "Mihome értesítés szenzor letiltása"
+                    "disable_message": "Mihome értesítés szenzor letiltása",
+                    "micoapi_verify": "XiaoAI lejátszásvezérlés ellenőrzése"
+                },
+                "data_description": {
+                    "micoapi_verify": "Kapcsold be, majd küldd el ezt az oldalt a XiaoAI Play Control extra ellenőrzési lépésének megnyitásához. Ez nem módosítja a normál Xiaomi-fiók beállításait. Akkor használd, ha a Play Control ellenőrzést kér, nem érhető el, vagy nem tudja olvasni a lejátszási állapotot."
                 }
             },
             "cloud_filter": {
@@ -110,6 +115,13 @@
                     "filter_did": "Eszköz szűrése",
                     "did_list": "Eszköz lista"
                 }
+            },
+            "micoapi": {
+                "title": "XiaoAI lejátszásvezérlés ellenőrzése",
+                "description": "A XiaoAI Play Control külön biztonsági ellenőrzést igényel.\n{tip}",
+                "data": {
+                    "verify_ticket": "Telefonos/e-mailes ellenőrző kód"
+                }
             }
         },
         "error": {
@@ -117,7 +129,8 @@
             "cannot_login": "Nem sikerült bejelentkezni a Xiaomi fiókba. Kérjük, ellenőrizze a fiók adatait. Ha a bejelentkezési kísérletek többször is sikertelenek, próbálkozzon újra a Xiaomi hivatalos weboldalán (mi.com) ugyanazon hálózati környezetben.",
             "cannot_reach": "Nem sikerült elérni a Xiaomi API felületet",
             "tzinfo_error": "Probléma van a Hass környezetével. Kérjük, olvassa el a következő leírást: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt"
+            "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt",
+            "need_verify": "Ez a bejelentkezés biztonsági ellenőrzést igényel. Nyisd meg az alábbi ellenőrzési linket a telefonos/e-mailes kód elküldéséhez. A kód megérkezése után ne a weboldalon ellenőrizd. Térj vissza a Home Assistantba, és írd be az alábbi mezőbe."
         },
         "abort": {
             "show_customizes": "[Új integráció hozzáadása](/_my_redirect/config_flow_start?domain=xiaomi_miot) a testreszabás módosításához.\n{link}\n{tip}"
@@ -205,21 +218,32 @@
                     }
                 }
             }
-        }
-        ,
+        },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Kevés víz"},
-            "pet_drinking_fountain-fault": {"name": "Hiba"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Kevés víz"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Hiba"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Ne zavarjanak"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Gyerekzár"}
+            "no_disturb-no_disturb": {
+                "name": "Ne zavarjanak"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Gyerekzár"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Víz mód"}
+            "pet_drinking_fountain-mode": {
+                "name": "Víz mód"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Víz intervallum"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Víz intervallum"
+            }
         }
     },
     "services": {

@@ -63,7 +63,8 @@
             "cannot_login": "Nie udało się zalogować do konta w chmurze Xiaomi, sprawdź hasło. Jeśli nigdy nie uda Ci się zalogować, zaloguj się do mi.com w tym samym środowisku co bieżąca sieć i spróbuj ponownie.",
             "cannot_reach": "Nie można uzyskać dostępu do interfejsu API Xiaomi",
             "tzinfo_error": "Zobacz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Brak urządzeń na koncie w chmurze Xiaomi"
+            "none_devices": "Brak urządzeń na koncie w chmurze Xiaomi",
+            "need_verify": "To logowanie wymaga weryfikacji bezpieczeństwa. Otwórz poniższy link weryfikacyjny, aby wysłać kod na telefon/e-mail. Po otrzymaniu kodu nie weryfikuj go na stronie internetowej. Wróć do Home Assistant i wpisz go w polu poniżej."
         },
         "abort": {
             "config_saved": "Konfiguracja zapisana! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nSome customizable options require [reload integration](/developer-tools/yaml) to take effect.",
@@ -92,7 +93,11 @@
                     "server_country": "Lokalizacja serwera MiCloud",
                     "conn_mode": "Tryb połączenia dla urządzenia",
                     "renew_devices": "Wymuś odnowienie urządzeń",
-                    "disable_message": "Wyłącz sensor powiadomień Mihome"
+                    "disable_message": "Wyłącz sensor powiadomień Mihome",
+                    "micoapi_verify": "Zweryfikuj sterowanie odtwarzaniem XiaoAI"
+                },
+                "data_description": {
+                    "micoapi_verify": "Włącz tę opcję i wyślij tę stronę, aby otworzyć dodatkowy krok weryfikacji dla XiaoAI Play Control. Nie zmienia to zwykłych ustawień konta Xiaomi. Użyj, gdy Play Control wymaga weryfikacji, jest niedostępny lub nie może odczytać stanu odtwarzania."
                 }
             },
             "cloud_filter": {
@@ -110,6 +115,13 @@
                     "filter_did": "Filtruj urządzenia",
                     "did_list": "Lista urządzeń"
                 }
+            },
+            "micoapi": {
+                "title": "Zweryfikuj sterowanie odtwarzaniem XiaoAI",
+                "description": "XiaoAI Play Control wymaga oddzielnej weryfikacji bezpieczeństwa.\n{tip}",
+                "data": {
+                    "verify_ticket": "Kod weryfikacyjny z telefonu/e-maila"
+                }
             }
         },
         "error": {
@@ -117,7 +129,8 @@
             "cannot_login": "Jeśli logowanie nie powiedzie się po kilku próbach, użyj innego urządzenia w tej samej sieci LAN, co host HA, aby zalogować się na oficjalnej stronie Xiaomi (mi.com) i spróbuj ponownie.",
             "cannot_reach": "Nie można uzyskać dostępu do interfejsu API Xiaomi",
             "tzinfo_error": "Zobacz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Brak urządzeń na koncie w chmurze Xiaomi"
+            "none_devices": "Brak urządzeń na koncie w chmurze Xiaomi",
+            "need_verify": "To logowanie wymaga weryfikacji bezpieczeństwa. Otwórz poniższy link weryfikacyjny, aby wysłać kod na telefon/e-mail. Po otrzymaniu kodu nie weryfikuj go na stronie internetowej. Wróć do Home Assistant i wpisz go w polu poniżej."
         },
         "abort": {
             "show_customizes": "[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_miot) to modify customization.\n{link}\n{tip}"
@@ -125,18 +138,30 @@
     },
     "entity": {
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Brak wody"},
-            "pet_drinking_fountain-fault": {"name": "Usterka"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Brak wody"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Usterka"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Nie przeszkadzać"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Blokada rodzicielska"}
+            "no_disturb-no_disturb": {
+                "name": "Nie przeszkadzać"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Blokada rodzicielska"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Tryb wody"}
+            "pet_drinking_fountain-mode": {
+                "name": "Tryb wody"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Interwał wody"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Interwał wody"
+            }
         }
     },
     "system_health": {

@@ -63,7 +63,6 @@
                     "yaml_mode": "YAML Mode",
                     "yaml_customizes": "Customizes YAML Code",
                     "reset_customizes": "Reset to default customizes",
-
                     "binary_sensor_attributes": "binary_sensor_attributes",
                     "binary_sensor_properties": "binary_sensor_properties",
                     "bind_sensor": "bind_sensor",
@@ -125,7 +124,6 @@
                     "video_attribute": "video_attribute",
                     "yeelight_smooth_off": "yeelight_smooth_off",
                     "yeelight_smooth_on": "yeelight_smooth_on",
-
                     "bool2selects": "Customize options"
                 }
             }
@@ -136,7 +134,7 @@
             "cannot_reach": "Unable to access the Xiaomi API interface",
             "tzinfo_error": "There seems to be an issue with your Hass environment. Check your time zone configuration",
             "none_devices": "No devices found under this Xiaomi account",
-            "need_verify": "This login requires security verification. Please open the verification page to send the mobile/email verification code. After receiving the verification code, do not verify it on the webpage. Go back to HomeAssistant and enter it in the input box below."
+            "need_verify": "This login requires security verification. Please open the verification link below to send the mobile/email verification code. After receiving the verification code, do not verify it on the webpage. Go back to Home Assistant and enter it in the input box below."
         },
         "abort": {
             "config_saved": "Configuration saved! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nSome custom options may require [reloading the integration](/developer-tools/yaml) to take effect.",
@@ -168,7 +166,18 @@
                     "renew_devices": "Force renew devices",
                     "trans_options": "Translation property value description",
                     "disable_message": "Disable Mihome notification sensor",
-                    "disable_scene_history": "Disable Mihome scene history sensor"
+                    "disable_scene_history": "Disable Mihome scene history sensor",
+                    "micoapi_verify": "Verify XiaoAI playback control"
+                },
+                "data_description": {
+                    "micoapi_verify": "Turn this on and submit this page to open the extra verification step for XiaoAI Play Control. It does not change the normal Xiaomi account settings. Use it when Play Control asks for verification, is unavailable, or cannot read playback status."
+                }
+            },
+            "micoapi": {
+                "title": "Verify XiaoAI playback control",
+                "description": "XiaoAI Play Control needs a separate security verification.\n{tip}",
+                "data": {
+                    "verify_ticket": "Mobile/email verification code"
                 }
             },
             "cloud_filter": {
@@ -199,7 +208,7 @@
             "cannot_reach": "Unable to access the Xiaomi API interface",
             "tzinfo_error": "There seems to be an issue with your Hass environment. Check your time zone configuration",
             "none_devices": "No devices found under this Xiaomi account",
-            "need_verify": "This login requires security verification. Please open the verification page to send the mobile/email verification code. After receiving the verification code, do not verify it on the webpage. Go back to HomeAssistant and enter it in the input box below."
+            "need_verify": "This login requires security verification. Please open the verification link below to send the mobile/email verification code. After receiving the verification code, do not verify it on the webpage. Go back to Home Assistant and enter it in the input box below."
         },
         "abort": {
             "show_customizes": "Add a new integration to modify customization.\n{link}\n{tip}"
@@ -216,17 +225,35 @@
     },
     "entity": {
         "button": {
-            "info": {"name": "Info"}
+            "info": {
+                "name": "Info"
+            }
         },
         "sensor": {
-            "clean_area": {"name": "Clean Area"},
-            "clean_time": {"name": "Clean Time"},
-            "power_cost_today": {"name": "Energy Today"},
-            "power_cost_month": {"name": "Energy Month"},
-            "power_cost_today_2": {"name": "Energy Today"},
-            "power_cost_month_2": {"name": "Energy Month"},
-            "props-clean_area": {"name": "Clean Area"},
-            "props-clean_time": {"name": "Clean Time"},
+            "clean_area": {
+                "name": "Clean Area"
+            },
+            "clean_time": {
+                "name": "Clean Time"
+            },
+            "power_cost_today": {
+                "name": "Energy Today"
+            },
+            "power_cost_month": {
+                "name": "Energy Month"
+            },
+            "power_cost_today_2": {
+                "name": "Energy Today"
+            },
+            "power_cost_month_2": {
+                "name": "Energy Month"
+            },
+            "props-clean_area": {
+                "name": "Clean Area"
+            },
+            "props-clean_time": {
+                "name": "Clean Time"
+            },
             "lock": {
                 "state": {
                     "bluetooth": "Bluetooth",
@@ -268,18 +295,30 @@
             }
         },
         "binary_sensor": {
-            "pet_drinking_fountain-water_shortage_status": {"name": "Water Shortage"},
-            "pet_drinking_fountain-fault": {"name": "Fault"}
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Water Shortage"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Fault"
+            }
         },
         "switch": {
-            "no_disturb-no_disturb": {"name": "Do Not Disturb"},
-            "physical_controls_locked-physical_controls_locked": {"name": "Child Lock"}
+            "no_disturb-no_disturb": {
+                "name": "Do Not Disturb"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Child Lock"
+            }
         },
         "select": {
-            "pet_drinking_fountain-mode": {"name": "Water Mode"}
+            "pet_drinking_fountain-mode": {
+                "name": "Water Mode"
+            }
         },
         "number": {
-            "pet_drinking_fountain-out_water_interval": {"name": "Water Interval"}
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Water Interval"
+            }
         },
         "climate": {
             "air_conditioner": {
