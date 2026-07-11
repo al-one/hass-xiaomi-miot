@@ -5,6 +5,26 @@ on:
   pull_request:
 
 jobs:
+  pytest:
+    name: Pytest with stable Home Assistant
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements_test.txt
+
+      - name: 📦 Install test dependencies
+        run: pip install -r requirements_test.txt
+
+      - name: 🧪 Run focused tests
+        run: python -m pytest -q
+
   validate-hassfest:
     runs-on: ubuntu-latest
     steps:

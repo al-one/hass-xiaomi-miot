@@ -290,6 +290,60 @@ DEVICE_CUSTOMIZES = {
     'cgllc.sensor_ht.dk2': {
         'sensor_properties': 'battery_level',
     },
+    'cnhdm.airrtc.wkq01': {
+        'converters': [
+            {
+                'class': MiotClimateConv,
+                'services': ['thermostat'],
+                'kwargs': {
+                    'main_props': ['prop.2.1'],
+                },
+                'converters': [
+                    {'props': ['prop.2.1'], 'desc': True},
+                    {'props': ['prop.2.2'], 'desc': True},
+                    {'props': ['prop.2.3']},
+                    {'props': ['prop.2.5']},
+                    {'props': ['prop.3.1']},
+                ],
+            },
+            {
+                'class': MiotClimateConv,
+                'services': ['thermostat'],
+                'kwargs': {
+                    'attr': 'floor_heating',
+                    'main_props': ['prop.2.8'],
+                    'option': {
+                        'name': 'Floor Heating',
+                        'use_unique_attr': True,
+                        'hvac_mode': 'heat',
+                    },
+                },
+                'converters': [
+                    {'props': ['prop.2.8']},
+                    {'props': ['prop.2.10']},
+                    {'props': ['prop.3.1']},
+                ],
+            },
+            {
+                'class': MiotFanConv,
+                'services': ['thermostat'],
+                'kwargs': {
+                    'attr': 'fresh_air',
+                    'main_props': ['prop.2.9'],
+                    'option': {
+                        'name': 'Fresh Air',
+                        'use_unique_attr': True,
+                    },
+                },
+                'converters': [
+                    {'props': ['prop.2.7'], 'desc': True},
+                    {'props': ['prop.2.9']},
+                ],
+            },
+        ],
+        'sensor_properties': 'temperature',
+        'switch_properties': 'physical_controls_locked',
+    },
     'chuangmi.camera.051a01': {
         'switch_properties': 'on,time_watermark,motion_tracking,motion_detection,wdr_mode,glimmer_full_color,'
                              'face_switch,babycry_switch,pet_switch,gesture_switch,cruise_switch,smart_care_switch,'

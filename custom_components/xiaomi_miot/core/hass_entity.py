@@ -110,7 +110,14 @@ class XEntity(BasicEntity):
         self.log = device.log
 
         if isinstance(conv, MiotServiceConv):
-            self.entity_id = conv.service.generate_entity_id(self, conv.domain)
+            if conv.option.get('use_unique_attr'):
+                self.entity_id = device.spec.generate_entity_id(
+                    self,
+                    conv.attr,
+                    conv.domain,
+                )
+            else:
+                self.entity_id = conv.service.generate_entity_id(self, conv.domain)
             self._attr_name = str(conv.service.friendly_desc)
             self._attr_translation_key = conv.service.name
             self._miot_service = conv.service
@@ -140,6 +147,10 @@ class XEntity(BasicEntity):
             self._attr_translation_key = conv.attr
             if isinstance(conv, InfoConv):
                 self._attr_available = True
+
+        if name := conv.option.get('name'):
+            self._attr_name = name
+            self._attr_translation_key = None
 
         self.listen_attrs = {self.attr} | set(conv.attrs)
         if getattr(self, '_attr_name', None):
@@ -273,6 +284,11 @@ class XEntity(BasicEntity):
 
 
 def convert_unique_id(conv: 'BaseConv'):
+    if uid := conv.option.get('unique_id'):
+        return uid
+    if conv.option.get('use_unique_attr'):
+        return conv.attr
+
     service = getattr(conv, 'service', None)
     if isinstance(conv, MiotServiceConv) and isinstance(service, MiotService):
         return service.iid

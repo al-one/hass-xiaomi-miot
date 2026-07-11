@@ -163,6 +163,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
 
     def on_init(self):
         BaseClimateEntity.on_init(self)
+        self._power_hvac_mode = None
 
         self._prop_temperature_name = self.custom_config('current_temp_property') or 'indoor_temperature'
 
@@ -229,6 +230,19 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                     self._attr_max_humidity = prop.range_max()
                 self._attr_supported_features |= ClimateEntityFeature.TARGET_HUMIDITY
 
+        fixed_mode = self.conv.option.get('hvac_mode')
+        if self._conv_power and not self._conv_mode and fixed_mode:
+            try:
+                self._power_hvac_mode = HVACMode(fixed_mode)
+            except ValueError:
+                self.log.warning('Unsupported fixed hvac mode: %s', fixed_mode)
+            else:
+                if self._power_hvac_mode in self._hvac_modes:
+                    hvac_modes.discard(HVACMode.AUTO)
+                    hvac_modes.add(self._power_hvac_mode)
+                else:
+                    self._power_hvac_mode = None
+
         self._attr_hvac_modes = list(hvac_modes)
 
     def set_state(self, data: dict):
@@ -250,6 +264,10 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             if val in [False, 0]:
                 self._attr_hvac_mode = HVACMode.OFF
                 self._attr_hvac_action = HVACAction.OFF
+                self._attr_preset_mode = None
+            elif val and self._power_hvac_mode:
+                self._attr_hvac_mode = self._power_hvac_mode
+                self._attr_hvac_action = self._hvac_modes[self._power_hvac_mode].get('action')
                 self._attr_preset_mode = None
             elif val and self._attr_hvac_mode in [None, HVACMode.OFF]:
                 self._attr_hvac_mode = HVACMode.AUTO
@@ -326,6 +344,9 @@ class ClimateEntity(XEntity, BaseClimateEntity):
         if hvac == HVACMode.OFF and self._conv_power:
             await self.async_turn_switch(False)
             return
+
+        if hvac and hvac == self._power_hvac_mode and self._conv_power:
+            dat[self._conv_power.full_name] = True
 
         if hvac and self._conv_power and self._attr_is_on is False:
             dat[self._conv_power.full_name] = True
