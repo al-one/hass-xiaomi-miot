@@ -1,3 +1,8 @@
+from unittest.mock import AsyncMock
+
+import pytest
+from homeassistant.components.climate.const import HVACAction, HVACMode
+
 from custom_components.xiaomi_miot.climate import ClimateEntity
 from custom_components.xiaomi_miot.core.converters import MiotClimateConv, MiotFanConv
 from custom_components.xiaomi_miot.core.device import InfoConverter
@@ -184,3 +189,110 @@ def test_service_entity_defaults_remain_unchanged(make_device, load_miot_spec):
     assert entity.unique_id == f"{device.unique_id}-2"
     assert "thermostat" in entity.entity_id
     assert entity._attr_translation_key == "thermostat"
+
+
+def make_climate(make_device, spec, converters, option=None):
+    device = make_device(
+        spec,
+        customizes={"converters": [{
+            "class": MiotClimateConv,
+            "services": ["thermostat"],
+            "kwargs": {
+                "attr": "test_climate",
+                "main_props": ["prop.2.8"],
+                "option": option or {},
+            },
+            "converters": converters,
+        }]},
+    )
+    entity = ClimateEntity(device, device.find_converter("climate.test_climate"))
+    device.async_write = AsyncMock()
+    return entity
+
+
+def assert_fixed_heat(entity, is_on):
+    assert entity._attr_is_on is is_on
+    assert entity.hvac_mode == (HVACMode.HEAT if is_on else HVACMode.OFF)
+    assert entity.hvac_action == (HVACAction.HEATING if is_on else HVACAction.OFF)
+
+
+def test_fixed_power_hvac_mode_is_deterministic(make_device, load_miot_spec):
+    entity = make_climate(
+        make_device,
+        load_miot_spec("cnhdm.airrtc.wkq01.json"),
+        [{"props": ["prop.2.10"]}, {"props": ["prop.2.8"]}],
+        {"hvac_mode": "heat"},
+    )
+
+    assert set(entity.hvac_modes) == {HVACMode.OFF, HVACMode.HEAT}
+    for value in [True, True, False, False, True]:
+        entity.set_state({entity._conv_power.full_name: value})
+        assert_fixed_heat(entity, value)
+        assert entity._attr_preset_mode is None
+
+
+def test_fixed_mode_preserves_power_state_on_partial_payload(make_device, load_miot_spec):
+    entity = make_climate(
+        make_device,
+        load_miot_spec("cnhdm.airrtc.wkq01.json"),
+        [{"props": ["prop.2.10"]}, {"props": ["prop.2.8"]}],
+        {"hvac_mode": "heat"},
+    )
+
+    entity.set_state({entity._conv_power.full_name: True})
+    entity.set_state({entity._conv_target_temp.full_name: 31})
+    assert_fixed_heat(entity, True)
+    assert entity.target_temperature == 31
+
+    entity.set_state({entity._conv_power.full_name: False})
+    entity.set_state({entity._conv_target_temp.full_name: 18})
+    assert_fixed_heat(entity, False)
+    assert entity.target_temperature == 18
+
+    entity.set_state({
+        entity._conv_power.full_name: True,
+        entity._conv_target_temp.full_name: 26,
+    })
+    assert_fixed_heat(entity, True)
+    assert entity.target_temperature == 26
+
+
+def test_real_mode_converter_ignores_fixed_hvac_option(make_device, load_miot_spec):
+    entity = make_climate(
+        make_device,
+        load_miot_spec("cnhdm.airrtc.wkq01.json"),
+        [{"props": ["prop.2.3"]}, {"props": ["prop.2.1"], "desc": True}],
+        {"hvac_mode": "heat"},
+    )
+
+    assert set(entity.hvac_modes) == {HVACMode.OFF, HVACMode.AUTO, HVACMode.COOL, HVACMode.HEAT}
+    entity.set_state({entity._conv_mode.full_name: "Cool", entity._conv_power.full_name: True})
+    assert entity.hvac_mode == HVACMode.COOL
+    assert entity.hvac_action == HVACAction.COOLING
+
+
+@pytest.mark.asyncio
+async def test_real_mode_converter_writes_real_mode_property(make_device, load_miot_spec):
+    entity = make_climate(
+        make_device,
+        load_miot_spec("cnhdm.airrtc.wkq01.json"),
+        [{"props": ["prop.2.3"]}, {"props": ["prop.2.1"], "desc": True}],
+        {"hvac_mode": "heat"},
+    )
+    entity._attr_is_on = True
+
+    await entity.async_set_hvac_mode(HVACMode.COOL)
+
+    entity.device.async_write.assert_awaited_once_with({entity._conv_mode.full_name: "Cool"})
+
+
+def test_power_only_climate_without_option_keeps_auto(make_device, load_miot_spec):
+    entity = make_climate(
+        make_device,
+        load_miot_spec("cnhdm.airrtc.wkq01.json"),
+        [{"props": ["prop.2.10"]}],
+    )
+
+    assert set(entity.hvac_modes) == {HVACMode.OFF, HVACMode.AUTO}
+    entity.set_state({entity._conv_power.full_name: True})
+    assert entity.hvac_mode == HVACMode.AUTO
