@@ -772,12 +772,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                 self.micoapi_cloud = await MiotCloud.from_token(self.hass, cfg, login=False)
                 self.micoapi_cloud.login_times = 0
             if not isinstance(user_input, dict):
+                self.context.pop('need_verify', None)
+                self.context.pop('verify_url', None)
                 self.micoapi_cloud.service_token = None
                 self.micoapi_cloud.ssecurity = None
                 self.micoapi_cloud.async_session = None
                 self.micoapi_cloud.attrs.pop('verify_url', None)
                 self.micoapi_cloud.attrs.pop('identity_session', None)
-            if isinstance(user_input, dict):
+            if isinstance(user_input, dict) and self.context.get('need_verify'):
                 ticket = (user_input.get('verify_ticket') or '').strip()
                 if not ticket:
                     errors['base'] = 'need_verify'

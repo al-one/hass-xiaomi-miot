@@ -356,11 +356,15 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         if self._intelligent_speaker:
             mic = self.miot_cloud
             if isinstance(mic, MiotCloud):
+                notification_id = (
+                    f'{DOMAIN}-micoapi-verify-'
+                    f'{self._config.get("entry_id") or self.unique_id}'
+                )
                 try:
                     self.xiaoai_cloud = await mic.async_change_sid('micoapi')
                     persistent_notification.async_dismiss(
                         self.hass,
-                        f'{DOMAIN}-micoapi-verify-{self.unique_id}',
+                        notification_id,
                     )
                 except MiCloudNeedVerify as exc:
                     url = getattr(exc, 'url', None)
@@ -377,7 +381,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
                         self.hass,
                         message,
                         'Xiaomi Miot micoapi verification required',
-                        f'{DOMAIN}-micoapi-verify-{self.unique_id}',
+                        notification_id,
                     )
                     self.logger.warning(
                         '%s: micoapi login requires verification: %s',
