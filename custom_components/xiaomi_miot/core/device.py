@@ -403,8 +403,14 @@ class Device(CustomConfigHelper):
         if not self.spec:
             return
 
+        custom_converters = self.custom_config('converters')
+        base_converters = (
+            GLOBAL_CONVERTERS
+            if custom_converters is None
+            else custom_converters
+        )
         appends = self.custom_config_list('append_converters') or []
-        for cfg in [*GLOBAL_CONVERTERS, *appends]:
+        for cfg in [*base_converters, *appends]:
             cls = cfg.get('class')
             kwargs = cfg.get('kwargs', {})
             if services := cfg.get('services'):

@@ -71,6 +71,7 @@ class InfoConv(BaseConv):
         }
         customizes = {**device.customizes}
         customizes.pop('append_converters', None)
+        customizes.pop('converters', None)
         customizes.pop('extend_miot_specs', None)
         payload.update({
             **infos,
