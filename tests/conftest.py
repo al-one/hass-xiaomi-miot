@@ -6,6 +6,7 @@ import pytest
 
 from custom_components.xiaomi_miot import DOMAIN, init_integration_data
 from custom_components.xiaomi_miot.core.device import Device, DeviceInfo
+from custom_components.xiaomi_miot.core.const import DATA_CUSTOMIZE
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.core.miot_spec import MiotSpec
 
@@ -21,7 +22,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 def setup_xiaomi_miot_data(hass):
     init_integration_data(hass)
     hass.data[DOMAIN]["config"] = {}
-    hass.data.setdefault("customize", {})
+    hass.data.setdefault(DATA_CUSTOMIZE, {})
 
 
 @pytest.fixture
