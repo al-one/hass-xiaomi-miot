@@ -419,6 +419,13 @@ async def async_reload_integration_config(hass, config):
         dic = TRANSLATION_LANGUAGES.get(lang)
         if isinstance(dic, dict):
             TRANSLATION_LANGUAGES.update(dic)
+    elif lang := hass.config.language or '':
+        parts = lang.split('-')
+        for code in [lang, parts[0]]:
+            dic = TRANSLATION_LANGUAGES.get(code)
+            if isinstance(dic, dict):
+                TRANSLATION_LANGUAGES.update(dic)
+                break
     dic = config.get('translations') or {}
     if dic and isinstance(dic, dict):
         TRANSLATION_LANGUAGES.update(dic)

@@ -2690,5 +2690,495 @@ TRANSLATION_LANGUAGES = {
             'Favorite': 'Favori',
             'Manual': 'Manuel',
         },        
-    },    
+    },
+
+    'pt': {
+        'off': 'Desligado',
+        'idle': 'Parado',
+        'busy': 'Ocupado',
+        'pause': 'Em pausa',
+        'fault': 'Falha',
+        'Charge-Full': 'Totalmente carregado',
+
+        '_globals': {
+            'mode': 'Modo',
+            'switch status': 'Estado do interruptor',
+            'battery level': 'Nível da bateria',
+            'target temperature': 'Temperatura desejada',
+            'temperature': 'Temperatura',
+            'relative humidity': 'Humidade relativa',
+            'illumination': 'Iluminação',
+            'indicator light': 'Luz indicadora',
+            'physical control locked': 'Controlo físico bloqueado',
+        },
+
+        'clock': {
+            'stop alarm': 'Parar alarme'
+        },
+
+        'fan_level': {
+            'auto': 'Automático',
+            'low': 'Baixo',
+            'medium': 'Médio',
+            'middle': 'Intermédio',
+            'high': 'Alto',
+            'quiet': 'Silencioso',
+            'turbo': 'Turbo',
+            'level1': 'Nível 1',
+            'level2': 'Nível 2',
+            'level3': 'Nível 3',
+            'level4': 'Nível 4',
+            'level5': 'Nível 5',
+            'level6': 'Nível 6',
+            'level7': 'Nível 7',
+        },
+
+        'mode': {
+            'auto': 'Automático',
+            'basic': 'Normal',
+            'low': 'Baixo',
+            'medium': 'Médio',
+            'high': 'Alto',
+            'sleep': 'Modo noturno',
+            'smart': 'Modo inteligente',
+            'favorite': 'Modo favorito',
+        },
+
+        'air_conditioner': {
+            'air conditioner': 'Ar condicionado',
+        },
+
+        'air_conditioner.mode': {
+            'cool': 'Arrefecer',
+            'dry': 'Desumidificar',
+            'fan': 'Ventilador',
+            'heat': 'Aquecer',
+        },
+
+        'air_fresh.mode': {
+            'auto': 'Automático',
+            'interval': 'Intervalo',
+            'smart': 'Inteligente',
+            'silent': 'Silencioso',
+            'strong': 'Forte',
+            'none': 'Manual',
+            'sleep': 'Modo noturno',
+            'favorite': 'Favorito',
+        },
+
+        'alarm': {
+            'alarm': 'Alarme',
+            'alarm volume': 'Volume do alarme',
+        },
+
+        'battery': {
+            'battery battery level': 'Nível da bateria',
+            'battery charging state': 'Estado de carga',
+        },
+
+        'door_state': {
+            'open': 'Aberto',
+            'close': 'Fechado',
+            'close_timeout': 'Timeout ao fechar',
+            'knock': 'Batida',
+            'breaking': 'Arrombamento',
+            'stuck': 'Bloqueado',
+        },
+
+        'environment': {
+            'environment air quality': 'Qualidade do ar',
+            'environment temperature': 'Temperatura',
+            'environment relative humidity': 'Humidade relativa',
+            'environment pm2.5 density': 'Densidade PM2.5',
+            'environment co2 density': 'Densidade CO2',
+            'environment tvoc density': 'Densidade TVOC'
+        },
+
+        'fan.mode': {
+            'basic': 'Normal',
+            'basic wind': 'Vento normal',
+            'straight wind': 'Vento direto',
+            'natural wind': 'Vento natural',
+            'energy saving': 'Poupança de energia',
+            'none': 'Manual',
+            'baby': 'Bebé',
+            'smart': 'Inteligente',
+            'sleep': 'Modo noturno',
+            'strong': 'Forte',
+            'circular wind': 'Vento circular',
+        },
+
+        'filter': {
+            'filter left time': 'Tempo restante do filtro',
+            'filter used time': 'Tempo de uso do filtro',
+            'filter life level': 'Vida útil do filtro',
+        },
+
+        'intelligent_speaker': {
+            'wake up': 'Acordar',
+            'play music': 'Tocar música',
+            'play radio': 'Ligar rádio',
+            'play text': 'Ler texto',
+            'execute text directive': 'Executar comando'
+        },
+
+        'ir_aircondition_control': {
+            'ir aircondition control': 'Controlo de AC por infravermelhos',
+            'mode for ir': 'Modo',
+            'temperature for ir': 'Temperatura pretendida',
+            'turn on': 'Ligar',
+            'turn off': 'Desligar',
+            'fan speed down': 'Velocidade do vento -',
+            'fan speed up': 'Velocidade do vento +',
+            'temperature down': 'Temperatura -',
+            'temperature up': 'Temperatura +',
+        },
+        'ir_aircondition_control.ir_mode': {
+            'auto': 'Automático',
+            'cool': 'Arrefecer',
+            'dry': 'Desumidificar',
+            'fan': 'Ventilador',
+            'heat': 'Aquecer',
+        },
+
+        'light': {
+            'light': 'Luz',
+        },
+        'light.mode': {
+            'day': 'Dia',
+            'night': 'Noite',
+            'color': 'Cor',
+            'warmth': 'Tom quente',
+            'tv': 'Modo TV',
+            'reading': 'Modo leitura',
+            'computer': 'Modo computador',
+            'hospitality': 'Modo receção',
+            'entertainment': 'Modo entretenimento',
+            'lighting': 'Iluminação',
+            'night light': 'Luz noturna',
+        },
+
+        'lock_method': {
+            'bluetooth': 'Bluetooth',
+            'password': 'Palavra-passe',
+            'biological': 'Biométrico',
+            'key': 'Chave',
+            'turntable': 'Disco',
+            'nfc': 'NFC',
+            'one_time_password': 'Palavra-passe de uso único',
+            'two_step_verification': 'Verificação em duas etapas',
+            'coercion': 'Coação',
+            'homekit': 'HomeKit',
+            'manual': 'Manual',
+            'automatic': 'Automático',
+        },
+        'lock_action': {
+            'outside_unlock': 'Destrancar por fora',
+            'lock': 'Trancar',
+            'anti_lock_on': 'Ativar anti-fecho',
+            'anti_lock_off': 'Desativar anti-fecho',
+            'inside_unlock': 'Destrancar por dentro',
+            'lock_inside': 'Trancar por dentro',
+            'child_lock_on': 'Ativar bloqueio infantil',
+            'child_lock_off': 'Desativar bloqueio infantil',
+            'lock_outside': 'Trancar por fora',
+        },
+
+        'magnet_sensor': {
+            'magnet sensor': 'Sensor magnético',
+            'magnet sensor illumination': 'Iluminação',
+        },
+
+        'motion_sensor': {
+            'motion sensor': 'Sensor de movimento',
+            'motion sensor illumination': 'Iluminação',
+        },
+
+        'occupancy_sensor': {
+            'occupancy sensor occupancy status': 'Estado de ocupação'
+        },
+        'occupancy_sensor.occupancy_status': {
+            'someone exists': 'Alguém presente',
+            'no one exists': 'Ninguém presente'
+        },
+
+        'physical_control_locked': {
+            'physical control locked': 'Bloqueio físico bloqueado',
+        },
+
+        'play_control': {
+            'play control': 'Controlo de reprodução',
+            'keycodes': 'Teclas do comando',
+        },
+
+        'power_consumption': {
+            'power consumption': 'Consumo de energia',
+            'power consumption electric power': 'Potência',
+            'power consumption electric current': 'Corrente',
+            'power consumption electric voltage': 'Tensão',
+            'power consumption voltage': 'Tensão',
+        },
+
+        'ptc_bath_heater': {
+            'ptc bath heater': 'Aquecimento de casa de banho',
+        },
+        'ptc_bath_heater.mode': {
+            'fan': 'Ventilador',
+            'heat': 'Aquecimento',
+            'ventilate': 'Ventilação',
+            'dry': 'Secagem',
+            'defog': 'Desembaciamento',
+            'quick heat': 'Aquecimento rápido',
+            'quick defog': 'Desembaciamento rápido',
+        },
+
+        'speaker': {
+            'speaker': 'Coluna',
+            'speaker volume': 'Volume',
+        },
+
+        'sweep.suction_state': {
+            'medium': 'Médio',
+            'silent': 'Silencioso',
+            'slient': 'Silencioso',
+            'standard': 'Padrão',
+            'turbo': 'Turbo',
+            '标准': 'Padrão',
+            '关': 'Silencioso',
+            '节能': 'Padrão',
+            '强劲': 'Turbo',
+        },
+
+        'sweep.water_state': {
+            '低': 'Baixo',
+            '中': 'Médio',
+            '高': 'Alto',
+        },
+
+        'sweep.mop_route': {
+            'Y 字': 'Em Y',
+            '弓字': 'Em zigzag',
+        },
+
+        'sweep.door_state': {
+            '无': 'Removido',
+            '尘盒': 'Contentor de pó',
+            '水箱': 'Depósito de água',
+            '二合一水箱': 'Combinado 2-em-1',
+        },
+
+        'sweep.cloth_state': {
+            '没装': 'Não instalado',
+            '装了': 'Instalado',
+        },
+
+        'clean.mode': {
+            '安静': 'Silencioso',
+            '标准': 'Padrão',
+            '中档': 'Médio',
+            '强力': 'Turbo',
+        },
+
+        'television': {
+            'input control': 'Fonte de entrada',
+            'tv input control': 'Fonte de entrada TV',
+        },
+
+        'temperature_humidity_sensor': {
+            'temperature humidity sensor temperature': 'Temperatura',
+            'temperature humidity sensor relative humidity': 'Humidade relativa',
+            'temperature humidity sensor atmospheric pressure': 'Pressão atmosférica',
+        },
+
+        'vacuum': {
+            'robot cleaner': 'Aspirador robô',
+            'robot cleaner status': 'Estado do aspirador',
+            'robot cleaner mode': 'Modo de limpeza',
+            'robot cleaner sweep type': 'Tipo de limpeza',
+        },
+
+        'vacuum.status': {
+            'sleep': 'A dormir',
+            'idle': 'Parado',
+            'paused': 'Em pausa',
+            'go charging': 'A ir para a base',
+            'charging': 'A carregar',
+            'sweeping': 'A aspirar',
+            'sweeping and mopping': 'A aspirar e limpar',
+            'mopping': 'A limpar',
+            'upgrading': 'A atualizar',
+        },
+
+        'vacuum.mode': {
+            'basic': 'Normal',
+            'silent': 'Silencioso',
+            'standard': 'Padrão',
+            'strong': 'Forte',
+            'turbo': 'Turbo',
+            'full speed': 'Velocidade máxima',
+            'sweep': 'Aspirar',
+            'sweep and mop': 'Aspirar e limpar',
+            'mop': 'Limpar',
+        },
+        'vacuum.sweep_type': {
+            'Global': 'Global',
+            'Mop': 'Limpeza',
+            'Edge': 'Perímetro',
+            'Area': 'Zona',
+            'Point': 'Ponto',
+            'Remote': 'Controlo remoto',
+            'Explore': 'Explorar',
+            'Room': 'Divisão',
+            'Floor': 'Piso',
+        },
+        'vacuum.sweep_mop_type': {
+            'sweep': 'Aspirar',
+            'mop': 'Limpar',
+            'sweep mop': 'Aspirar e limpar',
+            'sweep before mopping': 'Aspirar antes de limpar',
+        },
+
+        'sweep': {
+            'sweep door-state': 'Estado do depósito',
+            'sweep cloth-state': 'Pano',
+            'sweep hypa-life': 'Vida útil do filtro HEPA',
+            'sweep mop-life': 'Vida útil da esfregona',
+            'sweep main-brush-life': 'Vida útil da escova principal',
+            'sweep side-brush-life': 'Vida útil da escova lateral',
+            'sweep repeat-state': 'Limpeza dupla',
+            'sweep water_state': 'Nível de água da esfregona',
+            'sweep cleaning_area': 'Área de limpeza',
+            'sweep cleaning_time': 'Tempo de limpeza',
+            'sweep pet-recognize': 'Reconhecimento de animais',
+            'sweep mop-route': 'Tipo de limpeza húmida',
+            'sweep ai_recognize': 'Reconhecimento IA',
+            'sweep dirt-recognize': 'Reconhecimento de sujidade',
+        },
+
+        'washer': {
+            'drying level': 'Nível de secagem',
+            'drying time': 'Tempo de secagem',
+            'high water switch': 'Nível de água alto',
+            'rinsh times': 'Número de enxaguamentos',
+            'shake time': 'Tempo de agitação',
+            'sleep mode': 'Modo noturno',
+            'soak time': 'Tempo de imersão',
+            'spin speed': 'Velocidade de centrifugação',
+            'start wash': 'Iniciar lavagem',
+            'status': 'Estado da lavagem',
+            'steam sterilization': 'Esterilização a vapor',
+            'target temperature': 'Temperatura de lavagem',
+            'target water level': 'Nível de água',
+        },
+        'washer.mode': {
+            'aromatherapy wash': 'Lavagem com aromaterapia',
+            'baby care': 'Cuidado bebé',
+            'bacteria mite removal': 'Remoção de bactérias e ácaros',
+            'boiling': 'Lavagem a ferver',
+            'color protection': 'Proteção de cor',
+            'cotton': 'Algodão',
+            'daily wash': 'Lavagem diária',
+            'delicate wash': 'Lavagem delicada',
+            'down coat': 'Casaco de penas',
+            'drum clean': 'Limpeza do tambor',
+            'drum dry': 'Secagem do tambor',
+            'dry air wash': 'Lavagem a ar seco',
+            'dry timing': 'Secagem temporizada',
+            'dry': 'Secar',
+            'gold wash': 'Lavagem ouro',
+            'heavy wash': 'Lavagem intensa',
+            'intensive': 'Intensivo',
+            'jacket': 'Casaco',
+            'jeans': 'Ganga',
+            'mite removal': 'Remoção de ácaros',
+            'mix': 'Lavagem mista',
+            'new clothes wash': 'Lavagem de roupa nova',
+            'pleased wash dry': 'Lavagem e secagem confortável',
+            'quick wash dry': 'Lavagem e secagem rápida',
+            'quick wash': 'Lavagem rápida',
+            'rinse spin': 'Enxaguar e centrifugar',
+            'rinse': 'Enxaguar',
+            'shirt': 'Camisa',
+            'silk': 'Seda',
+            'smart': 'Lavagem inteligente',
+            'soak wash': 'Lavagem com imersão',
+            'sock': 'Meias',
+            'spin': 'Centrifugar',
+            'sportswear': 'Roupa desportiva',
+            'super quick': 'Super rápido',
+            'synthetic': 'Sintéticos',
+            'towel': 'Toalhas',
+            'underwear': 'Roupa interior',
+            'user define': 'Definido pelo utilizador',
+            'wash dry': 'Lavar e secar',
+            'wool': 'Lã',
+        },
+        'washer.drying_level': {
+            'extra': 'Extra seco',
+            'moist': 'Húmido',
+            'none': 'Sem secagem',
+            'normal': 'Normal',
+            'smart': 'Secagem inteligente',
+            'timed': 'Secagem temporizada',
+        },
+
+        'dishwasher': {
+            'dishwasher left time': 'Tempo restante',
+            'dishwasher mode': 'Modo de lavagem',
+            'dishwasher status': 'Estado',
+            'dishwasher switch status': 'Interruptor',
+            'start wash': 'Iniciar lavagem',
+            'stop washing': 'Parar lavagem',
+        },
+        'dishwasher.mode': {
+            'basic': 'Lavagem normal',
+            'disinfecting': 'Lavagem de desinfeção',
+            'energy saving': 'Lavagem económica',
+            'glass': 'Lavagem de copos',
+            'intensive': 'Lavagem intensiva',
+            'quick wash': 'Lavagem rápida',
+        },
+        'dishwasher.status': {
+            'busy': 'A lavar',
+            'completed': 'Lavagem concluída',
+            'delay': 'Agendado',
+            'idle': 'Parado',
+            'off': 'Desligado',
+            'paused': 'Em pausa',
+            'preservation': 'Preservação',
+        },
+
+        'water_heater': {
+            'water heater': 'Termoacumulador',
+        },
+        'water_heater.mode': {
+            'low': 'Temperatura baixa',
+            'medium': 'Temperatura média',
+            'high': 'Temperatura alta'
+        },
+        'airer': {
+            'airer': 'Estendal elétrico',
+            'dryer': 'Secagem',
+            'drying_level': 'Nível de secagem',
+            'left_time': 'Tempo restante',
+            'fault': 'Falha do dispositivo',
+        },
+        'airer.dryer': {
+            'Air Drying': 'Secagem a ar',
+            'Hot Air Drying': 'Secagem a ar quente',
+        },
+        'airer.fault': {
+            'No Faults': 'Sem erros',
+            'Obstruction': 'Obstrução',
+            'Overweight': 'Excesso de peso',
+            'Overheat': 'Sobre-aquecimento',
+            'Motor Failure': 'Falha do motor',
+        },
+        'air_purifier.mode': {
+            'Auto': 'Automático',
+            'Sleep': 'Modo noturno',
+            'Favorite': 'Favorito',
+            'Manual': 'Manual',
+        },
+    },
 }
