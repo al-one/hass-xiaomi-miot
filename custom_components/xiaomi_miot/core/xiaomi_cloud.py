@@ -95,6 +95,7 @@ class MiotCloud(micloud.MiCloud):
         self.login_times = 0
         self.cookies = {}
         self.attrs = {}
+        self.hass_entry = None
 
     @property
     def unique_id(self):
@@ -474,7 +475,7 @@ class MiotCloud(micloud.MiCloud):
                 return True
         return False
 
-    async def async_login(self, login_data=None):
+    async def async_login_attempt(self, login_data=None):
         if self.login_times > 5:
             await self.async_stored_auth(remove=True)
         if self.login_times > 10:
@@ -485,9 +486,14 @@ class MiotCloud(micloud.MiCloud):
         self.login_times += 1
         ret = await self.hass.async_add_executor_job(self._login_request, login_data)
         if ret:
-            self.hass.data[DOMAIN]['sessions'][self.unique_id] = self
             await self.async_stored_auth(save=True)
             self.login_times = 0
+        return ret
+
+    async def async_login(self, login_data=None):
+        ret = await self.async_login_attempt(login_data)
+        if ret and self.hass_entry is None:
+            self.hass.data[DOMAIN]['sessions'][self.unique_id] = self
         return ret
 
     async def async_relogin(self):
