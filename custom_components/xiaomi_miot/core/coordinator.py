@@ -31,6 +31,7 @@ class DataCoordinator(DataUpdateCoordinator):
             **kwargs,
         )
         self.device = device
+        self._unsub_setup_refresh = None
         if not hasattr(self, 'setup_method'):
             # hass v2024.7-
             self.async_add_listener(self.coordinator_updated)
@@ -39,7 +40,13 @@ class DataCoordinator(DataUpdateCoordinator):
         await self._async_setup()
 
         job = HassJob(self._async_refresh_later, job_type=HassJobType.Coroutinefunction)
-        async_call_later(self.hass, index, job)
+        self._unsub_setup_refresh = async_call_later(self.hass, index, job)
+
+    async def async_shutdown(self):
+        if self._unsub_setup_refresh:
+            self._unsub_setup_refresh()
+            self._unsub_setup_refresh = None
+        await super().async_shutdown()
 
     async def _async_setup(self):
         """Set up coordinator."""
