@@ -21,6 +21,109 @@ from custom_components.xiaomi_miot.core.xiaomi_p2p.cs2.protocol import (
 DISCOVERY_PORT = 32108
 
 
+class FakeStreamReader:
+    """Fake `asyncio.StreamReader` for transport tests.
+
+    Supports `feed_data` to inject bytes, `feed_eof` to signal end of
+    stream, and `readexactly`/`read` for the transport to consume. The
+    reader is single-consumer; tests must drive the transport rather
+    than read directly.
+    """
+
+    def __init__(self) -> None:
+        self._buffer = bytearray()
+        self._waiter: asyncio.Future | None = None
+        self._eof = False
+
+    async def readexactly(self, n: int) -> bytes:
+        while len(self._buffer) < n:
+            if self._eof:
+                if not self._buffer:
+                    raise asyncio.IncompleteReadError(b"", n)
+                partial = bytes(self._buffer)
+                self._buffer.clear()
+                raise asyncio.IncompleteReadError(partial, n)
+            self._waiter = asyncio.get_event_loop().create_future()
+            try:
+                await self._waiter
+            finally:
+                self._waiter = None
+        result = bytes(self._buffer[:n])
+        del self._buffer[:n]
+        return result
+
+    async def read(self, n: int = -1) -> bytes:
+        if self._eof and not self._buffer:
+            return b""
+        while not self._buffer:
+            if self._eof:
+                return b""
+            self._waiter = asyncio.get_event_loop().create_future()
+            try:
+                await self._waiter
+            finally:
+                self._waiter = None
+        if n < 0 or n >= len(self._buffer):
+            result = bytes(self._buffer)
+            self._buffer.clear()
+            return result
+        result = bytes(self._buffer[:n])
+        del self._buffer[:n]
+        return result
+
+    def feed_data(self, data: bytes) -> None:
+        self._buffer.extend(data)
+        if self._waiter is not None and not self._waiter.done():
+            self._waiter.set_result(None)
+
+    def feed_eof(self) -> None:
+        self._eof = True
+        if self._waiter is not None and not self._waiter.done():
+            self._waiter.set_result(None)
+
+
+class FakeStreamWriter:
+    """Fake `asyncio.StreamWriter` that captures writes for assertions."""
+
+    def __init__(self) -> None:
+        self._buffer = bytearray()
+        self._closed = False
+        self._closing_started = False
+
+    def write(self, data: bytes) -> None:
+        if self._closed:
+            raise RuntimeError("write to closed writer")
+        self._buffer.extend(data)
+
+    async def drain(self) -> None:
+        return None
+
+    def close(self) -> None:
+        self._closing_started = True
+        self._closed = True
+
+    async def wait_closed(self) -> None:
+        return None
+
+    def is_closing(self) -> bool:
+        return self._closing_started
+
+    @property
+    def buffer(self) -> bytes:
+        return bytes(self._buffer)
+
+    def clear_buffer(self) -> None:
+        self._buffer.clear()
+
+
+class FakeTcpPair:
+    """Bundles a fake reader and writer for transport tests."""
+
+    def __init__(self) -> None:
+        self.reader = FakeStreamReader()
+        self.writer = FakeStreamWriter()
+
+
 @dataclass
 class _QueuedResponse:
     addr: tuple[str, int]
@@ -87,6 +190,7 @@ class FakeCs2Peer:
         self.clock = clock
         self.discovery_socket: FakeSocket | None = None
         self.session_socket: FakeSocket | None = None
+        self.tcp_pair: FakeTcpPair | None = None
         self.udp_sends: list[tuple[bytes, tuple[str, int]]] = []
         self.tcp_connects: list[tuple[str, int]] = []
         self.discovery_count = 0
@@ -195,7 +299,9 @@ class FakeCs2Peer:
 
     def open_tcp_connection(self, addr: tuple[str, int]):
         self.tcp_connects.append(tuple(addr))
-        return (None, None)
+        pair = FakeTcpPair()
+        self.tcp_pair = pair
+        return (pair.reader, pair.writer)
 
     # ---- Connector-facing ----------------------------------------------
 

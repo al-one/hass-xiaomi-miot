@@ -26,6 +26,7 @@ from .. import MissError, MissErrorCategory
 CS2_FRAME_MAGIC = b"\xff\xf1"
 DRW_MAGIC_COMMAND = b"\x21\x00"  # channel 0
 DRW_MAGIC_MEDIA = b"\x21\x02"  # channel 2
+DRW_MAGIC_PING = b"\x21\x01"  # channel 1, reference-compatible keepalive
 
 # Maximum allowed payload in any single CS2 frame (4 MiB).
 MAX_PAYLOAD_BYTES = 4 * 1024 * 1024
@@ -214,6 +215,7 @@ __all__ = [
     "Cs2MediaPacket",
     "DRW_MAGIC_COMMAND",
     "DRW_MAGIC_MEDIA",
+    "DRW_MAGIC_PING",
     "DrwFrame",
     "MAX_PAYLOAD_BYTES",
     "MediaHeader",

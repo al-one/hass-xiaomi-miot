@@ -193,7 +193,11 @@ class DefaultCs2Connector:
         # StreamReader/StreamWriter during unit tests.
         from .tcp import TcpCs2Transport
 
-        return TcpCs2Transport(reader=reader, writer=writer)
+        transport = TcpCs2Transport(
+            reader=reader, writer=writer, clock=self._clock
+        )
+        transport.start_reader()
+        return transport
 
     @staticmethod
     def _validate_policy(policy: str) -> TransportPolicyStr:
