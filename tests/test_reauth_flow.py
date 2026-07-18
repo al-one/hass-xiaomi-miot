@@ -6,7 +6,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.xiaomi_miot.config_flow import XiaomiMiotFlowHandler
-from custom_components.xiaomi_miot.core.xiaomi_cloud import CloudSid
+from custom_components.xiaomi_miot.core.xiaomi_cloud import (
+    CloudSid,
+    MiCloudAuthenticationError,
+    MiCloudNeedVerify,
+)
 
 
 def _fake_show_form(*args, **kwargs):
@@ -75,4 +79,94 @@ async def test_async_remove_clears_candidate(flow_cls):
     flow._reauth = SimpleNamespace(sid=None)
     with patch.object(flow_cls.__mro__[1], "async_remove", lambda self: None):
         flow.async_remove()
+    assert flow._candidate is None
+
+
+async def test_reauth_password_invalid_auth_returns_invalid_auth(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.XIAOMIIO,
+        entry=SimpleNamespace(
+            data={
+                "username": "u",
+                "server_country": "cn",
+                "user_id": "u",
+                "sid": "xiaomiio",
+            },
+            entry_id="eid",
+        ),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = flow._make_candidate("u", "p", "cn", CloudSid.XIAOMIIO)
+    candidate.async_login_attempt = AsyncMock(
+        side_effect=MiCloudAuthenticationError("X"),
+    )
+    flow._make_candidate = MagicMock(return_value=candidate)
+
+    out = await flow.async_step_reauth_password({"password": "p"})
+
+    assert out["errors"]["base"] == "invalid_auth"
+
+
+async def test_reauth_password_need_verify_routes_to_verify(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.MICOAPI,
+        entry=SimpleNamespace(
+            data={
+                "username": "u",
+                "server_country": "cn",
+                "user_id": "u",
+                "sid": "micoapi",
+            },
+            entry_id="eid",
+        ),
+    )
+    candidate = flow._make_candidate("u", "p", "cn", CloudSid.MICOAPI)
+    candidate.async_login_attempt = AsyncMock(
+        side_effect=MiCloudNeedVerify("need_verify").with_url(
+            "https://account.xiaomi.com/v",
+        ),
+    )
+    flow._make_candidate = MagicMock(return_value=candidate)
+    flow.async_step_reauth_verify = AsyncMock(
+        return_value={"step_id": "reauth_verify"},
+    )
+
+    out = await flow.async_step_reauth_password({"password": "p"})
+
+    assert out["step_id"] == "reauth_verify"
+    flow.async_step_reauth_verify.assert_awaited_once_with()
+
+
+async def test_reauth_password_wrong_account_aborts(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.XIAOMIIO,
+        entry=SimpleNamespace(
+            data={
+                "username": "u",
+                "server_country": "cn",
+                "user_id": "expected",
+                "sid": "xiaomiio",
+            },
+            entry_id="eid",
+        ),
+    )
+    flow.async_abort = MagicMock(return_value={"reason": "wrong_account"})
+    candidate = flow._make_candidate("u", "p", "cn", CloudSid.XIAOMIIO)
+    candidate.async_login_attempt = AsyncMock(return_value=True)
+    candidate.user_id = "actual"
+    flow._make_candidate = MagicMock(return_value=candidate)
+
+    out = await flow.async_step_reauth_password({"password": "p"})
+
+    assert out["reason"] == "wrong_account"
+    flow.async_abort.assert_called_once_with(reason="wrong_account")
     assert flow._candidate is None

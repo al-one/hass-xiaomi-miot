@@ -51,6 +51,7 @@ from .core.xiaomi_cloud import (
     MiotCloud,
     MiCloudException,
     MiCloudAccessDenied,
+    MiCloudAuthenticationError,
     MiCloudNeedVerify,
 )
 
@@ -358,7 +359,64 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         return await self.async_step_reauth_password()
 
     async def async_step_reauth_password(self, user_input=None):
-        return self.async_abort(reason='unknown')
+        errors = {}
+        schema = vol.Schema({vol.Required(CONF_PASSWORD): str})
+        if user_input is None:
+            return self._show_reauth_form('reauth_password', schema)
+        password = (user_input.get(CONF_PASSWORD) or '').strip()
+        if not password:
+            errors['base'] = 'invalid_auth'
+            return self._show_reauth_form(
+                'reauth_password',
+                schema,
+                errors=errors,
+            )
+        entry = self._reauth.entry
+        candidate = self._make_candidate(
+            entry.data[CONF_USERNAME],
+            password,
+            entry.data.get(CONF_SERVER_COUNTRY),
+            self._reauth.sid,
+        )
+        self._candidate = candidate
+        try:
+            ok = await candidate.async_login_attempt()
+        except requests.exceptions.ConnectionError:
+            errors['base'] = 'cannot_connect'
+            return self._show_reauth_form(
+                'reauth_password',
+                schema,
+                errors=errors,
+            )
+        except MiCloudNeedVerify:
+            return await self.async_step_reauth_verify()
+        except MiCloudAuthenticationError:
+            errors['base'] = 'invalid_auth'
+            return self._show_reauth_form(
+                'reauth_password',
+                schema,
+                errors=errors,
+            )
+        except Exception:
+            errors['base'] = 'unknown'
+            return self._show_reauth_form(
+                'reauth_password',
+                schema,
+                errors=errors,
+            )
+        if not ok:
+            if candidate.attrs.get('captchaImg') and candidate.attrs.get('captchaIck'):
+                return await self.async_step_reauth_captcha()
+            errors['base'] = 'invalid_auth'
+            return self._show_reauth_form(
+                'reauth_password',
+                schema,
+                errors=errors,
+            )
+        if str(candidate.user_id) != str(entry.data.get('user_id')):
+            self._candidate = None
+            return self.async_abort(reason='wrong_account')
+        return await self._persist_and_reload(candidate)
 
     async def async_step_reauth_verify(self, user_input=None):
         return self.async_abort(reason='unknown')
