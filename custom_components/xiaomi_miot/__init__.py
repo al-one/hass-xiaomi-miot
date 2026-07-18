@@ -25,7 +25,7 @@ from homeassistant.const import (
     SERVICE_RELOAD,
 )
 from homeassistant.helpers.entity import ToggleEntity, EntityCategory
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryAuthFailed
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.reload import async_integration_yaml_config
@@ -44,9 +44,14 @@ from .core.miot_spec import (
     MiotResults,
 )
 from .core.xiaomi_cloud import (
+    CloudSid,
     MiotCloud,
     MiCloudException,
     MiCloudAccessDenied,
+    MiCloudAuthenticationError,
+    MiCloudNeedVerify,
+    MiCloudVerificationError,
+    MiCloudStsUnauthorized,
 )
 from .core.templates import CUSTOM_TEMPLATES
 
@@ -223,6 +228,18 @@ async def async_setup(hass, hass_config: dict):
     return True
 
 
+async def _setup_attempt_cleanup(hass, entry_id, hass_entry):
+    runtime = hass.data.get(DOMAIN, {}).get(entry_id)
+    alias = None
+    if isinstance(runtime, dict):
+        alias = runtime.get(CONF_XIAOMI_CLOUD)
+    if alias is not None and hass_entry.clouds.get(CloudSid.XIAOMIIO) is alias:
+        hass.data[DOMAIN].pop(entry_id, None)
+    hass_entry.clouds.clear()
+    if HassEntry.ALL.get(entry_id) is hass_entry:
+        HassEntry.ALL.pop(entry_id, None)
+
+
 async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
     hass.data.setdefault(DOMAIN, {})
     entry_id = config_entry.entry_id
@@ -256,8 +273,9 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
 
 async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
     entry_id = config_entry.entry_id
-    entry = HassEntry.init(hass, config_entry)
-    entry_config = entry.get_config()
+    hass_entry = HassEntry.init(hass, config_entry)
+    config_entry.async_on_unload(lambda: _setup_attempt_cleanup(hass, entry_id, hass_entry))
+    entry_config = hass_entry.get_config()
     username = entry_config.get(CONF_USERNAME)
     config = {
         'entry_id': entry_id,
@@ -265,9 +283,28 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         'configs': [],
     }
     try:
-        cloud = await entry.get_cloud(check=True)
-        config[CONF_XIAOMI_CLOUD] = cloud
-        devices = await entry.get_cloud_devices()
+        cloud = await hass_entry.async_get_cloud(CloudSid.XIAOMIIO)
+    except (MiCloudVerificationError, MiCloudStsUnauthorized):
+        return False
+    except Exception as exc:
+        _LOGGER.error('Setup xiaomi cloud for entry: %s failed: %s', entry_id, exc)
+        return False
+    if not isinstance(cloud, MiotCloud):
+        return False
+    try:
+        ok = await cloud.async_check_auth(notify=False)
+    except (MiCloudAuthenticationError, MiCloudNeedVerify):
+        raise ConfigEntryAuthFailed('Xiaomi authentication failed for this account')
+    except MiCloudException:
+        return False
+    except Exception:
+        return False
+    if not ok:
+        raise ConfigEntryAuthFailed('Xiaomi authentication failed for this account')
+    config[CONF_XIAOMI_CLOUD] = cloud
+    try:
+        hass_entry.cloud_devices = await hass_entry.get_cloud_devices()
+        devices = hass_entry.cloud_devices or {}
     except (MiCloudException, MiCloudAccessDenied) as exc:
         _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', username, exc)
         return False
@@ -276,7 +313,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
     else:
         _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', username, len(devices))
     for d in devices.values():
-        device = await entry.new_device(d)
+        device = await hass_entry.new_device(d)
         if not device.spec:
             _LOGGER.warning('%s: Device has no spec %s', device.name_model, device.info.urn)
             continue
@@ -304,7 +341,6 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         config['configs'].append(cfg)
         _LOGGER.debug('Xiaomi cloud device: %s', {**cfg, CONF_TOKEN: '****'})
     hass.data[DOMAIN][entry_id] = config
-    hass.data[DOMAIN]['accounts'].setdefault(cloud.user_id, {CONF_XIAOMI_CLOUD: cloud})
     return True
 
 
