@@ -358,3 +358,160 @@ async def test_reauth_captcha_auth_error_without_challenge_returns_password(flow
     assert flow._candidate is None
     assert out["step_id"] == "reauth_password"
     assert out["errors"]["base"] == "invalid_auth"
+
+
+async def test_persist_xiaomiio_updates_entry_invalidates_and_reloads(flow_cls):
+    config_entries = SimpleNamespace(
+        async_update_entry=MagicMock(),
+        async_schedule_reload=MagicMock(),
+    )
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(
+        config_entries=config_entries,
+        data={
+            "xiaomi_miot": {
+                "sessions": {
+                    "old": SimpleNamespace(
+                        user_id="u",
+                        default_server="cn",
+                        sid="xiaomiio",
+                    ),
+                },
+                "accounts": {},
+            },
+        },
+    )
+    flow.context = {"entry_id": "eid"}
+    entry = SimpleNamespace(
+        data={
+            "sid": "xiaomiio",
+            "username": "u",
+            "password": "OLD",
+            "server_country": "cn",
+            "user_id": "u",
+            "service_token": "OLD",
+            "ssecurity": "OLD",
+            "device_id": "old",
+        },
+        entry_id="eid",
+        update_listeners=(),
+    )
+    flow._reauth = SimpleNamespace(sid=CloudSid.XIAOMIIO, entry=entry)
+    flow.async_abort = MagicMock(return_value={"reason": "reauth_successful"})
+    candidate = SimpleNamespace(
+        attrs={},
+        username="u",
+        password="NEW",
+        sid="xiaomiio",
+        default_server="cn",
+        user_id="u",
+        service_token="NEW",
+        ssecurity="NEW",
+        client_id="NEW",
+        async_stored_auth=AsyncMock(return_value={}),
+    )
+    flow._candidate = candidate
+
+    out = await flow._persist_and_reload(candidate)
+
+    new_data = config_entries.async_update_entry.call_args.kwargs["data"]
+    assert new_data["password"] == "NEW"
+    assert new_data["service_token"] == "NEW"
+    assert new_data["ssecurity"] == "NEW"
+    assert new_data["device_id"] == "NEW"
+    assert flow.hass.data["xiaomi_miot"]["sessions"] == {}
+    candidate.async_stored_auth.assert_awaited_once_with(save=True)
+    config_entries.async_schedule_reload.assert_called_once_with("eid")
+    flow.async_abort.assert_called_once_with(reason="reauth_successful")
+    assert out["reason"] == "reauth_successful"
+    assert flow._candidate is None
+
+
+async def test_persist_micoapi_does_not_store_micoapi_tokens_in_entry(flow_cls):
+    config_entries = SimpleNamespace(
+        async_update_entry=MagicMock(),
+        async_schedule_reload=MagicMock(),
+    )
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(
+        config_entries=config_entries,
+        data={"xiaomi_miot": {"sessions": {}, "accounts": {}}},
+    )
+    flow.context = {"entry_id": "eid"}
+    entry = SimpleNamespace(
+        data={
+            "username": "u",
+            "password": "OLD",
+            "server_country": "cn",
+            "user_id": "u",
+            "service_token": "XIAOMIIO_TKN",
+            "ssecurity": "XIAOMIIO_SEC",
+        },
+        entry_id="eid",
+        update_listeners=(),
+    )
+    flow._reauth = SimpleNamespace(sid=CloudSid.MICOAPI, entry=entry)
+    flow.async_abort = MagicMock(return_value={"reason": "reauth_successful"})
+    candidate = SimpleNamespace(
+        attrs={},
+        username="u",
+        password="NEW",
+        sid="micoapi",
+        default_server="cn",
+        user_id="u",
+        service_token="MICO_TKN",
+        ssecurity="MICO_SEC",
+        client_id="MICO_DEVICE",
+        async_stored_auth=AsyncMock(return_value={}),
+    )
+    flow._candidate = candidate
+
+    await flow._persist_and_reload(candidate)
+
+    new_data = config_entries.async_update_entry.call_args.kwargs["data"]
+    assert new_data["password"] == "NEW"
+    assert new_data["service_token"] == "XIAOMIIO_TKN"
+    assert new_data["ssecurity"] == "XIAOMIIO_SEC"
+    assert "MICO_TKN" not in new_data.values()
+    assert "MICO_SEC" not in new_data.values()
+    candidate.async_stored_auth.assert_awaited_once_with(save=True)
+
+
+async def test_persist_store_failure_returns_save_failed(flow_cls):
+    config_entries = SimpleNamespace(
+        async_update_entry=MagicMock(),
+        async_schedule_reload=MagicMock(),
+    )
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(
+        config_entries=config_entries,
+        data={"xiaomi_miot": {"sessions": {}, "accounts": {}}},
+    )
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.XIAOMIIO,
+        entry=SimpleNamespace(
+            data={
+                "username": "u",
+                "server_country": "cn",
+                "user_id": "u",
+            },
+            entry_id="eid",
+            update_listeners=(),
+        ),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = SimpleNamespace(
+        attrs={},
+        password="NEW",
+        username="u",
+        user_id="u",
+        async_stored_auth=AsyncMock(side_effect=OSError("disk")),
+    )
+    flow._candidate = candidate
+
+    out = await flow._persist_and_reload(candidate)
+
+    assert out["errors"]["base"] == "save_failed"
+    config_entries.async_update_entry.assert_not_called()
+    config_entries.async_schedule_reload.assert_not_called()

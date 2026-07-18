@@ -605,6 +605,54 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             return self.async_abort(reason='wrong_account')
         return await self._persist_and_reload(candidate)
 
+    def _invalidate_session_for(self, candidate):
+        sessions = (self.hass.data.get(DOMAIN) or {}).get('sessions') or {}
+        for key, cloud in dict(sessions).items():
+            if cloud is candidate:
+                continue
+            if (
+                getattr(cloud, 'user_id', None) == candidate.user_id
+                and getattr(cloud, 'default_server', None) == candidate.default_server
+                and getattr(cloud, 'sid', None) == candidate.sid
+            ):
+                sessions.pop(key, None)
+
+    async def _persist_and_reload(self, candidate):
+        try:
+            await candidate.async_stored_auth(save=True)
+        except Exception:
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'save_failed'},
+            )
+
+        self._invalidate_session_for(candidate)
+        entry = self._reauth.entry
+        new_data = dict(entry.data)
+        new_data[CONF_PASSWORD] = candidate.password
+        if self._reauth.sid == CloudSid.XIAOMIIO:
+            new_data['service_token'] = candidate.service_token
+            new_data['ssecurity'] = candidate.ssecurity
+            new_data['device_id'] = candidate.client_id
+            new_data['user_id'] = candidate.user_id
+
+        changed = new_data != dict(entry.data)
+        try:
+            if changed:
+                self.hass.config_entries.async_update_entry(entry, data=new_data)
+            if not changed or not getattr(entry, 'update_listeners', ()):
+                self.hass.config_entries.async_schedule_reload(entry.entry_id)
+        except Exception:
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'save_failed'},
+            )
+
+        self._candidate = None
+        return self.async_abort(reason='reauth_successful')
+
     async def async_step_user(self, user_input=None):
         self.context['last_step'] = False
         init_integration_data(self.hass)
