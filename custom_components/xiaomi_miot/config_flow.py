@@ -7,6 +7,7 @@ import requests
 import voluptuous as vol
 
 from typing import Optional
+from dataclasses import dataclass
 from homeassistant import config_entries
 from homeassistant.const import (
     CONF_HOST,
@@ -45,6 +46,8 @@ from .core.device import MiioInfo
 from .core.miot_spec import MiotSpec
 from .core.mini_miio import AsyncMiIO
 from .core.xiaomi_cloud import (
+    REAUTH_SIDS,
+    CloudSid,
     MiotCloud,
     MiCloudException,
     MiCloudAccessDenied,
@@ -282,6 +285,12 @@ class BaseFlowHandler:
         return schema
 
 
+@dataclass
+class ReauthState:
+    sid: CloudSid
+    entry: config_entries.ConfigEntry
+
+
 class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=DOMAIN):
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
     filter_models = None
@@ -290,6 +299,72 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
     @callback
     def async_get_options_flow(entry: config_entries.ConfigEntry):
         return OptionsFlowHandler(entry)
+
+    @callback
+    def async_remove(self) -> None:
+        candidate = getattr(self, '_candidate', None)
+        if candidate is not None:
+            candidate.attrs.pop('login_data', None)
+            candidate.attrs.pop('verify_url', None)
+            candidate.attrs.pop('identity_session', None)
+            candidate.attrs.pop('captcha_url', None)
+            candidate.attrs.pop('captchaImg', None)
+            candidate.attrs.pop('captchaIck', None)
+            candidate.password = None
+            self._candidate = None
+        super().async_remove()
+
+    def _make_candidate(
+        self,
+        username: str,
+        password: str,
+        country: str | None,
+        sid: CloudSid,
+    ) -> MiotCloud:
+        return MiotCloud(
+            self.hass,
+            username=username,
+            password=password,
+            country=country,
+            sid=sid.value,
+            hass_entry=None,
+        )
+
+    def _show_reauth_form(self, step_id, schema, errors=None, placeholders=None):
+        fixed_name = {
+            'name': self.hass.data.get(DOMAIN, {}).get('cloud_label', 'Xiaomi cloud'),
+        }
+        if placeholders:
+            fixed_name.update(placeholders)
+        return self.async_show_form(
+            step_id=step_id,
+            data_schema=schema,
+            errors=errors or {},
+            description_placeholders=fixed_name,
+        )
+
+    async def async_step_reauth(self, entry_data=None):
+        entry_data = entry_data or {}
+        self.context.setdefault('entry_data', entry_data)
+        entry = self._get_reauth_entry()
+        sid_value = entry_data.get('sid') or CloudSid.XIAOMIIO.value
+        try:
+            sid = CloudSid(sid_value)
+        except (TypeError, ValueError):
+            return self.async_abort(reason='unsupported_sid')
+        if sid not in REAUTH_SIDS:
+            return self.async_abort(reason='unsupported_sid')
+        self._reauth = ReauthState(sid=sid, entry=entry)
+        return await self.async_step_reauth_password()
+
+    async def async_step_reauth_password(self, user_input=None):
+        return self.async_abort(reason='unknown')
+
+    async def async_step_reauth_verify(self, user_input=None):
+        return self.async_abort(reason='unknown')
+
+    async def async_step_reauth_captcha(self, user_input=None):
+        return self.async_abort(reason='unknown')
 
     async def async_step_user(self, user_input=None):
         self.context['last_step'] = False
