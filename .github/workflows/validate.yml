@@ -25,6 +25,26 @@ jobs:
       - name: 🧪 Run focused tests
         run: python -m pytest -q
 
+  pytest-min:
+    name: Pytest with minimum Home Assistant (2025.6.0)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements_test_min.txt
+
+      - name: 📦 Install minimum-version test dependencies
+        run: pip install -r requirements_test_min.txt
+
+      - name: 🧪 Run focused tests
+        run: python -m pytest -q
+
   validate-hassfest:
     runs-on: ubuntu-latest
     steps:
@@ -51,7 +71,7 @@ jobs:
     name: With Home Assistant
     strategy:
       matrix:
-        channel: [stable, dev, "2023.7.0"]
+        channel: [stable, dev, "2025.6.0"]
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout the repository
