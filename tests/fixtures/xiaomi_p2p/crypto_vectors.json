@@ -1,0 +1,15 @@
+{
+  "comment": "Sanitized fixed test vectors for the MISS crypto layer. Keys are synthetic ranges of bytes and contain no real Xiaomi material.",
+  "vectors": [
+    {
+      "name": "synthetic-key-roundtrip",
+      "private_key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "peer_public_key_hex": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "precomputed_key_hex": "06abc2f6443b29f9223b24736c9e74c51d6cdcc3a605b89d413465493a462d0a",
+      "nonce8_hex": "0102030405060708",
+      "plaintext_hex": "6669787475726520706c61696e74657874",
+      "ciphertext_hex": "a37fd4c9674bff5e499379de428170803d",
+      "payload_hex": "0102030405060708a37fd4c9674bff5e499379de428170803d"
+    }
+  ]
+}
