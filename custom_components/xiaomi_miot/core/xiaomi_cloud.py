@@ -511,12 +511,16 @@ class MiotCloud(micloud.MiCloud):
         if not login_data:
             pass
         elif ticket := login_data.get('verify_ticket'):
-            resp = self.verify_ticket(ticket)
+            try:
+                resp = self.verify_ticket(ticket)
+            except (MiCloudVerificationError, MiCloudException):
+                raise
             location = resp.get('location', '')
-            if location:
-                self.account_get(location, allow_redirects=True)
-                auth = self._login_step1()
-                location = auth.get('location', '')
+            if not location:
+                raise MiCloudException('Xiaomi verify did not return location')
+            self.account_get(location, allow_redirects=True)
+            auth = self._login_step1()
+            location = auth.get('location', '')
         elif auth:
             auth.update(login_data)
         else:
@@ -680,18 +684,21 @@ class MiotCloud(micloud.MiCloud):
         resp = self.account_get(url.replace(path, 'identity/list'), response=True)
         identity_session = resp.cookies.get('identity_session')
         if not identity_session:
-            return False
+            raise MiCloudException('Xiaomi identity session missing')
         self.attrs['identity_session'] = identity_session
         data = self.json_decode(resp.text) or {}
         flag = data.get('flag', 4)
         options = data.get('options', [flag])
-        return options
+        return options or False
 
     def verify_ticket(self, ticket):
         url = self.attrs.get('verify_url')
         if not url:
-            return {}
+            raise MiCloudException('Xiaomi verify URL missing')
         options = self.check_identity_list(url) or []
+        if not options:
+            raise MiCloudException('Xiaomi verify no supported method')
+        last = None
         for flag in options:
             api = {
                 4: '/identity/auth/verifyPhone',
@@ -699,25 +706,31 @@ class MiotCloud(micloud.MiCloud):
             }.get(flag)
             if not api:
                 continue
-            data = self.account_post(
-                api,
-                params={
-                    '_dc': int(time.time() * 1000),
-                },
-                data={
-                    '_flag': flag,
-                    'ticket': ticket,
-                    'trust': 'true',
-                    '_json': 'true',
-                },
-                cookies={
-                    'identity_session': self.attrs.get('identity_session'),
-                },
-            )
+            try:
+                data = self.account_post(
+                    api,
+                    params={'_dc': int(time.time() * 1000)},
+                    data={
+                        '_flag': flag,
+                        'ticket': ticket,
+                        'trust': 'true',
+                        '_json': 'true',
+                    },
+                    cookies={
+                        'identity_session': self.attrs.get('identity_session'),
+                    },
+                )
+            except Exception as exc:
+                raise MiCloudException('Xiaomi verify request failed') from exc
+            if not isinstance(data, dict):
+                raise MiCloudException('Xiaomi verify response unparseable')
+            last = data
             if data.get('code') == 0:
                 self.attrs.pop('identity_session', None)
                 return data
-        return {}
+        if last and last.get('code') != 0:
+            raise MiCloudVerificationError('Xiaomi verification ticket rejected')
+        raise MiCloudException('Xiaomi verify no supported method')
 
     def account_get(self, url, method='GET', **kwargs):
         return self.account_post(url, method, **kwargs)
