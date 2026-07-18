@@ -282,3 +282,79 @@ async def test_reauth_verify_micoapi_second_sts_returns_unknown(flow_cls):
 
     assert out["errors"]["base"] == "unknown"
     assert candidate.async_login_attempt.await_count == 2
+
+
+async def test_reauth_captcha_empty_keeps_form(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.XIAOMIIO,
+        entry=SimpleNamespace(data={"sid": "xiaomiio"}, entry_id="eid"),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = SimpleNamespace(
+        attrs={
+            "captcha_url": "https://account.xiaomi.com/pass/getCode",
+            "captchaImg": "BASE64",
+            "captchaIck": "ICK",
+        },
+        async_login_attempt=AsyncMock(),
+    )
+    flow._candidate = candidate
+
+    out = await flow.async_step_reauth_captcha({"captcha": ""})
+
+    assert out["errors"]["base"] == "need_captcha"
+    candidate.async_login_attempt.assert_not_awaited()
+
+
+async def test_reauth_captcha_replaced_image_stays_with_need_captcha(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.XIAOMIIO,
+        entry=SimpleNamespace(data={"sid": "xiaomiio"}, entry_id="eid"),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = SimpleNamespace(
+        attrs={
+            "captcha_url": "https://account.xiaomi.com/pass/getCode",
+            "captchaImg": "NEW",
+            "captchaIck": "NEW",
+        },
+        async_login_attempt=AsyncMock(
+            side_effect=MiCloudAuthenticationError("rejected"),
+        ),
+    )
+    flow._candidate = candidate
+
+    out = await flow.async_step_reauth_captcha({"captcha": "ABCD"})
+
+    assert out["errors"]["base"] == "need_captcha"
+    assert out["description_placeholders"]["captcha_image"] == "NEW"
+
+
+async def test_reauth_captcha_auth_error_without_challenge_returns_password(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.XIAOMIIO,
+        entry=SimpleNamespace(data={"sid": "xiaomiio"}, entry_id="eid"),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = SimpleNamespace(
+        attrs={},
+        async_login_attempt=AsyncMock(
+            side_effect=MiCloudAuthenticationError("creds"),
+        ),
+    )
+    flow._candidate = candidate
+
+    out = await flow.async_step_reauth_captcha({"captcha": "ABCD"})
+
+    assert flow._candidate is None
+    assert out["step_id"] == "reauth_password"
+    assert out["errors"]["base"] == "invalid_auth"

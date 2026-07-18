@@ -536,8 +536,74 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             return self.async_abort(reason='wrong_account')
         return await self._persist_and_reload(candidate)
 
+    def _reauth_captcha_challenge(self, candidate):
+        return bool(
+            candidate
+            and candidate.attrs.get('captcha_url')
+            and candidate.attrs.get('captchaImg')
+            and candidate.attrs.get('captchaIck')
+        )
+
+    def _show_reauth_captcha(self, candidate, error_key='need_captcha'):
+        return self._show_reauth_form(
+            'reauth_captcha',
+            vol.Schema({vol.Required('captcha'): str}),
+            errors={'base': error_key} if error_key else {},
+            placeholders={
+                'captcha_image': candidate.attrs.get('captchaImg') or '',
+            },
+        )
+
     async def async_step_reauth_captcha(self, user_input=None):
-        return self.async_abort(reason='unknown')
+        candidate = self._candidate
+        if user_input is None:
+            return self._show_reauth_captcha(candidate, error_key='')
+        captcha = (user_input.get('captcha') or '').strip()
+        if not captcha:
+            return self._show_reauth_captcha(candidate)
+        try:
+            ok = await candidate.async_login_attempt({'captcha': captcha})
+        except requests.exceptions.ConnectionError:
+            self._candidate = None
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'cannot_connect'},
+            )
+        except MiCloudAuthenticationError:
+            if self._reauth_captcha_challenge(candidate):
+                return self._show_reauth_captcha(candidate)
+            self._candidate = None
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'invalid_auth'},
+            )
+        except MiCloudNeedVerify:
+            return await self.async_step_reauth_verify()
+        except Exception:
+            if self._reauth_captcha_challenge(candidate):
+                return self._show_reauth_captcha(candidate)
+            self._candidate = None
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'unknown'},
+            )
+        if not ok:
+            if self._reauth_captcha_challenge(candidate):
+                return self._show_reauth_captcha(candidate)
+            self._candidate = None
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'invalid_auth'},
+            )
+        expected = self._reauth.entry.data.get('user_id')
+        if str(getattr(candidate, 'user_id', None)) != str(expected):
+            self._candidate = None
+            return self.async_abort(reason='wrong_account')
+        return await self._persist_and_reload(candidate)
 
     async def async_step_user(self, user_input=None):
         self.context['last_step'] = False
