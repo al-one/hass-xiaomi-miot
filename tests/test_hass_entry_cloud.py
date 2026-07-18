@@ -170,3 +170,84 @@ async def test_async_unload_clears_clouds_map(entry, hass):
     # manually invoking the clear step.
     entry.clouds.clear()
     assert entry.clouds == {}
+
+
+async def test_auth_failed_xiaomiio_loaded_starts_reauth(entry, hass):
+    captured = {}
+
+    async def _start_reauth(hass_arg, *, data):
+        captured["data"] = data
+
+    entry.entry.async_start_reauth = _start_reauth
+    await entry.async_auth_failed(CloudSid.XIAOMIIO)
+    assert captured["data"] == {"sid": "xiaomiio"}
+
+
+async def test_auth_failed_micoapi_loaded_starts_reauth(entry, hass):
+    captured = {}
+
+    async def _start_reauth(hass_arg, *, data):
+        captured["data"] = data
+
+    entry.entry.async_start_reauth = _start_reauth
+    await entry.async_auth_failed(CloudSid.MICOAPI)
+    assert captured["data"] == {"sid": "micoapi"}
+
+
+async def test_auth_failed_string_sid_coerced(entry, hass):
+    captured = {}
+
+    async def _start_reauth(hass_arg, *, data):
+        captured["data"] = data
+
+    entry.entry.async_start_reauth = _start_reauth
+    await entry.async_auth_failed("xiaomiio")
+    assert captured["data"] == {"sid": "xiaomiio"}
+
+
+async def test_auth_failed_imicom_does_not_start(entry, hass):
+    captured = {}
+
+    async def _start_reauth(*a, **k):
+        captured["called"] = True
+
+    entry.entry.async_start_reauth = _start_reauth
+    await entry.async_auth_failed(CloudSid.I_MI_COM)
+    assert "called" not in captured
+
+
+async def test_auth_failed_setup_progress_only_micoapi(entry, hass):
+    entry.entry.state = ConfigEntryState.SETUP_IN_PROGRESS
+    captured = {}
+
+    async def _start_reauth(hass_arg, *, data):
+        captured.setdefault("calls", []).append(data)
+
+    entry.entry.async_start_reauth = _start_reauth
+    await entry.async_auth_failed(CloudSid.MICOAPI)
+    await entry.async_auth_failed(CloudSid.XIAOMIIO)
+    assert captured.get("calls") == [{"sid": "micoapi"}]
+
+
+async def test_auth_failed_unloaded_returns_silently(hass):
+    init_integration_data(hass)
+    e = SimpleNamespace(
+        entry_id="eid2",
+        hass=hass,
+        state=ConfigEntryState.NOT_LOADED,
+    )
+    he = HassEntry(hass, e)
+    # No async_start_reauth attribute → must not raise
+    await he.async_auth_failed(CloudSid.XIAOMIIO)
+
+
+async def test_auth_failed_setup_progress_xiaomiio_does_not_start(entry, hass):
+    entry.entry.state = ConfigEntryState.SETUP_IN_PROGRESS
+    captured = {}
+
+    async def _start_reauth(*a, **k):
+        captured["called"] = True
+
+    entry.entry.async_start_reauth = _start_reauth
+    await entry.async_auth_failed(CloudSid.XIAOMIIO)
+    assert "called" not in captured

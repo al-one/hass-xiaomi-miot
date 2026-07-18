@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import SUPPORTED_DOMAINS
-from .xiaomi_cloud import CloudSid, MiotCloud
+from .xiaomi_cloud import REAUTH_SIDS, CloudSid, MiotCloud
 
 if TYPE_CHECKING:
     from .device import Device
@@ -155,6 +155,22 @@ class HassEntry:
         if isinstance(sid, str):
             sid = CloudSid(sid)
         return await self.async_get_cloud(sid)
+
+    async def async_auth_failed(self, sid: CloudSid) -> None:
+        if isinstance(sid, str):
+            sid = CloudSid(sid)
+        if sid not in REAUTH_SIDS:
+            return
+        state = self.entry.state
+        allowed = state == ConfigEntryState.LOADED or (
+            sid == CloudSid.MICOAPI and state == ConfigEntryState.SETUP_IN_PROGRESS
+        )
+        if not allowed:
+            return
+        start_reauth = getattr(self.entry, 'async_start_reauth', None)
+        if start_reauth is None:
+            return
+        await start_reauth(self.hass, data={'sid': sid.value})
 
     async def get_cloud_devices(self):
         if isinstance(self.cloud_devices, dict):
