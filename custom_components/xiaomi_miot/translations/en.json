@@ -126,20 +126,48 @@
                     "yeelight_smooth_on": "yeelight_smooth_on",
                     "bool2selects": "Customize options"
                 }
+            },
+            "reauth_password": {
+                "title": "Xiaomi reauth — enter account password",
+                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "data": {
+                    "password": "Password"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi reauth — enter verification code",
+                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "data": {
+                    "verify_ticket": "Verification ticket"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi reauth — enter captcha",
+                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Failed to connect to the device",
+            "cannot_connect": "Cannot reach Xiaomi.",
             "cannot_login": "Failed to login to the Xiaomi account. Please check your account credentials. If login attempts fail multiple times, please try logging in again on the Xiaomi official website (mi.com) using the same network environment.",
             "cannot_reach": "Unable to access the Xiaomi API interface",
             "tzinfo_error": "There seems to be an issue with your Hass environment. Check your time zone configuration",
             "none_devices": "No devices found under this Xiaomi account",
-            "need_verify": "This login requires security verification. Please open the verification link below to send the mobile/email verification code. After receiving the verification code, do not verify it on the webpage. Go back to Home Assistant and enter it in the input box below."
+            "need_verify": "Verification code is required.",
+            "invalid_auth": "Xiaomi rejected the credentials.",
+            "need_captcha": "Captcha is required.",
+            "save_failed": "Failed to save refreshed credentials. Please retry.",
+            "unknown": "Unexpected error."
         },
         "abort": {
             "config_saved": "Configuration saved! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nSome custom options may require [reloading the integration](/developer-tools/yaml) to take effect.",
             "already_configured": "This device has already been configured.",
-            "not_xiaomi_miio": "This device does not support the miio/miot protocol."
+            "not_xiaomi_miio": "This device does not support the miio/miot protocol.",
+            "unsupported_sid": "Reauth is not supported for this account.",
+            "wrong_account": "Authentication does not match the configured Xiaomi account.",
+            "reauth_successful": "Xiaomi account refreshed."
         }
     },
     "options": {
@@ -166,18 +194,7 @@
                     "renew_devices": "Force renew devices",
                     "trans_options": "Translation property value description",
                     "disable_message": "Disable Mihome notification sensor",
-                    "disable_scene_history": "Disable Mihome scene history sensor",
-                    "micoapi_verify": "Verify XiaoAI playback control"
-                },
-                "data_description": {
-                    "micoapi_verify": "Turn this on and submit this page to open the extra verification step for XiaoAI Play Control. It does not change the normal Xiaomi account settings. Use it when Play Control asks for verification, is unavailable, or cannot read playback status."
-                }
-            },
-            "micoapi": {
-                "title": "Verify XiaoAI playback control",
-                "description": "XiaoAI Play Control needs a separate security verification.\n{tip}",
-                "data": {
-                    "verify_ticket": "Mobile/email verification code"
+                    "disable_scene_history": "Disable Mihome scene history sensor"
                 }
             },
             "cloud_filter": {

@@ -56,20 +56,48 @@
                     "reset_customizes": "Restaurar personalizaciones predeterminadas",
                     "bool2selects": "Opciones personalizadas"
                 }
+            },
+            "reauth_password": {
+                "title": "Xiaomi reauth — enter account password",
+                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "data": {
+                    "password": "Password"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi reauth — enter verification code",
+                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "data": {
+                    "verify_ticket": "Verification ticket"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi reauth — enter captcha",
+                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "No se pudo conectar al dispositivo",
+            "cannot_connect": "Cannot reach Xiaomi.",
             "cannot_login": "No se pudo iniciar sesión en la cuenta de Xiaomi. Por favor, verifica tus credenciales de cuenta. Si los intentos de inicio de sesión fallan varias veces, intenta iniciar sesión nuevamente en el sitio web oficial de Xiaomi (mi.com) usando el mismo entorno de red.",
             "cannot_reach": "No se puede acceder a la interfaz de la API de Xiaomi",
             "tzinfo_error": "Parece que hay un problema con tu entorno de Hass. Por favor, consulta: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "No se encontraron dispositivos bajo esta cuenta de Xiaomi",
-            "need_verify": "Este inicio de sesión requiere verificación de seguridad. Abre el enlace de verificación de abajo para enviar el código por móvil/correo. Después de recibir el código, no lo verifiques en la página web. Vuelve a Home Assistant e introdúcelo en el campo de abajo."
+            "need_verify": "Verification code is required.",
+            "invalid_auth": "Xiaomi rejected the credentials.",
+            "need_captcha": "Captcha is required.",
+            "save_failed": "Failed to save refreshed credentials. Please retry.",
+            "unknown": "Unexpected error."
         },
         "abort": {
             "config_saved": "¡Configuración guardada! [Personalizar de nuevo](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlgunas opciones personalizadas pueden requerir [recargar la integración](/developer-tools/yaml) para que surtan efecto.",
             "already_configured": "Este dispositivo ya ha sido configurado.",
-            "not_xiaomi_miio": "Este dispositivo no es compatible con el protocolo miio/miot."
+            "not_xiaomi_miio": "Este dispositivo no es compatible con el protocolo miio/miot.",
+            "unsupported_sid": "Reauth is not supported for this account.",
+            "wrong_account": "Authentication does not match the configured Xiaomi account.",
+            "reauth_successful": "Xiaomi account refreshed."
         }
     },
     "options": {
@@ -93,11 +121,7 @@
                     "server_country": "Ubicación del servidor de MiCloud",
                     "conn_mode": "Modo de conexión para el dispositivo",
                     "renew_devices": "Forzar renovación de dispositivos",
-                    "disable_message": "Desactivar el sensor de notificaciones de MiHome",
-                    "micoapi_verify": "Verificar el control de reproducción de XiaoAI"
-                },
-                "data_description": {
-                    "micoapi_verify": "Activa esta opción y envía esta página para abrir el paso adicional de verificación de XiaoAI Play Control. No cambia la configuración normal de la cuenta Xiaomi. Úsalo cuando Play Control pida verificación, no esté disponible o no pueda leer el estado de reproducción."
+                    "disable_message": "Desactivar el sensor de notificaciones de MiHome"
                 }
             },
             "cloud_filter": {
@@ -114,13 +138,6 @@
                     "bssid_list": "Lista de BSSID de WiFi",
                     "filter_did": "Filtrar dispositivo",
                     "did_list": "Lista de dispositivos"
-                }
-            },
-            "micoapi": {
-                "title": "Verificar el control de reproducción de XiaoAI",
-                "description": "XiaoAI Play Control necesita una verificación de seguridad independiente.\n{tip}",
-                "data": {
-                    "verify_ticket": "Código de verificación por teléfono/correo"
                 }
             }
         },

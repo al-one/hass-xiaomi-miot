@@ -55,20 +55,48 @@
                     "reset_customizes": "Сбросить настройки по умолчанию",
                     "bool2selects": "Настройка опций"
                 }
+            },
+            "reauth_password": {
+                "title": "Xiaomi reauth — enter account password",
+                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "data": {
+                    "password": "Password"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi reauth — enter verification code",
+                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "data": {
+                    "verify_ticket": "Verification ticket"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi reauth — enter captcha",
+                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Не удалось подключиться к устройству",
+            "cannot_connect": "Cannot reach Xiaomi.",
             "cannot_login": "Не удалось подключиться к аккаунту Сяоми. Проверьте пароль. При повторных ошибках авторизируйтесь на mi.com в той же среде и попробуйте снова.",
             "cannot_reach": "Нет доступа к API Сяоми",
             "tzinfo_error": "Перейдите по ссылке: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Не найдено устройств в облаке Сяоми",
-            "need_verify": "Этот вход требует проверки безопасности. Откройте ссылку проверки ниже, чтобы отправить код на телефон или e-mail. После получения кода не подтверждайте его на веб-странице. Вернитесь в Home Assistant и введите его в поле ниже."
+            "need_verify": "Verification code is required.",
+            "invalid_auth": "Xiaomi rejected the credentials.",
+            "need_captcha": "Captcha is required.",
+            "save_failed": "Failed to save refreshed credentials. Please retry.",
+            "unknown": "Unexpected error."
         },
         "abort": {
             "config_saved": "Конфигурация сохранена! [Настроить снова](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nНекоторые опции требуют перезагрузки конфигурации [reload integration](/developer-tools/yaml) для эффекта.",
             "already_configured": "Устройство уже сконфигурировано",
-            "not_xiaomi_miio": "Не является устройством miio/miot."
+            "not_xiaomi_miio": "Не является устройством miio/miot.",
+            "unsupported_sid": "Reauth is not supported for this account.",
+            "wrong_account": "Authentication does not match the configured Xiaomi account.",
+            "reauth_successful": "Xiaomi account refreshed."
         }
     },
     "options": {
@@ -92,11 +120,7 @@
                     "server_country": "Регион сервера MiCloud",
                     "conn_mode": "Режим подключения устройств",
                     "renew_devices": "Заставлять устройства обновляться",
-                    "disable_message": "Выключить датчик уведомлений от Mi Home",
-                    "micoapi_verify": "Проверить управление воспроизведением XiaoAI"
-                },
-                "data_description": {
-                    "micoapi_verify": "Включите этот пункт и отправьте страницу, чтобы открыть дополнительный шаг проверки для XiaoAI Play Control. Обычные настройки аккаунта Xiaomi не изменяются. Используйте, если Play Control требует проверку, недоступен или не может прочитать состояние воспроизведения."
+                    "disable_message": "Выключить датчик уведомлений от Mi Home"
                 }
             },
             "cloud_filter": {
@@ -111,13 +135,6 @@
                     "bssid_list": "СписокWiFi BSSID",
                     "filter_did": "Фильтр устройств",
                     "did_list": "Список устройств"
-                }
-            },
-            "micoapi": {
-                "title": "Проверить управление воспроизведением XiaoAI",
-                "description": "Для XiaoAI Play Control нужна отдельная проверка безопасности.\n{tip}",
-                "data": {
-                    "verify_ticket": "Код подтверждения по телефону/e-mail"
                 }
             }
         },

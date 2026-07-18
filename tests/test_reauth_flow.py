@@ -515,3 +515,40 @@ async def test_persist_store_failure_returns_save_failed(flow_cls):
     assert out["errors"]["base"] == "save_failed"
     config_entries.async_update_entry.assert_not_called()
     config_entries.async_schedule_reload.assert_not_called()
+
+
+async def test_reauth_password_form_exposes_only_name(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+
+    out = await flow.async_step_reauth_password()
+
+    assert set(out["description_placeholders"]) == {"name"}
+
+
+async def test_reauth_verify_form_exposes_only_name_and_url(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    flow._candidate = SimpleNamespace(
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+    )
+
+    out = await flow.async_step_reauth_verify()
+
+    assert set(out["description_placeholders"]) == {"name", "verify_url"}
+
+
+async def test_reauth_captcha_form_exposes_only_name_and_image(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    flow._candidate = SimpleNamespace(attrs={"captchaImg": "BASE64"})
+
+    out = await flow.async_step_reauth_captcha()
+
+    assert set(out["description_placeholders"]) == {"name", "captcha_image"}

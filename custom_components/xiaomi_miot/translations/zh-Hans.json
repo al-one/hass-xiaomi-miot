@@ -65,20 +65,48 @@
                     "reset_customizes": "重置为默认自定义",
                     "bool2selects": "自定义选项"
                 }
+            },
+            "reauth_password": {
+                "title": "Xiaomi reauth — enter account password",
+                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "data": {
+                    "password": "Password"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi reauth — enter verification code",
+                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "data": {
+                    "verify_ticket": "Verification ticket"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi reauth — enter captcha",
+                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "连接设备失败",
+            "cannot_connect": "Cannot reach Xiaomi.",
             "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登录失败，请在与当前网络相同的环境下登录小米官网(mi.com)后重试",
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的 Hass 环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备",
-            "need_verify": "本次登录需要安全验证。请打开下方验证链接发送手机/邮箱验证码，收到验证码后不要在网页验证，回到 Home Assistant 填入下方输入框。"
+            "need_verify": "Verification code is required.",
+            "invalid_auth": "Xiaomi rejected the credentials.",
+            "need_captcha": "Captcha is required.",
+            "save_failed": "Failed to save refreshed credentials. Please retry.",
+            "unknown": "Unexpected error."
         },
         "abort": {
             "config_saved": "配置已保存！[再次自定义](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
             "already_configured": "该设备已经配置过",
-            "not_xiaomi_miio": "该设备不支持 miio/miot 协议"
+            "not_xiaomi_miio": "该设备不支持 miio/miot 协议",
+            "unsupported_sid": "Reauth is not supported for this account.",
+            "wrong_account": "Authentication does not match the configured Xiaomi account.",
+            "reauth_successful": "Xiaomi account refreshed."
         }
     },
     "options": {
@@ -105,18 +133,7 @@
                     "renew_devices": "更新设备列表",
                     "trans_options": "翻译属性值描述",
                     "disable_message": "禁用米家APP通知消息实体",
-                    "disable_scene_history": "禁用米家场景历史实体",
-                    "micoapi_verify": "验证小爱音箱播放控制"
-                },
-                "data_description": {
-                    "micoapi_verify": "打开后提交此页，会进入小爱音箱 Play Control 的额外验证码页面；不会修改当前普通小米账号配置。用于处理 Play Control 提示需要验证、不可用或无法获取播放状态的问题。"
-                }
-            },
-            "micoapi": {
-                "title": "验证小爱音箱播放控制",
-                "description": "小爱音箱 Play Control 需要单独完成一次安全验证。\n{tip}",
-                "data": {
-                    "verify_ticket": "手机/邮箱验证码"
+                    "disable_scene_history": "禁用米家场景历史实体"
                 }
             },
             "cloud_filter": {

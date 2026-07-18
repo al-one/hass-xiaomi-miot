@@ -56,20 +56,48 @@
                     "reset_customizes": "Zresetuj do ustawień domyślnych",
                     "bool2selects": "Dostosuj opcje"
                 }
+            },
+            "reauth_password": {
+                "title": "Xiaomi reauth — enter account password",
+                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "data": {
+                    "password": "Password"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi reauth — enter verification code",
+                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "data": {
+                    "verify_ticket": "Verification ticket"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi reauth — enter captcha",
+                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Nie udało się podłączyć urządzenia",
+            "cannot_connect": "Cannot reach Xiaomi.",
             "cannot_login": "Nie udało się zalogować do konta w chmurze Xiaomi, sprawdź hasło. Jeśli nigdy nie uda Ci się zalogować, zaloguj się do mi.com w tym samym środowisku co bieżąca sieć i spróbuj ponownie.",
             "cannot_reach": "Nie można uzyskać dostępu do interfejsu API Xiaomi",
             "tzinfo_error": "Zobacz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Brak urządzeń na koncie w chmurze Xiaomi",
-            "need_verify": "To logowanie wymaga weryfikacji bezpieczeństwa. Otwórz poniższy link weryfikacyjny, aby wysłać kod na telefon/e-mail. Po otrzymaniu kodu nie weryfikuj go na stronie internetowej. Wróć do Home Assistant i wpisz go w polu poniżej."
+            "need_verify": "Verification code is required.",
+            "invalid_auth": "Xiaomi rejected the credentials.",
+            "need_captcha": "Captcha is required.",
+            "save_failed": "Failed to save refreshed credentials. Please retry.",
+            "unknown": "Unexpected error."
         },
         "abort": {
             "config_saved": "Konfiguracja zapisana! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nSome customizable options require [reload integration](/developer-tools/yaml) to take effect.",
             "already_configured": "Urządzenie jest już skonfigurowane",
-            "not_xiaomi_miio": "To nie jest urządzenie Xiaomi miio/miot."
+            "not_xiaomi_miio": "To nie jest urządzenie Xiaomi miio/miot.",
+            "unsupported_sid": "Reauth is not supported for this account.",
+            "wrong_account": "Authentication does not match the configured Xiaomi account.",
+            "reauth_successful": "Xiaomi account refreshed."
         }
     },
     "options": {
@@ -93,11 +121,7 @@
                     "server_country": "Lokalizacja serwera MiCloud",
                     "conn_mode": "Tryb połączenia dla urządzenia",
                     "renew_devices": "Wymuś odnowienie urządzeń",
-                    "disable_message": "Wyłącz sensor powiadomień Mihome",
-                    "micoapi_verify": "Zweryfikuj sterowanie odtwarzaniem XiaoAI"
-                },
-                "data_description": {
-                    "micoapi_verify": "Włącz tę opcję i wyślij tę stronę, aby otworzyć dodatkowy krok weryfikacji dla XiaoAI Play Control. Nie zmienia to zwykłych ustawień konta Xiaomi. Użyj, gdy Play Control wymaga weryfikacji, jest niedostępny lub nie może odczytać stanu odtwarzania."
+                    "disable_message": "Wyłącz sensor powiadomień Mihome"
                 }
             },
             "cloud_filter": {
@@ -114,13 +138,6 @@
                     "bssid_list": "Lista identyfikatorów BSSID Wi-Fi",
                     "filter_did": "Filtruj urządzenia",
                     "did_list": "Lista urządzeń"
-                }
-            },
-            "micoapi": {
-                "title": "Zweryfikuj sterowanie odtwarzaniem XiaoAI",
-                "description": "XiaoAI Play Control wymaga oddzielnej weryfikacji bezpieczeństwa.\n{tip}",
-                "data": {
-                    "verify_ticket": "Kod weryfikacyjny z telefonu/e-maila"
                 }
             }
         },

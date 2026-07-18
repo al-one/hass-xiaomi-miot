@@ -65,20 +65,48 @@
                     "reset_customizes": "Varsayılan özelleştirmelere sıfırla",
                     "bool2selects": "Seçenekleri özelleştir"
                 }
+            },
+            "reauth_password": {
+                "title": "Xiaomi reauth — enter account password",
+                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "data": {
+                    "password": "Password"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi reauth — enter verification code",
+                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "data": {
+                    "verify_ticket": "Verification ticket"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi reauth — enter captcha",
+                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Cihaza bağlanılamadı",
+            "cannot_connect": "Cannot reach Xiaomi.",
             "cannot_login": "Xiaomi hesabına giriş yapılamadı. Lütfen hesap bilgilerinizi kontrol edin. Giriş denemeleri birden fazla kez başarısız olursa, lütfen aynı ağ ortamında Xiaomi resmi web sitesinden (mi.com) tekrar giriş yapmayı deneyin.",
             "cannot_reach": "Xiaomi API arayüzüne erişilemiyor",
             "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
-            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen aşağıdaki doğrulama bağlantısını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. Home Assistant'a dönün ve aşağıdaki giriş kutusuna girin."
+            "need_verify": "Verification code is required.",
+            "invalid_auth": "Xiaomi rejected the credentials.",
+            "need_captcha": "Captcha is required.",
+            "save_failed": "Failed to save refreshed credentials. Please retry.",
+            "unknown": "Unexpected error."
         },
         "abort": {
             "config_saved": "Yapılandırma kaydedildi! [Tekrar özelleştir](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nBazı özel seçeneklerin etkili olması için [entegrasyonun yeniden yüklenmesi](/developer-tools/yaml) gerekebilir.",
             "already_configured": "Bu cihaz zaten yapılandırılmış.",
-            "not_xiaomi_miio": "Bu cihaz miio/miot protokolünü desteklemiyor."
+            "not_xiaomi_miio": "Bu cihaz miio/miot protokolünü desteklemiyor.",
+            "unsupported_sid": "Reauth is not supported for this account.",
+            "wrong_account": "Authentication does not match the configured Xiaomi account.",
+            "reauth_successful": "Xiaomi account refreshed."
         }
     },
     "options": {
@@ -105,11 +133,7 @@
                     "renew_devices": "Cihazları zorla yenile",
                     "trans_options": "Özellik değeri açıklamasını çevir",
                     "disable_message": "Mihome bildirim sensörünü devre dışı bırak",
-                    "disable_scene_history": "Mihome sahne geçmişi sensörünü devre dışı bırak",
-                    "micoapi_verify": "XiaoAI oynatma kontrolünü doğrula"
-                },
-                "data_description": {
-                    "micoapi_verify": "Bunu açıp bu sayfayı göndererek XiaoAI Play Control için ek doğrulama adımını açın. Normal Xiaomi hesap ayarlarını değiştirmez. Play Control doğrulama istediğinde, kullanılamadığında veya oynatma durumunu okuyamadığında kullanın."
+                    "disable_scene_history": "Mihome sahne geçmişi sensörünü devre dışı bırak"
                 }
             },
             "cloud_filter": {
@@ -131,13 +155,6 @@
                 "data_description": {
                     "filter_did": "Hariç tutma modunda, listeden herhangi bir seçenek işaretlemezseniz, tüm cihazları dahil etmekle eşdeğerdir.",
                     "home_ids": "Bu seçeneği işaretleyip gönderdikten sonra mevcut sayfaya döneceksiniz,\ncihaz listesi yenilenecek ve işaretlenen evlerin cihazları filtrelenecektir."
-                }
-            },
-            "micoapi": {
-                "title": "XiaoAI oynatma kontrolünü doğrula",
-                "description": "XiaoAI Play Control ayrı bir güvenlik doğrulaması gerektirir.\n{tip}",
-                "data": {
-                    "verify_ticket": "Telefon/e-posta doğrulama kodu"
                 }
             }
         },

@@ -56,20 +56,48 @@
                     "reset_customizes": "Επαναφορά στις προεπιλεγμένες προσαρμογές",
                     "bool2selects": "Προσαρμογή επιλογών"
                 }
+            },
+            "reauth_password": {
+                "title": "Xiaomi reauth — enter account password",
+                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "data": {
+                    "password": "Password"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi reauth — enter verification code",
+                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "data": {
+                    "verify_ticket": "Verification ticket"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi reauth — enter captcha",
+                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Αποτυχία σύνδεσης της συσκευής",
+            "cannot_connect": "Cannot reach Xiaomi.",
             "cannot_login": "Αποτυχία σύνδεσης στον λογαριασμό cloud xiaomi, ελέγξτε τον κωδικό πρόσβασης. Εάν αποτύχετε πάντα να συνδεθείτε, συνδεθείτε για να mi.com στο ίδιο περιβάλλον με το τρέχον δίκτυο και προσπαθήστε ξανά.",
             "cannot_reach": "Δεν είναι δυνατή η πρόσβαση στο API της Xiaomi",
             "tzinfo_error": "Βλ.: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Καμία συσκευή στον λογαριασμό cloud xiaomi",
-            "need_verify": "Αυτή η σύνδεση απαιτεί επαλήθευση ασφαλείας. Ανοίξτε τον παρακάτω σύνδεσμο επαλήθευσης για να στείλετε τον κωδικό τηλεφώνου/email. Αφού λάβετε τον κωδικό, μην τον επαληθεύσετε στην ιστοσελίδα. Επιστρέψτε στο Home Assistant και πληκτρολογήστε τον στο παρακάτω πεδίο."
+            "need_verify": "Verification code is required.",
+            "invalid_auth": "Xiaomi rejected the credentials.",
+            "need_captcha": "Captcha is required.",
+            "save_failed": "Failed to save refreshed credentials. Please retry.",
+            "unknown": "Unexpected error."
         },
         "abort": {
             "config_saved": "Η διαμόρφωση αποθηκεύτηκε! [Προσαρμογή ξανά] (/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nΟρισμένες προσαρμόσιμες επιλογές απαιτούν [επαναφόρτωση ενοποίησης] (/εργαλεία προγραμματιστή/yaml) για να τεθούν σε ισχύ.",
             "already_configured": "Η συσκευή έχει ήδη ρυθμιστεί",
-            "not_xiaomi_miio": "Δεν είναι συσκευή Xiaomi miio / miot."
+            "not_xiaomi_miio": "Δεν είναι συσκευή Xiaomi miio / miot.",
+            "unsupported_sid": "Reauth is not supported for this account.",
+            "wrong_account": "Authentication does not match the configured Xiaomi account.",
+            "reauth_successful": "Xiaomi account refreshed."
         }
     },
     "options": {
@@ -93,11 +121,7 @@
                     "server_country": "Τοποθεσία διακομιστή του MiCloud",
                     "conn_mode": "Λειτουργία σύνδεσης για τη συσκευή",
                     "renew_devices": "Αναγκαστική ανανέωση συσκευών",
-                    "disable_message": "Απενεργοποιήστε τον αισθητήρα ειδοποιήσεων Mihome",
-                    "micoapi_verify": "Επαλήθευση ελέγχου αναπαραγωγής XiaoAI"
-                },
-                "data_description": {
-                    "micoapi_verify": "Ενεργοποιήστε το και υποβάλετε αυτή τη σελίδα για να ανοίξει το επιπλέον βήμα επαλήθευσης για το XiaoAI Play Control. Δεν αλλάζει τις κανονικές ρυθμίσεις του λογαριασμού Xiaomi. Χρησιμοποιήστε το όταν το Play Control ζητά επαλήθευση, δεν είναι διαθέσιμο ή δεν μπορεί να διαβάσει την κατάσταση αναπαραγωγής."
+                    "disable_message": "Απενεργοποιήστε τον αισθητήρα ειδοποιήσεων Mihome"
                 }
             },
             "cloud_filter": {
@@ -114,13 +138,6 @@
                     "bssid_list": "Λίστα BSSID WiFi",
                     "filter_did": "Συσκευή φίλτρου",
                     "did_list": "Λίστα συσκευών"
-                }
-            },
-            "micoapi": {
-                "title": "Επαλήθευση ελέγχου αναπαραγωγής XiaoAI",
-                "description": "Το XiaoAI Play Control χρειάζεται ξεχωριστή επαλήθευση ασφαλείας.\n{tip}",
-                "data": {
-                    "verify_ticket": "Κωδικός επαλήθευσης τηλεφώνου/email"
                 }
             }
         },

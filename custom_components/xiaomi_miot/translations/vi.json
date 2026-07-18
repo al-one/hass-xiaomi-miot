@@ -65,20 +65,48 @@
                     "reset_customizes": "Khôi phục tùy chỉnh mặc định",
                     "bool2selects": "Tùy chọn tùy chỉnh"
                 }
+            },
+            "reauth_password": {
+                "title": "Xiaomi reauth — enter account password",
+                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "data": {
+                    "password": "Password"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi reauth — enter verification code",
+                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "data": {
+                    "verify_ticket": "Verification ticket"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi reauth — enter captcha",
+                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Không thể kết nối tới thiết bị",
+            "cannot_connect": "Cannot reach Xiaomi.",
             "cannot_login": "Đăng nhập tài khoản Xiaomi thất bại. Vui lòng kiểm tra thông tin đăng nhập. Nếu thử nhiều lần vẫn không được, hãy thử đăng nhập lại trên trang chính thức Xiaomi (mi.com) cùng mạng.",
             "cannot_reach": "Không thể truy cập API Xiaomi",
             "tzinfo_error": "Có vẻ môi trường Hass của bạn gặp vấn đề. Xem: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Không tìm thấy thiết bị nào trong tài khoản Xiaomi này",
-            "need_verify": "Đăng nhập này cần xác thực bảo mật. Hãy mở liên kết xác thực bên dưới để gửi mã xác minh qua điện thoại/email. Sau khi nhận mã, không xác minh trên trang web. Quay lại Home Assistant và nhập mã vào ô bên dưới."
+            "need_verify": "Verification code is required.",
+            "invalid_auth": "Xiaomi rejected the credentials.",
+            "need_captcha": "Captcha is required.",
+            "save_failed": "Failed to save refreshed credentials. Please retry.",
+            "unknown": "Unexpected error."
         },
         "abort": {
             "config_saved": "Đã lưu cấu hình! [Tùy chỉnh lại](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nMột số tùy chọn cần [tải lại tích hợp](/developer-tools/yaml) để có hiệu lực.",
             "already_configured": "Thiết bị này đã được cấu hình.",
-            "not_xiaomi_miio": "Thiết bị này không hỗ trợ giao thức miio/miot."
+            "not_xiaomi_miio": "Thiết bị này không hỗ trợ giao thức miio/miot.",
+            "unsupported_sid": "Reauth is not supported for this account.",
+            "wrong_account": "Authentication does not match the configured Xiaomi account.",
+            "reauth_successful": "Xiaomi account refreshed."
         }
     },
     "options": {
@@ -105,11 +133,7 @@
                     "renew_devices": "Làm mới danh sách thiết bị",
                     "trans_options": "Mô tả dịch thuộc tính",
                     "disable_message": "Tắt cảm biến thông báo Mihome",
-                    "disable_scene_history": "Tắt cảm biến lịch sử cảnh Mihome",
-                    "micoapi_verify": "Xác minh điều khiển phát XiaoAI"
-                },
-                "data_description": {
-                    "micoapi_verify": "Bật mục này rồi gửi trang để mở bước xác minh bổ sung cho XiaoAI Play Control. Mục này không thay đổi cấu hình tài khoản Xiaomi thông thường. Dùng khi Play Control yêu cầu xác minh, không khả dụng hoặc không đọc được trạng thái phát."
+                    "disable_scene_history": "Tắt cảm biến lịch sử cảnh Mihome"
                 }
             },
             "cloud_filter": {
@@ -131,13 +155,6 @@
                 "data_description": {
                     "filter_did": "Ở chế độ loại trừ, nếu không chọn mục nào, sẽ bao gồm tất cả thiết bị.",
                     "home_ids": "Sau khi chọn và gửi, bạn sẽ quay lại trang này, danh sách thiết bị sẽ làm mới và lọc theo Home đã chọn."
-                }
-            },
-            "micoapi": {
-                "title": "Xác minh điều khiển phát XiaoAI",
-                "description": "XiaoAI Play Control cần một bước xác minh bảo mật riêng.\n{tip}",
-                "data": {
-                    "verify_ticket": "Mã xác minh điện thoại/email"
                 }
             }
         },
