@@ -651,6 +651,8 @@ class MiotCloud(micloud.MiCloud):
     def _absolutize(self, url: str) -> str:
         return url if url[:4] == 'http' else f'{ACCOUNT_BASE}{url}'
 
+    _STS_HOST = 'api2.mina.mi.com'
+
     def _login_step3(self, location):
         self.session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
         response = self.account_get(location, response=True)
@@ -661,15 +663,15 @@ class MiotCloud(micloud.MiCloud):
             self.user_id = cookies.get('userId', self.user_id)
             self.cuser_id = cookies.get('cUserId', self.cuser_id)
             self.async_session = None
-        else:
-            err = {
-                'location': location,
-                'status_code': response.status_code,
-                'cookies': cookies.get_dict(),
-                'response': response.text,
-            }
-            raise MiCloudAccessDenied(f'Login to xiaomi error: {err}')
-        return response
+            return response
+        is_sts = (
+            self.sid == CloudSid.MICOAPI
+            and self._STS_HOST in location
+            and response.status_code == 401
+        )
+        if is_sts:
+            raise MiCloudStsUnauthorized('Xiaomi STS rejected completed login')
+        raise MiCloudException('Xiaomi login step3 failed')
 
     def _get_captcha(self, url):
         response = self.session.get(url)
