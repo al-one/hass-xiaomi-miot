@@ -10,6 +10,8 @@ from custom_components.xiaomi_miot.core.xiaomi_cloud import (
     CloudSid,
     MiCloudAuthenticationError,
     MiCloudNeedVerify,
+    MiCloudStsUnauthorized,
+    MiCloudVerificationError,
 )
 
 
@@ -170,3 +172,113 @@ async def test_reauth_password_wrong_account_aborts(flow_cls):
     assert out["reason"] == "wrong_account"
     flow.async_abort.assert_called_once_with(reason="wrong_account")
     assert flow._candidate is None
+
+
+async def test_reauth_verify_empty_ticket_keeps_form_with_need_verify(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.XIAOMIIO,
+        entry=SimpleNamespace(data={"sid": "xiaomiio"}, entry_id="eid"),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = SimpleNamespace(
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        async_login_attempt=AsyncMock(),
+    )
+    flow._candidate = candidate
+
+    out = await flow.async_step_reauth_verify({"verify_ticket": ""})
+
+    assert out["errors"]["base"] == "need_verify"
+    candidate.async_login_attempt.assert_not_awaited()
+
+
+async def test_reauth_verify_verification_error_keeps_form(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.XIAOMIIO,
+        entry=SimpleNamespace(data={"sid": "xiaomiio"}, entry_id="eid"),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = SimpleNamespace(
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        async_login_attempt=AsyncMock(side_effect=MiCloudVerificationError("X")),
+    )
+    flow._candidate = candidate
+
+    out = await flow.async_step_reauth_verify({"verify_ticket": "T"})
+
+    assert out["errors"]["base"] == "need_verify"
+
+
+async def test_reauth_verify_micoapi_sts_retry_runs_once(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.MICOAPI,
+        entry=SimpleNamespace(data={"sid": "micoapi"}, entry_id="eid"),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = SimpleNamespace(
+        attrs={
+            "verify_url": "https://account.xiaomi.com/identity/authStart",
+            "service_token": "OLD",
+            "ssecurity": "OLD",
+            "async_session": object(),
+            "identity_session": "OLD",
+            "login_data": {"x": 1},
+        },
+        service_token="OLD",
+        ssecurity="OLD",
+        async_session=object(),
+        user_id=None,
+        async_login_attempt=AsyncMock(
+            side_effect=[MiCloudStsUnauthorized("X"), True],
+        ),
+    )
+    flow._candidate = candidate
+    flow._persist_and_reload = AsyncMock(return_value={"step_id": "ok"})
+
+    out = await flow.async_step_reauth_verify({"verify_ticket": "T"})
+
+    assert out["step_id"] == "ok"
+    assert candidate.attrs == {}
+    assert candidate.service_token is None
+    assert candidate.ssecurity is None
+    assert candidate.async_session is None
+    assert candidate.async_login_attempt.await_count == 2
+    flow._persist_and_reload.assert_awaited_once_with(candidate)
+
+
+async def test_reauth_verify_micoapi_second_sts_returns_unknown(flow_cls):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.MICOAPI,
+        entry=SimpleNamespace(data={"sid": "micoapi"}, entry_id="eid"),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = SimpleNamespace(
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        service_token="OLD",
+        ssecurity="OLD",
+        async_session=object(),
+        async_login_attempt=AsyncMock(
+            side_effect=[
+                MiCloudStsUnauthorized("X"),
+                MiCloudStsUnauthorized("Y"),
+            ],
+        ),
+    )
+    flow._candidate = candidate
+
+    out = await flow.async_step_reauth_verify({"verify_ticket": "T"})
+
+    assert out["errors"]["base"] == "unknown"
+    assert candidate.async_login_attempt.await_count == 2

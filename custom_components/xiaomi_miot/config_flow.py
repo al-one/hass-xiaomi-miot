@@ -53,6 +53,8 @@ from .core.xiaomi_cloud import (
     MiCloudAccessDenied,
     MiCloudAuthenticationError,
     MiCloudNeedVerify,
+    MiCloudStsUnauthorized,
+    MiCloudVerificationError,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -419,7 +421,120 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         return await self._persist_and_reload(candidate)
 
     async def async_step_reauth_verify(self, user_input=None):
-        return self.async_abort(reason='unknown')
+        errors = {}
+        candidate = self._candidate
+        schema = vol.Schema({vol.Required('verify_ticket'): str})
+        verify_url = candidate.attrs.get('verify_url') if candidate else None
+        placeholders = {'verify_url': verify_url or ''}
+        if user_input is None:
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                placeholders=placeholders,
+            )
+        ticket = (user_input.get('verify_ticket') or '').strip()
+        if not ticket:
+            errors['base'] = 'need_verify'
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                errors=errors,
+                placeholders=placeholders,
+            )
+        try:
+            ok = await candidate.async_login_attempt({'verify_ticket': ticket})
+        except MiCloudVerificationError:
+            errors['base'] = 'need_verify'
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                errors=errors,
+                placeholders=placeholders,
+            )
+        except requests.exceptions.ConnectionError:
+            errors['base'] = 'cannot_connect'
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                errors=errors,
+                placeholders=placeholders,
+            )
+        except MiCloudAuthenticationError:
+            self._candidate = None
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'invalid_auth'},
+            )
+        except MiCloudStsUnauthorized:
+            if self._reauth.sid != CloudSid.MICOAPI:
+                errors['base'] = 'unknown'
+                return self._show_reauth_form(
+                    'reauth_verify',
+                    schema,
+                    errors=errors,
+                    placeholders=placeholders,
+                )
+            for key in (
+                'service_token',
+                'ssecurity',
+                'async_session',
+                'identity_session',
+                'verify_url',
+                'login_data',
+            ):
+                candidate.attrs.pop(key, None)
+            candidate.service_token = None
+            candidate.ssecurity = None
+            candidate.async_session = None
+            try:
+                ok = await candidate.async_login_attempt()
+            except requests.exceptions.ConnectionError:
+                errors['base'] = 'cannot_connect'
+                return self._show_reauth_form(
+                    'reauth_verify',
+                    schema,
+                    errors=errors,
+                    placeholders=placeholders,
+                )
+            except MiCloudAuthenticationError:
+                self._candidate = None
+                return self._show_reauth_form(
+                    'reauth_password',
+                    vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                    errors={'base': 'invalid_auth'},
+                )
+            except Exception:
+                errors['base'] = 'unknown'
+                return self._show_reauth_form(
+                    'reauth_verify',
+                    schema,
+                    errors=errors,
+                    placeholders=placeholders,
+                )
+        except Exception:
+            errors['base'] = 'unknown'
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                errors=errors,
+                placeholders=placeholders,
+            )
+        if not ok:
+            if candidate.attrs.get('captchaImg') and candidate.attrs.get('captchaIck'):
+                return await self.async_step_reauth_captcha()
+            errors['base'] = 'unknown'
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                errors=errors,
+                placeholders=placeholders,
+            )
+        expected = self._reauth.entry.data.get('user_id')
+        if str(getattr(candidate, 'user_id', None)) != str(expected):
+            self._candidate = None
+            return self.async_abort(reason='wrong_account')
+        return await self._persist_and_reload(candidate)
 
     async def async_step_reauth_captcha(self, user_input=None):
         return self.async_abort(reason='unknown')
