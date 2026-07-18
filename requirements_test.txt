@@ -3,3 +3,5 @@ construct>=2.10.68
 python-miio>=0.5.12
 micloud>=0.5
 ha-ffmpeg
+PyNaCl>=1.5.0
+pycryptodome>=3.20.0
