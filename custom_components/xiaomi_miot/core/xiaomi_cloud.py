@@ -184,12 +184,10 @@ class MiotCloud(micloud.MiCloud):
             vls = [val]
         return vls.pop(0)
 
-    async def async_check_auth(self, notify=False):
+    async def async_check_auth(self, *, notify: bool = True):
         if self.service_token:
             api = 'v2/message/v2/check_new_msg'
-            dat = {
-                'begin_at': int(time.time()) - 60,
-            }
+            dat = {'begin_at': int(time.time()) - 60}
             try:
                 rdt = await self.async_request_api(api, dat, method='POST') or {}
                 if not self.is_token_expired(rdt):
@@ -198,16 +196,27 @@ class MiotCloud(micloud.MiCloud):
                 return None
             except requests.exceptions.Timeout:
                 return None
-            # auth err
             _LOGGER.debug('Xiaomi auth probe failed; attempting relogin')
+
+        cb = None
+        if self.hass_entry is not None and hasattr(self.hass_entry, 'async_auth_failed'):
+            cb = self.hass_entry.async_auth_failed
+
         nid = f'xiaomi-miot-auth-warning-{self.user_id}'
         need_verify = None
         try:
             if await self.async_relogin():
+                if cb is not None:
+                    return True
                 persistent_notification.dismiss(self.hass, nid)
                 return True
         except MiCloudNeedVerify as exc:
             need_verify = exc
+
+        if cb is not None:
+            await cb(CloudSid.XIAOMIIO if self.sid == 'xiaomiio' else CloudSid.MICOAPI)
+            return False
+
         if notify:
             lnk = f'/config/integrations/integration/{DOMAIN}'
             persistent_notification.create(
@@ -217,11 +226,6 @@ class MiotCloud(micloud.MiCloud):
                 f'你的小米账号登陆状态已失效，但本次需要手动验证，请通过[集成配置]({lnk})重新登陆。',
                 'Xiaomi Miot Warning',
                 nid,
-            )
-            _LOGGER.error(
-                'Xiaomi account: %s auth failed, Please update option for this integration to refresh token.\n%s',
-                self.user_id,
-                rdt,
             )
         elif need_verify:
             raise need_verify
