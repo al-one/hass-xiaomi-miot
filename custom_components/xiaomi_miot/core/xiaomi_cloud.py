@@ -1,4 +1,5 @@
 import logging
+from enum import StrEnum
 import aiohttp
 import asyncio
 import json
@@ -33,6 +34,27 @@ try:
 except (ModuleNotFoundError, ImportError):
     class MiCloudAccessDenied(MiCloudException):
         """ micloud==0.4 """
+
+
+class CloudSid(StrEnum):
+    XIAOMIIO = 'xiaomiio'
+    MICOAPI = 'micoapi'
+    I_MI_COM = 'i.mi.com'
+
+
+REAUTH_SIDS = frozenset({CloudSid.XIAOMIIO, CloudSid.MICOAPI})
+
+
+class MiCloudAuthenticationError(MiCloudAccessDenied):
+    """Typed outcome: credentials/captcha/STS token are no longer valid."""
+
+
+class MiCloudVerificationError(MiCloudAccessDenied):
+    """Typed outcome: the verify_ticket attempt was rejected."""
+
+
+class MiCloudStsUnauthorized(MiCloudAccessDenied):
+    """Typed outcome: micoapi STS endpoint returned 401 after completed login."""
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.addFilter(logger_filter)
