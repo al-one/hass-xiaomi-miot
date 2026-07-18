@@ -544,8 +544,10 @@ class MiotCloud(micloud.MiCloud):
                 params={'sid': self.sid, '_json': 'true'},
                 headers={'User-Agent': self.useragent},
             )
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            raise
         except Exception as exc:
-            raise MiCloudException(f'Error getting xiaomi login sign. Cannot parse response. {exc}')
+            raise MiCloudException('Xiaomi login sign request failed') from exc
         if auth.get('code') == 0:
             self.user_id = auth.get('userId', self.user_id)
             self.cuser_id = auth.get('cUserId', self.cuser_id)
