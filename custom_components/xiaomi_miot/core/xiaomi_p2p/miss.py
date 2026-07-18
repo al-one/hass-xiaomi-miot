@@ -1,0 +1,422 @@
+"""MISS session: login, encrypted commands, media probe, and recovery.
+
+This module owns one MISS session per `(did, lens)` connection. It
+performs plaintext CS2 login, derives the shared key on acceptance,
+encrypts subsequent MISS commands, decrypts media bodies, and drives
+the media probe until a complete `MediaContract` is published.
+
+Recovery state (soft restart and full reconnect) is owned by the
+manager (Task 12). This module exposes the session-facing primitives
+the manager calls into.
+
+Secret material is never logged or included in `MissError` text.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+from dataclasses import dataclass, field
+from typing import Any, Optional
+
+from . import (
+    MediaContract,
+    MissError,
+    MissErrorCategory,
+    P2PProfile,
+)
+from .cs2.protocol import (
+    Cs2Command,
+    Cs2MediaPacket,
+    decode_miss_media_header,
+    encode_outbound_miss_plaintext,
+)
+from .crypto import derive_shared_key, miss_decode, miss_encode
+from .media import MediaProbe
+
+
+# ---- Protocol constants ------------------------------------------------
+
+# CS2 channel-0 command IDs that frame MISS-layer messages.
+LOGIN_COMMAND_ID: int = 0x100
+LOGIN_RESPONSE_COMMAND_ID: int = 0x101
+ENCRYPTED_WRAPPER_COMMAND_ID: int = 0x1001
+
+# MISS plaintext command IDs (carried inside the encrypted wrapper).
+START_MEDIA_COMMAND_ID: int = 0x102
+STOP_MEDIA_COMMAND_ID: int = 0x103
+
+# The accepted raw_quality range; everything else is rejected with
+# `quality_unsupported` before any network I/O.
+VALID_RAW_QUALITIES: tuple[int, ...] = (0, 1, 2, 3, 4)
+
+@dataclass
+class MissSession:
+    """One MISS session owned by the entry-level manager.
+
+    The session is created from a fresh bootstrap after a single CS2
+    discovery exchange that yields an already-established `transport`.
+    After login is accepted, all subsequent MISS commands are encrypted
+    under the shared key and carried inside wrapper `0x1001`. Media
+    bodies are decrypted with the same shared key.
+    """
+
+    bootstrap: object = field(repr=False)
+    transport: object = field(repr=False)
+    profile: P2PProfile
+    lens: str
+    clock: object = field(repr=False)
+    raw_quality: int | None = None
+    request_audio: bool | None = None
+
+    # Internal state.
+    _state: str = field(default="disconnected", init=False)
+    _shared_key: Optional[bytes] = field(default=None, init=False, repr=False)
+    _probe: MediaProbe = field(default=None, init=False, repr=False)
+    _contract: Optional[MediaContract] = field(default=None, init=False, repr=False)
+    _generation: int = field(default=0, init=False)
+    _candidate_video_codec: Optional[int] = field(default=None, init=False)
+    _candidate_audio_codec: Optional[int] = field(default=None, init=False)
+    _unknown_messages: int = field(default=0, init=False)
+    _reconnect_count: int = field(default=0, init=False)
+    _soft_restart_used: bool = field(default=False, init=False)
+    _last_complete_video_at: Optional[float] = field(default=None, init=False)
+    _closed: bool = field(default=False, init=False)
+
+    def __post_init__(self) -> None:
+        if self.raw_quality is None:
+            self.raw_quality = self.profile.raw_quality
+        if self.request_audio is None:
+            self.request_audio = self.profile.request_audio
+        self._probe = MediaProbe(
+            clock=self.clock,
+            audio_wait_seconds=2.0 if self.request_audio else 0.0,
+        )
+
+    @property
+    def state(self) -> str:
+        return self._state
+
+    @property
+    def generation(self) -> int:
+        return self._generation
+
+    @property
+    def contract(self) -> MediaContract | None:
+        return self._contract
+
+    async def connect_and_start(self, deadline: float) -> MediaContract:
+        """Login, start media, and publish the initial complete contract."""
+        if self._closed:
+            raise MissError(MissErrorCategory.TRANSPORT, "session_closed")
+        if self._state != "disconnected":
+            raise MissError(MissErrorCategory.MEDIA, "session_state_invalid")
+        if self.clock.now >= deadline:
+            raise MissError(MissErrorCategory.TIMEOUT, "media_probe_timeout")
+        if self.lens not in self.profile.lenses:
+            raise MissError(MissErrorCategory.MEDIA, "lens_not_supported")
+        self._validate_quality()
+        self._state = "connecting"
+        try:
+            await self._attempt_login(deadline)
+            await self._send_start_media(deadline)
+            self._state = "probing"
+            while self.clock.now < deadline:
+                contract = self._probe.contract
+                if contract is not None:
+                    return self._publish_initial_contract(contract)
+
+                timeout = deadline - self.clock.now
+                complete_at = self._probe.last_complete_video_at
+                if complete_at is not None and self.request_audio:
+                    timeout = min(timeout, max(0.0, complete_at + 2.0 - self.clock.now))
+                if timeout <= 0:
+                    continue
+                try:
+                    packet = await self.transport.read_media_packet(timeout=timeout)
+                except MissError as exc:
+                    if exc.category != MissErrorCategory.TIMEOUT:
+                        raise
+                    contract = self._probe.contract
+                    if contract is not None:
+                        return self._publish_initial_contract(contract)
+                    if self.clock.now >= deadline:
+                        break
+                    continue
+                await self._process_media_packet(packet)
+            raise MissError(MissErrorCategory.TIMEOUT, "media_probe_timeout")
+        except asyncio.CancelledError:
+            await self._abort()
+            raise
+        except asyncio.IncompleteReadError as exc:
+            self._state = "failed"
+            await self.transport.close()
+            raise MissError(
+                MissErrorCategory.TRANSPORT, "connection_lost"
+            ) from exc
+        except MissError:
+            self._state = "failed"
+            await self.transport.close()
+            raise
+
+    def _publish_initial_contract(self, contract: MediaContract) -> MediaContract:
+        self._candidate_video_codec = contract.video_codec
+        self._candidate_audio_codec = contract.audio_codec
+        self._enforce_mandatory_codecs()
+        self._contract = contract
+        self._generation = 1
+        self._last_complete_video_at = self._probe.last_complete_video_at
+        self._state = "published"
+        return contract
+
+    async def start_media(
+        self,
+        *,
+        lens: str,
+        raw_quality: int,
+        request_audio: bool,
+    ) -> None:
+        """Send one resolved start-media command on an authenticated session."""
+        if lens not in self.profile.lenses:
+            raise MissError(MissErrorCategory.MEDIA, "lens_not_supported")
+        previous = (self.lens, self.raw_quality, self.request_audio)
+        self.lens, self.raw_quality, self.request_audio = (
+            lens,
+            raw_quality,
+            request_audio,
+        )
+        try:
+            self._validate_quality()
+            await self._send_start_media()
+        finally:
+            self.lens, self.raw_quality, self.request_audio = previous
+
+    # ---- Internal state helpers ---------------------------------------
+
+    def _require_state(self, *allowed: str) -> None:
+        if self._state not in allowed:
+            raise MissError(MissErrorCategory.MEDIA, "session_state_invalid")
+
+    def _record_unknown(self, command_id: int) -> None:
+        self._unknown_messages += 1
+        # Unknown command IDs are counted and ignored per the spec.
+
+    # ---- Quality and codec validation -------------------------------
+
+    def _validate_quality(self) -> None:
+        if self.raw_quality not in VALID_RAW_QUALITIES:
+            raise MissError(
+                MissErrorCategory.MEDIA,
+                "quality_unsupported",
+            )
+
+    def _enforce_mandatory_codecs(self) -> None:
+        required_video = self.profile.required_video_codec
+        required_audio = self.profile.required_audio_codec
+        if (
+            required_video is not None
+            and self._candidate_video_codec != required_video
+        ):
+            raise MissError(
+                MissErrorCategory.MEDIA,
+                "codec_required_unsatisfied",
+            )
+        if (
+            required_audio is not None
+            and self._candidate_audio_codec != required_audio
+        ):
+            raise MissError(
+                MissErrorCategory.MEDIA,
+                "codec_required_unsatisfied",
+            )
+
+    # ---- Login sequence -----------------------------------------------
+
+    async def _default_login_impl(self, deadline: float) -> None:
+        """Default login: send plaintext 0x100 and await plaintext 0x101."""
+        await self._send_login(deadline)
+        await self._await_login_response(deadline)
+
+    async def _send_login(self, deadline: float | None = None) -> None:
+        """Send the plaintext CS2 login command on wrapper id 0x100."""
+        body = self._build_login_body()
+        await self._write_command(
+            Cs2Command(command_id=LOGIN_COMMAND_ID, payload=body), deadline
+        )
+
+    def _build_login_body(self) -> bytes:
+        """Build the plaintext JSON login body.
+
+        The body carries the ephemeral client public key and the cloud
+        signature from the bootstrap. Hex encoding is deliberately
+        lowercase.
+        """
+        public_key_hex = self.bootstrap.client_public_key.hex()
+        payload = {
+            "cmd": "login",
+            "pubkey": public_key_hex,
+            "p2p_id": self.bootstrap.p2p_id or "",
+            "sign": self.bootstrap.signature,
+        }
+        return json.dumps(payload, separators=(",", ":")).encode("utf-8")
+
+    async def _await_login_response(self, deadline: float) -> None:
+        """Wait for the plaintext login response command id 0x101."""
+        while self.clock.now < deadline:
+            cmd = await self.transport.read_command(
+                timeout=deadline - self.clock.now
+            )
+            if cmd.command_id != LOGIN_RESPONSE_COMMAND_ID:
+                self._record_unknown(cmd.command_id)
+                continue
+            if cmd.payload:
+                try:
+                    response = json.loads(cmd.payload.decode("utf-8"))
+                except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                    raise MissError(
+                        MissErrorCategory.AUTH, "login_response_malformed"
+                    ) from exc
+                if not isinstance(response, dict):
+                    raise MissError(
+                        MissErrorCategory.AUTH, "login_response_malformed"
+                    )
+                if response.get("code", 0) != 0 or response.get("result") is False:
+                    raise MissError(MissErrorCategory.AUTH, "login_rejected")
+            self._shared_key = derive_shared_key(
+                self.bootstrap.client_private_key,
+                self.bootstrap.device_public_key,
+            )
+            self._state = "encrypted"
+            return
+        raise MissError(MissErrorCategory.TIMEOUT, "login_timeout")
+
+    async def _attempt_login(self, deadline: float) -> None:
+        """Run login and propagate cancellation without reconnecting."""
+        self._state = "logging_in"
+        try:
+            await self._default_login_impl(deadline)
+        except asyncio.CancelledError:
+            self._state = "disconnected"
+            raise
+
+    # ---- Encrypted MISS command helper -------------------------------
+
+    async def _write_command(
+        self, command: Cs2Command, deadline: float | None
+    ) -> None:
+        if deadline is None:
+            await self.transport.write_command(command)
+            return
+        remaining = deadline - self.clock.now
+        if remaining <= 0:
+            raise MissError(MissErrorCategory.TIMEOUT, "operation_timeout")
+        try:
+            await asyncio.wait_for(
+                self.transport.write_command(command), timeout=remaining
+            )
+        except TimeoutError as exc:
+            raise MissError(
+                MissErrorCategory.TIMEOUT, "operation_timeout"
+            ) from exc
+
+    async def _send_miss_command(
+        self,
+        inner_id: int,
+        body: dict | bytes,
+        deadline: float | None = None,
+    ) -> None:
+        """Encrypt `body` under the shared key and send as wrapper 0x1001."""
+        if self._shared_key is None:
+            raise MissError(
+                MissErrorCategory.AUTH,
+                "shared_key_missing",
+            )
+        if isinstance(body, dict):
+            payload_bytes = json.dumps(body, separators=(",", ":")).encode("utf-8")
+        else:
+            payload_bytes = bytes(body)
+        plaintext = encode_outbound_miss_plaintext(inner_id, payload_bytes)
+        encrypted = miss_encode(self._shared_key, plaintext)
+        await self._write_command(
+            Cs2Command(
+                command_id=ENCRYPTED_WRAPPER_COMMAND_ID,
+                payload=encrypted,
+            ),
+            deadline,
+        )
+
+    # ---- Start / stop media -------------------------------------------
+
+    async def _send_start_media(self, deadline: float | None = None) -> None:
+        """Send the resolved start-media payload under the shared key."""
+        if self.lens == "primary":
+            payload: dict[str, Any] = {
+                "videoquality": self.raw_quality,
+                "enableaudio": 1 if self.request_audio else 0,
+            }
+        elif self.lens == "secondary":
+            payload = {
+                "videoquality": -1,
+                "videoquality2": self.raw_quality,
+                "enableaudio": 1 if self.request_audio else 0,
+            }
+        else:
+            raise MissError(
+                MissErrorCategory.MEDIA,
+                "lens_not_supported",
+            )
+        await self._send_miss_command(
+            START_MEDIA_COMMAND_ID, payload, deadline
+        )
+
+    async def stop_media(self) -> None:
+        """Send the stop-media command under the shared key."""
+        await self._send_miss_command(STOP_MEDIA_COMMAND_ID, {"stop": 1})
+
+    # ---- Media feed helpers ------------------------------------------
+
+    async def _process_media_packet(self, packet: Cs2MediaPacket) -> None:
+        """Decrypt and feed one media packet to the probe."""
+        if self._shared_key is None:
+            raise MissError(
+                MissErrorCategory.AUTH,
+                "shared_key_missing",
+            )
+        header = decode_miss_media_header(packet.header)
+        body = miss_decode(self._shared_key, packet.encrypted_body)
+        self._probe.feed(header, body)
+
+    async def _abort(self) -> None:
+        self._shared_key = None
+        self._contract = None
+        self._candidate_video_codec = None
+        self._candidate_audio_codec = None
+        self._last_complete_video_at = None
+        self._probe = MediaProbe(
+            clock=self.clock,
+            audio_wait_seconds=2.0 if self.request_audio else 0.0,
+        )
+        self._state = "failed"
+        await self.close()
+
+    # ---- Close --------------------------------------------------------
+
+    async def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        try:
+            await self.transport.close()
+        except Exception:  # pragma: no cover - defensive
+            pass
+
+
+__all__ = [
+    "ENCRYPTED_WRAPPER_COMMAND_ID",
+    "LOGIN_COMMAND_ID",
+    "LOGIN_RESPONSE_COMMAND_ID",
+    "MissSession",
+    "START_MEDIA_COMMAND_ID",
+    "STOP_MEDIA_COMMAND_ID",
+    "VALID_RAW_QUALITIES",
+]

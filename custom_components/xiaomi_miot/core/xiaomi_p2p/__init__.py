@@ -100,9 +100,9 @@ class MediaContract:
 
     video_codec: int
     audio_codec: int | None
-    video_sps: bytes
-    video_pps: bytes
-    vps: bytes | None
+    video_sps: bytes = field(repr=False)
+    video_pps: bytes = field(repr=False)
+    vps: bytes | None = field(repr=False)
     width: int
     height: int
     fps: int
