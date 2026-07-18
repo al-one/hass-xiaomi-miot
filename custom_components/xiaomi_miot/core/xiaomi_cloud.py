@@ -229,6 +229,88 @@ class MiotCloud(micloud.MiCloud):
             _LOGGER.warning('Retry login xiaomi account failed: %s', self.username)
         return False
 
+    async def async_check_micoapi_auth(self) -> bool | None:
+        if self.sid != CloudSid.MICOAPI:
+            raise MiCloudException('async_check_micoapi_auth requires micoapi')
+        cb = None
+        if self.hass_entry is not None and hasattr(self.hass_entry, 'async_auth_failed'):
+            cb = self.hass_entry.async_auth_failed
+
+        async def _invoke_callback_or_none(outcome: bool | None):
+            if cb is not None and outcome is False:
+                await cb(CloudSid.MICOAPI)
+            return outcome
+
+        async def _typed_login_via_attempt():
+            # Outcome precedence:
+            #   1. Successful relogin (True)
+            #   2. Complete captcha challenge ready → typed auth outcome (False + callback)
+            #   3. Typed auth/challenge exception → False + callback
+            #   4. Network/timeout/parse/unknown → None (no callback)
+            try:
+                ok = await self.async_relogin()
+            except (MiCloudAuthenticationError, MiCloudNeedVerify):
+                return await _invoke_callback_or_none(False)
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+                return None
+            except MiCloudException:
+                # Fresh captcha URL triggered this; step2 populated attrs before
+                # raising MiCloudException("Xiaomi login requires captcha").
+                if self._has_complete_captcha():
+                    return await _invoke_callback_or_none(False)
+                return None
+            except Exception:
+                return None
+            if ok:
+                return True
+            # async_login returned False without raising — only happens if captcha
+            # state was kept. Per spec, treat that as a typed auth outcome.
+            if self._has_complete_captcha():
+                return await _invoke_callback_or_none(False)
+            return False
+
+        if not self.service_token:
+            return await _typed_login_via_attempt()
+
+        try:
+            session = self.async_session
+            if not session or getattr(session, 'closed', False):
+                session = async_create_clientsession(
+                    self.hass,
+                    headers=self.api_headers(),
+                    cookies=self.api_cookies(),
+                )
+                self.async_session = session
+            resp = await session.get(
+                'https://api2.mina.mi.com/admin/v2/device_list',
+                timeout=aiohttp.ClientTimeout(total=self.http_timeout),
+            )
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            return None
+        except aiohttp.ClientError:
+            return None
+
+        if resp.status == 200:
+            try:
+                payload = await resp.json()
+            except Exception:
+                return None
+            if isinstance(payload, dict) and ('result' in payload or 'code' in payload):
+                return True
+            return None
+
+        if resp.status != 401:
+            return None
+
+        # HTTP 401 synchronously clears in-memory credentials per spec — same six
+        # fields cleared by reauth_verify's STS retry.
+        self.service_token = None
+        self.ssecurity = None
+        self.async_session = None
+        for k in ('identity_session', 'verify_url', 'login_data'):
+            self.attrs.pop(k, None)
+        return await _typed_login_via_attempt()
+
     def is_token_expired(self, data: dict):
         eno = data.get('code', 0)
         msg = data.get('message', '')
