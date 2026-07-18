@@ -572,44 +572,80 @@ class MiotCloud(micloud.MiCloud):
             post['captCode'] = captcha
             params['_dc'] = int(time.time() * 1000)
             cookies['ick'] = self.attrs.pop('captchaIck', '')
-        response = self.account_post(url, data=post, params=params, cookies=cookies, response=True)
-        auth = self.json_decode(response.text) or {}
+        response = self.account_post(
+            url, data=post, params=params, cookies=cookies, response=True,
+        )
+        try:
+            auth = self.json_decode(response.text) or {}
+        except Exception as exc:
+            raise MiCloudException('Xiaomi login step2 failed') from exc
         code = auth.get('code')
-        # 20003 InvalidUserNameException
-        # 22009 PackageNameDeniedException
-        # 70002 InvalidCredentialException
-        # 70016 InvalidCredentialException with captchaUrl / Password error
-        # 81003 NeedVerificationException
-        # 87001 InvalidResponseException captCode error
-        # other NeedCaptchaException
         location = auth.get('location')
-        if not location:
-            if ntf := auth.get('notificationUrl'):
-                if ntf[:4] != 'http':
-                    ntf = f'{ACCOUNT_BASE}{ntf}'
-                self.attrs['verify_url'] = ntf
-                raise MiCloudNeedVerify('need_verify').with_url(ntf)
-            if cap := auth.get('captchaUrl'):
-                if cap[:4] != 'http':
-                    cap = f'{ACCOUNT_BASE}{cap}'
-                if self._get_captcha(cap):
-                    self.attrs['login_data'] = kwargs
-            _LOGGER.error(
-                'Xiaomi serviceLoginAuth2: %s' %
-                [url, self.login_times, {**post, 'hash': '*'}, cookies, response.text],
+
+        if location:
+            self.user_id = str(auth.get('userId', ''))
+            self.cuser_id = auth.get('cUserId')
+            self.ssecurity = auth.get('ssecurity')
+            self.pass_token = auth.get('passToken')
+            if self.sid != 'xiaomiio':
+                sign = f'nonce={auth.get("nonce")}&{auth.get("ssecurity")}'
+                sign = hashlib.sha1(sign.encode()).digest()
+                sign = base64.b64encode(sign).decode()
+                location += '&clientSign=' + parse.quote(sign)
+            _LOGGER.debug('Xiaomi serviceLoginAuth2 completed')
+            return location
+
+        if ntf := auth.get('notificationUrl'):
+            ntf = self._absolutize(ntf)
+            self.attrs['verify_url'] = ntf
+            raise MiCloudNeedVerify('need_verify').with_url(ntf)
+
+        cap = auth.get('captchaUrl')
+        if cap:
+            cap = self._absolutize(cap)
+            needs_complete_refresh = (
+                code == 87001
+                or not self._has_complete_captcha()
             )
-            raise MiCloudAccessDenied(f'Login to xiaomi error: {response.text}')
-        self.user_id = str(auth.get('userId', ''))
-        self.cuser_id = auth.get('cUserId')
-        self.ssecurity = auth.get('ssecurity')
-        self.pass_token = auth.get('passToken')
-        if self.sid != 'xiaomiio':
-            sign = f'nonce={auth.get("nonce")}&{auth.get("ssecurity")}'
-            sign = hashlib.sha1(sign.encode()).digest()
-            sign = base64.b64encode(sign).decode()
-            location += '&clientSign=' + parse.quote(sign)
-        _LOGGER.info('Xiaomi serviceLoginAuth2: %s', [auth, self.cookies])
-        return location
+            self.attrs['captcha_url'] = cap
+            if needs_complete_refresh:
+                try:
+                    self._get_captcha(cap)
+                except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:
+                    self._clear_captcha_attrs()
+                    raise MiCloudException('Xiaomi captcha fetch failed') from exc
+                if not self._has_complete_captcha():
+                    self._clear_captcha_attrs()
+                    raise MiCloudException('Xiaomi captcha challenge incomplete')
+                if code == 87001:
+                    raise MiCloudAuthenticationError('Xiaomi captcha rejected')
+                raise MiCloudException('Xiaomi login requires captcha')
+            self.attrs['login_data'] = kwargs
+            raise MiCloudException('Xiaomi login requires captcha')
+
+        if code in (20003, 70002):
+            self._clear_captcha_attrs()
+            raise MiCloudAuthenticationError('Xiaomi rejected credentials')
+        if code == 70016:
+            self._clear_captcha_attrs()
+            raise MiCloudAuthenticationError('Xiaomi rejected credentials')
+        if code == 81003:
+            self._clear_captcha_attrs()
+            raise MiCloudNeedVerify('need_verify').with_url(
+                self.attrs.get('verify_url', '')
+            )
+        self._clear_captcha_attrs()
+        raise MiCloudException('Xiaomi login step2 failed')
+
+    def _clear_captcha_attrs(self):
+        for k in ('captcha_url', 'captchaImg', 'captchaIck'):
+            self.attrs.pop(k, None)
+
+    def _has_complete_captcha(self):
+        return all(self.attrs.get(k) for k in ('captcha_url', 'captchaImg', 'captchaIck'))
+
+    def _absolutize(self, url: str) -> str:
+        return url if url[:4] == 'http' else f'{ACCOUNT_BASE}{url}'
 
     def _login_step3(self, location):
         self.session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
