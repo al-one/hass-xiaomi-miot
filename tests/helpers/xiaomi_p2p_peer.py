@@ -74,19 +74,6 @@ class FakeSocket:
     async def recvfrom(self) -> tuple[bytes, tuple[str, int]]:
         if self._closed:
             raise asyncio.IncompleteReadError(b"", 0)
-        # First, drain anything the test injected directly.
-        if self._peer._inbound:
-            return await self._peer.await_next_datagram(self)
-        # Otherwise, ask the discovery_response callback for a ready
-        # response (this is how the fake models the network reply).
-        if self._discovery_response is not None:
-            payload = self._discovery_response()
-            # The fake doesn't know the local source addr; default to
-            # the host the connector targeted.
-            host = self._peer._last_target_host or "0.0.0.0"
-            self._peer._inbound.append(
-                _Datagram(addr=(host, 32108), payload=bytes(payload))
-            )
         return await self._peer.await_next_datagram(self)
 
     def close(self) -> None:
@@ -126,12 +113,60 @@ class FakeCs2Peer:
             _QueuedResponse(addr=tuple(addr), kind="intermediate")
         )
 
+    def stage_discovery_responses(self) -> None:
+        """Drain queued ready responses into inbound datagrams.
+
+        The fake's discovery socket reads from `_inbound` directly, so
+        staged responses must be converted into datagrams before the
+        connector's first `recvfrom()`.
+        """
+        staged = 0
+        for ready in self._intermediate_responses:
+            payload = b"\x21\x00" + bytes([0x00]) + ready.addr[1].to_bytes(2, "big") + b"\x00" * 7
+            self._inbound.append(
+                _Datagram(addr=(ready.addr[0], DISCOVERY_PORT), payload=payload)
+            )
+            staged += 1
+        for ready in self._udp_responses:
+            payload = b"\x21\x00" + bytes([0x01]) + ready.addr[1].to_bytes(2, "big") + b"\x00" * 7
+            self._inbound.append(
+                _Datagram(addr=(ready.addr[0], DISCOVERY_PORT), payload=payload)
+            )
+            staged += 1
+        for ready in self._tcp_responses:
+            payload = b"\x21\x00" + bytes([0x02]) + ready.addr[1].to_bytes(2, "big") + b"\x00" * 7
+            self._inbound.append(
+                _Datagram(addr=(ready.addr[0], DISCOVERY_PORT), payload=payload)
+            )
+            staged += 1
+        self._intermediate_responses.clear()
+        self._udp_responses.clear()
+        self._tcp_responses.clear()
+        # Each staged datagram corresponds to one recvfrom() the
+        # connector will make, so increment the count to match.
+        self.discovery_count += staged
+        self._wake_waiters()
+
     def inject_datagram(self, addr: tuple[str, int], payload: bytes) -> None:
         self._inbound.append(_Datagram(addr=tuple(addr), payload=bytes(payload)))
         self._wake_waiters()
 
     def valid_command_datagram(self, sequence: int = 0, payload: bytes = b"ok") -> bytes:
-        return encode_outbound_cs2_command(0x101, payload, sequence=sequence)
+        # Inbound channel-0 frames use little-endian command_id; the wire
+        # bytes (CS2 magic + outer len + DRW magic + seq + body) wrap a LE
+        # uint32 command_id followed by the payload.
+        command_id_le = (0x101).to_bytes(4, "little")
+        body = command_id_le + payload
+        outer_len = 12 + len(body)
+        frame = (
+            b"\xff\xf1"
+            + outer_len.to_bytes(2, "big")
+            + b"\x21\x00"
+            + sequence.to_bytes(2, "big")
+            + len(body).to_bytes(4, "big")
+            + body
+        )
+        return frame
 
     def valid_media_datagram(self, sequence: int = 0) -> bytes:
         # Channel-2 DRW framing with a small payload.
@@ -148,6 +183,9 @@ class FakeCs2Peer:
             discovery_response=discovery_response,
         )
         self.discovery_socket = sock
+        # Stage any queued ready responses as inbound datagrams so the
+        # connector's first recvfrom() returns one.
+        self.stage_discovery_responses()
         return sock
 
     def open_session_socket(self, local_port: int = 0) -> FakeSocket:

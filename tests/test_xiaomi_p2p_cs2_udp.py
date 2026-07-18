@@ -63,9 +63,8 @@ async def test_auto_uses_one_discovery_and_locks_final_udp_peer(peer, bootstrap)
     peer.queue_udp_ready((bootstrap.host, 41000))
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -81,9 +80,8 @@ async def test_wrong_peer_datagram_is_rejected_before_processing(peer, bootstrap
     peer.queue_udp_ready((bootstrap.host, 41000))
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -104,9 +102,8 @@ async def test_auto_accepts_tcp_ready_via_same_exchange(peer, bootstrap):
     peer.queue_tcp_ready((bootstrap.host, 42000))
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -123,9 +120,8 @@ async def test_prefer_udp_falls_back_to_tcp_ready_same_exchange(peer, bootstrap)
     peer.queue_tcp_ready((bootstrap.host, 42000))
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -140,9 +136,8 @@ async def test_prefer_tcp_falls_back_to_udp_ready_same_exchange(peer, bootstrap)
     peer.queue_udp_ready((bootstrap.host, 42000))
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -157,9 +152,8 @@ async def test_intermediate_response_updates_candidate_port(peer, bootstrap):
     peer.queue_udp_ready((bootstrap.host, 41000))
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -179,9 +173,8 @@ async def test_intermediate_response_updates_candidate_port(peer, bootstrap):
 async def test_discovery_failure_closes_socket(peer, bootstrap):
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -200,9 +193,8 @@ async def test_reorder_buffer_respects_packet_and_byte_bounds(peer, bootstrap):
     peer.queue_udp_ready((bootstrap.host, 41000))
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -221,9 +213,8 @@ async def test_gap_deadline_is_non_extending_and_one_extra_per_new_gap(peer, boo
     peer.queue_udp_ready((bootstrap.host, 41000))
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -239,9 +230,8 @@ async def test_retransmission_uses_one_second_interval_and_five_attempts(peer, b
     peer.queue_udp_ready((bootstrap.host, 41000))
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -256,9 +246,8 @@ async def test_close_unblocks_outstanding_readers(peer, bootstrap):
     peer.queue_udp_ready((bootstrap.host, 41000))
     connector = DefaultCs2Connector(
         clock=peer.clock,
-        bind_socket=lambda port: peer.bind_discovery_socket(port, discovery_response=peer.next_discovery_response),
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
         open_tcp=peer.open_tcp_connection,
-        discovery_response=peer.next_discovery_response,
         retransmit_after=peer.clock.advance,
         gap_after=peer.clock.advance,
         ack_callback=peer.record_ack,
@@ -275,3 +264,135 @@ async def test_close_unblocks_outstanding_readers(peer, bootstrap):
             await task
 
     await read_then_close()
+
+
+async def test_wraparound_sequence_after_0xFFFF_is_in_order(peer, bootstrap):
+    peer.queue_udp_ready((bootstrap.host, 41000))
+    connector = DefaultCs2Connector(
+        clock=peer.clock,
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
+        open_tcp=peer.open_tcp_connection,
+        retransmit_after=peer.clock.advance,
+        gap_after=peer.clock.advance,
+        ack_callback=peer.record_ack,
+        rejection_callback=peer.record_rejection,
+    )
+    transport = await connector.connect(bootstrap, "auto", peer.clock.now + 5)
+    # Force the transport to expect sequence 0xFFFF — that simulates the
+    # session having already received 0xFFFF packets from the peer.
+    transport._next_sequence = 0xFFFF
+    # Inject sequence 0xFFFF: distance 0, in-order.
+    peer.inject_datagram(
+        (bootstrap.host, 41000), peer.valid_command_datagram(sequence=0xFFFF)
+    )
+    await asyncio.sleep(0)
+    cmd = await transport.read_command(timeout=0.5)
+    assert cmd is not None
+    # Now the next expected sequence wraps to 0x0000. Inject 0x0000 and it
+    # must be in-order, not rejected as a duplicate.
+    peer.inject_datagram(
+        (bootstrap.host, 41000), peer.valid_command_datagram(sequence=0x0000)
+    )
+    await asyncio.sleep(0)
+    cmd2 = await transport.read_command(timeout=0.5)
+    assert cmd2 is not None
+
+
+async def test_gap_deadline_expiration_raises_sequence_gap(peer, bootstrap):
+    peer.queue_udp_ready((bootstrap.host, 41000))
+    connector = DefaultCs2Connector(
+        clock=peer.clock,
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
+        open_tcp=peer.open_tcp_connection,
+        retransmit_after=peer.clock.advance,
+        gap_after=peer.clock.advance,
+        ack_callback=peer.record_ack,
+        rejection_callback=peer.record_rejection,
+    )
+    transport = await connector.connect(bootstrap, "auto", peer.clock.now + 5)
+    # Inject a future packet (sequence 5) — this opens a gap.
+    peer.inject_datagram(
+        (bootstrap.host, 41000), peer.valid_command_datagram(sequence=5)
+    )
+    await asyncio.sleep(0)
+    assert len(transport._reorder_buffer) == 1
+    # Advance the clock past the gap deadline; the deadline task must fire.
+    peer.clock.advance(GAP_DEADLINE_SECONDS + 0.5)
+    await asyncio.sleep(0)
+    # The next read should observe the gap failure.
+    with pytest.raises(MissError, match="sequence_gap"):
+        await transport.read_command(timeout=0.5)
+
+
+async def test_gap_drain_starts_fresh_deadline_for_new_gap(peer, bootstrap):
+    peer.queue_udp_ready((bootstrap.host, 41000))
+    connector = DefaultCs2Connector(
+        clock=peer.clock,
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
+        open_tcp=peer.open_tcp_connection,
+        retransmit_after=peer.clock.advance,
+        gap_after=peer.clock.advance,
+        ack_callback=peer.record_ack,
+        rejection_callback=peer.record_rejection,
+    )
+    transport = await connector.connect(bootstrap, "auto", peer.clock.now + 5)
+    # First deliver sequence 0 so next_sequence advances to 1.
+    peer.inject_datagram(
+        (bootstrap.host, 41000), peer.valid_command_datagram(sequence=0)
+    )
+    await asyncio.sleep(0)
+    await transport.read_command(timeout=0.5)
+    # Open two gaps at once: sequences 1 and 2 are missing, 3 is buffered.
+    peer.inject_datagram(
+        (bootstrap.host, 41000), peer.valid_command_datagram(sequence=3)
+    )
+    await asyncio.sleep(0)
+    # Advance time partway through the first deadline.
+    peer.clock.advance(GAP_DEADLINE_SECONDS - 0.5)
+    # Now deliver the missing sequence 1 — drain should re-open the gap
+    # with a fresh deadline (sequence 2 still missing).
+    peer.inject_datagram(
+        (bootstrap.host, 41000), peer.valid_command_datagram(sequence=1)
+    )
+    await asyncio.sleep(0)
+    cmd = await transport.read_command(timeout=0.5)
+    assert cmd is not None
+    # Advance the rest of the original window — the new deadline is now
+    # only (0.5 + GAP_DEADLINE_SECONDS) past the original; not enough.
+    peer.clock.advance(0.4)
+    # Still no failure because the new deadline hasn't expired.
+    # Now advance past the new deadline.
+    peer.clock.advance(GAP_DEADLINE_SECONDS)
+    await asyncio.sleep(0)
+    with pytest.raises(MissError, match="sequence_gap"):
+        await transport.read_command(timeout=0.5)
+
+
+async def test_packet_limit_failure_raises_sequence_gap_without_ack(peer, bootstrap):
+    peer.queue_udp_ready((bootstrap.host, 41000))
+    connector = DefaultCs2Connector(
+        clock=peer.clock,
+        bind_socket=lambda port: peer.bind_discovery_socket(port),
+        open_tcp=peer.open_tcp_connection,
+        retransmit_after=peer.clock.advance,
+        gap_after=peer.clock.advance,
+        ack_callback=peer.record_ack,
+        rejection_callback=peer.record_rejection,
+    )
+    transport = await connector.connect(bootstrap, "auto", peer.clock.now + 5)
+    # Fill the reorder buffer to the packet limit.
+    for seq in range(1, REORDER_PACKET_LIMIT + 1):
+        peer.inject_datagram(
+            (bootstrap.host, 41000),
+            peer.valid_command_datagram(sequence=seq),
+        )
+    await asyncio.sleep(0)
+    assert len(transport._reorder_buffer) == REORDER_PACKET_LIMIT
+    # The next packet (one beyond the limit) must trigger sequence_gap.
+    peer.inject_datagram(
+        (bootstrap.host, 41000),
+        peer.valid_command_datagram(sequence=REORDER_PACKET_LIMIT + 1),
+    )
+    await asyncio.sleep(0)
+    with pytest.raises(MissError, match="sequence_gap"):
+        await transport.read_command(timeout=0.5)

@@ -70,10 +70,12 @@ class UdpCs2Transport:
         self._command_queue: asyncio.Queue = asyncio.Queue(maxsize=COMMAND_QUEUE_LIMIT)
         self._media_queue: asyncio.Queue = asyncio.Queue(maxsize=MEDIA_QUEUE_LIMIT)
         self._gap_deadline: Optional[float] = None
+        self._gap_deadline_task: Optional[asyncio.Task] = None
         self._closed = False
         self._close_event = asyncio.Event()
         self._reader_task: Optional[asyncio.Task] = None
         self._rejected = 0
+        self._failed_with: Optional[MissError] = None
 
     # ---- Public surface ------------------------------------------------
 
@@ -164,12 +166,15 @@ class UdpCs2Transport:
             return
 
     async def _process_payload(self, payload: bytes) -> None:
-        if len(payload) < 8:
+        if len(payload) < 12:
             return
-        magic = payload[0:2]
-        sequence = _STRUCT_DRW_SEQ.unpack_from(payload, 2)[0]
+        # CS2 prefix: [magic 2][outer_len 2] then DRW framing.
+        if payload[0:2] != CS2_FRAME_MAGIC:
+            return
+        magic = payload[4:6]
+        sequence = _STRUCT_DRW_SEQ.unpack_from(payload, 6)[0]
         if magic == DRW_MAGIC_COMMAND:
-            body = payload[8:]
+            body = payload[12:]
             self._ack(sequence)
             distance = sequence_distance(self._next_sequence, sequence)
             if distance == 0:
@@ -181,19 +186,20 @@ class UdpCs2Transport:
             # distance < 0 (duplicate or already delivered) — silently ACK'd.
         elif magic == DRW_MAGIC_MEDIA:
             self._ack(sequence)
+            if len(payload) < 44:
+                return
             try:
-                header = decode_miss_media_header(payload[8:40])
+                decode_miss_media_header(payload[12:44])
             except MissError:
                 return
-            body = payload[40:]
-            pkt = Cs2MediaPacket(header=payload[8:40], encrypted_body=body)
+            pkt = Cs2MediaPacket(header=payload[12:44], encrypted_body=payload[44:])
             distance = sequence_distance(self._next_sequence, sequence)
             if distance == 0:
                 self._next_sequence = (sequence + 1) & 0xFFFF
                 await self._enqueue_media(pkt)
                 await self._drain_contiguous()
             elif distance > 0:
-                await self._buffer_future(sequence, payload[8:])
+                await self._buffer_future(sequence, payload[12:])
 
     async def _buffer_future(self, sequence: int, body: bytes) -> None:
         if len(self._reorder_buffer) >= REORDER_PACKET_LIMIT:
@@ -204,15 +210,35 @@ class UdpCs2Transport:
         self._reorder_bytes += len(body)
         if self._gap_deadline is None:
             self._gap_deadline = self._clock.now + GAP_DEADLINE_SECONDS
+            self._start_gap_deadline_task()
+
+    def _start_gap_deadline_task(self) -> None:
+        if self._gap_deadline_task is not None and not self._gap_deadline_task.done():
+            self._gap_deadline_task.cancel()
+        self._gap_deadline_task = asyncio.create_task(self._gap_deadline_watcher())
+
+    async def _gap_deadline_watcher(self) -> None:
+        # Poll the deadline using the remaining time so that whichever
+        # actor advances the clock (the watcher itself or the test)
+        # triggers the gap failure when the deadline is reached.
+        try:
+            while self._gap_deadline is not None and not self._closed:
+                if self._clock.now >= self._gap_deadline:
+                    self._fail_sequence_gap()
+                    return
+                remaining = self._gap_deadline - self._clock.now
+                if remaining > 0:
+                    await self._clock.sleep(remaining)
+        except asyncio.CancelledError:
+            return
 
     async def _drain_contiguous(self) -> None:
-        while True:
-            nxt = (self._next_sequence + 1) & 0xFFFF
-            if nxt not in self._reorder_buffer:
-                break
-            body = self._reorder_buffer.pop(nxt)
+        # Pop sequences from the buffer in strict order starting at the
+        # next expected sequence. A missing sequence (e.g. seq 2 with seq
+        # 3 buffered) leaves the gap open until that sequence arrives.
+        while self._next_sequence in self._reorder_buffer:
+            body = self._reorder_buffer.pop(self._next_sequence)
             self._reorder_bytes -= len(body)
-            self._next_sequence = nxt
             # Commands have no media header (first 4 bytes = LE id). Media
             # carries a 32-byte header. Default to media for safety.
             if len(body) >= 4 and self._looks_like_command(body):
@@ -221,10 +247,16 @@ class UdpCs2Transport:
                 await self._enqueue_media(
                     Cs2MediaPacket(header=body[:32], encrypted_body=body[32:])
                 )
-        if self._next_sequence in self._reorder_buffer or self._gap_deadline is None:
-            return
-        # If there's still a gap, start a fresh deadline for the new gap.
-        self._gap_deadline = self._clock.now + GAP_DEADLINE_SECONDS
+            self._next_sequence = (self._next_sequence + 1) & 0xFFFF
+        # If anything remains in the buffer, there's still a gap waiting
+        # to be filled; otherwise the gap closed completely.
+        if self._reorder_buffer:
+            self._gap_deadline = self._clock.now + GAP_DEADLINE_SECONDS
+            self._start_gap_deadline_task()
+        else:
+            self._gap_deadline = None
+            if self._gap_deadline_task is not None and not self._gap_deadline_task.done():
+                self._gap_deadline_task.cancel()
 
     @staticmethod
     def _looks_like_command(body: bytes) -> bool:
@@ -239,8 +271,13 @@ class UdpCs2Transport:
         self._reorder_buffer.clear()
         self._reorder_bytes = 0
         self._gap_deadline = None
-        # The transport is closed by the caller; here we just raise.
-        raise MissError(MissErrorCategory.TRANSPORT, "sequence_gap")
+        if self._gap_deadline_task is not None and not self._gap_deadline_task.done():
+            self._gap_deadline_task.cancel()
+        # Mark the transport as failed so any pending reads observe the
+        # failure rather than waiting forever.
+        self._failed_with = MissError(MissErrorCategory.TRANSPORT, "sequence_gap")
+        if self._reader_task is not None and not self._reader_task.done():
+            self._reader_task.cancel()
 
     def _ack(self, sequence: int) -> None:
         if self._ack_callback is not None:
@@ -279,6 +316,8 @@ class UdpCs2Transport:
     async def _dequeue(self, queue: asyncio.Queue, timeout: float | None):
         if self._closed:
             raise MissError(MissErrorCategory.TRANSPORT, "transport_closed")
+        if self._failed_with is not None:
+            raise self._failed_with
         try:
             if timeout is None:
                 item = await queue.get()
@@ -286,6 +325,8 @@ class UdpCs2Transport:
                 item = await asyncio.wait_for(queue.get(), timeout=timeout)
         except asyncio.TimeoutError as exc:
             raise MissError(MissErrorCategory.TIMEOUT, "read_timeout") from exc
+        if self._failed_with is not None:
+            raise self._failed_with
         if isinstance(item, _ClosedSentinel):
             raise MissError(MissErrorCategory.TRANSPORT, "transport_closed")
         return item

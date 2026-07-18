@@ -7,6 +7,7 @@ either the UDP or TCP transport; no second discovery is attempted.
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Literal, Optional, Protocol
 
@@ -98,7 +99,6 @@ class DefaultCs2Connector:
         clock,
         bind_socket: BindSocketFn,
         open_tcp: OpenTcpFn,
-        discovery_response: Callable[[], bytes],
         retransmit_after: Callable[[float], None],
         gap_after: Callable[[float], None],
         ack_callback: Optional[Callable[[tuple[str, int], int], None]] = None,
@@ -107,7 +107,6 @@ class DefaultCs2Connector:
         self._clock = clock
         self._bind_socket = bind_socket
         self._open_tcp = open_tcp
-        self._discovery_response = discovery_response
         self._retransmit_after = retransmit_after
         self._gap_after = gap_after
         self._ack_callback = ack_callback
@@ -127,7 +126,12 @@ class DefaultCs2Connector:
             raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
 
         try:
-            payload, addr = await sock.recvfrom()
+            payload, addr = await asyncio.wait_for(
+                sock.recvfrom(), timeout=DISCOVERY_TIMEOUT_SECONDS
+            )
+        except asyncio.TimeoutError as exc:
+            sock.close()
+            raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
         except Exception as exc:
             sock.close()
             raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
@@ -146,7 +150,12 @@ class DefaultCs2Connector:
         if ready.kind == "intermediate":
             # Validate intermediate shape but keep waiting for the final ready.
             try:
-                final_payload, _ = await sock.recvfrom()
+                final_payload, _ = await asyncio.wait_for(
+                    sock.recvfrom(), timeout=DISCOVERY_TIMEOUT_SECONDS
+                )
+            except asyncio.TimeoutError as exc:
+                sock.close()
+                raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
             except Exception as exc:
                 sock.close()
                 raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
