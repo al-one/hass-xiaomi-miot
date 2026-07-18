@@ -73,7 +73,7 @@ class MiotCloud(micloud.MiCloud):
     session = None
     async_session: Optional[aiohttp.ClientSession] = None
 
-    def __init__(self, hass, username, password, country=None, sid=None):
+    def __init__(self, hass, username, password, country=None, sid=None, hass_entry=None):
         try:
             super().__init__(username, password)
             timezone = datetime.now(local_zone(hass)).strftime('%z')
@@ -95,7 +95,7 @@ class MiotCloud(micloud.MiCloud):
         self.login_times = 0
         self.cookies = {}
         self.attrs = {}
-        self.hass_entry = None
+        self.hass_entry = hass_entry
 
     @property
     def unique_id(self):
@@ -199,7 +199,7 @@ class MiotCloud(micloud.MiCloud):
             except requests.exceptions.Timeout:
                 return None
             # auth err
-            _LOGGER.info('Xiaomi auth failed, try relogin. %s', rdt)
+            _LOGGER.debug('Xiaomi auth probe failed; attempting relogin')
         nid = f'xiaomi-miot-auth-warning-{self.user_id}'
         need_verify = None
         try:
@@ -778,7 +778,7 @@ class MiotCloud(micloud.MiCloud):
         }
 
     @staticmethod
-    async def from_token(hass, config: dict, login=None):
+    async def from_token(hass, config: dict, login=None, *, hass_entry=None):
         mic = await hass.async_add_executor_job(
             MiotCloud,
             hass,
@@ -786,6 +786,7 @@ class MiotCloud(micloud.MiCloud):
             config.get(CONF_PASSWORD),
             config.get('server_country'),
             config.get('sid'),
+            hass_entry,
         )
         mic.user_id = str(config.get('user_id') or '')
         if a := hass.data[DOMAIN].get('sessions', {}).get(mic.unique_id):
@@ -805,7 +806,7 @@ class MiotCloud(micloud.MiCloud):
                 login = True
         if login:
             await mic.async_login()
-        else:
+        elif mic.hass_entry is None:
             hass.data[DOMAIN]['sessions'][mic.unique_id] = mic
         return mic
 
@@ -831,7 +832,9 @@ class MiotCloud(micloud.MiCloud):
             'service_token': None,
             'ssecurity': None,
         }
-        mic = await self.from_token(self.hass, config, login)
+        mic = await self.from_token(
+            self.hass, config, login, hass_entry=self.hass_entry,
+        )
         return mic
 
     async def async_stored_auth(self, uid=None, save=False, remove=False):
