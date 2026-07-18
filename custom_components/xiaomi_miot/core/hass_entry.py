@@ -26,6 +26,11 @@ class HassEntry:
         self.devices: dict[str, 'Device'] = {}
         self.mac_to_did = {}
         self.did_to_unique = {}
+        from .xiaomi_p2p.cloud import get_capability_cache
+        self.p2p_cache = get_capability_cache(hass)
+
+    def invalidate_p2p_capability_cache(self):
+        self.p2p_cache.invalidate_entry(self.id)
 
     @staticmethod
     def init(hass: HomeAssistant, entry: ConfigEntry):

@@ -272,6 +272,20 @@ class MiotCloud(micloud.MiCloud):
             fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp)
         return rdt
 
+    async def async_miss_get_vendor(self, did: str, host: str, deadline: float):
+        """MISS bootstrap adapter.
+
+        A thin typed wrapper around `async_request_api()` for the
+        `/v2/device/miss_get_vendor` endpoint. It is a setup-time probe
+        that returns a fresh `MissBootstrap` value (or raises `MissError`).
+        The method inherits the existing cloud abstraction's logging,
+        timeout, authentication, and cancellation behavior; it does not
+        alter `async_request_api()` internals.
+        """
+
+        from .xiaomi_p2p.cloud import async_miss_get_vendor_impl
+        return await async_miss_get_vendor_impl(self, did, host, deadline)
+
     async def async_get_device(self, mac=None, host=None):
         dvs = await self.async_get_devices() or []
         for d in dvs:
