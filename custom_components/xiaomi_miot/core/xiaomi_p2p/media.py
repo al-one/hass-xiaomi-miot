@@ -496,24 +496,41 @@ class MediaProbe:
     def feed(self, header: MediaHeader, body: bytes) -> None:
         if header.codec_id in (CODEC_H264, CODEC_H265):
             self._video_codec = header.codec_id
-            # Drain parameter sets / IDRs from the body so a complete
-            # keyframe is recognized once all required NALs are seen.
+            complete_keyframe = False
+            complete_video = False
             for nal in self._assembler.feed(body):
                 if not nal:
                     continue
-                nal_type_h264 = nal[0] & 0x1F
                 if header.codec_id == CODEC_H264:
-                    if self._assembler.has_complete_h264_keyframe() and self._complete_video_at is None:
-                        ts = self._normalizer.normalize(header.timestamp)
-                        self._complete_seen = True
-                        self._complete_video_at = self._clock.now if self._clock is not None else float(ts)
+                    nal_type = h264_nal_type(nal)
+                    complete_video = 1 <= nal_type <= 5 or complete_video
+                    complete_keyframe = (
+                        nal_type == H264_NAL_IDR
+                        and self._assembler.sps is not None
+                        and self._assembler.pps is not None
+                    ) or complete_keyframe
                 else:
-                    if self._assembler.has_complete_h265_keyframe() and self._complete_video_at is None:
-                        ts = self._normalizer.normalize(header.timestamp)
-                        self._complete_seen = True
-                        self._complete_video_at = self._clock.now if self._clock is not None else float(ts)
-            # Decode dimensions once SPS is available.
-            if self._width is None and self._assembler.sps is not None and header.codec_id == CODEC_H264:
+                    nal_type = h265_nal_type(nal)
+                    complete_video = nal_type <= 31 or complete_video
+                    complete_keyframe = (
+                        nal_type in H265_NAL_IDR
+                        and self._assembler.vps is not None
+                        and self._assembler.sps is not None
+                        and self._assembler.pps is not None
+                    ) or complete_keyframe
+            if complete_keyframe or (self._complete_seen and complete_video):
+                ts = self._normalizer.normalize(header.timestamp)
+                self._complete_seen = True
+                self._complete_video_at = (
+                    self._clock.now
+                    if self._clock is not None
+                    else float(ts)
+                )
+            if (
+                self._width is None
+                and self._assembler.sps is not None
+                and header.codec_id == CODEC_H264
+            ):
                 try:
                     w, h = decode_h264_dimensions(self._assembler.sps)
                 except MissError:

@@ -30,18 +30,17 @@ class MissErrorCategory(str, enum.Enum):
     MEDIA = "media"
 
 
-@dataclass(frozen=True, slots=True)
 class MissError(Exception):
-    """MISS layer error.
+    """MISS layer error with sanitized categorical detail."""
 
-    The error message contains only the category value and a non-sensitive
-    detail string supplied explicitly by the caller. Bootstrap material,
-    keys, signatures, raw payloads, hosts, ports, tokens, and device
-    identifiers MUST NOT appear in `str(self)`.
-    """
+    __slots__ = ("category", "detail")
 
-    category: MissErrorCategory
-    detail: str = ""
+    def __init__(
+        self, category: MissErrorCategory, detail: str = ""
+    ) -> None:
+        self.category = category
+        self.detail = detail
+        super().__init__(category, detail)
 
     def __str__(self) -> str:
         if not self.detail:

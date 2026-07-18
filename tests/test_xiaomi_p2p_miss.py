@@ -17,11 +17,12 @@ from __future__ import annotations
 
 import asyncio
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 import pytest
 
+from custom_components.xiaomi_miot.core.xiaomi_p2p import miss as miss_module
 from custom_components.xiaomi_miot.core.xiaomi_p2p import (
     MediaContract,
     MissError,
@@ -44,6 +45,7 @@ from custom_components.xiaomi_miot.core.xiaomi_p2p.miss import (
     ENCRYPTED_WRAPPER_COMMAND_ID,
     START_MEDIA_COMMAND_ID,
     STOP_MEDIA_COMMAND_ID,
+    VIDEO_STALL_DEADLINE_SECONDS,
     MissSession,
 )
 
@@ -414,6 +416,26 @@ async def test_non_object_login_response_is_sanitized(session, transport, clock)
     assert transport.closed is True
 
 
+async def test_invalid_json_login_response_suppresses_payload_context(
+    session,
+    transport,
+    clock,
+):
+    transport.pending_commands.append(
+        Cs2Command(
+            command_id=LOGIN_RESPONSE_COMMAND_ID,
+            payload=b'{"token":"sensitive-value"',
+        )
+    )
+
+    with pytest.raises(MissError) as error:
+        await session.connect_and_start(clock.now + 5)
+
+    assert error.value.detail == "login_response_malformed"
+    assert error.value.__suppress_context__ is True
+    assert "sensitive-value" not in str(error.value)
+
+
 async def test_login_write_is_bounded_by_deadline(
     bootstrap, clock, default_profile
 ):
@@ -734,4 +756,718 @@ async def test_cancellation_during_media_probe_clears_runtime_state(
     assert sess._last_complete_video_at is None
     assert sess._probe.contract is None
     assert transport.closed is True
+
+
+# ---- Recovery / session slice -------------------------------------------
+
+
+@pytest.fixture
+def published_session(bootstrap, clock, default_profile):
+    """Session that already completed an initial probe + publish."""
+    shared_key = derive_shared_key(
+        bootstrap.client_private_key, bootstrap.device_public_key
+    )
+
+    class _Transport(FakeMissTransport):
+        def attach_shared_key(self, key):
+            super().attach_shared_key(key)
+            self._key = key
+
+    transport = _Transport(clock=clock)
+    transport._key = shared_key
+    transport.attach_shared_key(shared_key)
+    transport.pending_commands.append(
+        Cs2Command(command_id=LOGIN_RESPONSE_COMMAND_ID, payload=b"")
+    )
+    transport.pending_media.extend(
+        [
+            make_media_packet(
+                shared_key,
+                4,
+                assemble_annex_b([H264_SPS_1280X720, b"\x68pps", b"\x65idr"]),
+            ),
+            make_media_packet(
+                shared_key,
+                1027,
+                b"\xd5\xd5\xd5\xd5",
+                sequence=1,
+                timestamp=1020,
+            ),
+        ]
+    )
+    sess = MissSession(
+        bootstrap=bootstrap,
+        transport=transport,
+        profile=default_profile,
+        lens="primary",
+        clock=clock,
+    )
+    return sess, transport, shared_key
+
+
+async def _publish(sess):
+    return await sess.connect_and_start(sess.clock.now + 5)
+
+
+async def test_subscribe_returns_unique_opaque_tokens_for_current_generation(
+    published_session,
+):
+    sess, _, _ = published_session
+    await _publish(sess)
+
+    first = sess.subscribe(generation=sess.generation)
+    second = sess.subscribe(generation=sess.generation)
+
+    assert first != second
+    assert len(first.token) == 16
+    assert len(sess._subscriptions) == 2
+    assert sess.subscription_future(first).done() is False
+
+
+async def test_subscribe_rejects_stale_generation(published_session):
+    sess, _, _ = published_session
+    await _publish(sess)
+    with pytest.raises(MissError, match="subscription_stale_generation"):
+        sess.subscribe(generation=sess.generation - 1)
+
+
+async def test_soft_restart_matching_contract_keeps_generation(
+    published_session, default_profile
+):
+    sess, transport, shared_key = published_session
+    await _publish(sess)
+    generation = sess.generation
+    sess.acquire_lease()
+    # Resend the same complete keyframe + audio so the soft restart reprobes
+    # a matching contract.
+    transport.pending_media.extend(
+        [
+            make_media_packet(
+                shared_key,
+                4,
+                assemble_annex_b([H264_SPS_1280X720, b"\x68pps", b"\x65idr"]),
+                sequence=10,
+                timestamp=1500,
+            ),
+            make_media_packet(
+                shared_key,
+                1027,
+                b"\xd5\xd5\xd5\xd5",
+                sequence=11,
+                timestamp=1510,
+            ),
+        ]
+    )
+
+    await sess.soft_restart(sess.clock.now + 5)
+
+    assert sess.generation == generation
+    assert sess._soft_restart_used is False
+    assert sess._soft_restart_attempts == 1
+    assert sess._soft_restart_successes == 1
+    assert transport.closed is False
+    stop_calls = [
+        cmd
+        for cmd in transport.outbound_commands
+        if cmd.command_id == ENCRYPTED_WRAPPER_COMMAND_ID
+    ]
+    decrypted_ids = []
+    for cmd in stop_calls:
+        plaintext = miss_decode(shared_key, cmd.payload)
+        decrypted_ids.append(int.from_bytes(plaintext[:4], "big"))
+    assert STOP_MEDIA_COMMAND_ID in decrypted_ids
+
+
+async def test_soft_restart_increments_generation_on_mismatch(
+    published_session
+):
+    sess, transport, shared_key = published_session
+    await _publish(sess)
+    generation = sess.generation
+    sess.acquire_lease()
+    subscription = sess.subscribe(generation=generation)
+    terminal = sess.subscription_future(subscription)
+
+    # Change a parameter set so the recovered contract differs.
+    big_sps = H264_SPS_1280X720[:-1] + bytes([0x24])
+    transport.pending_media.extend(
+        [
+            make_media_packet(
+                shared_key,
+                4,
+                assemble_annex_b([big_sps, b"\x68pps2", b"\x65idr2"]),
+                sequence=20,
+                timestamp=2000,
+            ),
+            make_media_packet(
+                shared_key,
+                1027,
+                b"\xd5\xd5\xd5\xd5",
+                sequence=21,
+                timestamp=2010,
+            ),
+        ]
+    )
+
+    await sess.soft_restart(sess.clock.now + 5)
+
+    assert terminal.done() is True
+    with pytest.raises(MissError, match="codec_contract_changed"):
+        await terminal
+    assert sess.generation == generation + 1
+    assert sess._soft_restart_used is False
+
+
+async def test_soft_restart_rejects_incompatible_candidate_before_publication(
+    published_session,
+):
+    sess, transport, shared_key = published_session
+    sess.profile = replace(sess.profile, required_video_codec=4)
+    contract = await _publish(sess)
+    generation = sess.generation
+    initial_complete_at = sess._last_complete_video_at
+    sess.acquire_lease()
+    sess.clock.advance(1)
+    transport.pending_media.extend(
+        [
+            make_media_packet(
+                shared_key,
+                5,
+                assemble_annex_b(
+                    [
+                        b"\x40\x01vps",
+                        b"\x42\x01sps",
+                        b"\x44\x01pps",
+                        b"\x26\x01idr",
+                    ]
+                ),
+                sequence=30,
+                timestamp=2500,
+            ),
+            make_media_packet(
+                shared_key,
+                1027,
+                b"\xd5\xd5\xd5\xd5",
+                sequence=31,
+                timestamp=2510,
+            ),
+        ]
+    )
+
+    with pytest.raises(MissError, match="codec_required_unsatisfied"):
+        await sess.soft_restart(sess.clock.now + 5)
+
+    assert sess.contract is contract
+    assert sess.generation == generation
+    assert sess._last_complete_video_at == initial_complete_at
+    assert sess.state == "reprobing"
+
+
+async def test_soft_restart_stop_and_start_share_command_deadline(
+    published_session,
+):
+    sess, transport, shared_key = published_session
+    await _publish(sess)
+    sess.acquire_lease()
+    original_write = transport.write_command
+
+    async def consume_deadline(command):
+        if command.command_id == ENCRYPTED_WRAPPER_COMMAND_ID:
+            plaintext = miss_decode(shared_key, command.payload)
+            if int.from_bytes(plaintext[:4], "big") == STOP_MEDIA_COMMAND_ID:
+                sess.clock.advance(5)
+        await original_write(command)
+
+    transport.write_command = consume_deadline
+    outbound_before = len(transport.outbound_commands)
+
+    with pytest.raises(MissError, match="operation_timeout"):
+        await sess.soft_restart(sess.clock.now + 5)
+
+    recovery_commands = transport.outbound_commands[outbound_before:]
+    assert len(recovery_commands) == 1
+    plaintext = miss_decode(shared_key, recovery_commands[0].payload)
+    assert int.from_bytes(plaintext[:4], "big") == STOP_MEDIA_COMMAND_ID
+
+
+async def test_soft_restart_stops_when_lease_expires_after_stop(
+    published_session,
+):
+    sess, transport, shared_key = published_session
+    await _publish(sess)
+    sess.acquire_lease()
+    original_write = transport.write_command
+
+    async def release_after_stop(command):
+        await original_write(command)
+        if command.command_id == ENCRYPTED_WRAPPER_COMMAND_ID:
+            plaintext = miss_decode(shared_key, command.payload)
+            if int.from_bytes(plaintext[:4], "big") == STOP_MEDIA_COMMAND_ID:
+                sess.release_lease()
+
+    transport.write_command = release_after_stop
+    outbound_before = len(transport.outbound_commands)
+
+    with pytest.raises(MissError, match="recovery_no_active_lease"):
+        await sess.soft_restart(sess.clock.now + 5)
+
+    assert transport.closed is True
+    assert len(transport.outbound_commands) == outbound_before + 1
+
+
+async def test_soft_restart_requires_active_lease(published_session):
+    sess, _, _ = published_session
+    await _publish(sess)
+    with pytest.raises(MissError, match="recovery_no_active_lease"):
+        await sess.soft_restart(sess.clock.now + 5)
+
+
+async def test_full_reconnect_matching_contract_uses_fresh_bootstrap(
+    published_session,
+):
+    sess, transport, _ = published_session
+    contract = await _publish(sess)
+    generation = sess.generation
+    sess.acquire_lease()
+    subscription = sess.subscribe(generation=generation)
+    terminal = sess.subscription_future(subscription)
+    bootstrap_count = {"calls": 0}
+    sess.bootstrap_factory = _make_reconnect_factory(
+        sess, bootstrap_count
+    )
+    before = sess._reconnect_count
+
+    recovered = await sess.reconnect(sess.clock.now + 5)
+
+    assert recovered == contract
+    assert sess.contract is contract
+    assert sess.generation == generation
+    assert terminal.done() is False
+    assert bootstrap_count["calls"] == 1
+    assert sess._reconnect_count == before + 1
+    assert sess.bootstrap.host == "192.168.1.99"
+    assert transport.closed is True
+
+
+async def test_full_reconnect_mismatch_terminates_old_generation(
+    published_session,
+):
+    sess, _, _ = published_session
+    contract = await _publish(sess)
+    generation = sess.generation
+    sess.acquire_lease()
+    subscription = sess.subscribe(generation=generation)
+    terminal = sess.subscription_future(subscription)
+    bootstrap_count = {"calls": 0}
+    sess.bootstrap_factory = _make_reconnect_factory(
+        sess,
+        bootstrap_count,
+        pps=b"\x68replacement-pps",
+    )
+
+    recovered = await sess.reconnect(sess.clock.now + 5)
+
+    assert recovered != contract
+    assert terminal.done() is True
+    with pytest.raises(MissError, match="codec_contract_changed"):
+        await terminal
+    assert sess.contract is recovered
+    assert sess.generation == generation + 1
+    assert bootstrap_count["calls"] == 1
+
+
+async def test_full_reconnect_requires_active_lease(published_session):
+    sess, _, _ = published_session
+    await _publish(sess)
+    with pytest.raises(MissError, match="recovery_no_active_lease"):
+        await sess.reconnect(sess.clock.now + 5)
+
+
+async def test_sequence_gap_forces_full_reconnect(published_session):
+    sess, transport, _ = published_session
+    await _publish(sess)
+    sess.acquire_lease()
+    bootstrap_count = {"calls": 0}
+    sess.bootstrap_factory = _make_reconnect_factory(
+        sess, bootstrap_count
+    )
+
+    await sess.handle_sequence_gap(sess.clock.now + 5)
+
+    assert bootstrap_count["calls"] == 1
+    assert sess._soft_restart_attempts == 0
+    assert transport.closed is True
+
+
+async def test_recovery_retries_with_backoff_then_resets(
+    published_session,
+    monkeypatch,
+):
+    sess, _, _ = published_session
+    await _publish(sess)
+    sess.acquire_lease()
+    bootstrap_count = {"calls": 0}
+    sleeps = []
+    monkeypatch.setattr(
+        miss_module.random,
+        "uniform",
+        lambda lower, upper: (lower + upper) / 2,
+    )
+
+    async def record_sleep(delay):
+        sleeps.append(delay)
+        await sess.clock.sleep(delay)
+
+    sess._sleep = record_sleep
+    sess.bootstrap_factory = _make_reconnect_factory(
+        sess,
+        bootstrap_count,
+        failures=5,
+    )
+
+    await sess.reconnect(sess.clock.now + 60)
+
+    assert bootstrap_count["calls"] == 6
+    assert sleeps == [1, 2, 5, 15, 30]
+    assert sess._reconnect_attempt == 0
+
+
+async def test_recovery_backoff_is_jittered_and_capped(
+    published_session,
+    monkeypatch,
+):
+    sess, _, _ = published_session
+    await _publish(sess)
+    bounds = []
+
+    def upper_bound(lower, upper):
+        bounds.append((lower, upper))
+        return upper
+
+    monkeypatch.setattr(miss_module.random, "uniform", upper_bound)
+
+    assert sess._recovery_backoff_delay(attempt=1) == pytest.approx(1.2)
+    assert sess._recovery_backoff_delay(attempt=5) == 30
+    assert sess._recovery_backoff_delay(attempt=10) == 30
+    assert bounds == [(0.8, 1.2), (24.0, 36.0), (24.0, 36.0)]
+
+
+async def test_recovery_stops_when_final_lease_is_released_during_backoff(
+    published_session,
+):
+    sess, _, _ = published_session
+    await _publish(sess)
+    sess.acquire_lease()
+    bootstrap_count = {"calls": 0}
+
+    async def release_lease(delay):
+        sess.release_lease()
+        await sess.clock.sleep(delay)
+
+    sess._sleep = release_lease
+    sess.bootstrap_factory = _make_reconnect_factory(
+        sess,
+        bootstrap_count,
+        failures=1,
+    )
+
+    with pytest.raises(MissError, match="recovery_no_active_lease"):
+        await sess.reconnect(sess.clock.now + 10)
+
+    assert bootstrap_count["calls"] == 1
+
+
+async def test_reconnect_factory_is_bounded_by_deadline(
+    published_session,
+):
+    sess, _, _ = published_session
+    await _publish(sess)
+    sess.acquire_lease()
+
+    async def blocked_factory():
+        await asyncio.Future()
+
+    sess.bootstrap_factory = blocked_factory
+
+    with pytest.raises(MissError, match="reconnect_timeout"):
+        await sess.reconnect(sess.clock.now + 0.01)
+
+
+async def test_reconnect_closes_candidate_when_lease_expires_during_factory(
+    published_session,
+):
+    sess, _, _ = published_session
+    contract = await _publish(sess)
+    generation = sess.generation
+    sess.acquire_lease()
+    candidate = FakeMissTransport(clock=sess.clock)
+
+    async def release_during_factory():
+        sess.release_lease()
+        return make_bootstrap(host="192.168.1.99"), candidate
+
+    sess.bootstrap_factory = release_during_factory
+
+    with pytest.raises(MissError, match="recovery_no_active_lease"):
+        await sess.reconnect(sess.clock.now + 5)
+
+    assert candidate.closed is True
+    assert sess.contract is contract
+    assert sess.generation == generation
+
+
+async def test_stall_clock_triggers_one_soft_restart(published_session):
+    sess, transport, shared_key = published_session
+    await _publish(sess)
+    sess.acquire_lease()
+    bootstrap_count = {"calls": 0}
+    sess.clock.advance(VIDEO_STALL_DEADLINE_SECONDS + 1)
+    transport.pending_media.extend(
+        [
+            make_media_packet(
+                shared_key,
+                4,
+                assemble_annex_b(
+                    [H264_SPS_1280X720, b"\x68pps", b"\x65idr"]
+                ),
+                sequence=40,
+                timestamp=3000,
+            ),
+            make_media_packet(
+                shared_key,
+                1027,
+                b"\xd5\xd5\xd5\xd5",
+                sequence=41,
+                timestamp=3010,
+            ),
+        ]
+    )
+    sess.bootstrap_factory = _make_reconnect_factory(
+        sess, bootstrap_count
+    )
+
+    await sess.run_stall_recovery(deadline=sess.clock.now + 30)
+
+    assert sess._soft_restart_used is False
+    assert sess._soft_restart_attempts == 1
+    assert sess._soft_restart_successes == 1
+    assert bootstrap_count["calls"] == 0
+    assert sess._last_complete_video_at == sess.clock.now
+
+
+async def test_stall_clock_after_soft_restart_failure_forces_reconnect(
+    published_session,
+):
+    sess, _, _ = published_session
+    await _publish(sess)
+    sess.acquire_lease()
+    bootstrap_count = {"calls": 0}
+    sess.bootstrap_factory = _make_reconnect_factory(
+        sess, bootstrap_count
+    )
+    sess.clock.advance(VIDEO_STALL_DEADLINE_SECONDS + 1)
+
+    await sess.run_stall_recovery(deadline=sess.clock.now + 30)
+
+    assert sess._soft_restart_attempts == 1
+    assert sess._soft_restart_successes == 0
+    assert sess._soft_restart_used is False
+    assert bootstrap_count["calls"] == 1
+
+
+async def test_only_complete_video_refreshes_stall_clock(
+    published_session,
+):
+    sess, _, shared_key = published_session
+    await _publish(sess)
+    initial = sess._last_complete_video_at
+    sess.clock.advance(4)
+
+    await sess._process_media_packet(
+        make_media_packet(
+            shared_key,
+            1027,
+            b"\xd5\xd5\xd5\xd5",
+            sequence=50,
+            timestamp=4000,
+        )
+    )
+
+    assert sess._last_complete_video_at == initial
+    sess.clock.advance(1)
+
+    await sess._process_media_packet(
+        make_media_packet(
+            shared_key,
+            4,
+            assemble_annex_b([b"\x01delta"]),
+            sequence=51,
+            timestamp=4010,
+        )
+    )
+
+    assert sess._last_complete_video_at == sess.clock.now
+
+
+async def test_concurrent_sequence_gaps_share_one_reconnect_owner(
+    published_session,
+):
+    sess, _, _ = published_session
+    await _publish(sess)
+    sess.acquire_lease()
+    entered = asyncio.Event()
+    release = asyncio.Event()
+    bootstrap_count = {"calls": 0}
+
+    class BlockingTransport(FakeMissTransport):
+        async def write_command(self, command):
+            if command.command_id == LOGIN_COMMAND_ID and not entered.is_set():
+                entered.set()
+                await release.wait()
+            return await super().write_command(command)
+
+    async def factory():
+        bootstrap_count["calls"] += 1
+        bootstrap = make_bootstrap(host="192.168.1.99")
+        shared_key = derive_shared_key(
+            bootstrap.client_private_key,
+            bootstrap.device_public_key,
+        )
+        transport_type = (
+            BlockingTransport
+            if bootstrap_count["calls"] == 1
+            else FakeMissTransport
+        )
+        transport = transport_type(clock=sess.clock)
+        transport.attach_shared_key(shared_key)
+        transport.pending_commands.append(
+            Cs2Command(command_id=LOGIN_RESPONSE_COMMAND_ID, payload=b"")
+        )
+        transport.pending_media.extend(
+            [
+                make_media_packet(
+                    shared_key,
+                    4,
+                    assemble_annex_b(
+                        [H264_SPS_1280X720, b"\x68pps", b"\x65idr"]
+                    ),
+                ),
+                make_media_packet(
+                    shared_key,
+                    1027,
+                    b"\xd5\xd5\xd5\xd5",
+                    sequence=1,
+                    timestamp=1020,
+                ),
+            ]
+        )
+        return bootstrap, transport
+
+    sess.bootstrap_factory = factory
+    deadline = sess.clock.now + 30
+    first = asyncio.create_task(sess.handle_sequence_gap(deadline))
+    await entered.wait()
+    second = asyncio.create_task(sess.handle_sequence_gap(deadline))
+    await asyncio.sleep(0)
+    release.set()
+
+    first_contract, second_contract = await asyncio.gather(first, second)
+
+    assert first_contract == second_contract
+    assert bootstrap_count["calls"] == 1
+
+
+async def test_concurrent_recovery_waiters_share_owner_failure(
+    published_session,
+):
+    sess, _, _ = published_session
+    await _publish(sess)
+    sess.acquire_lease()
+    entered = asyncio.Event()
+    release = asyncio.Event()
+    bootstrap_count = {"calls": 0}
+
+    async def failing_factory():
+        bootstrap_count["calls"] += 1
+        entered.set()
+        await release.wait()
+        raise MissError(
+            MissErrorCategory.TRANSPORT,
+            "reconnect_attempt_failed",
+        )
+
+    sess.bootstrap_factory = failing_factory
+    deadline = sess.clock.now + 0.5
+    first = asyncio.create_task(sess.handle_sequence_gap(deadline))
+    await entered.wait()
+    second = asyncio.create_task(sess.handle_sequence_gap(deadline))
+    await asyncio.sleep(0)
+    release.set()
+
+    results = await asyncio.gather(first, second, return_exceptions=True)
+
+    assert bootstrap_count["calls"] == 1
+    assert all(
+        isinstance(result, MissError)
+        and result.detail == "reconnect_attempt_failed"
+        for result in results
+    )
+
+
+def _make_reconnect_factory(
+    sess,
+    counter,
+    *,
+    sps=H264_SPS_1280X720,
+    pps=b"\x68pps",
+    failures=0,
+):
+    async def factory():
+        counter["calls"] += 1
+        if counter["calls"] <= failures:
+            raise MissError(
+                MissErrorCategory.TRANSPORT,
+                "reconnect_attempt_failed",
+            )
+        bootstrap = make_bootstrap(host="192.168.1.99")
+        shared_key = derive_shared_key(
+            bootstrap.client_private_key,
+            bootstrap.device_public_key,
+        )
+        transport = FakeMissTransport(clock=sess.clock)
+        transport.attach_shared_key(shared_key)
+        transport.pending_commands.append(
+            Cs2Command(command_id=LOGIN_RESPONSE_COMMAND_ID, payload=b"")
+        )
+        transport.pending_media.extend(
+            [
+                make_media_packet(
+                    shared_key,
+                    4,
+                    assemble_annex_b([sps, pps, b"\x65idr"]),
+                ),
+                make_media_packet(
+                    shared_key,
+                    1027,
+                    b"\xd5\xd5\xd5\xd5",
+                    sequence=1,
+                    timestamp=1020,
+                ),
+            ]
+        )
+        return bootstrap, transport
+
+    return factory
+
+
+async def test_stop_media_sends_encrypted_command_after_publication(
+    published_session,
+):
+    sess, _, _ = published_session
+    await _publish(sess)
+    outbound_before = list(sess.transport.outbound_commands)
+    await sess.stop_media()
+    assert sess.transport.last_command_id == ENCRYPTED_WRAPPER_COMMAND_ID
+    assert sess.transport.last_decrypted_json == {"stop": 1}
+    assert len(sess.transport.outbound_commands) == len(outbound_before) + 1
 
