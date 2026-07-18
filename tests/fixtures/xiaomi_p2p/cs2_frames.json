@@ -1,0 +1,31 @@
+{
+  "comment": "Sanitized fixed CS2 framing vectors generated from the protocol module. Hex bytes are deterministic; payload bytes are empty JSON placeholders or nulls.",
+  "frames": [
+    {
+      "kind": "outbound_command",
+      "command_id": 256,
+      "sequence": 4660,
+      "payload_hex": "7b7d",
+      "hex": "fff1000e2100123400000002000001007b7d"
+    },
+    {
+      "kind": "outbound_command",
+      "command_id": 4097,
+      "sequence": 1,
+      "payload_hex": "0000000000000000",
+      "hex": "fff100142100000100000008000010010000000000000000"
+    },
+    {
+      "kind": "inbound_command",
+      "command_id": 257,
+      "payload_hex": "6f6b",
+      "hex": "010100006f6b"
+    },
+    {
+      "kind": "miss_plaintext",
+      "command_id": 258,
+      "payload_hex": "7b7d",
+      "hex": "000001027b7d"
+    }
+  ]
+}
