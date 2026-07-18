@@ -114,11 +114,11 @@ The first release has these known overrides and hardware acceptance profiles:
 
 | Model | Lenses | Transport policy | Raw quality | Video acceptance | Audio policy |
 | --- | --- | --- | --- | --- | --- |
-| `isa.camera.hlc7` | `primary` | forced UDP | `2` | H.265 required | request audio; PCMA required for hardware acceptance |
-| `chuangmi.camera.039c01` | `primary` | forced TCP | `2` | H.265 required | request audio; Opus required for hardware acceptance |
+| `isa.camera.hlc7` | `primary` | prefer UDP, accept negotiated TCP fallback | `2` | H.265 required | request audio; PCMA required for hardware acceptance |
+| `chuangmi.camera.039c01` | `primary` | prefer TCP, accept negotiated UDP fallback | `2` | H.265 required | request audio; Opus required for hardware acceptance |
 | `mxiang.camera.c500ch` | `primary`, `secondary` | auto negotiation | `0` for both lenses (the Mi Home MISS auto-video raw value, not a negotiated adaptive-quality semantic) | H.264 or H.265 accepted and recorded per lens | request audio; PCMA or Opus accepted when present and recorded per lens |
 
-Transport values in `p2p_overrides` (`forced UDP`, `forced TCP`, `auto`) are integration-side preferences describing what the integration wants the native MISS layer or the camera to choose. The native MISS session or the camera itself decides whether to honor a forced transport; an unaccepted forced transport falls back to negotiated transport without breaking activation. The decompiled Mi Home Java code does not expose a transport field on the public `MissConfig` API, so this behavior is recorded as an observed-app behavior contract rather than as a direct Java field guarantee.
+Transport values in `p2p_overrides` are `prefer_udp`, `prefer_tcp`, and `auto`. They are integration-side preferences encoded in the discovery request, not strict transport requirements. Every policy performs one discovery exchange and accepts either a validated UDP-ready or TCP-ready response; when a camera returns the non-preferred ready type, the connection proceeds over that negotiated transport without a second discovery attempt. The decompiled Mi Home Java code does not expose a transport field on the public `MissConfig` API, so preference behavior is an observed-app contract rather than a direct Java field guarantee.
 
 `miss_camera_support_config` exposes additional fields that this integration does not read, parse, or consume as activation or runtime inputs. Specifically, `frame_type`, `audio_type`, `rate`, `turn_head`, `isChild`, `idm_support`, `ijk_audio`, `msg_reply`, `ratio`, and `type` are evaluated and intentionally ignored. `frame_type` and `audio_type` could in theory reduce `codec_contract_changed` frequency or skip the two-second audio wait, but the current spec already accepts `MediaContract` discovery, override-driven codec/audio policies, and audio-absent video-only fallback; importing these fields would require cache, merge, and version-handling logic and would couple runtime behavior to Mi Home's panel configuration. Other fields have no relevance to live streaming under this design.
 
@@ -156,7 +156,9 @@ For each full connection or reconnect, bootstrap:
 5. Hex-decodes and validates the 32-byte device public key.
 6. Returns an immutable `MissBootstrap` containing the LAN host, optional P2P ID, client key pair, device public key, signature, and non-sensitive transport metadata.
 
-A cloud network attempt passes `debug=False`, `raise_timeout=True`, and the shorter of 10 seconds or the caller's remaining deadline to `async_request_api()`. MISS-owned code does not catch or convert cancellation raised by that abstraction; cancellation behavior inside `async_request_api()` is outside this design's scope. A token-expired result may call the existing authentication refresh once and retry the request once with the same key pair. A second authentication failure is surfaced without another login loop. A failed CS2 connection discards this bootstrap; a full reconnect obtains new key material.
+A cloud network attempt passes `debug=False`, `raise_timeout=True`, and the shorter of 10 seconds or the caller's remaining deadline to `async_request_api()`. The MISS adapter does not catch or convert `CancelledError` if the existing abstraction raises it. The current `async_request_api()` implementation may internally consume cancellation and return `None`; that generic behavior remains unchanged and is outside this design's scope, so the adapter does not claim end-to-end cancellation propagation through the existing cloud abstraction.
+
+The adapter generates one ephemeral key pair and one immutable request body before the first call. If the returned value satisfies the existing `is_token_expired()` check, it invokes the existing `async_check_auth()` refresh path exactly once, recomputes the remaining operation budget, and retries `async_request_api()` exactly once with the same key pair and request body. Refresh failure, insufficient remaining deadline, or a second authentication failure terminates bootstrap without another login loop. Logs produced inside `async_request_api()` and `async_check_auth()` retain existing behavior and remain outside the MISS-owned logging boundary. A failed CS2 connection discards this bootstrap; a full reconnect obtains new key material.
 
 The dedicated method never logs the DID, key pair, device public key, signature, request body, or raw response. This requirement covers logging added by the MISS adapter; logs produced inside `async_request_api()` or the existing authentication refresh retain the integration's existing behavior and are outside this design's scope.
 
@@ -180,12 +182,8 @@ The CS2 abstraction preserves command, media, and multiplexing semantics instead
 
 ```python
 class Cs2Transport(Protocol):
-    async def connect(
-        self,
-        bootstrap: MissBootstrap,
-        mode: Literal["auto", "udp", "tcp"],
-        deadline: float,
-    ) -> Literal["udp", "tcp"]: ...
+    negotiated_mode: Literal["udp", "tcp"]
+
     async def read_command(self, timeout: float | None = None) -> Cs2Command: ...
     async def write_command(
         self,
@@ -197,8 +195,17 @@ class Cs2Transport(Protocol):
         timeout: float | None = None,
     ) -> Cs2MediaPacket: ...
     async def close(self) -> None: ...
+
+class Cs2Connector(Protocol):
+    async def connect(
+        self,
+        bootstrap: MissBootstrap,
+        policy: Literal["auto", "prefer_udp", "prefer_tcp"],
+        deadline: float,
+    ) -> Cs2Transport: ...
 ```
 
+`Cs2Connector` owns the one UDP discovery exchange and returns an already-established concrete transport. For UDP-ready it connects the existing discovery socket to the validated peer and returns `UdpCs2Transport`; for TCP-ready it closes discovery, opens TCP to the pinned IP and validated port, and returns `TcpCs2Transport`. Concrete transports never repeat discovery. `Cs2Transport.negotiated_mode` records the resulting `udp` or `tcp` mode.
 `Cs2Command` retains the command ID and payload from CS2 multiplex channel `0`. `Cs2MediaPacket` retains the plaintext 32-byte MISS header and encrypted body from inbound channel `2`. The transport parses CS2 framing but does not decrypt MISS payloads or parse codecs.
 
 The initial authentication command `0x100` contains plaintext JSON. After login, MISS commands are encrypted and carried inside command wrapper `0x1001`. Media headers remain plaintext and only media bodies are decrypted.
@@ -248,11 +255,12 @@ The decoder and encoder are not interchangeable. The decoder takes channel-0 byt
 
 #### Discovery and Transport Negotiation
 
-All transport modes begin with an unconnected UDP discovery socket targeting the pinned RFC 1918 camera address on port `32108`:
+`Cs2Connector` begins every transport policy with an unconnected UDP discovery socket targeting the pinned RFC 1918 camera address on port `32108`:
 
-- `auto` accepts either UDP-ready or TCP-ready.
-- `udp` accepts only UDP-ready.
-- `tcp` accepts only TCP-ready.
+- `auto` sends the neutral discovery preference and accepts either UDP-ready or TCP-ready.
+- `prefer_udp` requests UDP preference and accepts either UDP-ready or TCP-ready.
+- `prefer_tcp` requests TCP preference and accepts either TCP-ready or UDP-ready.
+- A non-preferred ready response is the final negotiated result of the same discovery exchange; the implementation does not reject it or begin a sequential fallback attempt.
 - Every discovery response must come from the pinned camera IP, use a nonzero source port, meet the minimum framing length, and contain the message type expected by the current handshake state.
 - A validated intermediate handshake response may update the candidate destination port used for the next handshake message, but it does not establish the session peer.
 - The accepted final UDP-ready response locks its exact `(pinned camera IP, source port)` as the sole UDP session peer. The implementation connects the existing discovery socket to that endpoint, preserving its local port; if the socket abstraction cannot provide connected-UDP filtering, every receive performs an equivalent exact tuple comparison.
@@ -260,7 +268,7 @@ All transport modes begin with an unconnected UDP discovery socket targeting the
 - The UDP peer remains immutable for the connection lifetime. A camera source-port change is accepted only through a subsequent full reconnect and discovery exchange.
 - A TCP-ready response closes the discovery socket and opens TCP only to the same pinned camera IP and the validated source port from that response.
 
-A ready message cannot redirect either transport to another IP. `auto` is one discovery exchange and one ready selection, not sequential UDP and TCP attempts. A discovery, connect, or login failure closes the current transport. Only a subsequent full reconnect repeats cloud bootstrap and discovery. The strict post-ready UDP tuple lock is an intentional hardening difference from the pinned reference implementation's permissive receive check; it does not claim cryptographic peer authentication.
+A ready message cannot redirect either transport to another IP. Every policy uses one discovery exchange and one ready selection, not sequential UDP and TCP attempts. A discovery, connect, or login failure closes the current transport. Only a subsequent full reconnect repeats cloud bootstrap and discovery. The strict post-ready UDP tuple lock is an intentional hardening difference from the pinned reference implementation's permissive receive check; it does not claim cryptographic peer authentication.
 
 #### Reliability and Bounds
 
@@ -339,7 +347,7 @@ The activation rules are:
 - A candidate instantiated through legacy `MiotCameraEntity` likewise retains that entity's existing MIoT, HLS, RTSP, and event behavior. MIoT `p2p-stream` does not add native P2P feature flags, secondary lenses, routes, sessions, or leases to legacy entities.
 - The integration never searches `MiotCloud.all_clouds()` or selects another entry's account by DID, MAC, host, or model. A session never borrows or changes its owning entry's cloud binding.
 - Candidates whose spec lacks `p2p-stream`, whose preflight returns a vendor other than `4`, or whose preflight fails retain their current live-stream behavior. This is an ineligible preflight result, not P2P fallback. After vendor `4` has enabled native P2P, any bootstrap, transport, media, or bridge failure is surfaced as a native P2P error and never invokes the legacy stream path.
-- Transport defaults to `auto`, the lens list defaults to `primary`, raw quality defaults to `0`, and audio is requested. `p2p_overrides` replaces only the values it declares; a declared transport is an integration-side preference and the native MISS layer or camera may accept or reject it.
+- Transport defaults to `auto`, the lens list defaults to `primary`, raw quality defaults to `0`, and audio is requested. `p2p_overrides` replaces only the values it declares; a declared transport preference is encoded into one discovery exchange, and either validated ready type becomes the negotiated transport.
 - Runtime codec, resolution, audio format, and channel information comes from the media probe and `MediaContract`; MIoT properties do not override observed media.
 - Updating an override requires a normal integration update or existing customization reload; there is no live mutation.
 
@@ -408,11 +416,13 @@ If setup has not produced the first chunk by the setup deadline, the handler req
 
 Multiple active loopback source GETs for one entity acquire leases on the same healthy MISS session. Four active GETs are allowed per lens; a fifth returns HTTP 503 with `Retry-After: 5`. This limit counts upstream source GETs, not Home Assistant frontend viewers. Accepted GETs never receive HTTP 409 for ordinary overlap.
 
+The wildcard route handler owns route/auth validation and pre-bridge lease-limit handling. Route/auth failures return 404 before acquisition, and `active_source_limit` returns 503 with `Retry-After: 5`. After an accepted lease is handed off, `MediaBridge` exclusively owns the HTTP response state machine: a non-timeout bootstrap, transport, login, initial media-contract, codec, or pre-first-chunk failure closes with startup status 502; setup-deadline exhaustion closes with 504; and a startup-generation `codec_contract_changed` also closes with 502. After HTTP 200, terminal errors and contract changes close the existing MPEG-TS response without attempting a second status. The handler delegates to `MediaBridge.run(request)` and always awaits its shielded `close_future`; the manager owns session/lease state, while the bridge close task owns response termination, subprocess cleanup, port release, and final lease release.
+
 Each bridge lease captures the session generation and its `MediaContract`. On `codec_contract_changed`, all bridges attached to the old generation stop before receiving candidate frames and run their normal independent cleanup. A bridge still in startup completes HTTP 502; a bridge that already prepared HTTP 200 closes its MPEG-TS response so Home Assistant Stream can open a replacement source GET. The existing HTTP response and FFmpeg process are never rebuilt in place. A later GET acquires the adopted generation and constructs a new SDP and FFmpeg process from its contract. If no active bridge remains, the manager may adopt the candidate generation for a healthy session during its normal 30-second idle period; this does not create or retain any lease.
 
 When the final active source GET releases its lease, the manager starts a 30-second idle timer without sending stop-media. During that idle period the healthy session continues receiving and parsing media, updating its current parameter-set and complete-keyframe caches, and recording the last valid complete video access unit, but it performs no soft restart or full reconnect without an active lease. A new GET cancels the timer and reuses the session without sending another start-media command when valid complete video has arrived within the preceding ten seconds. If that video-stall threshold is already exceeded, the new lease immediately activates the normal one-soft-restart recovery path. Timer expiry sends stop-media on a usable session, closes the transport and session, and removes its cached media state. `keep_streaming` has no P2P effect and cannot alter or suppress this idle behavior.
 
-Config-entry reload invalidates the process-local `(entry_id, region, did)` capability cache for the reloaded entry and triggers fresh setup-time preflight on the next entity setup. In-flight sessions, active leases, idle timers, and bridge close futures from before the reload are not interrupted; they continue under their existing lifecycle. Entities newly created after reload consume the revalidated vendor decision and reapply the activation rules.
+Config-entry reload follows Home Assistant's normal unload-then-setup lifecycle. Unload first invalidates the entry's process-local `(entry_id, region, did)` capability-cache entries, then performs the same bounded route, bridge, session, socket, and server-reference teardown as permanent unload. Fresh setup performs a new capability preflight before creating replacement entities. No transaction or inconsistency state is persisted across reload, and no pre-reload route, lease, idle timer, session, or bridge survives into the replacement `HassEntry`.
 
 ## Home Assistant Loopback Media Bridge
 
@@ -608,9 +618,10 @@ custom_components/xiaomi_miot/core/xiaomi_p2p/
   miss.py              login, encrypted commands, and session state
   cs2/
     protocol.py        typed frames, wire constants, and framing
-    transport.py       typed transport protocol/interface
-    udp.py             discovery, ACK, reorder, and retransmission
-    tcp.py             TCP framing and reference-compatible ping
+    transport.py       typed transport and connector protocols/interfaces
+    discovery.py       single discovery exchange and UDP/TCP transport handoff
+    udp.py             ACK, reorder, and retransmission after UDP handoff
+    tcp.py             TCP framing and reference-compatible ping after TCP handoff
   media.py             media headers, codecs, access units, and frames
   rtp.py               codec-specific RTP packetization
   bridge.py            per-GET RTP, FFmpeg, MPEG-TS response, and close state machine
@@ -641,7 +652,7 @@ Protocol modules do not import Home Assistant entity classes.
 - Capability cache entries contain no host, token, key, signature, or bootstrap material and are absent from diagnostics and entity state.
 - DNS is resolved once per connection attempt, the numeric RFC 1918 address is pinned, discovery responses from another IP are rejected, final UDP-ready locks its validated source port, and TCP-ready cannot select another IP.
 - The MISS adapter passes `debug=False`, `raise_timeout=True`, and the shorter of its ten-second cap or caller deadline to `async_request_api()`.
-- Cancellation raised by `async_request_api()` propagates without being caught or converted by MISS-owned code; the existing cloud abstraction's internal cancellation behavior is not changed or retested here.
+- When a mocked `async_request_api()` raises cancellation, the MISS adapter does not catch or convert it. The existing abstraction's current internal cancellation consumption is unchanged and is not asserted as end-to-end propagation.
 - Token expiration permits exactly one existing authentication refresh and one retry.
 - A second authentication failure does not loop.
 - Captured MISS-owned, aiohttp access, and aiohttp exception logs contain no DID, host, token, key, signature, request body, raw response, request object, raw request target, `path_qs`, `rel_url`, or query string. Real authenticated GETs and forced handler exceptions exercise every new logging path. Logs produced inside the existing `MiotCloud` request and authentication implementations are outside this design's scope.
@@ -660,7 +671,7 @@ Protocol modules do not import Home Assistant entity classes.
 - CS2 channel `0` command and channel `2` media separation.
 - CS2 fragmentation, concatenation, lengths, and 16-bit sequence wraparound.
 - UDP discovery with UDP-ready and TCP-ready in auto mode, proving one discovery exchange and no sequential transport fallback.
-- Forced UDP/TCP rejection of the opposite ready type.
+- Preferred UDP/TCP discovery accepts the opposite validated ready type as the final negotiated fallback in the same exchange.
 - Final UDP-ready locks the response's exact pinned-IP/source-port tuple on the existing socket; valid session commands, media, and ACKs use only that endpoint.
 - Datagrams from a different IP or from the pinned IP with a different port are dropped before CS2 parsing, receive no ACK, and cannot mutate the peer, queues, sequence state, gap deadline, or stall deadline.
 - A UDP endpoint can change only after transport closure and a full reconnect performs a new discovery exchange.
@@ -778,8 +789,8 @@ Under a normal local network:
 - When the same commands are acknowledged but no complete keyframe follows, instrumentation confirms that full reconnect begins at reprobe expiry without a second in-place restart.
 - Audio and video do not sustain more than 250 ms of drift.
 - A ten-minute deterministic network test with 2% independent packet loss plus one five-packet burst every 30 seconds stays within all bounds and resumes playback no later than five seconds after the next complete keyframe.
-- `isa.camera.hlc7` runs continuously for 24 hours over its forced UDP profile with H.265 and PCMA.
-- `chuangmi.camera.039c01` runs continuously for 24 hours over its forced TCP profile with H.265 and Opus.
+- `isa.camera.hlc7` runs continuously for 24 hours with its UDP-preferred policy, negotiated transport recorded, H.265, and PCMA.
+- `chuangmi.camera.039c01` runs continuously for 24 hours with its TCP-preferred policy, negotiated transport recorded, H.265, and Opus.
 - Both `mxiang.camera.c500ch` lenses run concurrently for eight hours using auto transport negotiation and raw quality `0` (the Mi Home MISS auto-video raw value), without cross-lens data or coupled restart. The acceptance record captures the transport, quality, and codecs negotiated for each lens.
 - Multiple Home Assistant HLS frontend viewers of one lens run concurrently for one hour while instrumentation confirms one cached Home Assistant `Stream`, one active loopback source GET, one integration FFmpeg bridge, and one MISS session.
 - Connection-slot interference with Mi Home while both `mxiang.camera.c500ch` lenses are active is recorded as an accepted limitation.
