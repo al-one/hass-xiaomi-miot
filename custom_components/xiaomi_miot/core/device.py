@@ -32,6 +32,7 @@ from .miot_spec import MiotSpec, MiotProperty, MiotResults, MiotResult
 from .miio2miot import Miio2MiotHelper
 from .mini_miio import AsyncMiIO
 from .xiaomi_cloud import MiotCloud, MiCloudException
+from .xiaomi_p2p import DEFAULT_P2P_PROFILE, P2P_PROFILES, P2PProfile
 from .utils import (
     CustomConfigHelper,
     get_customize_via_model,
@@ -179,6 +180,10 @@ class Device(CustomConfigHelper):
     _exclude_miot_properties = None
     _unreadable_properties = None
     _unsub_purge = None
+    p2p_profile = None
+    p2p_vendor = None
+    p2p_enabled = False
+    p2p_lens = "primary"
 
     def __init__(self, info: DeviceInfo, entry: HassEntry):
         self.data = {}
@@ -216,6 +221,8 @@ class Device(CustomConfigHelper):
         self._exclude_miot_properties = self.custom_config_list('exclude_miot_properties', [])
         self._unreadable_properties = self.custom_config_bool('unreadable_properties')
 
+        await self._async_init_p2p()
+
         if not self.coordinators:
             await self.init_coordinators()
 
@@ -232,6 +239,146 @@ class Device(CustomConfigHelper):
         if self._unsub_purge:
             self._unsub_purge()
             self._unsub_purge = None
+
+    async def _async_init_p2p(self) -> None:
+        """Resolve P2P eligibility, vendor, and profile for this device.
+
+        A device is P2P-eligible when:
+          * the spec exposes a `p2p_stream` service, AND
+          * the cloud account owns the device (vendor preflighted via
+            cloud + cached) and the resolved vendor is 4.
+        Resulting `p2p_profile` merges the model customizes' `p2p_overrides`
+        over the model-keyed `P2P_PROFILES` entry over `DEFAULT_P2P_PROFILE`.
+        """
+
+        spec = self.spec
+        p2p_service = spec.get_service("p2p_stream") if spec else None
+        if p2p_service is None:
+            self.p2p_enabled = False
+            self.p2p_profile = None
+            self.p2p_vendor = None
+            return
+
+        profile = self._resolve_p2p_profile()
+        self.p2p_profile = profile
+
+        entry = self.entry
+        cloud = getattr(entry, "cloud", None)
+        account_owned = bool(
+            getattr(entry, "get_config", lambda *_: None)(CONF_USERNAME)
+            and cloud is not None
+            and self.info.did
+        )
+
+        if not account_owned:
+            self.p2p_enabled = False
+            self.p2p_vendor = None
+            return
+
+        from .xiaomi_p2p.cloud import async_miss_get_vendor_impl
+        from .xiaomi_p2p import MissError
+
+        async def probe() -> int:
+            try:
+                bootstrap = await async_miss_get_vendor_impl(
+                    cloud,
+                    self.info.did,
+                    self.info.host,
+                    self.clock_deadline(),
+                )
+            except MissError:
+                return -1
+            return int(bootstrap.vendor)
+
+        cache = getattr(entry, "p2p_cache", None)
+        if cache is None:
+            from .xiaomi_p2p.cloud import get_capability_cache
+            cache = get_capability_cache(self.hass)
+        region = self._cloud_region(cloud)
+        vendor = await cache.get_or_probe(
+            entry.id, region, self.info.did, probe
+        )
+        if vendor == 4:
+            self.p2p_vendor = 4
+            self.p2p_enabled = True
+            self.p2p_lens = profile.lenses[0] if profile.lenses else "primary"
+            self._expand_dual_lens_converters(profile)
+            return
+        self.p2p_vendor = None
+        self.p2p_enabled = False
+
+    def _resolve_p2p_profile(self) -> P2PProfile:
+        model = self.model
+        base = P2P_PROFILES.get(model, DEFAULT_P2P_PROFILE)
+        overrides = self.custom_config("p2p_overrides") or {}
+        if not overrides:
+            return base
+        merged = {
+            "lenses": base.lenses,
+            "transport": base.transport,
+            "raw_quality": base.raw_quality,
+            "request_audio": base.request_audio,
+            "required_video_codec": base.required_video_codec,
+            "required_audio_codec": base.required_audio_codec,
+        }
+        for key in (
+            "lenses",
+            "transport",
+            "raw_quality",
+            "request_audio",
+            "required_video_codec",
+            "required_audio_codec",
+        ):
+            if key in overrides:
+                merged[key] = overrides[key]
+        return P2PProfile(
+            lenses=tuple(merged["lenses"]),
+            transport=merged["transport"],
+            raw_quality=merged["raw_quality"],
+            request_audio=merged["request_audio"],
+            required_video_codec=merged["required_video_codec"],
+            required_audio_codec=merged["required_audio_codec"],
+        )
+
+    def _expand_dual_lens_converters(self, profile: P2PProfile) -> None:
+        """Duplicate camera converters per additional lens in the profile."""
+
+        if not self.p2p_enabled:
+            return
+        if len(profile.lenses) <= 1:
+            return
+        from .converters import MiotCameraConv
+
+        camera_converters = [
+            conv
+            for conv in self.converters
+            if isinstance(conv, MiotCameraConv)
+        ]
+        if not camera_converters:
+            return
+        for primary in camera_converters:
+            for extra_lens in profile.lenses[1:]:
+                cloned = MiotCameraConv(
+                    attr=f"{primary.attr}-{extra_lens}",
+                    service=getattr(primary, "service", None),
+                    prop=getattr(primary, "prop", None),
+                )
+                cloned.with_option(
+                    use_unique_attr=True,
+                    unique_id=f"{primary.attr}-{extra_lens}",
+                )
+                self.add_converter(cloned)
+
+    @staticmethod
+    def _cloud_region(cloud) -> str:
+        server = getattr(cloud, "default_server", None)
+        if server is None:
+            return ""
+        return str(server).lower()
+
+    def clock_deadline(self) -> float:
+        import time
+        return time.monotonic() + 24.0
 
     @cached_property
     def did(self):

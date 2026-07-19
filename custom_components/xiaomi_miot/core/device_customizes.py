@@ -344,6 +344,13 @@ DEVICE_CUSTOMIZES = {
         'sensor_properties': 'temperature',
         'switch_properties': 'physical_controls_locked',
     },
+    'chuangmi.camera.039c01': {
+        'p2p_overrides': {
+            'lenses': ['primary'], 'transport': 'prefer_tcp', 'raw_quality': 2,
+            'request_audio': True, 'required_video_codec': 5,
+            'required_audio_codec': 1032,
+        },
+    },
     'chuangmi.camera.051a01': {
         'switch_properties': 'on,time_watermark,motion_tracking,motion_detection,wdr_mode,glimmer_full_color,'
                              'face_switch,babycry_switch,pet_switch,gesture_switch,cruise_switch,smart_care_switch,'
@@ -1187,6 +1194,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'night_shot,recording_mode,detection_sensitivity',
         'switch_properties': 'on,time_watermark,motion_detection',
         'number_properties': 'image_rollover,alarm_interval',
+        'p2p_overrides': {
+            'lenses': ['primary'], 'transport': 'prefer_udp', 'raw_quality': 2,
+            'request_audio': True, 'required_video_codec': 5,
+            'required_audio_codec': 1027,
+        },
     },
     'isleep.blanket.hs2001': CHUNK_1,
     'isleep.blanket.hs2201': CHUNK_1,
@@ -1594,6 +1606,12 @@ DEVICE_CUSTOMIZES = {
     'msj.f_washer.m2': {
         'chunk_properties': 1,
         'button_actions': 'start_wash,pause,drain,pause_drain',
+    },
+    'mxiang.camera.c500ch': {
+        'p2p_overrides': {
+            'lenses': ['primary', 'secondary'], 'transport': 'auto',
+            'raw_quality': 0, 'request_audio': True,
+        },
     },
     'mxiang.camera.mwc11': {
         'sensor_properties': 'battery',

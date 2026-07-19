@@ -1,0 +1,36 @@
+{
+  "type": "urn:miot-spec-v2:device:camera:0000A016:generic-p2p:1",
+  "description": "Generic P2P Camera",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:generic-p2p:1",
+      "description": "Device Information",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:manufacturer:00000001:generic-p2p:1", "description": "Manufacturer", "format": "string", "access": ["read", "notify"]},
+        {"iid": 2, "type": "urn:miot-spec-v2:property:model:00000002:generic-p2p:1", "description": "Model", "format": "string", "access": ["read", "notify"]}
+      ],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:p2p-stream:00007850:generic-p2p:1",
+      "description": "P2P Stream",
+      "properties": [],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:camera-control:00007851:generic-p2p:1",
+      "description": "Camera Control",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:on:00000006:generic-p2p:1", "description": "Switch Status", "format": "bool", "access": ["read", "write", "notify"]},
+        {"iid": 2, "type": "urn:miot-spec-v2:property:motion-detection:00000042:generic-p2p:1", "description": "Motion Detection", "format": "bool", "access": ["read", "write", "notify"]}
+      ],
+      "actions": [],
+      "events": []
+    }
+  ]
+}

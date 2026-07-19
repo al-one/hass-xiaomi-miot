@@ -1,0 +1,34 @@
+{
+  "type": "urn:miot-spec-v2:device:camera:0000A016:chuangmi-039c01:1",
+  "description": "Chuangmi 039c01 Camera",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:chuangmi-039c01:1",
+      "description": "Device Information",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:manufacturer:00000001:chuangmi-039c01:1", "description": "Manufacturer", "format": "string", "access": ["read", "notify"]}
+      ],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:p2p-stream:00007850:chuangmi-039c01:1",
+      "description": "P2P Stream",
+      "properties": [],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:camera-control:00007851:chuangmi-039c01:1",
+      "description": "Camera Control",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:on:00000006:chuangmi-039c01:1", "description": "Switch Status", "format": "bool", "access": ["read", "write", "notify"]}
+      ],
+      "actions": [],
+      "events": []
+    }
+  ]
+}

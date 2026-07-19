@@ -1,0 +1,34 @@
+{
+  "type": "urn:miot-spec-v2:device:camera:0000A016:mxiang-c500ch:1",
+  "description": "Mxiang C500CH Dual-Lens Camera",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:mxiang-c500ch:1",
+      "description": "Device Information",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:manufacturer:00000001:mxiang-c500ch:1", "description": "Manufacturer", "format": "string", "access": ["read", "notify"]}
+      ],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:p2p-stream:00007850:mxiang-c500ch:1",
+      "description": "P2P Stream",
+      "properties": [],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:camera-control:00007851:mxiang-c500ch:1",
+      "description": "Camera Control",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:on:00000006:mxiang-c500ch:1", "description": "Switch Status", "format": "bool", "access": ["read", "write", "notify"]}
+      ],
+      "actions": [],
+      "events": []
+    }
+  ]
+}
