@@ -342,7 +342,13 @@ async def async_unload_entry(hass: hass_core.HomeAssistant, config_entry: config
 
 
 def init_integration_data(hass):
+    from .core.xiaomi_p2p.cloud import P2PCapabilityCache
+    from .core.xiaomi_p2p.server import LoopbackMediaServer, RtpPortAllocator
+
     hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN].setdefault('p2p_media_server', LoopbackMediaServer())
+    hass.data[DOMAIN].setdefault('p2p_port_allocator', RtpPortAllocator())
+    hass.data[DOMAIN].setdefault('p2p_capability_cache', P2PCapabilityCache())
     hass.data[DOMAIN].setdefault('entries', {})
     hass.data[DOMAIN].setdefault('configs', {})
     hass.data[DOMAIN].setdefault('entities', {})

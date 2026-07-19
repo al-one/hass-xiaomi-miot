@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_USERNAME
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
@@ -28,6 +28,112 @@ class HassEntry:
         self.did_to_unique = {}
         from .xiaomi_p2p.cloud import get_capability_cache
         self.p2p_cache = get_capability_cache(hass)
+        self.p2p_manager = None
+        self._p2p_ensure_lock = asyncio.Lock()
+        self._p2p_server_acquired = False
+        self._p2p_bridge_close_tasks: set[asyncio.Task[Any]] = set()
+
+    async def async_ensure_p2p(self):
+        if self.p2p_manager is not None:
+            return self.p2p_manager
+        if not any(
+            getattr(device, "p2p_enabled", False)
+            for device in self.devices.values()
+        ):
+            return None
+        async with self._p2p_ensure_lock:
+            if self.p2p_manager is not None:
+                return self.p2p_manager
+            from .const import DOMAIN
+
+            server = self.hass.data[DOMAIN]["p2p_media_server"]
+            await server.acquire_entry()
+            try:
+                self.p2p_manager = self._create_p2p_manager()
+            except BaseException:
+                await server.release_entry()
+                raise
+            self._p2p_server_acquired = True
+            return self.p2p_manager
+
+    def _create_p2p_manager(self):
+        from .xiaomi_p2p.manager import ChannelSessionManager
+
+        return ChannelSessionManager(session_factory=self._create_p2p_session)
+
+    async def _create_p2p_session(self, key, deadline):
+        from .xiaomi_p2p import DEFAULT_P2P_PROFILE, P2PProfile
+        from .xiaomi_p2p.cloud import async_miss_get_vendor_impl
+        from .xiaomi_p2p.cs2.discovery import create_default_connector
+        from .xiaomi_p2p.manager import MonotonicClock
+        from .xiaomi_p2p.miss import MissSession
+
+        unique = self.did_to_unique.get(key.did)
+        device = self.devices.get(unique) if unique is not None else None
+        if device is None or not getattr(device, "p2p_enabled", False):
+            from .xiaomi_p2p import MissError, MissErrorCategory
+
+            raise MissError(MissErrorCategory.MEDIA, "device_not_eligible")
+        cloud = await self.get_cloud()
+        if cloud is None:
+            from .xiaomi_p2p import MissError, MissErrorCategory
+
+            raise MissError(MissErrorCategory.CLOUD, "cloud_unavailable")
+        host = device.info.host
+        base_profile = getattr(device, "p2p_profile", None) or DEFAULT_P2P_PROFILE
+        profile = P2PProfile(
+            lenses=base_profile.lenses,
+            transport=key.transport,
+            raw_quality=key.raw_quality,
+            request_audio=key.request_audio,
+            required_video_codec=base_profile.required_video_codec,
+            required_audio_codec=base_profile.required_audio_codec,
+        )
+        clock = MonotonicClock()
+        connector = create_default_connector(clock)
+
+        async def connect_fresh(connect_deadline):
+            bootstrap = await async_miss_get_vendor_impl(
+                cloud, key.did, host, connect_deadline
+            )
+            transport = await connector.connect(
+                bootstrap, key.transport, connect_deadline
+            )
+            return bootstrap, transport
+
+        bootstrap, transport = await connect_fresh(deadline)
+        return MissSession(
+            bootstrap=bootstrap,
+            transport=transport,
+            profile=profile,
+            lens=key.lens,
+            clock=clock,
+            raw_quality=key.raw_quality,
+            request_audio=key.request_audio,
+            bootstrap_factory=connect_fresh,
+        )
+
+    def track_bridge_close_task(self, task: asyncio.Task[Any]) -> None:
+        self._p2p_bridge_close_tasks.add(task)
+
+    def untrack_bridge_close_task(self, task: asyncio.Task[Any]) -> None:
+        self._p2p_bridge_close_tasks.discard(task)
+
+    async def async_close_p2p(self) -> None:
+        async with self._p2p_ensure_lock:
+            manager, self.p2p_manager = self.p2p_manager, None
+            acquired, self._p2p_server_acquired = (
+                self._p2p_server_acquired,
+                False,
+            )
+        try:
+            if manager is not None:
+                await manager.async_close()
+        finally:
+            if acquired:
+                from .const import DOMAIN
+
+                await self.hass.data[DOMAIN]["p2p_media_server"].release_entry()
 
     def invalidate_p2p_capability_cache(self):
         self.p2p_cache.invalidate_entry(self.id)
