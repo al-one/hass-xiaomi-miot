@@ -14,7 +14,11 @@ from dataclasses import replace
 
 import pytest
 
-from custom_components.xiaomi_miot.core.xiaomi_p2p import MediaContract
+from custom_components.xiaomi_miot.core.xiaomi_p2p import (
+    MediaContract,
+    NormalizedAudioFrame,
+    NormalizedVideoFrame,
+)
 from custom_components.xiaomi_miot.core.xiaomi_p2p.cs2.protocol import (
     MediaHeader,
 )
@@ -231,6 +235,63 @@ def test_h264_sps_decodes_1280x720():
 
 
 # ---- Audio: PCMA and Opus -----------------------------------------------
+
+
+
+
+def test_probe_emits_normalized_keyframe_and_delta_video():
+    clock = FakeClock()
+    probe = MediaProbe(clock=clock)
+    keyframe_body = assemble_annex_b([
+        _h264_sps_nal(b"sps"),
+        _h264_pps_nal(b"pps"),
+        b"\x65idr",
+    ])
+
+    keyframes = probe.feed(
+        MediaHeader(codec_id=4, sequence=0, flags=0, timestamp=32000),
+        keyframe_body,
+    )
+    delta = probe.feed(
+        MediaHeader(codec_id=4, sequence=1, flags=0, timestamp=33600),
+        make_delta_fragment(),
+    )
+
+    assert keyframes == [
+        NormalizedVideoFrame(
+            data=keyframe_body,
+            pts=32000,
+            dts=32000,
+            keyframe=True,
+        )
+    ]
+    assert delta == [
+        NormalizedVideoFrame(
+            data=make_delta_fragment(),
+            pts=33600,
+            dts=33600,
+            keyframe=False,
+        )
+    ]
+
+
+def test_probe_emits_normalized_audio_frame():
+    probe = MediaProbe(clock=FakeClock())
+    frame = make_pcma_frame()
+
+    emitted = probe.feed(
+        MediaHeader(codec_id=1027, sequence=0, flags=0, timestamp=32000),
+        frame,
+    )
+
+    assert emitted == [
+        NormalizedAudioFrame(
+            data=frame,
+            pts=32000,
+            sample_rate=8000,
+            channels=1,
+        )
+    ]
 
 
 def test_pcma_sample_rate_8khz_when_flag_unset():

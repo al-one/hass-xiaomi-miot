@@ -15,16 +15,18 @@ Secret material is never logged or included in `MissError` text.
 from __future__ import annotations
 
 import asyncio
+import collections
 import json
 import random
 import secrets
 from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any, Awaitable, Callable, Deque, Optional
 
 from . import (
     MediaContract,
     MissError,
     MissErrorCategory,
+    NormalizedVideoFrame,
     P2PProfile,
     SessionKey,
 )
@@ -94,12 +96,15 @@ class MissSession:
     _unknown_messages: int = field(default=0, init=False)
     _closed: bool = field(default=False, init=False)
     bootstrap_factory: Optional[
-        Callable[[], Awaitable[tuple[object, object]]]
+        Callable[[float], Awaitable[tuple[object, object]]]
     ] = field(default=None, repr=False)
     _active_leases: int = field(default=0, init=False)
     _subscriptions: dict[SessionKey, asyncio.Future[None]] = field(
         default_factory=dict, init=False, repr=False
     )
+    _frame_subscriptions: dict[
+        SessionKey, tuple[asyncio.Queue[Any], asyncio.Event]
+    ] = field(default_factory=dict, init=False, repr=False)
     _recovery_lock: asyncio.Lock = field(init=False, repr=False)
     _recovery_task: Optional[asyncio.Task[MediaContract]] = field(
         default=None, init=False, repr=False
@@ -110,6 +115,12 @@ class MissSession:
     _soft_restart_attempts: int = field(default=0, init=False)
     _soft_restart_successes: int = field(default=0, init=False)
     _last_complete_video_at: Optional[float] = field(default=None, init=False)
+    _cached_keyframe: NormalizedVideoFrame | None = field(
+        default=None, init=False, repr=False
+    )
+    _candidate_keyframe: NormalizedVideoFrame | None = field(
+        default=None, init=False, repr=False
+    )
     _sleep: Optional[Callable[[float], Awaitable[None]]] = field(
         default=None, init=False, repr=False
     )
@@ -137,6 +148,12 @@ class MissSession:
     @property
     def contract(self) -> MediaContract | None:
         return self._contract
+
+    def has_recent_video(self, max_age: float) -> bool:
+        return (
+            self._last_complete_video_at is not None
+            and self.clock.now - self._last_complete_video_at < max_age
+        )
 
     async def connect_and_start(self, deadline: float) -> MediaContract:
         """Login, start media, and publish the initial complete contract."""
@@ -418,6 +435,46 @@ class MissSession:
             raise MissError(MissErrorCategory.MEDIA, "lease_not_active")
         self._active_leases -= 1
 
+    def subscribe_frames(
+        self, generation: int
+    ) -> tuple[SessionKey, asyncio.Queue[Any], asyncio.Event]:
+        if self._state != "published" or self._contract is None:
+            raise MissError(MissErrorCategory.MEDIA, "session_state_invalid")
+        if generation != self._generation:
+            raise MissError(
+                MissErrorCategory.MEDIA, "subscription_stale_generation"
+            )
+        key = SessionKey(token=secrets.token_bytes(16))
+        frames = BoundedFrameQueue(maxsize=32)
+        if self._cached_keyframe is not None:
+            frames.put(self._cached_keyframe)
+        changed = asyncio.Event()
+        self._frame_subscriptions[key] = (frames, changed)
+        return key, frames, changed
+
+    def unsubscribe_frames(self, key: SessionKey) -> None:
+        record = self._frame_subscriptions.pop(key, None)
+        if record is None:
+            return
+        frames, _changed = record
+        frames.close(discard_pending=True)
+
+    def publish_frame(self, frame: Any) -> None:
+        for frames, _changed in tuple(self._frame_subscriptions.values()):
+            frames.put(frame)
+
+    def signal_contract_change(self) -> None:
+        for key in tuple(self._frame_subscriptions):
+            frames, changed = self._frame_subscriptions[key]
+            changed.set()
+            frames.put(None)
+            frames.close()
+            del self._frame_subscriptions[key]
+        if self._frame_subscriptions:
+            return
+        # All frame subscribers have been signalled; the next cache is only
+        # populated once a new subscriber attaches after the new contract.
+
     def subscribe(self, *, generation: int) -> SessionKey:
         if self._state != "published" or self._contract is None:
             raise MissError(MissErrorCategory.MEDIA, "session_state_invalid")
@@ -543,9 +600,17 @@ class MissSession:
     def _adopt_recovered_contract(self, candidate: MediaContract) -> None:
         if self._contract is None:
             raise MissError(MissErrorCategory.MEDIA, "contract_missing")
+        candidate_keyframe, self._candidate_keyframe = (
+            self._candidate_keyframe,
+            None,
+        )
         if candidate == self._contract:
             self._last_complete_video_at = self._probe.last_complete_video_at
+            if candidate_keyframe is not None:
+                self._cached_keyframe = candidate_keyframe
             return
+        self.signal_contract_change()
+        self._generation += 1
         for future in self._subscriptions.values():
             if not future.done():
                 future.set_exception(
@@ -555,8 +620,9 @@ class MissSession:
                     )
                 )
                 future.add_done_callback(lambda done: done.exception())
-        self._generation += 1
         self._contract = candidate
+        if candidate_keyframe is not None:
+            self._cached_keyframe = candidate_keyframe
         self._last_complete_video_at = self._probe.last_complete_video_at
 
     def _reset_recovery_episode(self) -> None:
@@ -650,7 +716,7 @@ class MissSession:
             )
         try:
             result = await asyncio.wait_for(
-                factory(), timeout=remaining
+                factory(deadline), timeout=remaining
             )
         except TimeoutError:
             raise MissError(
@@ -731,6 +797,12 @@ class MissSession:
 
     # ---- Media feed helpers ------------------------------------------
 
+    async def read_and_publish(self, timeout: float) -> None:
+        if self._state != "published":
+            raise MissError(MissErrorCategory.MEDIA, "session_state_invalid")
+        packet = await self.transport.read_media_packet(timeout=timeout)
+        await self._process_media_packet(packet)
+
     async def _process_media_packet(self, packet: Cs2MediaPacket) -> None:
         """Decrypt and feed one media packet to the probe."""
         if self._shared_key is None:
@@ -741,7 +813,16 @@ class MissSession:
         header = decode_miss_media_header(packet.header)
         body = miss_decode(self._shared_key, packet.encrypted_body)
         previous_complete_at = self._probe.last_complete_video_at
-        self._probe.feed(header, body)
+        emitted = self._probe.feed(header, body)
+        for frame in emitted:
+            if isinstance(frame, NormalizedVideoFrame) and frame.keyframe:
+                if self._state == "reprobing":
+                    self._candidate_keyframe = frame
+                else:
+                    self._cached_keyframe = frame
+        if self._state == "published":
+            for frame in emitted:
+                self.publish_frame(frame)
         complete_at = self._probe.last_complete_video_at
         if (
             self._state == "published"
@@ -755,6 +836,8 @@ class MissSession:
         self._candidate_video_codec = None
         self._candidate_audio_codec = None
         self._last_complete_video_at = None
+        self._cached_keyframe = None
+        self._candidate_keyframe = None
         self._probe = MediaProbe(
             clock=self.clock,
             audio_wait_seconds=2.0 if self.request_audio else 0.0,
@@ -768,10 +851,104 @@ class MissSession:
         if self._closed:
             return
         self._closed = True
+        for key in tuple(self._frame_subscriptions):
+            self.unsubscribe_frames(key)
         try:
             await self.transport.close()
         except Exception:  # pragma: no cover - defensive
             pass
+
+
+class BoundedFrameQueue:
+    """Bounded, non-blocking frame queue with overflow drop-oldest policy.
+
+    After `close()`, the queue stops accepting items and `get()` returns
+    `None` as the end-of-stream sentinel. `close(discard_pending=True)`
+    empties the buffer before signaling end-of-stream; the default
+    preserves pending items so consumers can drain them first.
+    """
+
+    __slots__ = ("_buffer", "_maxsize", "_waiters", "_closed", "_sentinel")
+
+    def __init__(self, *, maxsize: int) -> None:
+        self._maxsize = maxsize
+        self._buffer: Deque[Any] = collections.deque()
+        self._waiters: collections.deque[asyncio.Future[Any]] = (
+            collections.deque()
+        )
+        self._closed = False
+        self._sentinel = False
+
+    @property
+    def maxsize(self) -> int:
+        return self._maxsize
+
+    def qsize(self) -> int:
+        return len(self._buffer)
+
+    def empty(self) -> bool:
+        return not self._buffer
+
+    def full(self) -> bool:
+        return len(self._buffer) >= self._maxsize
+
+    def put(self, item: Any) -> None:
+        if self._closed:
+            return
+        if self._waiters:
+            waiter = self._waiters.popleft()
+            waiter.set_result(item)
+            return
+        while len(self._buffer) >= self._maxsize:
+            self._buffer.popleft()
+        self._buffer.append(item)
+
+    async def get(self) -> Any:
+        if self._buffer:
+            return self._buffer.popleft()
+        if self._closed:
+            return None
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future[Any] = loop.create_future()
+        self._waiters.append(future)
+        try:
+            return await future
+        finally:
+            if not future.done():
+                future.cancel()
+                try:
+                    self._waiters.remove(future)
+                except ValueError:
+                    pass
+
+    def get_nowait(self) -> Any:
+        if self._buffer:
+            return self._buffer.popleft()
+        if self._closed:
+            return None
+        if not self._waiters:
+            raise asyncio.QueueEmpty
+        waiter = self._waiters.popleft()
+        if waiter.done():
+            raise asyncio.QueueEmpty
+        waiter.cancel()
+        try:
+            self._waiters.remove(waiter)
+        except ValueError:
+            pass
+        raise asyncio.QueueEmpty
+
+    def close(self, *, discard_pending: bool = False) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        self._sentinel = True
+        if discard_pending:
+            self._buffer.clear()
+        while self._waiters:
+            waiter = self._waiters.popleft()
+            if not waiter.done():
+                waiter.set_result(None)
 
 
 __all__ = [

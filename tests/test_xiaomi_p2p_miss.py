@@ -27,6 +27,7 @@ from custom_components.xiaomi_miot.core.xiaomi_p2p import (
     MediaContract,
     MissError,
     MissErrorCategory,
+    NormalizedVideoFrame,
     P2PProfile,
 )
 from custom_components.xiaomi_miot.core.xiaomi_p2p.cs2.protocol import (
@@ -824,6 +825,82 @@ async def test_subscribe_returns_unique_opaque_tokens_for_current_generation(
     assert sess.subscription_future(first).done() is False
 
 
+
+
+async def test_frame_subscription_starts_with_cached_keyframe(published_session):
+    sess, _transport, _shared_key = published_session
+    await _publish(sess)
+
+    key, frames, _changed = sess.subscribe_frames(sess.generation)
+
+    frame = frames.get_nowait()
+    assert frame.keyframe is True
+    assert frame.data.startswith(b"\x00\x00\x00\x01")
+    sess.unsubscribe_frames(key)
+
+
+async def test_frame_subscription_receives_normalized_media(published_session):
+    sess, _transport, shared_key = published_session
+    await _publish(sess)
+    key, frames, changed = sess.subscribe_frames(sess.generation)
+
+    await sess._process_media_packet(
+        make_media_packet(
+            shared_key,
+            4,
+            b"\x00\x00\x00\x01\x01delta",
+            sequence=20,
+            timestamp=2000,
+        )
+    )
+
+    cached = frames.get_nowait()
+    assert cached.keyframe is True
+    frame = frames.get_nowait()
+    assert frame.data == b"\x00\x00\x00\x01\x01delta"
+    assert frame.keyframe is False
+    assert changed.is_set() is False
+    sess.unsubscribe_frames(key)
+    assert await frames.get() is None
+
+
+async def test_frame_subscription_signals_contract_change(published_session):
+    sess, _transport, _shared_key = published_session
+    contract = await _publish(sess)
+    key, frames, changed = sess.subscribe_frames(sess.generation)
+
+    sess._adopt_recovered_contract(replace(contract, video_codec=5))
+
+    assert changed.is_set() is True
+    assert frames.get_nowait().keyframe is True
+    assert await frames.get() is None
+    assert key not in sess._frame_subscriptions
+
+
+async def test_frame_subscription_queue_is_bounded(published_session):
+    sess, _transport, _shared_key = published_session
+    await _publish(sess)
+    key, frames, _changed = sess.subscribe_frames(sess.generation)
+    cached = frames.get_nowait()
+    assert cached.keyframe is True
+    assert frames.maxsize < 100
+
+    for index in range(frames.maxsize + 50):
+        sess.publish_frame(
+            NormalizedVideoFrame(
+                data=b"delta",
+                pts=index,
+                dts=index,
+                keyframe=False,
+            )
+        )
+
+    assert frames.qsize() <= frames.maxsize
+    assert frames.get_nowait().data == b"delta"
+    sess.unsubscribe_frames(key)
+    assert frames.get_nowait() is None
+
+
 async def test_subscribe_rejects_stale_generation(published_session):
     sess, _, _ = published_session
     await _publish(sess)
@@ -1184,7 +1261,7 @@ async def test_reconnect_factory_is_bounded_by_deadline(
     await _publish(sess)
     sess.acquire_lease()
 
-    async def blocked_factory():
+    async def blocked_factory(_deadline):
         await asyncio.Future()
 
     sess.bootstrap_factory = blocked_factory
@@ -1202,7 +1279,7 @@ async def test_reconnect_closes_candidate_when_lease_expires_during_factory(
     sess.acquire_lease()
     candidate = FakeMissTransport(clock=sess.clock)
 
-    async def release_during_factory():
+    async def release_during_factory(_deadline):
         sess.release_lease()
         return make_bootstrap(host="192.168.1.99"), candidate
 
@@ -1326,7 +1403,7 @@ async def test_concurrent_sequence_gaps_share_one_reconnect_owner(
                 await release.wait()
             return await super().write_command(command)
 
-    async def factory():
+    async def factory(_deadline):
         bootstrap_count["calls"] += 1
         bootstrap = make_bootstrap(host="192.168.1.99")
         shared_key = derive_shared_key(
@@ -1387,7 +1464,7 @@ async def test_concurrent_recovery_waiters_share_owner_failure(
     release = asyncio.Event()
     bootstrap_count = {"calls": 0}
 
-    async def failing_factory():
+    async def failing_factory(_deadline):
         bootstrap_count["calls"] += 1
         entered.set()
         await release.wait()
@@ -1422,7 +1499,7 @@ def _make_reconnect_factory(
     pps=b"\x68pps",
     failures=0,
 ):
-    async def factory():
+    async def factory(_deadline):
         counter["calls"] += 1
         if counter["calls"] <= failures:
             raise MissError(

@@ -295,7 +295,9 @@ class UdpCs2Transport:
             except Exception:
                 if attempts >= RETRANSMIT_LIMIT:
                     raise MissError(MissErrorCategory.TRANSPORT, "transport_send_failed")
-                self._retransmit_after(RETRANSMIT_INTERVAL_SECONDS)
+                delay = self._retransmit_after(RETRANSMIT_INTERVAL_SECONDS)
+                if asyncio.isfuture(delay) or asyncio.iscoroutine(delay):
+                    await delay
 
     async def _enqueue_command(self, command: Cs2Command) -> None:
         if self._closed:

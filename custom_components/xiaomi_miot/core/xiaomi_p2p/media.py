@@ -22,7 +22,13 @@ import hashlib
 from dataclasses import dataclass, field
 from typing import Iterator, Optional
 
-from . import MediaContract, MissError, MissErrorCategory
+from . import (
+    MediaContract,
+    MissError,
+    MissErrorCategory,
+    NormalizedAudioFrame,
+    NormalizedVideoFrame,
+)
 
 
 # ---- Constants -----------------------------------------------------------
@@ -493,14 +499,21 @@ class MediaProbe:
 
     # ---- Production feed -----------------------------------------------
 
-    def feed(self, header: MediaHeader, body: bytes) -> None:
+    def feed(
+        self,
+        header: MediaHeader,
+        body: bytes,
+    ) -> list[NormalizedVideoFrame | NormalizedAudioFrame]:
+        emitted: list[NormalizedVideoFrame | NormalizedAudioFrame] = []
         if header.codec_id in (CODEC_H264, CODEC_H265):
             self._video_codec = header.codec_id
             complete_keyframe = False
             complete_video = False
+            nal_units = []
             for nal in self._assembler.feed(body):
                 if not nal:
                     continue
+                nal_units.append(nal)
                 if header.codec_id == CODEC_H264:
                     nal_type = h264_nal_type(nal)
                     complete_video = 1 <= nal_type <= 5 or complete_video
@@ -526,6 +539,14 @@ class MediaProbe:
                     if self._clock is not None
                     else float(ts)
                 )
+                emitted.append(
+                    NormalizedVideoFrame(
+                        data=assemble_annex_b(nal_units),
+                        pts=ts,
+                        dts=ts,
+                        keyframe=complete_keyframe,
+                    )
+                )
             if (
                 self._width is None
                 and self._assembler.sps is not None
@@ -547,11 +568,21 @@ class MediaProbe:
                 self._audio = _AudioState(codec=CODEC_PCMA, sample_rate=sample_rate, channels=1)
                 if self._clock is not None:
                     self._audio_arrival_at = self._clock.now
-            else:  # CODEC_OPUS
+            else:
                 self._audio = _AudioState(codec=CODEC_OPUS, sample_rate=48000, channels=2)
                 if self._clock is not None:
                     self._audio_arrival_at = self._clock.now
+            if self._audio is not None:
+                emitted.append(
+                    NormalizedAudioFrame(
+                        data=body,
+                        pts=self._normalizer.normalize(header.timestamp),
+                        sample_rate=self._audio.sample_rate,
+                        channels=self._audio.channels,
+                    )
+                )
             self._maybe_publish_contract()
+        return emitted
 
     # ---- Internals -----------------------------------------------------
 

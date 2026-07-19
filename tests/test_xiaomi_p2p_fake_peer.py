@@ -226,7 +226,7 @@ async def test_udp_sequence_gap_reconnects_without_scanning_buffered_media():
     session.acquire_lease()
     reconnect_peers = []
 
-    async def bootstrap_factory():
+    async def bootstrap_factory(_deadline):
         bootstrap = make_bootstrap(host="192.168.1.20")
         reconnect_peer = FakeCs2Peer(clock)
         reconnect_peer.queue_udp_ready((bootstrap.host, 41000))

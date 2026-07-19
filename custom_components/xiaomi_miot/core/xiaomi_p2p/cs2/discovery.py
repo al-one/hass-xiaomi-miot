@@ -8,6 +8,8 @@ either the UDP or TCP transport; no second discovery is attempted.
 from __future__ import annotations
 
 import asyncio
+import inspect
+import socket
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Literal, Optional, Protocol
 
@@ -47,7 +49,45 @@ class _TcpLike(Protocol):
 
 
 BindSocketFn = Callable[[int], _SocketLike]
-OpenTcpFn = Callable[[tuple[str, int]], tuple[object, object]]
+OpenTcpFn = Callable[
+    [tuple[str, int]],
+    tuple[object, object] | Awaitable[tuple[object, object]],
+]
+
+
+class AsyncioDatagramSocket:
+    def __init__(self, port: int) -> None:
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._socket.setblocking(False)
+        self._socket.bind(("0.0.0.0", port))
+
+    def getsockname(self) -> tuple[str, int]:
+        return self._socket.getsockname()
+
+    async def sendto(self, data: bytes, addr: tuple[str, int]) -> None:
+        await asyncio.get_running_loop().sock_sendto(self._socket, data, addr)
+
+    async def recvfrom(self) -> tuple[bytes, tuple[str, int]]:
+        return await asyncio.get_running_loop().sock_recvfrom(self._socket, 65535)
+
+    def connect(self, addr: tuple[str, int]) -> None:
+        self._socket.connect(addr)
+
+    def close(self) -> None:
+        self._socket.close()
+
+
+def create_default_connector(clock) -> DefaultCs2Connector:
+    async def open_tcp(addr: tuple[str, int]):
+        return await asyncio.open_connection(*addr)
+
+    return DefaultCs2Connector(
+        clock=clock,
+        bind_socket=AsyncioDatagramSocket,
+        open_tcp=open_tcp,
+        retransmit_after=asyncio.sleep,
+        gap_after=asyncio.sleep,
+    )
 
 
 @dataclass(frozen=True)
@@ -187,7 +227,11 @@ class DefaultCs2Connector:
 
         # TCP-ready path
         sock.close()
-        reader, writer = self._open_tcp((bootstrap.host, candidate_port))
+        tcp_result = self._open_tcp((bootstrap.host, candidate_port))
+        if inspect.isawaitable(tcp_result):
+            reader, writer = await tcp_result
+        else:
+            reader, writer = tcp_result
         # The TCP transport lives in `cs2/tcp.py` and is constructed by
         # importing it lazily so this module stays independent of asyncio
         # StreamReader/StreamWriter during unit tests.
