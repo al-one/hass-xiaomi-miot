@@ -812,6 +812,8 @@ For `isa.camera.hlc7` primary and `chuangmi.camera.039c01` primary, H.265 is req
 
 The current Draft status means these hardware results have not been executed. The document cannot move to release-ready status while a profile/lens gate remains pending. Universal H.265 playback is not required, but at least one recorded Home Assistant frontend path must play each H.265 profile/lens, and every failed path must retain its recorded limitation.
 
+**Verification log:** Automated pytest suites (sanitized protocol fixtures, fake-peer, FFmpeg bridge, MISS session, server, manager, device, camera, config-entry reload, and sanitized diagnostics) passed on 2026-07-19 with 299 tests in this worktree; CI hassfest, HACS, and Home Assistant stable/dev/`2023.7.0` checks were not run from this environment and must be verified in GitHub Actions before release. Hardware acceptance cells remain `Not run` and gate status remains `Pending — needs one pass` because no physical cameras were available during automated verification.
+
 ## Primary Risks
 
 1. Xiaomi firmware differences in CS2 commands, quality identifiers, and packet formats.
