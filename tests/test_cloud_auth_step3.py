@@ -1,11 +1,11 @@
-"""Tests for _login_step3 — narrow micoapi STS-401 to MiCloudStsUnauthorized."""
+"""Tests for _login_step3 — narrow micoapi STS-401 to MiCloudStsUnauthorized and missing serviceToken to MiCloudAuthenticationError."""
 from types import SimpleNamespace
 
 import pytest
 
 from custom_components.xiaomi_miot import init_integration_data
 from custom_components.xiaomi_miot.core.xiaomi_cloud import (
-    MiCloudException,
+    MiCloudAuthenticationError,
     MiCloudStsUnauthorized,
     MiotCloud,
 )
@@ -42,27 +42,40 @@ async def test_step3_micoapi_sts_401_raises_sts_unauthorized(hass):
         )
 
 
-async def test_step3_xiaomiio_401_raises_micloud_exception(hass):
+async def test_step3_xiaomiio_401_raises_authentication_error(hass):
     init_integration_data(hass)
     c = _cloud(hass)
     c.sid = "xiaomiio"
     resp = _CapturingTextResp(401, text="")
     c.account_get = lambda *a, **k: resp
-    with pytest.raises(MiCloudException):
+    with pytest.raises(MiCloudAuthenticationError):
         await hass.async_add_executor_job(
             c._login_step3, "https://account.xiaomi.com/oauth"
         )
 
 
-async def test_step3_micoapi_non_sts_401_raises_micloud_exception(hass):
+async def test_step3_micoapi_non_sts_401_raises_authentication_error(hass):
     init_integration_data(hass)
     c = _cloud(hass)
     c.sid = "micoapi"
     resp = _CapturingTextResp(401, text="")
     c.account_get = lambda *a, **k: resp
-    with pytest.raises(MiCloudException):
+    with pytest.raises(MiCloudAuthenticationError):
         await hass.async_add_executor_job(
             c._login_step3, "https://account.xiaomi.com/oauth2/token"
+        )
+
+
+async def test_step3_html_login_page_raises_authentication_error(hass):
+    """Xiaomi /fe/service/login returns HTML for invalidated sessions; step3 must reject as auth failure, not a bare MiCloudException."""
+    init_integration_data(hass)
+    c = _cloud(hass)
+    c.sid = "xiaomiio"
+    resp = _CapturingTextResp(200, text="<!doctype html><html>...</html>")
+    c.account_get = lambda *a, **k: resp
+    with pytest.raises(MiCloudAuthenticationError):
+        await hass.async_add_executor_job(
+            c._login_step3, "https://account.xiaomi.com/fe/service/login"
         )
 
 

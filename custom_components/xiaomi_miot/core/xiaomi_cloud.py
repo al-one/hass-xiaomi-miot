@@ -603,7 +603,7 @@ class MiotCloud(micloud.MiCloud):
                 raise
             location = resp.get('location', '')
             if not location:
-                raise MiCloudException('Xiaomi verify did not return location')
+                raise MiCloudAuthenticationError('Xiaomi verify did not return location')
             self.account_get(location, allow_redirects=True)
             auth = self._login_step1()
             location = auth.get('location', '')
@@ -759,7 +759,7 @@ class MiotCloud(micloud.MiCloud):
         )
         if is_sts:
             raise MiCloudStsUnauthorized('Xiaomi STS rejected completed login')
-        raise MiCloudException('Xiaomi login step3 failed')
+        raise MiCloudAuthenticationError('Xiaomi login step3 missing service token')
 
     def _get_captcha(self, url):
         response = self.session.get(url)
