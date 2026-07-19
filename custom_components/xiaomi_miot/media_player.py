@@ -358,7 +358,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
             return
         entry_id = (self._config or {}).get('entry_id')
         owner = (entry_id and self.hass.data.get(DOMAIN, {}).get(entry_id)) or None
-        if owner is None:
+        if owner is None or not hasattr(owner, 'async_get_cloud'):
             return
         try:
             self.xiaoai_cloud = await owner.async_get_cloud(CloudSid.MICOAPI)

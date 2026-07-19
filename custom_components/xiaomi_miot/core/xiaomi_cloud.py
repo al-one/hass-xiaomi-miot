@@ -647,6 +647,8 @@ class MiotCloud(micloud.MiCloud):
         return auth
 
     def _login_step2(self, captcha=None, **kwargs):
+        if not self.password:
+            raise MiCloudAuthenticationError('Xiaomi login password missing')
         url = '/pass/serviceLoginAuth2'
         post = {
             'user': self.username,
