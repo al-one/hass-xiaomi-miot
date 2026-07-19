@@ -279,11 +279,111 @@ class CameraEntity(XEntity, BaseCameraEntity):
     _attr_camera_image = None
     _attr_stream_source = None
     _last_motion_time = None
+    _p2p_eligible = False
+    _p2p_route: object = None
 
     def on_init(self):
         BaseCameraEntity.__init__(self, self.hass)
         self._attr_brand = self.device_info.get('manufacturer')
         self._attr_model = self.device_info.get('model')
+        self._init_native_p2p()
+
+    def _init_native_p2p(self) -> None:
+        """Activate the native MISS+CS2 path for eligible devices.
+
+        A converter-backed camera entity is eligible when its ``Device``
+        resolved ``p2p_enabled`` during async init. The branch is
+        deliberately narrow: it sets the STREAM feature, registers a
+        stable loopback route on the entry-owned media server, and
+        records the URL for the entity-lifetime ``stream_source()``
+        contract. It does not call any cloud, session, or socket APIs.
+        """
+        device = getattr(self, "device", None)
+        if device is None or not getattr(device, "p2p_enabled", False):
+            self._p2p_eligible = False
+            return
+        self._p2p_eligible = True
+        try:
+            self._supported_features = self._supported_features | CameraEntityFeature.STREAM
+        except TypeError:
+            self._supported_features = CameraEntityFeature.STREAM
+        entry = getattr(device, "entry", None)
+        server = getattr(entry, "p2p_server", None)
+        if server is None:
+            return
+        try:
+            route = server.add_route(self._handle_p2p_request)
+        except Exception:  # noqa: BLE001 - server not started yet
+            return
+        self._p2p_route = route
+
+    async def _handle_p2p_request(self, request):
+        """Acquire a manager lease and return a bridge for the route.
+
+        Validation of the route token and 503 throttling happens inside
+        the loopback server's ``_handle_get``; by the time we get here
+        the request is authorized. Lease acquisition is performed on
+        demand so the entry's idle timer can release unused resources.
+        """
+        device = self.device
+        entry = getattr(device, "entry", None)
+        manager = await entry.async_ensure_p2p() if entry is not None else None
+        if manager is None:
+            raise RuntimeError("p2p_manager_unavailable")
+        # The manager returns a SessionLease; a future bridge layer will
+        # consume the lease to drive FFmpeg. The handler returns the
+        # lease object so the server's ``_run_bridge`` path can attach it.
+        from datetime import timedelta
+
+        deadline = asyncio.get_event_loop().time() + 24.0
+        key = self._p2p_lease_key()
+        lease = await manager.acquire(key, deadline)
+        entry._p2p_bridge_close_tasks.add(
+            asyncio.create_task(self._track_p2p_bridge(lease, key))
+        )
+        return lease
+
+    def _p2p_lease_key(self):
+        from .core.xiaomi_p2p.manager import LeaseKey
+
+        device = self.device
+        entry = device.entry
+        cloud = getattr(entry, "cloud", None)
+        region = (
+            str(getattr(cloud, "default_server", "")).lower()
+            if cloud is not None
+            else ""
+        )
+        profile = getattr(device, "p2p_profile", None)
+        return LeaseKey(
+            entry_id=entry.id,
+            region=region,
+            did=device.info.did,
+            lens=getattr(device, "p2p_lens", "primary"),
+            raw_quality=getattr(profile, "raw_quality", 0),
+            transport=getattr(profile, "transport", "auto"),
+            request_audio=getattr(profile, "request_audio", True),
+        )
+
+    async def _track_p2p_bridge(self, lease, key) -> None:
+        try:
+            await lease
+        except BaseException:
+            pass
+
+    async def async_will_remove_from_hass(self) -> None:
+        # Remove the route mapping without touching sibling routes or
+        # active sessions; the entry's unload path owns the manager.
+        route = getattr(self, "_p2p_route", None)
+        if route is not None:
+            server = getattr(self.device.entry, "p2p_server", None)
+            if server is not None:
+                try:
+                    server.remove_route(route.route_id)
+                except Exception:  # noqa: BLE001
+                    pass
+            self._p2p_route = None
+        await super().async_will_remove_from_hass()
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -294,6 +394,10 @@ class CameraEntity(XEntity, BaseCameraEntity):
         return {}
 
     def set_state(self, data: dict):
+        if self._p2p_eligible:
+            # Eligible cameras ignore cloud event attributes; the
+            # route-only stream is the only source of media.
+            return
         if 'motion_video_latest' in self.device.props:
             self._attr_available = True
             self._attr_should_poll = False
@@ -303,26 +407,30 @@ class CameraEntity(XEntity, BaseCameraEntity):
         return self._attr_camera_image
 
     async def stream_source(self):
+        if self._p2p_eligible:
+            route = getattr(self, "_p2p_route", None)
+            if route is not None:
+                return route.url
+            return self._attr_stream_source
         return self._attr_stream_source
 
-    def update_motion_video(self, data: dict):
-        tim = data.get('motion_video_time')
-        if self._last_motion_time == tim:
+    async def async_refresh_providers(self, *, write_state: bool = True) -> None:
+        """Suppress provider selection for eligible P2P cameras.
+
+        MISS streams are served over the loopback MPEG-TS route, not
+        through any registered WebRTC provider. The base implementation
+        would otherwise call ``_async_get_supported_webrtc_provider``,
+        which leaks non-P2P assumptions about provider selection.
+        """
+        if self._p2p_eligible:
             return
-        self._last_motion_time = tim
-        self._attr_extra_state_attributes.update({
-            'motion_video_time': tim,
-            'motion_video_type': data.get('motion_video_type'),
-        })
-        if adt := data.get('motion_video_latest'):
-            if fid := adt.get('fileId'):
-                self._attr_camera_image = self.get_alarm_image_address(fid, adt.get('imgStoreId'), True)
-                self._attr_stream_source = self.get_alarm_m3u8_url(fid, adt.get('isAlarm'))
-                self._attr_extra_state_attributes.update({
-                    'stream_address': self._attr_stream_source,
-                })
+        await super().async_refresh_providers(write_state=write_state)
 
     async def async_update(self):
+        if self._p2p_eligible:
+            # The route is the only media source; no cloud alarm
+            # refresh is required.
+            return
         adt = None
         stm = int(time.time() - 86400 * 7) * 1000
         if not self.device.cloud:
