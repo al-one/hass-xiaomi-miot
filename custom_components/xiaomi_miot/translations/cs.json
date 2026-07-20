@@ -86,7 +86,7 @@
             "tzinfo_error": "Viz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi",
             "need_verify": "Je vyžadován ověřovací kód.",
-            "invalid_auth": "Xiaomi odmítlo přihlašovací údaje.",
+            "invalid_auth": "Xiaomi odmítlo přihlašovací údaje.\n{tip}",
             "need_captcha": "Je vyžadován kód captcha.",
             "save_failed": "Nepodařilo se uložit obnovené přihlašovací údaje. Zkuste to znovu.",
             "unknown": "Neočekávaná chyba."

@@ -86,7 +86,7 @@
             "tzinfo_error": "Voir : https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Aucun appareil dans le compte Xiaomi Cloud",
             "need_verify": "Un code de vérification est requis.",
-            "invalid_auth": "Xiaomi a rejeté les identifiants.",
+            "invalid_auth": "Xiaomi a rejeté les identifiants.\n{tip}",
             "need_captcha": "Un captcha est requis.",
             "save_failed": "Impossible d'enregistrer les identifiants actualisés. Veuillez réessayer.",
             "unknown": "Erreur inattendue."

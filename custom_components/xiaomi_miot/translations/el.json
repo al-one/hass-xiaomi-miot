@@ -86,7 +86,7 @@
             "tzinfo_error": "Βλ.: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Καμία συσκευή στον λογαριασμό cloud xiaomi",
             "need_verify": "Απαιτείται κωδικός επαλήθευσης.",
-            "invalid_auth": "Η Xiaomi απέρριψε τα διαπιστευτήρια.",
+            "invalid_auth": "Η Xiaomi απέρριψε τα διαπιστευτήρια.\n{tip}",
             "need_captcha": "Απαιτείται captcha.",
             "save_failed": "Η αποθήκευση των ανανεωμένων διαπιστευτηρίων απέτυχε. Δοκιμάστε ξανά.",
             "unknown": "Μη αναμενόμενο σφάλμα."

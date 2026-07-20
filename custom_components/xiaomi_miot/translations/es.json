@@ -86,7 +86,7 @@
             "tzinfo_error": "Parece que hay un problema con tu entorno de Hass. Por favor, consulta: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "No se encontraron dispositivos bajo esta cuenta de Xiaomi",
             "need_verify": "Se requiere un código de verificación.",
-            "invalid_auth": "Xiaomi ha rechazado las credenciales.",
+            "invalid_auth": "Xiaomi ha rechazado las credenciales.\n{tip}",
             "need_captcha": "Se requiere un captcha.",
             "save_failed": "No se pudieron guardar las credenciales actualizadas. Inténtalo de nuevo.",
             "unknown": "Error inesperado."

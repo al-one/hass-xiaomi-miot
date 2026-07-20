@@ -86,7 +86,7 @@
             "tzinfo_error": "Weitere Informationen: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Keine Geräte im Xiaomi Cloud-Konto",
             "need_verify": "Ein Bestätigungscode ist erforderlich.",
-            "invalid_auth": "Xiaomi hat die Anmeldedaten abgelehnt.",
+            "invalid_auth": "Xiaomi hat die Anmeldedaten abgelehnt.\n{tip}",
             "need_captcha": "Ein Captcha ist erforderlich.",
             "save_failed": "Die aktualisierten Anmeldedaten konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
             "unknown": "Unerwarteter Fehler."

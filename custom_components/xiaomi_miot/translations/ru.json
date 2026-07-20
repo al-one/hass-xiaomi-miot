@@ -85,7 +85,7 @@
             "tzinfo_error": "Перейдите по ссылке: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Не найдено устройств в облаке Сяоми",
             "need_verify": "Требуется код подтверждения.",
-            "invalid_auth": "Xiaomi отклонила учётные данные.",
+            "invalid_auth": "Xiaomi отклонила учётные данные.\n{tip}",
             "need_captcha": "Требуется капча.",
             "save_failed": "Не удалось сохранить обновлённые учётные данные. Повторите попытку.",
             "unknown": "Непредвиденная ошибка."

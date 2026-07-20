@@ -95,7 +95,7 @@
             "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
             "need_verify": "Doğrulama kodu gereklidir.",
-            "invalid_auth": "Xiaomi kimlik bilgilerini reddetti.",
+            "invalid_auth": "Xiaomi kimlik bilgilerini reddetti.\n{tip}",
             "need_captcha": "Captcha gereklidir.",
             "save_failed": "Yenilenen kimlik bilgileri kaydedilemedi. Lütfen tekrar deneyin.",
             "unknown": "Beklenmeyen hata."

@@ -90,7 +90,7 @@
             "tzinfo_error": "您的 Hass 環境看起來有點問題，請參考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "該小米帳號下沒有裝置",
             "need_verify": "需要驗證碼",
-            "invalid_auth": "登入憑證已失效",
+            "invalid_auth": "登入失敗\n{tip}",
             "need_captcha": "需要圖形驗證碼",
             "save_failed": "儲存憑證失敗，請重試",
             "unknown": "未知錯誤"

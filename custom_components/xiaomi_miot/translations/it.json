@@ -86,7 +86,7 @@
             "tzinfo_error": "Guardare: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Nessun dispositivo nell'account xiaomi cloud",
             "need_verify": "È richiesto un codice di verifica.",
-            "invalid_auth": "Xiaomi ha rifiutato le credenziali.",
+            "invalid_auth": "Xiaomi ha rifiutato le credenziali.\n{tip}",
             "need_captcha": "È richiesto il captcha.",
             "save_failed": "Impossibile salvare le credenziali aggiornate. Riprova.",
             "unknown": "Errore imprevisto."

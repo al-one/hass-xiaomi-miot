@@ -95,7 +95,7 @@
             "tzinfo_error": "Có vẻ môi trường Hass của bạn gặp vấn đề. Xem: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Không tìm thấy thiết bị nào trong tài khoản Xiaomi này",
             "need_verify": "Cần có mã xác minh.",
-            "invalid_auth": "Xiaomi đã từ chối thông tin xác thực.",
+            "invalid_auth": "Xiaomi đã từ chối thông tin xác thực.\n{tip}",
             "need_captcha": "Cần có mã captcha.",
             "save_failed": "Không thể lưu thông tin xác thực đã làm mới. Vui lòng thử lại.",
             "unknown": "Lỗi không mong muốn."

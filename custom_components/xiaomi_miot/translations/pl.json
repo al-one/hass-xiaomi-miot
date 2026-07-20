@@ -86,7 +86,7 @@
             "tzinfo_error": "Zobacz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Brak urządzeń na koncie w chmurze Xiaomi",
             "need_verify": "Kod weryfikacyjny jest wymagany.",
-            "invalid_auth": "Xiaomi odrzuciło dane uwierzytelniające.",
+            "invalid_auth": "Xiaomi odrzuciło dane uwierzytelniające.\n{tip}",
             "need_captcha": "Captcha jest wymagana.",
             "save_failed": "Nie udało się zapisać odświeżonych danych uwierzytelniających. Spróbuj ponownie.",
             "unknown": "Nieoczekiwany błąd."

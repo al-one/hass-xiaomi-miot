@@ -517,7 +517,7 @@ async def test_persist_store_failure_returns_save_failed(flow_cls):
     config_entries.async_schedule_reload.assert_not_called()
 
 
-async def test_reauth_password_form_exposes_only_name(flow_cls):
+async def test_reauth_password_form_exposes_only_tip(flow_cls):
     flow = flow_cls()
     flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
     flow.context = {"entry_id": "eid"}
@@ -525,10 +525,10 @@ async def test_reauth_password_form_exposes_only_name(flow_cls):
 
     out = await flow.async_step_reauth_password()
 
-    assert set(out["description_placeholders"]) == {"name"}
+    assert set(out["description_placeholders"]) == {"tip"}
 
 
-async def test_reauth_verify_form_exposes_only_name_and_url(flow_cls):
+async def test_reauth_verify_form_exposes_only_tip_and_url(flow_cls):
     flow = flow_cls()
     flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
     flow.context = {"entry_id": "eid"}
@@ -539,10 +539,10 @@ async def test_reauth_verify_form_exposes_only_name_and_url(flow_cls):
 
     out = await flow.async_step_reauth_verify()
 
-    assert set(out["description_placeholders"]) == {"name", "verify_url"}
+    assert set(out["description_placeholders"]) == {"tip", "verify_url"}
 
 
-async def test_reauth_captcha_form_exposes_only_name_and_image(flow_cls):
+async def test_reauth_captcha_form_exposes_only_tip_and_image(flow_cls):
     flow = flow_cls()
     flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
     flow.context = {"entry_id": "eid"}
@@ -551,4 +551,4 @@ async def test_reauth_captcha_form_exposes_only_name_and_image(flow_cls):
 
     out = await flow.async_step_reauth_captcha()
 
-    assert set(out["description_placeholders"]) == {"name", "captcha_image"}
+    assert set(out["description_placeholders"]) == {"tip", "captcha_image"}

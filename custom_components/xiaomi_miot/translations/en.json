@@ -156,7 +156,7 @@
             "tzinfo_error": "There seems to be an issue with your Hass environment. Check your time zone configuration",
             "none_devices": "No devices found under this Xiaomi account",
             "need_verify": "Verification code is required.",
-            "invalid_auth": "Xiaomi rejected the credentials.",
+            "invalid_auth": "Xiaomi rejected the credentials.\n{tip}",
             "need_captcha": "Captcha is required.",
             "save_failed": "Failed to save refreshed credentials. Please retry.",
             "unknown": "Unexpected error."

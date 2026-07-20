@@ -95,7 +95,7 @@
             "tzinfo_error": "Схоже, виникла проблема з вашим середовищем Hass. Дивіться: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Не знайдено пристроїв у цьому обліковому записі Xiaomi",
             "need_verify": "Потрібен код підтвердження.",
-            "invalid_auth": "Xiaomi відхилила облікові дані.",
+            "invalid_auth": "Xiaomi відхилила облікові дані.\n{tip}",
             "need_captcha": "Потрібна капча.",
             "save_failed": "Не вдалося зберегти оновлені облікові дані. Спробуйте ще раз.",
             "unknown": "Неочікувана помилка."

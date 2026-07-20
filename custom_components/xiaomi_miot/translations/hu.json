@@ -86,7 +86,7 @@
             "tzinfo_error": "Probléma van a Hass környezetével. Kérjük, olvassa el a következő leírást: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt",
             "need_verify": "Ellenőrző kód szükséges.",
-            "invalid_auth": "A Xiaomi elutasította a hitelesítő adatokat.",
+            "invalid_auth": "A Xiaomi elutasította a hitelesítő adatokat.\n{tip}",
             "need_captcha": "Captcha szükséges.",
             "save_failed": "A frissített hitelesítő adatok mentése sikertelen. Kérjük, próbálja újra.",
             "unknown": "Váratlan hiba."
