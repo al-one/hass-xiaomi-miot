@@ -68,14 +68,17 @@
             },
             "reauth_password": {
                 "title": "重新授权 - 输入密码",
-                "description": "当前登录状态已经失效，需要重新登录来刷新凭证。",
+                "description": "当前登录状态已经失效，需要重新登录来更新凭证。",
                 "data": {
                     "password": "登录密码"
+                },
+                "data_description": {
+                    "password": "留空则表示使用已保存的密码"
                 }
             },
             "reauth_verify": {
-                "title": "重新授权 - 输入密码",
-                "description": "点击打开[这个链接]({verify_url})，发送验证码，并回到这个页面输入验证码继续。",
+                "title": "重新授权 - 输入验证码",
+                "description": "点击打开[这个链接]({verify_url})，并发送验证码，并回到此页面输入验证码继续。",
                 "data": {
                     "verify_ticket": "验证码"
                 }
@@ -95,9 +98,9 @@
             "tzinfo_error": "你的 Hass 环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备",
             "need_verify": "需要验证码",
-            "invalid_auth": "登录凭证失效",
+            "invalid_auth": "登录失败\n{tip}",
             "need_captcha": "需要图形验证码",
-            "save_failed": "保存凭证失败，请重试",
+            "save_failed": "保存失败，请重试",
             "unknown": "未知错误"
         },
         "abort": {

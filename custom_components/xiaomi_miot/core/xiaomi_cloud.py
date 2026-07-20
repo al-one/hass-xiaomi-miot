@@ -715,18 +715,15 @@ class MiotCloud(micloud.MiCloud):
             self.attrs['login_data'] = kwargs
             raise MiCloudException('Xiaomi login requires captcha')
 
+        self._clear_captcha_attrs()
         if code in (20003, 70002):
-            self._clear_captcha_attrs()
             raise MiCloudAuthenticationError('Xiaomi rejected credentials')
         if code == 70016:
-            self._clear_captcha_attrs()
-            raise MiCloudAuthenticationError('Xiaomi rejected credentials')
+            raise MiCloudAuthenticationError('Xiaomi rejected credentials, please check your password')
         if code == 81003:
-            self._clear_captcha_attrs()
             raise MiCloudNeedVerify('need_verify').with_url(
                 self.attrs.get('verify_url', '')
             )
-        self._clear_captcha_attrs()
         raise MiCloudException('Xiaomi login step2 failed')
 
     def _clear_captcha_attrs(self):

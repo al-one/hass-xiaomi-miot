@@ -430,11 +430,11 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         )
 
     def _make_candidate(
-            self,
-            username: str,
-            password: str,
-            country: str | None,
-            sid: CloudSid,
+        self,
+        username: str,
+        password: str,
+        country: str | None,
+        sid: CloudSid,
     ) -> MiotCloud:
         return MiotCloud(
             self.hass,
@@ -446,16 +446,14 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         )
 
     def _show_reauth_form(self, step_id, schema, errors=None, placeholders=None):
-        fixed_name = {
-            'name': self.hass.data.get(DOMAIN, {}).get('cloud_label', 'Xiaomi cloud'),
-        }
-        if placeholders:
-            fixed_name.update(placeholders)
         return self.async_show_form(
             step_id=step_id,
             data_schema=schema,
             errors=errors or {},
-            description_placeholders=fixed_name,
+            description_placeholders={
+                **self.pop_placeholders(),
+                **(placeholders or {}),
+            },
         )
 
     async def async_step_reauth(self, entry_data=None):
@@ -474,12 +472,16 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
 
     async def async_step_reauth_password(self, user_input=None):
         errors = {}
-        schema = vol.Schema({vol.Required(CONF_PASSWORD): str})
+        schema = vol.Schema({vol.Optional(CONF_PASSWORD): str})
         if user_input is None:
             return self._show_reauth_form('reauth_password', schema)
-        password = (user_input.get(CONF_PASSWORD) or '').strip()
+        password = user_input.get(CONF_PASSWORD) or ''
+        if not password:
+            entry = self._get_reauth_entry()
+            password = entry.data.get(CONF_PASSWORD, '')
         if not password:
             errors['base'] = 'invalid_auth'
+            self.placeholders['tip'] = 'Please enter your password'
             return self._show_reauth_form(
                 'reauth_password',
                 schema,
@@ -504,8 +506,9 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             )
         except MiCloudNeedVerify:
             return await self.async_step_reauth_verify()
-        except MiCloudAuthenticationError:
+        except MiCloudAuthenticationError as err:
             errors['base'] = 'invalid_auth'
+            self.placeholders['tip'] = str(err)
             return self._show_reauth_form(
                 'reauth_password',
                 schema,
