@@ -136,7 +136,7 @@
             },
             "reauth_verify": {
                 "title": "Xiaomi reauth — enter verification code",
-                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "description": "Open [this link]({verify_url}) in your browser, request a code, then paste the verification ticket here.",
                 "data": {
                     "verify_ticket": "Verification ticket"
                 }

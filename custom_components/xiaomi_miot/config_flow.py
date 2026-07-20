@@ -294,26 +294,147 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
     def async_get_options_flow(entry: config_entries.ConfigEntry):
         return OptionsFlowHandler(entry)
 
-    @callback
-    def async_remove(self) -> None:
-        candidate = getattr(self, '_candidate', None)
-        if candidate is not None:
-            candidate.attrs.pop('login_data', None)
-            candidate.attrs.pop('verify_url', None)
-            candidate.attrs.pop('identity_session', None)
-            candidate.attrs.pop('captcha_url', None)
-            candidate.attrs.pop('captchaImg', None)
-            candidate.attrs.pop('captchaIck', None)
-            candidate.password = None
-            self._candidate = None
-        super().async_remove()
+    async def async_step_user(self, user_input=None):
+        self.context['last_step'] = False
+        init_integration_data(self.hass)
+        errors = {}
+        if user_input is None:
+            user_input = {}
+        else:
+            action = user_input.get('action')
+            if action in ['account', 'cloud']:
+                return await self.async_step_cloud()
+            elif action in ['customizing_entity', 'customizing_device']:
+                self.context['customizing_via'] = action
+                return await self.async_step_customizing()
+            else:
+                return await self.async_step_token()
+        prev_action = user_input.get('action', 'account')
+        if prev_action == 'cloud':
+            prev_action = 'account'
+        actions = {
+            'account': 'Add devices using Mi Account (账号集成)',
+            'token': 'Add device using host/token (局域网集成)',
+        }
+        if self.hass.data[DOMAIN].get('entities', {}):
+            actions.update({
+                'customizing_device': 'Customizing device (自定义设备) <推荐>',
+                'customizing_entity': 'Customizing entity (自定义实体)',
+            })
+        return self.async_show_form(
+            step_id='user',
+            data_schema=vol.Schema({
+                vol.Required('action', default=prev_action): vol.In(actions),
+            }),
+            errors=errors,
+            last_step=self.context.get('last_step'),
+        )
+
+    async def async_step_token(self, user_input=None):
+        errors = {}
+        if user_input is None:
+            user_input = {}
+        else:
+            await check_miio_device(self.hass, user_input, errors)
+            if user_input.get('unique_did'):
+                await self.async_set_unique_id(user_input['unique_did'])
+                self._abort_if_unique_id_configured()
+            if user_input.get('miio_info'):
+                user_input[CONF_CONFIG_VERSION] = ENTRY_VERSION
+                return self.async_create_entry(
+                    title=user_input.get(CONF_NAME),
+                    data=user_input,
+                )
+        return self.async_show_form(
+            step_id='token',
+            data_schema=vol.Schema({
+                vol.Required(CONF_HOST, default=user_input.get(CONF_HOST, vol.UNDEFINED)): str,
+                vol.Required(CONF_TOKEN, default=user_input.get(CONF_TOKEN, vol.UNDEFINED)):
+                    vol.All(str, vol.Length(min=32, max=32)),
+                vol.Optional(CONF_NAME, default=user_input.get(CONF_NAME, DEFAULT_NAME)): str,
+                vol.Optional(CONF_SCAN_INTERVAL, default=user_input.get(CONF_SCAN_INTERVAL, DEFAULT_INTERVAL)):
+                    cv.positive_int,
+            }),
+            errors=errors,
+        )
+
+    async def async_step_cloud(self, user_input=None):
+        # pylint: disable=invalid-name
+        self.CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+        errors = {}
+        if user_input is None:
+            user_input = {}
+        else:
+            await self.check_xiaomi_account(user_input, errors, renew_devices=True)
+            if not errors:
+                user_input['filtering'] = True
+                self.config_data = user_input
+                self.filter_models = user_input.get('filter_models')
+                return await self.async_step_cloud_filter(user_input)
+        schema = {}
+        if self.context.get('need_verify'):
+            schema.update({
+                vol.Optional('verify_ticket', default=''): str,
+            })
+        if self.context.get('captchaIck'):
+            schema.update({
+                vol.Optional('captcha', default=''): str,
+            })
+        schema.update({
+            vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
+            vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
+            vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
+                vol.In(CLOUD_SERVERS),
+            vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, 'auto')):
+                vol.In(CONN_MODES),
+            vol.Optional('trans_options', default=user_input.get('trans_options', False)): bool,
+            vol.Optional('filter_models', default=user_input.get('filter_models', False)): bool,
+        })
+        return self.async_show_form(
+            step_id='cloud',
+            data_schema=vol.Schema(schema),
+            errors=errors,
+            description_placeholders=self.pop_placeholders(),
+        )
+
+    async def async_step_cloud_filter(self, user_input=None):
+        errors = {}
+        schema = vol.Schema({})
+        if user_input is None:
+            user_input = {}
+        via_did = not self.filter_models
+        home_ids = user_input.pop('home_ids', [])
+        if user_input.pop('filtering', None) or home_ids:
+            schema = await self.get_cloud_filter_schema(user_input, errors, schema, via_did=via_did, home_ids=home_ids)
+        elif user_input:
+            if not self.config_data:
+                self.config_data = {}
+            self.config_data.update({
+                **(self.cloud.to_config() or {}),
+                **user_input,
+                'filter_models': self.filter_models,
+                CONF_CONFIG_VERSION: ENTRY_VERSION,
+            })
+            _LOGGER.debug('Setup xiaomi cloud: %s', {**self.config_data, CONF_PASSWORD: '*', 'service_token': '*'})
+            return self.async_create_entry(
+                title=f"Xiaomi: {self.config_data.get('user_id')}",
+                data=self.config_data,
+            )
+        else:
+            errors['base'] = 'unknown'
+        return self.async_show_form(
+            step_id='cloud_filter',
+            data_schema=schema,
+            errors=errors,
+            description_placeholders=self.pop_placeholders(),
+        )
 
     def _make_candidate(
-        self,
-        username: str,
-        password: str,
-        country: str | None,
-        sid: CloudSid,
+            self,
+            username: str,
+            password: str,
+            country: str | None,
+            sid: CloudSid,
     ) -> MiotCloud:
         return MiotCloud(
             self.hass,
@@ -467,12 +588,12 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                     placeholders=placeholders,
                 )
             for key in (
-                'service_token',
-                'ssecurity',
-                'async_session',
-                'identity_session',
-                'verify_url',
-                'login_data',
+                    'service_token',
+                    'ssecurity',
+                    'async_session',
+                    'identity_session',
+                    'verify_url',
+                    'login_data',
             ):
                 candidate.attrs.pop(key, None)
             candidate.service_token = None
@@ -602,9 +723,9 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             if cloud is candidate:
                 continue
             if (
-                getattr(cloud, 'user_id', None) == candidate.user_id
-                and getattr(cloud, 'default_server', None) == candidate.default_server
-                and getattr(cloud, 'sid', None) == candidate.sid
+                    getattr(cloud, 'user_id', None) == candidate.user_id
+                    and getattr(cloud, 'default_server', None) == candidate.default_server
+                    and getattr(cloud, 'sid', None) == candidate.sid
             ):
                 sessions.pop(key, None)
 
@@ -644,140 +765,19 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         self._candidate = None
         return self.async_abort(reason='reauth_successful')
 
-    async def async_step_user(self, user_input=None):
-        self.context['last_step'] = False
-        init_integration_data(self.hass)
-        errors = {}
-        if user_input is None:
-            user_input = {}
-        else:
-            action = user_input.get('action')
-            if action in ['account', 'cloud']:
-                return await self.async_step_cloud()
-            elif action in ['customizing_entity', 'customizing_device']:
-                self.context['customizing_via'] = action
-                return await self.async_step_customizing()
-            else:
-                return await self.async_step_token()
-        prev_action = user_input.get('action', 'account')
-        if prev_action == 'cloud':
-            prev_action = 'account'
-        actions = {
-            'account': 'Add devices using Mi Account (账号集成)',
-            'token': 'Add device using host/token (局域网集成)',
-        }
-        if self.hass.data[DOMAIN].get('entities', {}):
-            actions.update({
-                'customizing_device': 'Customizing device (自定义设备) <推荐>',
-                'customizing_entity': 'Customizing entity (自定义实体)',
-            })
-        return self.async_show_form(
-            step_id='user',
-            data_schema=vol.Schema({
-                vol.Required('action', default=prev_action): vol.In(actions),
-            }),
-            errors=errors,
-            last_step=self.context.get('last_step'),
-        )
-
-    async def async_step_token(self, user_input=None):
-        errors = {}
-        if user_input is None:
-            user_input = {}
-        else:
-            await check_miio_device(self.hass, user_input, errors)
-            if user_input.get('unique_did'):
-                await self.async_set_unique_id(user_input['unique_did'])
-                self._abort_if_unique_id_configured()
-            if user_input.get('miio_info'):
-                user_input[CONF_CONFIG_VERSION] = ENTRY_VERSION
-                return self.async_create_entry(
-                    title=user_input.get(CONF_NAME),
-                    data=user_input,
-                )
-        return self.async_show_form(
-            step_id='token',
-            data_schema=vol.Schema({
-                vol.Required(CONF_HOST, default=user_input.get(CONF_HOST, vol.UNDEFINED)): str,
-                vol.Required(CONF_TOKEN, default=user_input.get(CONF_TOKEN, vol.UNDEFINED)):
-                    vol.All(str, vol.Length(min=32, max=32)),
-                vol.Optional(CONF_NAME, default=user_input.get(CONF_NAME, DEFAULT_NAME)): str,
-                vol.Optional(CONF_SCAN_INTERVAL, default=user_input.get(CONF_SCAN_INTERVAL, DEFAULT_INTERVAL)):
-                    cv.positive_int,
-            }),
-            errors=errors,
-        )
-
-    async def async_step_cloud(self, user_input=None):
-        # pylint: disable=invalid-name
-        self.CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
-        errors = {}
-        if user_input is None:
-            user_input = {}
-        else:
-            await self.check_xiaomi_account(user_input, errors, renew_devices=True)
-            if not errors:
-                user_input['filtering'] = True
-                self.config_data = user_input
-                self.filter_models = user_input.get('filter_models')
-                return await self.async_step_cloud_filter(user_input)
-        schema = {}
-        if self.context.get('need_verify'):
-            schema.update({
-                vol.Optional('verify_ticket', default=''): str,
-            })
-        if self.context.get('captchaIck'):
-            schema.update({
-                vol.Optional('captcha', default=''): str,
-            })
-        schema.update({
-            vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, vol.UNDEFINED)): str,
-            vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, vol.UNDEFINED)): str,
-            vol.Required(CONF_SERVER_COUNTRY, default=user_input.get(CONF_SERVER_COUNTRY, 'cn')):
-                vol.In(CLOUD_SERVERS),
-            vol.Required(CONF_CONN_MODE, default=user_input.get(CONF_CONN_MODE, 'auto')):
-                vol.In(CONN_MODES),
-            vol.Optional('trans_options', default=user_input.get('trans_options', False)): bool,
-            vol.Optional('filter_models', default=user_input.get('filter_models', False)): bool,
-        })
-        return self.async_show_form(
-            step_id='cloud',
-            data_schema=vol.Schema(schema),
-            errors=errors,
-            description_placeholders=self.pop_placeholders(),
-        )
-
-    async def async_step_cloud_filter(self, user_input=None):
-        errors = {}
-        schema = vol.Schema({})
-        if user_input is None:
-            user_input = {}
-        via_did = not self.filter_models
-        home_ids = user_input.pop('home_ids', [])
-        if user_input.pop('filtering', None) or home_ids:
-            schema = await self.get_cloud_filter_schema(user_input, errors, schema, via_did=via_did, home_ids=home_ids)
-        elif user_input:
-            if not self.config_data:
-                self.config_data = {}
-            self.config_data.update({
-                **(self.cloud.to_config() or {}),
-                **user_input,
-                'filter_models': self.filter_models,
-                CONF_CONFIG_VERSION: ENTRY_VERSION,
-            })
-            _LOGGER.debug('Setup xiaomi cloud: %s', {**self.config_data, CONF_PASSWORD: '*', 'service_token': '*'})
-            return self.async_create_entry(
-                title=f"Xiaomi: {self.config_data.get('user_id')}",
-                data=self.config_data,
-            )
-        else:
-            errors['base'] = 'unknown'
-        return self.async_show_form(
-            step_id='cloud_filter',
-            data_schema=schema,
-            errors=errors,
-            description_placeholders=self.pop_placeholders(),
-        )
+    @callback
+    def async_remove(self) -> None:
+        candidate = getattr(self, '_candidate', None)
+        if candidate is not None:
+            candidate.attrs.pop('login_data', None)
+            candidate.attrs.pop('verify_url', None)
+            candidate.attrs.pop('identity_session', None)
+            candidate.attrs.pop('captcha_url', None)
+            candidate.attrs.pop('captchaImg', None)
+            candidate.attrs.pop('captchaIck', None)
+            candidate.password = None
+            self._candidate = None
+        super().async_remove()
 
     async def async_step_customizing(self, user_input=None):
         tip = ''

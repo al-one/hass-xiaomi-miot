@@ -803,7 +803,7 @@ class MiotCloud(micloud.MiCloud):
                     data={
                         '_flag': flag,
                         'ticket': ticket,
-                        'trust': 'true',
+                        'trust': 'false',
                         '_json': 'true',
                     },
                     cookies={

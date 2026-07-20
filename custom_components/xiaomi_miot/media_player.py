@@ -356,12 +356,8 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         self.xiaoai_cloud = None
         if not self._intelligent_speaker:
             return
-        entry_id = (self._config or {}).get('entry_id')
-        owner = (entry_id and self.hass.data.get(DOMAIN, {}).get(entry_id)) or None
-        if owner is None or not hasattr(owner, 'async_get_cloud'):
-            return
         try:
-            self.xiaoai_cloud = await owner.async_get_cloud(CloudSid.MICOAPI)
+            self.xiaoai_cloud = await self.device.entry.async_get_cloud(CloudSid.MICOAPI)
         except Exception as exc:
             self.logger.warning(
                 '%s: micoapi bootstrap failed: %s',
