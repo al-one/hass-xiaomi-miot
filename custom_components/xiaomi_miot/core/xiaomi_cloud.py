@@ -591,7 +591,7 @@ class MiotCloud(micloud.MiCloud):
         self.async_session = None
 
     def _login_request(self, login_data=None):
-        self._init_session(True)
+        self._init_session(not login_data)
         location = ''
         auth = self.attrs.pop('login_data', {})
         if not login_data:
