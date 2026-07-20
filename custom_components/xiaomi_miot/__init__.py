@@ -284,8 +284,8 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
     }
     try:
         cloud = await hass_entry.async_get_cloud(CloudSid.XIAOMIIO)
-    except (MiCloudVerificationError, MiCloudStsUnauthorized):
-        return False
+    except (MiCloudVerificationError, MiCloudStsUnauthorized) as exc:
+        raise ConfigEntryAuthFailed('Xiaomi authentication failed for this account') from exc
     except Exception as exc:
         _LOGGER.error('Setup xiaomi cloud for entry: %s failed: %s', entry_id, exc)
         return False

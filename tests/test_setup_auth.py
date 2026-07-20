@@ -17,6 +17,8 @@ from custom_components.xiaomi_miot.core.hass_entry import HassEntry
 from custom_components.xiaomi_miot.core.xiaomi_cloud import (
     CloudSid,
     MiCloudAuthenticationError,
+    MiCloudStsUnauthorized,
+    MiCloudVerificationError,
     MiotCloud,
 )
 
@@ -97,6 +99,23 @@ async def test_setup_xiaomi_get_cloud_exception_returns_false(hass):
          patch.object(hass.config_entries, "async_forward_entry_setups", AsyncMock()):
         result = await async_setup_entry(hass, _entry(hass))
     assert result is True
+
+
+@pytest.mark.parametrize(
+    "exc_cls",
+    [MiCloudVerificationError, MiCloudStsUnauthorized],
+)
+async def test_setup_xiaomi_get_cloud_typed_auth_error_raises_config_entry_auth(hass, exc_cls):
+    init_integration_data(hass)
+    fake_cloud = MiotCloud.__new__(MiotCloud)
+    fake_cloud.sid = "xiaomiio"
+    fake_cloud.async_check_auth = AsyncMock(return_value=True)
+    fake_entry_obj = _make_entry_obj(fake_cloud)
+    fake_entry_obj.async_get_cloud = AsyncMock(side_effect=exc_cls("x"))
+    with patch("custom_components.xiaomi_miot.HassEntry.init", return_value=fake_entry_obj), \
+         patch("custom_components.xiaomi_miot.async_setup_customizes", AsyncMock()):
+        with pytest.raises(ConfigEntryAuthFailed):
+            await async_setup_entry(hass, _entry(hass))
 
 
 async def test_setup_xiaomi_cloud_none_returns_false(hass):
