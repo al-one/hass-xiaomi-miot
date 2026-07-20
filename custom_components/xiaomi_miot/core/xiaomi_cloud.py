@@ -11,6 +11,7 @@ import locale
 import hashlib
 import micloud
 import requests
+from copy import copy
 from datetime import datetime
 from functools import partial
 from typing import Optional
@@ -875,7 +876,9 @@ class MiotCloud(micloud.MiCloud):
         )
         mic.user_id = str(config.get('user_id') or '')
         if a := hass.data[DOMAIN].get('sessions', {}).get(mic.unique_id):
-            mic = a
+            mic = copy(a)
+            if hass_entry is not None:
+                mic.hass_entry = hass_entry
             mic.merger_config(config)
         if not mic.service_token:
             sdt = await mic.async_stored_auth(save=False)
