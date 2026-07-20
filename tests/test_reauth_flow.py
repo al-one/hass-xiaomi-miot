@@ -427,6 +427,60 @@ async def test_persist_xiaomiio_updates_entry_invalidates_and_reloads(flow_cls):
     assert flow._candidate is None
 
 
+async def test_persist_unchanged_with_listeners_skips_reload(flow_cls):
+    """When new credentials equal stored credentials and listeners exist,
+    async_update_entry must not be called and async_schedule_reload must be skipped
+    (listeners are already wired up)."""
+    config_entries = SimpleNamespace(
+        async_update_entry=MagicMock(),
+        async_schedule_reload=MagicMock(),
+    )
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(
+        config_entries=config_entries,
+        data={"xiaomi_miot": {"sessions": {}, "accounts": {}}},
+    )
+    flow.context = {"entry_id": "eid"}
+    stored = {
+        "sid": "xiaomiio",
+        "username": "u",
+        "password": "SAME",
+        "server_country": "cn",
+        "user_id": "u",
+        "service_token": "SAME",
+        "ssecurity": "SAME",
+        "device_id": "same",
+    }
+    entry = SimpleNamespace(
+        data=stored,
+        entry_id="eid",
+        update_listeners=[lambda hass, ent: None],
+    )
+    flow._reauth = SimpleNamespace(sid=CloudSid.XIAOMIIO, entry=entry)
+    flow.async_abort = MagicMock(return_value={"reason": "reauth_successful"})
+    candidate = SimpleNamespace(
+        attrs={},
+        username="u",
+        password="SAME",
+        sid="xiaomiio",
+        default_server="cn",
+        user_id="u",
+        service_token="SAME",
+        ssecurity="SAME",
+        client_id="same",
+        async_stored_auth=AsyncMock(return_value={}),
+    )
+    flow._candidate = candidate
+
+    out = await flow._persist_and_reload(candidate)
+
+    config_entries.async_update_entry.assert_not_called()
+    config_entries.async_schedule_reload.assert_not_called()
+    candidate.async_stored_auth.assert_awaited_once_with(save=True)
+    flow.async_abort.assert_called_once_with(reason="reauth_successful")
+    assert out["reason"] == "reauth_successful"
+
+
 async def test_persist_micoapi_does_not_store_micoapi_tokens_in_entry(flow_cls):
     config_entries = SimpleNamespace(
         async_update_entry=MagicMock(),

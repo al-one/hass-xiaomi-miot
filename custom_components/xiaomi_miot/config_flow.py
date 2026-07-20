@@ -756,7 +756,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         try:
             if changed:
                 self.hass.config_entries.async_update_entry(entry, data=new_data)
-            if not changed or not getattr(entry, 'update_listeners', ()):
+            if not getattr(entry, 'update_listeners', ()):
                 self.hass.config_entries.async_schedule_reload(entry.entry_id)
         except Exception:
             return self._show_reauth_form(
