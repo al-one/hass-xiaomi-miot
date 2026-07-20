@@ -67,46 +67,46 @@
                 }
             },
             "reauth_password": {
-                "title": "Xiaomi reauth — enter account password",
-                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "title": "Xiaomi yeniden kimlik doğrulama — hesap şifresini girin",
+                "description": "Kaydedilmiş kimlik bilgilerinizi yenilemek için Xiaomi'de oturum açın. Mevcut yapılandırmanız değişmeden kalır.",
                 "data": {
-                    "password": "Password"
+                    "password": "Şifre"
                 }
             },
             "reauth_verify": {
-                "title": "Xiaomi reauth — enter verification code",
-                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "title": "Xiaomi yeniden kimlik doğrulama — doğrulama kodunu girin",
+                "description": "Tarayıcınızda [bu bağlantıyı]({verify_url}) açın, bir kod isteyin ve ardından doğrulama kodunu buraya yapıştırın.",
                 "data": {
-                    "verify_ticket": "Verification ticket"
+                    "verify_ticket": "Doğrulama kodu"
                 }
             },
             "reauth_captcha": {
-                "title": "Xiaomi reauth — enter captcha",
-                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "title": "Xiaomi yeniden kimlik doğrulama — captcha girin",
+                "description": "Görseldeki captcha karakterlerini okuyup girin.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
                 "data": {
                     "captcha": "Captcha"
                 }
             }
         },
         "error": {
-            "cannot_connect": "Cannot reach Xiaomi.",
+            "cannot_connect": "Xiaomi'ye ulaşılamıyor.",
             "cannot_login": "Xiaomi hesabına giriş yapılamadı. Lütfen hesap bilgilerinizi kontrol edin. Giriş denemeleri birden fazla kez başarısız olursa, lütfen aynı ağ ortamında Xiaomi resmi web sitesinden (mi.com) tekrar giriş yapmayı deneyin.",
             "cannot_reach": "Xiaomi API arayüzüne erişilemiyor",
             "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
-            "need_verify": "Verification code is required.",
-            "invalid_auth": "Xiaomi rejected the credentials.",
-            "need_captcha": "Captcha is required.",
-            "save_failed": "Failed to save refreshed credentials. Please retry.",
-            "unknown": "Unexpected error."
+            "need_verify": "Doğrulama kodu gereklidir.",
+            "invalid_auth": "Xiaomi kimlik bilgilerini reddetti.",
+            "need_captcha": "Captcha gereklidir.",
+            "save_failed": "Yenilenen kimlik bilgileri kaydedilemedi. Lütfen tekrar deneyin.",
+            "unknown": "Beklenmeyen hata."
         },
         "abort": {
             "config_saved": "Yapılandırma kaydedildi! [Tekrar özelleştir](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nBazı özel seçeneklerin etkili olması için [entegrasyonun yeniden yüklenmesi](/developer-tools/yaml) gerekebilir.",
             "already_configured": "Bu cihaz zaten yapılandırılmış.",
             "not_xiaomi_miio": "Bu cihaz miio/miot protokolünü desteklemiyor.",
-            "unsupported_sid": "Reauth is not supported for this account.",
-            "wrong_account": "Authentication does not match the configured Xiaomi account.",
-            "reauth_successful": "Xiaomi account refreshed."
+            "unsupported_sid": "Bu hesap için yeniden kimlik doğrulama desteklenmiyor.",
+            "wrong_account": "Kimlik doğrulama, yapılandırılmış Xiaomi hesabıyla eşleşmiyor.",
+            "reauth_successful": "Xiaomi hesabı yenilendi."
         }
     },
     "options": {

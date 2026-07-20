@@ -67,46 +67,46 @@
                 }
             },
             "reauth_password": {
-                "title": "Xiaomi reauth — enter account password",
-                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "title": "Повторна автентифікація Xiaomi — введіть пароль облікового запису",
+                "description": "Увійдіть у Xiaomi, щоб оновити збережені облікові дані. Наявна конфігурація залишиться без змін.",
                 "data": {
-                    "password": "Password"
+                    "password": "Пароль"
                 }
             },
             "reauth_verify": {
-                "title": "Xiaomi reauth — enter verification code",
-                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "title": "Повторна автентифікація Xiaomi — введіть код підтвердження",
+                "description": "Відкрийте [це посилання]({verify_url}) у браузері, запитайте код, а потім вставте код підтвердження сюди.",
                 "data": {
-                    "verify_ticket": "Verification ticket"
+                    "verify_ticket": "Код підтвердження"
                 }
             },
             "reauth_captcha": {
-                "title": "Xiaomi reauth — enter captcha",
-                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "title": "Повторна автентифікація Xiaomi — введіть капчу",
+                "description": "Прочитайте символи на зображенні капчі та введіть їх.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
                 "data": {
-                    "captcha": "Captcha"
+                    "captcha": "Капча"
                 }
             }
         },
         "error": {
-            "cannot_connect": "Cannot reach Xiaomi.",
+            "cannot_connect": "Не вдається зв’язатися з Xiaomi.",
             "cannot_login": "Не вдалося увійти до облікового запису Xiaomi. Перевірте облікові дані. Якщо спроби входу кілька разів завершились невдачею, спробуйте увійти на офіційному сайті Xiaomi (mi.com) з тієї ж мережі.",
             "cannot_reach": "Неможливо отримати доступ до API Xiaomi",
             "tzinfo_error": "Схоже, виникла проблема з вашим середовищем Hass. Дивіться: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Не знайдено пристроїв у цьому обліковому записі Xiaomi",
-            "need_verify": "Verification code is required.",
-            "invalid_auth": "Xiaomi rejected the credentials.",
-            "need_captcha": "Captcha is required.",
-            "save_failed": "Failed to save refreshed credentials. Please retry.",
-            "unknown": "Unexpected error."
+            "need_verify": "Потрібен код підтвердження.",
+            "invalid_auth": "Xiaomi відхилила облікові дані.",
+            "need_captcha": "Потрібна капча.",
+            "save_failed": "Не вдалося зберегти оновлені облікові дані. Спробуйте ще раз.",
+            "unknown": "Неочікувана помилка."
         },
         "abort": {
             "config_saved": "Конфігурацію збережено! [Налаштувати знову](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nДеякі параметри можуть вимагати [перезавантаження інтеграції](/developer-tools/yaml).",
             "already_configured": "Цей пристрій вже налаштовано.",
             "not_xiaomi_miio": "Цей пристрій не підтримує протокол miio/miot.",
-            "unsupported_sid": "Reauth is not supported for this account.",
-            "wrong_account": "Authentication does not match the configured Xiaomi account.",
-            "reauth_successful": "Xiaomi account refreshed."
+            "unsupported_sid": "Повторна автентифікація не підтримується для цього облікового запису.",
+            "wrong_account": "Автентифікація не відповідає налаштованому обліковому запису Xiaomi.",
+            "reauth_successful": "Обліковий запис Xiaomi оновлено."
         }
     },
     "options": {

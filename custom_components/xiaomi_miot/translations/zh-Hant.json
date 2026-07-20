@@ -62,46 +62,46 @@
                 }
             },
             "reauth_password": {
-                "title": "Xiaomi reauth — enter account password",
-                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "title": "重新授權 - 輸入密碼",
+                "description": "目前登入狀態已失效，需要重新登入以更新憑證。",
                 "data": {
-                    "password": "Password"
+                    "password": "登入密碼"
                 }
             },
             "reauth_verify": {
-                "title": "Xiaomi reauth — enter verification code",
-                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "title": "重新授權 - 輸入驗證碼",
+                "description": "點擊開啟[這個連結]({verify_url})，傳送驗證碼，並返回此頁面輸入驗證碼以繼續。",
                 "data": {
-                    "verify_ticket": "Verification ticket"
+                    "verify_ticket": "驗證碼"
                 }
             },
             "reauth_captcha": {
-                "title": "Xiaomi reauth — enter captcha",
-                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "title": "重新授權 - 輸入圖形驗證碼",
+                "description": "![Captcha](data:image/jpeg;base64,{captcha_image})",
                 "data": {
-                    "captcha": "Captcha"
+                    "captcha": "圖形驗證碼"
                 }
             }
         },
         "error": {
-            "cannot_connect": "Cannot reach Xiaomi.",
+            "cannot_connect": "無法連線小米伺服器",
             "cannot_login": "小米帳號登入失敗，請檢查帳號密碼。如多次嘗試仍登入失敗，請在與目前網路相同的環境下登入小米官網(mi.com)後重試",
             "cannot_reach": "無法存取小米 API",
             "tzinfo_error": "您的 Hass 環境看起來有點問題，請參考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "該小米帳號下沒有裝置",
-            "need_verify": "Verification code is required.",
-            "invalid_auth": "Xiaomi rejected the credentials.",
-            "need_captcha": "Captcha is required.",
-            "save_failed": "Failed to save refreshed credentials. Please retry.",
-            "unknown": "Unexpected error."
+            "need_verify": "需要驗證碼",
+            "invalid_auth": "登入憑證已失效",
+            "need_captcha": "需要圖形驗證碼",
+            "save_failed": "儲存憑證失敗，請重試",
+            "unknown": "未知錯誤"
         },
         "abort": {
             "config_saved": "設定已儲存！[再次自訂](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自訂選項需要[重新載入整合](/developer-tools/yaml)才能生效。",
             "already_configured": "該裝置已經設定過",
             "not_xiaomi_miio": "該裝置不支援 miio/miot 協定",
-            "unsupported_sid": "Reauth is not supported for this account.",
-            "wrong_account": "Authentication does not match the configured Xiaomi account.",
-            "reauth_successful": "Xiaomi account refreshed."
+            "unsupported_sid": "不支援的授權類型",
+            "wrong_account": "該帳號與已授權的帳號不符",
+            "reauth_successful": "重新授權成功"
         }
     },
     "options": {

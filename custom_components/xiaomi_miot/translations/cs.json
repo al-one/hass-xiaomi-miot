@@ -58,46 +58,46 @@
                 }
             },
             "reauth_password": {
-                "title": "Xiaomi reauth — enter account password",
-                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "title": "Opětovné ověření Xiaomi — zadejte heslo k účtu",
+                "description": "Přihlaste se ke službě Xiaomi a obnovte uložené přihlašovací údaje. Stávající konfigurace zůstane beze změny.",
                 "data": {
-                    "password": "Password"
+                    "password": "Heslo"
                 }
             },
             "reauth_verify": {
-                "title": "Xiaomi reauth — enter verification code",
-                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "title": "Opětovné ověření Xiaomi — zadejte ověřovací kód",
+                "description": "Otevřete [tento odkaz]({verify_url}) v prohlížeči, vyžádejte si kód a poté sem vložte ověřovací kód.",
                 "data": {
-                    "verify_ticket": "Verification ticket"
+                    "verify_ticket": "Ověřovací kód"
                 }
             },
             "reauth_captcha": {
-                "title": "Xiaomi reauth — enter captcha",
-                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "title": "Opětovné ověření Xiaomi — zadejte kód captcha",
+                "description": "Přečtěte znaky na obrázku captcha a zadejte je.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
                 "data": {
                     "captcha": "Captcha"
                 }
             }
         },
         "error": {
-            "cannot_connect": "Cannot reach Xiaomi.",
+            "cannot_connect": "Nelze se spojit se službou Xiaomi.",
             "cannot_login": "Přihlášení k účtu Mi se nezdařilo, zkontrolujte prosím heslo účtu. Pokud se přihlášení po několika pokusech nezdaří, použijte k přihlášení na oficiální webové stránky Xiaomi (mi.com) jiné zařízení ve stejné síti LAN jako hostitel HA a zkuste to znovu.",
             "cannot_reach": "Nelze získat přístup k Xiaomi API",
             "tzinfo_error": "Viz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi",
-            "need_verify": "Verification code is required.",
-            "invalid_auth": "Xiaomi rejected the credentials.",
-            "need_captcha": "Captcha is required.",
-            "save_failed": "Failed to save refreshed credentials. Please retry.",
-            "unknown": "Unexpected error."
+            "need_verify": "Je vyžadován ověřovací kód.",
+            "invalid_auth": "Xiaomi odmítlo přihlašovací údaje.",
+            "need_captcha": "Je vyžadován kód captcha.",
+            "save_failed": "Nepodařilo se uložit obnovené přihlašovací údaje. Zkuste to znovu.",
+            "unknown": "Neočekávaná chyba."
         },
         "abort": {
             "config_saved": "Konfigurace uložena! [Přizpůsobit znovu](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nNěkteré přizpůsobitelné možnosti vyžadují [obnovení integrace](/developer-tools/yaml), aby se projevily.",
             "already_configured": "Zařízení je již nakonfigurováno",
             "not_xiaomi_miio": "Nejedná se o zařízení Xiaomi miio/miot.",
-            "unsupported_sid": "Reauth is not supported for this account.",
-            "wrong_account": "Authentication does not match the configured Xiaomi account.",
-            "reauth_successful": "Xiaomi account refreshed."
+            "unsupported_sid": "Opětovné ověření není pro tento účet podporováno.",
+            "wrong_account": "Ověření neodpovídá nakonfigurovanému účtu Xiaomi.",
+            "reauth_successful": "Účet Xiaomi byl obnoven."
         }
     },
     "options": {

@@ -67,46 +67,46 @@
                 }
             },
             "reauth_password": {
-                "title": "Xiaomi reauth — enter account password",
-                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "title": "Xác thực lại Xiaomi — nhập mật khẩu tài khoản",
+                "description": "Đăng nhập Xiaomi để làm mới thông tin xác thực đã lưu. Cấu hình hiện có của bạn vẫn được giữ nguyên.",
                 "data": {
-                    "password": "Password"
+                    "password": "Mật khẩu"
                 }
             },
             "reauth_verify": {
-                "title": "Xiaomi reauth — enter verification code",
-                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "title": "Xác thực lại Xiaomi — nhập mã xác minh",
+                "description": "Mở [liên kết này]({verify_url}) trong trình duyệt, yêu cầu mã rồi dán mã xác minh vào đây.",
                 "data": {
-                    "verify_ticket": "Verification ticket"
+                    "verify_ticket": "Mã xác minh"
                 }
             },
             "reauth_captcha": {
-                "title": "Xiaomi reauth — enter captcha",
-                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "title": "Xác thực lại Xiaomi — nhập captcha",
+                "description": "Đọc các ký tự trong ảnh captcha rồi nhập chúng.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
                 "data": {
                     "captcha": "Captcha"
                 }
             }
         },
         "error": {
-            "cannot_connect": "Cannot reach Xiaomi.",
+            "cannot_connect": "Không thể kết nối với Xiaomi.",
             "cannot_login": "Đăng nhập tài khoản Xiaomi thất bại. Vui lòng kiểm tra thông tin đăng nhập. Nếu thử nhiều lần vẫn không được, hãy thử đăng nhập lại trên trang chính thức Xiaomi (mi.com) cùng mạng.",
             "cannot_reach": "Không thể truy cập API Xiaomi",
             "tzinfo_error": "Có vẻ môi trường Hass của bạn gặp vấn đề. Xem: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Không tìm thấy thiết bị nào trong tài khoản Xiaomi này",
-            "need_verify": "Verification code is required.",
-            "invalid_auth": "Xiaomi rejected the credentials.",
-            "need_captcha": "Captcha is required.",
-            "save_failed": "Failed to save refreshed credentials. Please retry.",
-            "unknown": "Unexpected error."
+            "need_verify": "Cần có mã xác minh.",
+            "invalid_auth": "Xiaomi đã từ chối thông tin xác thực.",
+            "need_captcha": "Cần có mã captcha.",
+            "save_failed": "Không thể lưu thông tin xác thực đã làm mới. Vui lòng thử lại.",
+            "unknown": "Lỗi không mong muốn."
         },
         "abort": {
             "config_saved": "Đã lưu cấu hình! [Tùy chỉnh lại](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nMột số tùy chọn cần [tải lại tích hợp](/developer-tools/yaml) để có hiệu lực.",
             "already_configured": "Thiết bị này đã được cấu hình.",
             "not_xiaomi_miio": "Thiết bị này không hỗ trợ giao thức miio/miot.",
-            "unsupported_sid": "Reauth is not supported for this account.",
-            "wrong_account": "Authentication does not match the configured Xiaomi account.",
-            "reauth_successful": "Xiaomi account refreshed."
+            "unsupported_sid": "Tài khoản này không hỗ trợ xác thực lại.",
+            "wrong_account": "Thông tin xác thực không khớp với tài khoản Xiaomi đã cấu hình.",
+            "reauth_successful": "Tài khoản Xiaomi đã được làm mới."
         }
     },
     "options": {

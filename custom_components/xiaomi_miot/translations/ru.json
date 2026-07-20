@@ -57,46 +57,46 @@
                 }
             },
             "reauth_password": {
-                "title": "Xiaomi reauth — enter account password",
-                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "title": "Повторная аутентификация Xiaomi — введите пароль аккаунта",
+                "description": "Войдите в Xiaomi, чтобы обновить сохранённые учётные данные. Существующая конфигурация останется без изменений.",
                 "data": {
-                    "password": "Password"
+                    "password": "Пароль"
                 }
             },
             "reauth_verify": {
-                "title": "Xiaomi reauth — enter verification code",
-                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "title": "Повторная аутентификация Xiaomi — введите код подтверждения",
+                "description": "Откройте [эту ссылку]({verify_url}) в браузере, запросите код, затем вставьте сюда код подтверждения.",
                 "data": {
-                    "verify_ticket": "Verification ticket"
+                    "verify_ticket": "Код подтверждения"
                 }
             },
             "reauth_captcha": {
-                "title": "Xiaomi reauth — enter captcha",
-                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "title": "Повторная аутентификация Xiaomi — введите капчу",
+                "description": "Прочитайте символы на изображении капчи и введите их.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
                 "data": {
-                    "captcha": "Captcha"
+                    "captcha": "Капча"
                 }
             }
         },
         "error": {
-            "cannot_connect": "Cannot reach Xiaomi.",
+            "cannot_connect": "Не удаётся связаться с Xiaomi.",
             "cannot_login": "Не удалось подключиться к аккаунту Сяоми. Проверьте пароль. При повторных ошибках авторизируйтесь на mi.com в той же среде и попробуйте снова.",
             "cannot_reach": "Нет доступа к API Сяоми",
             "tzinfo_error": "Перейдите по ссылке: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Не найдено устройств в облаке Сяоми",
-            "need_verify": "Verification code is required.",
-            "invalid_auth": "Xiaomi rejected the credentials.",
-            "need_captcha": "Captcha is required.",
-            "save_failed": "Failed to save refreshed credentials. Please retry.",
-            "unknown": "Unexpected error."
+            "need_verify": "Требуется код подтверждения.",
+            "invalid_auth": "Xiaomi отклонила учётные данные.",
+            "need_captcha": "Требуется капча.",
+            "save_failed": "Не удалось сохранить обновлённые учётные данные. Повторите попытку.",
+            "unknown": "Непредвиденная ошибка."
         },
         "abort": {
             "config_saved": "Конфигурация сохранена! [Настроить снова](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nНекоторые опции требуют перезагрузки конфигурации [reload integration](/developer-tools/yaml) для эффекта.",
             "already_configured": "Устройство уже сконфигурировано",
             "not_xiaomi_miio": "Не является устройством miio/miot.",
-            "unsupported_sid": "Reauth is not supported for this account.",
-            "wrong_account": "Authentication does not match the configured Xiaomi account.",
-            "reauth_successful": "Xiaomi account refreshed."
+            "unsupported_sid": "Повторная аутентификация не поддерживается для этого аккаунта.",
+            "wrong_account": "Аутентификация не соответствует настроенному аккаунту Xiaomi.",
+            "reauth_successful": "Аккаунт Xiaomi обновлён."
         }
     },
     "options": {

@@ -58,46 +58,46 @@
                 }
             },
             "reauth_password": {
-                "title": "Xiaomi reauth — enter account password",
-                "description": "Sign in to Xiaomi to refresh your stored credentials. Your existing configuration stays the same.",
+                "title": "Reautenticação da Xiaomi — insira a senha da conta",
+                "description": "Entre na Xiaomi para atualizar as credenciais armazenadas. A configuração existente permanecerá inalterada.",
                 "data": {
-                    "password": "Password"
+                    "password": "Senha"
                 }
             },
             "reauth_verify": {
-                "title": "Xiaomi reauth — enter verification code",
-                "description": "Open {verify_url} in your browser, request a code, then paste the verification ticket here.",
+                "title": "Reautenticação da Xiaomi — insira o código de verificação",
+                "description": "Abra [este link]({verify_url}) no navegador, solicite um código e cole o código de verificação aqui.",
                 "data": {
-                    "verify_ticket": "Verification ticket"
+                    "verify_ticket": "Código de verificação"
                 }
             },
             "reauth_captcha": {
-                "title": "Xiaomi reauth — enter captcha",
-                "description": "Read the captcha image and type the characters.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "title": "Reautenticação da Xiaomi — insira o captcha",
+                "description": "Leia os caracteres na imagem do captcha e digite-os.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
                 "data": {
                     "captcha": "Captcha"
                 }
             }
         },
         "error": {
-            "cannot_connect": "Cannot reach Xiaomi.",
+            "cannot_connect": "Não foi possível conectar-se à Xiaomi.",
             "cannot_login": "Falha no login com a conta xiaomi, verifique a senha. Se está tendo falhas ao fazer o login, faça login em mi.com na mesma rede atual e tente novamente.",
             "cannot_reach": "Incapaz de accessar a API Xiaomi",
             "tzinfo_error": "Aparentemente há um problema no seu ambiente Hass. Acesse: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Sem dispositivos na conta xiaomi",
-            "need_verify": "Verification code is required.",
-            "invalid_auth": "Xiaomi rejected the credentials.",
-            "need_captcha": "Captcha is required.",
-            "save_failed": "Failed to save refreshed credentials. Please retry.",
-            "unknown": "Unexpected error."
+            "need_verify": "É necessário um código de verificação.",
+            "invalid_auth": "A Xiaomi rejeitou as credenciais.",
+            "need_captcha": "É necessário informar o captcha.",
+            "save_failed": "Não foi possível salvar as credenciais atualizadas. Tente novamente.",
+            "unknown": "Erro inesperado."
         },
         "abort": {
             "config_saved": "Configuração guardada! [Customize novamente](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlgumas opções de customização podem requerir [recarregar a integração](/developer-tools/yaml) para ter efeito.",
             "already_configured": "O dispositivo já está configurado",
             "not_xiaomi_miio": "Não é um dispositivo Xiaomi miio/miot.",
-            "unsupported_sid": "Reauth is not supported for this account.",
-            "wrong_account": "Authentication does not match the configured Xiaomi account.",
-            "reauth_successful": "Xiaomi account refreshed."
+            "unsupported_sid": "A reautenticação não é compatível com esta conta.",
+            "wrong_account": "A autenticação não corresponde à conta Xiaomi configurada.",
+            "reauth_successful": "Conta Xiaomi atualizada."
         }
     },
     "options": {
