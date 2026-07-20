@@ -66,3 +66,31 @@ async def test_verify_ticket_no_supported_method_raises_micloud(hass):
     c.check_identity_list = lambda url, path="fe/service/identity/authStart": [99]
     with pytest.raises(MiCloudException):
         await hass.async_add_executor_job(c.verify_ticket, "TICKET")
+
+
+async def test_verify_ticket_pins_trust_false_and_payload(hass):
+    """Pin trust=false (browser-confirmed) and the surrounding payload fields.
+
+    Flipping any of these silently breaks the embedded-callback path that
+    7f454747 locked down."""
+    init_integration_data(hass)
+    c = _cloud(hass)
+    c.attrs["verify_url"] = "https://account.xiaomi.com/identity/authStart"
+    c.attrs["identity_session"] = "IS"
+    c.check_identity_list = lambda url, path="fe/service/identity/authStart": [4]
+    captured = {}
+
+    def _capture(*args, **kwargs):
+        captured["args"] = args
+        captured.update(kwargs)
+        return {"code": 0}
+
+    c.account_post = _capture
+    await hass.async_add_executor_job(c.verify_ticket, "TICKET")
+
+    assert captured["args"][0] == "/identity/auth/verifyPhone"
+    assert captured["data"]["trust"] == "false"
+    assert captured["data"]["ticket"] == "TICKET"
+    assert captured["data"]["_flag"] == 4
+    assert captured["data"]["_json"] == "true"
+    assert captured["cookies"]["identity_session"] == "IS"
