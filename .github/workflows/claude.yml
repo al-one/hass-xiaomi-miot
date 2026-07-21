@@ -50,12 +50,14 @@ jobs:
 
       - name: Check issue
         if: github.event.issue.number
+        env:
+            COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           {
             echo 'EVENT_PROMPT<<EOF'
             echo '${{ github.event.label.name == 'claude' && 'Fix this issue and push code; Remove issue label `claude`.' || '' }}'
             echo 'Issue number: #${{ github.event.issue.number }}'
-            echo '${{ github.event.comment.body }}'
+            echo '$COMMENT_BODY'
             echo EOF
           } >> $GITHUB_ENV
           echo "EVENT_KEY=issue-${{ github.event.issue.number }}" >> $GITHUB_ENV
