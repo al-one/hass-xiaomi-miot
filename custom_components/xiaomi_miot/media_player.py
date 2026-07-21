@@ -15,7 +15,7 @@ from homeassistant.const import (
     ATTR_FRIENDLY_NAME,
     CONF_HOST,
 )
-from homeassistant.components import media_source, persistent_notification
+from homeassistant.components import media_source
 from homeassistant.components.media_player import (
     DOMAIN as ENTITY_DOMAIN,
     MediaPlayerDeviceClass,
@@ -50,7 +50,7 @@ from . import (
     bind_services_to_entries,
 )
 from .core.const import HA_VERSION
-from .core.xiaomi_cloud import MiCloudNeedVerify
+from .core.xiaomi_cloud import CloudSid
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -353,48 +353,18 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        if self._intelligent_speaker:
-            mic = self.miot_cloud
-            if isinstance(mic, MiotCloud):
-                notification_id = (
-                    f'{DOMAIN}-micoapi-verify-'
-                    f'{self._config.get("entry_id") or self.unique_id}'
-                )
-                try:
-                    self.xiaoai_cloud = await mic.async_change_sid('micoapi')
-                    persistent_notification.async_dismiss(
-                        self.hass,
-                        notification_id,
-                    )
-                except MiCloudNeedVerify as exc:
-                    url = getattr(exc, 'url', None)
-                    message = (
-                        f'{self.name_model}: micoapi login requires Xiaomi security verification. '
-                        'Open the verification page to send the mobile/email code, then complete '
-                        'the micoapi verification from Xiaomi Miot options in Home Assistant.'
-                        '\n\nOpen [Xiaomi Miot options](/config/integrations/integration/xiaomi_miot), '
-                        'choose "Verify XiaoAI / micoapi", then paste the code.'
-                    )
-                    if url:
-                        message += f'\n\n[Open Xiaomi verification page]({url})'
-                    persistent_notification.async_create(
-                        self.hass,
-                        message,
-                        'Xiaomi Miot micoapi verification required',
-                        notification_id,
-                    )
-                    self.logger.warning(
-                        '%s: micoapi login requires verification: %s',
-                        self.name_model,
-                        url or exc,
-                    )
-                except Exception as exc:
-                    self.logger.warning(
-                        '%s: micoapi login failed: %s',
-                        self.name_model,
-                        exc,
-                        exc_info=True,
-                    )
+        self.xiaoai_cloud = None
+        if not self._intelligent_speaker:
+            return
+        try:
+            self.xiaoai_cloud = await self.device.entry.async_get_cloud(CloudSid.MICOAPI)
+        except Exception as exc:
+            self.logger.warning(
+                '%s: micoapi bootstrap failed: %s',
+                self.name_model,
+                exc,
+            )
+            self.xiaoai_cloud = None
 
     async def async_update(self):
         await super().async_update()

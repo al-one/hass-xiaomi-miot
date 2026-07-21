@@ -56,20 +56,48 @@
                     "reset_customizes": "Zurücksetzen auf Standardanpassungen",
                     "bool2selects": "Optionen anpassen"
                 }
+            },
+            "reauth_password": {
+                "title": "Xiaomi erneut authentifizieren — Kontopasswort eingeben",
+                "description": "Melden Sie sich bei Xiaomi an, um die gespeicherten Anmeldedaten zu aktualisieren. Die vorhandene Konfiguration bleibt unverändert.",
+                "data": {
+                    "password": "Passwort"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi erneut authentifizieren — Bestätigungscode eingeben",
+                "description": "Öffnen Sie [diesen Link]({verify_url}) in Ihrem Browser, fordern Sie einen Code an und fügen Sie anschließend den Bestätigungscode hier ein.",
+                "data": {
+                    "verify_ticket": "Bestätigungscode"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi erneut authentifizieren — Captcha eingeben",
+                "description": "Lesen Sie die Zeichen im Captcha-Bild ab und geben Sie sie ein.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Verbindung zum Gerät fehlgeschlagen",
+            "cannot_connect": "Xiaomi ist nicht erreichbar.",
             "cannot_login": "Login in das Xiaomi Cloud-Konto fehlgeschlagen. Bitte überprüfe das Passwort. Wenn die Anmeldung nach mehreren Versuchen fehlschlägt, verwenden Sie bitte ein anderes Gerät im selben LAN wie der HA-Host, um sich auf der offiziellen Xiaomi-Website (mi.com) anzumelden, und versuchen Sie es erneut.",
             "cannot_reach": "Zugriff auf Xiaomi-API nicht möglich",
             "tzinfo_error": "Weitere Informationen: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Keine Geräte im Xiaomi Cloud-Konto",
-            "need_verify": "Diese Anmeldung erfordert eine Sicherheitsverifizierung. Öffnen Sie den unten stehenden Verifizierungslink, um den Telefon-/E-Mail-Code zu senden. Nach Erhalt des Codes verifizieren Sie ihn nicht auf der Webseite. Kehren Sie zu Home Assistant zurück und geben Sie ihn unten ein."
+            "need_verify": "Ein Bestätigungscode ist erforderlich.",
+            "invalid_auth": "Xiaomi hat die Anmeldedaten abgelehnt.\n{tip}",
+            "need_captcha": "Ein Captcha ist erforderlich.",
+            "save_failed": "Die aktualisierten Anmeldedaten konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+            "unknown": "Unerwarteter Fehler."
         },
         "abort": {
             "config_saved": "Konfiguration gespeichert! [Erneut anpassen](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nEinige anpassbare Einstellungen müssen [neu geladen werden](/developer-tools/yaml) um wirksam zu werden.",
             "already_configured": "Gerät wurde bereits eingerichtet",
-            "not_xiaomi_miio": "Kein Xiaomi miio/miot-Gerät."
+            "not_xiaomi_miio": "Kein Xiaomi miio/miot-Gerät.",
+            "unsupported_sid": "Für dieses Konto wird die erneute Authentifizierung nicht unterstützt.",
+            "wrong_account": "Die Authentifizierung stimmt nicht mit dem konfigurierten Xiaomi-Konto überein.",
+            "reauth_successful": "Xiaomi-Konto aktualisiert."
         }
     },
     "options": {
@@ -93,11 +121,7 @@
                     "server_country": "Server-Standort der MiCloud",
                     "conn_mode": "Verbindungsmodus für Gerät",
                     "renew_devices": "Geräteerneuerung erzwingen",
-                    "disable_message": "Deaktiviere Mihome-Benachrichtigungssensor",
-                    "micoapi_verify": "XiaoAI-Wiedergabesteuerung verifizieren"
-                },
-                "data_description": {
-                    "micoapi_verify": "Aktivieren und senden Sie diese Seite ab, um den zusätzlichen Verifizierungsschritt für XiaoAI Play Control zu öffnen. Die normalen Xiaomi-Kontoeinstellungen werden nicht geändert. Verwenden Sie dies, wenn Play Control eine Verifizierung verlangt, nicht verfügbar ist oder den Wiedergabestatus nicht lesen kann."
+                    "disable_message": "Deaktiviere Mihome-Benachrichtigungssensor"
                 }
             },
             "cloud_filter": {
@@ -114,13 +138,6 @@
                     "bssid_list": "WiFi BSSID-Liste",
                     "filter_did": "Gerät filtern",
                     "did_list": "Geräteliste"
-                }
-            },
-            "micoapi": {
-                "title": "XiaoAI-Wiedergabesteuerung verifizieren",
-                "description": "XiaoAI Play Control benötigt eine separate Sicherheitsverifizierung.\n{tip}",
-                "data": {
-                    "verify_ticket": "Bestätigungscode per Telefon/E-Mail"
                 }
             }
         },
