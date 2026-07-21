@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import SUPPORTED_DOMAINS
+from .const import DOMAIN, SUPPORTED_DOMAINS
 from .xiaomi_cloud import REAUTH_SIDS, CloudSid, MiotCloud
 from .xiaomi_p2p.cloud import get_capability_cache
 
@@ -32,6 +32,7 @@ class HassEntry:
         self._cloud_lock = asyncio.Lock()
 
         self.p2p_cache = get_capability_cache(hass)
+        self.p2p_server = hass.data[DOMAIN]["p2p_media_server"]
         self.p2p_manager = None
         self._p2p_ensure_lock = asyncio.Lock()
         self._p2p_server_acquired = False
@@ -48,14 +49,12 @@ class HassEntry:
         async with self._p2p_ensure_lock:
             if self.p2p_manager is not None:
                 return self.p2p_manager
-            from .const import DOMAIN
 
-            server = self.hass.data[DOMAIN]["p2p_media_server"]
-            await server.acquire_entry()
+            await self.p2p_server.acquire_entry()
             try:
                 self.p2p_manager = self._create_p2p_manager()
             except BaseException:
-                await server.release_entry()
+                await self.p2p_server.release_entry()
                 raise
             self._p2p_server_acquired = True
             return self.p2p_manager
