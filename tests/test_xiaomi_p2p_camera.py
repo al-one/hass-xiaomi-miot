@@ -64,7 +64,13 @@ def test_ha_camera_base_apis_resolved():
 # ---------------------------------------------------------------------------
 
 
-def _make_p2p_camera(hass, *, eligible: bool, model: str = "mxiang.camera.c500ch"):
+def _make_p2p_camera(
+    hass,
+    *,
+    eligible: bool,
+    model: str = "mxiang.camera.c500ch",
+    prestarted_server: bool = True,
+):
     """Build a CameraEntity whose Device is wired up for P2P.
 
     The ``entry`` exposes the minimum surface used by the eligible
@@ -81,15 +87,20 @@ def _make_p2p_camera(hass, *, eligible: bool, model: str = "mxiang.camera.c500ch
 
     saved = DEVICE_CUSTOMIZES.get(model)
 
-    # Pre-arm the loopback server with a known port and route so the
-    # eligible branch can register without needing real asyncio bind.
+    # Most tests pre-arm the loopback server with a known port and route
+    # so the eligible branch can register without needing real asyncio bind.
     server = LoopbackMediaServer()
-    server._port = 12345
+    if prestarted_server:
+        server._port = 12345
+    else:
+        async def _acquire_entry():
+            server._port = 12345
 
-    async def _noop_lease(request):
-        return SimpleNamespace(
-            run=AsyncMock(return_value=MagicMock())
-        )
+        async def _release_entry():
+            server._port = None
+
+        server.acquire_entry = AsyncMock(side_effect=_acquire_entry)
+        server.release_entry = AsyncMock(side_effect=_release_entry)
 
     hass.data.setdefault("xiaomi_miot", {})["p2p_media_server"] = server
 
@@ -190,6 +201,31 @@ def non_p2p_camera(hass):
 # ---------------------------------------------------------------------------
 # Eligible P2P behavior
 # ---------------------------------------------------------------------------
+
+
+async def test_p2p_async_added_to_hass_starts_route_and_advertises_stream(hass):
+    camera, saved, server = _make_p2p_camera(
+        hass,
+        eligible=True,
+        prestarted_server=False,
+    )
+    try:
+        assert camera._p2p_route is None
+        assert CameraEntityFeature.STREAM in camera.supported_features
+
+        await camera.async_added_to_hass()
+
+        assert camera._p2p_route is not None
+        assert CameraEntityFeature.STREAM in camera.supported_features
+        assert camera._attr_available is True
+    finally:
+        await server.release_entry()
+        if saved is None:
+            from custom_components.xiaomi_miot.core.device_customizes import (
+                DEVICE_CUSTOMIZES,
+            )
+            DEVICE_CUSTOMIZES.pop("mxiang.camera.c500ch", None)
+        hass.data.pop("xiaomi_miot", None)
 
 
 async def test_p2p_stream_source_is_stable_and_side_effect_free(p2p_camera):

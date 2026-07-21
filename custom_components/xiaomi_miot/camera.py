@@ -305,9 +305,11 @@ class CameraEntity(XEntity, BaseCameraEntity):
             return
         self._p2p_eligible = True
         try:
-            self._supported_features = self._supported_features | CameraEntityFeature.STREAM
-        except TypeError:
-            self._supported_features = CameraEntityFeature.STREAM
+            features = self._attr_supported_features | CameraEntityFeature.STREAM
+        except AttributeError:
+            features = CameraEntityFeature.STREAM
+        self._attr_supported_features = features
+        self._supported_features = features
         entry = getattr(device, "entry", None)
         server = getattr(entry, "p2p_server", None)
         if server is None:
@@ -389,6 +391,22 @@ class CameraEntity(XEntity, BaseCameraEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        if self._p2p_eligible and self._p2p_route is None:
+            entry = getattr(self.device, "entry", None)
+            ensure_server = getattr(entry, "async_ensure_p2p_server", None)
+            server = None
+            if ensure_server is not None:
+                server = await ensure_server()
+            else:
+                server = getattr(entry, "p2p_server", None)
+                if server is not None and hasattr(server, "acquire_entry"):
+                    await server.acquire_entry()
+            if server is not None:
+                try:
+                    self._p2p_route = server.add_route(self._handle_p2p_request)
+                    self._attr_available = True
+                except Exception:  # noqa: BLE001
+                    pass
         if self._attr_should_poll:
             await self.async_update_ha_state(True)
 

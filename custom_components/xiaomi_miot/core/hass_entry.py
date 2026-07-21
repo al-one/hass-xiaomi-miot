@@ -38,25 +38,35 @@ class HassEntry:
         self._p2p_server_acquired = False
         self._p2p_bridge_close_tasks: set[asyncio.Task[Any]] = set()
 
-    async def async_ensure_p2p(self):
-        if self.p2p_manager is not None:
-            return self.p2p_manager
+    async def async_ensure_p2p_server(self):
+        if self._p2p_server_acquired:
+            return self.p2p_server
         if not any(
             getattr(device, "p2p_enabled", False)
             for device in self.devices.values()
         ):
             return None
         async with self._p2p_ensure_lock:
+            if self._p2p_server_acquired:
+                return self.p2p_server
+            await self.p2p_server.acquire_entry()
+            self._p2p_server_acquired = True
+            return self.p2p_server
+
+    async def async_ensure_p2p(self):
+        if self.p2p_manager is not None:
+            return self.p2p_manager
+        if await self.async_ensure_p2p_server() is None:
+            return None
+        async with self._p2p_ensure_lock:
             if self.p2p_manager is not None:
                 return self.p2p_manager
-
-            await self.p2p_server.acquire_entry()
             try:
                 self.p2p_manager = self._create_p2p_manager()
             except BaseException:
                 await self.p2p_server.release_entry()
+                self._p2p_server_acquired = False
                 raise
-            self._p2p_server_acquired = True
             return self.p2p_manager
 
     def _create_p2p_manager(self):
