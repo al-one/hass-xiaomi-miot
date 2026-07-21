@@ -56,20 +56,48 @@
                     "reset_customizes": "Alapértelmezett testreszabások visszaállítása",
                     "bool2selects": "Testreszabási lehetőségek"
                 }
+            },
+            "reauth_password": {
+                "title": "Xiaomi újrahitelesítés — adja meg a fiók jelszavát",
+                "description": "Jelentkezzen be Xiaomi-fiókjába a tárolt hitelesítő adatok frissítéséhez. A meglévő konfiguráció változatlan marad.",
+                "data": {
+                    "password": "Jelszó"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi újrahitelesítés — adja meg az ellenőrző kódot",
+                "description": "Nyissa meg [ezt a hivatkozást]({verify_url}) a böngészőjében, kérjen kódot, majd illessze be ide az ellenőrző kódot.",
+                "data": {
+                    "verify_ticket": "Ellenőrző kód"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi újrahitelesítés — adja meg a captchát",
+                "description": "Olvassa le a karaktereket a captcha képről, és írja be őket.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Nem sikerült kapcsolódni az eszközhöz",
+            "cannot_connect": "A Xiaomi nem érhető el.",
             "cannot_login": "Nem sikerült bejelentkezni a Xiaomi fiókba. Kérjük, ellenőrizze a fiók adatait. Ha a bejelentkezési kísérletek többször is sikertelenek, próbálkozzon újra a Xiaomi hivatalos weboldalán (mi.com) ugyanazon hálózati környezetben.",
             "cannot_reach": "Nem sikerült elérni a Xiaomi API felületet",
             "tzinfo_error": "Probléma van a Hass környezetével. Kérjük, olvassa el a következő leírást: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt",
-            "need_verify": "Ez a bejelentkezés biztonsági ellenőrzést igényel. Nyisd meg az alábbi ellenőrzési linket a telefonos/e-mailes kód elküldéséhez. A kód megérkezése után ne a weboldalon ellenőrizd. Térj vissza a Home Assistantba, és írd be az alábbi mezőbe."
+            "need_verify": "Ellenőrző kód szükséges.",
+            "invalid_auth": "A Xiaomi elutasította a hitelesítő adatokat.\n{tip}",
+            "need_captcha": "Captcha szükséges.",
+            "save_failed": "A frissített hitelesítő adatok mentése sikertelen. Kérjük, próbálja újra.",
+            "unknown": "Váratlan hiba."
         },
         "abort": {
             "config_saved": "Konfiguráció mentve! [Testreszabás újra](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nNéhány testreszabási lehetőség érvénybe léptetéséhez [újra kell tölteni az integrációt](/developer-tools/yaml).",
             "already_configured": "Ez az eszköz már konfigurálva van.",
-            "not_xiaomi_miio": "Ez az eszköz nem támogatja a miio/miot protokolt."
+            "not_xiaomi_miio": "Ez az eszköz nem támogatja a miio/miot protokolt.",
+            "unsupported_sid": "Az újrahitelesítés nem támogatott ennél a fióknál.",
+            "wrong_account": "A hitelesítés nem felel meg a konfigurált Xiaomi-fióknak.",
+            "reauth_successful": "A Xiaomi-fiók frissítve."
         }
     },
     "options": {
@@ -93,11 +121,7 @@
                     "server_country": "MiCloud szerver régió",
                     "conn_mode": "Kapcsolat módja az eszközhöz",
                     "renew_devices": "Eszközök kényszerített frissítése",
-                    "disable_message": "Mihome értesítés szenzor letiltása",
-                    "micoapi_verify": "XiaoAI lejátszásvezérlés ellenőrzése"
-                },
-                "data_description": {
-                    "micoapi_verify": "Kapcsold be, majd küldd el ezt az oldalt a XiaoAI Play Control extra ellenőrzési lépésének megnyitásához. Ez nem módosítja a normál Xiaomi-fiók beállításait. Akkor használd, ha a Play Control ellenőrzést kér, nem érhető el, vagy nem tudja olvasni a lejátszási állapotot."
+                    "disable_message": "Mihome értesítés szenzor letiltása"
                 }
             },
             "cloud_filter": {
@@ -114,13 +138,6 @@
                     "bssid_list": "WiFi BSSID lista",
                     "filter_did": "Eszköz szűrése",
                     "did_list": "Eszköz lista"
-                }
-            },
-            "micoapi": {
-                "title": "XiaoAI lejátszásvezérlés ellenőrzése",
-                "description": "A XiaoAI Play Control külön biztonsági ellenőrzést igényel.\n{tip}",
-                "data": {
-                    "verify_ticket": "Telefonos/e-mailes ellenőrző kód"
                 }
             }
         },

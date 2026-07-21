@@ -60,20 +60,48 @@
                     "reset_customizes": "重設為預設自訂",
                     "bool2selects": "自訂選項"
                 }
+            },
+            "reauth_password": {
+                "title": "重新授權 - 輸入密碼",
+                "description": "目前登入狀態已失效，需要重新登入以更新憑證。",
+                "data": {
+                    "password": "登入密碼"
+                }
+            },
+            "reauth_verify": {
+                "title": "重新授權 - 輸入驗證碼",
+                "description": "點擊開啟[這個連結]({verify_url})，傳送驗證碼，並返回此頁面輸入驗證碼以繼續。",
+                "data": {
+                    "verify_ticket": "驗證碼"
+                }
+            },
+            "reauth_captcha": {
+                "title": "重新授權 - 輸入圖形驗證碼",
+                "description": "![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "圖形驗證碼"
+                }
             }
         },
         "error": {
-            "cannot_connect": "連線裝置失敗",
+            "cannot_connect": "無法連線小米伺服器",
             "cannot_login": "小米帳號登入失敗，請檢查帳號密碼。如多次嘗試仍登入失敗，請在與目前網路相同的環境下登入小米官網(mi.com)後重試",
             "cannot_reach": "無法存取小米 API",
             "tzinfo_error": "您的 Hass 環境看起來有點問題，請參考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "該小米帳號下沒有裝置",
-            "need_verify": "本次登入需要安全驗證。請開啟下方驗證連結發送手機/電子郵件驗證碼，收到驗證碼後不要在網頁驗證，回到 Home Assistant 填入下方輸入框。"
+            "need_verify": "需要驗證碼",
+            "invalid_auth": "登入失敗\n{tip}",
+            "need_captcha": "需要圖形驗證碼",
+            "save_failed": "儲存憑證失敗，請重試",
+            "unknown": "未知錯誤"
         },
         "abort": {
             "config_saved": "設定已儲存！[再次自訂](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自訂選項需要[重新載入整合](/developer-tools/yaml)才能生效。",
             "already_configured": "該裝置已經設定過",
-            "not_xiaomi_miio": "該裝置不支援 miio/miot 協定"
+            "not_xiaomi_miio": "該裝置不支援 miio/miot 協定",
+            "unsupported_sid": "不支援的授權類型",
+            "wrong_account": "該帳號與已授權的帳號不符",
+            "reauth_successful": "重新授權成功"
         }
     },
     "options": {
@@ -99,11 +127,7 @@
                     "renew_devices": "更新裝置列表",
                     "trans_options": "翻譯屬性值描述",
                     "disable_message": "停用米家 APP 通知訊息實體",
-                    "disable_scene_history": "停用米家場景歷史實體",
-                    "micoapi_verify": "驗證小愛音箱播放控制"
-                },
-                "data_description": {
-                    "micoapi_verify": "開啟後送出此頁，會進入小愛音箱 Play Control 的額外驗證頁面；不會修改目前的一般小米帳號設定。用於處理 Play Control 提示需要驗證、不可用或無法取得播放狀態的問題。"
+                    "disable_scene_history": "停用米家場景歷史實體"
                 }
             },
             "cloud_filter": {
@@ -121,13 +145,6 @@
                     "filter_did": "篩選裝置",
                     "did_list": "裝置列表",
                     "home_ids": "篩選家庭 (留白儲存)"
-                }
-            },
-            "micoapi": {
-                "title": "驗證小愛音箱播放控制",
-                "description": "小愛音箱 Play Control 需要另外完成一次安全驗證。\n{tip}",
-                "data": {
-                    "verify_ticket": "手機/電子郵件驗證碼"
                 }
             }
         },

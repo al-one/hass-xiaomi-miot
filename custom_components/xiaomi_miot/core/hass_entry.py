@@ -1,21 +1,22 @@
-import logging
 import asyncio
-from typing import TYPE_CHECKING, Any
+import logging
+from typing import TYPE_CHECKING, Any, Optional
+
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_USERNAME
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
 from .const import SUPPORTED_DOMAINS
-from .xiaomi_cloud import MiotCloud
+from .xiaomi_cloud import REAUTH_SIDS, CloudSid, MiotCloud
 
 if TYPE_CHECKING:
     from .device import Device
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class HassEntry:
     ALL: dict[str, 'HassEntry'] = {}
-    cloud: MiotCloud = None
     cloud_devices = None
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry):
@@ -26,6 +27,9 @@ class HassEntry:
         self.devices: dict[str, 'Device'] = {}
         self.mac_to_did = {}
         self.did_to_unique = {}
+        self.clouds: dict[CloudSid, Optional[MiotCloud]] = {}
+        self._cloud_lock = asyncio.Lock()
+
         from .xiaomi_p2p.cloud import get_capability_cache
         self.p2p_cache = get_capability_cache(hass)
         self.p2p_manager = None
@@ -158,6 +162,7 @@ class HassEntry:
         if ret:
             for device in self.devices.values():
                 await device.async_unload()
+            self.clouds.clear()
             HassEntry.ALL.pop(self.entry.entry_id, None)
         return ret
 
@@ -219,14 +224,64 @@ class HassEntry:
 
         return self
 
+    @property
+    def cloud(self):
+        return self.clouds.get(CloudSid.XIAOMIIO)
+
     async def get_cloud(self, check=False, login=False):
-        if not self.cloud:
-            if not self.get_config(CONF_USERNAME):
-                return None
-            self.cloud = await MiotCloud.from_token(self.hass, self.get_config(), login=login)
-        if check:
-            await self.cloud.async_check_auth(notify=True)
-        return self.cloud
+        cloud = await self.async_get_cloud(CloudSid.XIAOMIIO, login=login)
+        if check and isinstance(cloud, MiotCloud):
+            await cloud.async_check_auth(notify=True)
+        return cloud
+
+    async def async_get_cloud(
+        self,
+        sid: CloudSid = CloudSid.XIAOMIIO,
+        *,
+        login: bool = False,
+    ) -> Optional[MiotCloud]:
+        if isinstance(sid, str):
+            sid = CloudSid(sid)
+        if sid in self.clouds:
+            return self.clouds[sid]
+        async with self._cloud_lock:
+            if sid in self.clouds:
+                return self.clouds[sid]
+            config = {**self.get_config(), 'sid': sid.value}
+            cloud = await MiotCloud.from_token(
+                self.hass, config, login=login, hass_entry=self,
+            )
+            self.clouds[sid] = cloud
+            if sid == CloudSid.MICOAPI:
+                try:
+                    ok = await cloud.async_check_micoapi_auth()
+                except Exception:
+                    ok = None
+                if not ok:
+                    self.clouds[sid] = None
+                    cloud = None
+            return self.clouds[sid]
+
+    async def async_change_sid(self, sid):
+        if isinstance(sid, str):
+            sid = CloudSid(sid)
+        return await self.async_get_cloud(sid)
+
+    async def async_auth_failed(self, sid: CloudSid) -> None:
+        if isinstance(sid, str):
+            sid = CloudSid(sid)
+        if sid not in REAUTH_SIDS:
+            return
+        state = self.entry.state
+        allowed = state == ConfigEntryState.LOADED or (
+            sid == CloudSid.MICOAPI and state == ConfigEntryState.SETUP_IN_PROGRESS
+        )
+        if not allowed:
+            return
+        start_reauth = getattr(self.entry, 'async_start_reauth', None)
+        if start_reauth is None:
+            return
+        await start_reauth(self.hass, data={'sid': sid.value})
 
     async def get_cloud_devices(self):
         if isinstance(self.cloud_devices, dict):

@@ -116,7 +116,8 @@ def collect_entities(device):
 
 def test_complete_entity_set(make_device, load_miot_spec):
     device = model_device(make_device, load_miot_spec)
-    entities = collect_entities(device)
+    with patch("custom_components.xiaomi_miot.core.device.async_call_later"):
+        entities = collect_entities(device)
 
     converter_domains = sorted(
         converter.domain
@@ -333,7 +334,8 @@ async def test_fresh_air_write_matrix(make_device, load_miot_spec):
 
     device.async_set_properties.reset_mock()
     fan._attr_is_on = False
-    await fan.async_turn_on()
+    with patch("custom_components.xiaomi_miot.fan.async_call_later"):
+        await fan.async_turn_on()
     device.async_set_properties.assert_awaited_once_with([
         {"did": device.did, "siid": 2, "piid": 9, "value": True},
     ])
@@ -463,3 +465,6 @@ async def test_registry_preserves_air_conditioner_identity_across_reload(
             HVACMode.HEAT,
             HVACAction.HEATING,
         )
+
+        assert await hass.config_entries.async_unload(entry.entry_id)
+        await hass.async_block_till_done()

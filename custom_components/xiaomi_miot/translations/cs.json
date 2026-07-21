@@ -56,20 +56,48 @@
                     "reset_customizes": "Obnovit výchozí přizpůsobení",
                     "bool2selects": "Přizpůsobte možnosti"
                 }
+            },
+            "reauth_password": {
+                "title": "Opětovné ověření Xiaomi — zadejte heslo k účtu",
+                "description": "Přihlaste se ke službě Xiaomi a obnovte uložené přihlašovací údaje. Stávající konfigurace zůstane beze změny.",
+                "data": {
+                    "password": "Heslo"
+                }
+            },
+            "reauth_verify": {
+                "title": "Opětovné ověření Xiaomi — zadejte ověřovací kód",
+                "description": "Otevřete [tento odkaz]({verify_url}) v prohlížeči, vyžádejte si kód a poté sem vložte ověřovací kód.",
+                "data": {
+                    "verify_ticket": "Ověřovací kód"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Opětovné ověření Xiaomi — zadejte kód captcha",
+                "description": "Přečtěte znaky na obrázku captcha a zadejte je.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Připojení zařízení se nezdařilo",
+            "cannot_connect": "Nelze se spojit se službou Xiaomi.",
             "cannot_login": "Přihlášení k účtu Mi se nezdařilo, zkontrolujte prosím heslo účtu. Pokud se přihlášení po několika pokusech nezdaří, použijte k přihlášení na oficiální webové stránky Xiaomi (mi.com) jiné zařízení ve stejné síti LAN jako hostitel HA a zkuste to znovu.",
             "cannot_reach": "Nelze získat přístup k Xiaomi API",
             "tzinfo_error": "Viz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi",
-            "need_verify": "Toto přihlášení vyžaduje bezpečnostní ověření. Otevřete níže uvedený ověřovací odkaz a odešlete kód pro telefon/e-mail. Po obdržení kódu jej neověřujte na webové stránce. Vraťte se do Home Assistantu a zadejte jej do pole níže."
+            "need_verify": "Je vyžadován ověřovací kód.",
+            "invalid_auth": "Xiaomi odmítlo přihlašovací údaje.\n{tip}",
+            "need_captcha": "Je vyžadován kód captcha.",
+            "save_failed": "Nepodařilo se uložit obnovené přihlašovací údaje. Zkuste to znovu.",
+            "unknown": "Neočekávaná chyba."
         },
         "abort": {
             "config_saved": "Konfigurace uložena! [Přizpůsobit znovu](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nNěkteré přizpůsobitelné možnosti vyžadují [obnovení integrace](/developer-tools/yaml), aby se projevily.",
             "already_configured": "Zařízení je již nakonfigurováno",
-            "not_xiaomi_miio": "Nejedná se o zařízení Xiaomi miio/miot."
+            "not_xiaomi_miio": "Nejedná se o zařízení Xiaomi miio/miot.",
+            "unsupported_sid": "Opětovné ověření není pro tento účet podporováno.",
+            "wrong_account": "Ověření neodpovídá nakonfigurovanému účtu Xiaomi.",
+            "reauth_successful": "Účet Xiaomi byl obnoven."
         }
     },
     "options": {
@@ -93,11 +121,7 @@
                     "server_country": "Umístění serveru MiCloud",
                     "conn_mode": "Režim připojení pro zařízení",
                     "renew_devices": "Vynutit obnovení zařízení",
-                    "disable_message": "Deaktivovat senzor upozornění Mihome",
-                    "micoapi_verify": "Ověřit ovládání přehrávání XiaoAI"
-                },
-                "data_description": {
-                    "micoapi_verify": "Zapnutím a odesláním této stránky otevřete dodatečný krok ověření pro XiaoAI Play Control. Běžné nastavení účtu Xiaomi se nezmění. Použijte, když Play Control vyžaduje ověření, je nedostupné nebo nemůže načíst stav přehrávání."
+                    "disable_message": "Deaktivovat senzor upozornění Mihome"
                 }
             },
             "cloud_filter": {
@@ -114,13 +138,6 @@
                     "bssid_list": "Seznam WiFi BSSID",
                     "filter_did": "Filtrovat zařízení",
                     "did_list": "Seznam zařízení"
-                }
-            },
-            "micoapi": {
-                "title": "Ověřit ovládání přehrávání XiaoAI",
-                "description": "XiaoAI Play Control vyžaduje samostatné bezpečnostní ověření.\n{tip}",
-                "data": {
-                    "verify_ticket": "Ověřovací kód z telefonu/e-mailu"
                 }
             }
         },

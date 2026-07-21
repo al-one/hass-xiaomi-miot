@@ -11,7 +11,7 @@ from .const import DOMAIN
 from .utils import get_customize_via_entity, wildcard_models, CustomConfigHelper
 from .miot_spec import MiotService, MiotProperty, MiotAction
 from .converters import BaseConv, InfoConv, MiotServiceConv, MiotPropConv, MiotActionConv
-from .xiaomi_cloud import MiotCloud
+from .xiaomi_cloud import CloudSid, MiotCloud
 
 if TYPE_CHECKING:
     from .device import Device
@@ -80,9 +80,17 @@ class BasicEntity(Entity, CustomConfigHelper):
         cloud = self.device.cloud
         if not isinstance(cloud, MiotCloud):
             raise HomeAssistantError('Xiaomi cloud not supported for this entity')
-        sid = kwargs.pop('sid', None) or 'xiaomiio'
-        if sid != cloud.sid:
-            cloud = await cloud.async_change_sid(sid)
+        sid = kwargs.pop('sid', None) or CloudSid.XIAOMIIO
+        if isinstance(sid, str):
+            try:
+                sid = CloudSid(sid)
+            except ValueError as exc:
+                raise HomeAssistantError('Xiaomi cloud SID not supported') from exc
+        cloud = await cloud.async_change_sid(sid)
+        if not isinstance(cloud, MiotCloud):
+            raise HomeAssistantError('Xiaomi cloud is unavailable')
+        if sid != CloudSid.XIAOMIIO and cloud.sid != sid.value:
+            raise HomeAssistantError('Xiaomi cloud is unavailable')
         pms = kwargs.pop('params', None)
         dat = data or pms
         result = await cloud.async_request_api(api, data=dat, method=method, crypt=crypt, **kwargs)

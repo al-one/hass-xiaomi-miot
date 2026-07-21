@@ -1,12 +1,12 @@
 """Config flow to configure Xiaomi Miot."""
 import logging
-import asyncio
 import re
 import copy
 import requests
 import voluptuous as vol
 
 from typing import Optional
+from dataclasses import dataclass
 from homeassistant import config_entries
 from homeassistant.const import (
     CONF_HOST,
@@ -45,10 +45,15 @@ from .core.device import MiioInfo
 from .core.miot_spec import MiotSpec
 from .core.mini_miio import AsyncMiIO
 from .core.xiaomi_cloud import (
+    REAUTH_SIDS,
+    CloudSid,
     MiotCloud,
     MiCloudException,
     MiCloudAccessDenied,
+    MiCloudAuthenticationError,
     MiCloudNeedVerify,
+    MiCloudStsUnauthorized,
+    MiCloudVerificationError,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -137,14 +142,6 @@ class BaseFlowHandler:
             'tip': '',
             **self.context.pop('placeholders', {}),
         }
-
-    def is_micoapi_sts_unauthorized(self, exc):
-        err = f'{exc}'
-        return (
-            isinstance(exc, MiCloudAccessDenied)
-            and 'api2.mina.mi.com/sts' in err
-            and "'status_code': 401" in err
-        )
 
     async def get_cloud(self, user_input):
         if not self.cloud:
@@ -280,6 +277,12 @@ class BaseFlowHandler:
                       f'[the devices that supports the local mode]({url}).'
         self.placeholders['tip'] = tip
         return schema
+
+
+@dataclass
+class ReauthState:
+    sid: CloudSid
+    entry: config_entries.ConfigEntry
 
 
 class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=DOMAIN):
@@ -425,6 +428,359 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
             errors=errors,
             description_placeholders=self.pop_placeholders(),
         )
+
+    def _make_candidate(
+        self,
+        username: str,
+        password: str,
+        country: str | None,
+        sid: CloudSid,
+    ) -> MiotCloud:
+        return MiotCloud(
+            self.hass,
+            username=username,
+            password=password,
+            country=country,
+            sid=sid.value,
+            hass_entry=None,
+        )
+
+    def _show_reauth_form(self, step_id, schema, errors=None, placeholders=None):
+        return self.async_show_form(
+            step_id=step_id,
+            data_schema=schema,
+            errors=errors or {},
+            description_placeholders={
+                **self.pop_placeholders(),
+                **(placeholders or {}),
+            },
+        )
+
+    async def async_step_reauth(self, entry_data=None):
+        entry_data = entry_data or {}
+        self.context.setdefault('entry_data', entry_data)
+        entry = self._get_reauth_entry()
+        sid_value = entry_data.get('sid') or CloudSid.XIAOMIIO.value
+        try:
+            sid = CloudSid(sid_value)
+        except (TypeError, ValueError):
+            return self.async_abort(reason='unsupported_sid')
+        if sid not in REAUTH_SIDS:
+            return self.async_abort(reason='unsupported_sid')
+        self._reauth = ReauthState(sid=sid, entry=entry)
+        return await self.async_step_reauth_password()
+
+    async def async_step_reauth_password(self, user_input=None):
+        errors = {}
+        schema = vol.Schema({vol.Optional(CONF_PASSWORD): str})
+        if user_input is None:
+            return self._show_reauth_form('reauth_password', schema)
+        password = user_input.get(CONF_PASSWORD) or ''
+        if not password:
+            entry = self._get_reauth_entry()
+            password = entry.data.get(CONF_PASSWORD, '')
+        if not password:
+            errors['base'] = 'invalid_auth'
+            self.placeholders['tip'] = 'Please enter your password'
+            return self._show_reauth_form(
+                'reauth_password',
+                schema,
+                errors=errors,
+            )
+        entry = self._reauth.entry
+        candidate = self._make_candidate(
+            entry.data[CONF_USERNAME],
+            password,
+            entry.data.get(CONF_SERVER_COUNTRY),
+            self._reauth.sid,
+        )
+        self._candidate = candidate
+        try:
+            ok = await candidate.async_login_attempt()
+        except requests.exceptions.ConnectionError:
+            errors['base'] = 'cannot_connect'
+            return self._show_reauth_form(
+                'reauth_password',
+                schema,
+                errors=errors,
+            )
+        except MiCloudNeedVerify:
+            return await self.async_step_reauth_verify()
+        except MiCloudAuthenticationError as err:
+            errors['base'] = 'invalid_auth'
+            self.placeholders['tip'] = str(err)
+            return self._show_reauth_form(
+                'reauth_password',
+                schema,
+                errors=errors,
+            )
+        except Exception:
+            errors['base'] = 'unknown'
+            return self._show_reauth_form(
+                'reauth_password',
+                schema,
+                errors=errors,
+            )
+        if not ok:
+            if candidate.attrs.get('captchaImg') and candidate.attrs.get('captchaIck'):
+                return await self.async_step_reauth_captcha()
+            errors['base'] = 'invalid_auth'
+            return self._show_reauth_form(
+                'reauth_password',
+                schema,
+                errors=errors,
+            )
+        if str(candidate.user_id) != str(entry.data.get('user_id')):
+            self._candidate = None
+            return self.async_abort(reason='wrong_account')
+        return await self._persist_and_reload(candidate)
+
+    async def async_step_reauth_verify(self, user_input=None):
+        errors = {}
+        candidate = self._candidate
+        schema = vol.Schema({vol.Required('verify_ticket'): str})
+        verify_url = candidate.attrs.get('verify_url') if candidate else None
+        placeholders = {'verify_url': verify_url or ''}
+        if user_input is None:
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                placeholders=placeholders,
+            )
+        ticket = (user_input.get('verify_ticket') or '').strip()
+        if not ticket:
+            errors['base'] = 'need_verify'
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                errors=errors,
+                placeholders=placeholders,
+            )
+        try:
+            ok = await candidate.async_login_attempt({'verify_ticket': ticket})
+        except MiCloudVerificationError:
+            errors['base'] = 'need_verify'
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                errors=errors,
+                placeholders=placeholders,
+            )
+        except requests.exceptions.ConnectionError:
+            errors['base'] = 'cannot_connect'
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                errors=errors,
+                placeholders=placeholders,
+            )
+        except MiCloudAuthenticationError:
+            self._candidate = None
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'invalid_auth'},
+            )
+        except MiCloudStsUnauthorized:
+            if self._reauth.sid != CloudSid.MICOAPI:
+                errors['base'] = 'unknown'
+                return self._show_reauth_form(
+                    'reauth_verify',
+                    schema,
+                    errors=errors,
+                    placeholders=placeholders,
+                )
+            for key in (
+                    'service_token',
+                    'ssecurity',
+                    'async_session',
+                    'identity_session',
+                    'verify_url',
+                    'login_data',
+            ):
+                candidate.attrs.pop(key, None)
+            candidate.service_token = None
+            candidate.ssecurity = None
+            candidate.async_session = None
+            try:
+                ok = await candidate.async_login_attempt()
+            except requests.exceptions.ConnectionError:
+                errors['base'] = 'cannot_connect'
+                return self._show_reauth_form(
+                    'reauth_verify',
+                    schema,
+                    errors=errors,
+                    placeholders=placeholders,
+                )
+            except MiCloudAuthenticationError:
+                self._candidate = None
+                return self._show_reauth_form(
+                    'reauth_password',
+                    vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                    errors={'base': 'invalid_auth'},
+                )
+            except Exception:
+                errors['base'] = 'unknown'
+                return self._show_reauth_form(
+                    'reauth_verify',
+                    schema,
+                    errors=errors,
+                    placeholders=placeholders,
+                )
+        except Exception:
+            errors['base'] = 'unknown'
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                errors=errors,
+                placeholders=placeholders,
+            )
+        if not ok:
+            if candidate.attrs.get('captchaImg') and candidate.attrs.get('captchaIck'):
+                return await self.async_step_reauth_captcha()
+            errors['base'] = 'unknown'
+            return self._show_reauth_form(
+                'reauth_verify',
+                schema,
+                errors=errors,
+                placeholders=placeholders,
+            )
+        expected = self._reauth.entry.data.get('user_id')
+        if str(getattr(candidate, 'user_id', None)) != str(expected):
+            self._candidate = None
+            return self.async_abort(reason='wrong_account')
+        return await self._persist_and_reload(candidate)
+
+    def _reauth_captcha_challenge(self, candidate):
+        return bool(
+            candidate
+            and candidate.attrs.get('captcha_url')
+            and candidate.attrs.get('captchaImg')
+            and candidate.attrs.get('captchaIck')
+        )
+
+    def _show_reauth_captcha(self, candidate, error_key='need_captcha'):
+        return self._show_reauth_form(
+            'reauth_captcha',
+            vol.Schema({vol.Required('captcha'): str}),
+            errors={'base': error_key} if error_key else {},
+            placeholders={
+                'captcha_image': candidate.attrs.get('captchaImg') or '',
+            },
+        )
+
+    async def async_step_reauth_captcha(self, user_input=None):
+        candidate = self._candidate
+        if user_input is None:
+            return self._show_reauth_captcha(candidate, error_key='')
+        captcha = (user_input.get('captcha') or '').strip()
+        if not captcha:
+            return self._show_reauth_captcha(candidate)
+        try:
+            ok = await candidate.async_login_attempt({'captcha': captcha})
+        except requests.exceptions.ConnectionError:
+            self._candidate = None
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'cannot_connect'},
+            )
+        except MiCloudAuthenticationError:
+            if self._reauth_captcha_challenge(candidate):
+                return self._show_reauth_captcha(candidate)
+            self._candidate = None
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'invalid_auth'},
+            )
+        except MiCloudNeedVerify:
+            return await self.async_step_reauth_verify()
+        except Exception:
+            if self._reauth_captcha_challenge(candidate):
+                return self._show_reauth_captcha(candidate)
+            self._candidate = None
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'unknown'},
+            )
+        if not ok:
+            if self._reauth_captcha_challenge(candidate):
+                return self._show_reauth_captcha(candidate)
+            self._candidate = None
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'invalid_auth'},
+            )
+        expected = self._reauth.entry.data.get('user_id')
+        if str(getattr(candidate, 'user_id', None)) != str(expected):
+            self._candidate = None
+            return self.async_abort(reason='wrong_account')
+        return await self._persist_and_reload(candidate)
+
+    def _invalidate_session_for(self, candidate):
+        sessions = (self.hass.data.get(DOMAIN) or {}).get('sessions') or {}
+        for key, cloud in dict(sessions).items():
+            if cloud is candidate:
+                continue
+            if (
+                    getattr(cloud, 'user_id', None) == candidate.user_id
+                    and getattr(cloud, 'default_server', None) == candidate.default_server
+                    and getattr(cloud, 'sid', None) == candidate.sid
+            ):
+                sessions.pop(key, None)
+
+    async def _persist_and_reload(self, candidate):
+        try:
+            await candidate.async_stored_auth(save=True)
+        except Exception:
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'save_failed'},
+            )
+
+        self._invalidate_session_for(candidate)
+        entry = self._reauth.entry
+        new_data = dict(entry.data)
+        new_data[CONF_PASSWORD] = candidate.password
+        if self._reauth.sid == CloudSid.XIAOMIIO:
+            new_data['service_token'] = candidate.service_token
+            new_data['ssecurity'] = candidate.ssecurity
+            new_data['device_id'] = candidate.client_id
+            new_data['user_id'] = candidate.user_id
+
+        changed = new_data != dict(entry.data)
+        try:
+            if changed:
+                self.hass.config_entries.async_update_entry(entry, data=new_data)
+            if not getattr(entry, 'update_listeners', ()):
+                self.hass.config_entries.async_schedule_reload(entry.entry_id)
+        except Exception:
+            return self._show_reauth_form(
+                'reauth_password',
+                vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'save_failed'},
+            )
+
+        self._candidate = None
+        return self.async_abort(reason='reauth_successful')
+
+    @callback
+    def async_remove(self) -> None:
+        candidate = getattr(self, '_candidate', None)
+        if candidate is not None:
+            candidate.attrs.pop('login_data', None)
+            candidate.attrs.pop('verify_url', None)
+            candidate.attrs.pop('identity_session', None)
+            candidate.attrs.pop('captcha_url', None)
+            candidate.attrs.pop('captchaImg', None)
+            candidate.attrs.pop('captchaIck', None)
+            candidate.password = None
+            self._candidate = None
+        super().async_remove()
 
     async def async_step_customizing(self, user_input=None):
         tip = ''
@@ -636,7 +992,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
     def __init__(self, config_entry: config_entries.ConfigEntry):
         if HA_VERSION < '2024.12':
             self.config_entry = config_entry
-        self.micoapi_cloud: Optional[MiotCloud] = None
 
     @property
     def saved_config(self):
@@ -714,12 +1069,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                 **prev_input,
                 **user_input,
             }
-            if user_input.pop('micoapi_verify', False):
-                user_input.pop('renew_devices', None)
-                user_input.pop('verify_ticket', None)
-                user_input.pop('captcha', None)
-                self.config_data.update(user_input)
-                return await self.async_step_micoapi()
             renew = not not user_input.pop('renew_devices', False)
             await self.check_xiaomi_account(user_input, errors, renew_devices=renew)
             if not errors:
@@ -750,7 +1099,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             vol.Optional('trans_options', default=user_input.get('trans_options', False)): bool,
             vol.Optional('disable_message', default=user_input.get('disable_message', False)): bool,
             vol.Optional('disable_scene_history', default=user_input.get('disable_scene_history', False)): bool,
-            vol.Optional('micoapi_verify', default=False): bool,
         })
         return self.async_show_form(
             step_id='cloud',
@@ -758,100 +1106,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             errors=errors,
             description_placeholders=self.pop_placeholders(),
         )
-
-    async def async_step_micoapi(self, user_input=None):
-        errors = {}
-        cfg = {
-            **self.config_data,
-            'sid': 'micoapi',
-            'service_token': None,
-            'ssecurity': None,
-        }
-        try:
-            if not self.micoapi_cloud:
-                self.micoapi_cloud = await MiotCloud.from_token(self.hass, cfg, login=False)
-                self.micoapi_cloud.login_times = 0
-            if not isinstance(user_input, dict):
-                self.context.pop('need_verify', None)
-                self.context.pop('verify_url', None)
-                self.micoapi_cloud.service_token = None
-                self.micoapi_cloud.ssecurity = None
-                self.micoapi_cloud.async_session = None
-                self.micoapi_cloud.attrs.pop('verify_url', None)
-                self.micoapi_cloud.attrs.pop('identity_session', None)
-            if isinstance(user_input, dict) and self.context.get('need_verify'):
-                ticket = (user_input.get('verify_ticket') or '').strip()
-                if not ticket:
-                    errors['base'] = 'need_verify'
-                else:
-                    try:
-                        await self.micoapi_cloud.async_login({'verify_ticket': ticket})
-                    except MiCloudAccessDenied as exc:
-                        if not self.is_micoapi_sts_unauthorized(exc):
-                            raise
-                        _LOGGER.warning(
-                            'Xiaomi micoapi STS returned 401 after verification; retrying login once.'
-                        )
-                        await asyncio.sleep(3)
-                        self.micoapi_cloud.service_token = None
-                        self.micoapi_cloud.ssecurity = None
-                        self.micoapi_cloud.async_session = None
-                        self.micoapi_cloud.attrs.pop('identity_session', None)
-                        self.micoapi_cloud.attrs.pop('verify_url', None)
-                        await self.micoapi_cloud.async_login()
-                    return self._finish_micoapi()
-            elif await self.micoapi_cloud.async_login():
-                return self._finish_micoapi()
-            else:
-                errors['base'] = 'cannot_login'
-        except (MiCloudException, MiCloudAccessDenied, Exception) as exc:
-            err = f'{exc}'
-            self.placeholders['tip'] = f'⚠️ {err}'
-            errors['base'] = 'cannot_login'
-            if isinstance(exc, MiCloudNeedVerify):
-                errors['base'] = exc.message
-                self.context[exc.message] = True
-                self.context['verify_url'] = exc.url
-                self.placeholders.update({
-                    'url': exc.url,
-                    'tip': (
-                        f'[打开 micoapi 验证网页 | Open micoapi verification page]({exc.url})\n\n'
-                        '在网页里发送手机/邮箱验证码，收到后不要在网页提交，回到这里填写验证码。'
-                    ),
-                })
-            elif isinstance(exc, requests.exceptions.ConnectionError):
-                errors['base'] = 'cannot_reach'
-            if isinstance(exc, MiCloudNeedVerify):
-                _LOGGER.info('Setup xiaomi micoapi for entry: %s needs verification.', self.config_entry.entry_id)
-            else:
-                _LOGGER.error('Setup xiaomi micoapi for entry: %s failed.', self.config_entry.entry_id, exc_info=True)
-
-        schema = {}
-        if self.context.get('need_verify'):
-            if url := self.context.get('verify_url'):
-                self.placeholders.setdefault('url', url)
-                self.placeholders.setdefault('tip', (
-                    f'[打开 micoapi 验证网页 | Open micoapi verification page]({url})\n\n'
-                    '在网页里发送手机/邮箱验证码，收到后不要在网页提交，回到这里填写验证码。'
-                ))
-            schema.update({
-                vol.Required('verify_ticket', default=''): str,
-            })
-        return self.async_show_form(
-            step_id='micoapi',
-            data_schema=vol.Schema(schema),
-            errors=errors,
-            description_placeholders=self.pop_placeholders(),
-        )
-
-    def _finish_micoapi(self):
-        self.config_data.pop('micoapi_verify', None)
-        self.config_data.pop('renew_devices', None)
-        self.config_data.pop('verify_ticket', None)
-        self.config_data.pop('captcha', None)
-        self.hass.config_entries.async_update_entry(self.config_entry, data=self.config_data)
-        self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
-        return self.async_create_entry(title='', data={})
 
     async def async_step_cloud_filter(self, user_input=None):
         errors = {}
