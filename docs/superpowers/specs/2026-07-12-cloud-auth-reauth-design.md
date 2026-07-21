@@ -301,6 +301,8 @@ A successful login whose `user_id` differs from the ConfigEntry's stored `user_i
 
 `async_step_reauth_verify` submits the required `verify_ticket` to the same private candidate through `async_login_attempt(login_data={"verify_ticket": ticket})`. Empty input or `MiCloudVerificationError` remains on `reauth_verify` with `need_verify` and keeps the candidate's current verification challenge. A `MiCloudAuthenticationError` raised only after Xiaomi accepted the ticket and later rejected the account credentials clears the candidate and returns to `reauth_password` with `invalid_auth`. Connection or timeout failures remain on the verification form with `cannot_connect`; protocol, broad `MiCloudAccessDenied`, and unknown failures remain with `unknown`. No mapping exposes exception text.
 
+After `verify_ticket()` returns a non-empty `location`, the login attempt follows that redirect chain with `response=True` before deciding whether another password-login round is needed. If the redirect chain already completes login and sets `serviceToken`, the attempt succeeds immediately. Otherwise the integration inspects only the outer redirect response URL: if that URL's path is under `/fe/` and its own query contains a non-empty `skipUrl`, the integration follows that `skipUrl` once with redirects enabled and accepts the resulting `serviceToken` if present. It does not parse HTML or script bodies for `skipUrl`, and it does not infer behavior from nested business-specific parameters such as `bizType`. Only when neither response yields a completed login does the flow continue with the existing `_login_step1()` plus `_login_step3()` path.
+
 For micoapi only, reauth retains the legacy Options Flow's STS-401-after-verification workaround as a strict one-time retry inside `reauth_verify`:
 
 1. Only `MiCloudStsUnauthorized` raised by the same candidate triggers the retry. No exception message parsing, status code string match, or response text inspection is used.
@@ -424,7 +426,7 @@ No new persistent-notification system is added. Native Home Assistant reauth is 
 - The verification URL may appear only on the verification form.
 - The captcha image may appear only on the captcha form.
 - Reauth errors use fixed translation keys and never expose Xiaomi exception text.
-- Every reauth form explicitly provides a fixed translated `name`; no reauth form exposes the ConfigEntry title, username, Xiaomi user ID, or region.
+- Every reauth form explicitly provides a fixed translated `tip`; no reauth form exposes the ConfigEntry title, username, Xiaomi user ID, or region.
 - Every ConfigEntry runtime cloud remains owned by its `HassEntry`; it never enters the global session or account registries. The xiaomiio per-entry runtime configuration may hold only the same-object compatibility alias described above, which never participates in cloud selection or reuse.
 - Tests use fake credentials and transports and never contact Xiaomi.
 

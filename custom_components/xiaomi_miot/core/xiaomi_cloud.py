@@ -605,7 +605,13 @@ class MiotCloud(micloud.MiCloud):
             location = resp.get('location', '')
             if not location:
                 raise MiCloudAuthenticationError('Xiaomi verify did not return location')
-            self.account_get(location, allow_redirects=True)
+            response = self.account_get(location, allow_redirects=True, response=True)
+            if self._finalize_login_response(response):
+                return True
+            if skip_url := self._extract_confirm_phone_skip_url(response):
+                response = self.account_get(skip_url, allow_redirects=True, response=True)
+                if self._finalize_login_response(response):
+                    return True
             auth = self._login_step1()
             location = auth.get('location', '')
         elif auth:
@@ -736,6 +742,31 @@ class MiotCloud(micloud.MiCloud):
 
     def _absolutize(self, url: str) -> str:
         return url if url[:4] == 'http' else f'{ACCOUNT_BASE}{url}'
+
+    def _finalize_login_response(self, response):
+        if not response:
+            return False
+        cookies = response.cookies
+        service_token = cookies.get('serviceToken')
+        if not service_token:
+            return False
+        self.service_token = service_token
+        self.user_id = cookies.get('userId', self.user_id)
+        self.cuser_id = cookies.get('cUserId', self.cuser_id)
+        self.async_session = None
+        return True
+
+    def _extract_confirm_phone_skip_url(self, response):
+        if not response:
+            return None
+        url = str(getattr(response, 'url', '') or '')
+        parsed = parse.urlparse(url)
+        if not parsed.path.startswith('/fe/'):
+            return None
+        query = parse.parse_qs(parsed.query)
+        if skip_url := (query.get('skipUrl') or [None])[0]:
+            return self._absolutize(skip_url)
+        return None
 
     _STS_HOST = 'api2.mina.mi.com'
 
