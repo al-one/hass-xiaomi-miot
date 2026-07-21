@@ -33,6 +33,7 @@ class HassEntry:
 
         self.p2p_cache = get_capability_cache(hass)
         self.p2p_server = hass.data[DOMAIN]["p2p_media_server"]
+        self.p2p_port_allocator = hass.data[DOMAIN]["p2p_port_allocator"]
         self.p2p_manager = None
         self._p2p_ensure_lock = asyncio.Lock()
         self._p2p_server_acquired = False
@@ -127,6 +128,8 @@ class HassEntry:
         )
 
     def track_bridge_close_task(self, task: asyncio.Task[Any]) -> None:
+        # Bridges now self-track via close_future; this is a no-op kept
+        # for backwards compatibility with callers that still wire it.
         self._p2p_bridge_close_tasks.add(task)
 
     def untrack_bridge_close_task(self, task: asyncio.Task[Any]) -> None:

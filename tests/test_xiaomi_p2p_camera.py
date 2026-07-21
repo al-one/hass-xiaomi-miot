@@ -116,6 +116,9 @@ def _make_p2p_camera(
         p2p_cache=MagicMock(),
         p2p_manager=manager if eligible else None,
         p2p_server=server,
+        p2p_port_allocator=MagicMock(name="p2p_port_allocator"),
+        _p2p_bridge_close_tasks=set(),
+        async_ensure_p2p=AsyncMock(name="async_ensure_p2p", return_value=manager if eligible else None),
     )
     info = SimpleNamespace(
         did="device-did",
@@ -323,6 +326,49 @@ async def test_p2p_keep_streaming_creates_no_lease(p2p_camera):
     # provider refresh.
     await p2p_camera.async_refresh_providers()
     p2p_camera.device.entry.p2p_manager.acquire.assert_not_awaited()
+
+
+async def test_p2p_handler_returns_bridge_with_run_and_close_future(hass):
+    """The route handler must hand the server a bridge, not a raw lease.
+
+    The loopback server invokes ``bridge.run(request)`` and awaits
+    ``bridge.close_future``. Returning the ``SessionLease`` directly
+    bypasses MediaBridge entirely and would surface as a 502 on every
+    GET once a frontend asks for the stream.
+    """
+    camera, _saved, _server = _make_p2p_camera(hass, eligible=True)
+
+    from custom_components.xiaomi_miot.core.xiaomi_p2p.rtp import MediaContract
+
+    contract = MediaContract(
+        video_codec=4,
+        audio_codec=1027,
+        video_sps=b"\x67\x64",
+        video_pps=b"\x68\xee",
+        vps=None,
+        width=1920,
+        height=1080,
+        fps=20,
+        sample_rate=8000,
+        channels=1,
+    )
+    lease = SimpleNamespace(
+        contract=contract,
+        contract_changed=asyncio.Event(),
+        next_frame=AsyncMock(),
+        release=AsyncMock(),
+    )
+    camera.device.entry.p2p_manager.acquire = AsyncMock(return_value=lease)
+
+    bridge = await camera._handle_p2p_request(SimpleNamespace())
+
+    assert bridge is not lease
+    assert callable(getattr(bridge, "run", None))
+    # ``close_future`` is the shielded future the server awaits before
+    # sending EOF; without it the response never gets a clean close.
+    assert hasattr(bridge, "close_future")
+    # The bridge must own the lease so MediaBridge can release it on close.
+    bridge._session_lease is lease
 
 
 # ---------------------------------------------------------------------------

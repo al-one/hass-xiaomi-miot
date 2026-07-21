@@ -326,26 +326,56 @@ class CameraEntity(XEntity, BaseCameraEntity):
 
         Validation of the route token and 503 throttling happens inside
         the loopback server's ``_handle_get``; by the time we get here
-        the request is authorized. Lease acquisition is performed on
-        demand so the entry's idle timer can release unused resources.
+        the request is authorized. The handler must return a bridge
+        object (``MediaBridge``) that exposes ``run(request)`` and
+        ``close_future`` so the server can drive FFmpeg and clean up
+        the session lease on close.
         """
         device = self.device
         entry = getattr(device, "entry", None)
         manager = await entry.async_ensure_p2p() if entry is not None else None
         if manager is None:
             raise RuntimeError("p2p_manager_unavailable")
-        # The manager returns a SessionLease; a future bridge layer will
-        # consume the lease to drive FFmpeg. The handler returns the
-        # lease object so the server's ``_run_bridge`` path can attach it.
-        from datetime import timedelta
-
         deadline = asyncio.get_event_loop().time() + 24.0
         key = self._p2p_lease_key()
         lease = await manager.acquire(key, deadline)
-        entry._p2p_bridge_close_tasks.add(
-            asyncio.create_task(self._track_p2p_bridge(lease, key))
+        return self._build_p2p_bridge(lease, entry)
+
+    def _build_p2p_bridge(self, lease, entry):
+        from .core.xiaomi_p2p.bridge import MediaBridge
+        from .core.xiaomi_p2p.rtp import build_sdp
+
+        contract = lease.contract
+        audio_codec = getattr(contract, "audio_codec", None)
+        sample_rate = getattr(contract, "sample_rate", 0) or 0
+        track_count = 1
+        if audio_codec is not None and sample_rate:
+            track_count = 2
+
+        def sdp_for(pairs):
+            ports = {"video": pairs[0]}
+            if track_count > 1:
+                ports["audio"] = pairs[1]
+            return build_sdp(
+                contract,
+                ports,
+                {
+                    "vps": getattr(contract, "vps", None),
+                    "sps": getattr(contract, "video_sps", None),
+                    "pps": getattr(contract, "video_pps", None),
+                },
+            )
+
+        manager = getattr(self._manager, "binary", None)
+        if not manager:
+            manager = "ffmpeg"
+        return MediaBridge(
+            ffmpeg_binary=manager,
+            sdp=sdp_for,
+            port_allocator=entry.p2p_port_allocator,
+            session_lease=lease,
+            track_count=track_count,
         )
-        return lease
 
     def _p2p_lease_key(self):
         from .core.xiaomi_p2p.manager import LeaseKey
@@ -368,12 +398,6 @@ class CameraEntity(XEntity, BaseCameraEntity):
             transport=getattr(profile, "transport", "auto"),
             request_audio=getattr(profile, "request_audio", True),
         )
-
-    async def _track_p2p_bridge(self, lease, key) -> None:
-        try:
-            await lease
-        except BaseException:
-            pass
 
     async def async_will_remove_from_hass(self) -> None:
         # Remove the route mapping without touching sibling routes or
