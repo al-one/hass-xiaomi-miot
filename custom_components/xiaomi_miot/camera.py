@@ -1,5 +1,6 @@
 """Support for Xiaomi cameras."""
 import logging
+import asyncio
 import json
 import time
 import locale
@@ -316,6 +317,7 @@ class CameraEntity(XEntity, BaseCameraEntity):
         except Exception:  # noqa: BLE001 - server not started yet
             return
         self._p2p_route = route
+        self._attr_available = True
 
     async def _handle_p2p_request(self, request):
         """Acquire a manager lease and return a bridge for the route.

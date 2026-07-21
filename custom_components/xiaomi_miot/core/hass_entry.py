@@ -8,6 +8,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import SUPPORTED_DOMAINS
 from .xiaomi_cloud import REAUTH_SIDS, CloudSid, MiotCloud
+from .xiaomi_p2p.cloud import get_capability_cache
 
 if TYPE_CHECKING:
     from .device import Device
@@ -30,7 +31,6 @@ class HassEntry:
         self.clouds: dict[CloudSid, Optional[MiotCloud]] = {}
         self._cloud_lock = asyncio.Lock()
 
-        from .xiaomi_p2p.cloud import get_capability_cache
         self.p2p_cache = get_capability_cache(hass)
         self.p2p_manager = None
         self._p2p_ensure_lock = asyncio.Lock()
