@@ -3,23 +3,69 @@ name: Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to rebuild
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
 
 jobs:
   release-zip:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      ASSET_PATH: ${{ runner.temp }}/xiaomi_miot.zip
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: ZIP Component Dir
-        run: |
-          cd ${{ github.workspace }}/custom_components/xiaomi_miot
-          zip -r xiaomi_miot.zip ./
-
-      - name: Upload zip to release
-        uses: svenstaro/upload-release-action@v2
+      - name: Checkout the released tag
+        uses: actions/checkout@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/custom_components/xiaomi_miot/xiaomi_miot.zip
-          asset_name: xiaomi_miot.zip
-          tag: ${{ github.ref }}
-          overwrite: true
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+          persist-credentials: false
+
+      - name: Validate release version
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest_version="$(
+            python3 -c \
+              'import json; print(json.load(open("custom_components/xiaomi_miot/manifest.json"))["version"])'
+          )"
+          if [[ "${RELEASE_TAG}" != "v${manifest_version}" ]]; then
+            echo "::error::Release tag ${RELEASE_TAG} does not match manifest version ${manifest_version}"
+            exit 1
+          fi
+
+      - name: Build and verify release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git archive \
+            --format=zip \
+            --output="${ASSET_PATH}" \
+            HEAD:custom_components/xiaomi_miot
+          unzip -t "${ASSET_PATH}"
+          (
+            cd "$(dirname "${ASSET_PATH}")"
+            sha256sum "$(basename "${ASSET_PATH}")" \
+              > "$(basename "${ASSET_PATH}").sha256"
+          )
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release upload "${RELEASE_TAG}" \
+            "${ASSET_PATH}" \
+            "${ASSET_PATH}.sha256" \
+            --clobber \
+            --repo "${GITHUB_REPOSITORY}"
