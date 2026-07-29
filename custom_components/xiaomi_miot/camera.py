@@ -50,6 +50,10 @@ SCAN_INTERVAL = timedelta(seconds=60)
 
 SERVICE_TO_METHOD = {}
 
+DUAL_CAMERA_DOORBELL_MODEL = 'midr.cateye.sd400'
+MAIN_CAMERA_CHANNEL = '0'
+LOWER_CAMERA_CHANNEL = '10'
+
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
@@ -205,7 +209,24 @@ class BaseCameraEntity(Camera):
             self.log.warning('Camera alarm playlist is empty. %s', rdt)
         return adt
 
-    async def get_alarm_eventlist(self, begin, ended=None, doorbell=False, limit=2):
+    @staticmethod
+    def _alarm_event_attributes(event):
+        event = dict(event or {})
+        tim = event.pop('createTime', 0) / 1000
+        return {
+            'motion_video_time': f'{datetime.fromtimestamp(tim)}',
+            'motion_video_type': event.get('eventType'),
+            'motion_video_latest': event,
+        }
+
+    async def get_alarm_eventlist(
+            self,
+            begin,
+            ended=None,
+            doorbell=False,
+            limit=2,
+            include_channels=False,
+    ):
         cloud = self.device.cloud
         if not cloud:
             return None
@@ -227,13 +248,15 @@ class BaseCameraEntity(Camera):
         rls = rdt.get('data', {}).get('thirdPartPlayUnits') or []
         adt = {}
         if rls:
-            fst = rls[0] or {}
-            tim = fst.pop('createTime', 0) / 1000
-            adt = {
-                'motion_video_time': f'{datetime.fromtimestamp(tim)}',
-                'motion_video_type': fst.get('eventType'),
-                'motion_video_latest': fst,
-            }
+            adt = self._alarm_event_attributes(rls[0])
+            if include_channels:
+                channels = {}
+                for event in rls:
+                    event = event or {}
+                    channel = str(event.get('channel', ''))
+                    if channel and channel not in channels:
+                        channels[channel] = self._alarm_event_attributes(event)
+                adt['_motion_video_channels'] = channels
         else:
             self.log.info('Camera events is empty. %s', rdt)
         return adt
@@ -284,11 +307,26 @@ class CameraEntity(XEntity, BaseCameraEntity):
         BaseCameraEntity.__init__(self, self.hass)
         self._attr_brand = self.device_info.get('manufacturer')
         self._attr_model = self.device_info.get('model')
+        self._main_camera_entity = None
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        if self.model == DUAL_CAMERA_DOORBELL_MODEL:
+            self._ensure_main_camera_entity()
         if self._attr_should_poll:
             await self.async_update_ha_state(True)
+
+    def _ensure_main_camera_entity(self):
+        adder = self.device.entry.adders.get(ENTITY_DOMAIN)
+        if not self._main_camera_entity and adder:
+            self._main_camera_entity = DoorbellChannelCameraEntity(
+                self,
+                self.hass,
+                MAIN_CAMERA_CHANNEL,
+                'main_camera',
+            )
+            adder([self._main_camera_entity], update_before_add=False)
+        return self._main_camera_entity
 
     def get_state(self) -> dict:
         return {}
@@ -331,9 +369,23 @@ class CameraEntity(XEntity, BaseCameraEntity):
             await self.device.update_miio_cloud_records()
         elif self.custom_config_bool('use_alarm_playlist'):
             adt = await self.get_alarm_playlist(stm)
+        elif self.model == DUAL_CAMERA_DOORBELL_MODEL:
+            adt = await self.get_alarm_eventlist(
+                stm,
+                None,
+                self.is_doorbell,
+                limit=10,
+                include_channels=True,
+            )
         else:
             adt = await self.get_alarm_eventlist(stm, None, self.is_doorbell)
         if adt:
+            channels = adt.pop('_motion_video_channels', {})
+            if channels:
+                adt = channels.get(LOWER_CAMERA_CHANNEL) or adt
+                entity = self._ensure_main_camera_entity()
+                if entity:
+                    entity.update_event(channels.get(MAIN_CAMERA_CHANNEL))
             self.log.debug('Camera alarm data: %s', adt)
             self._attr_available = True
             self.update_motion_video(adt)
@@ -703,3 +755,44 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
     async def image_source(self, **kwargs):
         kwargs['crypto'] = True
         return self._parent.get_motion_image_address(**kwargs)
+
+
+class DoorbellChannelCameraEntity(BaseSubEntity, BaseCameraEntity):
+    _attr_should_poll = False
+
+    def __init__(self, parent, hass, channel, attr):
+        super().__init__(
+            parent,
+            attr,
+            {'name': 'Main camera'},
+            domain=ENTITY_DOMAIN,
+        )
+        BaseCameraEntity.__init__(self, hass)
+        self._channel = str(channel)
+        self._event_data = {}
+
+    def update_event(self, data):
+        self._event_data = data or {}
+        self._available = bool(self._event_data)
+        self.update_attrs({
+            'camera_channel': self._channel,
+            'motion_video_time': self._event_data.get('motion_video_time'),
+            'motion_video_type': self._event_data.get('motion_video_type'),
+        }, update_parent=False)
+
+    @property
+    def motion_data(self):
+        return self._event_data.get('motion_video_latest') or {}
+
+    async def stream_source(self, **kwargs):
+        return self._parent.get_alarm_m3u8_url(
+            self.motion_data.get('fileId'),
+            self.motion_data.get('isAlarm'),
+        )
+
+    async def image_source(self, **kwargs):
+        return self._parent.get_alarm_image_address(
+            self.motion_data.get('fileId'),
+            self.motion_data.get('imgStoreId'),
+            True,
+        )
