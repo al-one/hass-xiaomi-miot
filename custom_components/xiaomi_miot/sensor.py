@@ -2,6 +2,7 @@
 import logging
 import time
 import json
+import re
 from typing import cast
 from datetime import datetime, timedelta
 from functools import cmp_to_key, cached_property
@@ -39,6 +40,18 @@ _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
 SERVICE_TO_METHOD = {}
+POWER_COST_PATTERN = re.compile(
+    r'(?:^|\.)(power_cost_(today|month)(?:_\d+)?)$'
+)
+
+
+def power_cost_period(attribute: str, timestamp: datetime) -> str | None:
+    """Return the local reset period for a power cost attribute."""
+    if match := POWER_COST_PATTERN.search(attribute):
+        return timestamp.strftime(
+            '%Y-%m-%d' if match.group(2) == 'today' else '%Y-%m'
+        )
+    return None
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -130,6 +143,26 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
     def get_state(self) -> dict:
         return {self.attr: self._attr_native_value}
 
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if not POWER_COST_PATTERN.search(self.attr):
+            return
+        self._power_cost_period = None
+        restored = await self.async_get_last_state()
+        if not restored:
+            return
+        try:
+            float(restored.state)
+        except (TypeError, ValueError):
+            return
+        restored_at = restored.last_updated.astimezone(
+            local_zone(self.hass)
+        )
+        self._power_cost_period = power_cost_period(
+            self.attr,
+            restored_at,
+        )
+
     def set_state(self, data: dict):
         value = self.conv.value_from_dict(data)
         prop = self._miot_property
@@ -144,8 +177,31 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                     value = round(float(value), 3)
             except (TypeError, ValueError):
                 value = None
+            period = power_cost_period(
+                self.attr,
+                datetime.now(local_zone(self.hass)),
+            )
+            if period and value is None:
+                return
             if self.device_class == SensorDeviceClass.TIMESTAMP:
                 value = datetime_with_tzinfo(value)
+            previous = getattr(self, '_attr_native_value', None)
+            if (
+                period
+                and getattr(self, '_power_cost_period', None) == period
+                and previous is not None
+                and value < previous
+            ):
+                self.log.warning(
+                    'Ignore decreasing power cost in the same period: '
+                    '%s: %s -> %s',
+                    self.attr,
+                    previous,
+                    value,
+                )
+                return
+            if period:
+                self._power_cost_period = period
             self._attr_native_value = value
 
     @cached_property
