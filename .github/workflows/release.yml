@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      ASSET_PATH: ${{ runner.temp }}/xiaomi_miot.zip
+      ASSET_PATH: ${{ github.workspace }}/xiaomi_miot.zip
       RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
     steps:
       - name: Checkout the released tag
