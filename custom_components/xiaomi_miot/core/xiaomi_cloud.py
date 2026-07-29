@@ -62,6 +62,7 @@ _LOGGER.addFilter(logger_filter)
 
 ACCOUNT_BASE = 'https://account.xiaomi.com'
 UA = "Android-7.1.1-1.0.0-ONEPLUS A3010-136-%s APP/xiaomi.smarthome APPV/62830"
+MANUAL_SCENE_API = 'appgateway/miot/appsceneservice/AppSceneService'
 
 
 class MiotCloud(micloud.MiCloud):
@@ -545,6 +546,66 @@ class MiotCloud(micloud.MiCloud):
     async def async_get_homerooms(self, renew=False):
         dat = await self.async_get_devices(renew=renew, return_all=True) or {}
         return dat.get('homes') or []
+
+    async def _async_request_manual_scene_api(self, method, data):
+        api = f'{MANUAL_SCENE_API}/{method}'
+        rdt = await self.async_request_api(api, data, debug=False, timeout=20) or {}
+        if self.is_token_expired(rdt):
+            if await self.async_check_auth(notify=True):
+                rdt = await self.async_request_api(api, data, debug=False, timeout=20) or {}
+        if rdt.get('code') or 'result' not in rdt:
+            raise MiCloudException(
+                f'Xiaomi manual scene request failed: '
+                f'{rdt.get("code")}, {rdt.get("message") or "invalid response"}'
+            )
+        return rdt['result']
+
+    async def async_get_manual_scenes(self):
+        scenes = []
+        for home in await self.async_get_homerooms():
+            home_id = home.get('id')
+            owner_uid = home.get('uid') or self.user_id
+            if not home_id or not owner_uid:
+                continue
+            result = await self._async_request_manual_scene_api(
+                'GetManualSceneList',
+                {
+                    'home_id': str(home_id),
+                    'owner_uid': str(owner_uid),
+                    'source': 'zkp',
+                    'get_type': 2,
+                },
+            )
+            if not isinstance(result, list):
+                raise MiCloudException('Xiaomi manual scene list is invalid')
+            for scene in result:
+                if not isinstance(scene, dict):
+                    continue
+                scene_id = scene.get('scene_id')
+                scene_name = scene.get('scene_name')
+                if scene_id is None or not scene_name:
+                    continue
+                scenes.append({
+                    **scene,
+                    'scene_id': str(scene_id),
+                    'home_id': str(home_id),
+                    'home_name': home.get('name') or '',
+                    'owner_uid': str(owner_uid),
+                })
+        return scenes
+
+    async def async_run_manual_scene(self, scene):
+        data = {
+            'owner_uid': scene['owner_uid'],
+            'scene_id': scene['scene_id'],
+            'scene_type': 2,
+        }
+        if home_id := scene.get('home_id'):
+            data['home_id'] = home_id
+        if room_id := scene.get('room_id'):
+            data['room_id'] = room_id
+        result = await self._async_request_manual_scene_api('NewRunScene', data)
+        return bool(result)
 
     async def async_get_beaconkey(self, did):
         dat = {'did': did, 'pdid': 1}
