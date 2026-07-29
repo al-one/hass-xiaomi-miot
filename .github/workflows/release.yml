@@ -47,8 +47,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          archive_mtime="$(git show -s --format=%ct HEAD)"
           git archive \
             --format=zip \
+            --mtime="@${archive_mtime}" \
             --output="${ASSET_PATH}" \
             HEAD:custom_components/xiaomi_miot
           unzip -t "${ASSET_PATH}"
