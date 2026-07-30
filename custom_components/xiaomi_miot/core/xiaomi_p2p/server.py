@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import hmac
+import logging
 import secrets
 import socket
 from collections.abc import Awaitable, Callable
@@ -14,6 +15,8 @@ from typing import Any
 from aiohttp import web
 
 from . import MissError
+
+_LOGGER = logging.getLogger(__name__)
 
 
 RouteHandler = Callable[[web.Request], Awaitable[Any]]
@@ -231,8 +234,10 @@ class LoopbackMediaServer:
         self._routes.pop(route_id, None)
 
     async def _handle_get(self, request: web.Request) -> web.StreamResponse:
+        _LOGGER.debug('=== LoopbackMediaServer _handle_get route_id=%s query=%s', request.match_info["route_id"], dict(request.query))
         mapping = self._routes.get(request.match_info["route_id"])
         if mapping is None:
+            _LOGGER.debug('=== LoopbackMediaServer route NOT FOUND')
             return web.Response(status=404)
         supplied_token = request.query.get("auth")
         try:
@@ -251,6 +256,7 @@ class LoopbackMediaServer:
         try:
             target = await mapping.handler(request)
         except MissError as err:
+            _LOGGER.debug('=== LoopbackMediaServer handler raised MissError category=%s detail=%s', err.category.value, err.detail)
             if err.detail == "active_source_limit":
                 return web.Response(
                     status=503,
