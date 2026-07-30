@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import collections
 import json
+import logging
 import random
 import secrets
 from dataclasses import dataclass, field
@@ -38,6 +39,8 @@ from .cs2.protocol import (
 )
 from .crypto import derive_shared_key, miss_decode, miss_encode
 from .media import MediaProbe
+
+_LOGGER = logging.getLogger(__name__)
 
 
 # ---- Protocol constants ------------------------------------------------
