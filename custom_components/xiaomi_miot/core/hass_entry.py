@@ -252,6 +252,8 @@ class HassEntry:
         *,
         login: bool = False,
     ) -> Optional[MiotCloud]:
+        if not self.entry.data.get(CONF_USERNAME):
+            return None
         if isinstance(sid, str):
             sid = CloudSid(sid)
         if sid in self.clouds:
