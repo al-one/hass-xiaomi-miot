@@ -231,6 +231,7 @@ class LoopbackMediaServer:
         path = self.ROUTE_PATH.format(route_id=route_id)
         url = f"http://127.0.0.1:{self._port}{path}?auth={auth_token}"
         self._routes[route_id] = _RouteMapping(handler, auth_token)
+        _LOGGER.debug('=== LoopbackMediaServer add_route returns route_id=%s url=%s', route_id, url)
         return RouteHandle(route_id, path, url)
 
     def remove_route(self, route_id: str) -> None:

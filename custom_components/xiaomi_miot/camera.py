@@ -454,8 +454,11 @@ class CameraEntity(XEntity, BaseCameraEntity):
         if self._p2p_eligible:
             route = getattr(self, "_p2p_route", None)
             if route is not None:
+                _LOGGER.debug('=== camera stream_source returning p2p url route_id=%s url=%s', route.route_id, route.url)
                 return route.url
+            _LOGGER.debug('=== camera stream_source falling back (p2p_eligible=True but no route)')
             return self._attr_stream_source
+        _LOGGER.debug('=== camera stream_source p2p_eligible=False returning _attr_stream_source=%s', self._attr_stream_source)
         return self._attr_stream_source
 
     async def async_refresh_providers(self, *, write_state: bool = True) -> None:
