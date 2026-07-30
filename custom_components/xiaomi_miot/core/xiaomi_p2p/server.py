@@ -237,6 +237,18 @@ class LoopbackMediaServer:
     def remove_route(self, route_id: str) -> None:
         self._routes.pop(route_id, None)
 
+    def is_route_valid(self, route: "RouteHandle | None") -> bool:
+        """Return True when ``route`` belongs to this server instance.
+
+        A route is valid only if its ``route_id`` is still registered
+        against this ``LoopbackMediaServer``. Routes from a previous
+        server instance (different process, port, or after release) are
+        considered stale and must be re-registered.
+        """
+        if route is None:
+            return False
+        return route.route_id in self._routes
+
     async def _handle_get(self, request: web.Request) -> web.StreamResponse:
         _LOGGER.debug('=== LoopbackMediaServer _handle_get route_id=%s query=%s', request.match_info["route_id"], dict(request.query))
         mapping = self._routes.get(request.match_info["route_id"])

@@ -415,7 +415,7 @@ class CameraEntity(XEntity, BaseCameraEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        if self._p2p_eligible and self._p2p_route is None:
+        if self._p2p_eligible:
             entry = getattr(self.device, "entry", None)
             ensure_server = getattr(entry, "async_ensure_p2p_server", None)
             server = None
@@ -426,11 +426,21 @@ class CameraEntity(XEntity, BaseCameraEntity):
                 if server is not None and hasattr(server, "acquire_entry"):
                     await server.acquire_entry()
             if server is not None:
-                try:
-                    self._p2p_route = server.add_route(self._handle_p2p_request)
-                    self._attr_available = True
-                except Exception:  # noqa: BLE001
-                    pass
+                current_route = getattr(self, "_p2p_route", None)
+                if not getattr(server, "is_route_valid", lambda r: r is not None)(current_route):
+                    if current_route is not None:
+                        try:
+                            server.remove_route(current_route.route_id)
+                        except Exception:  # noqa: BLE001
+                            pass
+                    try:
+                        self._p2p_route = server.add_route(self._handle_p2p_request)
+                        _LOGGER.debug('=== camera async_added_to_hass re-registered route_id=%s url=%s', self._p2p_route.route_id, self._p2p_route.url)
+                        self._attr_available = True
+                    except Exception:  # noqa: BLE001
+                        pass
+                else:
+                    _LOGGER.debug('=== camera async_added_to_hass kept existing route_id=%s url=%s', current_route.route_id, current_route.url)
         if self._attr_should_poll:
             await self.async_update_ha_state(True)
 
