@@ -336,8 +336,7 @@ class MiotCloud(micloud.MiCloud):
             params['data'] = self.json_encode(data)
         raise_timeout = kwargs.pop('raise_timeout', None)
         raw = kwargs.pop('raw', self.sid != 'xiaomiio')
-        rsp = None
-        request_failure_logged = False
+        rsp = err = None
         try:
             if raw:
                 rsp = await self.hass.async_add_executor_job(
@@ -359,27 +358,26 @@ class MiotCloud(micloud.MiCloud):
         except asyncio.TimeoutError as exc:
             if raise_timeout:
                 raise exc
-            rdt = None
-            request_failure_logged = True
             self.attrs.setdefault('timeouts', 0)
             self.attrs['timeouts'] += 1
             if 5 < self.attrs['timeouts'] <= 10:
                 _LOGGER.error('Request xiaomi api: %s %s timeout, exception: %s', api, data or {}, exc)
             elif self.attrs['timeouts'] <= 5:
                 _LOGGER.warning('Request xiaomi api: %s timeout (%s times)', api, self.attrs['timeouts'])
+            return None
         except asyncio.exceptions.CancelledError as exc:
-            rdt = None
-            request_failure_logged = True
             _LOGGER.warning('Request xiaomi api: %s was cancelled, likely due to timeout: %s', api, exc)
-        except (TypeError, ValueError):
+            return None
+        except (TypeError, ValueError) as exc:
             rdt = None
+            err = exc
         code = rdt.get('code') if rdt else None
         if code == 3:
             self._logout()
             _LOGGER.warning('Unauthorized while request to %s, response: %s, logged out.', api, rsp)
-        elif code or (not rdt and not request_failure_logged):
+        elif code or not rdt:
             fun = _LOGGER.info if rdt else _LOGGER.warning
-            fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp)
+            fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp, exc_info=err)
         return rdt
 
     async def async_get_device(self, mac=None, host=None):
@@ -1025,7 +1023,7 @@ class MiotCloud(micloud.MiCloud):
         timeout = kwargs.get('timeout', self.http_timeout)
         try:
             nonce = miutils.gen_nonce()
-            signed_nonce = miutils.signed_nonce(self.ssecurity, nonce)
+            signed_nonce = self.signed_nonce(nonce)
             signature = miutils.gen_signature(url.replace('/app/', '/'), signed_nonce, nonce, params)
             post_data = {
                 'signature': signature,
@@ -1111,7 +1109,7 @@ class MiotCloud(micloud.MiCloud):
         return params
 
     def signed_nonce(self, nonce):
-        return miutils.signed_nonce(self.ssecurity, nonce)
+        return miutils.signed_nonce(str(self.ssecurity), nonce)
 
     @staticmethod
     def json_encode(data):
