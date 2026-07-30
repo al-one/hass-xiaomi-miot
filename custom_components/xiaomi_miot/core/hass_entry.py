@@ -3,6 +3,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Optional
 
 from homeassistant.core import HomeAssistant
+from homeassistant.const import CONF_USERNAME
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 

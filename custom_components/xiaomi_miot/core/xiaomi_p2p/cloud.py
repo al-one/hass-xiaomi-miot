@@ -10,12 +10,14 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
+import logging
 import socket
 from time import monotonic
 from typing import Awaitable, Callable, Protocol
 
 from . import MissBootstrap, MissError, MissErrorCategory
 
+_LOGGER = logging.getLogger(__name__)
 
 INVALID_HOST_DETAIL = "lan_host_unavailable"
 
@@ -134,6 +136,7 @@ async def async_miss_get_vendor_impl(
             )
         except asyncio.TimeoutError as exc:
             raise MissError(MissErrorCategory.TIMEOUT, "request timeout") from exc
+        _LOGGER.debug('Miss get vendor: %s', [did, response])
         return response
 
     response = await _attempt(deadline)
