@@ -9,11 +9,14 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import logging
 import socket
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Literal, Optional, Protocol
 
 from .. import MissError, MissErrorCategory
+
+_LOGGER = logging.getLogger(__name__)
 from .bounds import (
     COMMAND_QUEUE_LIMIT,
     DISCOVERY_PORT,
@@ -157,6 +160,7 @@ class DefaultCs2Connector:
 
         sock = self._bind_socket(0)
         try:
+            _LOGGER.debug('=== CS2 discovery sending to %s:%s policy=%s', bootstrap.host, DISCOVERY_PORT, policy)
             await sock.sendto(
                 _build_discovery_request(policy),
                 (bootstrap.host, DISCOVERY_PORT),
@@ -169,8 +173,10 @@ class DefaultCs2Connector:
             payload, addr = await asyncio.wait_for(
                 sock.recvfrom(), timeout=DISCOVERY_TIMEOUT_SECONDS
             )
+            _LOGGER.debug('=== CS2 discovery received from %s:%s payload_len=%d', addr[0], addr[1], len(payload))
         except asyncio.TimeoutError as exc:
             sock.close()
+            _LOGGER.debug('=== CS2 discovery TIMEOUT after %ss waiting for response from %s:%s', DISCOVERY_TIMEOUT_SECONDS, bootstrap.host, DISCOVERY_PORT)
             raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
         except Exception as exc:
             sock.close()
