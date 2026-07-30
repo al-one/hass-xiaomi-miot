@@ -136,7 +136,7 @@ async def async_miss_get_vendor_impl(
             )
         except asyncio.TimeoutError as exc:
             raise MissError(MissErrorCategory.TIMEOUT, "request timeout") from exc
-        _LOGGER.debug('=== MISS get_vendor 响应: %s', [did, response])
+        _LOGGER.debug('=== MISS get_vendor response: %s', [did, response])
         return response
 
     response = await _attempt(deadline)
