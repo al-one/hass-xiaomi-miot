@@ -166,6 +166,7 @@ class LoopbackMediaServer:
             if self._entry_references:
                 self._entry_references += 1
                 return
+            _LOGGER.debug('=== LoopbackMediaServer acquire_entry START (was running=%s)', self._port)
             app = web.Application()
             app.router.add_get(self.ROUTE_PATH, self._handle_get)
             runner = web.AppRunner(app, access_log=None)
@@ -184,6 +185,7 @@ class LoopbackMediaServer:
             self._site = site
             self._port = addresses[0][1]
             self._entry_references = 1
+            _LOGGER.debug('=== LoopbackMediaServer acquire_entry DONE new port=%s', self._port)
 
     async def release_entry(self) -> None:
         async with self._lock:
@@ -218,6 +220,7 @@ class LoopbackMediaServer:
     def add_route(self, handler: RouteHandler) -> RouteHandle:
         if self._port is None:
             raise RuntimeError("loopback media server is not running")
+        _LOGGER.debug('=== LoopbackMediaServer add_route current port=%s', self._port)
         while True:
             route_id = base64.urlsafe_b64encode(
                 secrets.token_bytes(16)
