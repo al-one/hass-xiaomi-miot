@@ -14,6 +14,8 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorStateClass,
 )
+from homeassistant.core import callback
+from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.restore_state import RestoreEntity, RestoredExtraData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -147,21 +149,44 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
         await super().async_added_to_hass()
         if not POWER_COST_PATTERN.search(self.attr):
             return
-        self._power_cost_period = None
+        now = datetime.now(local_zone(self.hass))
+        current_period = power_cost_period(self.attr, now)
+        self._power_cost_period = current_period
         restored = await self.async_get_last_state()
-        if not restored:
-            return
-        try:
-            float(restored.state)
-        except (TypeError, ValueError):
-            return
-        restored_at = restored.last_updated.astimezone(
-            local_zone(self.hass)
+        if restored:
+            try:
+                float(restored.state)
+            except (TypeError, ValueError):
+                self._attr_native_value = None
+            else:
+                restored_at = restored.last_changed.astimezone(
+                    local_zone(self.hass)
+                )
+                restored_period = power_cost_period(
+                    self.attr,
+                    restored_at,
+                )
+                if restored_period != current_period:
+                    self._attr_native_value = None
+        self.async_on_remove(
+            async_track_time_change(
+                self.hass,
+                self._reset_power_cost_period,
+                hour=0,
+                minute=0,
+                second=0,
+            )
         )
-        self._power_cost_period = power_cost_period(
-            self.attr,
-            restored_at,
-        )
+
+    @callback
+    def _reset_power_cost_period(self, now: datetime):
+        """Reset accumulated power at an observed local period boundary."""
+        period = power_cost_period(self.attr, now)
+        if not period or period == self._power_cost_period:
+            return
+        self._power_cost_period = period
+        self._attr_native_value = 0
+        self.async_write_ha_state()
 
     def set_state(self, data: dict):
         value = self.conv.value_from_dict(data)
