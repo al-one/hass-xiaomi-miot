@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import math
 import locale
 import aiohttp
 import asyncio
@@ -8,6 +9,7 @@ import tzlocal
 import logging
 import fnmatch
 import voluptuous as vol
+from datetime import datetime
 from typing import Type, Tuple, Optional, Callable, Set
 from functools import wraps
 from homeassistant.core import HomeAssistant, split_entity_id  # noqa
@@ -19,6 +21,30 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN, DEVICE_CUSTOMIZES, DATA_CUSTOMIZE
 from .translation_languages import TRANSLATION_LANGUAGES
+
+POWER_COST_PATTERN = re.compile(
+    r'(?:^|\.)(power_cost_(today|month)(?:_\d+)?)$'
+)
+
+
+def power_cost_period(attribute: str, timestamp: datetime) -> str | None:
+    """Return the local reset period for a power cost attribute."""
+    if match := POWER_COST_PATTERN.search(attribute):
+        return timestamp.strftime(
+            '%Y-%m-%d' if match.group(2) == 'today' else '%Y-%m'
+        )
+    return None
+
+
+def normalize_power_cost_value(value) -> float | None:
+    """Return a finite non-negative power cost value."""
+    if isinstance(value, bool):
+        return None
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return None
+    return value if math.isfinite(value) and value >= 0 else None
 
 
 def get_value(obj, key, def_value=None, sep='.'):

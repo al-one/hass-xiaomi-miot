@@ -38,6 +38,8 @@ from .utils import (
     get_value,
     DeviceException,
     is_offline_exception,
+    normalize_power_cost_value,
+    power_cost_period,
     update_attrs_with_suffix,
 )
 from .templates import template
@@ -1214,12 +1216,44 @@ class Device(CustomConfigHelper):
                 attrs[anm] = rls
             elif isinstance(rls, dict):
                 update_attrs_with_suffix(attrs, rls)
+        attrs = self._filter_power_cost_statistics(attrs, dt.now())
         if attrs:
             self.available = True
             self.props.update(attrs)
             self.data['updated'] = dt.now()
             self.dispatch(self.decode_attrs(attrs))
         return attrs
+
+    def _filter_power_cost_statistics(self, attrs, now):
+        """Filter invalid and decreasing power cost statistics."""
+        result = dict(attrs)
+        periods = self.data.setdefault('_power_cost_periods', {})
+        for key in list(result):
+            period = power_cost_period(key, now)
+            if not period:
+                continue
+            value = normalize_power_cost_value(result[key])
+            if value is None:
+                result.pop(key)
+                continue
+            previous = normalize_power_cost_value(self.props.get(key))
+            if (
+                periods.get(key) == period
+                and previous is not None
+                and value < previous
+            ):
+                self.log.warning(
+                    'Ignore decreasing power cost in the same period: '
+                    '%s: %s -> %s, period=%s',
+                    key,
+                    previous,
+                    value,
+                    period,
+                )
+                result.pop(key)
+                continue
+            periods[key] = period
+        return result
 
     @cached_property
     def miio_cloud_records(self):

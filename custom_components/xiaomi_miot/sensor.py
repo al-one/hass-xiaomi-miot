@@ -2,7 +2,6 @@
 import logging
 import time
 import json
-import re
 from typing import cast
 from datetime import datetime, timedelta
 from functools import cmp_to_key, cached_property
@@ -36,24 +35,18 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
-from .core.utils import local_zone, get_translation
+from .core.utils import (
+    POWER_COST_PATTERN,
+    get_translation,
+    local_zone,
+    normalize_power_cost_value,
+    power_cost_period,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
 SERVICE_TO_METHOD = {}
-POWER_COST_PATTERN = re.compile(
-    r'(?:^|\.)(power_cost_(today|month)(?:_\d+)?)$'
-)
-
-
-def power_cost_period(attribute: str, timestamp: datetime) -> str | None:
-    """Return the local reset period for a power cost attribute."""
-    if match := POWER_COST_PATTERN.search(attribute):
-        return timestamp.strftime(
-            '%Y-%m-%d' if match.group(2) == 'today' else '%Y-%m'
-        )
-    return None
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -154,20 +147,18 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
         self._power_cost_period = current_period
         restored = await self.async_get_last_state()
         if restored:
-            try:
-                float(restored.state)
-            except (TypeError, ValueError):
+            restored_value = normalize_power_cost_value(restored.state)
+            restored_at = restored.last_changed.astimezone(
+                local_zone(self.hass)
+            )
+            restored_period = power_cost_period(
+                self.attr,
+                restored_at,
+            )
+            if restored_value is None or restored_period != current_period:
                 self._attr_native_value = None
             else:
-                restored_at = restored.last_changed.astimezone(
-                    local_zone(self.hass)
-                )
-                restored_period = power_cost_period(
-                    self.attr,
-                    restored_at,
-                )
-                if restored_period != current_period:
-                    self._attr_native_value = None
+                self._attr_native_value = restored_value
         self.async_on_remove(
             async_track_time_change(
                 self.hass,
@@ -206,8 +197,10 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                 self.attr,
                 datetime.now(local_zone(self.hass)),
             )
-            if period and value is None:
-                return
+            if period:
+                value = normalize_power_cost_value(value)
+                if value is None:
+                    return
             if self.device_class == SensorDeviceClass.TIMESTAMP:
                 value = datetime_with_tzinfo(value)
             previous = getattr(self, '_attr_native_value', None)
