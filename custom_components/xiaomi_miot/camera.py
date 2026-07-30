@@ -435,12 +435,12 @@ class CameraEntity(XEntity, BaseCameraEntity):
                             pass
                     try:
                         self._p2p_route = server.add_route(self._handle_p2p_request)
-                        _LOGGER.debug('=== camera async_added_to_hass re-registered route_id=%s url=%s', self._p2p_route.route_id, self._p2p_route.url)
+                        _LOGGER.debug('=== camera async_added_to_hass re-registered p2p route')
                         self._attr_available = True
                     except Exception:  # noqa: BLE001
                         pass
                 else:
-                    _LOGGER.debug('=== camera async_added_to_hass kept existing route_id=%s url=%s', current_route.route_id, current_route.url)
+                    _LOGGER.debug('=== camera async_added_to_hass kept existing p2p route')
         if self._attr_should_poll:
             await self.async_update_ha_state(True)
 
@@ -464,11 +464,11 @@ class CameraEntity(XEntity, BaseCameraEntity):
         if self._p2p_eligible:
             route = getattr(self, "_p2p_route", None)
             if route is not None:
-                _LOGGER.debug('=== camera stream_source returning p2p url route_id=%s url=%s', route.route_id, route.url)
+                _LOGGER.debug('=== camera stream_source returning p2p route')
                 return route.url
             _LOGGER.debug('=== camera stream_source falling back (p2p_eligible=True but no route)')
             return self._attr_stream_source
-        _LOGGER.debug('=== camera stream_source p2p_eligible=False returning _attr_stream_source=%s', self._attr_stream_source)
+        _LOGGER.debug('=== camera stream_source p2p_eligible=False')
         return self._attr_stream_source
 
     async def async_refresh_providers(self, *, write_state: bool = True) -> None:

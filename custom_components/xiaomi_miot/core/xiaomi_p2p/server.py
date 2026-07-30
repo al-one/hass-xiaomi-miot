@@ -231,7 +231,7 @@ class LoopbackMediaServer:
         path = self.ROUTE_PATH.format(route_id=route_id)
         url = f"http://127.0.0.1:{self._port}{path}?auth={auth_token}"
         self._routes[route_id] = _RouteMapping(handler, auth_token)
-        _LOGGER.debug('=== LoopbackMediaServer add_route returns route_id=%s url=%s', route_id, url)
+        _LOGGER.debug('=== LoopbackMediaServer add_route returns port=%s', self._port)
         return RouteHandle(route_id, path, url)
 
     def remove_route(self, route_id: str) -> None:
@@ -250,7 +250,7 @@ class LoopbackMediaServer:
         return route.route_id in self._routes
 
     async def _handle_get(self, request: web.Request) -> web.StreamResponse:
-        _LOGGER.debug('=== LoopbackMediaServer _handle_get route_id=%s query=%s', request.match_info["route_id"], dict(request.query))
+        _LOGGER.debug('=== LoopbackMediaServer _handle_get received request')
         mapping = self._routes.get(request.match_info["route_id"])
         if mapping is None:
             _LOGGER.debug('=== LoopbackMediaServer route NOT FOUND')
