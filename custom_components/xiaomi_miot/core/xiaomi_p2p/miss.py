@@ -171,6 +171,7 @@ class MissSession:
             await self._attempt_login(deadline)
             await self._send_start_media(deadline)
             self._state = "probing"
+            _LOGGER.debug('=== MISS session probing 启动 (lens=%s, deadline=%s)', self.lens, deadline)
             while self.clock.now < deadline:
                 contract = self._probe.contract
                 if contract is not None:

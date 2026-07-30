@@ -11,6 +11,8 @@ from typing import Any
 
 from . import MediaContract, MissError, MissErrorCategory, SessionKey
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class MonotonicClock:
     @property
@@ -89,6 +91,7 @@ class ChannelSessionManager:
                 if inspect.isawaitable(session):
                     session = await session
                 await session.connect_and_start(deadline)
+                _LOGGER.debug('=== p2p session connect_and_start 已调用 (deadline=%s)', deadline)
                 record = _SessionRecord(key=key, session=session)
                 if hasattr(session, "read_and_publish"):
                     record.reader_task = asyncio.create_task(
