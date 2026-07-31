@@ -161,10 +161,15 @@ class DefaultCs2Connector:
 
         sock = self._bind_socket(0)
         try:
+            _LOGGER.debug(
+                '=== CS2 discovery sending LanSearch to %s:%s policy=%s',
+                bootstrap.host, DISCOVERY_PORT, policy,
+            )
             try:
                 await sock.sendto(_build_lan_search(), (bootstrap.host, DISCOVERY_PORT))
             except Exception as exc:
                 sock.close()
+                _LOGGER.debug('=== CS2 discovery send failed: %s', exc)
                 raise MissError(
                     MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                 ) from exc
@@ -179,6 +184,10 @@ class DefaultCs2Connector:
                 remaining = deadline_ts - loop.time()
                 if remaining <= 0:
                     sock.close()
+                    _LOGGER.debug(
+                        '=== CS2 discovery TIMEOUT after %ss waiting for PunchPkt from %s:%s',
+                        DISCOVERY_TIMEOUT_SECONDS, bootstrap.host, DISCOVERY_PORT,
+                    )
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                     )
@@ -188,24 +197,38 @@ class DefaultCs2Connector:
                     )
                 except asyncio.TimeoutError as exc:
                     sock.close()
+                    _LOGGER.debug(
+                        '=== CS2 discovery recv timeout after %ss',
+                        DISCOVERY_TIMEOUT_SECONDS,
+                    )
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                     ) from exc
                 except Exception as exc:
                     sock.close()
+                    _LOGGER.debug('=== CS2 discovery recv error: %s', exc)
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                     ) from exc
 
                 if addr[0] != bootstrap.host:
                     sock.close()
+                    _LOGGER.debug('=== CS2 discovery addr mismatch: got=%s', addr[0])
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_invalid"
                     )
                 if _is_msg(payload, MSG_PUNCH_PKT):
                     punch_payload = payload
                     punch_addr = addr
+                    _LOGGER.debug(
+                        '=== CS2 discovery got PunchPkt from %s:%s',
+                        addr[0], addr[1],
+                    )
                     break
+                _LOGGER.debug(
+                    '=== CS2 discovery ignoring packet kind=0x%02x from %s',
+                    payload[1], addr[0],
+                )
                 # Re-send LanSearch periodically while we wait.
                 try:
                     await sock.sendto(
