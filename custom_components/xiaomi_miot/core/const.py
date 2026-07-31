@@ -2,7 +2,6 @@ from enum import StrEnum
 
 from awesomeversion import AwesomeVersion
 from homeassistant.components.alarm_control_panel.const import AlarmControlPanelState
-from homeassistant.components.camera.const import CameraState
 from homeassistant.components.vacuum.const import VacuumActivity
 from homeassistant.const import __version__ as HAVERSION  # noqa
 from homeassistant.core import ServiceResponse, SupportsResponse
