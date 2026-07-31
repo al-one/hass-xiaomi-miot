@@ -20,11 +20,14 @@ from custom_components.xiaomi_miot.core.xiaomi_p2p.cs2.discovery import (
     DefaultCs2Connector,
 )
 from custom_components.xiaomi_miot.core.xiaomi_p2p.cs2.protocol import (
-    DRW_MAGIC_COMMAND,
-    DRW_MAGIC_MEDIA,
+    MAGIC,
+    MSG_DRW,
+    MSG_PING,
+    CHANNEL_COMMAND,
+    CHANNEL_MEDIA,
     Cs2Command,
     Cs2MediaPacket,
-    DRW_MAGIC_PING,
+    encode_drw_frame,
 )
 from custom_components.xiaomi_miot.core.xiaomi_p2p.cs2.tcp import TcpCs2Transport
 
@@ -106,33 +109,38 @@ async def test_tcp_ready_handoff_opens_tcp_with_pinned_ip(peer, bootstrap):
 
 
 def _drw_command_frame(command_id: int, payload: bytes, sequence: int = 0) -> bytes:
-    # Inbound channel-0 commands carry the command ID little-endian.
-    body = command_id.to_bytes(4, "little") + payload
-    return (
-        DRW_MAGIC_COMMAND
-        + sequence.to_bytes(2, "big")
-        + len(body).to_bytes(4, "big")
-        + body
+    # Channel-0 DRW body: [BE cmd_id][payload]. Wrapped in a TCP frame.
+    inner = encode_drw_frame(
+        CHANNEL_COMMAND, sequence, command_id.to_bytes(4, "big") + payload
     )
+    return _tcp_frame(inner)
 
 
 def _drw_media_frame(header: bytes, encrypted_body: bytes, sequence: int = 0) -> bytes:
-    body = header + encrypted_body
-    return (
-        DRW_MAGIC_MEDIA
-        + sequence.to_bytes(2, "big")
-        + len(body).to_bytes(4, "big")
-        + body
-    )
+    inner = encode_drw_frame(CHANNEL_MEDIA, sequence, header + encrypted_body)
+    return _tcp_frame(inner)
+
+
+def _tcp_frame(body: bytes) -> bytes:
+    # TCP frame: [BE uint16 body_len][0x68][5 reserved][body] (8-byte header).
+    return struct.pack(">H", len(body)) + bytes([0x68]) + b"\x00" * 5 + body
+
+
+def _tcp_ping_frame() -> bytes:
+    return _tcp_frame(bytes([MAGIC, MSG_PING]))
 
 
 def _count_pings(buffer: bytes) -> int:
+    # Buffer format: a sequence of TCP frames [BE uint16 len][0x68][6 reserved][body]
+    # or ping frames [BE uint16 2][0x68][6 reserved][0xF1 0xE0].
     count = 0
     while buffer:
         if len(buffer) < 8:
             break
-        length = _STRUCT_DRW_PAYLOAD_LEN.unpack_from(buffer, 4)[0]
-        if buffer[:2] == DRW_MAGIC_PING:
+        length = struct.unpack(">H", buffer[:2])[0]
+        # Skip past length + magic + 6 reserved bytes.
+        body = buffer[8:8 + length]
+        if body.startswith(bytes([MAGIC, MSG_PING])):
             count += 1
         buffer = buffer[8 + length:]
     return count

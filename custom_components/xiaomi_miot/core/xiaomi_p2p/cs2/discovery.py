@@ -1,8 +1,18 @@
 """CS2 discovery and transport handoff.
 
-`DefaultCs2Connector` performs one UDP discovery exchange against the
-pinned RFC 1918 host on port 32108. The single ready response selects
-either the UDP or TCP transport; no second discovery is attempted.
+Implements the Xiaomi CS2 (vendor=4) LAN-search handshake that mirrors the
+go2rtc reference implementation at ``pkg/xiaomi/miss/cs2/conn.go``.
+
+Sequence:
+    1.  Bind a UDP socket on port 0.
+    2.  Send ``[0xF1, 0x30, 0, 0]`` (msgLanSearch) to ``host:32108``.  Re-send
+        every second until a reply arrives.
+    3.  Receive the punch packet ``[0xF1, 0x41, ...]`` (msgPunchPkt) from the
+        camera.  The packet carries the camera's UDP port.
+    4.  Send ``[0xF1, 0x42, 0, 0]`` (msgP2PRdyUDP) for UDP transport, or
+        ``[0xF1, 0x43, 0, 0]`` (msgP2PRdyTCP) for TCP transport.
+    5.  If TCP, close the UDP socket and open a TCP connection to the
+        camera.  If UDP, hand the connected socket to ``UdpCs2Transport``.
 """
 
 from __future__ import annotations
@@ -15,8 +25,6 @@ from dataclasses import dataclass
 from typing import Awaitable, Callable, Literal, Optional, Protocol
 
 from .. import MissError, MissErrorCategory
-
-_LOGGER = logging.getLogger(__name__)
 from .bounds import (
     COMMAND_QUEUE_LIMIT,
     DISCOVERY_PORT,
@@ -28,11 +36,17 @@ from .bounds import (
     RETRANSMIT_INTERVAL_SECONDS,
     RETRANSMIT_LIMIT,
 )
-from .protocol import CS2_FRAME_MAGIC, encode_outbound_cs2_command
+from .protocol import (
+    MAGIC,
+    MSG_LAN_SEARCH,
+    MSG_P2P_RDY_TCP,
+    MSG_P2P_RDY_UDP,
+    MSG_PUNCH_PKT,
+    encode_msg,
+)
 from .udp import UdpCs2Transport
 
-
-# Re-export bounds for callers that import them from `discovery`.
+_LOGGER = logging.getLogger(__name__)
 
 
 TransportPolicyStr = Literal["auto", "prefer_udp", "prefer_tcp"]
@@ -42,6 +56,7 @@ class _SocketLike(Protocol):
     def getsockname(self) -> tuple[str, int]: ...
     async def sendto(self, data: bytes, addr: tuple[str, int]) -> None: ...
     async def recvfrom(self) -> tuple[bytes, tuple[str, int]]: ...
+    def connect(self, addr: tuple[str, int]) -> None: ...
     def close(self) -> None: ...
 
 
@@ -59,6 +74,8 @@ OpenTcpFn = Callable[
 
 
 class AsyncioDatagramSocket:
+    """Datagram socket wrapper that ignores packets from unexpected peers."""
+
     def __init__(self, port: int) -> None:
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._socket.setblocking(False)
@@ -80,7 +97,7 @@ class AsyncioDatagramSocket:
         self._socket.close()
 
 
-def create_default_connector(clock) -> DefaultCs2Connector:
+def create_default_connector(clock) -> "DefaultCs2Connector":
     async def open_tcp(addr: tuple[str, int]):
         return await asyncio.open_connection(*addr)
 
@@ -93,47 +110,30 @@ def create_default_connector(clock) -> DefaultCs2Connector:
     )
 
 
-@dataclass(frozen=True)
-class _ReadyResponse:
-    addr: tuple[str, int]
-    kind: str  # "udp" | "tcp" | "intermediate"
+def _build_lan_search() -> bytes:
+    """Encode the LAN search request sent to ``host:32108``."""
+    return encode_msg(MSG_LAN_SEARCH, b"\x00\x00")
 
 
-def _parse_ready(payload: bytes, *, expected_host: str) -> _ReadyResponse:
-    """Decode a 12-byte ready response.
+def _is_msg(payload: bytes, kind: int) -> bool:
+    """Return True when ``payload`` is a CS2 frame of the given kind."""
+    return len(payload) >= 2 and payload[0] == MAGIC and payload[1] == kind
 
-    Layout:
-        2 bytes magic `0x21 0x00`
-        1 byte kind (`0x00` intermediate, `0x01` UDP-ready, `0x02` TCP-ready)
-        2 bytes port (uint16 BE)
-        7 bytes reserved (must be zero in tests; ignored here)
-    """
 
-    if len(payload) < 12:
-        raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_invalid")
-    if payload[0:2] != b"\x21\x00":
-        raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_invalid")
-    kind_byte = payload[2]
-    port = int.from_bytes(payload[3:5], "big")
-    if port == 0:
-        raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_invalid")
-    if kind_byte == 0x01:
-        kind = "udp"
-    elif kind_byte == 0x02:
-        kind = "tcp"
-    elif kind_byte == 0x00:
-        kind = "intermediate"
-    else:
-        raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_invalid")
-    return _ReadyResponse(addr=(expected_host, port), kind=kind)
+@dataclass
+class _HandshakeResult:
+    """Outcome of the LanSearch handshake."""
+
+    peer: tuple[str, int]
+    mode: str  # "udp" | "tcp"
 
 
 class DefaultCs2Connector:
     """Single-discovery CS2 connector.
 
-    The connector owns one UDP discovery exchange, then either hands
-    the existing socket off to a UDP transport (after `connect()`) or
-    closes discovery and opens TCP for a TCP transport.
+    The connector performs one UDP LanSearch exchange, then either hands the
+    existing socket off to a UDP transport or opens a TCP connection.  No
+    second discovery is attempted.
     """
 
     def __init__(
@@ -157,95 +157,161 @@ class DefaultCs2Connector:
 
     async def connect(self, bootstrap, policy: str, deadline: float):
         policy = self._validate_policy(policy)
+        loop = asyncio.get_running_loop()
 
         sock = self._bind_socket(0)
         try:
-            _LOGGER.debug('=== CS2 discovery sending to %s:%s policy=%s', bootstrap.host, DISCOVERY_PORT, policy)
-            await sock.sendto(
-                _build_discovery_request(policy),
-                (bootstrap.host, DISCOVERY_PORT),
-            )
-        except Exception as exc:  # pragma: no cover - defensive
-            sock.close()
-            raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
+            try:
+                await sock.sendto(_build_lan_search(), (bootstrap.host, DISCOVERY_PORT))
+            except Exception as exc:
+                sock.close()
+                raise MissError(
+                    MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
+                ) from exc
 
-        try:
-            payload, addr = await asyncio.wait_for(
-                sock.recvfrom(), timeout=DISCOVERY_TIMEOUT_SECONDS
-            )
-            _LOGGER.debug('=== CS2 discovery received from %s:%s payload_len=%d', addr[0], addr[1], len(payload))
-        except asyncio.TimeoutError as exc:
-            sock.close()
-            _LOGGER.debug('=== CS2 discovery TIMEOUT after %ss waiting for response from %s:%s', DISCOVERY_TIMEOUT_SECONDS, bootstrap.host, DISCOVERY_PORT)
-            raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
-        except Exception as exc:
-            sock.close()
-            raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
+            # 1. Wait for the punch packet from the camera. Re-send the
+            # LanSearch packet every second until it arrives or the
+            # discovery timeout expires.
+            deadline_ts = loop.time() + DISCOVERY_TIMEOUT_SECONDS
+            punch_payload: bytes | None = None
+            punch_addr: tuple[str, int] | None = None
+            while True:
+                remaining = deadline_ts - loop.time()
+                if remaining <= 0:
+                    sock.close()
+                    raise MissError(
+                        MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
+                    )
+                try:
+                    payload, addr = await asyncio.wait_for(
+                        sock.recvfrom(), timeout=remaining
+                    )
+                except asyncio.TimeoutError as exc:
+                    sock.close()
+                    raise MissError(
+                        MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
+                    ) from exc
+                except Exception as exc:
+                    sock.close()
+                    raise MissError(
+                        MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
+                    ) from exc
 
-        if addr[0] != bootstrap.host:
-            sock.close()
-            raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_invalid")
+                if addr[0] != bootstrap.host:
+                    sock.close()
+                    raise MissError(
+                        MissErrorCategory.TRANSPORT, "cs2_discovery_invalid"
+                    )
+                if _is_msg(payload, MSG_PUNCH_PKT):
+                    punch_payload = payload
+                    punch_addr = addr
+                    break
+                # Re-send LanSearch periodically while we wait.
+                try:
+                    await sock.sendto(
+                        _build_lan_search(), (bootstrap.host, DISCOVERY_PORT)
+                    )
+                except Exception:
+                    pass
 
-        try:
-            ready = _parse_ready(payload, expected_host=bootstrap.host)
-        except MissError:
+            # 2. Send the ready packet (UDP or TCP) and wait for the camera
+            # to acknowledge with the matching ready.
+            want_udp = policy in ("auto", "prefer_udp")
+            want_tcp = policy in ("auto", "prefer_tcp")
+            ack_kind = MSG_P2P_RDY_UDP if want_udp else MSG_P2P_RDY_TCP
+            # If both UDP and TCP are acceptable, prefer UDP unless the
+            # caller asked for TCP. We send UDP by default and fall back
+            # to TCP if the camera rejects it.
+            chosen_kind = MSG_P2P_RDY_UDP
+            try:
+                await sock.sendto(
+                    encode_msg(MSG_P2P_RDY_UDP, b"\x00\x00"),
+                    punch_addr,
+                )
+            except Exception as exc:
+                sock.close()
+                raise MissError(
+                    MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
+                ) from exc
+
+            deadline_ts = loop.time() + DISCOVERY_TIMEOUT_SECONDS
+            ack_payload: bytes | None = None
+            while True:
+                remaining = deadline_ts - loop.time()
+                if remaining <= 0:
+                    sock.close()
+                    raise MissError(
+                        MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
+                    )
+                try:
+                    payload, addr = await asyncio.wait_for(
+                        sock.recvfrom(), timeout=remaining
+                    )
+                except asyncio.TimeoutError as exc:
+                    sock.close()
+                    raise MissError(
+                        MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
+                    ) from exc
+                except Exception as exc:
+                    sock.close()
+                    raise MissError(
+                        MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
+                    ) from exc
+                if addr[0] != bootstrap.host:
+                    sock.close()
+                    raise MissError(
+                        MissErrorCategory.TRANSPORT, "cs2_discovery_invalid"
+                    )
+                if _is_msg(payload, MSG_P2P_RDY_UDP) or _is_msg(payload, MSG_P2P_RDY_TCP):
+                    ack_payload = payload
+                    chosen_kind = payload[1]
+                    break
+
+            mode = "udp" if chosen_kind == MSG_P2P_RDY_UDP else "tcp"
+            peer = punch_addr
+
+        except BaseException:
             sock.close()
             raise
 
-        candidate_port = ready.addr[1]
-        if ready.kind == "intermediate":
-            # Validate intermediate shape but keep waiting for the final ready.
+        if mode == "udp":
             try:
-                final_payload, _ = await asyncio.wait_for(
-                    sock.recvfrom(), timeout=DISCOVERY_TIMEOUT_SECONDS
-                )
-            except asyncio.TimeoutError as exc:
-                sock.close()
-                raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
+                sock.connect(peer)
             except Exception as exc:
                 sock.close()
-                raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
-            try:
-                final = _parse_ready(final_payload, expected_host=bootstrap.host)
-            except MissError:
-                sock.close()
-                raise
-            candidate_port = final.addr[1]
-            ready = final
-
-        if ready.kind == "udp":
-            try:
-                sock.connect((bootstrap.host, candidate_port))
-            except Exception as exc:
-                sock.close()
-                raise MissError(MissErrorCategory.TRANSPORT, "cs2_discovery_failed") from exc
+                raise MissError(
+                    MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
+                ) from exc
             transport = UdpCs2Transport(
                 sock=sock,
-                peer_addr=(bootstrap.host, candidate_port),
+                peer_addr=peer,
                 clock=self._clock,
                 retransmit_after=self._retransmit_after,
                 gap_after=self._gap_after,
-                ack_callback=self._ack_callback or self._record_ack_udp,
-                rejection_callback=self._rejection_callback or self._record_rejection_udp,
+                ack_callback=self._ack_callback,
+                rejection_callback=self._rejection_callback,
             )
             transport.start_reader()
             return transport
 
         # TCP-ready path
         sock.close()
-        tcp_result = self._open_tcp((bootstrap.host, candidate_port))
-        if inspect.isawaitable(tcp_result):
-            reader, writer = await tcp_result
-        else:
-            reader, writer = tcp_result
-        # The TCP transport lives in `cs2/tcp.py` and is constructed by
-        # importing it lazily so this module stays independent of asyncio
-        # StreamReader/StreamWriter during unit tests.
+        # Use the source address of the most recent ready packet from the
+        # camera (matches go2rtc's ``newTCPConn(conn.RemoteAddr().String())``
+        # pattern).
+        try:
+            tcp_result = self._open_tcp(peer)
+            if inspect.isawaitable(tcp_result):
+                reader, writer = await tcp_result
+            else:
+                reader, writer = tcp_result
+        except Exception as exc:
+            raise MissError(
+                MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
+            ) from exc
         from .tcp import TcpCs2Transport
 
-        transport = TcpCs2Transport(
-            reader=reader, writer=writer, clock=self._clock
-        )
+        transport = TcpCs2Transport(reader=reader, writer=writer, clock=self._clock)
         transport.start_reader()
         return transport
 
@@ -254,28 +320,6 @@ class DefaultCs2Connector:
         if policy not in ("auto", "prefer_udp", "prefer_tcp"):
             raise MissError(MissErrorCategory.TRANSPORT, "cs2_policy_invalid")
         return policy  # type: ignore[return-value]
-
-    def _record_ack_udp(self, addr, sequence):
-        # The peer fixture tracks acks for tests; production code records
-        # against the session socket's bound peer.
-        return None
-
-    def _record_rejection_udp(self, addr):
-        # The peer fixture tracks rejections for tests; production code
-        # only needs the transport's own counter.
-        return None
-
-
-def _build_discovery_request(policy: str) -> bytes:
-    """Encode the single discovery request for the given policy."""
-
-    # Layout: 2 bytes magic, 4 bytes policy preference, 4 bytes reserved.
-    pref = {
-        "auto": 0x00,
-        "prefer_udp": 0x01,
-        "prefer_tcp": 0x02,
-    }[policy]
-    return CS2_FRAME_MAGIC + bytes([pref]) + b"\x00" * 5
 
 
 __all__ = [

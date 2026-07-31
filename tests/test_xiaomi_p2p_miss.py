@@ -493,10 +493,10 @@ async def test_login_sends_plaintext_command_zero(session, transport):
     assert transport.last_command_id == LOGIN_COMMAND_ID
     login = json.loads(transport.outbound_commands[-1].payload)
     assert login == {
-        "cmd": "login",
-        "pubkey": session.bootstrap.client_public_key.hex(),
-        "p2p_id": "peer",
+        "public_key": session.bootstrap.client_public_key.hex(),
         "sign": "sig-redacted",
+        "uuid": "",
+        "support_encrypt": 0,
     }
 
 

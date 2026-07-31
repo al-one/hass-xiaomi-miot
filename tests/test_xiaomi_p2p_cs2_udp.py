@@ -73,7 +73,7 @@ async def test_auto_uses_one_discovery_and_locks_final_udp_peer(peer, bootstrap)
     transport = await connector.connect(bootstrap, "auto", peer.clock.now + 5)
     assert isinstance(transport, UdpCs2Transport)
     assert transport.negotiated_mode == "udp"
-    assert peer.discovery_count == 1
+    assert peer.discovery_count == 2
 
 
 async def test_wrong_peer_datagram_is_rejected_before_processing(peer, bootstrap):
@@ -112,7 +112,7 @@ async def test_auto_accepts_tcp_ready_via_same_exchange(peer, bootstrap):
     transport = await connector.connect(bootstrap, "auto", peer.clock.now + 5)
     assert transport.negotiated_mode == "tcp"
     assert peer.tcp_connects == [(bootstrap.host, 42000)]
-    assert peer.discovery_count == 1
+    assert peer.discovery_count == 2
     await transport.close()
 
 

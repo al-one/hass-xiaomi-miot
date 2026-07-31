@@ -1,17 +1,31 @@
 """CS2 framing and bounded DRW parser.
 
-CS2 frames use direction-specific byte orders:
-  * outbound commands: outer length, DRW sequence, command payload
-    length, and wrapper command ID are big-endian;
-  * inbound channel-0 commands: little-endian uint32 command ID;
-  * MISS plaintext command ID (carried inside wrapper `0x1001`):
-    big-endian uint32;
-  * media header: little-endian uint32 codec id, sequence, flags, and
-    little-endian uint64 timestamp.
+The CS2 wire protocol used by Xiaomi MISS-layer P2P cameras is a single-byte
+``magic = 0xF1`` followed by a one-byte message kind:
+
+  * 0x30  ``msgLanSearch``   – client → camera: LAN search / discovery request
+  * 0x41  ``msgPunchPkt``    – camera → client: punch response (with port)
+  * 0x42  ``msgP2PRdyUDP``   – client → camera: ready for UDP data
+  * 0x43  ``msgP2PRdyTCP``   – client → camera: ready for TCP data
+  * 0xD0  ``msgDrw``         – bidirectional: DRW-multiplexed data frame
+  * 0xD1  ``msgDrwAck``      – UDP ACK (echoes channel + sequence)
+  * 0xE0  ``msgPing``        – TCP keepalive request
+  * 0xE1  ``msgPong``        – TCP keepalive response
+  * 0xF0  ``msgClose``       – graceful close
+  * 0xF1  ``msgCloseAck``    – graceful close ack
+
+After the two-byte ``0xF1 <kind>`` header, the body layout depends on the
+message kind.  ``msgDrw`` frames use a big-endian uint16 length, the DRW
+header (channel byte + big-endian uint16 sequence), an optional big-endian
+uint32 payload length, and then the payload bytes.
+
+Inbound channel-0 commands (carrying MISS command ids) are framed inside the
+DRW channel-0 stream with a little-endian uint32 command id followed by the
+command body.  The encrypted MISS plaintext block uses a big-endian uint32
+inner command id followed by the plaintext.
 
 Encoders and decoders are deliberately kept as separate functions; the
-decoder MUST NOT be used to encode and the encoder MUST NOT be used to
-decode.
+decoder MUST NOT be used to encode and the encoder MUST NOT be used to decode.
 """
 
 from __future__ import annotations
@@ -22,25 +36,39 @@ from dataclasses import dataclass
 from .. import MissError, MissErrorCategory
 
 
-# Magic values used to identify CS2 and DRW frames on the wire.
-CS2_FRAME_MAGIC = b"\xff\xf1"
-DRW_MAGIC_COMMAND = b"\x21\x00"  # channel 0
-DRW_MAGIC_MEDIA = b"\x21\x02"  # channel 2
-DRW_MAGIC_PING = b"\x21\x01"  # channel 1, reference-compatible keepalive
+# Magic byte used to identify CS2 frames.
+MAGIC = 0xF1
+
+# Message kinds carried after the magic byte.
+MSG_LAN_SEARCH = 0x30
+MSG_PUNCH_PKT = 0x41
+MSG_P2P_RDY_UDP = 0x42
+MSG_P2P_RDY_TCP = 0x43
+MSG_DRW = 0xD0
+MSG_DRW_ACK = 0xD1
+MSG_PING = 0xE0
+MSG_PONG = 0xE1
+MSG_CLOSE = 0xF0
+MSG_CLOSE_ACK = 0xF1
+
+# DRW header byte (single byte inside msgDrw frames).
+DRW_MAGIC = 0xD1
+
+# TCP outer magic (prepended before each TCP frame).
+TCP_MAGIC = 0x68
 
 # Maximum allowed payload in any single CS2 frame (4 MiB).
 MAX_PAYLOAD_BYTES = 4 * 1024 * 1024
 
-# Size of a CS2 command outer header before the inner payload.
-_OUTER_HEADER_SIZE = 16
-
-# Size of a DRW header (magic/channel + sequence + payload length).
-_DRW_HEADER_SIZE = 8
+# Channel ids used by the multiplexer.
+CHANNEL_COMMAND = 0
+CHANNEL_MEDIA = 2
 
 # Big-endian and little-endian codec structures.
-_STRUCT_OUTER_LEN = struct.Struct(">H")
-_STRUCT_DRW_SEQ = struct.Struct(">H")
-_STRUCT_PAYLOAD_LEN = struct.Struct(">I")
+_STRUCT_LEN_BE = struct.Struct(">H")
+_STRUCT_LEN_LE = struct.Struct("<H")
+_STRUCT_SEQ_BE = struct.Struct(">H")
+_STRUCT_PAYLOAD_LEN_BE = struct.Struct(">I")
 _STRUCT_COMMAND_ID_BE = struct.Struct(">I")
 _STRUCT_COMMAND_ID_LE = struct.Struct("<I")
 _STRUCT_HEADER_CODEC = struct.Struct("<I")
@@ -75,42 +103,86 @@ class MediaHeader:
     timestamp: int
 
 
-@dataclass(frozen=True, slots=True)
-class DrwFrame:
-    """One DRW frame: magic/channel, sequence, payload."""
+def encode_msg(message_kind: int, body: bytes = b"") -> bytes:
+    """Encode a top-level CS2 message (magic + kind + body)."""
 
-    magic: bytes
-    sequence: int
-    payload: bytes
+    if not isinstance(body, (bytes, bytearray)):
+        raise MissError(MissErrorCategory.TRANSPORT, "cs2_payload_invalid")
+    return bytes([MAGIC, message_kind]) + bytes(body)
 
 
-def encode_outbound_cs2_command(
-    command_id: int, payload: bytes, *, sequence: int
+def encode_drw_frame(
+    channel: int,
+    sequence: int,
+    payload: bytes,
+    *,
+    include_payload_length: bool = True,
 ) -> bytes:
-    """Encode an outbound CS2 command frame on channel 0."""
+    """Encode a DRW-multiplexed frame on the chosen channel.
 
+    Layout (after the outer 0xF1 0xD0 magic+kind prefix is added by the
+    transport layer):
+
+      * 2 bytes: DRW frame body length (big-endian uint16) including itself
+      * 1 byte:  DRW magic (0xD1)
+      * 1 byte:  channel id
+      * 2 bytes: sequence number (big-endian uint16)
+      * 4 bytes: payload length (big-endian uint32), optional but always
+                 present for commands and media
+      * N bytes: payload
+
+    For TCP transports the length prefix is two bytes shorter because the
+    outer TCP framing already includes the per-frame length; the caller can
+    pass ``include_payload_length=False`` to suppress the inner length in
+    that case.
+    """
+
+    if not 0 <= channel <= 0xFF:
+        raise MissError(MissErrorCategory.TRANSPORT, "cs2_channel_invalid")
+    if not 0 <= sequence <= 0xFFFF:
+        raise MissError(MissErrorCategory.TRANSPORT, "cs2_sequence_invalid")
     if not isinstance(payload, (bytes, bytearray)):
         raise MissError(MissErrorCategory.TRANSPORT, "cs2_payload_invalid")
     payload = bytes(payload)
     if len(payload) > MAX_PAYLOAD_BYTES:
         raise MissError(MissErrorCategory.TRANSPORT, "cs2_payload_invalid")
-    if not 0 <= sequence <= 0xFFFF:
-        raise MissError(MissErrorCategory.TRANSPORT, "cs2_sequence_invalid")
 
-    outer_length = _OUTER_HEADER_SIZE - 4 + len(payload)
-    header = (
-        CS2_FRAME_MAGIC
-        + _STRUCT_OUTER_LEN.pack(outer_length)
-        + DRW_MAGIC_COMMAND
-        + _STRUCT_DRW_SEQ.pack(sequence)
-        + _STRUCT_PAYLOAD_LEN.pack(len(payload))
-        + _STRUCT_COMMAND_ID_BE.pack(command_id)
-    )
-    return header + payload
+    inner = bytes([DRW_MAGIC, channel]) + _STRUCT_SEQ_BE.pack(sequence)
+    if include_payload_length:
+        inner += _STRUCT_PAYLOAD_LEN_BE.pack(len(payload))
+    inner += payload
+
+    # Total length covers DRW magic + channel + seq [+ payload len] + payload.
+    # The 2-byte length prefix itself is NOT included (matches go2rtc's
+    # ``binary.BigEndian.PutUint16(req[2:], uint16(4+4+4+size))`` formula).
+    body_len = len(inner)
+    outer = _STRUCT_LEN_BE.pack(body_len)
+    return bytes([MAGIC, MSG_DRW]) + outer + inner
+
+
+def encode_command(command_id: int, payload: bytes, *, sequence: int) -> bytes:
+    """Encode an outbound MISS command on DRW channel 0.
+
+    Layout: outer DRW frame carrying a big-endian uint32 command id
+    followed by the command payload.  Used by the MISS session to send
+    0x100 login / 0x102 start-media / 0x1001 encrypted wrapper commands.
+
+    Note: the command id is big-endian in the wire format (see go2rtc's
+    ``marshalCmd`` which uses ``binary.BigEndian.PutUint32``).
+    """
+
+    if not isinstance(payload, (bytes, bytearray)):
+        raise MissError(MissErrorCategory.TRANSPORT, "cs2_payload_invalid")
+    inner = _STRUCT_COMMAND_ID_BE.pack(command_id) + bytes(payload)
+    return encode_drw_frame(CHANNEL_COMMAND, sequence, inner)
 
 
 def decode_inbound_cs2_command(frame: bytes) -> Cs2Command:
-    """Parse an inbound channel-0 CS2 command frame (little-endian command id)."""
+    """Parse a single DRW-channel-0 command body.
+
+    The first 4 bytes are the little-endian uint32 command id; the rest is
+    the command payload.
+    """
 
     if len(frame) < 4:
         raise MissError(MissErrorCategory.TRANSPORT, "cs2_malformed")
@@ -144,11 +216,11 @@ def decode_miss_media_header(header: bytes) -> MediaHeader:
 
 
 def sequence_distance(expected: int, received: int) -> int:
-    """Signed wraparound-aware distance from `expected` to `received`.
+    """Signed wraparound-aware distance from ``expected`` to ``received``.
 
-    Returns the signed value such that positive means `received` is
-    ahead of `expected` (in the wraparound-aware sense) and negative
-    means it is behind. The result lives in [-32768, 32767].
+    Returns the signed value such that positive means ``received`` is ahead
+    of ``expected`` (in the wraparound-aware sense) and negative means it is
+    behind.  The result lives in [-32768, 32767].
     """
 
     diff = (received - expected) & 0xFFFF
@@ -157,71 +229,43 @@ def sequence_distance(expected: int, received: int) -> int:
     return diff
 
 
-class BoundedDrwParser:
-    """Bounded length-prefixed DRW frame parser.
-
-    Each DRW frame layout:
-      * bytes 0-1: magic/channel (2 bytes)
-      * bytes 2-3: sequence (uint16 big-endian)
-      * bytes 4-7: payload length (uint32 big-endian)
-      * bytes 8+:  payload of that exact length
-
-    `feed()` accepts an arbitrary number of bytes. `drain()` yields
-    zero or more complete frames. An advertised length greater than
-    `limit` is rejected eagerly: the parser raises `MissError` instead
-    of allocating or retaining the body.
-    """
-
-    def __init__(self, *, limit: int = MAX_PAYLOAD_BYTES) -> None:
-        self._limit = limit
-        self._buffer = bytearray()
-        self._poisoned = False
-
-    def feed(self, data: bytes) -> None:
-        if self._poisoned:
-            return
-        if not isinstance(data, (bytes, bytearray)):
-            raise MissError(MissErrorCategory.TRANSPORT, "drw_feed_invalid")
-        self._buffer.extend(data)
-
-    def drain(self):
-        if self._poisoned:
-            return
-        out: list[DrwFrame] = []
-        while True:
-            if len(self._buffer) < _DRW_HEADER_SIZE:
-                break
-            magic = bytes(self._buffer[:2])
-            sequence = _STRUCT_DRW_SEQ.unpack_from(self._buffer, 2)[0]
-            payload_length = _STRUCT_PAYLOAD_LEN.unpack_from(self._buffer, 4)[0]
-            if payload_length > self._limit:
-                self._poisoned = True
-                self._buffer.clear()
-                raise MissError(MissErrorCategory.TRANSPORT, "drw_oversize")
-            total = _DRW_HEADER_SIZE + payload_length
-            if len(self._buffer) < total:
-                break
-            payload = bytes(self._buffer[_DRW_HEADER_SIZE:total])
-            out.append(DrwFrame(magic=magic, sequence=sequence, payload=payload))
-            del self._buffer[:total]
-        for frame in out:
-            yield frame
+# Backwards-compat aliases for existing call sites.
+CS2_FRAME_MAGIC = bytes([MAGIC])
+DRW_MAGIC_COMMAND = bytes([DRW_MAGIC, CHANNEL_COMMAND])
+DRW_MAGIC_MEDIA = bytes([DRW_MAGIC, CHANNEL_MEDIA])
+DRW_MAGIC_PING = bytes([DRW_MAGIC, 1])  # channel 1 (reference-compatible)
 
 
 __all__ = [
-    "BoundedDrwParser",
+    "CHANNEL_COMMAND",
+    "CHANNEL_MEDIA",
     "CS2_FRAME_MAGIC",
     "Cs2Command",
     "Cs2MediaPacket",
+    "DRW_MAGIC",
     "DRW_MAGIC_COMMAND",
     "DRW_MAGIC_MEDIA",
     "DRW_MAGIC_PING",
-    "DrwFrame",
+    "MAGIC",
     "MAX_PAYLOAD_BYTES",
     "MediaHeader",
+    "MSG_CLOSE",
+    "MSG_CLOSE_ACK",
+    "MSG_DRW",
+    "MSG_DRW_ACK",
+    "MSG_LAN_SEARCH",
+    "MSG_P2P_RDY_TCP",
+    "MSG_P2P_RDY_UDP",
+    "MSG_PING",
+    "MSG_PONG",
+    "MSG_PUNCH_PKT",
+    "TCP_MAGIC",
     "decode_inbound_cs2_command",
     "decode_miss_media_header",
-    "encode_outbound_cs2_command",
+    "encode_command",
+    "encode_drw_frame",
+    "encode_msg",
     "encode_outbound_miss_plaintext",
+    "encode_outbound_cs2_command",
     "sequence_distance",
 ]

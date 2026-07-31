@@ -1,20 +1,26 @@
 """Fake CS2 peer for transport tests.
 
 `FakeCs2Peer` simulates a CS2 camera just enough to drive the
-connector and UDP transport through discovery, peer lock, ACK, and
-reorder scenarios. It is NOT a complete CS2 stack; it only models
-the surfaces tests need to assert against.
+connector and UDP transport through the LanSearch handshake, DRW
+multiplexing, peer lock, ACK, and reorder scenarios.  It mirrors the
+go2rtc reference at ``pkg/xiaomi/miss/cs2/conn.go``.
 """
 
 from __future__ import annotations
 
 import asyncio
+import struct
 from dataclasses import dataclass
 
 from custom_components.xiaomi_miot.core.xiaomi_p2p import MissBootstrap
 from custom_components.xiaomi_miot.core.xiaomi_p2p.cs2.protocol import (
-    DRW_MAGIC_MEDIA,
-    encode_outbound_cs2_command,
+    CHANNEL_COMMAND,
+    CHANNEL_MEDIA,
+    MAGIC,
+    MSG_LAN_SEARCH,
+    MSG_P2P_RDY_UDP,
+    MSG_P2P_RDY_TCP,
+    MSG_PUNCH_PKT,
 )
 
 
@@ -220,30 +226,43 @@ class FakeCs2Peer:
     def stage_discovery_responses(self) -> None:
         """Drain queued ready responses into inbound datagrams.
 
-        The fake's discovery socket reads from `_inbound` directly, so
-        staged responses must be converted into datagrams before the
-        connector's first `recvfrom()`.
+        The new LanSearch handshake uses ``msgPunchPkt`` followed by
+        ``msgP2PRdyUDP/TCP``.  Both packets come from the camera's
+        reply address (the port chosen by the caller via ``queue_*``),
+        matching go2rtc's ``RemoteAddr()`` capture during the handshake.
         """
         staged = 0
         for ready in self._intermediate_responses:
-            payload = b"\x21\x00" + bytes([0x00]) + ready.addr[1].to_bytes(2, "big") + b"\x00" * 7
-            self._inbound.append(
-                _Datagram(addr=(ready.addr[0], DISCOVERY_PORT), payload=payload)
-            )
-            staged += 1
+            # Not used by the new handshake but kept for API stability.
+            self._intermediate_responses.pop(0)
         for ready in self._udp_responses:
-            payload = b"\x21\x00" + bytes([0x01]) + ready.addr[1].to_bytes(2, "big") + b"\x00" * 7
             self._inbound.append(
-                _Datagram(addr=(ready.addr[0], DISCOVERY_PORT), payload=payload)
+                _Datagram(
+                    addr=ready.addr,
+                    payload=bytes([MAGIC, MSG_PUNCH_PKT, 0, 0]),
+                )
             )
-            staged += 1
+            self._inbound.append(
+                _Datagram(
+                    addr=ready.addr,
+                    payload=bytes([MAGIC, MSG_P2P_RDY_UDP, 0, 0]),
+                )
+            )
+            staged += 2
         for ready in self._tcp_responses:
-            payload = b"\x21\x00" + bytes([0x02]) + ready.addr[1].to_bytes(2, "big") + b"\x00" * 7
             self._inbound.append(
-                _Datagram(addr=(ready.addr[0], DISCOVERY_PORT), payload=payload)
+                _Datagram(
+                    addr=ready.addr,
+                    payload=bytes([MAGIC, MSG_PUNCH_PKT, 0, 0]),
+                )
             )
-            staged += 1
-        self._intermediate_responses.clear()
+            self._inbound.append(
+                _Datagram(
+                    addr=ready.addr,
+                    payload=bytes([MAGIC, MSG_P2P_RDY_TCP, 0, 0]),
+                )
+            )
+            staged += 2
         self._udp_responses.clear()
         self._tcp_responses.clear()
         # Each staged datagram corresponds to one recvfrom() the
@@ -256,16 +275,15 @@ class FakeCs2Peer:
         self._wake_waiters()
 
     def valid_command_datagram(self, sequence: int = 0, payload: bytes = b"ok") -> bytes:
-        # Inbound channel-0 frames use little-endian command_id; the wire
-        # bytes (CS2 magic + outer len + DRW magic + seq + body) wrap a LE
-        # uint32 command_id followed by the payload.
-        command_id_le = (0x101).to_bytes(4, "little")
-        body = command_id_le + payload
-        outer_len = 12 + len(body)
+        # Inbound channel-0 DRW frame: [BE len][DRW_MAGIC channel=0]
+        # [BE seq][BE payload_len][BE cmd_id][payload].
+        command_id_be = (0x101).to_bytes(4, "big")
+        body = command_id_be + payload
+        outer_len = 4 + 4 + len(body)
         frame = (
-            b"\xff\xf1"
+            bytes([MAGIC, 0xD0])
             + outer_len.to_bytes(2, "big")
-            + b"\x21\x00"
+            + bytes([0xD1, CHANNEL_COMMAND])
             + sequence.to_bytes(2, "big")
             + len(body).to_bytes(4, "big")
             + body
@@ -273,9 +291,18 @@ class FakeCs2Peer:
         return frame
 
     def valid_media_datagram(self, sequence: int = 0) -> bytes:
-        # Channel-2 DRW framing with a small payload.
-        header = DRW_MAGIC_MEDIA + sequence.to_bytes(2, "big")
-        return header + b"\x00" * 8
+        # Channel-2 DRW frame with a minimal payload.
+        body = b"\x00" * 32  # minimal media header
+        outer_len = 4 + 4 + len(body)
+        frame = (
+            bytes([MAGIC, 0xD0])
+            + outer_len.to_bytes(2, "big")
+            + bytes([0xD1, CHANNEL_MEDIA])
+            + sequence.to_bytes(2, "big")
+            + len(body).to_bytes(4, "big")
+            + body
+        )
+        return frame
 
     # ---- Transport-facing primitives -----------------------------------
 
@@ -306,23 +333,18 @@ class FakeCs2Peer:
     # ---- Connector-facing ----------------------------------------------
 
     def next_discovery_response(self) -> bytes:
-        self.discovery_count += 1
-        if self._intermediate_responses:
-            ready = self._intermediate_responses.pop(0)
-            kind_byte = 0x00
-            port = ready.addr[1]
-        elif self._udp_responses:
-            ready = self._udp_responses.pop(0)
-            kind_byte = 0x01
-            port = ready.addr[1]
-        elif self._tcp_responses:
-            ready = self._tcp_responses.pop(0)
-            kind_byte = 0x02
-            port = ready.addr[1]
-        else:
-            raise AssertionError("no ready response queued")
+        """Legacy single-shot helper kept for API stability.
 
-        return b"\x21\x00" + bytes([kind_byte]) + port.to_bytes(2, "big") + b"\x00" * 7
+        Returns the next queued response as a ``msgPunchPkt`` framing
+        (matching the new handshake).  Callers that want the full
+        handshake pair should use ``stage_discovery_responses``.
+        """
+        self.discovery_count += 1
+        if self._udp_responses:
+            self._udp_responses.pop(0)
+        elif self._tcp_responses:
+            self._tcp_responses.pop(0)
+        return bytes([MAGIC, MSG_PUNCH_PKT, 0, 0])
 
     # ---- Transport ack and reject tracking -----------------------------
 

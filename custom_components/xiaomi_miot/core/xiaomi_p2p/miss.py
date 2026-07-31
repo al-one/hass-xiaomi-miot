@@ -301,16 +301,16 @@ class MissSession:
     def _build_login_body(self) -> bytes:
         """Build the plaintext JSON login body.
 
-        The body carries the ephemeral client public key and the cloud
-        signature from the bootstrap. Hex encoding is deliberately
-        lowercase.
+        Mirrors the go2rtc reference payload
+        ``{"public_key":"<hex>","sign":"<sig>","uuid":"","support_encrypt":0}``
+        which the camera expects on the CS2 wrapper id 0x100.
         """
         public_key_hex = self.bootstrap.client_public_key.hex()
         payload = {
-            "cmd": "login",
-            "pubkey": public_key_hex,
-            "p2p_id": self.bootstrap.p2p_id or "",
+            "public_key": public_key_hex,
             "sign": self.bootstrap.signature,
+            "uuid": "",
+            "support_encrypt": 0,
         }
         return json.dumps(payload, separators=(",", ":")).encode("utf-8")
 
@@ -324,18 +324,30 @@ class MissSession:
                 self._record_unknown(cmd.command_id)
                 continue
             if cmd.payload:
-                try:
-                    response = json.loads(cmd.payload.decode("utf-8"))
-                except (UnicodeDecodeError, json.JSONDecodeError):
-                    raise MissError(
-                        MissErrorCategory.AUTH, "login_response_malformed"
-                    ) from None
-                if not isinstance(response, dict):
-                    raise MissError(
-                        MissErrorCategory.AUTH, "login_response_malformed"
-                    )
-                if response.get("code", 0) != 0 or response.get("result") is False:
+                # Some cameras echo the JSON body of the request plus the
+                # literal string ``"result":"success"`` (or ``"failed"``);
+                # others return a typed object with ``code`` and ``result``
+                # fields.  Match either shape.
+                if b'"result":"success"' in cmd.payload:
+                    pass
+                elif b'"result":"failed"' in cmd.payload:
                     raise MissError(MissErrorCategory.AUTH, "login_rejected")
+                else:
+                    try:
+                        response = json.loads(cmd.payload.decode("utf-8"))
+                    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                        raise MissError(
+                            MissErrorCategory.AUTH, "login_response_malformed"
+                        ) from exc
+                    if not isinstance(response, dict):
+                        raise MissError(
+                            MissErrorCategory.AUTH, "login_response_malformed"
+                        )
+                    if (
+                        response.get("code", 0) != 0
+                        or response.get("result") is False
+                    ):
+                        raise MissError(MissErrorCategory.AUTH, "login_rejected")
             self._shared_key = derive_shared_key(
                 self.bootstrap.client_private_key,
                 self.bootstrap.device_public_key,

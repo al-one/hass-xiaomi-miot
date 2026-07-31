@@ -14,9 +14,13 @@ from custom_components.xiaomi_miot.core.xiaomi_p2p.cs2.discovery import (
     DefaultCs2Connector,
 )
 from custom_components.xiaomi_miot.core.xiaomi_p2p.cs2.protocol import (
-    CS2_FRAME_MAGIC,
+    CHANNEL_COMMAND as _CHANNEL_COMMAND,
+    CHANNEL_MEDIA as _CHANNEL_MEDIA,
+    DRW_MAGIC as DRW_MAGIC_BYTE,
     DRW_MAGIC_COMMAND,
     DRW_MAGIC_MEDIA,
+    MAGIC as OUTER_MAGIC_F1,
+    MSG_DRW as OUTER_MSG_DRW,
 )
 from custom_components.xiaomi_miot.core.xiaomi_p2p.crypto import (
     derive_shared_key,
@@ -50,23 +54,26 @@ def _connector(peer: FakeCs2Peer) -> DefaultCs2Connector:
 
 
 def _drw_frame(magic: bytes, sequence: int, body: bytes) -> bytes:
-    return (
-        magic
+    # ``magic`` is the channel marker (e.g. ``DRW_MAGIC_COMMAND`` =
+    # ``b"\xd1\x00"``); the frame layout is:
+    #   [outer F1 D0][BE uint16 total_len][DRW_MAGIC channel][BE seq]
+    #   [BE uint32 payload_len][payload]
+    channel = magic[1]
+    inner = (
+        bytes([DRW_MAGIC_BYTE, channel])
         + sequence.to_bytes(2, "big")
         + len(body).to_bytes(4, "big")
         + body
     )
+    return bytes([OUTER_MAGIC_F1, OUTER_MSG_DRW]) + len(inner).to_bytes(2, "big") + inner
 
 
 def _udp_frame(magic: bytes, sequence: int, body: bytes) -> bytes:
-    drw = _drw_frame(magic, sequence, body)
-    return CS2_FRAME_MAGIC + len(drw).to_bytes(2, "big") + drw
+    return _drw_frame(magic, sequence, body)
 
 
 def _login_response_frame(mode: str, sequence: int) -> bytes:
     body = LOGIN_RESPONSE_COMMAND_ID.to_bytes(4, "little")
-    if mode == "udp":
-        return _udp_frame(DRW_MAGIC_COMMAND, sequence, body)
     return _drw_frame(DRW_MAGIC_COMMAND, sequence, body)
 
 

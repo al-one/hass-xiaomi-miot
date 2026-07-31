@@ -1,16 +1,26 @@
 """Established CS2 TCP transport.
 
-`TcpCs2Transport` is constructed by `DefaultCs2Connector` after a
-single successful discovery exchange. Frames on the TCP wire are pure
-DRW (no CS2 prefix): the bounded parser consumes the ordered byte
-stream directly. While processing writes the transport emits an
-opportunistic reference-compatible DRW ping at most once per second;
-no independent keepalive is scheduled.
+The TCP transport is constructed by ``DefaultCs2Connector`` after a
+successful LanSearch handshake when the camera accepts the TCP ready
+packet.  On the wire each frame is:
+
+  [BE uint16 body length][0x68 magicTCP][6 bytes reserved][frame body]
+
+where ``frame body`` is a DRW frame (see ``protocol.py``).  The transport
+parses inbound frames into channel-0 commands and channel-2 media
+packets; outbound frames are wrapped in DRW headers and written via the
+``StreamWriter`` (no extra header bytes because ``magicTCP`` is
+provided by the outer TCP frame, not the inner DRW frame).
+
+While processing writes, the transport emits an opportunistic ping
+every second to keep the connection alive (mirroring the go2rtc TCP
+keepalive).
 """
 
 from __future__ import annotations
 
 import asyncio
+import logging
 import struct
 from dataclasses import dataclass
 from typing import Optional
@@ -18,31 +28,37 @@ from typing import Optional
 from .. import MissError, MissErrorCategory
 from .bounds import COMMAND_QUEUE_LIMIT, MEDIA_QUEUE_LIMIT
 from .protocol import (
-    BoundedDrwParser,
-    DRW_MAGIC_COMMAND,
-    DRW_MAGIC_MEDIA,
-    DRW_MAGIC_PING,
+    CHANNEL_COMMAND,
+    CHANNEL_MEDIA,
     Cs2Command,
     Cs2MediaPacket,
-    decode_inbound_cs2_command,
+    MSG_PING,
+    encode_drw_frame,
+    encode_msg,
 )
 
+_LOGGER = logging.getLogger(__name__)
 
-_STRUCT_DRW_HEADER = struct.Struct(">2sHI")
-_STRUCT_COMMAND_ID_BE = struct.Struct(">I")
+
+_STRUCT_TCP_LEN = struct.Struct(">H")
+_STRUCT_RESERVED = struct.Struct(">HHHHH")
+_STRUCT_PAYLOAD_LEN = struct.Struct(">I")
 
 
 PING_INTERVAL_SECONDS: float = 1.0
+TCP_MAGIC_BYTE = 0x68
+
+
+@dataclass(frozen=True)
+class _ClosedSentinel:
+    """Wake-up marker pushed into the command/media queues at close time."""
+
+
+_CLOSED_SENTINEL = _ClosedSentinel()
 
 
 class TcpCs2Transport:
-    """TCP transport for an already-discovered CS2 peer.
-
-    Inbound frames are read from `reader` and fed directly to a
-    `BoundedDrwParser`. Outbound frames are wrapped in a DRW header and
-    written to `writer`, coalesced with an opportunistic ping when more
-    than `PING_INTERVAL_SECONDS` has elapsed since the last ping.
-    """
+    """TCP transport for an already-discovered CS2 peer."""
 
     negotiated_mode = "tcp"
 
@@ -56,9 +72,11 @@ class TcpCs2Transport:
         self._reader = reader
         self._writer = writer
         self._clock = clock
-        self._parser = BoundedDrwParser()
-        self._next_sequence: int = 0
+        self._seq_ch0: int = 0
+        self._seq_ch3: int = 0
+        self._seq_ping: int = 0
         self._last_ping_at: Optional[float] = None
+        self._buffer = bytearray()
         self._command_queue: asyncio.Queue = asyncio.Queue(maxsize=COMMAND_QUEUE_LIMIT)
         self._media_queue: asyncio.Queue = asyncio.Queue(maxsize=MEDIA_QUEUE_LIMIT)
         self._closed = False
@@ -73,8 +91,11 @@ class TcpCs2Transport:
     async def write_command(self, command: Cs2Command) -> None:
         if self._closed:
             raise MissError(MissErrorCategory.TRANSPORT, "transport_closed")
-        body = _STRUCT_COMMAND_ID_BE.pack(command.command_id) + command.payload
-        await self._send_frame(DRW_MAGIC_COMMAND, body)
+        seq = self._seq_ch0
+        self._seq_ch0 = (self._seq_ch0 + 1) & 0xFFFF
+        inner = command_id_to_be_bytes(command.command_id) + command.payload
+        frame = encode_drw_frame(CHANNEL_COMMAND, seq, inner)
+        await self._send_frame(frame)
 
     async def read_media_packet(self, timeout: float | None = None) -> Cs2MediaPacket:
         return await self._dequeue(self._media_queue, timeout)
@@ -82,8 +103,11 @@ class TcpCs2Transport:
     async def write_media_packet(self, packet: Cs2MediaPacket) -> None:
         if self._closed:
             raise MissError(MissErrorCategory.TRANSPORT, "transport_closed")
+        seq = self._seq_ch3
+        self._seq_ch3 = (self._seq_ch3 + 1) & 0xFFFF
         body = packet.header + packet.encrypted_body
-        await self._send_frame(DRW_MAGIC_MEDIA, body)
+        frame = encode_drw_frame(3, seq, body)
+        await self._send_frame(frame)
 
     async def close(self) -> None:
         if self._closed:
@@ -127,7 +151,7 @@ class TcpCs2Transport:
                     self._mark_eof()
                     return
                 try:
-                    await self._process_chunk(chunk)
+                    self._process_chunk(chunk)
                 except MissError as exc:
                     self._failed_with = exc
                     self._fail_queue_sync(self._command_queue)
@@ -136,26 +160,68 @@ class TcpCs2Transport:
         except asyncio.CancelledError:
             return
 
-    async def _process_chunk(self, chunk: bytes) -> None:
-        self._parser.feed(chunk)
-        try:
-            frames = list(self._parser.drain())
-        except MissError as exc:
-            raise exc
-        for frame in frames:
-            if frame.magic == DRW_MAGIC_COMMAND:
-                await self._enqueue_command(decode_inbound_cs2_command(frame.payload))
-            elif frame.magic == DRW_MAGIC_MEDIA:
-                if len(frame.payload) < 32:
-                    continue
-                await self._enqueue_media(
-                    Cs2MediaPacket(
-                        header=frame.payload[:32],
-                        encrypted_body=frame.payload[32:],
-                    )
+    def _process_chunk(self, chunk: bytes) -> None:
+        self._buffer.extend(chunk)
+        while True:
+            # Each TCP frame: [BE uint16 len][0x68][5 reserved][body].
+            if len(self._buffer) < 8:
+                return
+            frame_len = _STRUCT_TCP_LEN.unpack_from(self._buffer, 0)[0]
+            magic = self._buffer[2]
+            if magic != TCP_MAGIC_BYTE:
+                raise MissError(
+                    MissErrorCategory.TRANSPORT, "tcp_magic_invalid"
                 )
-            # Other channels (e.g. DRW_MAGIC_PING) are silently ignored
-            # — pings are outbound-only in this transport.
+            total = 8 + frame_len
+            if len(self._buffer) < total:
+                return
+            body = bytes(self._buffer[8:total])
+            del self._buffer[:total]
+            self._process_drw_body(body)
+
+    def _process_drw_body(self, body: bytes) -> None:
+        # Wire layout for an inbound TCP body (matches the go2rtc cs2
+        # worker, which assumes the frame still carries the outer
+        # 0xF1 0xD0 magic+kind):
+        #   [0xF1][0xD0][BE uint16 total_len][0xD1][channel][BE uint16 seq]
+        #   [BE uint32 payload_len][payload]
+        if len(body) < 12:
+            return
+        if body[0] != 0xF1 or body[1] != 0xD0:
+            return
+        total_len = (body[2] << 8) | body[3]
+        if total_len < 8 or total_len > len(body) - 4:
+            raise MissError(MissErrorCategory.TRANSPORT, "drw_length_invalid")
+        if body[4] != 0xD1:
+            return
+        channel = body[5]
+        payload_len = _STRUCT_PAYLOAD_LEN.unpack_from(body, 8)[0]
+        if payload_len > total_len - 8:
+            raise MissError(
+                MissErrorCategory.TRANSPORT, "drw_payload_length_invalid"
+            )
+        payload = body[12:12 + payload_len]
+        if channel == CHANNEL_COMMAND:
+            self._deliver_command(payload)
+        elif channel == CHANNEL_MEDIA:
+            self._deliver_media(payload)
+        # Other channels (e.g. 3 for peer media on TCP) are ignored.
+
+    def _deliver_command(self, body: bytes) -> None:
+        if len(body) < 4:
+            return
+        # Channel-0 commands carry the command id in BIG-endian on the wire.
+        command_id = struct.unpack(">I", body[:4])[0]
+        self._enqueue_command(
+            Cs2Command(command_id=command_id, payload=bytes(body[4:]))
+        )
+
+    def _deliver_media(self, body: bytes) -> None:
+        if len(body) < 32:
+            return
+        self._enqueue_media(
+            Cs2MediaPacket(header=body[:32], encrypted_body=body[32:])
+        )
 
     def _mark_eof(self) -> None:
         if self._failed_with is None:
@@ -165,23 +231,29 @@ class TcpCs2Transport:
         self._fail_queue_sync(self._command_queue)
         self._fail_queue_sync(self._media_queue)
 
-    async def _send_frame(self, magic: bytes, body: bytes) -> None:
-        # Opportunistic ping: at most once per second while processing writes.
+    async def _send_frame(self, frame: bytes) -> None:
+        # Send opportunistic ping every second to keep the connection alive.
         now = self._clock.now
         if self._last_ping_at is None or now - self._last_ping_at >= PING_INTERVAL_SECONDS:
-            ping_seq = self._next_sequence
-            self._next_sequence = (ping_seq + 1) & 0xFFFF
-            ping_frame = _STRUCT_DRW_HEADER.pack(DRW_MAGIC_PING, ping_seq, 0)
-            self._writer.write(ping_frame)
+            ping = encode_msg(MSG_PING)
+            self._writer.write(
+                _STRUCT_TCP_LEN.pack(len(ping))
+                + bytes([TCP_MAGIC_BYTE])
+                + b"\x00" * 5
+                + ping
+            )
+            await self._writer.drain()
             self._last_ping_at = now
 
-        seq = self._next_sequence
-        self._next_sequence = (seq + 1) & 0xFFFF
-        frame = _STRUCT_DRW_HEADER.pack(magic, seq, len(body)) + body
-        self._writer.write(frame)
+        self._writer.write(
+            _STRUCT_TCP_LEN.pack(len(frame))
+            + bytes([TCP_MAGIC_BYTE])
+            + b"\x00" * 5
+            + frame
+        )
         await self._writer.drain()
 
-    async def _enqueue_command(self, command: Cs2Command) -> None:
+    def _enqueue_command(self, command: Cs2Command) -> None:
         if self._closed:
             return
         try:
@@ -189,7 +261,7 @@ class TcpCs2Transport:
         except asyncio.QueueFull:
             raise MissError(MissErrorCategory.TRANSPORT, "command_queue_overflow")
 
-    async def _enqueue_media(self, packet: Cs2MediaPacket) -> None:
+    def _enqueue_media(self, packet: Cs2MediaPacket) -> None:
         if self._closed:
             return
         try:
@@ -223,12 +295,9 @@ class TcpCs2Transport:
             pass
 
 
-@dataclass(frozen=True)
-class _ClosedSentinel:
-    pass
+def command_id_to_be_bytes(command_id: int) -> bytes:
+    """Encode a command id as a 4-byte big-endian uint32."""
+    return struct.pack(">I", command_id & 0xFFFFFFFF)
 
 
-_CLOSED_SENTINEL = _ClosedSentinel()
-
-
-__all__ = ["TcpCs2Transport", "PING_INTERVAL_SECONDS"]
+__all__ = ["PING_INTERVAL_SECONDS", "TcpCs2Transport"]
