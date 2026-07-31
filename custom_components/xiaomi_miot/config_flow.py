@@ -1260,7 +1260,6 @@ def get_customize_options(hass, options={}, bool2selects=[], entity_id='', model
         options.update({
             'coord_type': cv.string,
         })
-        bool2selects.extend(['disable_location_name'])
 
     if re.search(r'sensor_occupy', model, re.I):
         options.update({
