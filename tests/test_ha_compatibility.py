@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
 import pytest
-from homeassistant.components.alarm_control_panel import AlarmControlPanelState
-from homeassistant.components.camera import CameraState
-from homeassistant.components.vacuum import VacuumActivity
+from homeassistant.components.alarm_control_panel.const import AlarmControlPanelState
+from homeassistant.components.camera.const import CameraState
+from homeassistant.components.vacuum.const import VacuumActivity
 from homeassistant.core import ServiceResponse, SupportsResponse
 from homeassistant.core_config import DATA_CUSTOMIZE
 
