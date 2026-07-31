@@ -443,8 +443,7 @@ def bind_services_to_entries(hass, services):
         kws = {
             'schema': obj.get('schema', XIAOMI_MIIO_SERVICE_SCHEMA),
         }
-        if SupportsResponse:
-            kws['supports_response'] = SupportsResponse.OPTIONAL
+        kws['supports_response'] = SupportsResponse.OPTIONAL
         hass.services.async_register(DOMAIN, srv, async_service_handler, **kws)
 
 
@@ -525,8 +524,7 @@ async def async_setup_component_services(hass):
             vol.Required('name', default=''): cv.string,
         }),
     }
-    if SupportsResponse:
-        kws['supports_response'] = SupportsResponse.OPTIONAL,
+    kws['supports_response'] = SupportsResponse.OPTIONAL
     hass.services.async_register(
         DOMAIN, 'get_token', async_get_token, **kws,
     )
