@@ -113,3 +113,16 @@ except (ModuleNotFoundError, ImportError):
         DOCKED = "docked"
         RETURNING = "returning"
         ERROR = "error"
+
+try:
+    # hass 2026.7
+    from homeassistant.const import UnitOfDensity, UnitOfRatio
+except (ModuleNotFoundError, ImportError):
+    class UnitOfDensity(StrEnum):
+        """Density units."""
+        MILLIGRAMS_PER_CUBIC_METER = "mg/m³"
+        MICROGRAMS_PER_CUBIC_METER = "μg/m³"
+
+    class UnitOfRatio(StrEnum):
+        """Ratio units."""
+        PARTS_PER_MILLION = "ppm"
