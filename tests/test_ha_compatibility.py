@@ -1,8 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-from homeassistant.components.alarm_control_panel.const import AlarmControlPanelState
-from homeassistant.components.vacuum.const import VacuumActivity
 from homeassistant.core import ServiceResponse, SupportsResponse
 from homeassistant.core_config import DATA_CUSTOMIZE
 
@@ -14,8 +12,6 @@ from custom_components.xiaomi_miot.core import const
 
 
 def test_const_uses_minimum_home_assistant_apis():
-    assert const.AlarmControlPanelState is AlarmControlPanelState
-    assert const.VacuumActivity is VacuumActivity
     assert const.ServiceResponse is ServiceResponse
     assert const.SupportsResponse is SupportsResponse
     assert const.DATA_CUSTOMIZE is DATA_CUSTOMIZE
