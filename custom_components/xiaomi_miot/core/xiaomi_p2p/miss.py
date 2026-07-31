@@ -198,6 +198,11 @@ class MissSession:
                         break
                     continue
                 await self._process_media_packet(packet)
+            _LOGGER.warning(
+                "MISS media probe timed out waiting for a complete keyframe; "
+                "camera=%s lens=%s",
+                getattr(self.bootstrap, "host", "?"), self.lens,
+            )
             raise MissError(MissErrorCategory.TIMEOUT, "media_probe_timeout")
         except asyncio.CancelledError:
             await self._abort()
@@ -205,6 +210,11 @@ class MissSession:
         except asyncio.IncompleteReadError:
             self._state = "failed"
             await self.transport.close()
+            _LOGGER.warning(
+                "MISS transport closed prematurely during connect_and_start "
+                "(camera=%s lens=%s)",
+                getattr(self.bootstrap, "host", "?"), self.lens,
+            )
             raise MissError(
                 MissErrorCategory.TRANSPORT, "connection_lost"
             ) from None
@@ -331,15 +341,28 @@ class MissSession:
                 if b'"result":"success"' in cmd.payload:
                     pass
                 elif b'"result":"failed"' in cmd.payload:
+                    _LOGGER.warning(
+                        "MISS login rejected by camera: %s",
+                        cmd.payload.decode("utf-8", errors="replace"),
+                    )
                     raise MissError(MissErrorCategory.AUTH, "login_rejected")
                 else:
                     try:
                         response = json.loads(cmd.payload.decode("utf-8"))
                     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                        _LOGGER.warning(
+                            "MISS login response is neither UTF-8 JSON "
+                            "nor a recognised result string: %r (%s)",
+                            cmd.payload[:64], exc,
+                        )
                         raise MissError(
                             MissErrorCategory.AUTH, "login_response_malformed"
                         ) from exc
                     if not isinstance(response, dict):
+                        _LOGGER.warning(
+                            "MISS login response JSON root is %s, expected dict",
+                            type(response).__name__,
+                        )
                         raise MissError(
                             MissErrorCategory.AUTH, "login_response_malformed"
                         )
@@ -347,6 +370,12 @@ class MissSession:
                         response.get("code", 0) != 0
                         or response.get("result") is False
                     ):
+                        _LOGGER.warning(
+                            "MISS login rejected: code=%s result=%s msg=%s",
+                            response.get("code"),
+                            response.get("result"),
+                            response.get("message"),
+                        )
                         raise MissError(MissErrorCategory.AUTH, "login_rejected")
             self._shared_key = derive_shared_key(
                 self.bootstrap.client_private_key,
@@ -354,6 +383,9 @@ class MissSession:
             )
             self._state = "encrypted"
             return
+        _LOGGER.warning(
+            "MISS login timed out waiting for 0x101 response from camera"
+        )
         raise MissError(MissErrorCategory.TIMEOUT, "login_timeout")
 
     async def _attempt_login(self, deadline: float) -> None:
@@ -699,6 +731,11 @@ class MissSession:
                 raise
             except MissError as exc:
                 last_error = exc
+                _LOGGER.warning(
+                    "MISS reconnect attempt %d failed: %s/%s; "
+                    "will retry if budget remains",
+                    self._reconnect_attempt, exc.category.value, exc.detail,
+                )
                 try:
                     await self.transport.close()
                 except Exception:  # pragma: no cover - defensive
@@ -715,6 +752,11 @@ class MissSession:
             pass
         self._state = "failed"
         self._closed = True
+        _LOGGER.warning(
+            "MISS reconnect exhausted retry budget; session marked failed: "
+            "%s/%s",
+            last_error.category.value, last_error.detail,
+        )
         raise last_error
 
     async def _obtain_reconnect_transport(

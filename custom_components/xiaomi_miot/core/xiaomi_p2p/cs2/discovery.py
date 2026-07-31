@@ -169,7 +169,11 @@ class DefaultCs2Connector:
                 await sock.sendto(_build_lan_search(), (bootstrap.host, DISCOVERY_PORT))
             except Exception as exc:
                 sock.close()
-                _LOGGER.debug('=== CS2 discovery send failed: %s', exc)
+                _LOGGER.warning(
+                    "CS2 discovery sendto %s:%s failed: %s; "
+                    "check container network can reach the LAN camera",
+                    bootstrap.host, DISCOVERY_PORT, exc,
+                )
                 raise MissError(
                     MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                 ) from exc
@@ -184,9 +188,12 @@ class DefaultCs2Connector:
                 remaining = deadline_ts - loop.time()
                 if remaining <= 0:
                     sock.close()
-                    _LOGGER.debug(
-                        '=== CS2 discovery TIMEOUT after %ss waiting for PunchPkt from %s:%s',
-                        DISCOVERY_TIMEOUT_SECONDS, bootstrap.host, DISCOVERY_PORT,
+                    _LOGGER.warning(
+                        "CS2 discovery timed out after %ss waiting for "
+                        "PunchPkt from %s:%s; camera may be offline, behind "
+                        "firewall, or not responding to LAN discovery",
+                        DISCOVERY_TIMEOUT_SECONDS,
+                        bootstrap.host, DISCOVERY_PORT,
                     )
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
@@ -197,23 +204,31 @@ class DefaultCs2Connector:
                     )
                 except asyncio.TimeoutError as exc:
                     sock.close()
-                    _LOGGER.debug(
-                        '=== CS2 discovery recv timeout after %ss',
+                    _LOGGER.warning(
+                        "CS2 discovery recvfrom timed out after %ss "
+                        "waiting for PunchPkt from %s:%s",
                         DISCOVERY_TIMEOUT_SECONDS,
+                        bootstrap.host, DISCOVERY_PORT,
                     )
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                     ) from exc
                 except Exception as exc:
                     sock.close()
-                    _LOGGER.debug('=== CS2 discovery recv error: %s', exc)
+                    _LOGGER.warning(
+                        "CS2 discovery recvfrom raised: %s", exc,
+                    )
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                     ) from exc
 
                 if addr[0] != bootstrap.host:
                     sock.close()
-                    _LOGGER.debug('=== CS2 discovery addr mismatch: got=%s', addr[0])
+                    _LOGGER.warning(
+                        "CS2 discovery got packet from %s but bootstrap "
+                        "pinned %s; refusing to redirect",
+                        addr[0], bootstrap.host,
+                    )
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_invalid"
                     )
@@ -225,8 +240,9 @@ class DefaultCs2Connector:
                         addr[0], addr[1],
                     )
                     break
-                _LOGGER.debug(
-                    '=== CS2 discovery ignoring packet kind=0x%02x from %s',
+                _LOGGER.warning(
+                    "CS2 discovery got unexpected packet kind=0x%02x "
+                    "from %s while waiting for PunchPkt",
                     payload[1], addr[0],
                 )
                 # Re-send LanSearch periodically while we wait.
@@ -234,8 +250,11 @@ class DefaultCs2Connector:
                     await sock.sendto(
                         _build_lan_search(), (bootstrap.host, DISCOVERY_PORT)
                     )
-                except Exception:
-                    pass
+                except Exception as exc:
+                    _LOGGER.debug(
+                        "CS2 discovery re-send LanSearch failed: %s",
+                        exc,
+                    )
 
             # 2. Send the ready packet (UDP or TCP) and wait for the camera
             # to acknowledge with the matching ready.
@@ -253,6 +272,10 @@ class DefaultCs2Connector:
                 )
             except Exception as exc:
                 sock.close()
+                _LOGGER.warning(
+                    "CS2 discovery sendto ReadyPkt to %s:%s failed: %s",
+                    punch_addr[0], punch_addr[1], exc,
+                )
                 raise MissError(
                     MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                 ) from exc
@@ -263,6 +286,12 @@ class DefaultCs2Connector:
                 remaining = deadline_ts - loop.time()
                 if remaining <= 0:
                     sock.close()
+                    _LOGGER.warning(
+                        "CS2 discovery timed out after %ss waiting for "
+                        "ReadyPkt from %s:%s after PunchPkt",
+                        DISCOVERY_TIMEOUT_SECONDS,
+                        bootstrap.host, DISCOVERY_PORT,
+                    )
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                     )
@@ -272,16 +301,31 @@ class DefaultCs2Connector:
                     )
                 except asyncio.TimeoutError as exc:
                     sock.close()
+                    _LOGGER.warning(
+                        "CS2 discovery recvfrom timed out after %ss "
+                        "waiting for ReadyPkt from %s:%s",
+                        DISCOVERY_TIMEOUT_SECONDS,
+                        bootstrap.host, DISCOVERY_PORT,
+                    )
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                     ) from exc
                 except Exception as exc:
                     sock.close()
+                    _LOGGER.warning(
+                        "CS2 discovery recvfrom raised during ReadyPkt "
+                        "phase: %s", exc,
+                    )
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                     ) from exc
                 if addr[0] != bootstrap.host:
                     sock.close()
+                    _LOGGER.warning(
+                        "CS2 discovery got ReadyPkt from %s but bootstrap "
+                        "pinned %s; refusing to redirect",
+                        addr[0], bootstrap.host,
+                    )
                     raise MissError(
                         MissErrorCategory.TRANSPORT, "cs2_discovery_invalid"
                     )
@@ -302,6 +346,10 @@ class DefaultCs2Connector:
                 sock.connect(peer)
             except Exception as exc:
                 sock.close()
+                _LOGGER.warning(
+                    "CS2 discovery UDP connect to %s:%s failed: %s",
+                    peer[0], peer[1], exc,
+                )
                 raise MissError(
                     MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
                 ) from exc
@@ -329,6 +377,12 @@ class DefaultCs2Connector:
             else:
                 reader, writer = tcp_result
         except Exception as exc:
+            _LOGGER.warning(
+                "CS2 discovery TCP connect to %s:%s failed: %s; "
+                "check that TCP 32108 (or the camera reply port) is "
+                "reachable from the HA host",
+                peer[0], peer[1], exc,
+            )
             raise MissError(
                 MissErrorCategory.TRANSPORT, "cs2_discovery_failed"
             ) from exc

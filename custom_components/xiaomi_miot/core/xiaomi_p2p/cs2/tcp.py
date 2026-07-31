@@ -140,11 +140,18 @@ class TcpCs2Transport:
                 try:
                     chunk = await self._reader.read(4096)
                 except asyncio.IncompleteReadError:
+                    _LOGGER.warning(
+                        "CS2 TCP transport got IncompleteReadError; "
+                        "connection lost"
+                    )
                     self._mark_eof()
                     return
                 except asyncio.CancelledError:
                     return
-                except ConnectionError:
+                except ConnectionError as exc:
+                    _LOGGER.warning(
+                        "CS2 TCP transport connection error: %s", exc,
+                    )
                     self._mark_eof()
                     return
                 if not chunk:
@@ -154,6 +161,10 @@ class TcpCs2Transport:
                     self._process_chunk(chunk)
                 except MissError as exc:
                     self._failed_with = exc
+                    _LOGGER.warning(
+                        "CS2 TCP reader exiting due to %s/%s",
+                        exc.category.value, exc.detail,
+                    )
                     self._fail_queue_sync(self._command_queue)
                     self._fail_queue_sync(self._media_queue)
                     return

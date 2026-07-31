@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import enum
+import logging
 import secrets
 import socket
 import time
@@ -12,6 +13,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from aiohttp import web
+
+_LOGGER = logging.getLogger(__name__)
 
 from . import NormalizedAudioFrame, NormalizedVideoFrame
 from .rtp import RtcpSender, RtpPacketizer
@@ -191,6 +194,10 @@ class MediaBridge:
             except Exception as err:
                 if self._close_task is not None:
                     raise
+                _LOGGER.warning(
+                    "FFmpeg startup attempt %d failed: %s; retrying",
+                    attempt + 1, err,
+                )
                 last_error = err
                 await self._cleanup_failed_attempt()
         if last_error is not None:
@@ -398,15 +405,24 @@ class MediaBridge:
         try:
             try:
                 await self._detach_media()
-            except BaseException:
+            except BaseException as exc:
+                _LOGGER.warning(
+                    "Bridge close: _detach_media raised: %s", exc,
+                )
                 cleanup_failed = True
             try:
                 await self._cancel_stdout_owner()
-            except BaseException:
+            except BaseException as exc:
+                _LOGGER.warning(
+                    "Bridge close: _cancel_stdout_owner raised: %s", exc,
+                )
                 cleanup_failed = True
             try:
                 await self._finish_response()
-            except BaseException:
+            except BaseException as exc:
+                _LOGGER.warning(
+                    "Bridge close: _finish_response raised: %s", exc,
+                )
                 cleanup_failed = True
                 if hasattr(self.response, "force_close"):
                     self.response.force_close()
@@ -419,20 +435,32 @@ class MediaBridge:
             self._response_ready.set()
             try:
                 self._close_rtp_sockets()
-            except BaseException:
+            except BaseException as exc:
+                _LOGGER.warning(
+                    "Bridge close: _close_rtp_sockets raised: %s", exc,
+                )
                 cleanup_failed = True
             try:
                 await self._stop_process()
-            except BaseException:
+            except BaseException as exc:
+                _LOGGER.warning(
+                    "Bridge close: _stop_process raised: %s", exc,
+                )
                 cleanup_failed = True
             try:
                 await self._release_ports()
-            except BaseException:
+            except BaseException as exc:
+                _LOGGER.warning(
+                    "Bridge close: _release_ports raised: %s", exc,
+                )
                 cleanup_failed = True
         finally:
             try:
                 await self._release_session()
-            except BaseException:
+            except BaseException as exc:
+                _LOGGER.warning(
+                    "Bridge close: _release_session raised: %s", exc,
+                )
                 cleanup_failed = True
             self.state = BridgeState.CLOSED
             result = BridgeCloseResult(

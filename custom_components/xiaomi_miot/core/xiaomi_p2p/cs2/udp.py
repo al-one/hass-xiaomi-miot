@@ -182,13 +182,27 @@ class UdpCs2Transport:
                 try:
                     payload, addr = await self._sock.recvfrom()
                 except asyncio.IncompleteReadError:
+                    _LOGGER.warning(
+                        "CS2 UDP transport got IncompleteReadError; "
+                        "transport closed"
+                    )
                     return
                 except asyncio.CancelledError:
                     return
-                except Exception:  # pragma: no cover - defensive
+                except Exception as exc:  # pragma: no cover - defensive
+                    _LOGGER.warning(
+                        "CS2 UDP transport recvfrom raised: %s; reader exiting",
+                        exc,
+                    )
                     return
                 if addr[0] != self._peer_addr[0] or addr[1] != self._peer_addr[1]:
                     self._rejected += 1
+                    _LOGGER.warning(
+                        "CS2 UDP datagram from unexpected peer %s:%s "
+                        "(expected %s:%s); rejecting",
+                        addr[0], addr[1],
+                        self._peer_addr[0], self._peer_addr[1],
+                    )
                     if self._rejection_callback is not None:
                         self._rejection_callback(addr)
                     continue
@@ -345,6 +359,11 @@ class UdpCs2Transport:
         self._reorder_bytes = 0
         self._gap_deadline = None
         self._failed_with = MissError(MissErrorCategory.TRANSPORT, "sequence_gap")
+        _LOGGER.warning(
+            "CS2 UDP sequence gap detected; transport marked failed (%d "
+            "packets still in reorder buffer, %d bytes)",
+            len(self._reorder_buffer), self._reorder_bytes,
+        )
         if self._reader_task is not None and not self._reader_task.done():
             self._reader_task.cancel()
 
@@ -354,6 +373,10 @@ class UdpCs2Transport:
         except asyncio.CancelledError:
             raise
         except Exception as exc:
+            _LOGGER.warning(
+                "UDP sendto %s:%s failed (%d bytes): %s",
+                self._peer_addr[0], self._peer_addr[1], len(frame), exc,
+            )
             raise MissError(MissErrorCategory.TRANSPORT, "transport_send_failed") from exc
 
     def _enqueue_command(self, command: Cs2Command) -> None:
@@ -362,6 +385,11 @@ class UdpCs2Transport:
         try:
             self._command_queue.put_nowait(command)
         except asyncio.QueueFull:
+            _LOGGER.warning(
+                "CS2 UDP command queue overflow (limit=%d); consumer is "
+                "too slow or stuck",
+                COMMAND_QUEUE_LIMIT,
+            )
             raise MissError(MissErrorCategory.TRANSPORT, "command_queue_overflow")
 
     def _enqueue_media(self, packet: Cs2MediaPacket) -> None:
@@ -370,6 +398,11 @@ class UdpCs2Transport:
         try:
             self._media_queue.put_nowait(packet)
         except asyncio.QueueFull:
+            _LOGGER.warning(
+                "CS2 UDP media queue overflow (limit=%d); consumer is "
+                "too slow or stuck",
+                MEDIA_QUEUE_LIMIT,
+            )
             raise MissError(MissErrorCategory.TRANSPORT, "media_queue_overflow")
 
     async def _dequeue(self, queue: asyncio.Queue, timeout: float | None):

@@ -103,6 +103,11 @@ class ChannelSessionManager:
                 record.idle_task.cancel()
                 record.idle_task = None
             if len(record.leases) >= self.MAX_ACTIVE_SOURCES:
+                _LOGGER.warning(
+                    "P2P session for %s already has %d active sources; "
+                    "rejecting new lease (limit=%d)",
+                    key.did, len(record.leases), self.MAX_ACTIVE_SOURCES,
+                )
                 raise MissError(MissErrorCategory.MEDIA, "active_source_limit")
             record.session.acquire_lease()
             try:
@@ -110,6 +115,11 @@ class ChannelSessionManager:
                     await record.session.run_stall_recovery(deadline=deadline)
                 contract = record.session.contract
                 if contract is None:
+                    _LOGGER.warning(
+                        "P2P session for %s has no published media contract; "
+                        "lease cannot subscribe to frames",
+                        key.did,
+                    )
                     raise MissError(MissErrorCategory.MEDIA, "contract_missing")
                 subscription_key, frames, changed = record.session.subscribe_frames(
                     record.session.generation
@@ -204,6 +214,10 @@ class ChannelSessionManager:
             except MissError as err:
                 if err.category is MissErrorCategory.TIMEOUT:
                     continue
+                _LOGGER.warning(
+                    "P2P read session for %s terminated: %s/%s",
+                    record.key.did, err.category.value, err.detail,
+                )
                 for lease in tuple(record.leases):
                     lease.contract_changed.set()
                 return

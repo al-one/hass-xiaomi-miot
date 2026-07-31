@@ -83,16 +83,34 @@ async def async_resolve_lan_host(host: str) -> str:
             type=socket.SOCK_STREAM,
         )
     except (socket.gaierror, UnicodeError, ValueError) as exc:
+        _LOGGER.warning(
+            "Cannot resolve LAN host %r for P2P bootstrap: %s",
+            stripped, exc,
+        )
         raise MissError(MissErrorCategory.CLOUD, INVALID_HOST_DETAIL) from exc
     distinct: set[str] = set()
     for info in infos:
         sockaddr = info[4]
         if not sockaddr:
             continue
-        candidate = _validate_pinned_address(sockaddr[0])
+        try:
+            candidate = _validate_pinned_address(sockaddr[0])
+        except MissError as exc:
+            _LOGGER.warning(
+                "Resolved address %s rejected as P2P target "
+                "(loopback/link-local/global/multicast/unspecified "
+                "or non-RFC1918): %s",
+                sockaddr[0], exc.detail,
+            )
+            continue
         distinct.add(candidate)
 
     if len(distinct) != 1:
+        _LOGGER.warning(
+            "LAN host %r resolved to %d distinct RFC1918 addresses %s; "
+            "P2P requires a single pinned address",
+            stripped, len(distinct), sorted(distinct),
+        )
         raise MissError(MissErrorCategory.CLOUD, INVALID_HOST_DETAIL)
     return next(iter(distinct))
 
@@ -135,6 +153,10 @@ async def async_miss_get_vendor_impl(
                 timeout=timeout,
             )
         except asyncio.TimeoutError as exc:
+            _LOGGER.warning(
+                "miss_get_vendor timed out after %ss for did=%s",
+                timeout, did,
+            )
             raise MissError(MissErrorCategory.TIMEOUT, "request timeout") from exc
         _LOGGER.debug('=== MISS get_vendor response: %s', [did, response])
         return response
@@ -142,39 +164,87 @@ async def async_miss_get_vendor_impl(
     response = await _attempt(deadline)
 
     if response and cloud.is_token_expired(response):
+        _LOGGER.warning(
+            "miss_get_vendor returned expired token for did=%s; "
+            "attempting auth refresh",
+            did,
+        )
         refreshed = await cloud.async_check_auth(notify=True)
         if not refreshed:
+            _LOGGER.warning(
+                "Auth refresh failed for did=%s; cannot bootstrap P2P",
+                did,
+            )
             raise MissError(MissErrorCategory.AUTH, "auth refresh failed")
         response = await _attempt(deadline)
         if response and cloud.is_token_expired(response):
+            _LOGGER.warning(
+                "Auth refresh succeeded but miss_get_vendor still "
+                "rejects the token for did=%s",
+                did,
+            )
             raise MissError(MissErrorCategory.AUTH, "auth refresh failed")
 
     if not response:
+        _LOGGER.warning(
+            "miss_get_vendor returned empty response for did=%s; "
+            "camera may not support any of TUTK_CS2_MTP",
+            did,
+        )
         raise MissError(MissErrorCategory.CLOUD, "vendor unavailable")
 
     result = response.get("result") or {}
     vendor_obj = result.get("vendor") or {}
     if not isinstance(vendor_obj, dict):
+        _LOGGER.warning(
+            "miss_get_vendor result.vendor has unexpected shape: %r",
+            vendor_obj,
+        )
         raise MissError(MissErrorCategory.CLOUD, "vendor unavailable")
     try:
         vendor = int(vendor_obj.get("vendor"))
     except (TypeError, ValueError) as exc:
+        _LOGGER.warning(
+            "miss_get_vendor vendor id is not an integer: %r",
+            vendor_obj.get("vendor"),
+        )
         raise MissError(MissErrorCategory.CLOUD, "vendor unavailable") from exc
     if vendor != 4:
+        _LOGGER.warning(
+            "Camera vendor=%d is not CS2 (4); "
+            "TUTK (1) and MTP (6) are not implemented in xiaomi_miot",
+            vendor,
+        )
         raise MissError(MissErrorCategory.CLOUD, "vendor unavailable")
 
     public_key_hex = result.get("public_key") or ""
     if not isinstance(public_key_hex, str):
+        _LOGGER.warning(
+            "miss_get_vendor public_key is not a string: %r",
+            public_key_hex,
+        )
         raise MissError(MissErrorCategory.CLOUD, "vendor unavailable")
     try:
         device_public = bytes.fromhex(public_key_hex)
     except ValueError as exc:
+        _LOGGER.warning(
+            "miss_get_vendor public_key is not valid hex (len=%d): %s",
+            len(public_key_hex), exc,
+        )
         raise MissError(MissErrorCategory.CLOUD, "vendor unavailable") from exc
     if len(device_public) != 32:
+        _LOGGER.warning(
+            "miss_get_vendor public_key length is %d, expected 32 "
+            "(Curve25519)",
+            len(device_public),
+        )
         raise MissError(MissErrorCategory.CLOUD, "vendor unavailable")
 
     signature = result.get("sign") or ""
     if not isinstance(signature, str) or not signature:
+        _LOGGER.warning(
+            "miss_get_vendor signature is missing or not a string",
+        )
         raise MissError(MissErrorCategory.CLOUD, "vendor unavailable")
 
     vendor_params = vendor_obj.get("vendor_params") or {}
