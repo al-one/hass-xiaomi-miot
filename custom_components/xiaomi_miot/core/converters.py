@@ -229,6 +229,62 @@ class MiotTimePropConv(MiotPropConv):
             seconds = value.hour * 3600 + value.minute * 60 + value.second
             super().encode(device, payload, seconds)
 
+def unpack_dnd_schedule(value):
+    """Split a `(start_hour<<24)|(start_minute<<16)|(end_hour<<8)|end_minute`
+    uint32 into its four fields. Verified against xiaomi.vacuum.ov42gl's
+    `enable_time_period` (siid 11, piid 2), the only documented format for it.
+    """
+    value = int(value or 0)
+    return (
+        (value >> 24) & 0xFF,
+        (value >> 16) & 0xFF,
+        (value >> 8) & 0xFF,
+        value & 0xFF,
+    )
+
+def pack_dnd_schedule(start_hour, start_minute, end_hour, end_minute):
+    return (
+        ((start_hour & 0xFF) << 24)
+        | ((start_minute & 0xFF) << 16)
+        | ((end_hour & 0xFF) << 8)
+        | (end_minute & 0xFF)
+    )
+
+@dataclass
+class MiotDndStartTimeConv(MiotPropConv):
+    """Start half of a DND schedule packed with its end time into one property.
+    Writing preserves the other half by reading it back from the sibling
+    `dnd_end` converter's last known value (read-modify-write).
+    """
+    def decode(self, device: 'Device', payload: dict, value):
+        from datetime import time
+        sh, sm, _eh, _em = unpack_dnd_schedule(value)
+        BaseConv.decode(self, device, payload, time(sh % 24, sm % 60))
+
+    def encode(self, device: 'Device', payload: dict, value):
+        from datetime import time as dt_time
+        if not isinstance(value, dt_time):
+            return
+        end = device.props.get(f'{self.domain}.dnd_end' if self.domain else 'dnd_end')
+        eh, em = (end.hour, end.minute) if isinstance(end, dt_time) else (0, 0)
+        BaseConv.encode(self, device, payload, pack_dnd_schedule(value.hour, value.minute, eh, em))
+
+@dataclass
+class MiotDndEndTimeConv(MiotPropConv):
+    """End half of the same packed DND schedule property, see MiotDndStartTimeConv."""
+    def decode(self, device: 'Device', payload: dict, value):
+        from datetime import time
+        _sh, _sm, eh, em = unpack_dnd_schedule(value)
+        BaseConv.decode(self, device, payload, time(eh % 24, em % 60))
+
+    def encode(self, device: 'Device', payload: dict, value):
+        from datetime import time as dt_time
+        if not isinstance(value, dt_time):
+            return
+        start = device.props.get(f'{self.domain}.dnd_start' if self.domain else 'dnd_start')
+        sh, sm = (start.hour, start.minute) if isinstance(start, dt_time) else (0, 0)
+        BaseConv.encode(self, device, payload, pack_dnd_schedule(sh, sm, value.hour, value.minute))
+
 @dataclass
 class MiotColorTempConv(MiotPropConv):
     def decode(self, device: 'Device', payload: dict, value: int):

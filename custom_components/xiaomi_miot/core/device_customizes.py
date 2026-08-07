@@ -2646,6 +2646,62 @@ DEVICE_CUSTOMIZES = {
                           'start_sweep_before_mopping,stop_working,empty_base_station_water_tank,empty_host_water_tank,'
                           'identify,reset_*_life',
     },
+    'xiaomi.vacuum.ov42gl': {
+        # H50 Pro. Spec has 150 properties / 88 actions across 19 services, but only
+        # a curated subset becomes entities by default; excludes/customizes below
+        # were derived from the full exported spec, not guessed.
+        'interval_seconds': 120,
+        'exclude_miot_services': 'vacuum_map,custom,voice_management,ai_small_pictures,self_check',
+        'exclude_miot_properties': 'vacuum_frameware_version,common_params,button_type,current_cleaning_config,'
+                                   'user_define_sweep_cfg,user_define_sweep_id,vacuum_route,action_result,'
+                                   'plugin_info_remind,notice,sweep_ai_object,sweep_furniture,carpet_object,'
+                                   'water_check_list,furniture_for_automation,sill,zone_ids,restricted_sweep_areas,'
+                                   'restricted_walls,vacuum_room_ids,room_information,base_station_working_status,'
+                                   'order_clean,map_complete_dialog,fault_ids',
+        'sensor_properties': 'status,fault,cleaning_area,cleaning_time,statistical_clean_area,'
+                             'statistical_cleaning_times,statistical_cleaning_duration,cleaning_progress,'
+                             'last_clean_time,drying_progress,dry_left_time,water_check_status,sweep_mop_status,'
+                             'sewage_tank_status,water_tank_status,base_station_water_tank_status,'
+                             'host_water_tank_status,brush_life_level,filter_life_level,dust_bag_life_level,'
+                             'mop_life_level',
+        'binary_sensor_properties': 'mop_status,current_no_disturb,sleep_status,location_status,'
+                                    'auto_water_change_installed',
+        'switch_properties': 'no_disturb,alarm,physical_control_locked',
+        # `enable_time_period` (siid 11, piid 2) packs the DND start+end time into one
+        # uint32; decoded/encoded via MiotDndStartTimeConv/MiotDndEndTimeConv (read-modify-write
+        # so writing one `time.dnd_*` entity never clobbers the other half).
+        'append_converters': [
+            {
+                'services': ['no_disturb'],
+                'converters': [
+                    {'props': ['enable_time_period'], 'attr': 'dnd_start', 'domain': 'time', 'class': MiotDndStartTimeConv},
+                    {'props': ['enable_time_period'], 'attr': 'dnd_end', 'domain': 'time', 'class': MiotDndEndTimeConv},
+                ],
+            },
+        ],
+        'button_actions': 'start_sweep,stop_sweeping,stop_and_gocharge,start_only_sweep,start_mop,start_sweep_mop,'
+                          'pause_sweeping,continue_sweep,start_custom_sweep,start_build_map,start_dust_arrest,'
+                          'start_mop_wash,start_dry,start_eject,start_call_clean,try_listen,enter_remote,exit_remote,'
+                          'stop_mop_wash,stop_dry,continue_build_map,stop_build_map_and_gocharge,pause_build_map,'
+                          'back_mop_wash,start_cut_hair,stop_cut_hair,start_water_self_check,'
+                          'cancel_water_self_check,start_base_station_cleaning,start_sweep_before_mopping,'
+                          'stop_working,empty_base_station_water_tank,empty_host_water_tank,spot_cleaning,'
+                          'start_self_cleaning_of_the_station,stop_self_cleaning_of_the_station,start_charge,'
+                          'identify,reset_mop_life,reset_brush_life,reset_filter_life,'
+                          'reset_detergent_management_level,reset_dust_bag_life,imu_calibration',
+        'chunk_coordinators': [
+            {'interval': 11, 'props': 'status,charging_state', 'notify': True},
+            {'interval': 16, 'props': 'sweep_mop_type,sweep_type,mode,clean_times,mop_water_output_level'},
+            {'interval': 31, 'props': 'battery_level,cleaning_area,cleaning_time,cleaning_progress'},
+            {'interval': 61, 'props': 'mop_status,fault,no_disturb,current_no_disturb'},
+            {'interval': 130, 'props': 'auto_*,*_detection,carpet_*,water_*'},
+            {'interval': 300, 'props': 'brush_l*,filter_l*,dust_bag_l*'},
+            {'interval': 999, 'props': 'statistical_*,last_clean_time,enable_time_period'},
+        ],
+    },
+    'xiaomi.vacuum.ov42gl:last_clean_time': {
+        'device_class': 'timestamp',
+    },
     'xiaomi.vacuum.ov81gl': {
         'interval_seconds': 121,
         'exclude_miot_services': 'custom,ai_small_pictures,voice_management',
