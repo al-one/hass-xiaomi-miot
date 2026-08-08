@@ -2667,6 +2667,7 @@ DEVICE_CUSTOMIZES = {
         'binary_sensor_properties': 'mop_status,current_no_disturb,sleep_status,location_status,'
                                     'auto_water_change_installed',
         'switch_properties': 'no_disturb,alarm,physical_control_locked',
+        'number_properties': 'frequency_mop_wash_by_time',
         # `enable_time_period` (siid 11, piid 2) packs the DND start+end time into one
         # uint32; decoded/encoded via MiotDndStartTimeConv/MiotDndEndTimeConv (read-modify-write
         # so writing one `time.dnd_*` entity never clobbers the other half).
