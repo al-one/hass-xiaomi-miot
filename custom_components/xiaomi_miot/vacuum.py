@@ -43,6 +43,19 @@ from .core.vacuum_zones import (
     describe_zones,
     parse_zone_property_values,
 )
+from .core.vacuum_maps import (
+    MAP_SIID,
+    MAP_MANAGEMENT_PIID,
+    BACKUP_MAP_LIST_PIID,
+    MAX_SAVED_MAPS,
+    parse_map_management,
+    parse_backup_map_list,
+    map_label,
+    saved_maps,
+    find_current_map,
+    find_backup_for_map,
+    set_map_name_payload,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -523,6 +536,7 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         await super().async_added_to_hass()
         await self._async_setup_room_entities()
         await self._async_setup_zone_entities()
+        await self._async_setup_map_entities()
 
     # -- Per-room / multi-room cleaning --------------------------------
 
@@ -809,3 +823,220 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         # guarantee the device reflects the write back synchronously).
         self._zone_regions = [{'fb_point': r['fb_point'], 'fb_attr': r['fb_attr']} for r in regions]
         self._zone_walls = [{'wall_points': w['wall_points']} for w in walls]
+
+    # -- Saved map list / backup restore ----------------------------------
+
+    async def _async_read_maps(self):
+        """Reads map-management/backup-map-list directly off the device
+        (SIID10 PIID5/13 - a separate MIoT service from the main vacuum one,
+        excluded from the generic pipeline; see core/vacuum_maps.py for why).
+        No cloud map download involved - both are already plain JSON, unlike
+        the rendered map file in core/vacuum_map.py."""
+        map_service = self._miot_service.spec.get_service('vacuum_map')
+        if not (map_service and self.device.local and self.device.did):
+            return None, [], []
+        try:
+            results = await self.device.local.async_get_properties_for_mapping(
+                did=self.device.did,
+                mapping={
+                    'map_management': {'siid': MAP_SIID, 'piid': MAP_MANAGEMENT_PIID},
+                    'backup_map_list': {'siid': MAP_SIID, 'piid': BACKUP_MAP_LIST_PIID},
+                },
+            )
+        except Exception as exc:
+            self.logger.debug('%s: failed to read map list: %s', self.name_model, exc)
+            return map_service, [], []
+        values = {}
+        for item in results or []:
+            if item.get('code') == 0:
+                values[(item.get('siid'), item.get('piid'))] = item.get('value')
+        maps = parse_map_management(values.get((MAP_SIID, MAP_MANAGEMENT_PIID)))
+        backups = parse_backup_map_list(values.get((MAP_SIID, BACKUP_MAP_LIST_PIID)))
+        return map_service, maps, backups
+
+    async def _async_setup_map_entities(self):
+        self._maps = []
+        self._map_backups = []
+        self._map_service = None
+
+        # Read once at setup, same "fetch once, HA-side edits update the
+        # cache immediately, app-side edits need a restart" behavior as
+        # rooms/zones above (see _async_setup_zone_entities).
+        map_service, maps, backups = await self._async_read_maps()
+        if not map_service:
+            return
+        add_buttons = self.device.entry.adders.get('button')
+        add_texts = self.device.entry.adders.get('text')
+        add_selects = self.device.entry.adders.get('select')
+        if not add_buttons:
+            return
+
+        from .button import ButtonSubEntity
+
+        self._map_service = map_service
+        self._maps = maps
+        self._map_backups = backups
+
+        new_buttons, new_texts = [], []
+        for entry in saved_maps(self._maps):
+            new_buttons.append(self._add_use_map_button(entry))
+            if add_texts:
+                new_texts.append(self._add_rename_map_text(entry))
+
+        sub = 'save_map'
+        self._subs[sub] = ButtonSubEntity(self, sub, option={
+            'name': f'{self.device_name} Save Current Map',
+            'entity_id': 'save_current_map',
+            'async_press_action': self._async_save_map,
+        })
+        new_buttons.append(self._subs[sub])
+
+        current = find_current_map(self._maps)
+        backup = find_backup_for_map(current.get('map_id'), self._map_backups) if current else None
+        if backup is not None:
+            sub = 'restore_map_backup'
+            self._subs[sub] = ButtonSubEntity(self, sub, option={
+                'name': f'{self.device_name} Restore Map Backup',
+                'entity_id': 'restore_map_backup',
+                'async_press_action': self._async_restore_map_backup,
+            })
+            new_buttons.append(self._subs[sub])
+
+        if add_selects and len(saved_maps(self._maps)) > 1:
+            self._subs['map_to_delete'] = _StagingSelect(self, 'map_to_delete', option={
+                'name': f'{self.device_name} Map to Delete',
+                'options_getter': self._describe_deletable_maps,
+            })
+            add_selects([self._subs['map_to_delete']], update_before_add=False)
+
+            sub = 'delete_map'
+            self._subs[sub] = ButtonSubEntity(self, sub, option={
+                'name': f'{self.device_name} Delete Selected Map',
+                'entity_id': 'delete_selected_map',
+                'async_press_action': self._async_delete_map,
+            })
+            new_buttons.append(self._subs[sub])
+
+        add_buttons(new_buttons, update_before_add=False)
+        if new_texts and add_texts:
+            add_texts(new_texts, update_before_add=False)
+
+    def _add_use_map_button(self, entry):
+        from .button import ButtonSubEntity
+        map_id = entry.get('map_id')
+        sub = f'use_map_{map_id}'
+        self._subs[sub] = ButtonSubEntity(self, sub, option={
+            'name': f'{self.device_name} Use Map: {map_label(entry)}',
+            'entity_id': f'use_map_{map_id}',
+            'async_press_action': self._async_use_map,
+            'press_kwargs': {'map_id': map_id},
+        })
+        return self._subs[sub]
+
+    def _add_rename_map_text(self, entry):
+        from .text import TextSubEntity
+        map_id = entry.get('map_id')
+        sub = f'rename_map_{map_id}'
+        self._subs[sub] = TextSubEntity(self, sub, option={
+            'name': f'{self.device_name} Rename Map: {map_label(entry)}',
+            'entity_id': f'rename_map_{map_id}',
+            'native_value': map_label(entry),
+            'async_set_value_action': self._make_rename_map_action(map_id),
+        })
+        return self._subs[sub]
+
+    def _map_action(self, name):
+        return self._map_service.get_action(name) if self._map_service else None
+
+    async def _async_call_map_action(self, name, params=None):
+        act = self._map_action(name)
+        if not act:
+            raise HomeAssistantError(f'Action not supported by this device: {name}')
+        result = await self.async_call_action(act, params if params is not None else [])
+        if not result or not result.is_success:
+            label = name.replace('_', ' ')
+            raise HomeAssistantError(f'Failed to {label}: {result.error if result else "no response"}')
+        return result
+
+    async def _async_use_map(self, map_id, **kwargs):
+        await self._async_call_map_action('set_map', [map_id])
+        # Optimistic update - same rationale as room/zone writes above: the
+        # device doesn't reflect this back into map-management synchronously.
+        for m in self._maps:
+            m['is_current'] = (m.get('map_id') == map_id)
+        return True
+
+    def _make_rename_map_action(self, map_id):
+        async def _do_rename(entity, value):
+            name = value.strip()
+            if not name:
+                raise HomeAssistantError('Map name must not be empty')
+            await self._async_call_map_action('set_map_name', [set_map_name_payload(map_id, name)])
+            for m in self._maps:
+                if m.get('map_id') == map_id:
+                    m['map_name'] = name
+            entity._attr_native_value = name
+            entity._name = f'{self.device_name} Rename Map: {name}'
+            entity.async_write_ha_state()
+        return _do_rename
+
+    async def _async_save_map(self, **kwargs):
+        if len(saved_maps(self._maps)) >= MAX_SAVED_MAPS:
+            raise HomeAssistantError(f'Limit of {MAX_SAVED_MAPS} saved maps reached (same limit the app enforces)')
+        await self._async_call_map_action('save_map')
+        await self._async_refresh_maps_after_save()
+        return True
+
+    async def _async_refresh_maps_after_save(self):
+        """save-map assigns a new map_id server-side that can't be predicted
+        client-side (unlike rename/delete/switch, where the affected id is
+        already known) - so this specifically re-reads map-management, then
+        creates entities for whatever map_id(s) weren't there before."""
+        _map_service, maps, backups = await self._async_read_maps()
+        known_ids = {m.get('map_id') for m in self._maps}
+        self._map_backups = backups
+
+        add_buttons = self.device.entry.adders.get('button')
+        add_texts = self.device.entry.adders.get('text')
+        new_buttons, new_texts = [], []
+        for entry in saved_maps(maps):
+            if entry.get('map_id') in known_ids:
+                continue
+            new_buttons.append(self._add_use_map_button(entry))
+            if add_texts:
+                new_texts.append(self._add_rename_map_text(entry))
+
+        self._maps = maps
+        if new_buttons and add_buttons:
+            add_buttons(new_buttons, update_before_add=False)
+        if new_texts and add_texts:
+            add_texts(new_texts, update_before_add=False)
+
+    async def _async_restore_map_backup(self, **kwargs):
+        current = find_current_map(self._maps)
+        backup = find_backup_for_map(current.get('map_id'), self._map_backups) if current else None
+        if backup is None:
+            raise HomeAssistantError('No backup available for the current map')
+        await self._async_call_map_action('restore_map', [backup.get('map_id')])
+        return True
+
+    def _describe_deletable_maps(self):
+        current = find_current_map(self._maps)
+        current_id = current.get('map_id') if current else None
+        return [map_label(m) for m in saved_maps(self._maps) if m.get('map_id') != current_id]
+
+    async def _async_delete_map(self, **kwargs):
+        select = self._subs.get('map_to_delete')
+        selected = select.current_option if select else None
+        if not selected:
+            raise HomeAssistantError('No map selected in "Map to Delete"')
+        match = next((m for m in saved_maps(self._maps) if map_label(m) == selected), None)
+        if match is None:
+            raise HomeAssistantError('Map not found - the list may have changed, try refreshing the selection')
+        if match.get('is_current'):
+            # Not confirmed the device blocks this server-side too - guarded
+            # client-side to be safe (same caution as MAX_SAVED_MAPS above).
+            raise HomeAssistantError('Cannot delete the currently active map - switch to a different map first')
+        await self._async_call_map_action('delete_map', [match.get('map_id')])
+        self._maps = [m for m in self._maps if m.get('map_id') != match.get('map_id')]
+        return True
