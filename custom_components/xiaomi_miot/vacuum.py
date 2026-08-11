@@ -1,6 +1,7 @@
 """Support for Xiaomi vacuums."""
 import logging
 import asyncio
+import json
 from datetime import timedelta
 
 from homeassistant.components.vacuum import (  # noqa: F401
@@ -8,6 +9,9 @@ from homeassistant.components.vacuum import (  # noqa: F401
     StateVacuumEntity,
     VacuumEntityFeature,  # v2022.5
 )
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.select import SelectEntity
+from homeassistant.exceptions import HomeAssistantError
 from .core.const import VacuumActivity
 
 from . import (
@@ -17,6 +21,7 @@ from . import (
     HassEntry,
     MiotEntity,
     MIOT_LOCAL_MODELS,
+    BaseSubEntity,
     async_setup_config_entry,
     bind_services_to_entries,
 )
@@ -24,6 +29,19 @@ from .core.utils import DeviceException
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+)
+from .core.vacuum_zones import (
+    ZONE_SIID,
+    RESTRICTED_AREAS_PIID,
+    RESTRICTED_WALLS_PIID,
+    ZONE_TYPE_NO_SWEEP_AND_MOP,
+    ZONE_TYPE_LABELS,
+    LABEL_TO_ZONE_TYPE,
+    build_zone_lists,
+    remove_zone_lists,
+    zone_write_payloads,
+    describe_zones,
+    parse_zone_property_values,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,6 +73,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 entities.append(MiotRoborockVacuumEntity(config, srv))
             elif 'viomi.' in model:
                 entities.append(MiotViomiVacuumEntity(config, srv))
+            elif srv.get_property('room_information') and srv.get_action('start_vacuum_room_sweep'):
+                # Detected by capability (this exact room-sweep property/
+                # action pair), not a hardcoded model check - covers
+                # xiaomi.vacuum.ov42gl (H50 Pro) and any other model sharing
+                # the same spec shape.
+                entities.append(MiotOv42glVacuumEntity(config, srv))
             else:
                 entities.append(MiotVacuumEntity(config, srv))
     for entity in entities:
@@ -403,3 +427,385 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
     async def async_clean_point(self, point):
         await self.async_miio_command('set_uploadmap', [0])
         return await self.async_miio_command('set_pointclean', [1, *point])
+
+
+class _StagingSwitch(BaseSubEntity, SwitchEntity):
+    """A pure in-memory toggle sub-entity - not backed by any MIoT property,
+    doesn't survive a Home Assistant restart. Follows the same "no-op
+    update()" idiom ButtonSubEntity (button.py) already uses for the same
+    reason: there's nothing on the device to poll for this attribute, so
+    BaseSubEntity's default update() (which reads from `device.props` and
+    would otherwise leave `available` stuck False forever) is skipped."""
+
+    def __init__(self, parent, attr, option=None):
+        BaseSubEntity.__init__(self, parent, attr, option, domain='switch')
+        self._available = True
+        self._attr_is_on = bool(self._option.get('is_on', False))
+        self._async_turn_on_action = self._option.get('async_turn_on_action')
+        self._async_turn_off_action = self._option.get('async_turn_off_action')
+
+    def update(self, data=None):
+        return
+
+    @property
+    def is_on(self):
+        return self._attr_is_on
+
+    async def async_turn_on(self, **kwargs):
+        self._attr_is_on = True
+        if self._async_turn_on_action:
+            await self._async_turn_on_action(self)
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs):
+        self._attr_is_on = False
+        if self._async_turn_off_action:
+            await self._async_turn_off_action(self)
+        self.async_write_ha_state()
+
+
+class _StagingSelect(BaseSubEntity, SelectEntity):
+    """A pure in-memory select sub-entity - see _StagingSwitch above for why
+    update() is a no-op here too. Options can be static (`option['options']`)
+    or computed live (`option['options_getter']`, a zero-arg callable) so a
+    "which zone to remove" list can follow whatever's actually on the map
+    right now instead of going stale."""
+
+    def __init__(self, parent, attr, option=None):
+        BaseSubEntity.__init__(self, parent, attr, option, domain='select')
+        self._available = True
+        self._attr_current_option = self._option.get('current_option')
+        self._options_getter = self._option.get('options_getter')
+        self._static_options = self._option.get('options') or []
+
+    def update(self, data=None):
+        return
+
+    @property
+    def options(self):
+        if self._options_getter:
+            return self._options_getter()
+        return self._static_options
+
+    @property
+    def current_option(self):
+        if self._attr_current_option in self.options:
+            return self._attr_current_option
+        return None
+
+    async def async_select_option(self, option: str):
+        self._attr_current_option = option
+        self.async_write_ha_state()
+
+
+class MiotOv42glVacuumEntity(MiotVacuumEntity):
+    """xiaomi.vacuum.ov42gl (H50 Pro), and any other model exposing the same
+    room-sweep property/action pair (see async_setup_platform) - adds what
+    xiaomi_miot's generic property/action-to-entity mapping can't represent
+    on its own:
+
+      - Per-room and multi-room cleaning: `start_vacuum_room_sweep` takes a
+        comma-separated room-id string, not a fixed enum value, so it can't
+        become a plain button/select the way a simple action can.
+      - Room renaming: writes a `{"room_attrs": [...]}` JSON payload through
+        `set_room_clean_configs` (which is also used for per-room fan/mop
+        settings) rather than a plain property.
+      - Virtual wall / restricted zone editing: `restricted_sweep_areas`/
+        `restricted_walls` are always rewritten as a whole replacement list
+        (see core/vacuum_zones.py), not a single scalar value.
+
+    All of the above were reverse-engineered from the Xiaomi Home app's own
+    write flows, for interoperability - see the README's section for this
+    model for the full writeup.
+    """
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        await self._async_setup_room_entities()
+        await self._async_setup_zone_entities()
+
+    # -- Per-room / multi-room cleaning --------------------------------
+
+    async def _async_fetch_rooms(self):
+        prop = self._miot_service.get_property('room_information')
+        if not prop or not self.device.local or not self.device.did:
+            return []
+        try:
+            results = await self.device.local.async_get_properties_for_mapping(
+                did=self.device.did,
+                mapping={'room_information': {'siid': prop.siid, 'piid': prop.iid}},
+            )
+        except Exception as exc:
+            self.logger.debug('%s: failed to read room_information: %s', self.name_model, exc)
+            return []
+        for item in results or []:
+            if item.get('code') == 0 and item.get('value'):
+                try:
+                    data = json.loads(item['value'])
+                except (TypeError, ValueError):
+                    return []
+                return [(r['id'], r.get('name') or f'Room {r["id"]}') for r in data.get('rooms', [])]
+        return []
+
+    async def _async_setup_room_entities(self):
+        # Room list is fetched once here, at platform setup, matching this
+        # device's actual behavior: it doesn't reflect an app-side rename
+        # back into `room_information` in real time either, so periodic
+        # re-polling wouldn't gain much - a Home Assistant restart already
+        # picks up any change made from the app.
+        rooms = await self._async_fetch_rooms()
+        if not rooms:
+            return
+        add_buttons = self.device.entry.adders.get('button')
+        add_switches = self.device.entry.adders.get('switch')
+        add_texts = self.device.entry.adders.get('text')
+        if not (add_buttons and add_switches):
+            return
+
+        from .button import ButtonSubEntity
+        from .text import TextSubEntity
+
+        rename_action = self._miot_service.get_action('set_room_clean_configs')
+
+        room_switches = {}
+        new_buttons, new_switches, new_texts = [], [], []
+        for room_id, room_name in rooms:
+            # Explicit `entity_id` (slugified from the room name, e.g.
+            # "Living room" -> select_room_living_room) rather than letting
+            # Home Assistant derive one from the entity's full display name
+            # (which would fold in the device's own name too, producing an
+            # unpredictable id that differs per installation). This mirrors
+            # the naming scheme already used by the older xiaomi_miot_tools
+            # add-on this replaces, so a dashboard referencing
+            # `switch.select_room_*`/`button.clean_selected_rooms` keeps
+            # working after migrating to this integration's own entities.
+            sub = f'clean_room_{room_id}'
+            self._subs[sub] = ButtonSubEntity(self, sub, option={
+                'name': f'{self.device_name} Clean Room: {room_name}',
+                'entity_id': f'clean_room_{room_name}',
+                'async_press_action': self._async_clean_rooms,
+                'press_kwargs': {'room_ids': [room_id]},
+            })
+            new_buttons.append(self._subs[sub])
+
+            sub = f'select_room_{room_id}'
+            self._subs[sub] = _StagingSwitch(self, sub, option={
+                'name': f'{self.device_name} Select Room: {room_name}',
+                'entity_id': f'select_room_{room_name}',
+            })
+            room_switches[room_id] = self._subs[sub]
+            new_switches.append(self._subs[sub])
+
+            if rename_action and add_texts:
+                sub = f'rename_room_{room_id}'
+                self._subs[sub] = TextSubEntity(self, sub, option={
+                    'name': f'{self.device_name} Rename Room: {room_name}',
+                    'entity_id': f'rename_room_{room_name}',
+                    'native_value': room_name,
+                    'async_set_value_action': self._make_rename_room_action(room_id, rename_action),
+                })
+                new_texts.append(self._subs[sub])
+
+        sweep_action = self._miot_service.get_action('start_vacuum_room_sweep')
+        if sweep_action:
+            sub = 'clean_selected_rooms'
+            self._subs[sub] = ButtonSubEntity(self, sub, option={
+                'name': f'{self.device_name} Clean Selected Rooms',
+                'entity_id': 'clean_selected_rooms',
+                'async_press_action': self._async_clean_selected_rooms,
+                'press_kwargs': {'room_switches': room_switches},
+            })
+            new_buttons.append(self._subs[sub])
+
+        add_buttons(new_buttons, update_before_add=False)
+        add_switches(new_switches, update_before_add=False)
+        if new_texts and add_texts:
+            add_texts(new_texts, update_before_add=False)
+
+    async def _async_clean_rooms(self, room_ids, **kwargs):
+        act = self._miot_service.get_action('start_vacuum_room_sweep')
+        if not act:
+            return False
+        result = await self.async_call_action(act, [','.join(str(r) for r in room_ids)])
+        return bool(result and result.is_success)
+
+    async def _async_clean_selected_rooms(self, room_switches, **kwargs):
+        selected = [room_id for room_id, sw in room_switches.items() if sw.is_on]
+        if not selected:
+            self.logger.warning('%s: Clean Selected Rooms pressed with no rooms selected', self.name_model)
+            return False
+        ok = await self._async_clean_rooms(selected)
+        for sw in room_switches.values():
+            if sw.is_on:
+                sw._attr_is_on = False
+                sw.async_write_ha_state()
+        return ok
+
+    def _make_rename_room_action(self, room_id, rename_action):
+        async def _do_rename(entity, value):
+            name = value.strip()
+            if not name:
+                raise HomeAssistantError('Room name must not be empty')
+            payload = json.dumps({'room_attrs': [{'id': room_id, 'room_name': name}]})
+            result = await self.async_call_action(rename_action, [payload])
+            if not result or not result.is_success:
+                raise HomeAssistantError(f'Failed to rename room: {result.error if result else "no response"}')
+            # Optimistic update: the device doesn't reflect this write back
+            # into room_information synchronously, so re-reading it right
+            # after the write can still return the pre-rename value.
+            entity._attr_native_value = name
+            entity._name = f'{self.device_name} Rename Room: {name}'
+            entity.async_write_ha_state()
+        return _do_rename
+
+    # -- Virtual wall / restricted zone editor ---------------------------
+
+    async def _async_read_zones(self):
+        """Reads the two zone/wall properties directly off the device (both
+        are plain read/write MIoT properties, SIID2 PIID13/14) and returns
+        them in the internal (regions, walls) list shape - see
+        core/vacuum_zones.py. No cloud map involved."""
+        prop_regions = self._miot_service.get_property('restricted_sweep_areas')
+        prop_walls = self._miot_service.get_property('restricted_walls')
+        if not (prop_regions and prop_walls and self.device.local and self.device.did):
+            return [], []
+        try:
+            results = await self.device.local.async_get_properties_for_mapping(
+                did=self.device.did,
+                mapping={
+                    'restricted_sweep_areas': {'siid': prop_regions.siid, 'piid': prop_regions.iid},
+                    'restricted_walls': {'siid': prop_walls.siid, 'piid': prop_walls.iid},
+                },
+            )
+        except Exception as exc:
+            self.logger.debug('%s: failed to read zones/walls: %s', self.name_model, exc)
+            return [], []
+        values = {}
+        for item in results or []:
+            if item.get('code') == 0:
+                values[(item.get('siid'), item.get('piid'))] = item.get('value')
+        regions_raw = values.get((prop_regions.siid, prop_regions.iid))
+        walls_raw = values.get((prop_walls.siid, prop_walls.iid))
+        return parse_zone_property_values(regions_raw, walls_raw)
+
+    async def _async_setup_zone_entities(self):
+        if not (self._miot_service.get_property('restricted_sweep_areas') and self._miot_service.get_property('restricted_walls')):
+            return
+        add_numbers = self.device.entry.adders.get('number')
+        add_selects = self.device.entry.adders.get('select')
+        add_buttons = self.device.entry.adders.get('button')
+        if not (add_numbers and add_selects and add_buttons):
+            return
+
+        from .number import NumberSubEntity
+        from .button import ButtonSubEntity
+
+        # Read once at setup, then kept in sync locally after every add/remove
+        # made from HA (same "fetch once, HA-side edits update the cache
+        # immediately, app-side edits need a restart" behavior as rooms
+        # above - the device doesn't reflect a write back into these
+        # properties synchronously enough to just re-read them right after).
+        self._zone_regions, self._zone_walls = await self._async_read_zones()
+
+        coord_option = {'min': -20000, 'max': 20000, 'step': 10, 'native_value': 0}
+        new_numbers = []
+        for key, label in (
+            ('zone_x1', 'Zone X1'), ('zone_y1', 'Zone Y1'),
+            ('zone_x2', 'Zone X2'), ('zone_y2', 'Zone Y2'),
+        ):
+            self._subs[key] = NumberSubEntity(self, key, option={
+                **coord_option,
+                'name': f'{self.device_name} {label}',
+            })
+            new_numbers.append(self._subs[key])
+        add_numbers(new_numbers, update_before_add=False)
+
+        self._subs['zone_type'] = _StagingSelect(self, 'zone_type', option={
+            'name': f'{self.device_name} Zone Type',
+            'options': list(ZONE_TYPE_LABELS.values()),
+            'current_option': ZONE_TYPE_LABELS[ZONE_TYPE_NO_SWEEP_AND_MOP],
+        })
+        self._subs['zone_to_remove'] = _StagingSelect(self, 'zone_to_remove', option={
+            'name': f'{self.device_name} Zone to Remove',
+            'options_getter': self._describe_current_zones,
+        })
+        add_selects([self._subs['zone_type'], self._subs['zone_to_remove']], update_before_add=False)
+
+        self._subs['add_zone'] = ButtonSubEntity(self, 'add_zone', option={
+            'name': f'{self.device_name} Add Zone',
+            'async_press_action': self._async_add_zone,
+        })
+        self._subs['remove_zone'] = ButtonSubEntity(self, 'remove_zone', option={
+            'name': f'{self.device_name} Remove Zone',
+            'async_press_action': self._async_remove_zone,
+        })
+        add_buttons([self._subs['add_zone'], self._subs['remove_zone']], update_before_add=False)
+
+    def _zone_numbers(self):
+        return (
+            self._subs['zone_x1'].native_value,
+            self._subs['zone_y1'].native_value,
+            self._subs['zone_x2'].native_value,
+            self._subs['zone_y2'].native_value,
+        )
+
+    def _current_zone_type(self):
+        select = self._subs.get('zone_type')
+        label = select.current_option if select else None
+        return LABEL_TO_ZONE_TYPE.get(label, ZONE_TYPE_NO_SWEEP_AND_MOP)
+
+    def _describe_current_zones(self):
+        return [label for label, _kind, _index in describe_zones(self._zone_regions, self._zone_walls)]
+
+    async def _async_add_zone(self, **kwargs):
+        x1, y1, x2, y2 = self._zone_numbers()
+        if x1 == x2 and y1 == y2:
+            raise HomeAssistantError('Set two different points (Zone X1/Y1/X2/Y2) before adding')
+        zone_type = self._current_zone_type()
+        try:
+            regions, walls = build_zone_lists(self._zone_regions, self._zone_walls, zone_type, x1, y1, x2, y2)
+        except ValueError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self._async_write_zones(regions, walls)
+
+        # Reset the staging inputs so the editor is ready for the next zone.
+        for key in ('zone_x1', 'zone_y1', 'zone_x2', 'zone_y2'):
+            entity = self._subs[key]
+            entity._attr_native_value = 0
+            entity.async_write_ha_state()
+        return True
+
+    async def _async_remove_zone(self, **kwargs):
+        select = self._subs.get('zone_to_remove')
+        selected = select.current_option if select else None
+        if not selected:
+            raise HomeAssistantError('No zone selected in "Zone to Remove"')
+        match = next(
+            ((kind, index) for label, kind, index in describe_zones(self._zone_regions, self._zone_walls) if label == selected),
+            None,
+        )
+        if match is None:
+            raise HomeAssistantError('Zone not found - the list may have changed, try refreshing the selection')
+        kind, index = match
+        try:
+            regions, walls = remove_zone_lists(self._zone_regions, self._zone_walls, kind, index)
+        except ValueError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self._async_write_zones(regions, walls)
+        return True
+
+    async def _async_write_zones(self, regions, walls):
+        regions_payload, walls_payload = zone_write_payloads(regions, walls)
+        result = await self.async_set_miot_property(ZONE_SIID, RESTRICTED_AREAS_PIID, regions_payload)
+        if not result or not result.is_success:
+            raise HomeAssistantError(f'Failed to write zones: {result.error if result else "no response"}')
+        result = await self.async_set_miot_property(ZONE_SIID, RESTRICTED_WALLS_PIID, walls_payload)
+        if not result or not result.is_success:
+            raise HomeAssistantError(f'Failed to write walls: {result.error if result else "no response"}')
+
+        # Optimistic update: the write above already confirmed success, so
+        # the local cache is updated straight away instead of re-reading the
+        # properties back (same rationale as room renaming above - no
+        # guarantee the device reflects the write back synchronously).
+        self._zone_regions = [{'fb_point': r['fb_point'], 'fb_attr': r['fb_attr']} for r in regions]
+        self._zone_walls = [{'wall_points': w['wall_points']} for w in walls]

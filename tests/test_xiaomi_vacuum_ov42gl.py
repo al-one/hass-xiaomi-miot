@@ -1,3 +1,4 @@
+import json
 from datetime import time
 
 from custom_components.xiaomi_miot.core.converters import MiotActionConv
@@ -27,8 +28,11 @@ def test_noisy_internal_properties_are_excluded(make_device, load_miot_spec):
         for c in device.converters
         if getattr(c, "prop", None) is not None
     }
+    # `order_clean` and `base_station_working_status` are deliberately NOT in this list
+    # anymore: they now have dedicated converters (schedule/base-station-activity, see
+    # test_xiaomi_vacuum_ov42gl_map.py) instead of being fully excluded.
     for excluded in [
-        "common_params", "vacuum_route", "order_clean", "room_information",
+        "common_params", "vacuum_route", "room_information",
         "fault_ids", "vacuum_frameware_version", "map_complete_dialog",
     ]:
         assert excluded not in mapped_props
@@ -119,3 +123,90 @@ def test_dnd_schedule_write_defaults_missing_sibling_to_midnight(make_device, lo
     assert payload["params"] == [
         {"did": device.did, "siid": 11, "piid": 2, "value": pack_value(22, 30, 0, 0)},
     ]
+
+
+def test_fault_conv_translates_confirmed_codes(make_device, load_miot_spec):
+    device = model_device(make_device, load_miot_spec)
+    payload = device.decode({"siid": 2, "piid": 3, "value": 320004})
+    assert payload["sensor.fault"] == "Wheel Error (turn the robot upside down and clean the wheels)"
+
+    payload = device.decode({"siid": 2, "piid": 3, "value": 0})
+    assert payload["sensor.fault"] == "No Fault"
+
+
+def test_fault_conv_falls_back_for_unmapped_codes(make_device, load_miot_spec):
+    device = model_device(make_device, load_miot_spec)
+    payload = device.decode({"siid": 2, "piid": 3, "value": 999999})
+    assert payload["sensor.fault"] == "Unknown fault (code 999999)"
+
+
+def test_base_station_activity_conv_decodes_mode_and_progress(make_device, load_miot_spec):
+    device = model_device(make_device, load_miot_spec)
+    raw = json.dumps({"mode": 2, "progress": 69})
+    payload = device.decode({"siid": 2, "piid": 18, "value": raw})
+    assert payload["sensor.base_station_activity"] == "Dust Emptying (69%)"
+
+
+# order_clean (siid 2, piid 19) sample matching the one documented in
+# xiaomi_miot_tools_project/README.md, captured from the real Xiaomi Home
+# app: Mon+Wed+Fri at 09:46, vacuum-only.
+CONFIRMED_ORDER_CLEAN_SAMPLE = {
+    "id": [1785851231],
+    "on": [1],
+    "week": [170],  # 128 (flag) + 32 (Mon) + 8 (Wed) + 2 (Fri)
+    "time": [2350],  # 9 * 256 + 46 -> 09:46
+    "clean_conf": [{"mode": 1, "mop": 1}],
+}
+
+
+def test_schedule_decode_matches_confirmed_hardware_sample(make_device, load_miot_spec):
+    device = model_device(make_device, load_miot_spec)
+    raw = json.dumps(CONFIRMED_ORDER_CLEAN_SAMPLE)
+    payload = device.decode({"siid": 2, "piid": 19, "value": raw})
+
+    assert payload["switch.schedule_enabled"] is True
+    assert payload["time.schedule_time"] == time(9, 46)
+    assert payload["select.schedule_mode"] == "Sweep"
+    assert payload["switch.schedule_day_monday"] is True
+    assert payload["switch.schedule_day_wednesday"] is True
+    assert payload["switch.schedule_day_friday"] is True
+    assert payload["switch.schedule_day_sunday"] is False
+    assert payload["switch.schedule_day_tuesday"] is False
+
+
+def test_schedule_mode_options_available_for_select_entity(make_device, load_miot_spec):
+    device = model_device(make_device, load_miot_spec)
+    conv = next(c for c in device.converters if c.full_name == "select.schedule_mode")
+    assert conv.options == ["Sweep", "Mop", "Sweep Mop", "Sweep Before Mopping"]
+
+
+def test_schedule_day_toggle_preserves_the_rest_of_the_schedule(make_device, load_miot_spec):
+    device = model_device(make_device, load_miot_spec)
+    device.props["order_clean_raw"] = dict(CONFIRMED_ORDER_CLEAN_SAMPLE)
+
+    payload = device.encode({"switch.schedule_day_tuesday": True})
+    written = json.loads(payload["params"][0]["value"])
+    assert written["week"] == [170 | 16]  # adds Tuesday's bit, keeps Mon/Wed/Fri/flag
+    assert written["on"] == [1]
+    assert written["time"] == [2350]
+    assert written["clean_conf"] == [{"mode": 1, "mop": 1}]
+
+
+def test_schedule_turning_off_the_last_day_clears_the_week_bitmask(make_device, load_miot_spec):
+    device = model_device(make_device, load_miot_spec)
+    device.props["order_clean_raw"] = {
+        "id": [1], "on": [1], "week": [128 | 32], "time": [0],
+        "clean_conf": [{"mode": 1, "mop": 1}],
+    }
+    payload = device.encode({"switch.schedule_day_monday": False})
+    written = json.loads(payload["params"][0]["value"])
+    assert written["week"] == [0]
+
+
+def test_schedule_mode_write_preserves_unknown_mop_field(make_device, load_miot_spec):
+    device = model_device(make_device, load_miot_spec)
+    device.props["order_clean_raw"] = dict(CONFIRMED_ORDER_CLEAN_SAMPLE)
+
+    payload = device.encode({"select.schedule_mode": "Sweep Mop"})
+    written = json.loads(payload["params"][0]["value"])
+    assert written["clean_conf"] == [{"mode": 3, "mop": 1}]

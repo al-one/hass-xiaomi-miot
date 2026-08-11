@@ -1,14 +1,17 @@
 import logging
 import copy
 import re
+import json
 from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
 from functools import cached_property
+import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
 from homeassistant.components import persistent_notification
 from homeassistant.helpers.event import async_call_later, async_track_time_interval
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.device_registry as dr
 
 from .const import (
@@ -539,6 +542,18 @@ class Device(CustomConfigHelper):
         if self.custom_miio_commands:
             lst.append(
                 DataCoordinator(self, self.update_miio_commands, update_interval=timedelta(seconds=interval)),
+            )
+        if self.vacuum_map_property:
+            # Own, much slower coordinator: this downloads+decrypts a cloud
+            # file (not a local miIO property poll), so it's independent of
+            # the interval/chunk_coordinators tuning above. 30s matches how
+            # fluidly a live cleaning session's robot position/trail update
+            # without pushing so hard it risks Xiaomi cloud rate-limiting.
+            # No entity in this integration currently reads the result
+            # (Device.data['vacuum_map']) - this just keeps it decoded and
+            # ready for whatever does (e.g. a future map camera).
+            lst.append(
+                DataCoordinator(self, self.update_vacuum_map, update_interval=timedelta(seconds=30)),
             )
         self.coordinators.extend(lst)
 
@@ -1304,6 +1319,81 @@ class Device(CustomConfigHelper):
             self.data['updated'] = dt.now()
             self.dispatch(self.decode_attrs(attrs))
         return attrs
+
+    @cached_property
+    def vacuum_map_property(self):
+        """The vacuum's own map-obj-name property, if the spec has one
+        (SIID10 PIID1 on xiaomi.vacuum.ov42gl/H50 Pro) - resolved from the
+        spec rather than a hardcoded model check, so any device sharing the
+        exact same `vacuum-map` service/property is picked up automatically.
+        The AES decrypt algorithm in `core/vacuum_map.py` is only confirmed
+        correct for 3iRobotics-manufactured units though - `update_vacuum_map`
+        double-checks the cloud response before trusting it (see its own
+        comment), so exposing this property alone doesn't guarantee the map
+        will actually decode for a different manufacturer's device.
+        """
+        if not self.spec:
+            return None
+        srv = self.spec.get_service('vacuum-map')
+        return srv.get_property('map-obj-name') if srv else None
+
+    async def update_vacuum_map(self):
+        """Downloads and decrypts this vacuum's cloud map file (see
+        core/vacuum_map.py for the full pipeline). The decoded JSON is
+        stashed on `self.data['vacuum_map']` - not exposed as a regular
+        property/sensor since it's a large nested structure, not a simple
+        value; no entity in this integration currently reads it, but a
+        camera (or any other) entity added later only needs to read
+        `Device.data['vacuum_map']`, everything else is already wired up
+        here."""
+        from .vacuum_map import decrypt_map_payload, MAP_FILE_URL_API
+
+        prop = self.vacuum_map_property
+        if not prop or not self.local or not self.cloud or not self.did:
+            return self.data.get('vacuum_map')
+        try:
+            results = await self.local.async_get_properties_for_mapping(
+                did=self.did,
+                mapping={'map_obj_name': {'siid': prop.siid, 'piid': prop.iid}},
+            )
+            obj_name = None
+            for item in results or []:
+                if item.get('code') == 0 and item.get('value'):
+                    obj_name = (json.loads(item['value']) or {}).get('obj_name')
+                    break
+            if not obj_name:
+                return self.data.get('vacuum_map')
+
+            result = await self.cloud.async_request_api(MAP_FILE_URL_API, {'obj_name': obj_name}) or {}
+            url = (result.get('result') or {}).get('url')
+            if not url:
+                self.log.debug('%s: vacuum map url missing in response: %s', self.name_model, result)
+                return self.data.get('vacuum_map')
+
+            # The decrypt algorithm was reverse-engineered specifically from
+            # 3iRobotics' own plugin (identifiable by this bucket name
+            # prefix in the signed URL) - refuse to even try decoding a
+            # response that doesn't match, rather than raising a confusing
+            # decrypt error for some other manufacturer's vacuum that
+            # happens to expose the same map-obj-name property.
+            if '3irobotic-' not in url:
+                self.log.warning(
+                    '%s: vacuum map url does not look like a 3iRobotics bucket, skipping decode: %s',
+                    self.name_model, url,
+                )
+                return self.data.get('vacuum_map')
+
+            session = async_get_clientsession(self.hass)
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                raw_bytes = await resp.read()
+            map_data = decrypt_map_payload(raw_bytes, self.model, str(self.did))
+            self.data['vacuum_map'] = map_data
+            return map_data
+        except Exception as exc:
+            # A transient cloud/network miss shouldn't blank out an
+            # otherwise-good map - keep serving the last successful decode.
+            self.log.debug('%s: update vacuum map failed, keeping last map: %s', self.name_model, exc)
+            return self.data.get('vacuum_map')
 
     @cached_property
     def custom_miio_properties(self):
