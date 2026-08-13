@@ -205,65 +205,80 @@ class BaseFlowHandler:
         if not dvs:
             errors['base'] = 'none_devices'
         else:
-            grp = {}
-            vls = {}
-            homes = {}
-            fls = ['did'] if via_did else ['model', 'home_id', 'ssid', 'bssid']
-            for f in fls:
-                for d in dvs:
-                    v = d.get(f)
-                    if v is None:
-                        continue
-                    if home_id := d.get('home_id', 0):
-                        homes.setdefault(home_id, d.get('home_name') or 'Default Home')
-                        if f in ['did'] and v in user_input.get(f'{f}_list', []):
-                            pass
-                        elif home_ids and home_id not in home_ids:
-                            continue
-                    grp.setdefault(v, 0)
-                    grp[v] += 1
-                    vls.setdefault(f, {})
-                    dnm = f'{d.get("name")}'
-                    des = '<empty>' if v == '' else v
-                    if f == 'home_id':
-                        des = d.get('home_name') or des
-                    if f in ['did']:
-                        if MiotCloud.is_hide(d):
-                            continue
-                        dip = d.get('localip')
-                        if not dip or d.get('pid') not in [0, '0', '8', '', None]:
-                            dip = d.get('model')
-                        vls[f][v] = f'{dnm} ({dip})'
-                    elif f in ['model']:
-                        if grp[v] > 1:
-                            dnm += f' * {grp[v]}'
-                        vls[f][v] = f'{des} ({dnm})'
-                    else:
-                        vls[f][v] = f'{des} ({grp[v]})'
             ies = {
                 'exclude': 'Exclude (排除)',
                 'include': 'Include (包含)',
             }
-            for f in fls:
-                if not vls.get(f):
-                    continue
-                fk = f'filter_{f}'
-                fl = f'{f}_list'
-                lst = vls.get(f, {})
-                lst = dict(sorted(lst.items()))
-                ols = [
-                    v
-                    for v in user_input.get(fl, [])
-                    if v in lst
-                ]
+            if via_did:
+                # 按家庭分组的设备选择：每个家庭一个独立多选框，一目了然
+                homes = {}
+                for d in dvs:
+                    did = d.get('did')
+                    if not did or MiotCloud.is_hide(d):
+                        continue
+                    if home_ids and d.get('home_id') not in home_ids:
+                        continue
+                    hname = d.get('home_name') or 'Default Home'
+                    dip = d.get('localip')
+                    if not dip or d.get('pid') not in [0, '0', '8', '', None]:
+                        dip = d.get('model')
+                    homes.setdefault(hname, {})[did] = f'{d.get("name")} ({dip})'
                 schema = schema.extend({
-                    vol.Required(fk, default=user_input.get(fk, 'exclude')): vol.In(ies),
-                    vol.Optional(fl, default=ols): cv.multi_select(lst),
+                    vol.Required('filter_did', default=user_input.get('filter_did', 'exclude')): vol.In(ies),
                 })
-            if via_did and homes:
-                schema = schema.extend({
-                    vol.Optional('home_ids', default=[]): cv.multi_select(homes),
-                })
+                prev = user_input.get('did_list') or []
+                for hname in sorted(homes):
+                    lst = dict(sorted(homes[hname].items()))
+                    key = f'home__{hname}'
+                    ols = [
+                        v
+                        for v in (user_input.get(key) or []) + prev
+                        if v in lst
+                    ]
+                    schema = schema.extend({
+                        vol.Optional(key, default=ols): cv.multi_select(lst),
+                    })
+            else:
+                grp = {}
+                vls = {}
+                fls = ['model', 'home_id', 'ssid', 'bssid']
+                for f in fls:
+                    for d in dvs:
+                        v = d.get(f)
+                        if v is None:
+                            continue
+                        if home_id := d.get('home_id', 0):
+                            if home_ids and home_id not in home_ids:
+                                continue
+                        grp.setdefault(v, 0)
+                        grp[v] += 1
+                        vls.setdefault(f, {})
+                        dnm = f'{d.get("name")}'
+                        des = '<empty>' if v == '' else v
+                        if f == 'home_id':
+                            des = d.get('home_name') or des
+                        if f in ['model']:
+                            if grp[v] > 1:
+                                dnm += f' * {grp[v]}'
+                            vls[f][v] = f'{des} ({dnm})'
+                        else:
+                            vls[f][v] = f'{des} ({grp[v]})'
+                for f in fls:
+                    if not vls.get(f):
+                        continue
+                    fk = f'filter_{f}'
+                    fl = f'{f}_list'
+                    lst = vls.get(f, {})
+                    lst = dict(sorted(lst.items()))
+                    ols = [
+                        v
+                        for v in user_input.get(fl, [])
+                        if v in lst
+                    ]
+                    schema = schema.extend({
+                        vol.Required(fk, default=user_input.get(fk, 'exclude')): vol.In(ies),
+                        vol.Optional(fl, default=ols): cv.multi_select(lst),
+                    })
         tip = ''
         if user_input.get(CONF_CONN_MODE) == 'local':
             url = 'https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-855183156'
@@ -409,6 +424,12 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         elif user_input:
             if not self.config_data:
                 self.config_data = {}
+            did_list = []
+            for k in list(user_input.keys()):
+                if k.startswith('home__'):
+                    did_list += user_input.pop(k) or []
+            if did_list:
+                user_input['did_list'] = did_list
             self.config_data.update({
                 **(self.cloud.to_config() or {}),
                 **user_input,
@@ -1121,6 +1142,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             }
             schema = await self.get_cloud_filter_schema(user_input, errors, schema, via_did=via_did, home_ids=home_ids)
         elif user_input:
+            did_list = []
+            for k in list(user_input.keys()):
+                if k.startswith('home__'):
+                    did_list += user_input.pop(k) or []
+            if did_list:
+                user_input['did_list'] = did_list
             self.config_data.update({
                 **(self.cloud.to_config() or {}),
                 'filter_models': self.filter_models,
