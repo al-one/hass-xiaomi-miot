@@ -19,7 +19,7 @@ from homeassistant.const import (
 from homeassistant.core import callback, split_entity_id
 from homeassistant.util import yaml
 from homeassistant.components import persistent_notification
-from homeassistant.helpers import config_validation as cv, selector
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.device_registry import format_mac
 from homeassistant.helpers.selector import ObjectSelector
 
@@ -239,13 +239,7 @@ class BaseFlowHandler:
                         if v in lst
                     ]
                     schema = schema.extend({
-                        vol.Optional(key, default=ols): selector.SelectSelector(
-                            selector.SelectSelectorConfig(
-                                multiple=True,
-                                mode="dropdown",
-                                options=[{"value": did, "label": lbl} for did, lbl in lst.items()],
-                            ),
-                        ),
+                        vol.Optional(key, default=ols): cv.multi_select(lst),
                     })
             else:
                 grp = {}
