@@ -11,7 +11,10 @@ from homeassistant.components.vacuum import (  # noqa: F401
 )
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.components.select import SelectEntity
+from homeassistant.components.time import TimeEntity
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.event import async_track_time_interval
 from .core.const import VacuumActivity
 
 from . import (
@@ -56,6 +59,28 @@ from .core.vacuum_maps import (
     find_backup_for_map,
     set_map_name_payload,
 )
+from .core.vacuum_schedule import (
+    decode_schedule,
+    schedule_enabled,
+    set_schedule_enabled,
+    schedule_time,
+    set_schedule_time,
+    schedule_mode_label,
+    set_schedule_mode,
+    schedule_day_enabled,
+    set_schedule_day,
+    unpack_dnd_schedule,
+    pack_dnd_schedule,
+    SCHEDULE_DAY_BITS,
+    SCHEDULE_MODE_LABELS,
+)
+from .core.vacuum_area_sweep import (
+    MAX_AREAS,
+    build_area_list,
+    describe_areas,
+    area_sweep_payload,
+)
+from .core.converters import FAULT_LABELS
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -490,6 +515,7 @@ class _StagingSelect(BaseSubEntity, SelectEntity):
         self._attr_current_option = self._option.get('current_option')
         self._options_getter = self._option.get('options_getter')
         self._static_options = self._option.get('options') or []
+        self._async_select_option_action = self._option.get('async_select_option_action')
 
     def update(self, data=None):
         return
@@ -508,7 +534,59 @@ class _StagingSelect(BaseSubEntity, SelectEntity):
 
     async def async_select_option(self, option: str):
         self._attr_current_option = option
+        if self._async_select_option_action:
+            # Immediate-write selects (e.g. schedule mode) - as opposed to
+            # the staging-only selects above (zone_type/zone_to_remove/
+            # map_to_delete), which just get read later by a separate
+            # button press and pass no action here.
+            await self._async_select_option_action(self, option)
         self.async_write_ha_state()
+
+
+class _StagingTime(BaseSubEntity, TimeEntity):
+    """A pure in-memory time sub-entity - see _StagingSwitch above for the
+    same "no-op update()" rationale. Always backed by `option
+    ['async_set_value_action']` (unlike _StagingSwitch/_StagingSelect,
+    every use of this class here needs an immediate device write - there's
+    no staging-only use case for a bare time value)."""
+
+    def __init__(self, parent, attr, option=None):
+        BaseSubEntity.__init__(self, parent, attr, option, domain='time')
+        self._available = True
+        self._attr_native_value = self._option.get('native_value')
+        self._async_set_value_action = self._option.get('async_set_value_action')
+
+    def update(self, data=None):
+        return
+
+    @property
+    def native_value(self):
+        return self._attr_native_value
+
+    async def async_set_value(self, value):
+        await self._async_set_value_action(self, value)
+
+
+class _PolledSensor(BaseSubEntity, SensorEntity):
+    """A read-only sensor sub-entity refreshed by the parent's own timer
+    (see _async_setup_extra_sensors) instead of through a MiotPropConv -
+    these particular properties don't reliably produce entities via the
+    generic `sensor_properties` pipeline for this device model (root cause
+    not fully pinned down; DND/schedule above hit the same wall via
+    append_converters and are wired the same direct way as a result)."""
+
+    def __init__(self, parent, attr, option=None):
+        BaseSubEntity.__init__(self, parent, attr, option, domain='sensor')
+        self._available = True
+        self._attr_native_value = self._option.get('native_value')
+        self._attr_device_class = self._option.get('device_class')
+
+    def update(self, data=None):
+        return
+
+    @property
+    def native_value(self):
+        return self._attr_native_value
 
 
 class MiotOv42glVacuumEntity(MiotVacuumEntity):
@@ -537,12 +615,17 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         await self._async_setup_room_entities()
         await self._async_setup_zone_entities()
         await self._async_setup_map_entities()
+        await self._async_setup_dnd_entities()
+        await self._async_setup_schedule_entities()
+        await self._async_setup_extra_sensors()
+        await self._async_setup_area_sweep_entities()
 
     # -- Per-room / multi-room cleaning --------------------------------
 
     async def _async_fetch_rooms(self):
         prop = self._miot_service.get_property('room_information')
-        if not prop or not self.device.local or not self.device.did:
+        # did is not required here - see the comment in _async_read_zones for why.
+        if not prop or not self.device.local:
             return []
         try:
             results = await self.device.local.async_get_properties_for_mapping(
@@ -681,7 +764,13 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         core/vacuum_zones.py. No cloud map involved."""
         prop_regions = self._miot_service.get_property('restricted_sweep_areas')
         prop_walls = self._miot_service.get_property('restricted_walls')
-        if not (prop_regions and prop_walls and self.device.local and self.device.did):
+        # did is not required here: async_get_properties_for_mapping only uses
+        # it as a per-property request/response matching label (falls back to
+        # 'prop.{siid}.{piid}' when absent - see its own body in device.py),
+        # not for local addressing/auth. Requiring it blocked reads whenever
+        # the device's cloud did hadn't resolved yet, even though local
+        # (IP+token) works fine without it.
+        if not (prop_regions and prop_walls and self.device.local):
             return [], []
         try:
             results = await self.device.local.async_get_properties_for_mapping(
@@ -831,10 +920,14 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         (SIID10 PIID5/13 - a separate MIoT service from the main vacuum one,
         excluded from the generic pipeline; see core/vacuum_maps.py for why).
         No cloud map download involved - both are already plain JSON, unlike
-        the rendered map file in core/vacuum_map.py."""
-        map_service = self._miot_service.spec.get_service('vacuum_map')
-        if not (map_service and self.device.local and self.device.did):
-            return None, [], []
+        the rendered map file in core/vacuum_map.py. Returns ([], []) if
+        local isn't ready yet or the read fails - callers must not treat
+        that as "unsupported" (see _async_setup_map_entities, which gates
+        entity creation on the service existing in the spec, not on this
+        read succeeding - same contract as _async_read_zones). did is not
+        required - see the comment in _async_read_zones for why."""
+        if not self.device.local:
+            return [], []
         try:
             results = await self.device.local.async_get_properties_for_mapping(
                 did=self.device.did,
@@ -845,25 +938,23 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
             )
         except Exception as exc:
             self.logger.debug('%s: failed to read map list: %s', self.name_model, exc)
-            return map_service, [], []
+            return [], []
         values = {}
         for item in results or []:
             if item.get('code') == 0:
                 values[(item.get('siid'), item.get('piid'))] = item.get('value')
         maps = parse_map_management(values.get((MAP_SIID, MAP_MANAGEMENT_PIID)))
         backups = parse_backup_map_list(values.get((MAP_SIID, BACKUP_MAP_LIST_PIID)))
-        return map_service, maps, backups
+        return maps, backups
 
     async def _async_setup_map_entities(self):
-        self._maps = []
-        self._map_backups = []
-        self._map_service = None
-
-        # Read once at setup, same "fetch once, HA-side edits update the
-        # cache immediately, app-side edits need a restart" behavior as
-        # rooms/zones above (see _async_setup_zone_entities).
-        map_service, maps, backups = await self._async_read_maps()
-        if not map_service:
+        # Gate on the service existing in the spec, not on the read below
+        # succeeding - did/cloud-link can still be resolving at this point
+        # in the device's lifecycle, same as restricted_sweep_areas/
+        # restricted_walls above; entities must still appear (empty until
+        # the data shows up) rather than silently not exist.
+        self._map_service = self._miot_service.spec.get_service('vacuum_map')
+        if not self._map_service:
             return
         add_buttons = self.device.entry.adders.get('button')
         add_texts = self.device.entry.adders.get('text')
@@ -873,9 +964,10 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
 
         from .button import ButtonSubEntity
 
-        self._map_service = map_service
-        self._maps = maps
-        self._map_backups = backups
+        # Read once at setup, same "fetch once, HA-side edits update the
+        # cache immediately, app-side edits need a restart" behavior as
+        # rooms/zones above (see _async_setup_zone_entities).
+        self._maps, self._map_backups = await self._async_read_maps()
 
         new_buttons, new_texts = [], []
         for entry in saved_maps(self._maps):
@@ -992,7 +1084,7 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         client-side (unlike rename/delete/switch, where the affected id is
         already known) - so this specifically re-reads map-management, then
         creates entities for whatever map_id(s) weren't there before."""
-        _map_service, maps, backups = await self._async_read_maps()
+        maps, backups = await self._async_read_maps()
         known_ids = {m.get('map_id') for m in self._maps}
         self._map_backups = backups
 
@@ -1039,4 +1131,353 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
             raise HomeAssistantError('Cannot delete the currently active map - switch to a different map first')
         await self._async_call_map_action('delete_map', [match.get('map_id')])
         self._maps = [m for m in self._maps if m.get('map_id') != match.get('map_id')]
+        return True
+
+    # -- Do Not Disturb (packed start+end time) ---------------------------
+
+    async def _async_read_raw_property(self, siid, piid):
+        """Single-property local read helper for DND/schedule below - did
+        is not required here, see the comment in _async_read_zones for why."""
+        if not self.device.local:
+            return None
+        try:
+            results = await self.device.local.async_get_properties_for_mapping(
+                did=self.device.did,
+                mapping={'value': {'siid': siid, 'piid': piid}},
+            )
+        except Exception as exc:
+            self.logger.debug('%s: failed to read %s/%s: %s', self.name_model, siid, piid, exc)
+            return None
+        for item in results or []:
+            if item.get('code') == 0:
+                return item.get('value')
+        return None
+
+    async def _async_setup_dnd_entities(self):
+        no_disturb = self._miot_service.spec.get_service('no_disturb')
+        prop = no_disturb and no_disturb.get_property('enable_time_period')
+        if not prop:
+            return
+        add_times = self.device.entry.adders.get('time')
+        if not add_times:
+            return
+
+        raw = await self._async_read_raw_property(prop.siid, prop.iid)
+        self._dnd = unpack_dnd_schedule(raw)  # (start_h, start_m, end_h, end_m)
+        self._dnd_prop = prop
+
+        new_times = []
+        for half in ('start', 'end'):
+            sub = f'dnd_{half}'
+            self._subs[sub] = _StagingTime(self, sub, option={
+                'name': f'{self.device_name} DND {half.capitalize()}',
+                'entity_id': sub,
+                'native_value': self._dnd_time_value(half),
+                'async_set_value_action': self._make_dnd_write_action(half),
+            })
+            new_times.append(self._subs[sub])
+        add_times(new_times, update_before_add=False)
+
+    def _dnd_time_value(self, half):
+        from datetime import time as dt_time
+        sh, sm, eh, em = self._dnd
+        return dt_time(sh % 24, sm % 60) if half == 'start' else dt_time(eh % 24, em % 60)
+
+    def _make_dnd_write_action(self, half):
+        async def _do_write(entity, value):
+            sh, sm, eh, em = self._dnd
+            if half == 'start':
+                sh, sm = value.hour, value.minute
+            else:
+                eh, em = value.hour, value.minute
+            packed = pack_dnd_schedule(sh, sm, eh, em)
+            result = await self.async_set_miot_property(self._dnd_prop.siid, self._dnd_prop.iid, packed)
+            if not result or not result.is_success:
+                raise HomeAssistantError(f'Failed to set DND {half}: {result.error if result else "no response"}')
+            # Optimistic update - same rationale as maps/zones/rooms above.
+            self._dnd = (sh, sm, eh, em)
+            entity._attr_native_value = value
+            entity.async_write_ha_state()
+        return _do_write
+
+    # -- Cleaning schedule (order_clean, single slot) ----------------------
+
+    async def _async_setup_schedule_entities(self):
+        prop = self._miot_service.get_property('order_clean')
+        if not prop:
+            return
+        add_switches = self.device.entry.adders.get('switch')
+        if not add_switches:
+            return
+        add_times = self.device.entry.adders.get('time')
+        add_selects = self.device.entry.adders.get('select')
+
+        raw = await self._async_read_raw_property(prop.siid, prop.iid)
+        self._schedule = decode_schedule(raw)
+        self._schedule_prop = prop
+
+        new_switches = []
+        self._subs['schedule_enabled'] = _StagingSwitch(self, 'schedule_enabled', option={
+            'name': f'{self.device_name} Schedule Enabled',
+            'entity_id': 'schedule_enabled',
+            'is_on': schedule_enabled(self._schedule),
+            'async_turn_on_action': self._make_schedule_enabled_action(True),
+            'async_turn_off_action': self._make_schedule_enabled_action(False),
+        })
+        new_switches.append(self._subs['schedule_enabled'])
+
+        for day in SCHEDULE_DAY_BITS:
+            sub = f'schedule_day_{day}'
+            self._subs[sub] = _StagingSwitch(self, sub, option={
+                'name': f'{self.device_name} Schedule Day: {day.capitalize()}',
+                'entity_id': sub,
+                'is_on': schedule_day_enabled(self._schedule, day),
+                'async_turn_on_action': self._make_schedule_day_action(day, True),
+                'async_turn_off_action': self._make_schedule_day_action(day, False),
+            })
+            new_switches.append(self._subs[sub])
+        add_switches(new_switches, update_before_add=False)
+
+        if add_times:
+            from datetime import time as dt_time
+            hour, minute = schedule_time(self._schedule)
+            self._subs['schedule_time'] = _StagingTime(self, 'schedule_time', option={
+                'name': f'{self.device_name} Schedule Time',
+                'entity_id': 'schedule_time',
+                'native_value': dt_time(hour % 24, minute % 60),
+                'async_set_value_action': self._async_write_schedule_time,
+            })
+            add_times([self._subs['schedule_time']], update_before_add=False)
+
+        if add_selects:
+            self._subs['schedule_mode'] = _StagingSelect(self, 'schedule_mode', option={
+                'name': f'{self.device_name} Schedule Mode',
+                'entity_id': 'schedule_mode',
+                'options': list(SCHEDULE_MODE_LABELS.values()),
+                'current_option': schedule_mode_label(self._schedule),
+                'async_select_option_action': self._async_write_schedule_mode,
+            })
+            add_selects([self._subs['schedule_mode']], update_before_add=False)
+
+    async def _async_write_schedule(self, data):
+        result = await self.async_set_miot_property(self._schedule_prop.siid, self._schedule_prop.iid, json.dumps(data))
+        if not result or not result.is_success:
+            raise HomeAssistantError(f'Failed to write schedule: {result.error if result else "no response"}')
+        # Optimistic update - same rationale as maps/zones/rooms above.
+        self._schedule = data
+
+    def _make_schedule_enabled_action(self, enabled):
+        async def _do_write(entity):
+            await self._async_write_schedule(set_schedule_enabled(dict(self._schedule), enabled))
+        return _do_write
+
+    def _make_schedule_day_action(self, day, enabled):
+        async def _do_write(entity):
+            await self._async_write_schedule(set_schedule_day(dict(self._schedule), day, enabled))
+        return _do_write
+
+    async def _async_write_schedule_time(self, entity, value):
+        await self._async_write_schedule(set_schedule_time(dict(self._schedule), value.hour, value.minute))
+        entity._attr_native_value = value
+        entity.async_write_ha_state()
+
+    async def _async_write_schedule_mode(self, entity, label):
+        await self._async_write_schedule(set_schedule_mode(dict(self._schedule), label))
+
+    # -- Extra sensors (not reliably produced by the generic pipeline) ----
+
+    # (label, unit, device_class) - these five are already listed in this
+    # model's built-in `sensor_properties` customization but don't reliably
+    # end up as entities for this device (same unresolved gap as the
+    # append_converters-based ones above), so they're polled directly here
+    # instead, same pattern as everything else in this class.
+    EXTRA_SENSOR_PROPS = {
+        'cleaning_progress': ('Cleaning Progress', '%', None),
+        'last_clean_time': ('Last Clean Time', None, 'timestamp'),
+        'statistical_clean_area': ('Total Cleaning Area', 'm²', None),
+        'water_tank_status': ('Water Tank Status', None, None),
+        'sewage_tank_status': ('Sewage Tank Status', None, None),
+        # 'fault' also exists as a generic, untranslated sensor via the
+        # normal pipeline (spec gives it no value-list of its own, so that
+        # one just shows the raw numeric code, e.g. sensor.xiaomi_ov42gl_
+        # e1af_device_fault) - this one uses FAULT_LABELS (empirically
+        # reverse-engineered, see converters.py) to show real text instead,
+        # same as the intended-but-never-activated MiotFaultLabelConv.
+        # Ends up as sensor.fault - distinct entity_id, doesn't collide
+        # with the existing raw one, doesn't replace it either.
+        'fault': ('Fault Status', None, None),
+    }
+
+    async def _async_setup_extra_sensors(self):
+        add_sensors = self.device.entry.adders.get('sensor')
+        if not add_sensors:
+            return
+        props = {}
+        for name in self.EXTRA_SENSOR_PROPS:
+            prop = self._miot_service.get_property(name)
+            if prop:
+                props[name] = prop
+        if not props:
+            return
+        self._extra_sensor_props = props
+
+        new_sensors = []
+        for name, prop in props.items():
+            label, unit, device_class = self.EXTRA_SENSOR_PROPS[name]
+            sub = f'extra_{name}'
+            self._subs[sub] = _PolledSensor(self, sub, option={
+                'name': f'{self.device_name} {label}',
+                'entity_id': name,
+                'unit': unit,
+                'device_class': device_class,
+            })
+            new_sensors.append(self._subs[sub])
+        add_sensors(new_sensors, update_before_add=False)
+
+        await self._async_refresh_extra_sensors()
+        self.async_on_remove(
+            async_track_time_interval(self.hass, self._async_refresh_extra_sensors_tick, timedelta(seconds=30))
+        )
+
+    async def _async_refresh_extra_sensors_tick(self, now=None):
+        await self._async_refresh_extra_sensors()
+
+    async def _async_refresh_extra_sensors(self):
+        props = getattr(self, '_extra_sensor_props', None)
+        if not props or not self.device.local:
+            return
+        mapping = {name: {'siid': p.siid, 'piid': p.iid} for name, p in props.items()}
+        try:
+            results = await self.device.local.async_get_properties_for_mapping(did=self.device.did, mapping=mapping)
+        except Exception as exc:
+            self.logger.debug('%s: failed to refresh extra sensors: %s', self.name_model, exc)
+            return
+        by_siid_piid = {(p.siid, p.iid): name for name, p in props.items()}
+        for item in results or []:
+            if item.get('code') != 0:
+                continue
+            name = by_siid_piid.get((item.get('siid'), item.get('piid')))
+            entity = self._subs.get(f'extra_{name}') if name else None
+            if not entity:
+                continue
+            value = item.get('value')
+            if name == 'last_clean_time' and value:
+                from datetime import datetime, timezone
+                try:
+                    value = datetime.fromtimestamp(int(value), tz=timezone.utc)
+                except (TypeError, ValueError, OSError):
+                    pass
+            elif name == 'fault':
+                try:
+                    code = int(value)
+                except (TypeError, ValueError):
+                    code = None
+                if code is not None:
+                    value = FAULT_LABELS.get(code, f'Unknown fault (code {code})')
+            elif props[name].value_list:
+                # water_tank_status/sewage_tank_status are enums (e.g. 0
+                # "Not Full"/1 "Full") - the spec's own value_list, not
+                # guessed, same source as FAULT_LABELS elsewhere.
+                for entry in props[name].value_list:
+                    if entry.get('value') == value:
+                        value = entry.get('description', value)
+                        break
+            entity._attr_native_value = value
+            entity.async_write_ha_state()
+
+    # -- Ad-hoc area cleaning ("clean this area now", not a saved room or
+    # a permanent restricted zone) ----------------------------------------
+
+    async def _async_setup_area_sweep_entities(self):
+        action = self._miot_service.get_action('start_zone_sweep')
+        if not action:
+            return
+        add_numbers = self.device.entry.adders.get('number')
+        add_selects = self.device.entry.adders.get('select')
+        add_buttons = self.device.entry.adders.get('button')
+        if not (add_numbers and add_buttons):
+            return
+
+        from .number import NumberSubEntity
+        from .button import ButtonSubEntity
+
+        self._area_sweep_action = action
+        self._pending_areas = []
+
+        coord_option = {'min': -20000, 'max': 20000, 'step': 10, 'native_value': 0}
+        new_numbers = []
+        for key, label in (
+            ('area_x1', 'Area X1'), ('area_y1', 'Area Y1'),
+            ('area_x2', 'Area X2'), ('area_y2', 'Area Y2'),
+        ):
+            self._subs[key] = NumberSubEntity(self, key, option={
+                **coord_option,
+                'name': f'{self.device_name} {label}',
+            })
+            new_numbers.append(self._subs[key])
+        add_numbers(new_numbers, update_before_add=False)
+
+        if add_selects:
+            self._subs['areas_queued'] = _StagingSelect(self, 'areas_queued', option={
+                'name': f'{self.device_name} Areas Queued',
+                'options_getter': lambda: describe_areas(self._pending_areas) or ['(none)'],
+            })
+            add_selects([self._subs['areas_queued']], update_before_add=False)
+
+        new_buttons = []
+        self._subs['add_area'] = ButtonSubEntity(self, 'add_area', option={
+            'name': f'{self.device_name} Add Area',
+            'async_press_action': self._async_add_area,
+        })
+        new_buttons.append(self._subs['add_area'])
+        self._subs['clear_areas'] = ButtonSubEntity(self, 'clear_areas', option={
+            'name': f'{self.device_name} Clear Areas',
+            'async_press_action': self._async_clear_areas,
+        })
+        new_buttons.append(self._subs['clear_areas'])
+        self._subs['clean_areas'] = ButtonSubEntity(self, 'clean_areas', option={
+            'name': f'{self.device_name} Clean Areas Now',
+            'async_press_action': self._async_clean_areas,
+        })
+        new_buttons.append(self._subs['clean_areas'])
+        add_buttons(new_buttons, update_before_add=False)
+
+    def _area_numbers(self):
+        return (
+            self._subs['area_x1'].native_value,
+            self._subs['area_y1'].native_value,
+            self._subs['area_x2'].native_value,
+            self._subs['area_y2'].native_value,
+        )
+
+    async def _async_add_area(self, **kwargs):
+        x1, y1, x2, y2 = self._area_numbers()
+        if x1 == x2 and y1 == y2:
+            raise HomeAssistantError('Set two different points (Area X1/Y1/X2/Y2) before adding')
+        try:
+            self._pending_areas = build_area_list(self._pending_areas, x1, y1, x2, y2)
+        except ValueError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+
+        # Reset the staging inputs so the editor is ready for the next area.
+        for key in ('area_x1', 'area_y1', 'area_x2', 'area_y2'):
+            entity = self._subs[key]
+            entity._attr_native_value = 0
+            entity.async_write_ha_state()
+        return True
+
+    async def _async_clear_areas(self, **kwargs):
+        self._pending_areas = []
+        return True
+
+    async def _async_clean_areas(self, **kwargs):
+        if not self._pending_areas:
+            raise HomeAssistantError(f'No areas queued - add up to {MAX_AREAS} with "Add Area" first')
+        payload = area_sweep_payload(self._pending_areas)
+        result = await self.async_call_action(self._area_sweep_action, [json.dumps(payload)])
+        if not result or not result.is_success:
+            raise HomeAssistantError(f'Failed to start area sweep: {result.error if result else "no response"}')
+        # This is "clean now and forget", not a persistent config like
+        # zones - nothing to keep around after a successful send.
+        self._pending_areas = []
         return True

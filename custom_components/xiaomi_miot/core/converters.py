@@ -482,6 +482,7 @@ FAULT_LABELS = {
     210013: 'Dust Compartment Not Installed',
     210002: 'Wheels Suspended (place the robot on a flat, level surface)',
     210005: "Path Blocked (check for obstacles in the robot's path)",
+    210009: "Couldn't Return to Charging Station (make sure the dock is powered on and its surroundings are clear)",
 }
 
 @dataclass

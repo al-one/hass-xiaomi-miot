@@ -133,6 +133,11 @@ def test_fault_conv_translates_confirmed_codes(make_device, load_miot_spec):
     payload = device.decode({"siid": 2, "piid": 3, "value": 0})
     assert payload["sensor.fault"] == "No Fault"
 
+    payload = device.decode({"siid": 2, "piid": 3, "value": 210009})
+    assert payload["sensor.fault"] == (
+        "Couldn't Return to Charging Station (make sure the dock is powered on and its surroundings are clear)"
+    )
+
 
 def test_fault_conv_falls_back_for_unmapped_codes(make_device, load_miot_spec):
     device = model_device(make_device, load_miot_spec)
