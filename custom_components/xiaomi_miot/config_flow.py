@@ -19,7 +19,7 @@ from homeassistant.const import (
 from homeassistant.core import callback, split_entity_id
 from homeassistant.util import yaml
 from homeassistant.components import persistent_notification
-from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import config_validation as cv, selector
 from homeassistant.helpers.device_registry import format_mac
 from homeassistant.helpers.selector import ObjectSelector
 
@@ -218,10 +218,7 @@ class BaseFlowHandler:
                         continue
                     if home_ids and d.get('home_id') not in home_ids:
                         continue
-                    hname = d.get('home_name')
-                    if not hname:
-                        # 无家庭归属的设备（全屋/附近/离线设备）不单独分组展示
-                        continue
+                    hname = d.get('home_name') or 'unassigned'
                     dip = d.get('localip')
                     if not dip or d.get('pid') not in [0, '0', '8', '', None]:
                         dip = d.get('model')
@@ -230,7 +227,10 @@ class BaseFlowHandler:
                     vol.Required('filter_did', default=user_input.get('filter_did', 'exclude')): vol.In(ies),
                 })
                 prev = user_input.get('did_list') or []
-                for hname in sorted(homes):
+                names = sorted([h for h in homes if h != 'unassigned'])
+                if 'unassigned' in homes:
+                    names.append('unassigned')
+                for hname in names:
                     lst = dict(sorted(homes[hname].items()))
                     key = f'home__{hname}'
                     ols = [
@@ -239,7 +239,13 @@ class BaseFlowHandler:
                         if v in lst
                     ]
                     schema = schema.extend({
-                        vol.Optional(key, default=ols): cv.multi_select(lst),
+                        vol.Optional(key, default=ols): selector.SelectSelector(
+                            selector.SelectSelectorConfig(
+                                multiple=True,
+                                mode="dropdown",
+                                options=[{"value": did, "label": lbl} for did, lbl in lst.items()],
+                            ),
+                        ),
                     })
             else:
                 grp = {}

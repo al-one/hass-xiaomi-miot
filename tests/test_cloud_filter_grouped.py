@@ -68,7 +68,7 @@ async def test_cloud_filter_schema_groups_devices_by_home():
 
     assert "home__我的家" in keys
     assert "home__别人的家" in keys
-    assert "home__Default Home" not in keys
+    assert "home__unassigned" in keys
 
     # The flat device list and the two-step home_ids filter are gone.
     assert "did_list" not in keys
