@@ -206,8 +206,8 @@ class BaseFlowHandler:
             errors['base'] = 'none_devices'
         else:
             ies = {
-                'exclude': 'Exclude (排除)',
-                'include': 'Include (包含)',
+                'exclude': '排除 Exclude（勾选 = 不接入这些设备）',
+                'include': '包含 Include（只接入勾选的设备）',
             }
             if via_did:
                 # 按家庭分组的设备选择：每个家庭一个独立多选框，一目了然
@@ -218,7 +218,10 @@ class BaseFlowHandler:
                         continue
                     if home_ids and d.get('home_id') not in home_ids:
                         continue
-                    hname = d.get('home_name') or 'Default Home'
+                    hname = d.get('home_name')
+                    if not hname:
+                        # 无家庭归属的设备（全屋/附近/离线设备）不单独分组展示
+                        continue
                     dip = d.get('localip')
                     if not dip or d.get('pid') not in [0, '0', '8', '', None]:
                         dip = d.get('model')
