@@ -80,7 +80,7 @@ from .core.vacuum_area_sweep import (
     describe_areas,
     area_sweep_payload,
 )
-from .core.converters import FAULT_LABELS
+from .core.converters import FAULT_LABELS, BASE_STATION_MODE_LABELS
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -1306,6 +1306,12 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         # Ends up as sensor.fault - distinct entity_id, doesn't collide
         # with the existing raw one, doesn't replace it either.
         'fault': ('Fault Status', None, None),
+        # Same story as 'fault' above: base_station_working_status is JSON
+        # ({"mode":N,"progress":N}) the generic pipeline would just show
+        # raw/undecoded (as sensor.xiaomi_ov42gl_e1af_base_station_working_
+        # status) - this one decodes it via BASE_STATION_MODE_LABELS, same
+        # logic as the never-activated MiotBaseStationModeConv.
+        'base_station_working_status': ('Base Station Activity', None, None),
     }
 
     async def _async_setup_extra_sensors(self):
@@ -1374,6 +1380,16 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
                     code = None
                 if code is not None:
                     value = FAULT_LABELS.get(code, f'Unknown fault (code {code})')
+            elif name == 'base_station_working_status':
+                try:
+                    parsed = json.loads(value) if isinstance(value, str) else (value or {})
+                except (TypeError, ValueError):
+                    parsed = {}
+                mode = parsed.get('mode')
+                if mode is not None:
+                    label = BASE_STATION_MODE_LABELS.get(mode, f'Unknown mode ({mode})')
+                    progress = parsed.get('progress')
+                    value = f'{label} ({progress}%)' if progress is not None else label
             elif props[name].value_list:
                 # water_tank_status/sewage_tank_status are enums (e.g. 0
                 # "Not Full"/1 "Full") - the spec's own value_list, not
