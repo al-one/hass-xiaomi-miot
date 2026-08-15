@@ -1314,6 +1314,13 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         'base_station_working_status': ('Base Station Activity', None, None),
     }
 
+    # `status` only ever shows the generic "Station Working" for these two
+    # codes (STATUS_LABELS 12/14 in xiaomi_miot_tools' old sensor.py) - the
+    # spec gives it no more detail than that. status_detail below shows
+    # base_station_working_status's specific activity instead, while
+    # status is one of these; the plain translated status label otherwise.
+    STATION_WORKING_STATUS_CODES = {12, 14}
+
     async def _async_setup_extra_sensors(self):
         add_sensors = self.device.entry.adders.get('sensor')
         if not add_sensors:
@@ -1338,6 +1345,43 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
                 'device_class': device_class,
             })
             new_sensors.append(self._subs[sub])
+
+        # status_detail: combines `status` with `base_station_working_status`
+        # - same idea as xiaomi_miot_tools' old status_detail sensor, just
+        # computed here instead of imported (status isn't itself in
+        # EXTRA_SENSOR_PROPS - it already has a working translated sensor
+        # via the generic pipeline, sensor.xiaomi_ov42gl_e1af_status; this
+        # is an additional, separate sensor, not a replacement for it).
+        status_prop = self._miot_service.get_property('status')
+        # status code 4 ("Sweeping") is used generically for "actively
+        # cleaning" regardless of the actual sweep_mop_type mode (confirmed
+        # empirically: status==4 while sweep_mop_type==2 "Mop", robot
+        # physically mopping only, no vacuuming) - unlike codes 16/17
+        # ("Sweeping and Mopping"/"Mopping"), which are already specific.
+        # sweep_mop_type disambiguates it in _compute_status_detail below.
+        self._sweep_mop_type_prop = self._miot_service.get_property('sweep_mop_type')
+        if status_prop and 'base_station_working_status' in props:
+            self._status_detail_prop = status_prop
+            self._subs['extra_status_detail'] = _PolledSensor(self, 'extra_status_detail', option={
+                'name': f'{self.device_name} Status Detail',
+                'entity_id': 'status_detail',
+            })
+            new_sensors.append(self._subs['extra_status_detail'])
+
+            # progress_detail: the numeric counterpart to status_detail -
+            # base_station_working_status's own "progress" while status is
+            # a "station working" code, plain cleaning_progress otherwise.
+            # Only makes sense if cleaning_progress is also available.
+            if 'cleaning_progress' in props:
+                self._subs['extra_progress_detail'] = _PolledSensor(self, 'extra_progress_detail', option={
+                    'name': f'{self.device_name} Progress Detail',
+                    'entity_id': 'progress_detail',
+                    'unit': '%',
+                })
+                new_sensors.append(self._subs['extra_progress_detail'])
+        else:
+            self._status_detail_prop = None
+
         add_sensors(new_sensors, update_before_add=False)
 
         await self._async_refresh_extra_sensors()
@@ -1352,17 +1396,38 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         props = getattr(self, '_extra_sensor_props', None)
         if not props or not self.device.local:
             return
+        status_prop = getattr(self, '_status_detail_prop', None)
+        sweep_mop_type_prop = getattr(self, '_sweep_mop_type_prop', None)
         mapping = {name: {'siid': p.siid, 'piid': p.iid} for name, p in props.items()}
+        if status_prop:
+            mapping['status'] = {'siid': status_prop.siid, 'piid': status_prop.iid}
+        if status_prop and sweep_mop_type_prop:
+            mapping['sweep_mop_type'] = {'siid': sweep_mop_type_prop.siid, 'piid': sweep_mop_type_prop.iid}
         try:
             results = await self.device.local.async_get_properties_for_mapping(did=self.device.did, mapping=mapping)
         except Exception as exc:
             self.logger.debug('%s: failed to refresh extra sensors: %s', self.name_model, exc)
             return
         by_siid_piid = {(p.siid, p.iid): name for name, p in props.items()}
+        if status_prop:
+            by_siid_piid[(status_prop.siid, status_prop.iid)] = 'status'
+        if status_prop and sweep_mop_type_prop:
+            by_siid_piid[(sweep_mop_type_prop.siid, sweep_mop_type_prop.iid)] = 'sweep_mop_type'
+        raw_status = raw_base_station = raw_cleaning_progress = raw_sweep_mop_type = None
         for item in results or []:
             if item.get('code') != 0:
                 continue
             name = by_siid_piid.get((item.get('siid'), item.get('piid')))
+            if name == 'status':
+                raw_status = item.get('value')
+                continue
+            if name == 'sweep_mop_type':
+                raw_sweep_mop_type = item.get('value')
+                continue
+            if name == 'base_station_working_status':
+                raw_base_station = item.get('value')
+            elif name == 'cleaning_progress':
+                raw_cleaning_progress = item.get('value')
             entity = self._subs.get(f'extra_{name}') if name else None
             if not entity:
                 continue
@@ -1387,9 +1452,7 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
                     parsed = {}
                 mode = parsed.get('mode')
                 if mode is not None:
-                    label = BASE_STATION_MODE_LABELS.get(mode, f'Unknown mode ({mode})')
-                    progress = parsed.get('progress')
-                    value = f'{label} ({progress}%)' if progress is not None else label
+                    value = BASE_STATION_MODE_LABELS.get(mode, f'Unknown mode ({mode})')
             elif props[name].value_list:
                 # water_tank_status/sewage_tank_status are enums (e.g. 0
                 # "Not Full"/1 "Full") - the spec's own value_list, not
@@ -1400,6 +1463,69 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
                         break
             entity._attr_native_value = value
             entity.async_write_ha_state()
+
+        if status_prop and raw_status is not None:
+            detail_entity = self._subs.get('extra_status_detail')
+            if detail_entity:
+                detail_entity._attr_native_value = self._compute_status_detail(
+                    status_prop, raw_status, raw_base_station, sweep_mop_type_prop, raw_sweep_mop_type,
+                )
+                detail_entity.async_write_ha_state()
+
+            progress_entity = self._subs.get('extra_progress_detail')
+            if progress_entity:
+                progress_entity._attr_native_value = self._compute_progress_detail(
+                    raw_status, raw_base_station, raw_cleaning_progress,
+                )
+                progress_entity.async_write_ha_state()
+
+    def _compute_progress_detail(self, raw_status, raw_base_station, raw_cleaning_progress):
+        try:
+            status_code = int(raw_status)
+        except (TypeError, ValueError):
+            status_code = None
+        if status_code in self.STATION_WORKING_STATUS_CODES:
+            try:
+                parsed = json.loads(raw_base_station) if isinstance(raw_base_station, str) else (raw_base_station or {})
+            except (TypeError, ValueError):
+                parsed = {}
+            progress = parsed.get('progress')
+            if progress is not None:
+                return progress
+        return raw_cleaning_progress
+
+    # Confirmed empirically (2026-08-14): status==4 while sweep_mop_type==2
+    # "Mop", robot physically mopping only, no vacuuming - the spec labels
+    # code 4 "Sweeping" but the device uses it generically for "actively
+    # cleaning", regardless of mode. Codes 16/17 ("Sweeping and Mopping"/
+    # "Mopping") are already specific and don't need this.
+    GENERIC_SWEEPING_STATUS_CODE = 4
+
+    def _compute_status_detail(self, status_prop, raw_status, raw_base_station, sweep_mop_type_prop, raw_sweep_mop_type):
+        try:
+            status_code = int(raw_status)
+        except (TypeError, ValueError):
+            status_code = None
+        if status_code in self.STATION_WORKING_STATUS_CODES:
+            try:
+                parsed = json.loads(raw_base_station) if isinstance(raw_base_station, str) else (raw_base_station or {})
+            except (TypeError, ValueError):
+                parsed = {}
+            mode = parsed.get('mode')
+            if mode is not None:
+                return BASE_STATION_MODE_LABELS.get(mode, f'Unknown mode ({mode})')
+        elif status_code == self.GENERIC_SWEEPING_STATUS_CODE and sweep_mop_type_prop and raw_sweep_mop_type is not None:
+            for entry in sweep_mop_type_prop.value_list:
+                if entry.get('value') == raw_sweep_mop_type:
+                    return entry.get('description', raw_status)
+        # Not a "station working" code, not the generic sweeping code (or
+        # no detail available for either) - fall back to the same
+        # translated label sensor.xiaomi_ov42gl_e1af_status already shows,
+        # from the spec's own value_list.
+        for entry in status_prop.value_list:
+            if entry.get('value') == status_code:
+                return entry.get('description', raw_status)
+        return raw_status
 
     # -- Ad-hoc area cleaning ("clean this area now", not a saved room or
     # a permanent restricted zone) ----------------------------------------
