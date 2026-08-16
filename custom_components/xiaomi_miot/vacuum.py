@@ -619,6 +619,7 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         await self._async_setup_schedule_entities()
         await self._async_setup_extra_sensors()
         await self._async_setup_area_sweep_entities()
+        await self._async_setup_map_display_toggles()
 
     # -- Per-room / multi-room cleaning --------------------------------
 
@@ -1623,3 +1624,34 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         # zones - nothing to keep around after a successful send.
         self._pending_areas = []
         return True
+
+    # -- Map camera layer toggles -------------------------------------------
+    # Pure in-memory switches (no MIoT property backing them - there's
+    # nothing to read from the device, the map image is rendered locally
+    # from data camera.py already downloads/decodes). camera.py reads these
+    # by entity_id via hass.states.get(...) rather than through self._subs
+    # directly, since the camera is a separate entity in a separate
+    # platform file - same fail-open default (missing/unknown == show the
+    # layer) as the input_boolean-based version this replaces.
+
+    MAP_DISPLAY_TOGGLES = (
+        ('map_show_base', 'Map Show Charging Station'),
+        ('map_show_robot', 'Map Show Robot Position'),
+        ('map_show_zones', 'Map Show Zones And Walls'),
+    )
+
+    async def _async_setup_map_display_toggles(self):
+        if not self._miot_service.spec.get_service('vacuum_map'):
+            return
+        add_switches = self.device.entry.adders.get('switch')
+        if not add_switches:
+            return
+        new_switches = []
+        for sub, label in self.MAP_DISPLAY_TOGGLES:
+            self._subs[sub] = _StagingSwitch(self, sub, option={
+                'name': f'{self.device_name} {label}',
+                'entity_id': sub,
+                'is_on': True,
+            })
+            new_switches.append(self._subs[sub])
+        add_switches(new_switches, update_before_add=False)

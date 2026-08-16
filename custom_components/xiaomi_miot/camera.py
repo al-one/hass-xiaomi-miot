@@ -7,6 +7,7 @@ import base64
 import requests
 import re
 import collections
+import aiohttp
 from os import urandom
 from functools import partial
 from urllib.parse import urlencode
@@ -20,8 +21,8 @@ from homeassistant.components.camera import (
     CameraEntityFeature,  # v2022.5
 )
 from homeassistant.components.ffmpeg import async_get_image, DATA_FFMPEG
-from homeassistant.helpers.event import async_track_point_in_utc_time
-from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
+from homeassistant.helpers.event import async_track_point_in_utc_time, async_track_time_interval
+from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream, async_get_clientsession
 from haffmpeg.camera import CameraMjpeg
 
 from . import (
@@ -31,6 +32,7 @@ from . import (
     Device,
     HassEntry,
     XEntity,
+    MiotEntity,
     MiotToggleEntity,
     BaseSubEntity,
     MiotCloud,
@@ -43,6 +45,8 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from .core.vacuum_map_codec import decrypt_map_payload
+from .core.vacuum_map_render import DEFAULT_SCALE, render_map_png
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -83,6 +87,20 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 svs = [srv]
         for srv in svs:
             entities.append(MiotCameraEntity(hass, config, srv))
+
+        # Vacuum map camera (xiaomi.vacuum.ov42gl and any other model
+        # sharing the same shape - same capability-based detection as
+        # MiotOv42glVacuumEntity in vacuum.py, not a hardcoded model
+        # check). A completely separate, simpler entity (RobotMapCamera
+        # below), not MiotCameraEntity/BaseCameraEntity above - those
+        # assume ffmpeg streaming/motion events, this is a locally
+        # rendered static PNG re-drawn on every request.
+        for vsrv in spec.get_services('vacuum'):
+            if not (vsrv.get_property('room_information') and vsrv.get_action('start_vacuum_room_sweep')):
+                continue
+            map_srv = spec.get_service('vacuum_map')
+            if map_srv and map_srv.get_property('map_obj_name'):
+                entities.append(RobotMapCamera(config, vsrv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities)
@@ -703,3 +721,166 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
     async def image_source(self, **kwargs):
         kwargs['crypto'] = True
         return self._parent.get_motion_image_address(**kwargs)
+
+
+class RobotMapCamera(MiotEntity, Camera):
+    """Renders the vacuum's own map (map_obj_name, SIID10 PIID1, on the
+    'vacuum_map' service) as a static PNG. Unlike the rest of this model's
+    map handling (listing/switching/renaming saved maps, zones, rooms -
+    see vacuum.py), the actual rendered image is cloud-only: the
+    manufacturer's map file is a blob on Xiaomi's cloud storage, readable
+    only via a signed download URL + a decrypt algorithm with no local
+    equivalent (see core/vacuum_map_codec.py's own docstring). Reuses this
+    device's own already-authenticated cloud session (self.device.cloud) -
+    no separate login/session of its own.
+
+    Redraws the PNG on every request (not just on the 30s poll) so the
+    three vacuum.py-owned layer toggles (switch.map_show_base/robot/zones)
+    apply instantly - only the underlying map JSON is cached/polled.
+    """
+
+    _attr_should_poll = False
+
+    def __init__(self, config: dict, miot_service: MiotService):
+        MiotEntity.__init__(self, miot_service, config=config, logger=_LOGGER)
+        Camera.__init__(self)
+        # Camera.supported_features requires a CameraEntityFeature flag
+        # instance, not a plain int - BaseCameraEntity above sets this the
+        # same way for the same reason.
+        self._supported_features = CameraEntityFeature(0)
+        self._name = f'{self.device_name} Map'
+        self._unique_id = f'{self._unique_id}-map'
+        self.entity_id = f'{ENTITY_DOMAIN}.map'
+        # MiotEntity.__init__ defaults this to False, only ever flipped to
+        # True by the standard polling cycle (async_update_from_device) -
+        # which this entity deliberately skips (_attr_should_poll = False,
+        # its own 30s timer drives refreshes instead), so it would
+        # otherwise stay unavailable forever and the frontend would never
+        # even try to fetch an image. Availability here is tracked by
+        # whether a map has been successfully downloaded at least once
+        # (self._map_data), not generic device polling.
+        self._available = True
+        self._map_data = None
+        map_srv = miot_service.spec.get_service('vacuum_map')
+        self._map_obj_name_prop = map_srv.get_property('map_obj_name') if map_srv else None
+
+    @property
+    def is_on(self):
+        # HA's own CameraImageView rejects the image request with a plain
+        # 503 (before ever calling async_camera_image) whenever is_on is
+        # falsy. MiotEntity comes first in this class's MRO and defines
+        # its own `is_on` (reads self._state, a toggle-entity concept),
+        # which otherwise wins over Camera.is_on (self._attr_is_on) -
+        # setting the attribute alone silently did nothing. Overriding
+        # the property directly here is the only way to guarantee
+        # Camera's semantics apply. This map camera has no on/off concept
+        # of its own (same reasoning MiotCameraEntity.is_on below uses
+        # for a camera with no power property), so it's simply always on.
+        return True
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        # Opt-out for anyone who doesn't want the cloud-dependent visual
+        # map: a dedicated custom_config flag, NOT `exclude_miot_services:
+        # vacuum_map` - that key is already set for this model in the
+        # built-in device_customizes.py (to keep the vacuum_map service's
+        # raw properties out of the generic pipeline), which would make
+        # this entity self-disable for every user of this model the
+        # instant it shipped, not just those who actually opted out - a
+        # regression discovered and fixed 2026-08-16 the same day this
+        # feature was added, before any release. When set, this stops the
+        # periodic cloud polling entirely - the entity stays registered
+        # (so re-enabling later needs no restart) but never fetches
+        # anything. Map *listing* (vacuum.py: save/switch/rename saved
+        # maps) is local-only and deliberately unaffected by this flag.
+        if self.custom_config_bool('disable_map_camera'):
+            self.logger.info('%s: disable_map_camera set, map camera disabled', self.name_model)
+            return
+        self.async_on_remove(
+            async_track_time_interval(self.hass, self._async_refresh_map_tick, timedelta(seconds=30))
+        )
+        await self._async_refresh_map()
+
+    async def _async_refresh_map_tick(self, now=None):
+        await self._async_refresh_map()
+
+    async def _async_refresh_map(self):
+        if not self._map_obj_name_prop:
+            return
+        cloud = self.device.cloud
+        if not cloud or not cloud.service_token:
+            # No cloud session, or a session that isn't actually logged in
+            # (e.g. Xiaomi's need_verify challenge) - skip the whole cycle,
+            # including the local read below, rather than firing a cloud
+            # request every 30s that we already know will fail. Once the
+            # account re-authenticates elsewhere (service_token gets set
+            # again), refreshes resume on their own - no restart needed.
+            self.logger.debug('%s: no authenticated cloud session, skipping map refresh', self.name_model)
+            return
+        try:
+            obj_name = await self._async_fetch_map_obj_name()
+            if not obj_name:
+                return
+            result = await cloud.async_request_api('/v2/home/get_interim_file_url_pro', {'obj_name': obj_name})
+            url = (result or {}).get('result', {}).get('url')
+            if not url:
+                self.logger.debug('%s: get_interim_file_url_pro returned no url: %s', self.name_model, result)
+                return
+            session = async_get_clientsession(self.hass)
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                raw_bytes = await resp.read()
+            self._map_data = decrypt_map_payload(raw_bytes, self.device.model, self.device.did)
+            self.async_write_ha_state()
+        except Exception as exc:
+            # A transient miss shouldn't blank out an otherwise-good map.
+            self.logger.debug('%s: map refresh failed, keeping last map: %s', self.name_model, exc)
+
+    async def _async_fetch_map_obj_name(self):
+        if not self.device.local:
+            return None
+        try:
+            results = await self.device.local.async_get_properties_for_mapping(
+                did=self.device.did,
+                mapping={'value': {'siid': self._map_obj_name_prop.siid, 'piid': self._map_obj_name_prop.iid}},
+            )
+        except Exception as exc:
+            self.logger.debug('%s: failed to read map_obj_name: %s', self.name_model, exc)
+            return None
+        for item in results or []:
+            if item.get('code') == 0 and item.get('value'):
+                try:
+                    return json.loads(item['value']).get('obj_name')
+                except (TypeError, ValueError):
+                    return None
+        return None
+
+    def _toggle(self, entity_id):
+        """Fail-open (missing/unavailable helper == show the layer) - same
+        default the input_boolean-based version this replaces used."""
+        state = self.hass.states.get(entity_id)
+        return True if state is None else state.state == 'on'
+
+    @property
+    def extra_state_attributes(self):
+        if not isinstance(self._map_data, dict):
+            return {}
+        return {
+            'origin_x': self._map_data.get('origin_x'),
+            'origin_y': self._map_data.get('origin_y'),
+            'resolution': self._map_data.get('resolution'),
+            'width': self._map_data.get('width'),
+            'height': self._map_data.get('height'),
+            'scale': DEFAULT_SCALE,
+        }
+
+    async def async_camera_image(self, width=None, height=None):
+        if not isinstance(self._map_data, dict):
+            return None
+        return await self.hass.async_add_executor_job(
+            lambda: render_map_png(
+                self._map_data,
+                show_charge_station=self._toggle('switch.map_show_base'),
+                show_robot_position=self._toggle('switch.map_show_robot'),
+                show_forbidden_zones=self._toggle('switch.map_show_zones'),
+            )
+        )
