@@ -761,6 +761,8 @@ class RobotMapCamera(MiotEntity, Camera):
         # (self._map_data), not generic device polling.
         self._available = True
         self._map_data = None
+        self._render_cache_key = None
+        self._render_cache_png = None
         map_srv = miot_service.spec.get_service('vacuum_map')
         self._map_obj_name_prop = map_srv.get_property('map_obj_name') if map_srv else None
 
@@ -775,8 +777,14 @@ class RobotMapCamera(MiotEntity, Camera):
         # the property directly here is the only way to guarantee
         # Camera's semantics apply. This map camera has no on/off concept
         # of its own (same reasoning MiotCameraEntity.is_on below uses
-        # for a camera with no power property), so it's simply always on.
-        return True
+        # for a camera with no power property) - but it does have a "no
+        # map fetched yet" state (right after startup, or while the cloud
+        # account is unauthenticated - see _async_refresh_map), and without
+        # this check that state hit async_camera_image, returned None, and
+        # surfaced to the frontend as a raw 500 (_async_get_image raises
+        # HomeAssistantError on a None image, which CameraImageView turns
+        # into HTTPInternalServerError) instead of a clean "unavailable".
+        return isinstance(self._map_data, dict)
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -876,11 +884,27 @@ class RobotMapCamera(MiotEntity, Camera):
     async def async_camera_image(self, width=None, height=None):
         if not isinstance(self._map_data, dict):
             return None
-        return await self.hass.async_add_executor_job(
+        show_base = self._toggle('switch.map_show_base')
+        show_robot = self._toggle('switch.map_show_robot')
+        show_zones = self._toggle('switch.map_show_zones')
+        # _map_data is only ever replaced wholesale with a new dict (never
+        # mutated in place - see _async_refresh_map), so its id() is a
+        # cheap, reliable "has anything actually changed" check. Without
+        # this, every dashboard viewer/reload/poll re-runs the full Pillow
+        # render (drawing paths/zones/icons) even when the map and toggles
+        # are identical to the last request - wasted CPU on every request,
+        # not just when something new is available.
+        cache_key = (id(self._map_data), show_base, show_robot, show_zones)
+        if cache_key == self._render_cache_key and self._render_cache_png is not None:
+            return self._render_cache_png
+        png = await self.hass.async_add_executor_job(
             lambda: render_map_png(
                 self._map_data,
-                show_charge_station=self._toggle('switch.map_show_base'),
-                show_robot_position=self._toggle('switch.map_show_robot'),
-                show_forbidden_zones=self._toggle('switch.map_show_zones'),
+                show_charge_station=show_base,
+                show_robot_position=show_robot,
+                show_forbidden_zones=show_zones,
             )
         )
+        self._render_cache_key = cache_key
+        self._render_cache_png = png
+        return png

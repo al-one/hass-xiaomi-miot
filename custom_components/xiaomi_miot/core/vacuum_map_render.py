@@ -180,23 +180,26 @@ def render_map_png(
         r["grid_id"]: r["color"] for r in map_data.get("map_room_info", [])
     }
 
-    img = Image.new("RGBA", (width, height), BG_COLOR)
-    px = img.load()
-    for i, val in enumerate(grid):
-        if val == 0:
-            continue  # already BG_COLOR
-        x, y = i % width, i // width
-        if val == 1:
-            color = WALL_COLOR
-        else:
-            # map_room_info[].color is 1-based (slots 1-4, matches the
-            # app's MAP_COLOR_INDEX_NEW.ROOM_COLORS keys) - ROOM_PALETTE is
-            # 0-indexed, so it needs -1 before the wrap. Confirmed against a
-            # live dump: room "Kitchen" had color=3, which without the -1
-            # landed on palette[3] (cyan) instead of the real palette[2].
-            slot = room_color_by_grid_id.get(val, 1)
-            color = ROOM_PALETTE[(slot - 1) % len(ROOM_PALETTE)]
-        px[x, y] = color
+    # Each byte in `grid` is already a flat palette index (0 = background,
+    # 1 = wall, anything else = a room's grid_id) in row-major order, i.e.
+    # exactly what Pillow's "P" mode expects natively - building the image
+    # this way is one C-level call instead of a pure-Python per-pixel loop
+    # (`img.load()[x, y] = color` for every one of width*height pixels,
+    # ~1-2 orders of magnitude slower on a real-size map, and this runs on
+    # every single camera_image request, not just the 30s poll - see
+    # camera.py's RobotMapCamera render cache for the other half of that).
+    palette = bytearray(256 * 3)
+    palette[0:3] = BG_COLOR[:3]
+    palette[3:6] = WALL_COLOR[:3]
+    for grid_id in range(2, 256):
+        # Same -1 (1-based slot -> 0-indexed palette) as before - see the
+        # "Kitchen" room note this replaced for why that offset matters.
+        slot = room_color_by_grid_id.get(grid_id, 1)
+        color = ROOM_PALETTE[(slot - 1) % len(ROOM_PALETTE)]
+        palette[grid_id * 3:grid_id * 3 + 3] = bytes(color[:3])
+    img = Image.frombytes("P", (width, height), bytes(grid))
+    img.putpalette(bytes(palette))
+    img = img.convert("RGBA")
 
     if scale != 1:
         img = img.resize((width * scale, height * scale), Image.NEAREST)
