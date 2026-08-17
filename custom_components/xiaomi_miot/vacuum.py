@@ -627,6 +627,7 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
         prop = self._miot_service.get_property('room_information')
         # did is not required here - see the comment in _async_read_zones for why.
         if not prop or not self.device.local:
+            self.logger.warning('%s: DEBUG11 no room_information prop or no local: prop=%s local=%s', self.name_model, bool(prop), bool(self.device.local))
             return []
         try:
             results = await self.device.local.async_get_properties_for_mapping(
@@ -634,15 +635,20 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
                 mapping={'room_information': {'siid': prop.siid, 'piid': prop.iid}},
             )
         except Exception as exc:
-            self.logger.debug('%s: failed to read room_information: %s', self.name_model, exc)
+            self.logger.warning('%s: DEBUG11 failed to read room_information: %s', self.name_model, exc)
             return []
+        self.logger.warning('%s: DEBUG11 room_information raw results: %s', self.name_model, results)
         for item in results or []:
             if item.get('code') == 0 and item.get('value'):
                 try:
                     data = json.loads(item['value'])
                 except (TypeError, ValueError):
+                    self.logger.warning('%s: DEBUG11 room_information value not valid JSON: %r', self.name_model, item.get('value'))
                     return []
-                return [(r['id'], r.get('name') or f'Room {r["id"]}') for r in data.get('rooms', [])]
+                rooms = [(r['id'], r.get('name') or f'Room {r["id"]}') for r in data.get('rooms', [])]
+                self.logger.warning('%s: DEBUG11 parsed rooms: %s', self.name_model, rooms)
+                return rooms
+        self.logger.warning('%s: DEBUG11 no item with code==0 and value in results', self.name_model)
         return []
 
     async def _async_setup_room_entities(self):
@@ -946,6 +952,7 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
                 values[(item.get('siid'), item.get('piid'))] = item.get('value')
         maps = parse_map_management(values.get((MAP_SIID, MAP_MANAGEMENT_PIID)))
         backups = parse_backup_map_list(values.get((MAP_SIID, BACKUP_MAP_LIST_PIID)))
+        self.logger.warning('%s: DEBUG11 raw map results=%s maps=%s backups=%s', self.name_model, results, maps, backups)
         return maps, backups
 
     async def _async_setup_map_entities(self):
@@ -1433,12 +1440,31 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
             if not entity:
                 continue
             value = item.get('value')
-            if name == 'last_clean_time' and value:
+            if name == 'last_clean_time':
+                # `and value` used to gate this (instead of `is not None`) -
+                # 0 is falsy in Python, so a freshly-paired device (no clean
+                # history yet under the new pairing, reports 0) skipped this
+                # branch entirely and handed the raw int 0 straight to a
+                # device_class='timestamp' sensor, which HA's own sensor
+                # base class rejects with a ValueError (needs a real
+                # datetime or None) - and since that happens inside
+                # async_added_to_hass, the exception aborted the whole
+                # entity's setup, leaving every sub-entity on the device
+                # stuck at 'unknown'. 0 means "never cleaned" here, not
+                # epoch 1970, so it maps to None (unknown/no value) instead
+                # of a fake datetime.
                 from datetime import datetime, timezone
                 try:
-                    value = datetime.fromtimestamp(int(value), tz=timezone.utc)
-                except (TypeError, ValueError, OSError):
-                    pass
+                    ts = int(value)
+                except (TypeError, ValueError):
+                    ts = None
+                if ts:
+                    try:
+                        value = datetime.fromtimestamp(ts, tz=timezone.utc)
+                    except (OSError, OverflowError, ValueError):
+                        value = None
+                else:
+                    value = None
             elif name == 'fault':
                 try:
                     code = int(value)
