@@ -1106,6 +1106,7 @@ DEVICE_CUSTOMIZES = {
     },
     'ijai.vacuum.*': {
         'interval_seconds': 120,
+        'extend_miot_specs': 'ijai.vacuum.v10',
         'button_actions': 'start_sweep*,start_only_sweep,start_mop,start_charge,stop_*',
         'sensor_properties': 'vacuum.status,door_state,main_brush_life,side_brush_life,hypa_life,mop_life',
         'switch_properties': 'repeat_state,alarm',

@@ -405,6 +405,31 @@
     }
   ],
 
+  "ijai.vacuum.v10": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 1,
+          "value-list": [
+            {"value": 0, "description": "Sleep"},
+            {"value": 1, "description": "Idle"},
+            {"value": 2, "description": "Paused"},
+            {"value": 3, "description": "Go Charging"},
+            {"value": 4, "description": "Charging"},
+            {"value": 5, "description": "Sweeping"},
+            {"value": 6, "description": "Sweeping And Mopping"},
+            {"value": 7, "description": "Mopping"},
+            {"value": 8, "description": "Upgrading"}
+          ]
+        }
+      ]
+    }
+  ],
+  "ijai.vacuum.v1": "ijai.vacuum.v10",
+  "ijai.vacuum.v2": "ijai.vacuum.v10",
+  "ijai.vacuum.v3": "ijai.vacuum.v10",
+
   "lumi.airer.acn01": [
     {
       "iid": 2,
