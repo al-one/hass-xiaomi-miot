@@ -15,6 +15,7 @@ from homeassistant.components.time import TimeEntity
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.storage import Store
 from .core.const import VacuumActivity
 
 from . import (
@@ -623,40 +624,58 @@ class MiotOv42glVacuumEntity(MiotVacuumEntity):
 
     # -- Per-room / multi-room cleaning --------------------------------
 
+    def _room_cache_store(self):
+        # Keyed by did (stable per physical robot) rather than entity_id, so
+        # the cache survives an entity_id rename.
+        fnm = f'{DOMAIN}/room_information-{self.device.did}.json'
+        return Store(self.hass, 1, fnm)
+
     async def _async_fetch_rooms(self):
         prop = self._miot_service.get_property('room_information')
         # did is not required here - see the comment in _async_read_zones for why.
         if not prop or not self.device.local:
-            self.logger.warning('%s: DEBUG11 no room_information prop or no local: prop=%s local=%s', self.name_model, bool(prop), bool(self.device.local))
             return []
+        store = self._room_cache_store()
         try:
             results = await self.device.local.async_get_properties_for_mapping(
                 did=self.device.did,
                 mapping={'room_information': {'siid': prop.siid, 'piid': prop.iid}},
             )
         except Exception as exc:
-            self.logger.warning('%s: DEBUG11 failed to read room_information: %s', self.name_model, exc)
-            return []
-        self.logger.warning('%s: DEBUG11 room_information raw results: %s', self.name_model, results)
+            # Seen after a network blip right at HA startup (e.g. the
+            # robot's IP was briefly firewalled/unreachable): this used to
+            # return [] here, which made _async_setup_room_entities() below
+            # skip creating any room entities for the whole session, leaving
+            # the old ones orphaned ("no longer being provided by the
+            # xiaomi_miot integration") until the next restart. Falling back
+            # to the last cached list means the entities always get created;
+            # they just keep showing yesterday's rooms until a poll actually
+            # succeeds.
+            self.logger.info('%s: Failed to read room_information, using cached room list: %s', self.name_model, exc)
+            cached = await store.async_load()
+            return [(r[0], r[1]) for r in cached] if cached else []
         for item in results or []:
             if item.get('code') == 0 and item.get('value'):
                 try:
                     data = json.loads(item['value'])
                 except (TypeError, ValueError):
-                    self.logger.warning('%s: DEBUG11 room_information value not valid JSON: %r', self.name_model, item.get('value'))
-                    return []
+                    cached = await store.async_load()
+                    return [(r[0], r[1]) for r in cached] if cached else []
                 rooms = [(r['id'], r.get('name') or f'Room {r["id"]}') for r in data.get('rooms', [])]
-                self.logger.warning('%s: DEBUG11 parsed rooms: %s', self.name_model, rooms)
+                if rooms:
+                    await store.async_save(rooms)
                 return rooms
-        self.logger.warning('%s: DEBUG11 no item with code==0 and value in results', self.name_model)
-        return []
+        cached = await store.async_load()
+        return [(r[0], r[1]) for r in cached] if cached else []
 
     async def _async_setup_room_entities(self):
         # Room list is fetched once here, at platform setup, matching this
         # device's actual behavior: it doesn't reflect an app-side rename
         # back into `room_information` in real time either, so periodic
         # re-polling wouldn't gain much - a Home Assistant restart already
-        # picks up any change made from the app.
+        # picks up any change made from the app. _async_fetch_rooms() falls
+        # back to a cached list on its own if the live read fails, so `rooms`
+        # only comes back empty on a first-ever setup with no cache yet.
         rooms = await self._async_fetch_rooms()
         if not rooms:
             return
