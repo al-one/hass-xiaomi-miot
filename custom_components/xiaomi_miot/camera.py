@@ -227,12 +227,14 @@ class BaseCameraEntity(Camera):
         rls = rdt.get('data', {}).get('thirdPartPlayUnits') or []
         adt = {}
         if rls:
-            fst = rls[0] or {}
+            fst = dict(rls[0] or {})
             tim = fst.pop('createTime', 0) / 1000
             adt = {
                 'motion_video_time': f'{datetime.fromtimestamp(tim)}',
                 'motion_video_type': fst.get('eventType'),
                 'motion_video_latest': fst,
+                # 通用：暴露完整事件列表（含双镜头），供自动化自行配对
+                'motion_video_list': [dict(u) for u in rls],
             }
         else:
             self.log.info('Camera events is empty. %s', rdt)
