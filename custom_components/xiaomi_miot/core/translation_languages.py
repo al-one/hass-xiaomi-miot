@@ -762,11 +762,11 @@ TRANSLATION_LANGUAGES = {
         },
 
         'fan_level': {
-            'auto': 'auto',
-            'low': 'low',
-            'medium': 'medium',
-            'middle': 'middle',
-            'high': 'high',
+            'auto': 'автоматичний',
+            'low': 'низький',
+            'medium': 'середній',
+            'middle': 'середній',
+            'high': 'високий',
             'quiet': 'тихий',
             'turbo': 'турбо',
             'level1': '1-й рівень',
@@ -876,7 +876,7 @@ TRANSLATION_LANGUAGES = {
         },
 
         'lock_method': {
-            'bluetooth': 'bluetooth',
+            'bluetooth': 'Bluetooth',
             'password': 'пароль',
             'biological': 'біологічний',
             'key': 'ключ',
