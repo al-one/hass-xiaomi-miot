@@ -25,6 +25,7 @@ from homeassistant.components.climate import (
     SWING_OFF,
 )
 from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
@@ -48,6 +49,10 @@ DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
 DEFAULT_MIN_TEMP = 16.0
 DEFAULT_MAX_TEMP = 31.0
+
+# Yeelight PTC bath heaters with composite supply+ventilation states; the
+# mode-aware gear codec lives in core/templates.py (YEELINK_BHF_FAN_MODE_GEARS).
+YEELINK_BATH_HEATER_COMPOSITE_MODELS = ('yeelink.bhf_light.v5', 'yeelink.bhf_light.v6')
 
 SERVICE_TO_METHOD = {}
 
@@ -277,8 +282,19 @@ class ClimateEntity(XEntity, BaseClimateEntity):
 
         if self._conv_speed:
             val = self._conv_speed.value_from_dict(data)
-            if val is not None:
+            if self._yeelink_bhf_composite():
+                # Composite output is physically High regardless of configured
+                # gears: the logical fan mode stays unconditionally unavailable.
+                self._attr_fan_mode = None
+                self._attr_extra_state_attributes['effective_fan_mode'] = 'high'
+            elif val is not None:
                 self._attr_fan_mode = str(val).lower()
+                self._attr_extra_state_attributes.pop('effective_fan_mode', None)
+            elif self._conv_speed.full_name in data and self._yeelink_bhf_tokens() is not None:
+                # The mode-aware codec reports Idle and out-of-domain gear codes
+                # as none: publish unavailable, never a stale mode.
+                self._attr_fan_mode = None
+                self._attr_extra_state_attributes.pop('effective_fan_mode', None)
         if self._conv_swing:
             val = self._conv_swing.value_from_dict(data)
             if val is not None:
@@ -380,9 +396,33 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             return
         await self.device.async_write({self._conv_target_humidity.full_name: humidity})
 
+    def _yeelink_bhf_tokens(self):
+        """Active bh_mode tokens for yeelink v5/v6, None when unknown."""
+        if self.device.model not in YEELINK_BATH_HEATER_COMPOSITE_MODELS:
+            return None
+        m2m = getattr(self.device, 'miio2miot', None)
+        if not m2m:
+            return None
+        mode = (m2m.miio_props_values or {}).get('bh_mode')
+        if mode is None:
+            return None
+        return str(mode).split('|')
+
+    def _yeelink_bhf_composite(self):
+        """Composite state: supply channel (warm/cold) plus ventilation companion."""
+        tokens = self._yeelink_bhf_tokens()
+        if not tokens:
+            return False
+        return 'venting' in tokens and ('warmwind' in tokens or 'coolwind' in tokens)
+
     async def async_set_fan_mode(self, fan_mode: str):
         if not self._conv_speed:
             return
+        if self._yeelink_bhf_composite():
+            raise HomeAssistantError(
+                f'{self.device.model} runs a composite mode: fan mode is not settable, '
+                'effective fan mode is high'
+            )
         dat = {
             ATTR_FAN_MODE: fan_mode,
         }
