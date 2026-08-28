@@ -13,6 +13,13 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+# Minimum gap in seconds between physical device polls, including
+# write-initiated refreshes that bypass the HA debouncer. Bursts of writes
+# are coalesced with a trailing edge: the confirmed poll still runs, just
+# not sooner than this gap after the previous one. The scheduled cadence
+# stays bound by update_interval.
+MIN_DEVICE_POLL_GAP_SECONDS = 3.0
+
 class DataCoordinator(DataUpdateCoordinator):
     def __init__(self, device: 'Device', update_method, **kwargs):
         kwargs.setdefault('always_update', True)
@@ -63,15 +70,10 @@ class DataCoordinator(DataUpdateCoordinator):
                     raise asyncio.CancelledError
                 if self._device_update_method is None:
                     raise NotImplementedError('Update method not implemented')
-                interval = self.update_interval
-                if interval and self._last_poll_monotonic is not None:
-                    # One shared rate limiter for every physical poll, including
-                    # write-initiated refreshes that bypass the debouncer:
-                    # never poll the device sooner than update_interval after
-                    # the previous poll (trailing edge - the poll still runs).
-                    delay = interval.total_seconds() - (time.monotonic() - self._last_poll_monotonic)
+                if self._last_poll_monotonic is not None:
+                    delay = MIN_DEVICE_POLL_GAP_SECONDS - (time.monotonic() - self._last_poll_monotonic)
                     if delay > 0:
-                        _LOGGER.debug('%s: Throttle device poll for %.1fs', self.device.name_model, delay)
+                        _LOGGER.debug('%s: Coalesce device poll for %.1fs', self.device.name_model, delay)
                         await asyncio.sleep(delay)
                 try:
                     return await self._device_update_method()

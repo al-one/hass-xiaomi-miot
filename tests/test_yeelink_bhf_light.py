@@ -1103,6 +1103,14 @@ async def test_optimistic_action_error_preserves_legacy_result(make_device, hass
 YEELINK_BHF_MODELS = ["yeelink.bhf_light.v5", "yeelink.bhf_light.v6"]
 
 
+@pytest.fixture(autouse=True)
+def disable_device_poll_gap(monkeypatch):
+    """Keep unrelated tests instant; the throttle test opts back in."""
+    from custom_components.xiaomi_miot.core import coordinator as coordinator_module
+
+    monkeypatch.setattr(coordinator_module, "MIN_DEVICE_POLL_GAP_SECONDS", 0)
+
+
 def get_extended_spec(hass, load_miot_spec, model) -> MiotSpec:
     """Official spec (fixture for v5, published cloud JSON for v6) + production extension."""
     if model == "yeelink.bhf_light.v5":
@@ -1479,11 +1487,14 @@ async def test_non_optimistic_write_raises_on_miio_setter_error(make_device, has
     assert device.local.sent_commands[-1][0] == "set_bh_mode"
 
 
-async def test_coordinator_throttles_burst_refreshes(make_device, hass, load_miot_spec):
-    """Spec 11.2/F2: explicitly initiated physical polls share one rate limiter."""
+async def test_coordinator_throttles_burst_refreshes(make_device, hass, load_miot_spec, monkeypatch):
+    """Spec 11.2: write-initiated polls coalesce behind a short trailing-edge gap."""
     import time
     from datetime import timedelta
 
+    from custom_components.xiaomi_miot.core import coordinator as coordinator_module
+
+    monkeypatch.setattr(coordinator_module, "MIN_DEVICE_POLL_GAP_SECONDS", 0.2)
     spec = get_extended_spec(hass, load_miot_spec, "yeelink.bhf_light.v6")
     device = make_device(spec, model="yeelink.bhf_light.v6")
     device.entry.entry = MagicMock()
@@ -1493,12 +1504,14 @@ async def test_coordinator_throttles_burst_refreshes(make_device, hass, load_mio
         polls.append(time.monotonic())
         return {"poll": len(polls)}
 
-    coordinator = DataCoordinator(device, update_method, update_interval=timedelta(seconds=0.2))
+    # The scheduled cadence (30s for v5/v6) must not gate write-initiated
+    # confirmed refreshes; only the short gap does.
+    coordinator = DataCoordinator(device, update_method, update_interval=timedelta(seconds=30))
     await coordinator.async_refresh()
     await coordinator.async_refresh()
 
     assert len(polls) == 2
-    assert polls[1] - polls[0] >= 0.2
+    assert 0.2 <= polls[1] - polls[0] < 30
 
 
 @pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
