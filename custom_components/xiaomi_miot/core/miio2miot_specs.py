@@ -2013,17 +2013,20 @@ MIIO_TO_MIOT_SPECS = {
             },
             'prop.3.2': {
                 'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "warm" in value }}',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "warmwind" in (mode | string).split("|") }}',
                 'set_template': '{{ ["warmwind" if value else "windoff"] }}',
             },
             'prop.3.3': {
                 'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "coolwind" in value }}',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "coolwind" in (mode | string).split("|") }}',
                 'set_template': '{{ ["coolwind" if value else "windoff"] }}',
             },
             'prop.3.4': {
                 'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "venting" in value }}',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "venting" in (mode | string).split("|") }}',
                 'set_template': '{{ ["venting" if value else "ventingoff"] }}',
             },
             'prop.3.5': {'prop': 'aim_temp', 'setter': 'set_temp'},
@@ -2032,12 +2035,7 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'fan_speed_idx',
                 'setter': 'set_bh_mode',
                 'template': 'yeelink_bhf_light_fan_levels',
-                'set_template': '{{ ['
-                                'props.bh_mode,'
-                                '1 if value <= 1 else '
-                                '3 if "coolwind" in props.bh_mode else '
-                                '3 if "venting" in props.bh_mode else '
-                                '2] }}',
+                'set_template': 'yeelink_bhf_light_fan_level_set',
             },
             'prop.3.111': {
                 'prop': 'bh_mode',
@@ -2112,12 +2110,7 @@ MIIO_TO_MIOT_SPECS = {
                 'prop': 'fan_speed_idx',
                 'setter': 'set_bh_mode',
                 'template': 'yeelink_bhf_light_fan_levels',
-                'set_template': '{{ ['
-                                'props.bh_mode,'
-                                '1 if value <= 1 else '
-                                '3 if "coolwind" in props.bh_mode else '
-                                '3 if "venting" in props.bh_mode else '
-                                '2] }}',
+                'set_template': 'yeelink_bhf_light_fan_level_set',
             },
             'prop.3.111': {
                 'prop': 'bh_mode',

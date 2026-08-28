@@ -1,5 +1,23 @@
 from homeassistant.helpers.template import Template
 
+# Yeelight PTC bath heater v5/v6 mode-aware fan-mode codec (single source of truth).
+# Logical fan modes: 1=Low, 2=Auto, 3=High. Physical gears are mode-specific:
+#   warmwind: Low=1, Auto=3, High=2; coolwind/venting: Low=1, Auto=2, High=3.
+YEELINK_BHF_FAN_MODE_GEARS = {
+    'warmwind': {1: 1, 2: 3, 3: 2},
+    'coolwind': {1: 1, 2: 2, 3: 3},
+    'venting': {1: 1, 2: 2, 3: 3},
+}
+YEELINK_BHF_FAN_GEAR_MODES = {
+    token: {gear: mode for mode, gear in gears.items()}
+    for token, gears in YEELINK_BHF_FAN_MODE_GEARS.items()
+}
+# Extracts active bh_mode tokens known to the codec into `fan_active`.
+YEELINK_BHF_FAN_TOKENS_TEMPLATE = (
+    "{%- set fan_tokens = (props.bh_mode | default('', true) | string).split('|') %}"
+    "{%- set fan_active = fan_tokens | select('in', fan_codec) | list %}"
+)
+
 CUSTOM_TEMPLATES = {
     # https://iot.mi.com/new/doc/accesses/direct-access/embedded-development/ble/object-definition#%E7%89%99%E5%88%B7%E4%BA%8B%E4%BB%B6
     'ble_toothbrush_events': "{%- set dat = props.get('event.16') | default('{}',true) | from_json %}"
@@ -155,13 +173,25 @@ CUSTOM_TEMPLATES = {
                                        "'warmwind': val[4],"
                                        "} %}"
                                        "{{ [1,2,3][mds[props.bh_mode] | default(0) | int(0)] | default(3) }}",
-    'yeelink_bhf_light_fan_levels': "{%- set val = ('000' ~ value)[-3:] %}"
-                                    "{%- set mds = {"
+    # decode: (active bh_mode token, physical gear) -> logical fan mode (1=Low, 2=Auto, 3=High);
+    # renders none for Idle, composite states and out-of-domain gear codes (never falls back to Off/Low).
+    'yeelink_bhf_light_fan_levels': f"{{%- set fan_codec = {YEELINK_BHF_FAN_GEAR_MODES} %}}"
+                                    f"{YEELINK_BHF_FAN_TOKENS_TEMPLATE}"
+                                    "{%- set val = ('000' ~ value)[-3:] %}"
+                                    "{%- set digits = {"
                                     "'warmwind': val[0],"
                                     "'coolwind': val[1],"
                                     "'venting': val[2],"
                                     "} %}"
-                                    "{{ [1,1,3,3][mds[props.bh_mode] | default(0) | int(0)] | default(1) }}",
+                                    "{{ fan_codec[fan_active[0]].get(digits[fan_active[0]] | int(0))"
+                                    " if fan_active | length == 1 else none }}",
+    # encode: (active bh_mode token, logical fan mode) -> mode-specific physical gear.
+    'yeelink_bhf_light_fan_level_set': f"{{%- set fan_codec = {YEELINK_BHF_FAN_MODE_GEARS} %}}"
+                                       f"{YEELINK_BHF_FAN_TOKENS_TEMPLATE}"
+                                       "{%- set fan_token = fan_active[0] if fan_active | length == 1"
+                                       " else 'coolwind' %}"
+                                       "{%- set fan_mode = value | int(0) %}"
+                                       "{{ [props.bh_mode, fan_codec[fan_token].get(fan_mode, fan_mode)] }}",
     'yeelink_bhf_light_miio_props': "{%- set val = ('000' ~ props.fan_speed_idx)[-3:] %}"
                                     "{{ {"
                                     "'warmwind_gear': val[0] | int(none),"

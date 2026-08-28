@@ -1319,6 +1319,7 @@
           "access": ["read", "write"],
           "value-list": [
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         },
@@ -1330,6 +1331,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 3, "description": "Auto"},
             {"value": 2, "description": "High"}
           ]
         },
@@ -1341,6 +1343,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         },
@@ -1352,6 +1355,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         }
@@ -1382,6 +1386,7 @@
           "access": ["read", "write"],
           "value-list": [
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         },
@@ -1393,6 +1398,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 3, "description": "Auto"},
             {"value": 2, "description": "High"}
           ]
         },
@@ -1404,6 +1410,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         },
@@ -1415,6 +1422,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         },
