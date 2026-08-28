@@ -620,6 +620,9 @@ class Device(CustomConfigHelper):
     async def update_main_status(self, immediate=False):
         coos = self.main_coordinators
         if not coos and immediate and self.custom_config_bool('non_optimistic'):
+            # miio2miot devices always get the miot_status main coordinator;
+            # this fallback only covers foreign YAML customizes that leave
+            # main_coordinators empty. Deliberate guard, not dead code.
             coos = self.coordinators
         for coo in coos:
             if immediate:

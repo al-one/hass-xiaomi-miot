@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import logging
+import time
 from typing import TYPE_CHECKING
 
 from homeassistant.core import HassJob, HassJobType
@@ -31,6 +32,7 @@ class DataCoordinator(DataUpdateCoordinator):
         self._device_update_method = update_method
         self._device_update_lock = asyncio.Lock()
         self._device_update_tasks = set()
+        self._last_poll_monotonic = None
 
         super().__init__(
             device.hass,
@@ -61,7 +63,20 @@ class DataCoordinator(DataUpdateCoordinator):
                     raise asyncio.CancelledError
                 if self._device_update_method is None:
                     raise NotImplementedError('Update method not implemented')
-                return await self._device_update_method()
+                interval = self.update_interval
+                if interval and self._last_poll_monotonic is not None:
+                    # One shared rate limiter for every physical poll, including
+                    # write-initiated refreshes that bypass the debouncer:
+                    # never poll the device sooner than update_interval after
+                    # the previous poll (trailing edge - the poll still runs).
+                    delay = interval.total_seconds() - (time.monotonic() - self._last_poll_monotonic)
+                    if delay > 0:
+                        _LOGGER.debug('%s: Throttle device poll for %.1fs', self.device.name_model, delay)
+                        await asyncio.sleep(delay)
+                try:
+                    return await self._device_update_method()
+                finally:
+                    self._last_poll_monotonic = time.monotonic()
         finally:
             if task:
                 self._device_update_tasks.discard(task)
