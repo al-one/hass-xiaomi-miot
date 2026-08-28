@@ -20,22 +20,39 @@ EXTEND_SPECS_FILE = (
 )
 
 V6_RAW_CLOUD_SPEC = {
-    "urn": "urn:miot-spec-v2:device:bath-heater:0000A028:yeelink-v6:2",
+    "type": "urn:miot-spec-v2:device:bath-heater:0000A028:yeelink-v6:2",
+    "description": "Bath Heater",
     "services": [
         {
             "iid": 1,
-            "type": "urn:miot-spec-v2:service:device-information:00007801:yeelink-v6:2",
+            "type": "urn:miot-spec-v2:service:device-information:00007801:yeelink-v6:1",
             "description": "Device Information",
             "properties": [
                 {
                     "iid": 1,
-                    "type": "urn:miot-spec-v2:property:manufacturer:00000001:yeelink-v6:2",
+                    "type": "urn:miot-spec-v2:property:manufacturer:00000001:yeelink-v6:1",
+                    "description": "Device Manufacturer",
                     "format": "string",
                     "access": ["read"],
                 },
                 {
                     "iid": 2,
-                    "type": "urn:miot-spec-v2:property:model:00000002:yeelink-v6:2",
+                    "type": "urn:miot-spec-v2:property:model:00000002:yeelink-v6:1",
+                    "description": "Device Model",
+                    "format": "string",
+                    "access": ["read"],
+                },
+                {
+                    "iid": 3,
+                    "type": "urn:miot-spec-v2:property:serial-number:00000003:yeelink-v6:1",
+                    "description": "Device Serial Number",
+                    "format": "string",
+                    "access": ["read"],
+                },
+                {
+                    "iid": 4,
+                    "type": "urn:miot-spec-v2:property:firmware-revision:00000005:yeelink-v6:1",
+                    "description": "Current Firmware Version",
                     "format": "string",
                     "access": ["read"],
                 },
@@ -43,22 +60,24 @@ V6_RAW_CLOUD_SPEC = {
         },
         {
             "iid": 2,
-            "type": "urn:miot-spec-v2:service:light:00007802:yeelink-v6:2",
+            "type": "urn:miot-spec-v2:service:light:00007802:yeelink-v6:1",
             "description": "Light",
             "properties": [
                 {
                     "iid": 1,
-                    "type": "urn:miot-spec-v2:property:on:00000006:yeelink-v6:2",
+                    "type": "urn:miot-spec-v2:property:on:00000006:yeelink-v6:1",
                     "description": "Switch Status",
                     "format": "bool",
                     "access": ["read", "write", "notify"],
+                    "unit": "none",
                 },
                 {
                     "iid": 2,
-                    "type": "urn:miot-spec-v2:property:mode:00000008:yeelink-v6:2",
+                    "type": "urn:miot-spec-v2:property:mode:00000008:yeelink-v6:1",
                     "description": "Mode",
                     "format": "uint8",
                     "access": ["read", "write", "notify"],
+                    "unit": "none",
                     "value-list": [
                         {"value": 0, "description": "Day"},
                         {"value": 1, "description": "Night"},
@@ -66,67 +85,137 @@ V6_RAW_CLOUD_SPEC = {
                 },
                 {
                     "iid": 3,
-                    "type": "urn:miot-spec-v2:property:brightness:0000000D:yeelink-v6:2",
+                    "type": "urn:miot-spec-v2:property:brightness:0000000D:yeelink-v6:1",
                     "description": "Brightness",
                     "format": "uint8",
                     "access": ["read", "write", "notify"],
+                    "unit": "percentage",
                     "value-range": [1, 100, 1],
                 },
             ],
         },
         {
             "iid": 3,
-            "type": "urn:miot-spec-v2:service:ptc-bath-heater:00007834:yeelink-v6:2",
+            "type": "urn:miot-spec-v2:service:ptc-bath-heater:0000783B:yeelink-v6:1",
             "description": "PTC Bath Heater",
             "properties": [
                 {
                     "iid": 1,
-                    "type": "urn:miot-spec-v2:property:mode:00000008:yeelink-v6:2",
+                    "type": "urn:miot-spec-v2:property:mode:00000008:yeelink-v6:1",
                     "description": "Mode",
                     "format": "uint8",
                     "access": ["read", "write", "notify"],
+                    "unit": "none",
                     "value-list": [
                         {"value": 0, "description": "Idle"},
-                        {"value": 1, "description": "Quick Heat"},
-                        {"value": 2, "description": "Quick Defog"},
-                        {"value": 3, "description": "Quick Vent"},
-                        {"value": 4, "description": "Quick Dry"},
+                        {"value": 1, "description": "Fan"},
+                        {"value": 2, "description": "Heat"},
+                        {"value": 3, "description": "Ventilate"},
+                        {"value": 4, "description": "Dry"},
                     ],
                 },
                 {
                     "iid": 2,
-                    "type": "urn:miot-spec-v2:property:target-temperature:00000021:yeelink-v6:2",
+                    "type": "urn:miot-spec-v2:property:target-temperature:00000021:yeelink-v6:1",
                     "description": "Target Temperature",
                     "format": "uint8",
                     "access": ["read", "write", "notify"],
-                    "value-range": [16, 35, 1],
+                    "unit": "celsius",
+                    "value-range": [25, 45, 1],
                 },
                 {
                     "iid": 3,
-                    "type": "urn:miot-spec-v2:property:temperature:00000020:yeelink-v6:2",
+                    "type": "urn:miot-spec-v2:property:temperature:00000020:yeelink-v6:1",
                     "description": "Temperature",
-                    "format": "float",
+                    "format": "uint8",
                     "access": ["read", "notify"],
                     "unit": "celsius",
+                    "value-range": [0, 50, 1],
                 },
             ],
             "actions": [
                 {
                     "iid": 1,
-                    "type": "urn:miot-spec-v2:action:stop-working:00002825:yeelink-v6:2",
+                    "type": "urn:miot-spec-v2:action:stop-working:00002825:yeelink-v6:1",
                     "description": "Stop Working",
-                    "in": [0],
+                    "in": [],
                     "out": [],
                 }
+            ],
+        },
+        {
+            "iid": 4,
+            "type": "urn:yeelink-spec:service:notify:00007801:yeelink-v6:1",
+            "description": "notify",
+            "events": [
+                {
+                    "iid": 1,
+                    "type": "urn:yeelink-spec:event:fan-error:00005001:yeelink-v6:1",
+                    "description": "fan-error",
+                    "arguments": [],
+                },
+                {
+                    "iid": 2,
+                    "type": "urn:yeelink-spec:event:venting-keep:00005002:yeelink-v6:1",
+                    "description": "venting-keep",
+                    "arguments": [],
+                },
+                {
+                    "iid": 3,
+                    "type": "urn:yeelink-spec:event:overtime:00005003:yeelink-v6:1",
+                    "description": "overtime",
+                    "arguments": [],
+                },
+                {
+                    "iid": 4,
+                    "type": "urn:yeelink-spec:event:delayoff:00005004:yeelink-v6:1",
+                    "description": "delayoff",
+                    "arguments": [],
+                },
+                {
+                    "iid": 5,
+                    "type": "urn:yeelink-spec:event:over-temperature:00005005:yeelink-v6:1",
+                    "description": "over-temperature",
+                    "arguments": [],
+                },
             ],
         },
     ],
 }
 
 
-def get_v6_extended_spec(hass) -> MiotSpec:
-    """Create a MiotSpec from the raw unextended cloud spec and apply production miot_specs_extend.json."""
-    spec = MiotSpec(hass, copy.deepcopy(V6_RAW_CLOUD_SPEC))
+def test_v6_raw_cloud_fixture_matches_published_v2():
+    assert V6_RAW_CLOUD_SPEC["type"] == (
+        "urn:miot-spec-v2:device:bath-heater:0000A028:yeelink-v6:2"
+    )
+    assert "urn" not in V6_RAW_CLOUD_SPEC
+    services = {service["iid"]: service for service in V6_RAW_CLOUD_SPEC["services"]}
+    assert set(services) == {1, 2, 3, 4}
+    heater = services[3]
+    assert heater["type"] == (
+        "urn:miot-spec-v2:service:ptc-bath-heater:0000783B:yeelink-v6:1"
+    )
+    properties = {prop["iid"]: prop for prop in heater["properties"]}
+    assert properties[1]["value-list"] == [
+        {"value": 0, "description": "Idle"},
+        {"value": 1, "description": "Fan"},
+        {"value": 2, "description": "Heat"},
+        {"value": 3, "description": "Ventilate"},
+        {"value": 4, "description": "Dry"},
+    ]
+    assert properties[2]["value-range"] == [25, 45, 1]
+    assert properties[3]["format"] == "uint8"
+    assert properties[3]["value-range"] == [0, 50, 1]
+    assert heater["actions"][0]["in"] == []
+
+
+def get_v6_extended_spec(hass, version=2) -> MiotSpec:
+    """Apply the production v6 extension to an official unextended cloud spec."""
+    raw_spec = copy.deepcopy(V6_RAW_CLOUD_SPEC)
+    raw_spec["type"] = (
+        f"urn:miot-spec-v2:device:bath-heater:0000A028:yeelink-v6:{version}"
+    )
+    spec = MiotSpec(hass, raw_spec)
     with EXTEND_SPECS_FILE.open(encoding="utf-8") as f:
         extended_specs = json.load(f)
     v6_extend = extended_specs.get("yeelink.bhf_light.v6") or []
@@ -317,8 +406,9 @@ async def test_select_property_setters(hass, model):
     assert sent_commands[-1] == ("set_bh_mode", ["ventingoff"])
 
 
-def test_v6_spec_extension_in_specs_extend_json(hass):
-    """Verify that miot_specs_extend.json contains v6 synthetic switches with exact IID, type, format, and access."""
+@pytest.mark.parametrize("version", [1, 2])
+def test_v6_spec_extension_in_specs_extend_json(hass, version):
+    """Verify exact synthetic switch metadata against both published v6 revisions."""
     with EXTEND_SPECS_FILE.open(encoding="utf-8") as f:
         extended = json.load(f)
     v6_extend = extended.get("yeelink.bhf_light.v6")
@@ -353,7 +443,10 @@ def test_v6_spec_extension_in_specs_extend_json(hass):
     assert p116.get("access") == ["read", "write"]
 
     # Verify properties after dynamic extension of cloud spec
-    spec = get_v6_extended_spec(hass)
+    spec = get_v6_extended_spec(hass, version)
+    assert spec.type == (
+        f"urn:miot-spec-v2:device:bath-heater:0000A028:yeelink-v6:{version}"
+    )
     heating_prop = spec.services[3].properties.get(114)
     assert heating_prop is not None
     assert heating_prop.name == "heating"
