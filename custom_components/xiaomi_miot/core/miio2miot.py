@@ -217,10 +217,14 @@ class Miio2MiotHelper:
         if iok and cbk:
             cbk(prop=cfg.get('prop'), config=cfg, setter=setter, params=pms, props=self.miio_props_values)
         return {
-            'code': 0 if iok else 1,
+            # Never 1 here: MIoT code 1 means "operation not completed" and is
+            # treated as success by MiotResult.is_success; a failed miio setter
+            # must surface as an error so non-optimistic writes can raise.
+            'code': 0 if iok else -1,
             'siid': siid,
             'piid': piid,
             'result': ret,
+            **({} if iok else {'error': f'miio command failed: {setter} {pms} -> {ret}'}),
         }
 
     async def async_call_action(self, device, siid, aiid, params):
@@ -249,10 +253,12 @@ class Miio2MiotHelper:
         if self.config.get('ignore_result'):
             iok = ret or isinstance(ret, list)
         return {
-            'code': 0 if iok else 1,
+            # See async_set_property: code 1 would be swallowed as success.
+            'code': 0 if iok else -1,
             'siid': siid,
             'aiid': aiid,
             'result': ret,
+            **({} if iok else {'error': f'miio action failed: {setter} {pms} -> {ret}'}),
         }
 
     def entity_attrs(self):
