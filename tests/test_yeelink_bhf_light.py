@@ -4,8 +4,11 @@ import json
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 import pytest
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
+from custom_components.xiaomi_miot.climate import ClimateEntity
+from custom_components.xiaomi_miot.core.converters import MiotClimateConv
 from custom_components.xiaomi_miot.core.coordinator import DataCoordinator
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.core.miio2miot import Miio2MiotHelper
@@ -1095,3 +1098,302 @@ async def test_optimistic_action_error_preserves_legacy_result(make_device, hass
     returned = await device.async_write({"ptc_bath_heater.stop_working": True})
 
     assert returned is result
+
+
+YEELINK_BHF_MODELS = ["yeelink.bhf_light.v5", "yeelink.bhf_light.v6"]
+
+
+def get_extended_spec(hass, load_miot_spec, model) -> MiotSpec:
+    """Official spec (fixture for v5, published cloud JSON for v6) + production extension."""
+    if model == "yeelink.bhf_light.v5":
+        spec = load_miot_spec("yeelink.bhf_light.v5.json")
+    else:
+        spec = MiotSpec(hass, copy.deepcopy(V6_RAW_CLOUD_SPEC))
+    with EXTEND_SPECS_FILE.open(encoding="utf-8") as f:
+        extended_specs = json.load(f)
+    spec.extend_specs(services=extended_specs.get(model) or [])
+    return spec
+
+
+class MiioMockDev:
+    def __init__(self, props=None):
+        self.props = props or {}
+        self.mapping = {}
+        self.sent_commands = []
+
+    async def async_get_prop(self, keys, max_properties=None):
+        return [self.props.get(k) for k in keys]
+
+    async def async_send(self, method, params):
+        self.sent_commands.append((method, params))
+        return ["ok"]
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+def test_paired_select_and_fan_level_value_lists_with_auto(hass, load_miot_spec, model):
+    """Spec 4.1/4.2: options and order Off/Low/Auto/High, fan level Low/Auto/High."""
+    spec = get_extended_spec(hass, load_miot_spec, model)
+    heater = spec.services[3]
+    expected = {
+        101: [(1, "Low"), (2, "Auto"), (3, "High")],
+        111: [(0, "Off"), (1, "Low"), (3, "Auto"), (2, "High")],
+        112: [(0, "Off"), (1, "Low"), (2, "Auto"), (3, "High")],
+        113: [(0, "Off"), (1, "Low"), (2, "Auto"), (3, "High")],
+    }
+    for iid, want in expected.items():
+        prop = heater.properties[iid]
+        got = [(v["value"], v["description"]) for v in prop.value_list]
+        assert got == want
+    for iid in (111, 112, 113):
+        assert heater.properties[iid].list_descriptions() == ["Off", "Low", "Auto", "High"]
+    assert heater.properties[101].list_descriptions(lower=True) == ["low", "auto", "high"]
+
+
+SINGLETON_DECODE_MATRIX = [
+    ("warmwind", 100, 1),   # Warm Low
+    ("warmwind", 300, 2),   # Warm Auto
+    ("warmwind", 200, 3),   # Warm High
+    ("coolwind", 10, 1),    # Cold Low
+    ("coolwind", 20, 2),    # Cold Auto
+    ("coolwind", 30, 3),    # Cold High
+    ("venting", 1, 1),      # Vent Low
+    ("venting", 2, 2),      # Vent Auto
+    ("venting", 3, 3),      # Vent High
+]
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+@pytest.mark.parametrize("bh_mode,fan_speed_idx,want", SINGLETON_DECODE_MATRIX)
+async def test_fan_level_singleton_decode_matrix(
+    hass, load_miot_spec, model, bh_mode, fan_speed_idx, want,
+):
+    """Spec 4.2: mode-aware decode (active token, physical gear) -> logical fan mode."""
+    spec = get_extended_spec(hass, load_miot_spec, model)
+    helper = Miio2MiotHelper.from_model(hass, model, spec)
+    mapping = {"fan_level": {"did": "test", "siid": 3, "piid": 101}}
+    mock_dev = MiioMockDev({"bh_mode": bh_mode, "fan_speed_idx": fan_speed_idx})
+    mock_dev.mapping = mapping
+
+    res = await helper.async_get_miot_props(mock_dev)
+    res_map = {f"{r['siid']}.{r['piid']}": r["value"] for r in res}
+    assert res_map.get("3.101") == want
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+@pytest.mark.parametrize(
+    "bh_mode,fan_speed_idx",
+    [
+        ("warmwind|venting", 300),   # composite Warm Auto + Vent
+        ("coolwind|venting", 20),    # composite Cold Auto + Vent
+        ("warmwind|venting", 101),
+        ("bh_off", 0),               # idle
+        ("warmwind", 900),           # out-of-domain warm gear
+        ("venting", 4),              # out-of-domain vent gear
+        ("warmwind", None),          # unreadable gear
+    ],
+)
+async def test_fan_level_decode_never_falls_back_for_ambiguous_states(
+    hass, load_miot_spec, model, bh_mode, fan_speed_idx,
+):
+    """Spec 4.2/10.8: composite, idle and unknown codes decode to none, never Off/Low."""
+    spec = get_extended_spec(hass, load_miot_spec, model)
+    helper = Miio2MiotHelper.from_model(hass, model, spec)
+    mapping = {"fan_level": {"did": "test", "siid": 3, "piid": 101}}
+    mock_dev = MiioMockDev({"bh_mode": bh_mode, "fan_speed_idx": fan_speed_idx})
+    mock_dev.mapping = mapping
+
+    res = await helper.async_get_miot_props(mock_dev)
+    res_map = {f"{r['siid']}.{r['piid']}": r["value"] for r in res}
+    assert res_map.get("3.101") is None
+
+
+SINGLETON_ENCODE_MATRIX = [
+    ("warmwind", 1, ["warmwind", 1]),
+    ("warmwind", 2, ["warmwind", 3]),
+    ("warmwind", 3, ["warmwind", 2]),
+    ("coolwind", 1, ["coolwind", 1]),
+    ("coolwind", 2, ["coolwind", 2]),
+    ("coolwind", 3, ["coolwind", 3]),
+    ("venting", 1, ["venting", 1]),
+    ("venting", 2, ["venting", 2]),
+    ("venting", 3, ["venting", 3]),
+]
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+@pytest.mark.parametrize("bh_mode,logical,want", SINGLETON_ENCODE_MATRIX)
+async def test_fan_level_singleton_encode_matrix(
+    hass, load_miot_spec, model, bh_mode, logical, want,
+):
+    """Spec 5.1: mode-aware encode (active token, logical fan mode) -> physical gear."""
+    spec = get_extended_spec(hass, load_miot_spec, model)
+    helper = Miio2MiotHelper.from_model(hass, model, spec)
+    mock_dev = MiioMockDev()
+    helper.miio_props_values = {"bh_mode": bh_mode}
+
+    await helper.async_set_property(mock_dev, 3, 101, logical)
+    assert mock_dev.sent_commands[-1] == ("set_bh_mode", want)
+
+
+@pytest.mark.parametrize(
+    "model,modes",
+    [
+        ("yeelink.bhf_light.v5", [(6, ["warmwind", 2]), (7, ["coolwind", 3]), (8, ["venting", 3])]),
+        ("yeelink.bhf_light.v6", [(2, ["warmwind", 2]), (1, ["coolwind", 3]), (3, ["venting", 3])]),
+    ],
+)
+async def test_climate_mode_default_payloads_stay_high(hass, load_miot_spec, model, modes):
+    """Spec 5.2: enabling a climate mode without fan mode keeps the High default."""
+    spec = get_extended_spec(hass, load_miot_spec, model)
+    helper = Miio2MiotHelper.from_model(hass, model, spec)
+    mock_dev = MiioMockDev()
+    for value, want in modes:
+        helper.miio_props_values = {"bh_mode": "bh_off"}
+        await helper.async_set_property(mock_dev, 3, 1, value)
+        assert mock_dev.sent_commands[-1] == ("set_bh_mode", want)
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+@pytest.mark.parametrize(
+    "piid,auto_value,want",
+    [
+        (111, 3, ["warmwind", 3]),
+        (112, 2, ["coolwind", 2]),
+        (113, 2, ["venting", 2]),
+    ],
+)
+async def test_select_auto_option_setters(hass, load_miot_spec, model, piid, auto_value, want):
+    """Spec 4.1/5.1: paired selects accept Auto with mode-specific raw gear values."""
+    spec = get_extended_spec(hass, load_miot_spec, model)
+    helper = Miio2MiotHelper.from_model(hass, model, spec)
+    mock_dev = MiioMockDev()
+    helper.miio_props_values = {"bh_mode": "bh_off"}
+
+    await helper.async_set_property(mock_dev, 3, piid, auto_value)
+    assert mock_dev.sent_commands[-1] == ("set_bh_mode", want)
+
+
+V5_SWITCH_DECODE_MATRIX = [
+    ("bh_off", False, False, False),
+    ("warmwind", True, False, False),
+    ("coolwind", False, True, False),
+    ("venting", False, False, True),
+    ("warmwind|venting", True, False, True),
+    ("coolwind|venting", False, True, True),
+    ("drying", False, False, False),
+    ("defog", False, False, False),
+    ("fastwarm", False, False, False),
+    ("fastdefog", False, False, False),
+    ("warmwind_extra", False, False, False),
+    ("coolwind_backup", False, False, False),
+    ("venting-extra", False, False, False),
+    (None, None, None, None),
+]
+
+
+@pytest.mark.parametrize(
+    "bh_mode,expected_heating,expected_blow,expected_vent", V5_SWITCH_DECODE_MATRIX,
+)
+async def test_v5_switch_state_decoding(hass, load_miot_spec, bh_mode, expected_heating, expected_blow, expected_vent):
+    """Spec 10.5: v5 official bools decode from exact bh_mode tokens only."""
+    spec = load_miot_spec("yeelink.bhf_light.v5.json")
+    helper = Miio2MiotHelper.from_model(hass, "yeelink.bhf_light.v5", spec)
+    mapping = {
+        "heating": {"did": "test", "siid": 3, "piid": 2},
+        "blow": {"did": "test", "siid": 3, "piid": 3},
+        "ventilation": {"did": "test", "siid": 3, "piid": 4},
+    }
+    mock_dev = MiioMockDev({"bh_mode": bh_mode, "fan_speed_idx": 0})
+    mock_dev.mapping = mapping
+
+    res = await helper.async_get_miot_props(mock_dev)
+    res_map = {f"{r['siid']}.{r['piid']}": r["value"] for r in res}
+    assert res_map.get("3.2") is expected_heating
+    assert res_map.get("3.3") is expected_blow
+    assert res_map.get("3.4") is expected_vent
+
+
+def test_v5_converters_include_switch_properties(make_device, hass, load_miot_spec):
+    """Spec 10.11: v5 converter discovery uses the official bool properties."""
+    spec = get_extended_spec(hass, load_miot_spec, "yeelink.bhf_light.v5")
+    device = make_device(spec, model="yeelink.bhf_light.v5")
+    switch_converters = [c for c in device.converters if c.domain == "switch"]
+    switch_prop_names = [c.prop.name for c in switch_converters]
+    assert "heating" in switch_prop_names
+    assert "blow" in switch_prop_names
+    assert "ventilation" in switch_prop_names
+
+
+def make_climate_entity(make_device, hass, load_miot_spec, model, bh_mode):
+    spec = get_extended_spec(hass, load_miot_spec, model)
+    device = make_device(spec, model=model)
+    helper = Miio2MiotHelper.from_model(hass, model, spec)
+    helper.miio_props_values = {"bh_mode": bh_mode} if bh_mode is not None else {}
+    device.miio2miot = helper
+    conv = next(c for c in device.converters if isinstance(c, MiotClimateConv))
+    return ClimateEntity(device, conv)
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+def test_climate_fan_modes_are_low_auto_high(make_device, hass, load_miot_spec, model):
+    """Spec 4.2: climate publishes logical fan modes low/auto/high."""
+    entity = make_climate_entity(make_device, hass, load_miot_spec, model, "bh_off")
+    assert entity._attr_fan_modes == ["low", "auto", "high"]
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+@pytest.mark.parametrize(
+    "decoded,want",
+    [("Low", "low"), ("Auto", "auto"), ("High", "high")],
+)
+def test_climate_singleton_fan_mode_round_trip(make_device, hass, load_miot_spec, model, decoded, want):
+    entity = make_climate_entity(make_device, hass, load_miot_spec, model, "warmwind")
+    entity.set_state({entity._conv_speed.full_name: decoded})
+    assert entity._attr_fan_mode == want
+    assert "effective_fan_mode" not in entity._attr_extra_state_attributes
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+@pytest.mark.parametrize("bh_mode", ["warmwind|venting", "coolwind|venting"])
+def test_climate_composite_fan_mode_unavailable(make_device, hass, load_miot_spec, model, bh_mode):
+    """Spec 6.1/6.5: composite unconditionally hides fan_mode, even for stale data."""
+    entity = make_climate_entity(make_device, hass, load_miot_spec, model, bh_mode)
+    entity.set_state({entity._conv_speed.full_name: "High"})
+    assert entity._attr_fan_mode is None
+    assert entity._attr_extra_state_attributes["effective_fan_mode"] == "high"
+
+    entity.set_state({entity._conv_speed.full_name: None})
+    assert entity._attr_fan_mode is None
+    assert entity._attr_extra_state_attributes["effective_fan_mode"] == "high"
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+async def test_climate_composite_set_fan_mode_rejected_without_write(
+    make_device, hass, load_miot_spec, model,
+):
+    """Spec 6.2: climate.set_fan_mode is rejected without any device write in composite."""
+    entity = make_climate_entity(make_device, hass, load_miot_spec, model, "warmwind|venting")
+    entity.device.async_write = AsyncMock()
+
+    with pytest.raises(HomeAssistantError):
+        await entity.async_set_fan_mode("low")
+    entity.device.async_write.assert_not_called()
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+def test_climate_idle_fan_mode_unavailable_without_effective(make_device, hass, load_miot_spec, model):
+    entity = make_climate_entity(make_device, hass, load_miot_spec, model, "bh_off")
+    entity.set_state({entity._conv_speed.full_name: None})
+    assert entity._attr_fan_mode is None
+    assert "effective_fan_mode" not in entity._attr_extra_state_attributes
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+async def test_climate_singleton_set_fan_mode_writes(make_device, hass, load_miot_spec, model):
+    entity = make_climate_entity(make_device, hass, load_miot_spec, model, "warmwind")
+    entity.device.async_write = AsyncMock()
+
+    await entity.async_set_fan_mode("auto")
+    entity.device.async_write.assert_awaited_once()
+    payload = entity.device.async_write.await_args.args[0]
+    assert payload[entity._conv_speed.full_name] == "auto"
