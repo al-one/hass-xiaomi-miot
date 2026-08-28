@@ -1116,17 +1116,18 @@ def get_extended_spec(hass, load_miot_spec, model) -> MiotSpec:
 
 
 class MiioMockDev:
-    def __init__(self, props=None):
+    def __init__(self, props=None, send_result=None):
         self.props = props or {}
         self.mapping = {}
         self.sent_commands = []
+        self.send_result = send_result if send_result is not None else ["ok"]
 
     async def async_get_prop(self, keys, max_properties=None):
         return [self.props.get(k) for k in keys]
 
     async def async_send(self, method, params):
         self.sent_commands.append((method, params))
-        return ["ok"]
+        return self.send_result
 
 
 @pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
@@ -1446,3 +1447,69 @@ async def test_climate_singleton_set_fan_mode_writes(make_device, hass, load_mio
     entity.device.async_write.assert_awaited_once()
     payload = entity.device.async_write.await_args.args[0]
     assert payload[entity._conv_speed.full_name] == "auto"
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+async def test_miio_setter_failure_surfaces_as_error_code(hass, load_miot_spec, model):
+    """F1: a non-['ok'] miio reply must never be reported as code 1 (success)."""
+    spec = get_extended_spec(hass, load_miot_spec, model)
+    helper = Miio2MiotHelper.from_model(hass, model, spec)
+    helper.miio_props_values = {"bh_mode": "bh_off"}
+    mock_dev = MiioMockDev(send_result=["error"])
+
+    result = await helper.async_set_property(mock_dev, 3, 1, 2)
+    assert result["code"] == -1
+    assert "error" in result
+    assert not MiotResult(result).is_success
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+async def test_non_optimistic_write_raises_on_miio_setter_error(make_device, hass, load_miot_spec, model):
+    """F1 regression: real async_set_properties path raises on an ['error'] reply."""
+    spec = get_extended_spec(hass, load_miot_spec, model)
+    device = make_device(spec, model=model)
+    helper = Miio2MiotHelper.from_model(hass, model, spec)
+    helper.miio_props_values = {"bh_mode": "bh_off"}
+    device.miio2miot = helper
+    device._local_state = True
+    device.local = MiioMockDev(send_result=["error"])
+
+    with pytest.raises(DeviceException):
+        await device.async_write({"ptc_bath_heater.mode": "Heat"})
+    assert device.local.sent_commands[-1][0] == "set_bh_mode"
+
+
+async def test_coordinator_throttles_burst_refreshes(make_device, hass, load_miot_spec):
+    """Spec 11.2/F2: explicitly initiated physical polls share one rate limiter."""
+    import time
+    from datetime import timedelta
+
+    spec = get_extended_spec(hass, load_miot_spec, "yeelink.bhf_light.v6")
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.entry.entry = MagicMock()
+    polls = []
+
+    async def update_method():
+        polls.append(time.monotonic())
+        return {"poll": len(polls)}
+
+    coordinator = DataCoordinator(device, update_method, update_interval=timedelta(seconds=0.2))
+    await coordinator.async_refresh()
+    await coordinator.async_refresh()
+
+    assert len(polls) == 2
+    assert polls[1] - polls[0] >= 0.2
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+@pytest.mark.parametrize("bh_mode", ["bh_off", "drying"])
+async def test_climate_idle_set_fan_mode_rejected_without_write(
+    make_device, hass, load_miot_spec, model, bh_mode,
+):
+    """F3: fan mode writes are rejected when no warm/cold/vent channel is active."""
+    entity = make_climate_entity(make_device, hass, load_miot_spec, model, bh_mode)
+    entity.device.async_write = AsyncMock()
+
+    with pytest.raises(HomeAssistantError):
+        await entity.async_set_fan_mode("low")
+    entity.device.async_write.assert_not_called()
