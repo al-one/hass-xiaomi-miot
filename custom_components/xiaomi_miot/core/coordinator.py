@@ -23,6 +23,10 @@ class DataCoordinator(DataUpdateCoordinator):
             raise ValueError('Invalid update method')
         name = kwargs.pop('name', name)
 
+        config_entry = getattr(device.entry, 'entry', getattr(device, 'entry', None)) if hasattr(device, 'entry') else None
+        if config_entry:
+            kwargs.setdefault('config_entry', config_entry)
+
         super().__init__(
             device.hass,
             logger=device.log,
