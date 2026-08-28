@@ -43,6 +43,7 @@ from .core.miot_spec import (
     MiotService,
     MiotProperty,
 )
+from .core.templates import YEELINK_BHF_FAN_GEAR_MODES
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -287,14 +288,21 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 # gears: the logical fan mode stays unconditionally unavailable.
                 self._attr_fan_mode = None
                 self._attr_extra_state_attributes['effective_fan_mode'] = 'high'
+                self._attr_extra_state_attributes.pop('raw_fan_gear', None)
             elif val is not None:
                 self._attr_fan_mode = str(val).lower()
                 self._attr_extra_state_attributes.pop('effective_fan_mode', None)
+                self._attr_extra_state_attributes.pop('raw_fan_gear', None)
             elif self._conv_speed.full_name in data and self._yeelink_bhf_tokens() is not None:
                 # The mode-aware codec reports Idle and out-of-domain gear codes
-                # as none: publish unavailable, never a stale mode.
+                # as none: publish unavailable, never a stale mode. Out-of-domain
+                # singleton codes stay diagnosable via the raw gear digit.
                 self._attr_fan_mode = None
                 self._attr_extra_state_attributes.pop('effective_fan_mode', None)
+                if (raw := self._yeelink_bhf_unknown_raw_gear()) is not None:
+                    self._attr_extra_state_attributes['raw_fan_gear'] = raw
+                else:
+                    self._attr_extra_state_attributes.pop('raw_fan_gear', None)
         if self._conv_swing:
             val = self._conv_swing.value_from_dict(data)
             if val is not None:
@@ -414,6 +422,20 @@ class ClimateEntity(XEntity, BaseClimateEntity):
         if not tokens:
             return False
         return 'venting' in tokens and ('warmwind' in tokens or 'coolwind' in tokens)
+
+    def _yeelink_bhf_unknown_raw_gear(self):
+        """Raw gear digit of a singleton channel outside the mode-specific domain."""
+        tokens = self._yeelink_bhf_tokens()
+        if not tokens:
+            return None
+        active = [t for t in YEELINK_BHF_FAN_GEAR_MODES if t in tokens]
+        if len(active) != 1:
+            return None
+        token = active[0]
+        gear = (self.device.miio2miot.miio_props_values or {}).get(f'{token}_gear')
+        if gear is None or gear in YEELINK_BHF_FAN_GEAR_MODES[token]:
+            return None
+        return gear
 
     async def async_set_fan_mode(self, fan_mode: str):
         if not self._conv_speed:
