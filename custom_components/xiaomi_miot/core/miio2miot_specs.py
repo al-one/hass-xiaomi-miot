@@ -2042,19 +2042,25 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.111': {
                 'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'template': '{{ props.warmwind_gear | int(0) if "warmwind" in props.bh_mode else 0 }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.warmwind_gear if "warmwind" in modes else 0 }}',
                 'set_template': '{{ ["warmwind", value] if value else ["windoff"] }}',
             },
             'prop.3.112': {
                 'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'template': '{{ props.coolwind_gear | int(0) if "coolwind" in props.bh_mode else 0 }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.coolwind_gear if "coolwind" in modes else 0 }}',
                 'set_template': '{{ ["coolwind", value] if value else ["windoff"] }}',
             },
             'prop.3.113': {
                 'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'template': '{{ props.venting_gear | int(0) if "venting" in props.bh_mode else 0 }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.venting_gear if "venting" in modes else 0 }}',
                 'set_template': '{{ ["venting", value] if value else ["ventingoff"] }}',
             },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
@@ -2116,37 +2122,46 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.111': {
                 'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'template': '{{ props.warmwind_gear | int(0) if "warmwind" in props.bh_mode else 0 }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.warmwind_gear if "warmwind" in modes else 0 }}',
                 'set_template': '{{ ["warmwind", value] if value else ["windoff"] }}',
             },
             'prop.3.112': {
                 'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'template': '{{ props.coolwind_gear | int(0) if "coolwind" in props.bh_mode else 0 }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.coolwind_gear if "coolwind" in modes else 0 }}',
                 'set_template': '{{ ["coolwind", value] if value else ["windoff"] }}',
             },
             'prop.3.113': {
                 'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'template': '{{ props.venting_gear | int(0) if "venting" in props.bh_mode else 0 }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.venting_gear if "venting" in modes else 0 }}',
                 'set_template': '{{ ["venting", value] if value else ["ventingoff"] }}',
             },
             'prop.3.114': {
                 'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'template': '{{ "warmwind" in value }}',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "warmwind" in (mode | string).split("|") }}',
                 'set_template': '{{ ["warmwind" if value else "windoff"] }}',
             },
             'prop.3.115': {
                 'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'template': '{{ "coolwind" in value }}',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "coolwind" in (mode | string).split("|") }}',
                 'set_template': '{{ ["coolwind" if value else "windoff"] }}',
             },
             'prop.3.116': {
                 'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'template': '{{ "venting" in value }}',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "venting" in (mode | string).split("|") }}',
                 'set_template': '{{ ["venting" if value else "ventingoff"] }}',
             },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},

@@ -164,9 +164,9 @@ CUSTOM_TEMPLATES = {
                                     "{{ [1,1,3,3][mds[props.bh_mode] | default(0) | int(0)] | default(1) }}",
     'yeelink_bhf_light_miio_props': "{%- set val = ('000' ~ props.fan_speed_idx)[-3:] %}"
                                     "{{ {"
-                                    "'warmwind_gear': val[0],"
-                                    "'coolwind_gear': val[1],"
-                                    "'venting_gear': val[2],"
+                                    "'warmwind_gear': val[0] | int(none),"
+                                    "'coolwind_gear': val[1] | int(none),"
+                                    "'venting_gear': val[2] | int(none),"
                                     "} }}",
     'zimi_powerstrip_v2_power_cost': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
                                      "{%- set day = now().day %}"

@@ -224,6 +224,45 @@ async def test_decimal_gear_decoding_all_matrix_states(hass):
     assert res_map.get("3.112") == 0
     assert res_map.get("3.113") == 1  # vent Low
 
+    # 6. Warm with stale Air High digit: Air stays Off because coolwind is inactive
+    res_stale_air = await helper.async_get_miot_props(
+        MockDev({"bh_mode": "warmwind|venting", "fan_speed_idx": 131})
+    )
+    res_map = {f"{r['siid']}.{r['piid']}": r["value"] for r in res_stale_air}
+    assert res_map.get("3.111") == 1
+    assert res_map.get("3.112") == 0
+    assert res_map.get("3.113") == 1
+
+    # 7. Air with stale Warm Low digit: Heat stays Off because warmwind is inactive
+    res_stale_warm = await helper.async_get_miot_props(
+        MockDev({"bh_mode": "coolwind|venting", "fan_speed_idx": 131})
+    )
+    res_map = {f"{r['siid']}.{r['piid']}": r["value"] for r in res_stale_warm}
+    assert res_map.get("3.111") == 0
+    assert res_map.get("3.112") == 3
+    assert res_map.get("3.113") == 1
+
+    # 8. Similar substrings are not valid bh_mode tokens
+    res_unknown_token = await helper.async_get_miot_props(
+        MockDev({"bh_mode": "warmwind_extra|venting", "fan_speed_idx": 103})
+    )
+    res_map = {f"{r['siid']}.{r['piid']}": r["value"] for r in res_unknown_token}
+    assert res_map.get("3.111") == 0
+    assert res_map.get("3.112") == 0
+    assert res_map.get("3.113") == 3
+
+    # 9. An active token without a readable gear stays unknown rather than becoming Off
+    for bh_mode, piid in [
+        ("warmwind", 111),
+        ("coolwind", 112),
+        ("venting", 113),
+    ]:
+        res_missing_gear = await helper.async_get_miot_props(
+            MockDev({"bh_mode": bh_mode, "fan_speed_idx": None})
+        )
+        res_map = {f"{r['siid']}.{r['piid']}": r["value"] for r in res_missing_gear}
+        assert res_map.get(f"3.{piid}") is None
+
 
 @pytest.mark.parametrize("model", ["yeelink.bhf_light.v5", "yeelink.bhf_light.v6"])
 async def test_select_property_setters(hass, model):
@@ -361,6 +400,10 @@ def test_v6_converters_include_switch_properties(make_device, hass):
         ("defog", False, False, False),
         ("fastwarm", False, False, False),
         ("fastdefog", False, False, False),
+        ("warmwind_extra", False, False, False),
+        ("coolwind_backup", False, False, False),
+        ("venting-extra", False, False, False),
+        (None, None, None, None),
     ],
 )
 async def test_v6_switch_state_decoding(hass, bh_mode, expected_heating, expected_blow, expected_vent):
