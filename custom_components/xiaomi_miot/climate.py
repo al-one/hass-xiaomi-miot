@@ -445,6 +445,14 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 f'{self.device.model} runs a composite mode: fan mode is not settable, '
                 'effective fan mode is high'
             )
+        tokens = self._yeelink_bhf_tokens()
+        if tokens is not None and not any(t in YEELINK_BHF_FAN_GEAR_MODES for t in tokens):
+            # Idle/drying have no active warm/cold/vent channel; a gear payload
+            # for 'bh_off'/'drying' is undefined on the device, so reject.
+            raise HomeAssistantError(
+                f'{self.device.model} has no active warm/cold/vent channel: '
+                'fan mode is not settable in the current state'
+            )
         dat = {
             ATTR_FAN_MODE: fan_mode,
         }
