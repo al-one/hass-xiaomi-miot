@@ -618,7 +618,8 @@ class Device(CustomConfigHelper):
             await coo.async_request_refresh()
 
     async def update_main_status(self):
-        for coo in self.main_coordinators:
+        coos = self.main_coordinators or self.coordinators
+        for coo in coos:
             await coo.async_request_refresh()
 
     async def update_all_status(self, _=None):
@@ -728,8 +729,8 @@ class Device(CustomConfigHelper):
         self.log.info('Device write data: %s', [payload, data])
         result = None
         method = data.get('method')
-        success = None
-
+        success = False
+        write_exc = None
         try:
             if method == 'update_status':
                 result = await self.update_main_status()
@@ -752,11 +753,20 @@ class Device(CustomConfigHelper):
 
         except (DeviceException, MiCloudException) as exc:
             success = False
+            write_exc = exc
             self.log.exception('Device write failed: %s', [exc, payload, data])
+        finally:
+            if self.custom_config_bool('non_optimistic') or self.custom_config_bool('force_refresh'):
+                try:
+                    await self.update_main_status()
+                except Exception as exc:
+                    self.log.warning('Failed to refresh status after write: %s', exc)
 
         self.log.info('Device write result: %s', [payload, result])
-        if success:
+        if success and not (self.custom_config_bool('non_optimistic') or self.custom_config_bool('force_refresh')):
             self.dispatch(payload)
+        if write_exc:
+            raise write_exc
         return result
 
     @property
