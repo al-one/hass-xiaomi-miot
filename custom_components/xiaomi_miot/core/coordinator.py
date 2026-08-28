@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import TYPE_CHECKING
 
@@ -26,12 +27,14 @@ class DataCoordinator(DataUpdateCoordinator):
         config_entry = getattr(device.entry, 'entry', getattr(device, 'entry', None)) if hasattr(device, 'entry') else None
         if config_entry:
             kwargs.setdefault('config_entry', config_entry)
+        self._device_update_method = update_method
+        self._device_update_lock = asyncio.Lock()
 
         super().__init__(
             device.hass,
             logger=device.log,
             name=f'{device.unique_id}-{name}',
-            update_method=update_method,
+            update_method=self._async_update,
             **kwargs,
         )
         self.device = device
@@ -39,6 +42,10 @@ class DataCoordinator(DataUpdateCoordinator):
         if not hasattr(self, 'setup_method'):
             # hass v2024.7-
             self.async_add_listener(self.coordinator_updated)
+
+    async def _async_update(self):
+        async with self._device_update_lock:
+            return await self._device_update_method()
 
     async def async_setup(self, index=0):
         await self._async_setup()

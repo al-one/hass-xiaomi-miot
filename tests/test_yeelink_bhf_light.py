@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import json
 from pathlib import Path
@@ -5,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
+from custom_components.xiaomi_miot.core.coordinator import DataCoordinator
 from custom_components.xiaomi_miot.core.miio2miot import Miio2MiotHelper
 from custom_components.xiaomi_miot.core.miot_spec import MiotSpec
 from custom_components.xiaomi_miot.core.utils import DeviceException
@@ -453,7 +455,7 @@ async def test_non_optimistic_async_write_does_not_dispatch_on_success(make_devi
     # In non_optimistic mode, optimistic payload must NOT be dispatched directly
     assert payload not in dispatched
     # update_main_status must be called to fetch real confirmed readback
-    device.update_main_status.assert_awaited_once()
+    device.update_main_status.assert_awaited_once_with(immediate=True)
 
 
 async def test_write_failure_still_triggers_readback_without_optimistic_dispatch(make_device, hass):
@@ -476,5 +478,129 @@ async def test_write_failure_still_triggers_readback_without_optimistic_dispatch
 
     # Optimistic payload must NOT be dispatched on failure
     assert payload not in dispatched
-    # Forced readback confirmation must still run in finally block
+    # Confirmed readback must still run in the finally block.
+    device.update_main_status.assert_awaited_once_with(immediate=True)
+
+
+
+async def test_non_optimistic_action_confirms_without_optimistic_dispatch(make_device, hass):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    dispatched = []
+    device.add_listener(lambda data, only_info=False: dispatched.append(data))
+    device.encode = MagicMock(return_value={
+        "method": "action",
+        "param": {"siid": 3, "aiid": 1},
+    })
+    device.async_call_action = AsyncMock(return_value=MagicMock(is_success=True))
+    device.update_main_status = AsyncMock()
+
+    payload = {"ptc_bath_heater.stop_working": True}
+    await device.async_write(payload)
+
+    assert payload not in dispatched
+    device.update_main_status.assert_awaited_once_with(immediate=True)
+
+
+async def test_non_optimistic_action_failure_still_confirms_readback(make_device, hass):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.encode = MagicMock(return_value={
+        "method": "action",
+        "param": {"siid": 3, "aiid": 1},
+    })
+    device.async_call_action = AsyncMock(side_effect=DeviceException("Timeout"))
+    device.update_main_status = AsyncMock()
+
+    with pytest.raises(DeviceException, match="Timeout"):
+        await device.async_write({"ptc_bath_heater.stop_working": True})
+
+    device.update_main_status.assert_awaited_once_with(immediate=True)
+
+async def test_concurrent_non_optimistic_writes_each_wait_for_fresh_poll(make_device, hass):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.entry.entry = MagicMock()
+
+    first_poll_started = asyncio.Event()
+    release_first_poll = asyncio.Event()
+    first_poll_finished = asyncio.Event()
+    second_write_finished = asyncio.Event()
+    poll_count = 0
+    write_count = 0
+
+    async def update_method():
+        nonlocal poll_count
+        poll_count += 1
+        if poll_count == 1:
+            first_poll_started.set()
+            await release_first_poll.wait()
+            first_poll_finished.set()
+        else:
+            assert first_poll_finished.is_set()
+        return {}
+
+    async def set_properties(_):
+        nonlocal write_count
+        write_count += 1
+        if write_count == 2:
+            second_write_finished.set()
+        return [{"code": 0}]
+
+    coordinator = DataCoordinator(device, update_method)
+    device.coordinators = [coordinator]
+    device.main_coordinators = [coordinator]
+    device.encode = MagicMock(return_value={
+        "method": "set_properties",
+        "params": [{"did": "test-device", "siid": 3, "piid": 1, "value": 0}],
+    })
+    device.async_set_properties = AsyncMock(side_effect=set_properties)
+
+    try:
+        first_write = hass.async_create_task(
+            device.async_write({"ptc_bath_heater.mode": "Heat"}),
+            "first bath heater write",
+        )
+        await first_poll_started.wait()
+        second_write = hass.async_create_task(
+            device.async_write({"ptc_bath_heater.mode": "Fan"}),
+            "second bath heater write",
+        )
+        await second_write_finished.wait()
+        release_first_poll.set()
+        await asyncio.gather(first_write, second_write)
+    finally:
+        await coordinator.async_shutdown()
+
+    assert poll_count == 2
+
+
+async def test_nonzero_write_result_raises_after_confirmed_readback(make_device, hass):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.encode = MagicMock(return_value={
+        "method": "set_properties",
+        "params": [{"did": "test-device", "siid": 3, "piid": 1, "value": 0}],
+    })
+    device.async_set_properties = AsyncMock(return_value=[{
+        "code": -1,
+        "siid": 3,
+        "piid": 1,
+    }])
+    device.update_main_status = AsyncMock()
+
+    with pytest.raises(DeviceException, match="-1"):
+        await device.async_write({"ptc_bath_heater.mode": "Idle"})
+
+    device.update_main_status.assert_awaited_once_with(immediate=True)
+
+
+async def test_non_optimistic_update_status_refreshes_once(make_device, hass):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.encode = MagicMock(return_value={"method": "update_status"})
+    device.update_main_status = AsyncMock()
+
+    await device.async_write({"info": True})
+
     device.update_main_status.assert_awaited_once()

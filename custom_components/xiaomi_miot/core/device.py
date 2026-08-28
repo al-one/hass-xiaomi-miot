@@ -617,10 +617,13 @@ class Device(CustomConfigHelper):
         for coo in self.coordinators:
             await coo.async_request_refresh()
 
-    async def update_main_status(self):
+    async def update_main_status(self, immediate=False):
         coos = self.main_coordinators or self.coordinators
         for coo in coos:
-            await coo.async_request_refresh()
+            if immediate:
+                await coo.async_refresh()
+            else:
+                await coo.async_request_refresh()
 
     async def update_all_status(self, _=None):
         all = []
@@ -729,6 +732,7 @@ class Device(CustomConfigHelper):
         self.log.info('Device write data: %s', [payload, data])
         result = None
         method = data.get('method')
+        non_optimistic = self.custom_config_bool('non_optimistic')
         success = False
         write_exc = None
         try:
@@ -741,6 +745,7 @@ class Device(CustomConfigHelper):
                 success = True if result else False
                 if err := MiotResults(result).has_error:
                     success = False
+                    write_exc = DeviceException(f'Device write error: {err.spec_error}')
                     self.log.warning('Device write error: %s', [payload, data, err])
 
             if method == 'action':
@@ -756,14 +761,14 @@ class Device(CustomConfigHelper):
             write_exc = exc
             self.log.exception('Device write failed: %s', [exc, payload, data])
         finally:
-            if self.custom_config_bool('non_optimistic') or self.custom_config_bool('force_refresh'):
+            if method in ['set_properties', 'action'] and non_optimistic:
                 try:
-                    await self.update_main_status()
+                    await self.update_main_status(immediate=True)
                 except Exception as exc:
                     self.log.warning('Failed to refresh status after write: %s', exc)
 
         self.log.info('Device write result: %s', [payload, result])
-        if success and not (self.custom_config_bool('non_optimistic') or self.custom_config_bool('force_refresh')):
+        if success and not non_optimistic:
             self.dispatch(payload)
         if write_exc:
             raise write_exc
