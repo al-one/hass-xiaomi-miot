@@ -1324,11 +1324,13 @@ def test_v5_converters_include_switch_properties(make_device, hass, load_miot_sp
     assert "ventilation" in switch_prop_names
 
 
-def make_climate_entity(make_device, hass, load_miot_spec, model, bh_mode):
+def make_climate_entity(make_device, hass, load_miot_spec, model, bh_mode, gears=None):
     spec = get_extended_spec(hass, load_miot_spec, model)
     device = make_device(spec, model=model)
     helper = Miio2MiotHelper.from_model(hass, model, spec)
-    helper.miio_props_values = {"bh_mode": bh_mode} if bh_mode is not None else {}
+    values = {"bh_mode": bh_mode} if bh_mode is not None else {}
+    values.update(gears or {})
+    helper.miio_props_values = values
     device.miio2miot = helper
     conv = next(c for c in device.converters if isinstance(c, MiotClimateConv))
     return ClimateEntity(device, conv)
@@ -1386,6 +1388,53 @@ def test_climate_idle_fan_mode_unavailable_without_effective(make_device, hass, 
     entity.set_state({entity._conv_speed.full_name: None})
     assert entity._attr_fan_mode is None
     assert "effective_fan_mode" not in entity._attr_extra_state_attributes
+    assert "raw_fan_gear" not in entity._attr_extra_state_attributes
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+@pytest.mark.parametrize(
+    "bh_mode,gear_key,raw",
+    [
+        ("warmwind", "warmwind_gear", 9),
+        ("coolwind", "coolwind_gear", 7),
+        ("venting", "venting_gear", 0),
+    ],
+)
+def test_climate_unknown_gear_publishes_raw_code(
+    make_device, hass, load_miot_spec, model, bh_mode, gear_key, raw,
+):
+    """Spec 4.2: out-of-domain singleton gear stays diagnosable via raw_fan_gear."""
+    entity = make_climate_entity(
+        make_device, hass, load_miot_spec, model, bh_mode, gears={gear_key: raw},
+    )
+    entity.set_state({entity._conv_speed.full_name: None})
+    assert entity._attr_fan_mode is None
+    assert entity._attr_extra_state_attributes["raw_fan_gear"] == raw
+    assert "effective_fan_mode" not in entity._attr_extra_state_attributes
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+def test_climate_valid_gear_drops_raw_code(make_device, hass, load_miot_spec, model):
+    entity = make_climate_entity(
+        make_device, hass, load_miot_spec, model, "warmwind", gears={"warmwind_gear": 2},
+    )
+    entity.set_state({entity._conv_speed.full_name: None})
+    entity._attr_extra_state_attributes["raw_fan_gear"] = 9  # stale from a previous poll
+    entity.set_state({entity._conv_speed.full_name: "High"})
+    assert entity._attr_fan_mode == "high"
+    assert "raw_fan_gear" not in entity._attr_extra_state_attributes
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+def test_climate_composite_drops_raw_code(make_device, hass, load_miot_spec, model):
+    entity = make_climate_entity(
+        make_device, hass, load_miot_spec, model, "warmwind|venting",
+        gears={"warmwind_gear": 9},
+    )
+    entity.set_state({entity._conv_speed.full_name: None})
+    assert entity._attr_fan_mode is None
+    assert entity._attr_extra_state_attributes["effective_fan_mode"] == "high"
+    assert "raw_fan_gear" not in entity._attr_extra_state_attributes
 
 
 @pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
