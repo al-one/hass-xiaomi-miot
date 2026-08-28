@@ -618,7 +618,9 @@ class Device(CustomConfigHelper):
             await coo.async_request_refresh()
 
     async def update_main_status(self, immediate=False):
-        coos = self.main_coordinators or self.coordinators
+        coos = self.main_coordinators
+        if not coos and immediate and self.custom_config_bool('non_optimistic'):
+            coos = self.coordinators
         for coo in coos:
             if immediate:
                 await coo.async_refresh()
@@ -755,6 +757,10 @@ class Device(CustomConfigHelper):
                 ins = param.get('in') or []
                 result = await self.async_call_action(siid, aiid, ins)
                 success = result.is_success
+                if not success and non_optimistic:
+                    write_exc = DeviceException(
+                        f'Device action error: {result.error or result.code}'
+                    )
 
         except (DeviceException, MiCloudException) as exc:
             success = False
@@ -770,7 +776,7 @@ class Device(CustomConfigHelper):
         self.log.info('Device write result: %s', [payload, result])
         if success and not non_optimistic:
             self.dispatch(payload)
-        if write_exc:
+        if write_exc and non_optimistic:
             raise write_exc
         return result
 
