@@ -2788,11 +2788,13 @@ DEVICE_CUSTOMIZES = {
     'yeelink.bhf_light.v5': {
         'interval_seconds': 30,
         'select_properties': 'heat_mode,cold_mode,vent_mode',
+        'non_optimistic': True,
         'chunk_coordinators': [],
     },
     'yeelink.bhf_light.v6': {
         'interval_seconds': 30,
         'select_properties': 'heat_mode,cold_mode,vent_mode',
+        'non_optimistic': True,
         'chunk_coordinators': [],
     },
     'yeelink.bhf_light.v10': {
