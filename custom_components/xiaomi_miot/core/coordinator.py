@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import logging
 from typing import TYPE_CHECKING
 
@@ -25,16 +26,17 @@ class DataCoordinator(DataUpdateCoordinator):
         name = kwargs.pop('name', name)
 
         config_entry = getattr(device.entry, 'entry', getattr(device, 'entry', None)) if hasattr(device, 'entry') else None
-        if config_entry:
+        if config_entry and 'config_entry' in inspect.signature(DataUpdateCoordinator.__init__).parameters:
             kwargs.setdefault('config_entry', config_entry)
         self._device_update_method = update_method
         self._device_update_lock = asyncio.Lock()
+        self._device_update_tasks = set()
 
         super().__init__(
             device.hass,
             logger=device.log,
             name=f'{device.unique_id}-{name}',
-            update_method=self._async_update,
+            update_method=self._async_update if callable(update_method) else None,
             **kwargs,
         )
         self.device = device
@@ -44,8 +46,25 @@ class DataCoordinator(DataUpdateCoordinator):
             self.async_add_listener(self.coordinator_updated)
 
     async def _async_update(self):
-        async with self._device_update_lock:
-            return await self._device_update_method()
+        task = asyncio.current_task()
+        if self._shutdown_requested:
+            if task:
+                task.cancel()
+            raise asyncio.CancelledError
+        if task:
+            self._device_update_tasks.add(task)
+        try:
+            async with self._device_update_lock:
+                if self._shutdown_requested:
+                    if task:
+                        task.cancel()
+                    raise asyncio.CancelledError
+                if self._device_update_method is None:
+                    raise NotImplementedError('Update method not implemented')
+                return await self._device_update_method()
+        finally:
+            if task:
+                self._device_update_tasks.discard(task)
 
     async def async_setup(self, index=0):
         await self._async_setup()
@@ -58,6 +77,11 @@ class DataCoordinator(DataUpdateCoordinator):
             self._unsub_setup_refresh()
             self._unsub_setup_refresh = None
         await super().async_shutdown()
+        tasks = self._device_update_tasks - {asyncio.current_task()}
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _async_setup(self):
         """Set up coordinator."""

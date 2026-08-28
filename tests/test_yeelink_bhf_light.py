@@ -4,11 +4,12 @@ import json
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 import pytest
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.core.coordinator import DataCoordinator
+from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.core.miio2miot import Miio2MiotHelper
-from custom_components.xiaomi_miot.core.miot_spec import MiotSpec
+from custom_components.xiaomi_miot.core.miot_spec import MiotResult, MiotSpec
 from custom_components.xiaomi_miot.core.utils import DeviceException
 
 EXTEND_SPECS_FILE = (
@@ -245,8 +246,19 @@ def test_miio_props_does_not_contain_unreadable_gear_properties(hass):
     assert "fan_speed_idx" in helper.miio_props
 
 
-def test_v5_miio_props_does_not_contain_unreadable_gear_properties(hass):
-    spec = get_v6_extended_spec(hass)
+
+def test_v5_fixture_matches_published_instance(load_miot_spec):
+    spec = load_miot_spec("yeelink.bhf_light.v5.json")
+    assert spec.type == "urn:miot-spec-v2:device:bath-heater:0000A028:yeelink-v5:1"
+    heater = spec.services[3]
+    assert heater.name == "ptc_bath_heater"
+    assert heater.properties[1].value_list[4]["description"] == "Idle"
+    assert heater.actions[1].name == "stop_working"
+
+def test_v5_miio_props_does_not_contain_unreadable_gear_properties(
+    hass, load_miot_spec,
+):
+    spec = load_miot_spec("yeelink.bhf_light.v5.json")
     helper = Miio2MiotHelper.from_model(hass, "yeelink.bhf_light.v5", spec)
     assert helper is not None
     assert "warmwind_gear" not in helper.miio_props
@@ -352,12 +364,10 @@ async def test_decimal_gear_decoding_all_matrix_states(hass):
         res_map = {f"{r['siid']}.{r['piid']}": r["value"] for r in res_missing_gear}
         assert res_map.get(f"3.{piid}") is None
 
-
-@pytest.mark.parametrize("model", ["yeelink.bhf_light.v5", "yeelink.bhf_light.v6"])
-async def test_select_property_setters(hass, model):
-    """Verify that select property setters generate correct targeted setter payloads for v5 and v6."""
+async def test_v6_select_property_setters(hass):
+    """Verify v6 selector payloads against its extended MIOT spec."""
     spec = get_v6_extended_spec(hass)
-    helper = Miio2MiotHelper.from_model(hass, model, spec)
+    helper = Miio2MiotHelper.from_model(hass, "yeelink.bhf_light.v6", spec)
     assert helper is not None
 
     sent_commands = []
@@ -404,6 +414,88 @@ async def test_select_property_setters(hass, model):
     helper.miio_props_values = {"bh_mode": "coolwind|venting"}
     await helper.async_set_property(mock_dev, 3, 113, 0)
     assert sent_commands[-1] == ("set_bh_mode", ["ventingoff"])
+
+
+async def test_v5_switch_property_setters(hass, load_miot_spec):
+    """Verify v5 switch payloads against its published MIOT properties."""
+    spec = load_miot_spec("yeelink.bhf_light.v5.json")
+    helper = Miio2MiotHelper.from_model(hass, "yeelink.bhf_light.v5", spec)
+    assert helper is not None
+    sent_commands = []
+
+    class MockDev:
+        async def async_send(self, method, params):
+            sent_commands.append((method, params))
+            return ["ok"]
+
+    mock_dev = MockDev()
+    for piid, on, off in [
+        (2, "warmwind", "windoff"),
+        (3, "coolwind", "windoff"),
+        (4, "venting", "ventingoff"),
+    ]:
+        await helper.async_set_property(mock_dev, 3, piid, True)
+        assert sent_commands[-1] == ("set_bh_mode", [on])
+        await helper.async_set_property(mock_dev, 3, piid, False)
+        assert sent_commands[-1] == ("set_bh_mode", [off])
+
+
+async def test_v5_select_property_setters(hass, load_miot_spec):
+    """Verify v5 synthetic selector payloads against its extended official spec."""
+    spec = load_miot_spec("yeelink.bhf_light.v5.json")
+    with EXTEND_SPECS_FILE.open(encoding="utf-8") as file:
+        extended_specs = json.load(file)
+    spec.extend_specs(services=extended_specs.get("yeelink.bhf_light.v5") or [])
+    helper = Miio2MiotHelper.from_model(hass, "yeelink.bhf_light.v5", spec)
+    assert helper is not None
+    sent_commands = []
+
+    class MockDev:
+        async def async_send(self, method, params):
+            sent_commands.append((method, params))
+            return ["ok"]
+
+    mock_dev = MockDev()
+    for piid, mode, levels, off in [
+        (111, "warmwind", [1, 2], "windoff"),
+        (112, "coolwind", [1, 3], "windoff"),
+        (113, "venting", [1, 3], "ventingoff"),
+    ]:
+        for level in levels:
+            await helper.async_set_property(mock_dev, 3, piid, level)
+            assert sent_commands[-1] == ("set_bh_mode", [mode, level])
+        await helper.async_set_property(mock_dev, 3, piid, 0)
+        assert sent_commands[-1] == ("set_bh_mode", [off])
+
+
+async def test_v5_select_readback_gates_stale_inactive_gears(hass, load_miot_spec):
+    """Verify inactive decimal digits do not activate v5 synthetic selectors."""
+    spec = load_miot_spec("yeelink.bhf_light.v5.json")
+    with EXTEND_SPECS_FILE.open(encoding="utf-8") as file:
+        extended_specs = json.load(file)
+    spec.extend_specs(services=extended_specs.get("yeelink.bhf_light.v5") or [])
+    helper = Miio2MiotHelper.from_model(hass, "yeelink.bhf_light.v5", spec)
+    assert helper is not None
+    mapping = {
+        "heat_mode": {"did": "test", "siid": 3, "piid": 111},
+        "cold_mode": {"did": "test", "siid": 3, "piid": 112},
+        "vent_mode": {"did": "test", "siid": 3, "piid": 113},
+    }
+
+    class MockDev:
+
+        async def async_get_prop(self, keys, max_properties=None):
+            values = {"bh_mode": "warmwind|venting", "fan_speed_idx": 131}
+            return [values.get(key) for key in keys]
+
+    mock_device = MockDev()
+    mock_device.mapping = mapping
+
+    results = await helper.async_get_miot_props(mock_device)
+    states = {result["piid"]: result["value"] for result in results}
+    assert states[111] == 1
+    assert states[112] == 0
+    assert states[113] == 1
 
 
 @pytest.mark.parametrize("version", [1, 2])
@@ -645,10 +737,12 @@ async def test_non_optimistic_action_failure_still_confirms_readback(make_device
         "method": "action",
         "param": {"siid": 3, "aiid": 1},
     })
-    device.async_call_action = AsyncMock(side_effect=DeviceException("Timeout"))
+    device.async_call_action = AsyncMock(
+        return_value=MiotResult({}, code=-1, error="Device unavailable")
+    )
     device.update_main_status = AsyncMock()
 
-    with pytest.raises(DeviceException, match="Timeout"):
+    with pytest.raises(DeviceException, match="Device unavailable"):
         await device.async_write({"ptc_bath_heater.stop_working": True})
 
     device.update_main_status.assert_awaited_once_with(immediate=True)
@@ -659,21 +753,28 @@ async def test_concurrent_non_optimistic_writes_each_wait_for_fresh_poll(make_de
     device.entry.entry = MagicMock()
 
     first_poll_started = asyncio.Event()
-    release_first_poll = asyncio.Event()
     first_poll_finished = asyncio.Event()
+    release_first_poll = asyncio.Event()
+    second_poll_started = asyncio.Event()
+    second_poll_finished = asyncio.Event()
+    release_second_poll = asyncio.Event()
     second_write_finished = asyncio.Event()
+    overlap_detected = False
     poll_count = 0
     write_count = 0
 
     async def update_method():
-        nonlocal poll_count
+        nonlocal overlap_detected, poll_count
         poll_count += 1
         if poll_count == 1:
             first_poll_started.set()
             await release_first_poll.wait()
             first_poll_finished.set()
-        else:
-            assert first_poll_finished.is_set()
+        elif poll_count == 2:
+            overlap_detected = not first_poll_finished.is_set()
+            second_poll_started.set()
+            await release_second_poll.wait()
+            second_poll_finished.set()
         return {}
 
     async def set_properties(_):
@@ -691,24 +792,48 @@ async def test_concurrent_non_optimistic_writes_each_wait_for_fresh_poll(make_de
         "params": [{"did": "test-device", "siid": 3, "piid": 1, "value": 0}],
     })
     device.async_set_properties = AsyncMock(side_effect=set_properties)
+    first_write = None
+    second_write = None
 
     try:
         first_write = hass.async_create_task(
             device.async_write({"ptc_bath_heater.mode": "Heat"}),
             "first bath heater write",
         )
-        await first_poll_started.wait()
+        await asyncio.wait_for(first_poll_started.wait(), timeout=1)
         second_write = hass.async_create_task(
             device.async_write({"ptc_bath_heater.mode": "Fan"}),
             "second bath heater write",
         )
-        await second_write_finished.wait()
+        await asyncio.wait_for(second_write_finished.wait(), timeout=1)
+        assert not first_write.done()
+        assert not second_write.done()
+
         release_first_poll.set()
-        await asyncio.gather(first_write, second_write)
+        await asyncio.wait_for(second_poll_started.wait(), timeout=1)
+        assert first_poll_finished.is_set()
+        assert not second_write.done()
+
+        release_second_poll.set()
+        await asyncio.wait_for(
+            asyncio.gather(first_write, second_write),
+            timeout=1,
+        )
     finally:
+        release_first_poll.set()
+        release_second_poll.set()
+        for task in (first_write, second_write):
+            if task and not task.done():
+                task.cancel()
+        await asyncio.gather(
+            *(task for task in (first_write, second_write) if task),
+            return_exceptions=True,
+        )
         await coordinator.async_shutdown()
 
     assert poll_count == 2
+    assert second_poll_finished.is_set()
+    assert overlap_detected is False
 
 
 async def test_nonzero_write_result_raises_after_confirmed_readback(make_device, hass):
@@ -740,3 +865,233 @@ async def test_non_optimistic_update_status_refreshes_once(make_device, hass):
     await device.async_write({"info": True})
 
     device.update_main_status.assert_awaited_once()
+
+
+async def test_data_coordinator_serializes_direct_device_updates(make_device, hass):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.entry.entry = MagicMock()
+    first_update_started = asyncio.Event()
+    release_first_update = asyncio.Event()
+    update_active = False
+    overlap_detected = False
+
+    async def update_method():
+        nonlocal overlap_detected, update_active
+        if update_active:
+            overlap_detected = True
+        update_active = True
+        first_update_started.set()
+        await release_first_update.wait()
+        update_active = False
+        return {}
+
+    coordinator = DataCoordinator(device, update_method)
+    first_update = None
+    second_update = None
+    try:
+        first_update = hass.async_create_task(
+            coordinator._async_update(),
+            "first direct coordinator update",
+        )
+        await asyncio.wait_for(first_update_started.wait(), timeout=1)
+        second_update = hass.async_create_task(
+            coordinator._async_update(),
+            "second direct coordinator update",
+        )
+        await asyncio.sleep(0)
+        assert overlap_detected is False
+
+        release_first_update.set()
+        await asyncio.wait_for(
+            asyncio.gather(first_update, second_update),
+            timeout=1,
+        )
+    finally:
+        release_first_update.set()
+        for task in (first_update, second_update):
+            if task and not task.done():
+                task.cancel()
+        await asyncio.gather(
+            *(task for task in (first_update, second_update) if task),
+            return_exceptions=True,
+        )
+        await coordinator.async_shutdown()
+
+    assert overlap_detected is False
+
+
+async def test_data_coordinator_shutdown_cancels_queued_refreshes(
+    make_device, hass, monkeypatch,
+):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.entry.entry = MagicMock()
+    first_update_started = asyncio.Event()
+    release_first_update = asyncio.Event()
+    second_refresh_started = asyncio.Event()
+    update_count = 0
+
+    async def update_method():
+        nonlocal update_count
+        update_count += 1
+        if update_count == 1:
+            first_update_started.set()
+            await release_first_update.wait()
+        return {"poll": update_count}
+
+    async def uncoordinated_refresh(self):
+        await self._async_refresh()
+
+    coordinator = DataCoordinator(device, update_method)
+    coordinator.data = {"poll": 0}
+    listener_updates = []
+    coordinator.async_add_listener(lambda: listener_updates.append(coordinator.data))
+    update_method_calls = 0
+    original_update_method = coordinator.update_method
+
+    async def tracked_update_method():
+        nonlocal update_method_calls
+        update_method_calls += 1
+        if update_method_calls == 2:
+            second_refresh_started.set()
+        return await original_update_method()
+
+    coordinator.update_method = tracked_update_method
+    monkeypatch.setattr(DataUpdateCoordinator, "async_refresh", uncoordinated_refresh)
+    first_refresh = None
+    second_refresh = None
+    try:
+        first_refresh = hass.async_create_task(
+            coordinator.async_refresh(),
+            "active coordinator refresh",
+        )
+        await asyncio.wait_for(first_update_started.wait(), timeout=1)
+        second_refresh = hass.async_create_task(
+            coordinator.async_refresh(),
+            "queued coordinator refresh",
+        )
+        await asyncio.wait_for(second_refresh_started.wait(), timeout=1)
+        await coordinator.async_shutdown()
+    finally:
+        release_first_update.set()
+        for task in (first_refresh, second_refresh):
+            if task and not task.done():
+                task.cancel()
+        results = await asyncio.gather(
+            *(task for task in (first_refresh, second_refresh) if task),
+            return_exceptions=True,
+        )
+        await coordinator.async_shutdown()
+
+    assert update_count == 1
+    assert coordinator.data == {"poll": 0}
+    assert listener_updates == []
+    assert all(isinstance(result, asyncio.CancelledError) for result in results)
+
+
+def test_data_coordinator_omits_config_entry_on_legacy_home_assistant(
+    make_device, hass, monkeypatch,
+):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.entry.entry = MagicMock()
+    init_kwargs = {}
+
+    def legacy_init(self, hass, logger, name, update_method, *, always_update):
+        init_kwargs.update(
+            hass=hass,
+            logger=logger,
+            name=name,
+            update_method=update_method,
+            always_update=always_update,
+        )
+        self.setup_method = None
+
+    monkeypatch.setattr(DataUpdateCoordinator, "__init__", legacy_init)
+
+    DataCoordinator(device, lambda: None)
+
+    assert init_kwargs["always_update"] is True
+
+
+async def test_data_coordinator_missing_string_method_raises_not_implemented(
+    make_device, hass,
+):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.entry.entry = MagicMock()
+    coordinator = DataCoordinator(device, "missing_update_method")
+
+    with pytest.raises(NotImplementedError):
+        await coordinator._async_update_data()
+
+
+@pytest.mark.parametrize(
+    ("customizes", "immediate", "expected_request", "expected_refresh"),
+    [
+        ({}, False, 0, 0),
+        ({"non_optimistic": True}, False, 0, 0),
+        ({"non_optimistic": True}, True, 0, 1),
+    ],
+)
+async def test_update_main_status_falls_back_only_for_immediate_non_optimistic(
+    make_device, hass, customizes, immediate, expected_request, expected_refresh,
+):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, customizes=customizes)
+    coordinator = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
+    coordinator.async_refresh = AsyncMock()
+    device.coordinators = [coordinator]
+    device.main_coordinators = []
+
+    await device.update_main_status(immediate=immediate)
+
+    assert coordinator.async_request_refresh.await_count == expected_request
+    assert coordinator.async_refresh.await_count == expected_refresh
+
+
+async def test_optimistic_successful_write_dispatches_payload(make_device, hass):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, customizes={})
+    dispatched = []
+    device.add_listener(lambda data, only_info=False: dispatched.append(data))
+    device.encode = MagicMock(return_value={
+        "method": "set_properties",
+        "params": [{"did": "test-device", "siid": 3, "piid": 1, "value": 0}],
+    })
+    device.async_set_properties = AsyncMock(return_value=[{"code": 0}])
+
+    payload = {"ptc_bath_heater.mode": "Idle"}
+    await device.async_write(payload)
+
+    assert dispatched == [payload]
+
+
+async def test_optimistic_write_error_preserves_legacy_result(make_device, hass):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, customizes={})
+    result = [{"code": -1, "siid": 3, "piid": 1}]
+    device.encode = MagicMock(return_value={
+        "method": "set_properties",
+        "params": [{"did": "test-device", "siid": 3, "piid": 1, "value": 0}],
+    })
+    device.async_set_properties = AsyncMock(return_value=result)
+
+    assert await device.async_write({"ptc_bath_heater.mode": "Idle"}) == result
+
+
+async def test_optimistic_action_error_preserves_legacy_result(make_device, hass):
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, customizes={})
+    result = MiotResult({}, code=-1, error="Device unavailable")
+    device.encode = MagicMock(return_value={
+        "method": "action",
+        "param": {"siid": 3, "aiid": 1},
+    })
+    device.async_call_action = AsyncMock(return_value=result)
+
+    returned = await device.async_write({"ptc_bath_heater.stop_working": True})
+
+    assert returned is result
