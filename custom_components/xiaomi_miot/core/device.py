@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import copy
 import re
@@ -192,6 +193,16 @@ class Device(CustomConfigHelper):
         self.converters: list[BaseConv] = []
         self.coordinators: list[DataCoordinator] = []
         self.main_coordinators: list[DataCoordinator] = []
+        # One poll lock per physical device: every DataCoordinator obeys it.
+        self.poll_lock = asyncio.Lock()
+        self.last_poll_monotonic: float | None = None
+        # Trailing coalescing of confirmed readbacks after non-optimistic
+        # writes: one poll confirms every write that finished before the poll
+        # started; a write landing during an active poll schedules at most one
+        # trailing poll.
+        self.write_poll_lock = asyncio.Lock()
+        self.write_poll_generation = 0
+        self.write_poll_done_generation = 0
         self.log = logging.getLogger(f'{__name__}.{self.model}')
 
     async def async_init(self):
@@ -630,6 +641,25 @@ class Device(CustomConfigHelper):
             else:
                 await coo.async_request_refresh()
 
+    async def async_write_refresh(self):
+        """Trailing-edge coalesced confirmed refresh after a non-optimistic write."""
+        self.write_poll_generation += 1
+        generation = self.write_poll_generation
+        async with self.write_poll_lock:
+            if generation <= self.write_poll_done_generation:
+                # A poll that started after this write finished confirmed it.
+                return
+            # Yield one loop tick so writes issued in the same batch join
+            # this poll instead of each scheduling a trailing one.
+            await asyncio.sleep(0)
+            covered = self.write_poll_generation
+            try:
+                await self.update_main_status(immediate=True)
+            except Exception as exc:
+                self.log.warning('Failed to refresh status after write: %s', exc)
+            finally:
+                self.write_poll_done_generation = covered
+
     async def update_all_status(self, _=None):
         all = []
         for coo in self.coordinators:
@@ -771,10 +801,7 @@ class Device(CustomConfigHelper):
             self.log.exception('Device write failed: %s', [exc, payload, data])
         finally:
             if method in ['set_properties', 'action'] and non_optimistic:
-                try:
-                    await self.update_main_status(immediate=True)
-                except Exception as exc:
-                    self.log.warning('Failed to refresh status after write: %s', exc)
+                await self.async_write_refresh()
 
         self.log.info('Device write result: %s', [payload, result])
         if success and not non_optimistic:
