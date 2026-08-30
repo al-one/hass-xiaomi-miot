@@ -70,7 +70,8 @@ class DataCoordinator(DataUpdateCoordinator):
                     raise asyncio.CancelledError
                 if self._device_update_method is None:
                     raise NotImplementedError('Update method not implemented')
-                if self.device.custom_config_bool('non_optimistic') and self.device.last_poll_monotonic is not None:
+                non_optimistic = self.device.custom_config_bool('non_optimistic')
+                if non_optimistic and self.device.last_poll_monotonic is not None:
                     delay = MIN_DEVICE_POLL_GAP_SECONDS - (time.monotonic() - self.device.last_poll_monotonic)
                     if delay > 0:
                         _LOGGER.debug('%s: Coalesce device poll for %.1fs', self.device.name_model, delay)
@@ -78,7 +79,8 @@ class DataCoordinator(DataUpdateCoordinator):
                 try:
                     return await self._device_update_method()
                 finally:
-                    self.device.last_poll_monotonic = time.monotonic()
+                    if non_optimistic:
+                        self.device.last_poll_monotonic = time.monotonic()
         finally:
             if task:
                 self._device_update_tasks.discard(task)
