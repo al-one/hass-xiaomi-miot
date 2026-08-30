@@ -13,11 +13,11 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-# Minimum gap in seconds between physical device polls, including
-# write-initiated refreshes that bypass the HA debouncer. Bursts of writes
-# are coalesced with a trailing edge: the confirmed poll still runs, just
-# not sooner than this gap after the previous one. The scheduled cadence
-# stays bound by update_interval.
+# Minimum gap in seconds between physical device polls of confirmed-readback
+# (non_optimistic) devices, including write-initiated refreshes that bypass
+# the HA debouncer. The lock and timestamp live on the shared Device so that
+# every coordinator of one physical device obeys the same gap. Legacy
+# optimistic devices are debounced by HA and poll immediately.
 MIN_DEVICE_POLL_GAP_SECONDS = 3.0
 
 class DataCoordinator(DataUpdateCoordinator):
@@ -37,9 +37,7 @@ class DataCoordinator(DataUpdateCoordinator):
         if config_entry and 'config_entry' in inspect.signature(DataUpdateCoordinator.__init__).parameters:
             kwargs.setdefault('config_entry', config_entry)
         self._device_update_method = update_method
-        self._device_update_lock = asyncio.Lock()
         self._device_update_tasks = set()
-        self._last_poll_monotonic = None
 
         super().__init__(
             device.hass,
@@ -63,22 +61,24 @@ class DataCoordinator(DataUpdateCoordinator):
         if task:
             self._device_update_tasks.add(task)
         try:
-            async with self._device_update_lock:
+            # One lock per physical device: chunk coordinators and
+            # write-initiated refreshes must never poll in parallel.
+            async with self.device.poll_lock:
                 if self._shutdown_requested:
                     if task:
                         task.cancel()
                     raise asyncio.CancelledError
                 if self._device_update_method is None:
                     raise NotImplementedError('Update method not implemented')
-                if self._last_poll_monotonic is not None:
-                    delay = MIN_DEVICE_POLL_GAP_SECONDS - (time.monotonic() - self._last_poll_monotonic)
+                if self.device.custom_config_bool('non_optimistic') and self.device.last_poll_monotonic is not None:
+                    delay = MIN_DEVICE_POLL_GAP_SECONDS - (time.monotonic() - self.device.last_poll_monotonic)
                     if delay > 0:
                         _LOGGER.debug('%s: Coalesce device poll for %.1fs', self.device.name_model, delay)
                         await asyncio.sleep(delay)
                 try:
                     return await self._device_update_method()
                 finally:
-                    self._last_poll_monotonic = time.monotonic()
+                    self.device.last_poll_monotonic = time.monotonic()
         finally:
             if task:
                 self._device_update_tasks.discard(task)
