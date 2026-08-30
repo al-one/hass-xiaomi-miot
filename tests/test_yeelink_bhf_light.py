@@ -1526,3 +1526,175 @@ async def test_climate_idle_set_fan_mode_rejected_without_write(
     with pytest.raises(HomeAssistantError):
         await entity.async_set_fan_mode("low")
     entity.device.async_write.assert_not_called()
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+async def test_climate_unknown_bh_mode_set_fan_mode_rejected_without_write(
+    make_device, hass, load_miot_spec, model,
+):
+    """F3: fan mode writes are rejected while bh_mode is unread, never sent with a fallback codec."""
+    entity = make_climate_entity(make_device, hass, load_miot_spec, model, None)
+    entity.device.async_write = AsyncMock()
+
+    with pytest.raises(HomeAssistantError):
+        await entity.async_set_fan_mode("low")
+    entity.device.async_write.assert_not_called()
+
+
+@pytest.mark.parametrize("model", YEELINK_BHF_MODELS)
+async def test_non_optimistic_action_error_raises_on_real_miio_reply(
+    make_device, hass, load_miot_spec, model,
+):
+    """F1 regression: the real async_call_action path raises on a non-ok action reply."""
+    spec = get_extended_spec(hass, load_miot_spec, model)
+    device = make_device(spec, model=model, customizes={
+        "non_optimistic": True,
+        "button_actions": ["stop_working"],
+    })
+    helper = Miio2MiotHelper.from_model(hass, model, spec)
+    helper.specs["action.3.1"] = {"setter": "stop_working"}
+    device.miio2miot = helper
+    device._local_state = True
+    device.local = MiioMockDev(send_result=["error"])
+
+    with pytest.raises(DeviceException, match="action error"):
+        await device.async_write({"button.ptc_bath_heater.stop_working": True})
+    assert device.local.sent_commands[-1] == ("stop_working", [True])
+
+
+async def test_poll_gap_skips_legacy_optimistic_devices(
+    make_device, hass, load_miot_spec, monkeypatch,
+):
+    """11.3: legacy optimistic devices are never delayed by the confirmed-readback gap."""
+    import time
+    from datetime import timedelta
+
+    from custom_components.xiaomi_miot.core import coordinator as coordinator_module
+
+    monkeypatch.setattr(coordinator_module, "MIN_DEVICE_POLL_GAP_SECONDS", 0.2)
+    spec = get_extended_spec(hass, load_miot_spec, "yeelink.bhf_light.v6")
+    device = make_device(spec, model="yeelink.bhf_light.v6", customizes={})
+    device.entry.entry = MagicMock()
+    polls = []
+
+    async def update_method():
+        polls.append(time.monotonic())
+        return {"poll": len(polls)}
+
+    coordinator = DataCoordinator(device, update_method, update_interval=timedelta(seconds=30))
+    await coordinator.async_refresh()
+    await coordinator.async_refresh()
+
+    assert len(polls) == 2
+    assert polls[1] - polls[0] < coordinator_module.MIN_DEVICE_POLL_GAP_SECONDS
+
+
+async def test_poll_gap_is_shared_across_device_coordinators(
+    make_device, hass, load_miot_spec, monkeypatch,
+):
+    """11.3: coordinators of one physical device serialize behind a single poll gap."""
+    import time
+    from datetime import timedelta
+
+    from custom_components.xiaomi_miot.core import coordinator as coordinator_module
+
+    monkeypatch.setattr(coordinator_module, "MIN_DEVICE_POLL_GAP_SECONDS", 0.2)
+    spec = get_extended_spec(hass, load_miot_spec, "yeelink.bhf_light.v6")
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.entry.entry = MagicMock()
+    polls = []
+
+    async def update_method():
+        polls.append(time.monotonic())
+        return {"poll": len(polls)}
+
+    first = DataCoordinator(device, update_method, update_interval=timedelta(seconds=30))
+    second = DataCoordinator(device, update_method, update_interval=timedelta(seconds=30))
+    await asyncio.gather(first.async_refresh(), second.async_refresh())
+    for _ in range(200):
+        if len(polls) >= 2:
+            break
+        await asyncio.sleep(0.01)
+
+    assert len(polls) == 2
+    assert abs(polls[1] - polls[0]) >= coordinator_module.MIN_DEVICE_POLL_GAP_SECONDS - 0.01
+
+
+async def test_write_burst_confirmed_by_single_poll(
+    make_device, hass, load_miot_spec, monkeypatch,
+):
+    """11.2: a settled write burst triggers exactly one confirmed poll behind the short gap."""
+    import time
+    from datetime import timedelta
+
+    from custom_components.xiaomi_miot.core import coordinator as coordinator_module
+
+    monkeypatch.setattr(coordinator_module, "MIN_DEVICE_POLL_GAP_SECONDS", 0.3)
+    spec = get_extended_spec(hass, load_miot_spec, "yeelink.bhf_light.v6")
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.entry.entry = MagicMock()
+    device.encode = MagicMock(return_value={
+        "method": "set_properties",
+        "params": [{"did": "test-device", "siid": 3, "piid": 1, "value": 0}],
+    })
+    device.async_set_properties = AsyncMock(return_value=[{"code": 0}])
+    device.last_poll_monotonic = time.monotonic()
+    polls = []
+    poll_done = asyncio.Event()
+
+    async def update_method():
+        polls.append(time.monotonic())
+        poll_done.set()
+        return {"poll": len(polls)}
+
+    coordinator = DataCoordinator(device, update_method, update_interval=timedelta(seconds=30))
+    device.coordinators = [coordinator]
+    device.main_coordinators = [coordinator]
+
+    started = time.monotonic()
+    await asyncio.gather(*[
+        device.async_write({"ptc_bath_heater.mode": "Heat"}) for _ in range(5)
+    ])
+    await asyncio.wait_for(poll_done.wait(), timeout=1)
+    elapsed = time.monotonic() - started
+
+    assert device.async_set_properties.await_count == 5
+    assert len(polls) == 1
+    assert elapsed >= coordinator_module.MIN_DEVICE_POLL_GAP_SECONDS - 0.01
+    assert elapsed < 30
+    await coordinator.async_shutdown()
+
+
+async def test_write_during_active_poll_schedules_single_trailing_poll(
+    make_device, hass,
+):
+    """11.2: writes landing inside an active confirmed poll add at most one trailing poll."""
+    spec = get_v6_extended_spec(hass)
+    device = make_device(spec, model="yeelink.bhf_light.v6")
+    device.encode = MagicMock(return_value={
+        "method": "set_properties",
+        "params": [{"did": "test-device", "siid": 3, "piid": 1, "value": 0}],
+    })
+    device.async_set_properties = AsyncMock(return_value=[{"code": 0}])
+    poll_gate = asyncio.Event()
+    polls = []
+
+    async def update_main_status(immediate=False):
+        assert immediate is True
+        await poll_gate.wait()
+        polls.append(len(polls) + 1)
+
+    device.update_main_status = update_main_status
+
+    first = asyncio.create_task(device.async_write({"ptc_bath_heater.mode": "Heat"}))
+    await asyncio.sleep(0)
+    trailing = [
+        asyncio.create_task(device.async_write({"ptc_bath_heater.mode": "Fan"}))
+        for _ in range(4)
+    ]
+    await asyncio.sleep(0)
+    poll_gate.set()
+    await asyncio.wait_for(asyncio.gather(first, *trailing), timeout=1)
+
+    assert device.async_set_properties.await_count == 5
+    assert len(polls) == 2
