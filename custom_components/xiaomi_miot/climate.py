@@ -446,6 +446,15 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 'effective fan mode is high'
             )
         tokens = self._yeelink_bhf_tokens()
+        if self.device.model in YEELINK_BATH_HEATER_COMPOSITE_MODELS and tokens is None:
+            # bh_mode is not read yet: the active warm/cold/vent channel is
+            # unknown, so the mode-specific gear domain can't be validated.
+            # Writing anyway would let the encoder fall back to the coolwind
+            # codec and form a wrong set_bh_mode.
+            raise HomeAssistantError(
+                f'{self.device.model} has no read warm/cold/vent channel: '
+                'fan mode is not settable before the device state is read'
+            )
         if tokens is not None and not any(t in YEELINK_BHF_FAN_GEAR_MODES for t in tokens):
             # Idle/drying have no active warm/cold/vent channel; a gear payload
             # for 'bh_off'/'drying' is undefined on the device, so reject.
