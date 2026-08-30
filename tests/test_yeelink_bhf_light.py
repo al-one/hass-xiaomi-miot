@@ -1587,6 +1587,8 @@ async def test_poll_gap_skips_legacy_optimistic_devices(
 
     assert len(polls) == 2
     assert polls[1] - polls[0] < coordinator_module.MIN_DEVICE_POLL_GAP_SECONDS
+    # The whole limiter, including the timestamp, stays off for legacy devices.
+    assert device.last_poll_monotonic is None
 
 
 async def test_poll_gap_is_shared_across_device_coordinators(
