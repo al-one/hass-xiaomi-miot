@@ -48,6 +48,11 @@ _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 SCAN_INTERVAL = timedelta(seconds=60)
 
+MULTI_CHANNEL_ALARM_MODELS = {
+    'midr.cateye.db400a',
+    'midr.cateye.sd400',
+}
+
 SERVICE_TO_METHOD = {}
 
 
@@ -227,16 +232,50 @@ class BaseCameraEntity(Camera):
         rls = rdt.get('data', {}).get('thirdPartPlayUnits') or []
         adt = {}
         if rls:
-            fst = rls[0] or {}
-            tim = fst.pop('createTime', 0) / 1000
+            chs = self.get_latest_alarm_channels(rls)
+            fst = self.get_primary_alarm_event(rls, chs)
+            tim = fst.get('createTime', 0) / 1000
             adt = {
                 'motion_video_time': f'{datetime.fromtimestamp(tim)}',
                 'motion_video_type': fst.get('eventType'),
                 'motion_video_latest': fst,
+                'motion_video_channels': chs,
             }
         else:
             self.log.info('Camera events is empty. %s', rdt)
         return adt
+
+    @staticmethod
+    def get_latest_alarm_channels(events, max_delta=5000):
+        if not events:
+            return {}
+        fst = events[0] or {}
+        stm = fst.get('createTime') or 0
+        typ = fst.get('eventType')
+        chs = {}
+        for evt in events:
+            evt = dict(evt or {})
+            tim = evt.get('createTime') or 0
+            if stm and abs(tim - stm) > max_delta:
+                continue
+            if typ and evt.get('eventType') != typ:
+                continue
+            chn = evt.get('channel')
+            if chn is None:
+                chn = len(chs)
+            chn = str(chn)
+            if chn not in chs:
+                chs[chn] = evt
+        return chs
+
+    def get_primary_alarm_event(self, events, channels=None):
+        channels = channels or {}
+        if self.is_multi_channel_alarm_model() and channels.get('0'):
+            return dict(channels['0'])
+        return dict((events or [{}])[0] or {})
+
+    def is_multi_channel_alarm_model(self):
+        return self.model in MULTI_CHANNEL_ALARM_MODELS
 
     def get_alarm_m3u8_url(self, fileId, isAlarm=False, videoCodec='H265'):
         cloud = self.device.cloud
@@ -284,9 +323,16 @@ class CameraEntity(XEntity, BaseCameraEntity):
         BaseCameraEntity.__init__(self, self.hass)
         self._attr_brand = self.device_info.get('manufacturer')
         self._attr_model = self.device_info.get('model')
+        if not hasattr(self, '_subs'):
+            self._subs = {}
+        self._alarm_channel_entities = {}
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        if self.model == 'midr.cateye.sd400':
+            self.add_alarm_channel_entities({'10': {}})
+        if chs := self._attr_extra_state_attributes.get('motion_video_channels'):
+            self.add_alarm_channel_entities(chs)
         if self._attr_should_poll:
             await self.async_update_ha_state(True)
 
@@ -321,6 +367,44 @@ class CameraEntity(XEntity, BaseCameraEntity):
                 self._attr_extra_state_attributes.update({
                     'stream_address': self._attr_stream_source,
                 })
+        chs = {}
+        for chn, val in (data.get('motion_video_channels') or {}).items():
+            if not isinstance(val, dict):
+                continue
+            itm = {
+                k: v for k, v in val.items()
+                if k not in ['fileId', 'imgStoreId', 'videoStoreId']
+            }
+            fid = val.get('fileId')
+            if fid:
+                itm['stream_address'] = self.get_alarm_m3u8_url(fid, val.get('isAlarm'))
+                itm['image_address'] = self.get_alarm_image_address(fid, val.get('imgStoreId'), True)
+            chs[str(chn)] = itm
+        if chs:
+            self._attr_extra_state_attributes['motion_video_channels'] = chs
+            self.add_alarm_channel_entities(chs)
+
+    def add_alarm_channel_entities(self, channels):
+        if not self.is_multi_channel_alarm_model():
+            return
+        add_cameras = getattr(self, '_add_entities', {}).get(ENTITY_DOMAIN)
+        if not add_cameras:
+            add_cameras = self.hass.data.get(DOMAIN, {}).get('add_entities', {}).get(ENTITY_DOMAIN)
+        if not add_cameras:
+            return
+        entities = []
+        for chn in channels:
+            chn = str(chn)
+            if chn == '0' or chn in self._alarm_channel_entities:
+                continue
+            ent = AlarmChannelCameraEntity(self, self.hass, chn)
+            self._alarm_channel_entities[chn] = ent
+            self._subs[f'alarm_channel_{chn}'] = ent
+            entities.append(ent)
+        if entities:
+            add_cameras(entities, update_before_add=True)
+        for ent in self._alarm_channel_entities.values():
+            ent.update()
 
     async def async_update(self):
         adt = None
@@ -703,3 +787,37 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
     async def image_source(self, **kwargs):
         kwargs['crypto'] = True
         return self._parent.get_motion_image_address(**kwargs)
+
+
+class AlarmChannelCameraEntity(BaseSubEntity, BaseCameraEntity):
+    def __init__(self, parent, hass: HomeAssistant, channel):
+        self._channel = str(channel)
+        super().__init__(
+            parent,
+            f'alarm_channel_{self._channel}',
+            {
+                'entity_id': f'{parent.entity_id}_package_camera',
+                'name': f'{parent.name} Package Camera',
+                'dict_key': self._channel,
+            },
+            domain=ENTITY_DOMAIN,
+        )
+        BaseCameraEntity.__init__(self, hass)
+        self._supported_features |= CameraEntityFeature.STREAM
+
+    def _channel_attrs(self):
+        channels = self._parent.extra_state_attributes.get('motion_video_channels') or {}
+        return channels.get(self._channel) or {}
+
+    def update(self, data=None):
+        super().update(data)
+        attrs = self._channel_attrs()
+        self._available = bool(attrs)
+        if attrs:
+            self.update_attrs(attrs, update_parent=False)
+
+    async def stream_source(self, **kwargs):
+        return self._channel_attrs().get('stream_address')
+
+    async def image_source(self, **kwargs):
+        return self._channel_attrs().get('image_address')
