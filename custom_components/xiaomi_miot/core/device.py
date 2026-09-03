@@ -738,7 +738,7 @@ class Device(CustomConfigHelper):
                 params = data.get('params', [])
                 result = await self.async_set_properties(params)
                 success = True if result else False
-                if err := MiotResults(result).has_error:
+                if err := self.set_property_error(params, result):
                     success = False
                     self.log.warning('Device write error: %s', [payload, data, err])
 
@@ -758,6 +758,39 @@ class Device(CustomConfigHelper):
         if success:
             self.dispatch(payload)
         return result
+
+    def set_property_error(self, params: list, results: list):
+        if not isinstance(results, list) or not params or len(params) != len(results):
+            return MiotResult({}, code=-1, error='Invalid response')
+        parsed = MiotResults(results)
+        if not parsed.is_valid:
+            return MiotResult({}, code=-1, error='Invalid response')
+        for req, res in zip(params, results):
+            if not isinstance(req, dict) or not isinstance(res, dict):
+                return MiotResult({}, code=-1, error='Invalid response')
+            item = MiotResult(res)
+            if item.is_success:
+                continue
+            if self.is_miot_set_property_ack(req, res):
+                continue
+            return item
+        return None
+
+    @staticmethod
+    def is_miot_set_property_ack(req: dict, res: dict) -> bool:
+        if 'code' in res:
+            return False
+        if res.get('error') is not None:
+            return False
+        if 'siid' not in res or req.get('siid') != res.get('siid'):
+            return False
+        if 'piid' not in res or req.get('piid') != res.get('piid'):
+            return False
+        if 'did' in req and ('did' not in res or req.get('did') != res.get('did')):
+            return False
+        if 'value' not in req or 'value' not in res or req.get('value') != res.get('value'):
+            return False
+        return True
 
     @property
     def use_local(self):
