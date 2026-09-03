@@ -110,7 +110,30 @@ class MiotSpecInstance:
 
     @cached_property
     def translations(self):
-        dic = TRANSLATION_LANGUAGES
+        obj = self
+        while hasattr(obj, 'service') and obj.service is not None:
+            obj = obj.service
+        while hasattr(obj, 'spec') and obj.spec is not None:
+            obj = obj.spec
+        hass = getattr(obj, 'hass', None)
+
+        if hass:
+            lang = hass.config.language
+            dic = TRANSLATION_LANGUAGES.get(lang, {})
+            if not isinstance(dic, dict) or not dic:
+                for k, v in TRANSLATION_LANGUAGES.items():
+                    if k != 'en' and lang.startswith(k):
+                        dic = v
+                        break
+            if not isinstance(dic, dict):
+                dic = {}
+            if lang != 'en' and 'en' in TRANSLATION_LANGUAGES:
+                eng = TRANSLATION_LANGUAGES['en']
+                if isinstance(eng, dict):
+                    dic = {**eng, **dic}
+        else:
+            dic = TRANSLATION_LANGUAGES
+
         kls = self.translation_keys
         for k in kls:
             d = dic.get(k)
