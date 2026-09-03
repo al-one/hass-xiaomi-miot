@@ -2328,6 +2328,16 @@ DEVICE_CUSTOMIZES = {
             }
         ],
     },
+    'xiaomi.fan.p90': {
+        'sensor_properties': 'fault,delay_remain_time',
+        'switch_properties': 'horizontal_swing,vertical_swing,symmetrical_swing_h,symmetrical_swing_v,'
+                             'alarm,screen.on,physical_controls_locked,off_to_center,delay',
+        'number_properties': 'left_angle,right_angle,up_angle,down_angle,delay_time',
+        'button_actions': 'loop_mode,loop_gear',
+        'configuration_entities': 'symmetrical_swing_*,*_angle,alarm,screen.on,'
+                                  'physical_controls_locked,off_to_center,delay,delay_time',
+        'diagnostic_entities': 'fault,delay_remain_time',
+    },
     'xiaomi.feeder.iv2001': {
         'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
         'binary_sensor_properties': 'battery_level',
