@@ -14,9 +14,11 @@ jobs:
       - name: Format Message
         id: format
         shell: bash
+        env:
+            ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           body=$(cat <<EOF
-          ${{ github.event.issue.body }}
+          $ISSUE_BODY
           EOF)
           body=$(sed '/^###/ s|\s/\s.*||' <<< "$body")
           {
