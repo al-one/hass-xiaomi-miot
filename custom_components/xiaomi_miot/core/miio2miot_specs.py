@@ -3,10 +3,16 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 
-def set_callback_via_param_index(index=0):
+def set_callback_via_param_index(index=0, key=None):
     def cbk(prop, params, props, **kwargs):
-        if prop in props and len(params) > index:
-            props[prop] = params[index]
+        if prop in props:
+            if isinstance(params, dict):
+                props[prop] = params.get(key or prop)
+            elif isinstance(params, (list, tuple)) and len(params) > index:
+                value = params[index]
+                if key and isinstance(value, dict):
+                    value = value.get(key)
+                props[prop] = value
         _LOGGER.debug('New miio props after setting %s(%s): %s', prop, params, props)
     return cbk
 
@@ -749,6 +755,119 @@ MIIO_TO_MIOT_SPECS = {
                 'set_callback': set_callback_via_param_index(0),
             },
             'prop.5.1': {'prop': 'illumination'},
+        },
+    },
+
+    'lumi.gateway.mitw01': {
+        # Taiwan Mi Control Hub. Uses the same packed rgb value as lumi.gateway.v3
+        # for light control, plus legacy miio props for guard/alarm, volume,
+        # doorbell, and night-light settings.
+        'miio_props': [
+            'rgb', 'illumination',
+            'arming', 'alarming_volume', 'arm_wait_time', 'alarm_time_len',
+            'en_alarm_light', 'doorbell_volume', 'gateway_volume',
+            'doorbell_push', 'night_light_rgb', 'corridor_light',
+        ],
+        'miio_specs': {
+            'prop.3.1': {
+                'prop': 'arming',
+                'setter': 'set_arming',
+                'template': '{{ value in ["on", "oning", "true", true, 1] }}',
+                'set_template': '{{ ["on" if value else "off"] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.3.2': {
+                'prop': 'alarming_volume',
+                'setter': 'set_alarming_volume',
+                'set_template': '{{ [value|int(0)] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.4.1': {
+                'prop': 'rgb',
+                'setter': 'set_rgb',
+                'template': '{{ value|int(0) > 0 }}',
+                'set_template': '{{ '
+                                '[ props.rgb|int(0) if props.rgb|int(0) > 0 else 1694498815 ] '
+                                'if value else [0] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.4.101': {
+                'prop': 'rgb',
+                'setter': 'set_rgb',
+                'template': '{{ (value|int(0) // 16777216) % 256 }}',
+                'set_template': '{{ '
+                                '[ value|int(100) * 16777216 '
+                                '+ ((props.rgb|int(0)) % 16777216 or 16777215) ] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.4.102': {
+                'prop': 'rgb',
+                'setter': 'set_rgb',
+                'template': '{{ value|int(0) % 16777216 }}',
+                'set_template': '{{ '
+                                '[ ((((props.rgb|int(0)) // 16777216) % 256) or 100) * 16777216 '
+                                '+ (value|int(0) % 16777216) ] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.5.1': {'prop': 'illumination'},
+            'prop.6.1': {
+                'prop': 'rgb',
+                'setter': 'set_rgb',
+                'set_template': '{{ [value|int(0)] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.6.2': {
+                'prop': 'night_light_rgb',
+                'setter': 'set_night_light_rgb',
+                'set_template': '{{ [value|int(0)] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.6.3': {
+                'prop': 'arm_wait_time',
+                'setter': 'set_arm_wait_time',
+                'set_template': '{{ [value|int(0)] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.6.4': {
+                'prop': 'alarm_time_len',
+                'setter': 'set_device_prop',
+                'set_template': '{{ {"method": "set_device_prop", "raw_params": true, "params": {"sid": "lumi.0", "alarm_time_len": value|int(0)}} }}',
+                'set_callback': set_callback_via_param_index(0, key='alarm_time_len'),
+            },
+            'prop.6.5': {
+                'prop': 'en_alarm_light',
+                # 0=always flash, 1=10 min, 2=1 min, 3=30 sec, 4=off,
+                # 5..59=custom seconds.
+                'setter': 'set_device_prop',
+                'set_template': '{{ {"method": "set_device_prop", "raw_params": true, "params": {"sid": "lumi.0", "en_alarm_light": value|int(0)}} }}',
+                'set_callback': set_callback_via_param_index(0, key='en_alarm_light'),
+            },
+            'prop.6.6': {
+                'prop': 'doorbell_volume',
+                'setter': 'set_doorbell_volume',
+                'set_template': '{{ [value|int(0)] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.6.7': {
+                'prop': 'gateway_volume',
+                'setter': 'set_gateway_volume',
+                'set_template': '{{ [value|int(0)] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.6.8': {
+                'prop': 'doorbell_push',
+                'setter': 'set_doorbell_push',
+                'template': '{{ value in ["on", "true", true, 1] }}',
+                'set_template': '{{ ["on" if value else "off"] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
+            'prop.6.9': {
+                'prop': 'corridor_light',
+                'setter': 'set_corridor_light',
+                'template': '{{ value in ["on", "true", true, 1] }}',
+                'set_template': '{{ ["on" if value else "off"] }}',
+                'set_callback': set_callback_via_param_index(0),
+            },
         },
     },
 

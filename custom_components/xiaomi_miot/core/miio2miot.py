@@ -179,6 +179,7 @@ class Miio2MiotHelper:
             if prop := cfg.get('prop'):
                 setter = f'set_{prop}'
         pms = [value]
+        raw_params = False
         prop = self.miot_spec.specs.get(key)
         if prop and isinstance(prop, MiotProperty):
             mph = MiioPropertyHelper(prop, reverse=True)
@@ -196,6 +197,7 @@ class Miio2MiotHelper:
                 }) or []
                 if isinstance(pms, dict) and 'method' in pms:
                     setter = pms.get('method', setter)
+                    raw_params = bool(pms.get('raw_params'))
                     pms = pms.get('params', [])
             elif fmt and hasattr(mph, fmt):
                 pms = [getattr(mph, fmt)(value)]
@@ -204,7 +206,8 @@ class Miio2MiotHelper:
                     if dv == value:
                         pms = [dk]
                         break
-        pms = cv.ensure_list(pms)
+        if not raw_params:
+            pms = cv.ensure_list(pms)
         if not setter:
             _LOGGER.warning('%s: Set miio prop via miot failed: %s', self.model, [key, setter, cfg])
             return None
