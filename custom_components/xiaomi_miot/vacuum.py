@@ -6,9 +6,9 @@ from datetime import timedelta
 from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
     StateVacuumEntity,
+    VacuumActivity,
     VacuumEntityFeature,  # v2022.5
 )
-from .core.const import VacuumActivity
 
 from . import (
     DOMAIN,
