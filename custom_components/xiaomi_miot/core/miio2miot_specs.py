@@ -1976,7 +1976,7 @@ MIIO_TO_MIOT_SPECS = {
         },
     },
     'yeelink.bhf_light.v5': {
-        'miio_template': 'yeelink_bhf_light_v5_miio_props',
+        'miio_template': 'yeelink_bhf_light_miio_props',
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {
@@ -2013,17 +2013,20 @@ MIIO_TO_MIOT_SPECS = {
             },
             'prop.3.2': {
                 'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "warm" in value }}',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "warmwind" in (mode | string).split("|") }}',
                 'set_template': '{{ ["warmwind" if value else "windoff"] }}',
             },
             'prop.3.3': {
                 'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "coolwind" in value }}',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "coolwind" in (mode | string).split("|") }}',
                 'set_template': '{{ ["coolwind" if value else "windoff"] }}',
             },
             'prop.3.4': {
                 'prop': 'bh_mode', 'setter': True,
-                'template': '{{ "venting" in value }}',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "venting" in (mode | string).split("|") }}',
                 'set_template': '{{ ["venting" if value else "ventingoff"] }}',
             },
             'prop.3.5': {'prop': 'aim_temp', 'setter': 'set_temp'},
@@ -2031,33 +2034,38 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.101': {
                 'prop': 'fan_speed_idx',
                 'setter': 'set_bh_mode',
-                'template': 'yeelink_bhf_light_v5_fan_levels',
-                'set_template': '{{ ['
-                                'props.bh_mode,'
-                                '1 if value <= 1 else '
-                                '3 if "coolwind" in props.bh_mode else '
-                                '3 if "venting" in props.bh_mode else '
-                                '2] }}',
+                'template': 'yeelink_bhf_light_fan_levels',
+                'set_template': 'yeelink_bhf_light_fan_level_set',
             },
             'prop.3.111': {
-                'prop': 'warmwind_gear',
+                'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'set_template': '{{ ["warmwind" if value else "windoff", value] }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.warmwind_gear if "warmwind" in modes else 0 }}',
+                'set_template': '{{ ["warmwind", value] if value else ["windoff"] }}',
             },
             'prop.3.112': {
-                'prop': 'coolwind_gear',
+                'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'set_template': '{{ ["coolwind" if value else "windoff", value] }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.coolwind_gear if "coolwind" in modes else 0 }}',
+                'set_template': '{{ ["coolwind", value] if value else ["windoff"] }}',
             },
             'prop.3.113': {
-                'prop': 'venting_gear',
+                'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'set_template': '{{ ["venting" if value else "ventingoff", value] }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.venting_gear if "venting" in modes else 0 }}',
+                'set_template': '{{ ["venting", value] if value else ["ventingoff"] }}',
             },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
         },
     },
     'yeelink.bhf_light.v6': {
+        'miio_template': 'yeelink_bhf_light_miio_props',
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {
@@ -2101,28 +2109,53 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.101': {
                 'prop': 'fan_speed_idx',
                 'setter': 'set_bh_mode',
-                'template': 'yeelink_bhf_light_v5_fan_levels',
-                'set_template': '{{ ['
-                                'props.bh_mode,'
-                                '1 if value <= 1 else '
-                                '3 if "coolwind" in props.bh_mode else '
-                                '3 if "venting" in props.bh_mode else '
-                                '2] }}',
+                'template': 'yeelink_bhf_light_fan_levels',
+                'set_template': 'yeelink_bhf_light_fan_level_set',
             },
             'prop.3.111': {
-                'prop': 'warmwind_gear',
+                'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'set_template': '{{ ["warmwind" if value else "windoff", value] }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.warmwind_gear if "warmwind" in modes else 0 }}',
+                'set_template': '{{ ["warmwind", value] if value else ["windoff"] }}',
             },
             'prop.3.112': {
-                'prop': 'coolwind_gear',
+                'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'set_template': '{{ ["coolwind" if value else "windoff", value] }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.coolwind_gear if "coolwind" in modes else 0 }}',
+                'set_template': '{{ ["coolwind", value] if value else ["windoff"] }}',
             },
             'prop.3.113': {
-                'prop': 'venting_gear',
+                'prop': 'bh_mode',
                 'setter': 'set_bh_mode',
-                'set_template': '{{ ["venting" if value else "ventingoff", value] }}',
+                'template': '{%- set mode = props.bh_mode | default(none, true) %}'
+                            '{%- set modes = (mode | string).split("|") if mode is not none else [] %}'
+                            '{{ none if mode is none else props.venting_gear if "venting" in modes else 0 }}',
+                'set_template': '{{ ["venting", value] if value else ["ventingoff"] }}',
+            },
+            'prop.3.114': {
+                'prop': 'bh_mode',
+                'setter': 'set_bh_mode',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "warmwind" in (mode | string).split("|") }}',
+                'set_template': '{{ ["warmwind" if value else "windoff"] }}',
+            },
+            'prop.3.115': {
+                'prop': 'bh_mode',
+                'setter': 'set_bh_mode',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "coolwind" in (mode | string).split("|") }}',
+                'set_template': '{{ ["coolwind" if value else "windoff"] }}',
+            },
+            'prop.3.116': {
+                'prop': 'bh_mode',
+                'setter': 'set_bh_mode',
+                'template': '{%- set mode = value | default(none, true) %}'
+                            '{{ none if mode is none else "venting" in (mode | string).split("|") }}',
+                'set_template': '{{ ["venting" if value else "ventingoff"] }}',
             },
             'action.3.1': {'setter': 'bh_mode', 'set_template': '{{ ["bh_off", 0] }}'},
         },

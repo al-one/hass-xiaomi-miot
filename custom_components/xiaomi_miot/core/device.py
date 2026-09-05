@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import copy
 import re
@@ -192,6 +193,16 @@ class Device(CustomConfigHelper):
         self.converters: list[BaseConv] = []
         self.coordinators: list[DataCoordinator] = []
         self.main_coordinators: list[DataCoordinator] = []
+        # One poll lock per physical device: every DataCoordinator obeys it.
+        self.poll_lock = asyncio.Lock()
+        self.last_poll_monotonic: float | None = None
+        # Trailing coalescing of confirmed readbacks after non-optimistic
+        # writes: one poll confirms every write that finished before the poll
+        # started; a write landing during an active poll schedules at most one
+        # trailing poll.
+        self.write_poll_lock = asyncio.Lock()
+        self.write_poll_generation = 0
+        self.write_poll_done_generation = 0
         self.log = logging.getLogger(f'{__name__}.{self.model}')
 
     async def async_init(self):
@@ -625,9 +636,37 @@ class Device(CustomConfigHelper):
         for coo in self.coordinators:
             await coo.async_request_refresh()
 
-    async def update_main_status(self):
-        for coo in self.main_coordinators:
-            await coo.async_request_refresh()
+    async def update_main_status(self, immediate=False):
+        coos = self.main_coordinators
+        if not coos and immediate and self.custom_config_bool('non_optimistic'):
+            # miio2miot devices always get the miot_status main coordinator;
+            # this fallback only covers foreign YAML customizes that leave
+            # main_coordinators empty. Deliberate guard, not dead code.
+            coos = self.coordinators
+        for coo in coos:
+            if immediate:
+                await coo.async_refresh()
+            else:
+                await coo.async_request_refresh()
+
+    async def async_write_refresh(self):
+        """Trailing-edge coalesced confirmed refresh after a non-optimistic write."""
+        self.write_poll_generation += 1
+        generation = self.write_poll_generation
+        async with self.write_poll_lock:
+            if generation <= self.write_poll_done_generation:
+                # A poll that started after this write finished confirmed it.
+                return
+            # Yield one loop tick so writes issued in the same batch join
+            # this poll instead of each scheduling a trailing one.
+            await asyncio.sleep(0)
+            covered = self.write_poll_generation
+            try:
+                await self.update_main_status(immediate=True)
+            except Exception as exc:
+                self.log.warning('Failed to refresh status after write: %s', exc)
+            finally:
+                self.write_poll_done_generation = covered
 
     async def update_all_status(self, _=None):
         all = []
@@ -736,8 +775,9 @@ class Device(CustomConfigHelper):
         self.log.info('Device write data: %s', [payload, data])
         result = None
         method = data.get('method')
-        success = None
-
+        non_optimistic = self.custom_config_bool('non_optimistic')
+        success = False
+        write_exc = None
         try:
             if method == 'update_status':
                 result = await self.update_main_status()
@@ -748,6 +788,7 @@ class Device(CustomConfigHelper):
                 success = True if result else False
                 if err := MiotResults(result).has_error:
                     success = False
+                    write_exc = DeviceException(f'Device write error: {err.spec_error}')
                     self.log.warning('Device write error: %s', [payload, data, err])
 
             if method == 'action':
@@ -757,14 +798,24 @@ class Device(CustomConfigHelper):
                 ins = param.get('in') or []
                 result = await self.async_call_action(siid, aiid, ins)
                 success = result.is_success
+                if not success and non_optimistic:
+                    write_exc = DeviceException(
+                        f'Device action error: {result.error or result.code}'
+                    )
 
         except (DeviceException, MiCloudException) as exc:
             success = False
+            write_exc = exc
             self.log.exception('Device write failed: %s', [exc, payload, data])
+        finally:
+            if method in ['set_properties', 'action'] and non_optimistic:
+                await self.async_write_refresh()
 
         self.log.info('Device write result: %s', [payload, result])
-        if success:
+        if success and not non_optimistic:
             self.dispatch(payload)
+        if write_exc and non_optimistic:
+            raise write_exc
         return result
 
     @property
