@@ -1,11 +1,13 @@
 """Support for Xiaomi vacuums."""
 import logging
 import asyncio
+import json
 from datetime import timedelta
 
 from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
     StateVacuumEntity,
+    Segment,
     VacuumEntityFeature,  # v2022.5
 )
 from .core.const import VacuumActivity
@@ -68,6 +70,10 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
+        # MiotEntity defaults generated IDs to the integration domain.  Vacuum
+        # entities must retain the platform domain, especially on a fresh
+        # entity registry after another vacuum integration is removed.
+        self.entity_id = miot_service.generate_entity_id(self, domain=ENTITY_DOMAIN)
 
         self._prop_power = miot_service.get_property('on', 'power')
         self._prop_status = miot_service.get_property('status')
@@ -95,6 +101,17 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 self._act_charge = act
                 break
 
+        # Some MIoT vacuums expose a room map and room-sweep actions.  Detect
+        # that capability from the spec instead of maintaining a model list.
+        self._prop_room_information = miot_service.get_property('room_information')
+        self._act_get_room_configs = miot_service.get_action('get_room_configs')
+        self._act_set_room_clean_configs = miot_service.get_action(
+            'set_room_clean_configs'
+        )
+        self._act_start_room_sweep = miot_service.get_action(
+            'start_vacuum_room_sweep', 'start_room_sweep'
+        )
+
         if self._prop_power:
             self._supported_features |= VacuumEntityFeature.TURN_ON
             self._supported_features |= VacuumEntityFeature.TURN_OFF
@@ -113,6 +130,9 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._supported_features |= VacuumEntityFeature.STATE
         if self._act_locate:
             self._supported_features |= VacuumEntityFeature.LOCATE
+        if (self._prop_room_information and self._act_get_room_configs
+                and self._act_start_room_sweep):
+            self._supported_features |= VacuumEntityFeature.CLEAN_AREA
         self._supported_features |= VacuumEntityFeature.SEND_COMMAND
 
     async def async_update(self):
@@ -212,6 +232,96 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         """
         return await self.async_miio_command(command, params)
 
+    async def async_get_segments(self) -> list[Segment]:
+        """Fetch room segments when supported by the MIoT device spec."""
+        if not (self._prop_room_information and self._act_get_room_configs
+                and self._act_start_room_sweep):
+            return []
+        in_properties = self._act_get_room_configs.in_properties()
+        params = self._act_get_room_configs.in_params_from_attrs(
+            {in_properties[0].full_name: ''}
+        ) if in_properties else []
+        await self.async_call_action(
+            self._act_get_room_configs, params, force_params=True
+        )
+        props = await self.device.async_get_properties(
+            [{'siid': self._prop_room_information.service.iid,
+              'piid': self._prop_room_information.iid}],
+            update_entity=True,
+            throw=True,
+        )
+        value = props.get(self._prop_room_information.full_name)
+        segments = _parse_room_information(value)
+        self._state_attrs['room_mapping'] = [
+            [segment.id, segment.id, segment.name] for segment in segments
+        ]
+        return segments
+
+    async def async_clean_segments(self, segment_ids: list[str], **kwargs):
+        """Clean the rooms selected by Home Assistant's area mapping."""
+        if not segment_ids or not self._act_start_room_sweep:
+            return False
+
+        # D102GL-family vacuums require the room-cleaning configuration to be
+        # written before the room-sweep action is accepted.  Other MIoT
+        # vacuums expose only the start action, so retain the direct fallback.
+        if self._act_set_room_clean_configs:
+            config = _room_clean_config(segment_ids)
+            params = self._act_set_room_clean_configs.in_params([config])
+            await self.async_call_action(
+                self._act_set_room_clean_configs, params, force_params=True
+            )
+
+        payload = _room_sweep_payload(segment_ids)
+        params = self._act_start_room_sweep.in_params([payload])
+        return await self.async_call_action(
+            self._act_start_room_sweep, params, force_params=True
+        )
+
+
+def _parse_room_information(value):
+    """Convert a MIoT room-information property into HA segments."""
+    if not value:
+        return []
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except (TypeError, ValueError):
+            return []
+    if not isinstance(value, dict):
+        return []
+    rooms = value.get('rooms')
+    if not isinstance(rooms, list):
+        return []
+    segments = []
+    for room in rooms:
+        if not isinstance(room, dict) or room.get('id') is None:
+            continue
+        name = room.get('name') or str(room['id'])
+        segments.append(Segment(id=str(room['id']), name=str(name)))
+    return segments
+
+
+def _room_sweep_payload(segment_ids):
+    """Build the MIoT room-selection argument."""
+    return ','.join(str(segment_id) for segment_id in segment_ids)
+
+
+def _room_clean_config(segment_ids):
+    """Build the room-cleaning configuration used by D102GL-like vacuums."""
+    rooms = []
+    for segment_id in segment_ids:
+        try:
+            rooms.append(int(segment_id))
+        except (TypeError, ValueError):
+            rooms.append(str(segment_id))
+    return json.dumps({
+        'rooms': rooms,
+        # Start with vacuum-only cleaning.  This is the safe default for
+        # room cleaning and matches the D102GL mode accepted while docked.
+        'clean_mode': 1,
+        'is_ai_cleaning': False,
+    }, separators=(',', ':'))
 
 class MiotRoborockVacuumEntity(MiotVacuumEntity):
     def __init__(self, config: dict, miot_service: MiotService):
