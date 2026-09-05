@@ -297,9 +297,21 @@ class Device(CustomConfigHelper):
         return {(DOMAIN, self.unique_id)}
 
     @property
+    def connections(self):
+        connections = set()
+
+        if mac := self.info.mac:
+            connections.add(
+                (dr.CONNECTION_NETWORK_MAC, mac)
+            )
+
+        return connections
+
+    @property
     def hass_device_info(self):
         device_info = {
             'identifiers': self.identifiers,
+            'connections': self.connections,
             'name': self.name,
             'model': self.model,
             'manufacturer': (self.model or 'Xiaomi').split('.', 1)[0],
