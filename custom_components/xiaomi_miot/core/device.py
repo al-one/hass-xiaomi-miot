@@ -298,19 +298,23 @@ class Device(CustomConfigHelper):
 
     @property
     def hass_device_info(self):
-        via_device = None
-        if self._proxy_device:
-            via_device = next(iter(self._proxy_device.identifiers))
-        return {
+        device_info = {
             'identifiers': self.identifiers,
             'name': self.name,
             'model': self.model,
             'manufacturer': (self.model or 'Xiaomi').split('.', 1)[0],
             'sw_version': self.sw_version,
             'suggested_area': self.info.room_name,
-            'via_device': via_device,
             'configuration_url': f'https://home.miot-spec.com/s/{self.model}',
         }
+        if self._proxy_device:
+            dev_reg = dr.async_get(self.hass)
+            if hasattr(dev_reg, 'async_get_device_by_identifier'):
+                if parent := self._proxy_device.hass_device:
+                    device_info['via_device_id'] = parent.id
+            else:
+                device_info['via_device'] = next(iter(self._proxy_device.identifiers))
+        return device_info
 
     @property
     def customizes(self):
@@ -365,6 +369,10 @@ class Device(CustomConfigHelper):
     @property
     def hass_device(self):
         dev_reg = dr.async_get(self.hass)
+        if hasattr(dev_reg, 'async_get_device_by_identifier'):
+            return dev_reg.async_get_device_by_identifier(
+                next(iter(self.identifiers)), self.entry.id
+            )
         return dev_reg.async_get_device(self.identifiers)
 
     @property
@@ -946,7 +954,7 @@ class Device(CustomConfigHelper):
 
         if self.miot_results.updater != self.data.get('updater'):
             dev_reg = dr.async_get(self.hass)
-            if dev := dev_reg.async_get_device(self.identifiers):
+            if dev := self.hass_device:
                 self.data['updater'] = self.miot_results.updater
                 dev_reg.async_update_device(dev.id, sw_version=self.sw_version)
                 self.log.info('State updater: %s', self.sw_version)
