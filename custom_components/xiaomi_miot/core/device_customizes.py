@@ -1533,6 +1533,14 @@ DEVICE_CUSTOMIZES = {
     'mmgg.feeder.petfeeder:pet_food_out': {
         'action_params': 1,
     },
+    'huoman.feeder.pf20i': {
+        'button_actions': 'pet_food_out,reset_desiccant_life',
+        'sensor_properties': 'fault,desiccant_left_time',
+        'number_properties': 'feeding_measure',
+    },
+    'huoman.feeder.pf20i:pet_food_out': {
+        'action_params': '{{ attrs["feeding_measure-2-5"]|default(1) }}',
+    },
     'mmgg.litter_box.lbc1': {
         'binary_sensor_properties': 'warehouse_uninstall,cover_open,roller_uninstall,device_dump,'
                                     'cat_enter_state,cat_near_state,enter_time_too_long',

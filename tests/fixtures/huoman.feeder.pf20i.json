@@ -1,0 +1,53 @@
+{
+  "type": "urn:miot-spec-v2:device:pet-feeder:0000A06C:huoman-pf20i:1",
+  "description": "Pet Feeder",
+  "services": [
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:pet-feeder:0000780A:huoman-pf20i:1",
+      "description": "Pet Feeder",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:fault:0000000A:huoman-pf20i:1", "description": "Fault", "format": "uint8", "access": ["read", "notify"], "value-list": [{"value": 0, "description": "No fault"}, {"value": 1, "description": "Low food"}]},
+        {"iid": 5, "type": "urn:miot-spec-v2:property:feeding-measure:00000001:huoman-pf20i:1", "description": "Feeding Measure", "format": "uint8", "access": ["read", "write", "notify"], "value-range": [1, 20, 1]}
+      ],
+      "actions": [
+        {"iid": 1, "type": "urn:miot-spec-v2:action:pet-food-out:00000001:huoman-pf20i:1", "description": "Pet Food Out", "in": [5], "out": []}
+      ],
+      "events": [
+        {"iid": 1, "type": "urn:miot-spec-v2:event:food-out-complete:00005001:huoman-pf20i:1", "description": "Food Out Complete", "arguments": []}
+      ]
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:indicator-light:00007803:huoman-pf20i:1",
+      "description": "Indicator Light",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:on:00000006:huoman-pf20i:1", "description": "Switch Status", "format": "bool", "access": ["read", "write", "notify"]}
+      ],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 4,
+      "type": "urn:miot-spec-v2:service:desiccant:00007809:huoman-pf20i:1",
+      "description": "Desiccant",
+      "properties": [
+        {"iid": 2, "type": "urn:miot-spec-v2:property:desiccant-left-time:00000001:huoman-pf20i:1", "description": "Desiccant Left Time", "format": "uint16", "access": ["read", "notify"], "unit": "days", "value-range": [0, 30, 1]}
+      ],
+      "actions": [
+        {"iid": 1, "type": "urn:miot-spec-v2:action:reset-desiccant-life:00000001:huoman-pf20i:1", "description": "Reset Desiccant Life", "in": [], "out": []}
+      ],
+      "events": []
+    },
+    {
+      "iid": 5,
+      "type": "urn:miot-spec-v2:service:physical-controls-locked:00007807:huoman-pf20i:1",
+      "description": "Physical Controls Locked",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:physical-controls-locked:0000001D:huoman-pf20i:1", "description": "Physical Controls Locked", "format": "bool", "access": ["read", "write", "notify"]}
+      ],
+      "actions": [],
+      "events": []
+    }
+  ]
+}
