@@ -8,7 +8,7 @@
       "description": "Pet Feeder",
       "properties": [
         {"iid": 1, "type": "urn:miot-spec-v2:property:fault:0000000A:huoman-pf20i:1", "description": "Fault", "format": "uint8", "access": ["read", "notify"], "value-list": [{"value": 0, "description": "No fault"}, {"value": 1, "description": "Low food"}]},
-        {"iid": 5, "type": "urn:miot-spec-v2:property:feeding-measure:00000001:huoman-pf20i:1", "description": "Feeding Measure", "format": "uint8", "access": ["read", "write", "notify"], "value-range": [1, 20, 1]}
+        {"iid": 5, "type": "urn:miot-spec-v2:property:feeding-measure:00000001:huoman-pf20i:1", "description": "Feeding Measure", "format": "uint8", "access": [], "value-range": [1, 20, 1]}
       ],
       "actions": [
         {"iid": 1, "type": "urn:miot-spec-v2:action:pet-food-out:00000001:huoman-pf20i:1", "description": "Pet Food Out", "in": [5], "out": []}

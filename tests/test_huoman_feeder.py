@@ -10,7 +10,7 @@ from custom_components.xiaomi_miot.core.utils import get_customize_via_model
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
-def test_huoman_pf20i_exposes_feeder_controls():
+def make_huoman_device():
     hass = SimpleNamespace(config=SimpleNamespace(language="zh"))
     with (FIXTURES / "huoman.feeder.pf20i.json").open(encoding="utf-8") as file:
         spec = MiotSpec(hass, json.load(file))
@@ -34,20 +34,46 @@ def test_huoman_pf20i_exposes_feeder_controls():
     )
     device.spec = spec
     device.init_converters()
+    return device
 
-    converter_names = {converter.full_name for converter in device.converters}
+
+def test_huoman_pf20i_exposes_feeder_controls():
+    converter_names = {converter.full_name for converter in make_huoman_device().converters}
 
     assert {
         "sensor.pet_feeder.fault",
-        "number.pet_feeder.feeding_measure",
+        "number.feeding_measure",
         "button.pet_feeder.pet_food_out",
         "sensor.desiccant.desiccant_left_time",
         "button.desiccant.reset_desiccant_life",
     } <= converter_names
 
 
+def test_huoman_pf20i_uses_switch_for_night_mode():
+    converter_names = {converter.full_name for converter in make_huoman_device().converters}
+
+    assert "switch.indicator_light.on" in converter_names
+    assert "light.indicator_light.on" not in converter_names
+    assert get_customize_via_model(
+        "huoman.feeder.pf20i:indicator_light.on",
+        "name",
+    ) == "夜间模式"
+
+
+def test_huoman_pf20i_feeding_measure_is_polled_despite_empty_access():
+    mapping = make_huoman_device().miot_mapping()
+
+    assert mapping["pet_feeder.feeding_measure"] == {"siid": 2, "piid": 5}
+
+
+def test_huoman_pf20i_decodes_feeding_measure_value():
+    payload = make_huoman_device().decode([{"siid": 2, "piid": 5, "code": 0, "value": 7}])
+
+    assert payload["number.feeding_measure"] == 7
+
+
 def test_huoman_pf20i_feeding_action_uses_selected_measure():
     assert get_customize_via_model(
         "huoman.feeder.pf20i:pet_food_out",
         "action_params",
-    ) == '{{ attrs["feeding_measure-2-5"]|default(1) }}'
+    ) == '{{ attrs["pet_feeder.feeding_measure"]|default(1) }}'
