@@ -1535,23 +1535,33 @@ DEVICE_CUSTOMIZES = {
     },
     'huoman.feeder.pf20i': {
         'converters': [],
-        'miot_mapping': {
-            'pet_feeder.fault': {'siid': 2, 'piid': 1},
-            'pet_feeder.feeding_measure': {'siid': 2, 'piid': 5},
-            'indicator_light.on': {'siid': 3, 'piid': 1},
-            'desiccant.desiccant_left_time': {'siid': 4, 'piid': 2},
-            'physical_controls_locked': {'siid': 5, 'piid': 1},
-        },
+        'append_converters': [
+            {
+                'class': MiotActionConv,
+                'services': ['pet_feeder'],
+                'kwargs': {
+                    'attr': 'feeding_measure',
+                    'domain': 'number',
+                    'action_name': 'pet_food_out',
+                    'option': {
+                        'action_value_only': True,
+                        'default': 1,
+                        'name': '出粮份数',
+                        'unique_id': 'pet_feeder-2.feeding_measure-5',
+                        'use_unique_attr': True,
+                    },
+                },
+            },
+        ],
         'button_actions': 'pet_food_out,reset_desiccant_life',
         'sensor_properties': 'fault,desiccant_left_time',
-        'number_properties': 'feeding_measure',
         'switch_properties': 'indicator_light.on,physical_controls_locked',
     },
     'huoman.feeder.pf20i:indicator_light.on': {
         'name': '夜间模式',
     },
     'huoman.feeder.pf20i:pet_food_out': {
-        'action_params': '{{ attrs["pet_feeder.feeding_measure"]|default(1) }}',
+        'action_params': '{{ attrs["number.feeding_measure"]|default(1) }}',
     },
     'mmgg.litter_box.lbc1': {
         'binary_sensor_properties': 'warehouse_uninstall,cover_open,roller_uninstall,device_dump,'
