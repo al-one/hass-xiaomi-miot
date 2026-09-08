@@ -760,18 +760,10 @@ class Device(CustomConfigHelper):
         return result
 
     def set_property_error(self, params: list, results: list):
-        if not isinstance(results, list) or not params or len(params) != len(results):
-            return MiotResult({}, code=-1, error='Invalid response')
-        parsed = MiotResults(results)
-        if not parsed.is_valid:
-            return MiotResult({}, code=-1, error='Invalid response')
-        for req, res in zip(params, results):
-            if not isinstance(req, dict) or not isinstance(res, dict):
-                return MiotResult({}, code=-1, error='Invalid response')
-            item = MiotResult(res)
+        for item in MiotResults(results).results:
             if item.is_success:
                 continue
-            if self.is_miot_set_property_ack(req, res):
+            if any(self.is_miot_set_property_ack(req, item.result) for req in params):
                 continue
             return item
         return None
@@ -786,7 +778,7 @@ class Device(CustomConfigHelper):
             return False
         if 'piid' not in res or req.get('piid') != res.get('piid'):
             return False
-        if 'did' in req and ('did' not in res or req.get('did') != res.get('did')):
+        if 'did' in res and req.get('did') != res.get('did'):
             return False
         if 'value' not in req or 'value' not in res or req.get('value') != res.get('value'):
             return False
