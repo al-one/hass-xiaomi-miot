@@ -18,6 +18,7 @@ from homeassistant.components.camera import (
     DOMAIN as ENTITY_DOMAIN,
     Camera,
     CameraEntityFeature,  # v2022.5
+    CameraState,
 )
 from homeassistant.components.ffmpeg import async_get_image, DATA_FFMPEG
 from homeassistant.helpers.event import async_track_point_in_utc_time
@@ -38,7 +39,6 @@ from . import (
     async_setup_config_entry,
     bind_services_to_entries,
 )
-from .core.const import CameraState
 from .core.miot_spec import (
     MiotSpec,
     MiotService,

@@ -80,7 +80,6 @@ async def test_login_verify_fe_skip_url_returns_success(hass):
     init_integration_data(hass)
     c = MiotCloud(hass, "u", "p", "cn", "xiaomiio")
     c.verify_ticket = lambda ticket: {"code": 0, "location": "/identity/result/check?id=1"}
-    c._login_step1 = lambda: (_ for _ in ()).throw(AssertionError("_login_step1 should not run"))
     c.session = SimpleNamespace(headers={})
 
     fe_response = _FakeResponse(
@@ -93,6 +92,11 @@ async def test_login_verify_fe_skip_url_returns_success(hass):
     )
     skipped_response = _FakeResponse(
         cookies={"serviceToken": "TOKEN", "userId": "1"},
+        url="https://sts.api.io.mi.com/sts",
+    )
+    step3_response = _FakeResponse(
+        cookies={"serviceToken": "TOKEN", "userId": "1"},
+        status_code=200,
         url="https://sts.api.io.mi.com/sts",
     )
     calls = []
@@ -110,9 +114,22 @@ async def test_login_verify_fe_skip_url_returns_success(hass):
             assert kwargs.get("allow_redirects") is True
             assert kwargs.get("response") is True
             return skipped_response
+        if url == "https://sts.api.io.mi.com/sts":
+            assert kwargs.get("response") is True
+            return step3_response
         raise AssertionError(f"unexpected url: {url}")
 
     c.account_get = _account_get
+
+    step1_called = []
+
+    def _login_step1():
+        step1_called.append(True)
+        c.ssecurity = "SSEC"
+        c.pass_token = "PASS"
+        return {"location": "https://sts.api.io.mi.com/sts"}
+
+    c._login_step1 = _login_step1
 
     ret = await hass.async_add_executor_job(
         c._login_request,
@@ -120,11 +137,14 @@ async def test_login_verify_fe_skip_url_returns_success(hass):
     )
 
     assert ret is True
+    assert step1_called == [True]
     assert c.service_token == "TOKEN"
     assert c.user_id == "1"
+    assert c.ssecurity == "SSEC"
     assert [u for u, _ in calls] == [
         "/identity/result/check?id=1",
         "https://account.xiaomi.com/pass2/confirmPhone?selected=0&phoneRecycleStatus=1&scene=1&userId=1",
+        "https://sts.api.io.mi.com/sts",
     ]
 
 

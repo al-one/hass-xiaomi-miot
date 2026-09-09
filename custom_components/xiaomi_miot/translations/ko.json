@@ -1,0 +1,546 @@
+{
+    "config": {
+        "flow_title": "Xiaomi Miot",
+        "step": {
+            "user": {
+                "title": "작업 선택",
+                "data": {
+                    "action": "작업"
+                }
+            },
+            "token": {
+                "description": "기기 정보를 설정합니다.",
+                "data": {
+                    "host": "로컬 IP",
+                    "token": "토큰",
+                    "name": "기기 이름",
+                    "scan_interval": "상태 업데이트 주기(초)"
+                }
+            },
+            "cloud": {
+                "description": "샤오미 클라우드 계정을 설정합니다.\n{tip}",
+                "data": {
+                    "username": "샤오미 계정 ID / 이메일",
+                    "password": "비밀번호",
+                    "captcha": "보안 문자",
+                    "verify_ticket": "2단계 인증 코드",
+                    "server_country": "MiCloud 서버 지역",
+                    "conn_mode": "기기 연결 방식",
+                    "trans_options": "속성 값 설명 번역",
+                    "filter_models": "모델/홈/WiFi로 기기 필터링 (고급)"
+                }
+            },
+            "cloud_filter": {
+                "title": "클라우드 기기 필터링",
+                "description": "원하는 기기만 연동하도록 기기를 포함하거나 제외할 수 있습니다.\n{tip}",
+                "data": {
+                    "filter_model": "기기 모델 필터",
+                    "model_list": "기기 모델 목록",
+                    "filter_home_id": "홈 필터",
+                    "home_id_list": "홈 목록",
+                    "filter_ssid": "WiFi SSID 필터",
+                    "ssid_list": "WiFi SSID 목록",
+                    "filter_bssid": "WiFi BSSID 필터",
+                    "bssid_list": "WiFi BSSID 목록",
+                    "filter_did": "기기 필터",
+                    "did_list": "기기 목록",
+                    "home_ids": "홈 필터 (비워 두면 저장됩니다)"
+                },
+                "data_description": {
+                    "filter_did": "제외 방식에서 목록의 항목을 하나도 선택하지 않으면 모든 기기를 포함하는 것과 같습니다.",
+                    "home_ids": "이 항목을 선택하고 제출하면 현재 페이지로 돌아오며,\n기기 목록이 새로 고쳐지면서 선택한 홈의 기기가 걸러집니다."
+                }
+            },
+            "customizing": {
+                "title": "엔티티 / 기기 사용자 지정",
+                "description": "{tip}",
+                "data": {
+                    "domain": "엔티티 도메인 선택",
+                    "entity": "엔티티 선택",
+                    "model": "기기 모델 선택",
+                    "model_specified": "기기 모델 직접 지정 (선택 사항)",
+                    "only_main_entity": "주(상위) 엔티티만",
+                    "yaml_mode": "YAML 모드",
+                    "yaml_customizes": "사용자 지정 YAML 코드",
+                    "reset_customizes": "기본 사용자 지정으로 초기화",
+                    "bool2selects": "사용자 지정 옵션"
+                }
+            },
+            "reauth_password": {
+                "title": "샤오미 재인증 — 계정 비밀번호 입력",
+                "description": "저장된 인증 정보를 갱신하려면 샤오미에 로그인하세요. 기존 설정은 그대로 유지됩니다.",
+                "data": {
+                    "password": "비밀번호"
+                }
+            },
+            "reauth_verify": {
+                "title": "샤오미 재인증 — 인증 코드 입력",
+                "description": "브라우저에서 [이 링크]({verify_url})를 열어 코드를 요청한 다음, 인증 티켓을 여기에 붙여넣으세요.",
+                "data": {
+                    "verify_ticket": "인증 티켓"
+                }
+            },
+            "reauth_captcha": {
+                "title": "샤오미 재인증 — 보안 문자 입력",
+                "description": "보안 문자 이미지를 읽고 문자를 입력하세요.\n\n![보안 문자](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "보안 문자"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "샤오미 서버에 연결할 수 없습니다.",
+            "cannot_login": "샤오미 계정 로그인에 실패했습니다. 계정 정보를 확인하세요. 로그인이 여러 번 실패하는 경우, 같은 네트워크 환경에서 샤오미 공식 웹사이트(mi.com)에 다시 로그인해 보세요.",
+            "cannot_reach": "샤오미 API 인터페이스에 접근할 수 없습니다",
+            "tzinfo_error": "Home Assistant 환경에 문제가 있는 것 같습니다. 시간대 설정을 확인하세요",
+            "none_devices": "이 샤오미 계정에서 기기를 찾을 수 없습니다",
+            "need_verify": "인증 코드가 필요합니다.",
+            "invalid_auth": "샤오미가 인증 정보를 거부했습니다.\n{tip}",
+            "need_captcha": "보안 문자가 필요합니다.",
+            "save_failed": "갱신된 인증 정보를 저장하지 못했습니다. 다시 시도하세요.",
+            "unknown": "예기치 않은 오류입니다."
+        },
+        "abort": {
+            "config_saved": "설정이 저장되었습니다! [다시 사용자 지정하기](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\n일부 사용자 지정 옵션은 [통합 구성요소 다시 로드](/developer-tools/yaml)가 필요할 수 있습니다.",
+            "already_configured": "이 기기는 이미 설정되었습니다.",
+            "not_xiaomi_miio": "이 기기는 miio/miot 프로토콜을 지원하지 않습니다.",
+            "unsupported_sid": "이 계정은 재인증을 지원하지 않습니다.",
+            "wrong_account": "인증한 계정이 설정된 샤오미 계정과 일치하지 않습니다.",
+            "reauth_successful": "샤오미 계정이 갱신되었습니다."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "기기 정보를 설정합니다.",
+                "data": {
+                    "host": "기기 IP",
+                    "token": "토큰",
+                    "scan_interval": "상태 업데이트 주기(초)",
+                    "miot_cloud": "miot 클라우드 사용 (YAML에서 계정을 먼저 설정하세요)"
+                }
+            },
+            "cloud": {
+                "description": "샤오미 클라우드 계정을 설정합니다.\n{tip}",
+                "data": {
+                    "username": "샤오미 계정 ID / 이메일",
+                    "password": "비밀번호",
+                    "captcha": "보안 문자",
+                    "verify_ticket": "2단계 인증 코드",
+                    "server_country": "MiCloud 서버 지역",
+                    "conn_mode": "기기 연결 방식",
+                    "renew_devices": "기기 목록 강제 갱신",
+                    "trans_options": "속성 값 설명 번역",
+                    "disable_message": "미홈 알림 센서 비활성화",
+                    "disable_scene_history": "미홈 장면 기록 센서 비활성화"
+                }
+            },
+            "cloud_filter": {
+                "title": "클라우드 기기 필터링",
+                "description": "원하는 기기만 연동하도록 기기를 포함하거나 제외할 수 있습니다.\n{tip}",
+                "data": {
+                    "filter_model": "기기 모델 필터",
+                    "model_list": "기기 모델 목록",
+                    "filter_home_id": "홈 필터",
+                    "home_id_list": "홈 목록",
+                    "filter_ssid": "WiFi SSID 필터",
+                    "ssid_list": "WiFi SSID 목록",
+                    "filter_bssid": "WiFi BSSID 필터",
+                    "bssid_list": "WiFi BSSID 목록",
+                    "filter_did": "기기 필터",
+                    "did_list": "기기 목록",
+                    "home_ids": "홈 필터 (비워 두면 저장됩니다)"
+                },
+                "data_description": {
+                    "filter_did": "제외 방식에서 목록의 항목을 하나도 선택하지 않으면 모든 기기를 포함하는 것과 같습니다.",
+                    "home_ids": "이 항목을 선택하고 제출하면 현재 페이지로 돌아오며,\n기기 목록이 새로 고쳐지면서 선택한 홈의 기기가 걸러집니다."
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "기기에 연결하지 못했습니다",
+            "cannot_login": "샤오미 계정 로그인에 실패했습니다. 계정 정보를 확인하세요. 로그인이 여러 번 실패하는 경우, 같은 네트워크 환경에서 샤오미 공식 웹사이트(mi.com)에 다시 로그인해 보세요.",
+            "cannot_reach": "샤오미 API 인터페이스에 접근할 수 없습니다",
+            "tzinfo_error": "Home Assistant 환경에 문제가 있는 것 같습니다. 시간대 설정을 확인하세요",
+            "none_devices": "이 샤오미 계정에서 기기를 찾을 수 없습니다",
+            "need_verify": "이 로그인에는 보안 인증이 필요합니다. 아래 인증 링크를 열어 휴대폰/이메일 인증 코드를 전송하세요. 인증 코드를 받은 뒤에는 웹페이지에서 인증하지 말고, Home Assistant로 돌아와 아래 입력란에 입력하세요."
+        },
+        "abort": {
+            "show_customizes": "사용자 지정을 변경하려면 새 통합 구성요소를 추가하세요.\n{link}\n{tip}"
+        }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "사용자 정의 구성요소 버전",
+            "can_reach_server": "샤오미 API 서버 연결",
+            "can_reach_spec": "MIoT-Spec 서버 연결",
+            "logged_accounts": "로그인된 계정 수",
+            "total_devices": "미홈 기기 총 개수"
+        }
+    },
+    "entity": {
+        "button": {
+            "info": {
+                "name": "정보"
+            }
+        },
+        "sensor": {
+            "clean_area": {
+                "name": "청소 면적"
+            },
+            "clean_time": {
+                "name": "청소 시간"
+            },
+            "power_cost_today": {
+                "name": "오늘 전력량"
+            },
+            "power_cost_month": {
+                "name": "이번 달 전력량"
+            },
+            "power_cost_today_2": {
+                "name": "오늘 전력량"
+            },
+            "power_cost_month_2": {
+                "name": "이번 달 전력량"
+            },
+            "props-clean_area": {
+                "name": "청소 면적"
+            },
+            "props-clean_time": {
+                "name": "청소 시간"
+            },
+            "lock": {
+                "state": {
+                    "bluetooth": "블루투스",
+                    "password": "비밀번호",
+                    "biological": "생체 인식",
+                    "key": "열쇠",
+                    "turntable": "회전 손잡이",
+                    "nfc": "NFC",
+                    "one_time_password": "일회용 비밀번호",
+                    "two_step_verification": "2단계 인증",
+                    "coercion": "강압 해제",
+                    "homekit": "HomeKit",
+                    "manual": "수동",
+                    "automatic": "자동"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "외부에서 잠금 해제",
+                    "lock": "잠금",
+                    "anti_lock_on": "이중 잠금 설정",
+                    "anti_lock_off": "이중 잠금 해제",
+                    "inside_unlock": "내부에서 잠금 해제",
+                    "lock_inside": "내부에서 잠금",
+                    "child_lock_on": "차일드 락 설정",
+                    "child_lock_off": "차일드 락 해제",
+                    "lock_outside": "외부에서 잠금"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "열림",
+                    "close": "닫힘",
+                    "close_timeout": "닫힘 시간 초과",
+                    "knock": "노크",
+                    "breaking": "침입",
+                    "stuck": "끼임"
+                }
+            }
+        },
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "물 부족"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "고장"
+            }
+        },
+        "switch": {
+            "no_disturb-no_disturb": {
+                "name": "방해 금지"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "차일드 락"
+            }
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {
+                "name": "급수 모드"
+            }
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "급수 간격"
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "자동",
+                            "low": "약",
+                            "medium": "중",
+                            "middle": "중간",
+                            "high": "강",
+                            "quiet": "저소음",
+                            "turbo": "터보",
+                            "level1": "1단",
+                            "level2": "2단",
+                            "level3": "3단",
+                            "level4": "4단",
+                            "level5": "5단",
+                            "level6": "6단",
+                            "level7": "7단"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "꺼짐",
+                            "vertical": "수직",
+                            "horizontal": "수평",
+                            "both": "양방향"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "services": {
+        "send_command": {
+            "name": "명령 전송",
+            "description": "miio 명령을 전송합니다",
+            "fields": {
+                "entity_id": {
+                    "name": "엔티티 ID",
+                    "description": ""
+                },
+                "method": {
+                    "name": "메서드",
+                    "description": ""
+                },
+                "params": {
+                    "name": "매개변수",
+                    "description": ""
+                }
+            }
+        },
+        "get_properties": {
+            "name": "속성 가져오기",
+            "description": "miot 속성을 가져옵니다",
+            "fields": {
+                "entity_id": {
+                    "name": "엔티티 ID",
+                    "description": ""
+                },
+                "mapping": {
+                    "name": "매핑",
+                    "description": ""
+                },
+                "update_entity": {
+                    "name": "엔티티 업데이트",
+                    "description": ""
+                }
+            }
+        },
+        "set_property": {
+            "name": "속성 설정",
+            "description": "miot 속성을 설정합니다",
+            "fields": {
+                "entity_id": {
+                    "name": "엔티티 ID",
+                    "description": ""
+                },
+                "field": {
+                    "name": "필드",
+                    "description": ""
+                },
+                "value": {
+                    "name": "값",
+                    "description": ""
+                }
+            }
+        },
+        "set_miot_property": {
+            "name": "miot 속성 설정",
+            "description": "siid/piid로 miot 속성을 설정합니다",
+            "fields": {
+                "entity_id": {
+                    "name": "엔티티 ID",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "piid": {
+                    "name": "",
+                    "description": ""
+                },
+                "value": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        },
+        "call_action": {
+            "name": "액션 호출",
+            "description": "miot 액션을 호출합니다",
+            "fields": {
+                "entity_id": {
+                    "name": "엔티티 ID",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "aiid": {
+                    "name": "",
+                    "description": ""
+                },
+                "params": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        },
+        "intelligent_speaker": {
+            "name": "스마트 스피커",
+            "description": "샤오아이 스마트 스피커 제어",
+            "fields": {
+                "entity_id": {
+                    "name": "엔티티 ID",
+                    "description": "샤오아이 엔티티 ID"
+                },
+                "text": {
+                    "name": "텍스트",
+                    "description": ""
+                },
+                "execute": {
+                    "name": "실행",
+                    "description": ""
+                },
+                "silent": {
+                    "name": "무음",
+                    "description": ""
+                }
+            }
+        },
+        "xiaoai_wakeup": {
+            "name": "샤오아이 깨우기",
+            "description": "샤오아이 스피커를 깨웁니다",
+            "fields": {
+                "entity_id": {
+                    "name": "엔티티 ID",
+                    "description": "샤오아이 엔티티 ID"
+                },
+                "text": {
+                    "name": "텍스트",
+                    "description": ""
+                }
+            }
+        },
+        "get_device_data": {
+            "name": "기기 데이터 가져오기",
+            "description": "클라우드에서 샤오미 기기 데이터를 가져옵니다",
+            "fields": {
+                "entity_id": {
+                    "name": "엔티티 ID",
+                    "description": ""
+                },
+                "type": {
+                    "name": "유형",
+                    "description": ""
+                },
+                "key": {
+                    "name": "키",
+                    "description": ""
+                },
+                "time_start": {
+                    "name": "시작 시각",
+                    "description": ""
+                },
+                "time_end": {
+                    "name": "종료 시각",
+                    "description": ""
+                },
+                "limit": {
+                    "name": "제한",
+                    "description": ""
+                },
+                "group": {
+                    "name": "그룹",
+                    "description": ""
+                }
+            }
+        },
+        "renew_devices": {
+            "name": "기기 목록 갱신",
+            "description": "캐시된 샤오미 기기 목록을 갱신합니다",
+            "fields": {
+                "username": {
+                    "name": "사용자 이름",
+                    "description": ""
+                }
+            }
+        },
+        "get_token": {
+            "name": "토큰 가져오기",
+            "description": "샤오미 기기 토큰을 가져옵니다",
+            "fields": {
+                "name": {
+                    "name": "이름",
+                    "description": ""
+                }
+            }
+        },
+        "get_bindkey": {
+            "name": "bindkey 가져오기",
+            "description": "BLE 기기의 bindkey를 가져옵니다",
+            "fields": {
+                "entity_id": {
+                    "name": "엔티티 ID",
+                    "description": ""
+                },
+                "did": {
+                    "name": "DID",
+                    "description": ""
+                }
+            }
+        },
+        "request_xiaomi_api": {
+            "name": "샤오미 API 요청",
+            "description": "샤오미 API를 요청합니다",
+            "fields": {
+                "entity_id": {
+                    "name": "엔티티 ID",
+                    "description": ""
+                },
+                "api": {
+                    "name": "API",
+                    "description": ""
+                },
+                "data": {
+                    "name": "데이터",
+                    "description": ""
+                },
+                "method": {
+                    "name": "메서드",
+                    "description": ""
+                },
+                "crypt": {
+                    "name": "암호화",
+                    "description": ""
+                },
+                "sid": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        }
+    }
+}
