@@ -687,6 +687,28 @@ class Device(CustomConfigHelper):
         InfoConverter.decode(self, info, None)
         self.dispatch(info, only_info=True, log=False)
 
+    def normalize_miot_results(self, results: list) -> list:
+        """Normalize the known malformed rz01 temperature response."""
+        if self.model != 'topwit.bhf_light.rz01' or not isinstance(results, list):
+            return results
+        normalized = []
+        for result in results:
+            if not isinstance(result, dict):
+                normalized.append(result)
+                continue
+            code = result.get('code')
+            if (
+                result.get('siid') == 4
+                and result.get('piid') == 5
+                and 'value' not in result
+                and not isinstance(code, bool)
+                and isinstance(code, (int, float))
+                and -30 <= code <= 100
+            ):
+                result = {**result, 'code': 0, 'value': code}
+            normalized.append(result)
+        return normalized
+
     def decode(self, data: dict | list) -> dict:
         """Decode data from device."""
         payload = {}
@@ -901,6 +923,7 @@ class Device(CustomConfigHelper):
                 self._local_fails = 0
                 self._local_state = True
                 self.miot_results.updater = 'local'
+                results = self.normalize_miot_results(results)
                 self.miot_results.set_results(results, mapping)
             except (DeviceException, OSError) as exc:
                 self._local_fails += 1
@@ -934,6 +957,7 @@ class Device(CustomConfigHelper):
                 self.available = True
                 self._cloud_fails = 0
                 self._cloud_state = True
+                results = self.normalize_miot_results(results)
                 self.miot_results.set_results(results, mapping)
             except MiCloudException as exc:
                 self._cloud_fails += 1
@@ -1052,6 +1076,7 @@ class Device(CustomConfigHelper):
             if throw:
                 raise exc
             return {'error': str(exc)}
+        results = self.normalize_miot_results(results)
         self.log.info('Get miot properties: %s', results)
         if results and update_entity:
             self.dispatch(self.decode(results))
