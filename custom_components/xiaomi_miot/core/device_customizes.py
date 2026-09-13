@@ -2183,6 +2183,31 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'brightness',
         'exclude_miot_services': 'rfid',
     },
+    'xiaomi.airp.mb5': {
+        'sensor_properties': 'fault,pm1,motor_rpm_feedback',
+        'switch_properties': 'screen.on',
+        'select_properties': 'air_purifier_favorite.fan_level,brightness',
+        'button_actions': 'reset_filter_life',
+        'exclude_miot_services': 'filter_debug,filter_tag,aqi',
+        'exclude_miot_properties': 'country_code,reboot_cause,favorite_square',
+        'configuration_entities': 'anion,uv,screen.on,brightness,alarm,physical_controls_locked,'
+                                  'air_purifier_favorite.fan_level,reset_filter_life',
+        'diagnostic_entities': 'fault,motor_rpm_feedback',
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'on,mode,fan_level,air_purifier_favorite.fan_level'},
+            {'interval': 61, 'props': 'fault,relative_humidity,temperature,air_quality,pm1,'
+                                    'pm2_5_density,pm10_density,motor_rpm_feedback'},
+            {'interval': 121, 'props': 'anion,uv,screen.on,brightness,alarm,physical_controls_locked'},
+            {'interval': 301, 'props': 'filter_*'},
+        ],
+    },
+    'xiaomi.airp.mb5:pm10_density': {
+        'unit_of_measurement': 'μg/m³',
+    },
+    'xiaomi.airp.mb5:motor_rpm_feedback': {
+        'unit_of_measurement': 'rpm',
+        'state_class': 'measurement',
+    },
     'xiaomi.airp.va2b': {
         'switch_properties': 'on,anion',
         'exclude_miot_services': 'custom_service,rfid',
