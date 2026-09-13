@@ -1915,6 +1915,7 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'heating,blow,ventilation',
         'number_properties': 'ventilation_cnt_down',
         'binary_sensor_properties': 'child_lock',
+        'miot_result_recode': ['4.5'],
     },
 
     'uvfive.steriliser.maine': CHUNK_1,

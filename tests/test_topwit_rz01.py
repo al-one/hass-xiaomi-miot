@@ -7,12 +7,13 @@ from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZ
 from custom_components.xiaomi_miot.core.miot_spec import MiotResults
 
 
-def normalize(model, results):
-    return Device.normalize_miot_results(SimpleNamespace(model=model), results)
+def normalize(keys, results):
+    device = SimpleNamespace(custom_config_list=lambda key: keys)
+    return Device.normalize_miot_results(device, results)
 
 
-def test_rz01_temperature_code_is_normalized_to_a_standard_value():
-    results = normalize('topwit.bhf_light.rz01', [
+def test_declared_temperature_code_is_normalized_to_a_standard_value():
+    results = normalize(['4.5'], [
         {'siid': 4, 'piid': 5, 'code': 25},
     ])
 
@@ -23,26 +24,22 @@ def test_rz01_temperature_code_is_normalized_to_a_standard_value():
     assert attrs == {'ptc_bath_heater.temperature': 25}
 
 
-def test_rz01_only_normalizes_the_verified_temperature_property():
-    results = normalize('topwit.bhf_light.rz01', [
+def test_recode_only_applies_to_declared_properties():
+    results = normalize(['4.5'], [
         {'siid': 4, 'piid': 6, 'code': 25},
-        {'siid': 4, 'piid': 5, 'code': 125},
-        {'siid': 4, 'piid': 5, 'code': -4004},
         {'siid': 4, 'piid': 5, 'code': 25, 'value': 99},
     ])
 
     assert results == [
         {'siid': 4, 'piid': 6, 'code': 25},
-        {'siid': 4, 'piid': 5, 'code': 125},
-        {'siid': 4, 'piid': 5, 'code': -4004},
         {'siid': 4, 'piid': 5, 'code': 25, 'value': 99},
     ]
 
 
-def test_other_models_keep_their_error_response_unchanged():
+def test_undeclared_recode_keeps_the_response_unchanged():
     result = {'siid': 4, 'piid': 5, 'code': 25}
 
-    assert normalize('other.bath_heater', [result]) == [result]
+    assert normalize(None, [result]) == [result]
 
 
 def test_rz01_customization_removes_workaround_and_adds_read_only_child_lock():
@@ -52,3 +49,4 @@ def test_rz01_customization_removes_workaround_and_adds_read_only_child_lock():
     assert customize['switch_properties'] == 'heating,blow,ventilation'
     assert customize['number_properties'] == 'ventilation_cnt_down'
     assert customize['binary_sensor_properties'] == 'child_lock'
+    assert customize['miot_result_recode'] == ['4.5']

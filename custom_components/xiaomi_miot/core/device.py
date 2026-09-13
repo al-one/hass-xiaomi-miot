@@ -688,24 +688,20 @@ class Device(CustomConfigHelper):
         self.dispatch(info, only_info=True, log=False)
 
     def normalize_miot_results(self, results: list) -> list:
-        """Normalize the known malformed rz01 temperature response."""
-        if self.model != 'topwit.bhf_light.rz01' or not isinstance(results, list):
+        """Recode malformed replies declared by a device customization."""
+        keys = self.custom_config_list('miot_result_recode')
+        if not keys or not isinstance(results, list):
             return results
         normalized = []
         for result in results:
-            if not isinstance(result, dict):
-                normalized.append(result)
-                continue
-            code = result.get('code')
             if (
-                result.get('siid') == 4
-                and result.get('piid') == 5
+                isinstance(result, dict)
+                and f"{result.get('siid')}.{result.get('piid')}" in keys
                 and 'value' not in result
-                and not isinstance(code, bool)
-                and isinstance(code, (int, float))
-                and -30 <= code <= 100
+                and not isinstance(result.get('code'), bool)
+                and isinstance(result.get('code'), (int, float))
             ):
-                result = {**result, 'code': 0, 'value': code}
+                result = {**result, 'value': result['code'], 'code': 0}
             normalized.append(result)
         return normalized
 
