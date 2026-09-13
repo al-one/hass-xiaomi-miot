@@ -168,6 +168,14 @@ CUSTOM_TEMPLATES = {
                                        "'coolwind_gear': val[1],"
                                        "'venting_gear': val[2],"
                                        "} }}",
+    'yeelink_curtain_ctmt2_cloud_props': "{%- set child = props.get('prop.get_child', 1) | int(1) %}"
+                                         "{%- set bat = props.get('prop.battery') %}"
+                                         "{%- set bat2 = props.get('prop.battery2') %}"
+                                         "{{ {"
+                                         "'yl_curtain.battery_level': bat | int(0) if bat is not none else none,"
+                                         "'yl_curtain.battery_level_2': bat2 | int(0)"
+                                         " if child == 2 and bat2 is not none else none,"
+                                         "} }}",
     'zimi_powerstrip_v2_power_cost': "{%- set val = (result.0 | default({})).get('value','[0]') %}"
                                      "{%- set day = now().day %}"
                                      "{%- set vls = (val | from_json)[0-day:] %}"

@@ -1374,10 +1374,10 @@ TRANSLATION_LANGUAGES = {
             'sweep water_state': 'смачивание тряпки',
             'sweep cleaning_area': 'площадь уборки',
             'sweep cleaning_time': 'время уборки',
-            'sweep pet-recognize': 'распознование животных',
+            'sweep pet-recognize': 'распознавание животных',
             'sweep mop-route': 'тип влажной уборки',
-            'sweep ai_recognize': 'распознование AI',
-            'sweep dirt-recognize': 'распознование грязи',
+            'sweep ai_recognize': 'распознавание AI',
+            'sweep dirt-recognize': 'распознавание грязи',
         },
         'sweep.water_state': {
             '低': 'Низкое',
@@ -1406,7 +1406,7 @@ TRANSLATION_LANGUAGES = {
             '二合一水箱': 'Совмещенный',
         },
         'sweep.cloth_state': {
-            '没装': 'отсутсвует',
+            '没装': 'отсутствует',
             '装了': 'установлена',
         },
         'clean.mode': {
@@ -1469,6 +1469,15 @@ TRANSLATION_LANGUAGES = {
         'water_heater': {
             'water heater': 'водонагреватель',
         },
+
+        'yl_curtain.battery_level': {
+            'yl-curtain left': 'Левая батарея',
+            'yl_curtain left': 'Левая батарея',
+        },
+        'yl_curtain.battery_level_2': {
+            'yl-curtain right': 'Правая батарея',
+            'yl_curtain right': 'Правая батарея',
+        },
     },
 
     'en': {
@@ -1510,6 +1519,14 @@ TRANSLATION_LANGUAGES = {
             '清扫开始时间，时间戳，单位秒': 'Cleaning start time, timestamp, in seconds',
             'Y字形': 'Y-shaped',
             '弓字形': 'S-shaped',
+        },
+        'yl_curtain.battery_level': {
+            'yl-curtain left': 'Left Battery',
+            'yl_curtain left': 'Left Battery',
+        },
+        'yl_curtain.battery_level_2': {
+            'yl-curtain right': 'Right Battery',
+            'yl_curtain right': 'Right Battery',
         },
     },
 
