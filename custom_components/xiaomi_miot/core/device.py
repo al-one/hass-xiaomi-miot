@@ -548,7 +548,7 @@ class Device(CustomConfigHelper):
 
         all_mapping = {**self.miot_mapping()}
         chunks = self.custom_config_list('chunk_coordinators') or []
-        if self.miio2miot and not self.miio2miot.config.get('extend_miot_props'):
+        if self.miio2miot:
             chunks = []
 
         def update_factory(mapping, notify=False, chunk_services=None):
@@ -1330,30 +1330,22 @@ class Device(CustomConfigHelper):
             return
         if props is None:
             props = self.custom_miio_properties
-        if not props:
-            return
         if self.miio2miot:
-            raw = self.miio2miot.only_miio_props(props)
-            if not isinstance(raw, dict):
-                raw = dict(zip(props, raw))
+            attrs = self.miio2miot.only_miio_props(props)
         else:
             try:
                 num = self.custom_config_integer('chunk_properties') or 15
-                raw = await self.local.async_get_properties(props, max_properties=num)
+                attrs = await self.local.async_get_properties(props, max_properties=num)
             except DeviceException as exc:
                 self.log.warning('%s: Got miio properties %s failed: %s', self.name_model, props, exc)
                 return
-            if len(props) != len(raw):
+            if len(props) != len(attrs):
                 self.props.update({
-                    'miio.props': raw,
+                    'miio.props': attrs,
                 })
                 return
-            raw = dict(zip(props, raw))
-        attrs = dict(zip(map(lambda x: f'miio.{x}', props), raw.values()))
-        if attrs:
-            self.props.update(attrs)
-            self.data['updated'] = dt.now()
-            self.dispatch(self.decode_attrs(attrs))
+        attrs = dict(zip(map(lambda x: f'miio.{x}', props), attrs))
+        self.props.update(attrs)
         self.log.info('%s: Got miio properties: %s', self.name_model, attrs)
 
     @cached_property
