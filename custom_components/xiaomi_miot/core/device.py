@@ -687,6 +687,24 @@ class Device(CustomConfigHelper):
         InfoConverter.decode(self, info, None)
         self.dispatch(info, only_info=True, log=False)
 
+    def normalize_miot_results(self, results: list) -> list:
+        """Recode malformed replies declared by a device customization."""
+        keys = self.custom_config_list('miot_result_recode')
+        if not keys or not isinstance(results, list):
+            return results
+        normalized = []
+        for result in results:
+            if (
+                isinstance(result, dict)
+                and f"{result.get('siid')}.{result.get('piid')}" in keys
+                and 'value' not in result
+                and not isinstance(result.get('code'), bool)
+                and isinstance(result.get('code'), (int, float))
+            ):
+                result = {**result, 'value': result['code'], 'code': 0}
+            normalized.append(result)
+        return normalized
+
     def decode(self, data: dict | list) -> dict:
         """Decode data from device."""
         payload = {}
@@ -901,6 +919,7 @@ class Device(CustomConfigHelper):
                 self._local_fails = 0
                 self._local_state = True
                 self.miot_results.updater = 'local'
+                results = self.normalize_miot_results(results)
                 self.miot_results.set_results(results, mapping)
             except (DeviceException, OSError) as exc:
                 self._local_fails += 1
@@ -934,6 +953,7 @@ class Device(CustomConfigHelper):
                 self.available = True
                 self._cloud_fails = 0
                 self._cloud_state = True
+                results = self.normalize_miot_results(results)
                 self.miot_results.set_results(results, mapping)
             except MiCloudException as exc:
                 self._cloud_fails += 1
@@ -1052,6 +1072,7 @@ class Device(CustomConfigHelper):
             if throw:
                 raise exc
             return {'error': str(exc)}
+        results = self.normalize_miot_results(results)
         self.log.info('Get miot properties: %s', results)
         if results and update_entity:
             self.dispatch(self.decode(results))
