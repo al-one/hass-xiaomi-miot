@@ -194,6 +194,11 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 if self._attr_preset_modes:
                     self._attr_supported_features |= ClimateEntityFeature.PRESET_MODE
             elif prop.in_list(['fan_level', 'speed_level', 'heat_level']):
+                if prop.value_range and self._conv_speed:
+                    # ma2 v3 等规格中同时存在离散 fan_level 与无极 stepless_fan_level(value-range),
+                    # 无极属性会因同名匹配而覆盖离散档, 导致 fan_modes 变成 101 档且丢失 auto。
+                    # 已有离散档位时跳过无极属性。
+                    continue
                 self._conv_speed = conv
                 self._attr_fan_modes = prop.list_descriptions(lower=True)
                 self._attr_supported_features |= ClimateEntityFeature.FAN_MODE
