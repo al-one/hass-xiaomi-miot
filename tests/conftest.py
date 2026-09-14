@@ -66,6 +66,9 @@ def make_device(hass, request):
         })
         device = Device(info, entry)
         device.spec = spec
+        device._exclude_miot_services = device.custom_config_list("exclude_miot_services", [])
+        device._exclude_miot_properties = device.custom_config_list("exclude_miot_properties", [])
+        device._unreadable_properties = device.custom_config_bool("unreadable_properties")
         device.init_converters()
         return device
 

@@ -852,6 +852,7 @@ MIOT_LOCAL_MODELS = [
     'xiaomi.airer.lyj3xs',
     'xiaomi.airer.pro3',
     'xiaomi.airp.cpa4',
+    'xiaomi.airp.mb5',
     'xiaomi.airp.mp4',
     'xiaomi.airp.mp5',
     'xiaomi.airp.pa1',

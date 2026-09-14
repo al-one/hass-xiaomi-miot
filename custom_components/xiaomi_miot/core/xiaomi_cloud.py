@@ -604,18 +604,23 @@ class MiotCloud(micloud.MiCloud):
             if not location:
                 raise MiCloudAuthenticationError('Xiaomi verify did not return location')
             response = self.account_get(location, allow_redirects=True, response=True)
-            if self._finalize_login_response(response):
-                return True
+            # Do not return early here: `_finalize_login_response()` only stores
+            # service_token/user_id/cuser_id, it never sets `ssecurity`, and the
+            # `identity/result/check` response carries no `ssecurity` either.
+            # Returning early skips `_login_step1()` (the only place that fetches
+            # `ssecurity` on this path) and `_login_step3()`, leaving `ssecurity`
+            # as None so every api.io.mi.com request fails with "invalid signature".
+            self._finalize_login_response(response)
             if skip_url := self._extract_confirm_phone_skip_url(response):
                 response = self.account_get(skip_url, allow_redirects=True, response=True)
-                if self._finalize_login_response(response):
-                    return True
+                self._finalize_login_response(response)
             auth = self._login_step1()
             location = auth.get('location', '')
         elif auth:
             auth.update(login_data)
         else:
             auth = self._login_step1()
+            auth.update(login_data)
         if not location:
             location = self._login_step2(**auth)
         response = self._login_step3(location)
@@ -699,6 +704,7 @@ class MiotCloud(micloud.MiCloud):
 
         cap = auth.get('captchaUrl')
         if cap:
+            self.attrs['login_data'] = kwargs
             cap = self._absolutize(cap)
             needs_complete_refresh = (
                 code == 87001
@@ -717,7 +723,6 @@ class MiotCloud(micloud.MiCloud):
                 if code == 87001:
                     raise MiCloudAuthenticationError('Xiaomi captcha rejected')
                 raise MiCloudException('Xiaomi login requires captcha')
-            self.attrs['login_data'] = kwargs
             raise MiCloudException('Xiaomi login requires captcha')
 
         self._clear_captcha_attrs()
@@ -732,7 +737,7 @@ class MiotCloud(micloud.MiCloud):
         raise MiCloudException('Xiaomi login step2 failed')
 
     def _clear_captcha_attrs(self):
-        for k in ('captcha_url', 'captchaImg', 'captchaIck'):
+        for k in ('captcha_url', 'captchaImg', 'captchaIck', 'login_data'):
             self.attrs.pop(k, None)
 
     def _has_complete_captcha(self):

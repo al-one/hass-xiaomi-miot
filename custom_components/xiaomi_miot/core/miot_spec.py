@@ -9,10 +9,6 @@ from collections.abc import Iterable
 
 from homeassistant.core import HomeAssistant
 from homeassistant.const import (
-    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
-    CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
-    CONCENTRATION_PARTS_PER_CUBIC_METER,
-    CONCENTRATION_PARTS_PER_MILLION,
     LIGHT_LUX,
     PERCENTAGE,
     UnitOfElectricCurrent,
@@ -32,6 +28,8 @@ from homeassistant.exceptions import HomeAssistantError
 from .const import (
     DOMAIN,
     TRANSLATION_LANGUAGES,
+    UnitOfDensity,
+    UnitOfRatio,
 )
 from .utils import get_translation_langs, convert_globs_to_pattern
 
@@ -950,9 +948,9 @@ class MiotProperty(MiotSpecInstance):
             'lux': LIGHT_LUX,
             'watt': UnitOfPower.WATT,
             'pascal': UnitOfPressure.PA,
-            'μg/m3': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
-            'mg/m3': CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
-            'p/m3': CONCENTRATION_PARTS_PER_CUBIC_METER,
+            'μg/m3': UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
+            'mg/m3': UnitOfDensity.MILLIGRAMS_PER_CUBIC_METER,
+            'p/m3': 'p/m³',
         }
         names = {
             'current_step_count': 'steps',
@@ -960,9 +958,9 @@ class MiotProperty(MiotSpecInstance):
             'power_consumption': UnitOfEnergy.WATT_HOUR,
             'electric_current': UnitOfElectricCurrent.AMPERE,
             'voltage': UnitOfElectricPotential.VOLT,
-            'pm2_5_density': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
-            'tds_in': CONCENTRATION_PARTS_PER_MILLION,
-            'tds_out': CONCENTRATION_PARTS_PER_MILLION,
+            'pm2_5_density': UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
+            'tds_in': UnitOfRatio.PARTS_PER_MILLION,
+            'tds_out': UnitOfRatio.PARTS_PER_MILLION,
         }
         if unit in aliases:
             unit = aliases[unit]

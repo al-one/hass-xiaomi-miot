@@ -1,4 +1,6 @@
 """Support for Xiaomi vacuums."""
+from __future__ import annotations
+
 import logging
 import asyncio
 import json
@@ -7,10 +9,15 @@ from datetime import timedelta
 from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
     StateVacuumEntity,
-    Segment,
+    VacuumActivity,
     VacuumEntityFeature,  # v2022.5
 )
-from .core.const import VacuumActivity
+from homeassistant.exceptions import HomeAssistantError
+
+try:
+    from homeassistant.components.vacuum import Segment
+except ImportError:  # Room cleaning is unavailable on older supported HA versions.
+    Segment = None
 
 from . import (
     DOMAIN,
@@ -130,7 +137,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._supported_features |= VacuumEntityFeature.STATE
         if self._act_locate:
             self._supported_features |= VacuumEntityFeature.LOCATE
-        if (self._prop_room_information and self._act_get_room_configs
+        if (Segment is not None and self._prop_room_information and self._act_get_room_configs
                 and self._act_start_room_sweep):
             self._supported_features |= VacuumEntityFeature.CLEAN_AREA
         self._supported_features |= VacuumEntityFeature.SEND_COMMAND
@@ -234,16 +241,18 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
     async def async_get_segments(self) -> list[Segment]:
         """Fetch room segments when supported by the MIoT device spec."""
-        if not (self._prop_room_information and self._act_get_room_configs
+        if not (Segment is not None and self._prop_room_information and self._act_get_room_configs
                 and self._act_start_room_sweep):
             return []
         in_properties = self._act_get_room_configs.in_properties()
         params = self._act_get_room_configs.in_params_from_attrs(
             {in_properties[0].full_name: ''}
         ) if in_properties else []
-        await self.async_call_action(
+        result = await self.async_call_action(
             self._act_get_room_configs, params, force_params=True
         )
+        if not result.is_success:
+            raise HomeAssistantError('Unable to refresh vacuum rooms')
         props = await self.device.async_get_properties(
             [{'siid': self._prop_room_information.service.iid,
               'piid': self._prop_room_information.iid}],
@@ -268,20 +277,25 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         if self._act_set_room_clean_configs:
             config = _room_clean_config(segment_ids)
             params = self._act_set_room_clean_configs.in_params([config])
-            await self.async_call_action(
+            result = await self.async_call_action(
                 self._act_set_room_clean_configs, params, force_params=True
             )
+            if not result.is_success:
+                raise HomeAssistantError('Unable to configure vacuum room cleaning')
 
         payload = _room_sweep_payload(segment_ids)
         params = self._act_start_room_sweep.in_params([payload])
-        return await self.async_call_action(
+        result = await self.async_call_action(
             self._act_start_room_sweep, params, force_params=True
         )
+        if not result.is_success:
+            raise HomeAssistantError('Unable to start vacuum room cleaning')
+        return result
 
 
 def _parse_room_information(value):
     """Convert a MIoT room-information property into HA segments."""
-    if not value:
+    if Segment is None or not value:
         return []
     if isinstance(value, str):
         try:

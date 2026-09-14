@@ -1912,9 +1912,10 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     'topwit.bhf_light.rz01': {
-        'sensor_attributes': 'ptc_bath_heater.temperature.error',
         'switch_properties': 'heating,blow,ventilation',
         'number_properties': 'ventilation_cnt_down',
+        'binary_sensor_properties': 'child_lock',
+        'miot_result_recode': ['4.5'],
     },
 
     'uvfive.steriliser.maine': CHUNK_1,
@@ -2183,6 +2184,31 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'brightness',
         'exclude_miot_services': 'rfid',
     },
+    'xiaomi.airp.mb5': {
+        'sensor_properties': 'fault,pm1,motor_rpm_feedback',
+        'switch_properties': 'screen.on',
+        'select_properties': 'air_purifier_favorite.fan_level,brightness',
+        'button_actions': 'reset_filter_life',
+        'exclude_miot_services': 'filter_debug,filter_tag,aqi',
+        'exclude_miot_properties': 'country_code,reboot_cause,favorite_square',
+        'configuration_entities': 'anion,uv,screen.on,brightness,alarm,physical_controls_locked,'
+                                  'air_purifier_favorite.fan_level,reset_filter_life',
+        'diagnostic_entities': 'fault,motor_rpm_feedback',
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'on,mode,fan_level,air_purifier_favorite.fan_level'},
+            {'interval': 61, 'props': 'fault,relative_humidity,temperature,air_quality,pm1,'
+                                    'pm2_5_density,pm10_density,motor_rpm_feedback'},
+            {'interval': 121, 'props': 'anion,uv,screen.on,brightness,alarm,physical_controls_locked'},
+            {'interval': 301, 'props': 'filter_*'},
+        ],
+    },
+    'xiaomi.airp.mb5:pm10_density': {
+        'unit_of_measurement': 'μg/m³',
+    },
+    'xiaomi.airp.mb5:motor_rpm_feedback': {
+        'unit_of_measurement': 'rpm',
+        'state_class': 'measurement',
+    },
     'xiaomi.airp.va2b': {
         'switch_properties': 'on,anion',
         'exclude_miot_services': 'custom_service,rfid',
@@ -2327,6 +2353,16 @@ DEVICE_CUSTOMIZES = {
                 'converters': [{'props': ['dm_service.fan_level']}],
             }
         ],
+    },
+    'xiaomi.fan.p90': {
+        'sensor_properties': 'fault,delay_remain_time',
+        'switch_properties': 'horizontal_swing,vertical_swing,symmetrical_swing_h,symmetrical_swing_v,'
+                             'alarm,screen.on,physical_controls_locked,off_to_center,delay',
+        'number_properties': 'left_angle,right_angle,up_angle,down_angle,delay_time',
+        'button_actions': 'loop_mode,loop_gear',
+        'configuration_entities': 'symmetrical_swing_*,*_angle,alarm,screen.on,'
+                                  'physical_controls_locked,off_to_center,delay,delay_time',
+        'diagnostic_entities': 'fault,delay_remain_time',
     },
     'xiaomi.feeder.iv2001': {
         'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
