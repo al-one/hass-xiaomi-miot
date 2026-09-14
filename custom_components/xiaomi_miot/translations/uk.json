@@ -63,6 +63,67 @@
                     "yaml_mode": "Режим YAML",
                     "yaml_customizes": "Налаштування YAML-коду",
                     "reset_customizes": "Скинути до стандартних налаштувань",
+                    "binary_sensor_attributes": "Атрибути як бінарні сенсори",
+                    "binary_sensor_properties": "Властивості MIoT як бінарні сенсори",
+                    "bind_sensor": "Прив’язаний сенсор температури та вологості",
+                    "bind_xiaoai": "Прив’язана колонка XiaoAI",
+                    "brightness_for_off": "Значення яскравості для вимкнення",
+                    "brightness_for_on": "Значення яскравості для ввімкнення",
+                    "button_actions": "Дії MIoT як кнопки",
+                    "button_properties": "Властивості MIoT як кнопки",
+                    "chunk_properties": "Кількість властивостей в одному запиті",
+                    "close_texts": "Значення стану «Закрито»",
+                    "closed_position": "Порогове значення закритого положення",
+                    "cloud_delay_update": "Затримка оновлення через хмару (с)",
+                    "configuration_entities": "Сутності конфігурації",
+                    "coord_type": "Тип координат",
+                    "current_temp_property": "Властивість поточної температури",
+                    "descriptions_for_on": "Значення стану «Увімкнено»",
+                    "descriptions_for_off": "Значення стану «Вимкнено»",
+                    "deviated_position": "Допустиме відхилення положення",
+                    "device_class": "Клас пристрою",
+                    "diagnostic_entities": "Діагностичні сутності",
+                    "disable_location_name": "Не показувати назву місця",
+                    "disable_preset_modes": "Вимкнені попередньо налаштовані режими",
+                    "entity_category": "Категорія сутності",
+                    "exclude_miot_properties": "Виключені властивості MIoT",
+                    "exclude_miot_services": "Виключені сервіси MIoT",
+                    "exclude_type": "Виключені типи сповіщень Mi Home",
+                    "feeding_measure": "Розмір порції корму",
+                    "filter_home": "Дім для фільтрування сповіщень Mi Home",
+                    "interval_seconds": "Інтервал опитування (с)",
+                    "main_miot_services": "Основні сервіси MIoT",
+                    "miot_did": "DID пристрою MIoT",
+                    "mitv_lan_host": "Локальна IP-адреса Mi TV",
+                    "motion_stream_slice": "Фрагмент відеопотоку руху",
+                    "motion_timeout": "Час очікування датчика руху (с)",
+                    "number_properties": "Властивості MIoT як числові сутності",
+                    "open_texts": "Значення стану «Відкрито»",
+                    "percentage_property": "Властивість швидкості у відсотках",
+                    "scanner_properties": "Властивості сканера",
+                    "screenshot_compress": "Рівень стиснення знімка екрана (%)",
+                    "select_actions": "Дії MIoT як списки вибору",
+                    "select_properties": "Властивості MIoT як списки вибору",
+                    "sensor_attributes": "Атрибути як сенсори",
+                    "sensor_properties": "Властивості MIoT як сенсори",
+                    "sources_via_apps": "Застосунки як джерела сигналу",
+                    "sources_via_keycodes": "Кнопки пульта як джерела сигналу",
+                    "speed_property": "Властивість швидкості",
+                    "stat_power_cost_key": "Ключ статистики споживання енергії",
+                    "stat_power_cost_type": "Тип статистики споживання енергії",
+                    "state_class": "Клас стану",
+                    "state_property": "Властивість, що визначає стан",
+                    "switch_properties": "Властивості MIoT як перемикачі",
+                    "target_position_properties": "Властивості цільового положення",
+                    "television_name": "Назва телевізора для XiaoAI",
+                    "text_actions": "Дії MIoT як текстові сутності",
+                    "time_properties": "Властивості MIoT як сутності часу",
+                    "turn_on_hvac": "Режим HVAC для ввімкнення",
+                    "unit_of_measurement": "Одиниця вимірювання",
+                    "value_ratio": "Коефіцієнт значення",
+                    "video_attribute": "Атрибут відео",
+                    "yeelight_smooth_off": "Тривалість плавного вимкнення Yeelight (мс)",
+                    "yeelight_smooth_on": "Тривалість плавного ввімкнення Yeelight (мс)",
                     "bool2selects": "Параметри налаштування"
                 }
             },
@@ -337,11 +398,11 @@
                     "description": ""
                 },
                 "mapping": {
-                    "name": "Mapping",
+                    "name": "Зіставлення властивостей",
                     "description": ""
                 },
                 "update_entity": {
-                    "name": "Update entity",
+                    "name": "Оновити сутність",
                     "description": ""
                 }
             }
@@ -414,7 +475,7 @@
             "fields": {
                 "entity_id": {
                     "name": "ID сутності",
-                    "description": "Xiaoai Entity ID"
+                    "description": "ID сутності XiaoAI"
                 },
                 "text": {
                     "name": "Текст",
@@ -436,7 +497,7 @@
             "fields": {
                 "entity_id": {
                     "name": "ID сутності",
-                    "description": "Xiaoai Entity ID"
+                    "description": "ID сутності XiaoAI"
                 },
                 "text": {
                     "name": "Текст",
@@ -479,7 +540,14 @@
             }
         },
         "renew_devices": {
-            "description": "Примусове оновлення пристроїв"
+            "name": "Оновити пристрої",
+            "description": "Оновити кешований список пристроїв Xiaomi",
+            "fields": {
+                "username": {
+                    "name": "Обліковий запис",
+                    "description": "Ідентифікатор, адреса електронної пошти або номер телефону облікового запису Xiaomi"
+                }
+            }
         },
         "get_token": {
             "name": "Отримати токен",
@@ -506,6 +574,7 @@
             }
         },
         "request_xiaomi_api": {
+            "name": "Надіслати запит до API Xiaomi",
             "description": "Запит до API Xiaomi",
             "fields": {
                 "entity_id": {
@@ -527,6 +596,10 @@
                 "crypt": {
                     "name": "Шифрування",
                     "description": ""
+                },
+                "sid": {
+                    "name": "Ідентифікатор сервісу",
+                    "description": "Сервіс Xiaomi, через який потрібно виконати запит"
                 }
             }
         }
