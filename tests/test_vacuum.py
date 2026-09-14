@@ -1,0 +1,154 @@
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.components.vacuum import VacuumEntityFeature
+
+from custom_components.xiaomi_miot.vacuum import (
+    MiotVacuumEntity,
+    MiotEntity,
+    Segment,
+    _parse_room_information,
+    _room_clean_config,
+    _room_sweep_payload,
+)
+
+
+@pytest.mark.parametrize('has_rooms', [True, False])
+def test_room_cleaning_feature_requires_ha_and_device_support(has_rooms):
+    service = Mock()
+    service.get_property.side_effect = lambda *names: (
+        Mock() if has_rooms and 'room_information' in names else None
+    )
+    service.get_action.side_effect = lambda *names: (
+        Mock() if has_rooms and names[0] in (
+            'get_room_configs', 'start_vacuum_room_sweep'
+        ) else None
+    )
+    service.spec.get_services.return_value = []
+    service.spec.get_service.return_value = None
+    service.generate_entity_id.return_value = 'vacuum.test'
+
+    def init(entity, *args, **kwargs):
+        entity._supported_features = 0
+
+    with patch.object(MiotEntity, '__init__', init):
+        entity = MiotVacuumEntity({}, service)
+
+    clean_area = getattr(VacuumEntityFeature, 'CLEAN_AREA', 0)
+    assert bool(entity._supported_features & clean_area) == (
+        has_rooms and Segment is not None
+    )
+    service.generate_entity_id.assert_called_once_with(entity, domain='vacuum')
+
+
+@pytest.mark.skipif(Segment is None, reason='HA does not support vacuum segments')
+def test_parse_room_information():
+    result = _parse_room_information(
+        '{"rooms":[{"id":3,"name":"Living Room"},{"id":16,"name":"Office"}],"map_uid":10}'
+    )
+
+    assert result == [
+        Segment(id='3', name='Living Room'),
+        Segment(id='16', name='Office'),
+    ]
+
+
+def test_parse_room_information_rejects_invalid_values():
+    assert _parse_room_information('') == []
+    assert _parse_room_information('{"rooms":null}') == []
+    assert _parse_room_information('not-json') == []
+
+
+def test_room_sweep_payload():
+    assert _room_sweep_payload(['3', '16']) == '3,16'
+
+
+def test_room_clean_config():
+    assert _room_clean_config(['3', '16']) == (
+        '{"rooms":[3,16],"clean_mode":1,"is_ai_cleaning":false}'
+    )
+
+
+@pytest.fixture
+def vacuum():
+    entity = object.__new__(MiotVacuumEntity)
+    entity._act_start_room_sweep = Mock()
+    entity._act_start_room_sweep.in_params.side_effect = lambda values: values
+    entity._act_set_room_clean_configs = Mock()
+    entity._act_set_room_clean_configs.in_params.side_effect = lambda values: values
+    entity.async_call_action = AsyncMock(return_value=SimpleNamespace(is_success=True))
+    return entity
+
+
+async def test_clean_segments_configures_before_start(vacuum):
+    await vacuum.async_clean_segments(['3', '16'])
+    calls = vacuum.async_call_action.await_args_list
+    assert len(calls) == 2
+    assert calls[0].args == (
+        vacuum._act_set_room_clean_configs,
+        ['{"rooms":[3,16],"clean_mode":1,"is_ai_cleaning":false}'],
+    )
+    assert calls[1].args == (vacuum._act_start_room_sweep, ['3,16'])
+    assert all(call.kwargs == {'force_params': True} for call in calls)
+
+
+async def test_clean_segments_without_config_action(vacuum):
+    vacuum._act_set_room_clean_configs = None
+    await vacuum.async_clean_segments(['3'])
+    vacuum.async_call_action.assert_awaited_once_with(
+        vacuum._act_start_room_sweep, ['3'], force_params=True
+    )
+
+
+async def test_clean_segments_empty_selection(vacuum):
+    await vacuum.async_clean_segments([])
+    vacuum.async_call_action.assert_not_awaited()
+
+
+async def test_clean_segments_config_failure_does_not_start(vacuum):
+    vacuum.async_call_action.return_value = SimpleNamespace(is_success=False)
+    with pytest.raises(HomeAssistantError, match='configure'):
+        await vacuum.async_clean_segments(['3'])
+    assert vacuum.async_call_action.await_count == 1
+    assert vacuum.async_call_action.await_args.args[0] is vacuum._act_set_room_clean_configs
+
+
+async def test_clean_segments_reports_start_failure(vacuum):
+    vacuum.async_call_action.side_effect = [
+        SimpleNamespace(is_success=True), SimpleNamespace(is_success=False)
+    ]
+    with pytest.raises(HomeAssistantError, match='start'):
+        await vacuum.async_clean_segments(['3'])
+
+
+@pytest.mark.skipif(Segment is None, reason='HA does not support vacuum segments')
+async def test_get_segments_refreshes_rooms(vacuum):
+    vacuum._prop_room_information = SimpleNamespace(
+        service=SimpleNamespace(iid=2), iid=10, full_name='vacuum.room_information'
+    )
+    vacuum._act_get_room_configs = Mock()
+    vacuum._act_get_room_configs.in_properties.return_value = []
+    vacuum._state_attrs = {}
+    vacuum.device = SimpleNamespace(async_get_properties=AsyncMock(return_value={
+        'vacuum.room_information': '{"rooms":[{"id":3,"name":"Kitchen"}]}'
+    }))
+    assert await vacuum.async_get_segments() == [Segment(id='3', name='Kitchen')]
+    vacuum.async_call_action.assert_awaited_once_with(
+        vacuum._act_get_room_configs, [], force_params=True
+    )
+    vacuum.device.async_get_properties.assert_awaited_once_with(
+        [{'siid': 2, 'piid': 10}], update_entity=True, throw=True
+    )
+    assert vacuum._state_attrs['room_mapping'] == [['3', '3', 'Kitchen']]
+
+
+@pytest.mark.skipif(Segment is None, reason='HA does not support vacuum segments')
+async def test_get_segments_reports_refresh_failure(vacuum):
+    vacuum._prop_room_information = Mock()
+    vacuum._act_get_room_configs = Mock()
+    vacuum._act_get_room_configs.in_properties.return_value = []
+    vacuum.async_call_action.return_value = SimpleNamespace(is_success=False)
+    with pytest.raises(HomeAssistantError, match='refresh'):
+        await vacuum.async_get_segments()
