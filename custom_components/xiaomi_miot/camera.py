@@ -32,6 +32,7 @@ from . import (
     Device,
     HassEntry,
     XEntity,
+    MiotEntity,
     MiotToggleEntity,
     BaseSubEntity,
     MiotCloud,
@@ -43,6 +44,7 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from .core.vacuum_map_render import DEFAULT_SCALE, render_map_png
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -83,6 +85,20 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 svs = [srv]
         for srv in svs:
             entities.append(MiotCameraEntity(hass, config, srv))
+
+        # Vacuum map camera (xiaomi.vacuum.ov42gl and any other model
+        # sharing the same shape - same capability-based detection as
+        # MiotOv42glVacuumEntity in vacuum.py, not a hardcoded model
+        # check). A completely separate, simpler entity (RobotMapCamera
+        # below), not MiotCameraEntity/BaseCameraEntity above - those
+        # assume ffmpeg streaming/motion events, this is a locally
+        # rendered static PNG re-drawn on every request.
+        for vsrv in spec.get_services('vacuum'):
+            if not (vsrv.get_property('room_information') and vsrv.get_action('start_vacuum_room_sweep')):
+                continue
+            map_srv = spec.get_service('vacuum_map')
+            if map_srv and map_srv.get_property('map_obj_name'):
+                entities.append(RobotMapCamera(config, vsrv))
     for entity in entities:
         hass.data[DOMAIN]['entities'][entity.unique_id] = entity
     async_add_entities(entities)
@@ -703,3 +719,157 @@ class MotionCameraEntity(BaseSubEntity, BaseCameraEntity):
     async def image_source(self, **kwargs):
         kwargs['crypto'] = True
         return self._parent.get_motion_image_address(**kwargs)
+
+
+class RobotMapCamera(MiotEntity, Camera):
+    """Renders the vacuum's own map (map_obj_name, SIID10 PIID1, on the
+    'vacuum_map' service) as a static PNG. Unlike the rest of this model's
+    map handling (listing/switching/renaming saved maps, zones, rooms -
+    see vacuum.py), the actual rendered image is cloud-only: the
+    manufacturer's map file is a blob on Xiaomi's cloud storage, readable
+    only via a signed download URL + a decrypt algorithm with no local
+    equivalent (see core/vacuum_map.py's own docstring). The download+decrypt
+    itself is owned by Device.update_vacuum_map's own coordinator
+    (self.device.vacuum_map_coordinator) - this entity only subscribes to it
+    and reads the already-decoded `self.device.data['vacuum_map']`, rather
+    than polling the cloud a second time on its own.
+
+    Redraws the PNG on every request (not just on the 30s poll) so the
+    three vacuum.py-owned layer toggles (switch.{prefix}_map_show_base/
+    robot/zones) apply instantly - only the underlying map JSON is
+    cached/polled.
+    """
+
+    _attr_should_poll = False
+
+    def __init__(self, config: dict, miot_service: MiotService):
+        MiotEntity.__init__(self, miot_service, config=config, logger=_LOGGER)
+        Camera.__init__(self)
+        # Camera.supported_features requires a CameraEntityFeature flag
+        # instance, not a plain int - BaseCameraEntity above sets this the
+        # same way for the same reason.
+        self._supported_features = CameraEntityFeature(0)
+        self._name = f'{self.device_name} Map'
+        self._unique_id = f'{self._unique_id}-map'
+        # Device-scoped (not just `camera.map`) so a second vacuum of the
+        # same model doesn't collide with this one - same mechanism every
+        # other entity in this integration uses (__init__.py's
+        # entity_id_prefix / MiotEntity's own generate_entity_id).
+        self.entity_id = self._miot_service.spec.generate_entity_id(self, 'map', ENTITY_DOMAIN)
+        # MiotEntity.__init__ defaults this to False, only ever flipped to
+        # True by the standard polling cycle (async_update_from_device) -
+        # which this entity deliberately skips (_attr_should_poll = False,
+        # the map coordinator listener drives refreshes instead), so it
+        # would otherwise stay unavailable forever and the frontend would
+        # never even try to fetch an image. Availability here is tracked by
+        # whether a map has been successfully downloaded at least once
+        # (self._map_data), not generic device polling.
+        self._available = True
+        self._map_data = None
+        self._render_cache_key = None
+        self._render_cache_png = None
+
+    @property
+    def is_on(self):
+        # HA's own CameraImageView rejects the image request with a plain
+        # 503 (before ever calling async_camera_image) whenever is_on is
+        # falsy. MiotEntity comes first in this class's MRO and defines
+        # its own `is_on` (reads self._state, a toggle-entity concept),
+        # which otherwise wins over Camera.is_on (self._attr_is_on) -
+        # setting the attribute alone silently did nothing. Overriding
+        # the property directly here is the only way to guarantee
+        # Camera's semantics apply. This map camera has no on/off concept
+        # of its own (same reasoning MiotCameraEntity.is_on below uses
+        # for a camera with no power property) - but it does have a "no
+        # map fetched yet" state (right after startup, or while the cloud
+        # account is unauthenticated - see _async_refresh_map), and without
+        # this check that state hit async_camera_image, returned None, and
+        # surfaced to the frontend as a raw 500 (_async_get_image raises
+        # HomeAssistantError on a None image, which CameraImageView turns
+        # into HTTPInternalServerError) instead of a clean "unavailable".
+        return isinstance(self._map_data, dict)
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        # Opt-out for anyone who doesn't want the cloud-dependent visual
+        # map: a dedicated custom_config flag, NOT `exclude_miot_services:
+        # vacuum_map` - that key is already set for this model in the
+        # built-in device_customizes.py (to keep the vacuum_map service's
+        # raw properties out of the generic pipeline), which would make
+        # this entity self-disable for every user of this model the
+        # instant it shipped, not just those who actually opted out - a
+        # regression discovered and fixed 2026-08-16 the same day this
+        # feature was added, before any release. `Device.init_coordinators`
+        # checks the same flag before even creating
+        # `self.device.vacuum_map_coordinator`, so when it's set there's no
+        # coordinator to subscribe to below - the entity stays registered
+        # (so re-enabling later needs no restart) but never fetches
+        # anything. Map *listing* (vacuum.py: save/switch/rename saved
+        # maps) is local-only and deliberately unaffected by this flag.
+        coordinator = self.device.vacuum_map_coordinator
+        if not coordinator:
+            self.logger.info('%s: no vacuum map coordinator (disable_map_camera set?), map camera disabled', self.name_model)
+            return
+        self._map_data = self.device.data.get('vacuum_map')
+        self.async_on_remove(coordinator.async_add_listener(self._handle_map_coordinator_update))
+
+    def _handle_map_coordinator_update(self):
+        self._map_data = self.device.data.get('vacuum_map')
+        self.async_write_ha_state()
+
+    def _toggle(self, entity_id):
+        """Fail-open (missing/unavailable helper == show the layer) - same
+        default the input_boolean-based version this replaces used."""
+        state = self.hass.states.get(entity_id)
+        return True if state is None else state.state == 'on'
+
+    @property
+    def extra_state_attributes(self):
+        if not isinstance(self._map_data, dict):
+            return {}
+        return {
+            'origin_x': self._map_data.get('origin_x'),
+            'origin_y': self._map_data.get('origin_y'),
+            'resolution': self._map_data.get('resolution'),
+            'width': self._map_data.get('width'),
+            'height': self._map_data.get('height'),
+            'scale': DEFAULT_SCALE,
+        }
+
+    async def async_camera_image(self, width=None, height=None):
+        if not isinstance(self._map_data, dict):
+            return None
+        # Device-scoped (see __init__) - vacuum.py's MAP_DISPLAY_TOGGLES
+        # switches are created with the same prefix, so this always finds
+        # this camera's own vacuum's toggles, not another H50 Pro's.
+        # entity_id_prefix is itself a full "xiaomi_miot.<prefix>" entity_id
+        # (see __init__.py's BaseEntity.entity_id_prefix) - split off that
+        # leading domain, same as BaseSubEntity.generate_entity_id does for
+        # every other consumer of this property, so the object_id half
+        # doesn't end up with a stray "xiaomi_miot." baked into it.
+        prefix = self.entity_id_prefix.split('.', 1)[-1]
+        show_base = self._toggle(f'switch.{prefix}_map_show_base')
+        show_robot = self._toggle(f'switch.{prefix}_map_show_robot')
+        show_zones = self._toggle(f'switch.{prefix}_map_show_zones')
+        # _map_data is only ever replaced wholesale with a new dict when its
+        # content actually changed (never mutated in place - see
+        # Device.update_vacuum_map), so its id() is a cheap, reliable "has
+        # anything actually changed" check. Without this, every dashboard
+        # viewer/reload/poll re-runs the full Pillow render (drawing
+        # paths/zones/icons) even when the map and toggles are identical to
+        # the last request - wasted CPU on every request, not just when
+        # something new is available.
+        cache_key = (id(self._map_data), show_base, show_robot, show_zones)
+        if cache_key == self._render_cache_key and self._render_cache_png is not None:
+            return self._render_cache_png
+        png = await self.hass.async_add_executor_job(
+            lambda: render_map_png(
+                self._map_data,
+                show_charge_station=show_base,
+                show_robot_position=show_robot,
+                show_forbidden_zones=show_zones,
+            )
+        )
+        self._render_cache_key = cache_key
+        self._render_cache_png = png
+        return png
