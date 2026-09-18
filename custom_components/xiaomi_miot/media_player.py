@@ -27,7 +27,6 @@ from homeassistant.components.media_player import (
 )
 from homeassistant.components.media_player.browse_media import (
     async_process_play_media_url,
-    SearchMedia,
     BrowseMedia,
 )
 from homeassistant.components.homekit.const import EVENT_HOMEKIT_TV_REMOTE_KEY_PRESSED
@@ -51,6 +50,7 @@ from . import (
     bind_services_to_entries,
 )
 from .core.const import HA_VERSION
+from .core.xiaomi_cloud import CloudSid
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -353,10 +353,18 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
-        if self._intelligent_speaker:
-            mic = self.miot_cloud
-            if isinstance(mic, MiotCloud):
-                self.xiaoai_cloud = await mic.async_change_sid('micoapi')
+        self.xiaoai_cloud = None
+        if not self._intelligent_speaker:
+            return
+        try:
+            self.xiaoai_cloud = await self.device.entry.async_get_cloud(CloudSid.MICOAPI)
+        except Exception as exc:
+            self.logger.warning(
+                '%s: micoapi bootstrap failed: %s',
+                self.name_model,
+                exc,
+            )
+            self.xiaoai_cloud = None
 
     async def async_update(self):
         await super().async_update()
@@ -518,6 +526,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         )
 
     async def async_search_media(self, query):
+        from homeassistant.components.media_player.browse_media import SearchMedia
         return SearchMedia(
             result=[
                 BrowseMedia(

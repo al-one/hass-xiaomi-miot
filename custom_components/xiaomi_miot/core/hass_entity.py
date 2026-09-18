@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Optional, Callable
 from functools import cached_property
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import Entity, EntityCategory
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoredExtraData
 
@@ -10,6 +11,7 @@ from .const import DOMAIN
 from .utils import get_customize_via_entity, wildcard_models, CustomConfigHelper
 from .miot_spec import MiotService, MiotProperty, MiotAction
 from .converters import BaseConv, InfoConv, MiotServiceConv, MiotPropConv, MiotActionConv
+from .xiaomi_cloud import CloudSid, MiotCloud
 
 if TYPE_CHECKING:
     from .device import Device
@@ -74,6 +76,27 @@ class BasicEntity(Entity, CustomConfigHelper):
         _LOGGER.debug('%s: Send miio command: %s(%s)', self.device.name_model, method, params)
         return await self.device.local.async_send(method, params)
 
+    async def async_request_xiaomi_api(self, api, data=None, method='POST', crypt=True, **kwargs):
+        cloud = self.device.cloud
+        if not isinstance(cloud, MiotCloud):
+            raise HomeAssistantError('Xiaomi cloud not supported for this entity')
+        sid = kwargs.pop('sid', None) or CloudSid.XIAOMIIO
+        if isinstance(sid, str):
+            try:
+                sid = CloudSid(sid)
+            except ValueError as exc:
+                raise HomeAssistantError('Xiaomi cloud SID not supported') from exc
+        cloud = await cloud.async_change_sid(sid)
+        if not isinstance(cloud, MiotCloud):
+            raise HomeAssistantError('Xiaomi cloud is unavailable')
+        if sid != CloudSid.XIAOMIIO and cloud.sid != sid.value:
+            raise HomeAssistantError('Xiaomi cloud is unavailable')
+        pms = kwargs.pop('params', None)
+        dat = data or pms
+        result = await cloud.async_request_api(api, data=dat, method=method, crypt=crypt, **kwargs)
+        _LOGGER.debug('Xiaomi Api %s: %s', api, result)
+        return result
+
 
 class XEntity(BasicEntity):
     CLS: dict[str, Callable] = {}
@@ -95,7 +118,14 @@ class XEntity(BasicEntity):
         self.log = device.log
 
         if isinstance(conv, MiotServiceConv):
-            self.entity_id = conv.service.generate_entity_id(self, conv.domain)
+            if conv.option.get('use_unique_attr'):
+                self.entity_id = device.spec.generate_entity_id(
+                    self,
+                    conv.attr,
+                    conv.domain,
+                )
+            else:
+                self.entity_id = conv.service.generate_entity_id(self, conv.domain)
             self._attr_name = str(conv.service.friendly_desc)
             self._attr_translation_key = conv.service.name
             self._miot_service = conv.service
@@ -126,6 +156,10 @@ class XEntity(BasicEntity):
             if isinstance(conv, InfoConv):
                 self._attr_available = True
 
+        if name := conv.option.get('name'):
+            self._attr_name = name
+            self._attr_translation_key = None
+
         self.listen_attrs = {self.attr} | set(conv.attrs)
         if getattr(self, '_attr_name', None):
             self._attr_name = self._attr_name.replace(device.name, '').strip()
@@ -133,7 +167,7 @@ class XEntity(BasicEntity):
         self._attr_device_info = self.device.hass_device_info
         self._attr_extra_state_attributes = {}
 
-        self._attr_icon = conv.option.get('icon')
+        self._attr_icon = self.custom_config('icon') or conv.option.get('icon')
         self._attr_device_class = self.custom_config('device_class') or conv.option.get('device_class')
 
         if self._attr_translation_key:
@@ -258,6 +292,11 @@ class XEntity(BasicEntity):
 
 
 def convert_unique_id(conv: 'BaseConv'):
+    if uid := conv.option.get('unique_id'):
+        return uid
+    if conv.option.get('use_unique_attr'):
+        return conv.attr
+
     service = getattr(conv, 'service', None)
     if isinstance(conv, MiotServiceConv) and isinstance(service, MiotService):
         return service.iid

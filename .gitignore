@@ -3,4 +3,7 @@
 .cache
 .DS_Store
 __pycache__/
-output.txt
+
+*.local.*
+.worktrees/
+.claude/worktrees/

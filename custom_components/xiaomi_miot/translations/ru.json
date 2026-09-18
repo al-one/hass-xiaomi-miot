@@ -55,19 +55,48 @@
                     "reset_customizes": "Сбросить настройки по умолчанию",
                     "bool2selects": "Настройка опций"
                 }
+            },
+            "reauth_password": {
+                "title": "Повторная аутентификация Xiaomi — введите пароль аккаунта",
+                "description": "Войдите в Xiaomi, чтобы обновить сохранённые учётные данные. Существующая конфигурация останется без изменений.",
+                "data": {
+                    "password": "Пароль"
+                }
+            },
+            "reauth_verify": {
+                "title": "Повторная аутентификация Xiaomi — введите код подтверждения",
+                "description": "Откройте [эту ссылку]({verify_url}) в браузере, запросите код, затем вставьте сюда код подтверждения.",
+                "data": {
+                    "verify_ticket": "Код подтверждения"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Повторная аутентификация Xiaomi — введите капчу",
+                "description": "Прочитайте символы на изображении капчи и введите их.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Капча"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Не удалось подключиться к устройству",
+            "cannot_connect": "Не удаётся связаться с Xiaomi.",
             "cannot_login": "Не удалось подключиться к аккаунту Сяоми. Проверьте пароль. При повторных ошибках авторизируйтесь на mi.com в той же среде и попробуйте снова.",
             "cannot_reach": "Нет доступа к API Сяоми",
             "tzinfo_error": "Перейдите по ссылке: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Не найдено устройств в облаке Сяоми"
+            "none_devices": "Не найдено устройств в облаке Сяоми",
+            "need_verify": "Требуется код подтверждения.",
+            "invalid_auth": "Xiaomi отклонила учётные данные.\n{tip}",
+            "need_captcha": "Требуется капча.",
+            "save_failed": "Не удалось сохранить обновлённые учётные данные. Повторите попытку.",
+            "unknown": "Непредвиденная ошибка."
         },
         "abort": {
             "config_saved": "Конфигурация сохранена! [Настроить снова](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nНекоторые опции требуют перезагрузки конфигурации [reload integration](/developer-tools/yaml) для эффекта.",
             "already_configured": "Устройство уже сконфигурировано",
-            "not_xiaomi_miio": "Не является устройством miio/miot."
+            "not_xiaomi_miio": "Не является устройством miio/miot.",
+            "unsupported_sid": "Повторная аутентификация не поддерживается для этого аккаунта.",
+            "wrong_account": "Аутентификация не соответствует настроенному аккаунту Xiaomi.",
+            "reauth_successful": "Аккаунт Xiaomi обновлён."
         }
     },
     "options": {
@@ -114,10 +143,39 @@
             "cannot_login": "Не удалось полключиться к аккаунту Сяоми. Проверьте пароль. При повторных ошибках авторизируйтесь на mi.com в той же среде и попробуйте снова.",
             "cannot_reach": "Нет доступа к API Сяоми",
             "tzinfo_error": "Перейдите по ссылке: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Не найдено устройств в облаке Сяоми"
+            "none_devices": "Не найдено устройств в облаке Сяоми",
+            "need_verify": "Этот вход требует проверки безопасности. Откройте ссылку проверки ниже, чтобы отправить код на телефон или e-mail. После получения кода не подтверждайте его на веб-странице. Вернитесь в Home Assistant и введите его в поле ниже."
         },
         "abort": {
             "show_customizes": "[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_miot) to modify customization.\n{link}\n{tip}"
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Недостаток воды"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Неисправность"
+            }
+        },
+        "switch": {
+            "no_disturb-no_disturb": {
+                "name": "Не беспокоить"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Детский замок"
+            }
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {
+                "name": "Режим воды"
+            }
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Интервал воды"
+            }
         }
     },
     "system_health": {

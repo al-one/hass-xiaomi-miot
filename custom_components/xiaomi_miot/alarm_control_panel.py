@@ -5,6 +5,7 @@ from homeassistant.components.alarm_control_panel import (
     DOMAIN as ENTITY_DOMAIN,
     AlarmControlPanelEntity,
     AlarmControlPanelEntityFeature,  # v2022.5
+    AlarmControlPanelState,
 )
 
 from . import (
@@ -20,8 +21,6 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
-from .core.const import AlarmControlPanelState
-
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 

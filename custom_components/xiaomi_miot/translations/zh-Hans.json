@@ -65,20 +65,51 @@
                     "reset_customizes": "重置为默认自定义",
                     "bool2selects": "自定义选项"
                 }
+            },
+            "reauth_password": {
+                "title": "重新授权 - 输入密码",
+                "description": "当前登录状态已经失效，需要重新登录来更新凭证。",
+                "data": {
+                    "password": "登录密码"
+                },
+                "data_description": {
+                    "password": "留空则表示使用已保存的密码"
+                }
+            },
+            "reauth_verify": {
+                "title": "重新授权 - 输入验证码",
+                "description": "点击打开[这个链接]({verify_url})，并发送验证码，并回到此页面输入验证码继续。",
+                "data": {
+                    "verify_ticket": "验证码"
+                }
+            },
+            "reauth_captcha": {
+                "title": "重新授权 - 输入图形验证码",
+                "description": "![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "图形验证码"
+                }
             }
         },
         "error": {
-            "cannot_connect": "连接设备失败",
+            "cannot_connect": "无法连接小米服务器",
             "cannot_login": "小米账户登录失败，请检查账号密码。如多次尝试仍登录失败，请在与当前网络相同的环境下登录小米官网(mi.com)后重试",
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的 Hass 环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备",
-            "need_verify": "本次登录需要安全验证，请打开验证网页发送手机/邮箱验证码，收到验证码后不要在网页验证，回到HomeAssistant填入下方输入框"
+            "need_verify": "需要验证码",
+            "invalid_auth": "登录失败\n{tip}",
+            "need_captcha": "需要图形验证码",
+            "save_failed": "保存失败，请重试",
+            "unknown": "未知错误"
         },
         "abort": {
             "config_saved": "配置已保存！[再次自定义](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
             "already_configured": "该设备已经配置过",
-            "not_xiaomi_miio": "该设备不支持 miio/miot 协议"
+            "not_xiaomi_miio": "该设备不支持 miio/miot 协议",
+            "unsupported_sid": "不支持的授权类型",
+            "wrong_account": "该账号与已授权的账号不符",
+            "reauth_successful": "重新授权成功"
         }
     },
     "options": {
@@ -136,7 +167,7 @@
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备",
-            "need_verify": "本次登录需要安全验证，请打开验证网页发送手机/邮箱验证码，收到验证码后不要在网页验证，回到HomeAssistant填入下方输入框"
+            "need_verify": "本次登录需要安全验证。请打开下方验证链接发送手机/邮箱验证码，收到验证码后不要在网页验证，回到 Home Assistant 填入下方输入框。"
         },
         "abort": {
             "show_customizes": "请再次添加[`Xiaomi Miot`](/_my_redirect/config_flow_start?domain=xiaomi_miot)集成来修改自定义选项\n{link}\n{tip}"
@@ -153,19 +184,41 @@
     },
     "entity": {
         "button": {
-            "info": {"name": "信息"}
+            "info": {
+                "name": "信息"
+            }
         },
         "sensor": {
-            "clean_area": {"name": "清洁面积"},
-            "clean_time": {"name": "清洁时间"},
-            "power_cost_today": {"name": "日电量"},
-            "power_cost_month": {"name": "月电量"},
-            "power_cost_today_2": {"name": "日电量"},
-            "power_cost_month_2": {"name": "月电量"},
-            "prop_cal_day-power_cost-today": {"name": "日电量"},
-            "prop_cal_day-power_cost-month": {"name": "月电量"},
-            "props-clean_area": {"name": "清洁面积"},
-            "props-clean_time": {"name": "清洁时间"},
+            "clean_area": {
+                "name": "清洁面积"
+            },
+            "clean_time": {
+                "name": "清洁时间"
+            },
+            "power_cost_today": {
+                "name": "日电量"
+            },
+            "power_cost_month": {
+                "name": "月电量"
+            },
+            "power_cost_today_2": {
+                "name": "日电量"
+            },
+            "power_cost_month_2": {
+                "name": "月电量"
+            },
+            "prop_cal_day-power_cost-today": {
+                "name": "日电量"
+            },
+            "prop_cal_day-power_cost-month": {
+                "name": "月电量"
+            },
+            "props-clean_area": {
+                "name": "清洁面积"
+            },
+            "props-clean_time": {
+                "name": "清洁时间"
+            },
             "lock": {
                 "state": {
                     "bluetooth": "蓝牙",
@@ -283,6 +336,9 @@
             }
         },
         "select": {
+            "pet_drinking_fountain-mode": {
+                "name": "出水模式"
+            },
             "fan_control-fan_level": {
                 "state": {
                     "auto": "自动",
@@ -310,6 +366,27 @@
                 "Color": "彩光",
                 "Scene": "场景",
                 "Music": "音乐"
+            }
+        },
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "缺水"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "故障"
+            }
+        },
+        "switch": {
+            "no_disturb-no_disturb": {
+                "name": "勿扰模式"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "童锁"
+            }
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "出水间隔"
             }
         },
         "humidifier": {

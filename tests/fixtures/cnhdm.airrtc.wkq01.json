@@ -1,0 +1,66 @@
+{
+  "type": "urn:miot-spec-v2:device:thermostat:0000A031:cnhdm-wkq01:1",
+  "description": "Thermostat",
+  "services": [
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:thermostat:0000784A:cnhdm-wkq01:1",
+      "description": "Thermostat",
+      "properties": [
+        {"iid": 3, "type": "urn:miot-spec-v2:property:on:00000006:cnhdm-wkq01:1", "description": "Switch Status", "format": "bool", "access": ["read", "write", "notify"]},
+        {"iid": 1, "type": "urn:miot-spec-v2:property:mode:00000008:cnhdm-wkq01:1", "description": "Mode", "format": "uint8", "access": ["read", "write", "notify"], "value-list": [{"value": 0, "description": "Cool"}, {"value": 1, "description": "Heat"}, {"value": 2, "description": "Ventilation"}]},
+        {"iid": 5, "type": "urn:miot-spec-v2:property:target-temperature:00000021:cnhdm-wkq01:1", "description": "Target Temperature", "format": "uint32", "access": ["read", "write", "notify"], "unit": "celsius", "value-range": [16, 32, 1]},
+        {"iid": 2, "type": "urn:miot-spec-v2:property:fan-level:00000016:cnhdm-wkq01:1", "description": "Fan Level", "format": "uint8", "access": ["read", "write", "notify"], "value-list": [{"value": 0, "description": "Auto"}, {"value": 1, "description": "Low"}, {"value": 2, "description": "Medium"}, {"value": 3, "description": "High"}]},
+        {"iid": 7, "type": "urn:miot-spec-v2:property:fan-level:00000016:cnhdm-wkq01:1", "description": "Fan Level", "format": "uint8", "access": ["read", "write", "notify"], "value-list": [{"value": 1, "description": "Low"}, {"value": 2, "description": "Medium"}, {"value": 3, "description": "High"}]},
+        {"iid": 8, "type": "urn:miot-spec-v2:property:target-temperature:00000021:cnhdm-wkq01:1", "description": "Target Temperature", "format": "int32", "access": ["read", "write", "notify"], "unit": "celsius", "value-range": [5, 50, 1]},
+        {"iid": 9, "type": "urn:miot-spec-v2:property:on:00000006:cnhdm-wkq01:1", "description": "Switch Status", "format": "bool", "access": ["read", "write", "notify"]},
+        {"iid": 10, "type": "urn:miot-spec-v2:property:on:00000006:cnhdm-wkq01:1", "description": "Switch Status", "format": "bool", "access": ["read", "write", "notify"]}
+      ],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:environment:0000780A:cnhdm-wkq01:1",
+      "description": "Environment",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:temperature:00000020:cnhdm-wkq01:1", "description": "Temperature", "format": "float", "access": ["read", "notify"], "unit": "celsius", "value-range": [-50, 50, 0.1]}
+      ],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 5,
+      "type": "urn:miot-spec-v2:service:physical-controls-locked:00007807:cnhdm-wkq01:1",
+      "description": "Physical Control Locked",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:physical-controls-locked:0000001D:cnhdm-wkq01:1", "description": "Physical Control Locked", "format": "bool", "access": ["read", "write", "notify"]}
+      ],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 4,
+      "type": "urn:cnhdm-spec:service:function:00007801:cnhdm-wkq01:1",
+      "description": "function",
+      "properties": [
+        {"iid": 2, "type": "urn:cnhdm-spec:property:parameter:00000001:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["read", "write", "notify"], "value-range": [0, 4294967295, 1]},
+        {"iid": 3, "type": "urn:cnhdm-spec:property:parameter:00000002:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["read", "write", "notify"], "value-range": [0, 4294967295, 1]},
+        {"iid": 4, "type": "urn:cnhdm-spec:property:time:00000003:cnhdm-wkq01:1", "description": "time", "format": "uint32", "access": ["write"], "value-range": [0, 4294967295, 1]},
+        {"iid": 5, "type": "urn:cnhdm-spec:property:time:00000004:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["write"], "value-range": [0, 4294967295, 1]},
+        {"iid": 6, "type": "urn:cnhdm-spec:property:weekly-program:00000005:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["read", "write", "notify"], "value-range": [0, 4294967295, 1]},
+        {"iid": 7, "type": "urn:cnhdm-spec:property:weekly-program:00000006:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["read", "write", "notify"], "value-range": [0, 4294967295, 1]},
+        {"iid": 8, "type": "urn:cnhdm-spec:property:weekly-program:00000007:cnhdm-wkq01:1", "description": "weekly-program", "format": "uint32", "access": ["read", "write", "notify"], "value-range": [0, 4294967295, 1]},
+        {"iid": 9, "type": "urn:cnhdm-spec:property:weekly-program:00000008:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["read", "write", "notify"], "value-range": [0, 4294967295, 1]},
+        {"iid": 10, "type": "urn:cnhdm-spec:property:weekly-program:00000009:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["read", "write", "notify"], "value-range": [0, 4294967295, 1]},
+        {"iid": 11, "type": "urn:cnhdm-spec:property:weekly-program:0000000A:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["read", "write", "notify"], "value-range": [0, 4294967295, 1]},
+        {"iid": 12, "type": "urn:cnhdm-spec:property:weekly-program:0000000B:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["read", "write", "notify"], "value-range": [0, 4294967295, 1]},
+        {"iid": 13, "type": "urn:cnhdm-spec:property:weekly-program:0000000C:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["read", "notify", "write"], "value-range": [0, 4294967295, 1]},
+        {"iid": 14, "type": "urn:cnhdm-spec:property:weekly-program:0000000D:cnhdm-wkq01:1", "description": "", "format": "uint32", "access": ["notify", "read", "write"], "value-range": [0, 4294967295, 1]},
+        {"iid": 15, "type": "urn:cnhdm-spec:property:exchange-mode:0000000E:cnhdm-wkq01:1", "description": "", "format": "bool", "access": ["read", "notify", "write"]}
+      ],
+      "actions": [],
+      "events": [{"iid": 1, "type": "urn:cnhdm-spec:event:time:00005001:cnhdm-wkq01:1", "description": "time", "arguments": []}]
+    }
+  ]
+}

@@ -56,19 +56,48 @@
                     "reset_customizes": "Réinitialiser les personnalisations par défaut",
                     "bool2selects": "Options de personnalisation"
                 }
+            },
+            "reauth_password": {
+                "title": "Réauthentification Xiaomi — saisir le mot de passe du compte",
+                "description": "Connectez-vous à Xiaomi pour actualiser vos identifiants enregistrés. Votre configuration actuelle reste inchangée.",
+                "data": {
+                    "password": "Mot de passe"
+                }
+            },
+            "reauth_verify": {
+                "title": "Réauthentification Xiaomi — saisir le code de vérification",
+                "description": "Ouvrez [ce lien]({verify_url}) dans votre navigateur, demandez un code, puis collez le code de vérification ici.",
+                "data": {
+                    "verify_ticket": "Code de vérification"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Réauthentification Xiaomi — saisir le captcha",
+                "description": "Lisez les caractères de l'image du captcha et saisissez-les.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Impossible de se connecter à l'appareil",
+            "cannot_connect": "Xiaomi est injoignable.",
             "cannot_login": "Impossible de se connecter au compte Cloud Xiaomi, veuillez vérifier le mot de passe. Si vous n'arrivez pas à vous connecter, connectez-vous sur mi.com dans le même environnement que le réseau actuel et réessayez.",
             "cannot_reach": "Impossible d'accéder à l'API Xiaomi",
             "tzinfo_error": "Voir : https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Aucun appareil dans le compte Xiaomi Cloud"
+            "none_devices": "Aucun appareil dans le compte Xiaomi Cloud",
+            "need_verify": "Un code de vérification est requis.",
+            "invalid_auth": "Xiaomi a rejeté les identifiants.\n{tip}",
+            "need_captcha": "Un captcha est requis.",
+            "save_failed": "Impossible d'enregistrer les identifiants actualisés. Veuillez réessayer.",
+            "unknown": "Erreur inattendue."
         },
         "abort": {
             "config_saved": "Configuration enregistrée ! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nCertaines options personnalisables nécessitent un [rechargement de l'intégration ](/developer-tools/yaml) pour prendre effet.",
             "already_configured": "L'appareil est déjà configuré",
-            "not_xiaomi_miio": "Pas un appareil Xiaomi miio/miot."
+            "not_xiaomi_miio": "Pas un appareil Xiaomi miio/miot.",
+            "unsupported_sid": "La réauthentification n'est pas prise en charge pour ce compte.",
+            "wrong_account": "L'authentification ne correspond pas au compte Xiaomi configuré.",
+            "reauth_successful": "Compte Xiaomi actualisé."
         }
     },
     "options": {
@@ -117,10 +146,39 @@
             "cannot_login": "Échec de connexion au compte Xiaomi, veuillez vérifier le mot de passe. Si la connexion échoue plusieurs fois, connectez-vous au site web de mi.com sur un autre appareil du même réseau local que celui de HA et essayez à nouveau.",
             "cannot_reach": "Impossible d'accéder à l'API Xiaomi",
             "tzinfo_error": "Voir: https://github.com/al-one/hass-xiaomi-miot/issues/260",
-            "none_devices": "Aucun appareil dans le compte cloud Xiaomi"
+            "none_devices": "Aucun appareil dans le compte cloud Xiaomi",
+            "need_verify": "Cette connexion nécessite une vérification de sécurité. Ouvrez le lien de vérification ci-dessous pour envoyer le code par téléphone/e-mail. Après avoir reçu le code, ne le vérifiez pas sur la page web. Revenez dans Home Assistant et saisissez-le dans le champ ci-dessous."
         },
         "abort": {
             "show_customizes": "[Ajouter une nouvelle intégration](/_my_redirect/config_flow_start?domain=xiaomi_miot) pour modifier la personnalisation.\n{link}\n{tip}"
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Manque d'eau"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Défaut"
+            }
+        },
+        "switch": {
+            "no_disturb-no_disturb": {
+                "name": "Ne pas déranger"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Verrou enfant"
+            }
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {
+                "name": "Mode d'eau"
+            }
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Intervalle d'eau"
+            }
         }
     },
     "system_health": {

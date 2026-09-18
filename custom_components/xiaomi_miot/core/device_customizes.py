@@ -290,6 +290,60 @@ DEVICE_CUSTOMIZES = {
     'cgllc.sensor_ht.dk2': {
         'sensor_properties': 'battery_level',
     },
+    'cnhdm.airrtc.wkq01': {
+        'converters': [
+            {
+                'class': MiotClimateConv,
+                'services': ['thermostat'],
+                'kwargs': {
+                    'main_props': ['prop.2.1'],
+                },
+                'converters': [
+                    {'props': ['prop.2.1'], 'desc': True},
+                    {'props': ['prop.2.2'], 'desc': True},
+                    {'props': ['prop.2.3']},
+                    {'props': ['prop.2.5']},
+                    {'props': ['prop.3.1']},
+                ],
+            },
+            {
+                'class': MiotClimateConv,
+                'services': ['thermostat'],
+                'kwargs': {
+                    'attr': 'floor_heating',
+                    'main_props': ['prop.2.8'],
+                    'option': {
+                        'name': 'Floor Heating',
+                        'use_unique_attr': True,
+                        'hvac_mode': 'heat',
+                    },
+                },
+                'converters': [
+                    {'props': ['prop.2.8']},
+                    {'props': ['prop.2.10']},
+                    {'props': ['prop.3.1']},
+                ],
+            },
+            {
+                'class': MiotFanConv,
+                'services': ['thermostat'],
+                'kwargs': {
+                    'attr': 'fresh_air',
+                    'main_props': ['prop.2.9'],
+                    'option': {
+                        'name': 'Fresh Air',
+                        'use_unique_attr': True,
+                    },
+                },
+                'converters': [
+                    {'props': ['prop.2.7'], 'desc': True},
+                    {'props': ['prop.2.9']},
+                ],
+            },
+        ],
+        'sensor_properties': 'temperature',
+        'switch_properties': 'physical_controls_locked',
+    },
     'chuangmi.camera.051a01': {
         'switch_properties': 'on,time_watermark,motion_tracking,motion_detection,wdr_mode,glimmer_full_color,'
                              'face_switch,babycry_switch,pet_switch,gesture_switch,cruise_switch,smart_care_switch,'
@@ -1570,6 +1624,9 @@ DEVICE_CUSTOMIZES = {
         'exclude_miot_properties': 'fault',
         'select_properties': 'motor_control',
     },
+    'nwt.derh.lus12l:relative_humidity': {
+        'unit_of_measurement': '%',
+    },
     'nwt.derh.wdh318efw1': {
         'binary_sensor_properties': 'tank_full',
     },
@@ -1855,9 +1912,10 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     'topwit.bhf_light.rz01': {
-        'sensor_attributes': 'ptc_bath_heater.temperature.error',
         'switch_properties': 'heating,blow,ventilation',
         'number_properties': 'ventilation_cnt_down',
+        'binary_sensor_properties': 'child_lock',
+        'miot_result_recode': ['4.5'],
     },
 
     'uvfive.steriliser.maine': CHUNK_1,
@@ -2126,6 +2184,31 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'brightness',
         'exclude_miot_services': 'rfid',
     },
+    'xiaomi.airp.mb5': {
+        'sensor_properties': 'fault,pm1,motor_rpm_feedback',
+        'switch_properties': 'screen.on',
+        'select_properties': 'air_purifier_favorite.fan_level,brightness',
+        'button_actions': 'reset_filter_life',
+        'exclude_miot_services': 'filter_debug,filter_tag,aqi',
+        'exclude_miot_properties': 'country_code,reboot_cause,favorite_square',
+        'configuration_entities': 'anion,uv,screen.on,brightness,alarm,physical_controls_locked,'
+                                  'air_purifier_favorite.fan_level,reset_filter_life',
+        'diagnostic_entities': 'fault,motor_rpm_feedback',
+        'chunk_coordinators': [
+            {'interval': 21, 'props': 'on,mode,fan_level,air_purifier_favorite.fan_level'},
+            {'interval': 61, 'props': 'fault,relative_humidity,temperature,air_quality,pm1,'
+                                    'pm2_5_density,pm10_density,motor_rpm_feedback'},
+            {'interval': 121, 'props': 'anion,uv,screen.on,brightness,alarm,physical_controls_locked'},
+            {'interval': 301, 'props': 'filter_*'},
+        ],
+    },
+    'xiaomi.airp.mb5:pm10_density': {
+        'unit_of_measurement': 'μg/m³',
+    },
+    'xiaomi.airp.mb5:motor_rpm_feedback': {
+        'unit_of_measurement': 'rpm',
+        'state_class': 'measurement',
+    },
     'xiaomi.airp.va2b': {
         'switch_properties': 'on,anion',
         'exclude_miot_services': 'custom_service,rfid',
@@ -2243,6 +2326,44 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'horizontal_swing_included_angle',
         'number_properties': 'delay_time',
     },
+    'xiaomi.fan.p69': {
+        'button_actions': 'toggle,toggle_mode,loop_gear,turn_left,turn_right,turn_upward,turn_downward',
+        'switch_properties': 'alarm,delay,horizontal_swing,vertical_swing',
+        'select_properties': 'horizontal_swing_included_angle,vertical_swing_included_angle',
+        'number_properties': 'delay_time',
+    },
+    'xiaomi.fan.p70': {
+        'button_actions': 'toggle,toggle_mode,loop_gear,turn_left,turn_right,turn_upward,turn_downward',
+        'switch_properties': 'indicator_light.on,alarm,physical_controls_locked,horizontal_swing,vertical_swing,delay',
+        'number_select_properties': 'horizontal_swing_included_angle,vertical_swing_included_angle',
+        'number_properties': 'delay_time',
+        'sensor_properties': 'delay_remain_time',
+    },
+    'xiaomi.fan.p85': {
+        'sensor_properties': 'fault,delay_remain_time',
+        'button_actions': 'loop_mode,loop_gear,toggle,turn_left,turn_right',
+        'number_select_properties': 'horizontal_swing_included_angle',
+        'select_properties': 'fan.fan_level',
+        'switch_properties': 'delay',
+        'number_properties': 'delay_time',
+        'append_converters': [
+            {
+                'class': MiotFanConv,
+                'services': ['fan'],
+                'converters': [{'props': ['dm_service.fan_level']}],
+            }
+        ],
+    },
+    'xiaomi.fan.p90': {
+        'sensor_properties': 'fault,delay_remain_time',
+        'switch_properties': 'horizontal_swing,vertical_swing,symmetrical_swing_h,symmetrical_swing_v,'
+                             'alarm,screen.on,physical_controls_locked,off_to_center,delay',
+        'number_properties': 'left_angle,right_angle,up_angle,down_angle,delay_time',
+        'button_actions': 'loop_mode,loop_gear',
+        'configuration_entities': 'symmetrical_swing_*,*_angle,alarm,screen.on,'
+                                  'physical_controls_locked,off_to_center,delay,delay_time',
+        'diagnostic_entities': 'fault,delay_remain_time',
+    },
     'xiaomi.feeder.iv2001': {
         'button_actions': 'pet_food_out,reset_desiccant_life,weigh_manual_calibrate',
         'binary_sensor_properties': 'battery_level',
@@ -2344,16 +2465,67 @@ DEVICE_CUSTOMIZES = {
         'button_actions': 'reset_filter_life',
         'switch_properties': 'no_disturb,physical_controls_locked',
         'sensor_properties': 'status,filter_life_level,filter_left_time,battery_level,charging_state',
-        'number_properties': 'out_water_interval,time_period_start,time_period_end',
+        'number_properties': 'out_water_interval',
+        'time_properties': 'time_period_start,time_period_end',
         'select_properties': 'mode',
-        'exclude_miot_properties': 'event_time,event_mode,event_water,event_timezone'
+        'exclude_miot_properties': 'event_time,event_mode,event_water,event_timezone,factory_mode_switch',
+        'chunk_coordinators': [
+            {'interval': 15, 'props': 'status,water_shortage_status,pump_block,fault'},
+            {'interval': 30, 'props': 'battery_level,charging_state,low_battery,usb_insert_state'},
+            {'interval': 60, 'props': 'mode,out_water_interval,no_disturb,physical_controls_locked,time_period_start,time_period_end'},
+            {'interval': 300, 'props': 'filter_life_level,filter_left_time'},
+        ],
     },
     'xiaomi.pet_waterer.70m2:fault': {
-         'reverse_state': True,
+        'reverse_state': True,
+    },
+    'xiaomi.pet_waterer.70m2:status': {
+        'icon': 'mdi:fountain',
+    },
+    'xiaomi.pet_waterer.70m2:water_shortage_status': {
+        'icon': 'mdi:water-alert',
+    },
+    'xiaomi.pet_waterer.70m2:pump_block': {
+        'icon': 'mdi:pump-off',
+    },
+    'xiaomi.pet_waterer.70m2:usb_insert_state': {
+        'icon': 'mdi:usb',
+    },
+    'xiaomi.pet_waterer.70m2:low_battery': {
+        'icon': 'mdi:battery-alert-variant-outline',
+    },
+    'xiaomi.pet_waterer.70m2:battery_level': {
+        'state_class': 'measurement',
+    },
+    'xiaomi.pet_waterer.70m2:charging_state': {
+        'icon': 'mdi:battery-charging',
+    },
+    'xiaomi.pet_waterer.70m2:filter_life_level': {
+        'state_class': 'measurement',
+        'icon': 'mdi:filter-check',
     },
     'xiaomi.pet_waterer.70m2:filter_left_time': {
-         'state_class': 'measurement',
-         'unit_of_measurement': 'days',
+        'state_class': 'measurement',
+        'unit_of_measurement': 'days',
+        'icon': 'mdi:filter-cog',
+    },
+    'xiaomi.pet_waterer.70m2:no_disturb': {
+        'icon': 'mdi:moon-waning-crescent',
+    },
+    'xiaomi.pet_waterer.70m2:physical_controls_locked': {
+        'icon': 'mdi:lock',
+    },
+    'xiaomi.pet_waterer.70m2:out_water_interval': {
+        'icon': 'mdi:timer-outline',
+    },
+    'xiaomi.pet_waterer.70m2:time_period_start': {
+        'icon': 'mdi:clock-start',
+    },
+    'xiaomi.pet_waterer.70m2:time_period_end': {
+        'icon': 'mdi:clock-end',
+    },
+    'xiaomi.pet_waterer.70m2:mode': {
+        'icon': 'mdi:water-pump',
     },
     'xiaomi.pet_waterer.iv02': {
         'button_actions': 'reset_filter_life,low_battery,pump_block',
@@ -2879,7 +3051,7 @@ DEVICE_CUSTOMIZES = {
     },
     'zhimi.fan.za5': {
         **CHUNK_1,
-        'number_properties': 'speed_level',
+        'number_properties': 'speed_level,horizontal_angle,off_delay',
         'exclude_miot_properties': 'button_press,country_code',
         'interval_seconds': 121,
         'chunk_coordinators': [
@@ -3060,9 +3232,9 @@ DEVICE_CUSTOMIZES = {
 
     '*.aircondition.*': {
         'sensor_properties': 'electricity.electricity',
-        'switch_properties': 'air_conditioner.on',
+        'switch_properties': 'air_conditioner.on,un_straight_blowing',
         'select_properties': 'fan_level',
-        'number_properties': 'target_humidity',
+        'number_properties': 'target_humidity,fan_percent',
         'chunk_coordinators': [
             {'interval': 11, 'props': 'air_conditioner.on,mode,target_temperature,fan_level', 'notify': True},
             {'interval': 31, 'props': 'target_humidity,fan_percent,*_swing,*_angle'},
