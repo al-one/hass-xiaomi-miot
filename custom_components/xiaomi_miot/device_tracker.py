@@ -92,16 +92,10 @@ XEntity.CLS['scanner'] = ScannerEntity
 class MiotTrackerEntity(MiotEntity, BaseTrackerEntity):
     _attr_latitude = None
     _attr_longitude = None
-    _attr_location_name = None
     _attr_location_accuracy = 0
-    _disable_location_name = False
 
     def __init__(self, config, miot_service: MiotService = None):
         super().__init__(miot_service, config=config, logger=_LOGGER)
-
-    async def async_added_to_hass(self):
-        await super().async_added_to_hass()
-        self._disable_location_name = self.custom_config_bool('disable_location_name')
 
     async def async_update(self):
         await super().async_update()
@@ -113,7 +107,7 @@ class MiotTrackerEntity(MiotEntity, BaseTrackerEntity):
         if prop := self._miot_service.get_property('longitude'):
             self._attr_longitude = prop.from_device(self.device)
         if prop := self._miot_service.get_property('current_address'):
-            self._attr_location_name = prop.from_device(self.device)
+            self.update_attrs({'current_address': prop.from_device(self.device)})
         await self.transform_coord()
 
     async def transform_coord(self, default=None):
@@ -149,30 +143,11 @@ class MiotTrackerEntity(MiotEntity, BaseTrackerEntity):
         return self._attr_longitude
 
     @property
-    def location_name(self):
-        """Return a location name for the current location of the device."""
-        if self._disable_location_name:
-            return None
-        return self._attr_location_name
-
-    @property
     def location_accuracy(self):
         """Return the location accuracy of the device.
         Value in meters.
         """
         return self._attr_location_accuracy
-
-    @property
-    def battery_level(self):
-        """Return the battery level of the device."""
-        if not self._miot_service:
-            return None
-        sls = [self._miot_service, *self._miot_service.spec.get_services('battery')]
-        for srv in sls:
-            prop = srv.get_property('battery_level')
-            if prop:
-                return prop.from_device(self.device)
-        return None
 
 
 class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
@@ -223,7 +198,7 @@ class XiaoxunWatchTrackerEntity(MiotTrackerEntity):
         gps = f"{loc.get('location', '')},".split(',')
         self._attr_latitude = float(gps[1])
         self._attr_longitude = float(gps[0])
-        self._attr_location_name = loc.get('desc')
+        self.update_attrs({'current_address': loc.get('desc')})
         self._attr_location_accuracy = int(loc.get('radius') or 0)
         await self.transform_coord(default='gcj02')
         self.update_attrs({

@@ -1,0 +1,178 @@
+{
+ "type": "urn:miot-spec-v2:device:air-conditioner:0000A004:xiaomi-ma2:3",
+ "description": "Mijia Internet Air Conditioner C1",
+ "services": [
+  {
+   "iid": 1,
+   "type": "urn:miot-spec-v2:service:device-information:00007801:xiaomi-ma2:1",
+   "description": "Device Information",
+   "properties": []
+  },
+  {
+   "iid": 2,
+   "type": "urn:miot-spec-v2:service:air-conditioner:0000780F:xiaomi-ma2:1",
+   "description": "Air Conditioner",
+   "properties": [
+    {
+     "iid": 1,
+     "type": "urn:miot-spec-v2:property:on:00000006:xiaomi-ma2:1",
+     "description": "Switch Status",
+     "format": "bool",
+     "access": [
+      "read",
+      "write",
+      "notify"
+     ]
+    },
+    {
+     "iid": 2,
+     "type": "urn:miot-spec-v2:property:mode:00000008:xiaomi-ma2:2",
+     "description": "Mode",
+     "format": "uint8",
+     "access": [
+      "read",
+      "write",
+      "notify"
+     ],
+     "value-list": [
+      {
+       "value": 2,
+       "description": "Cool"
+      },
+      {
+       "value": 3,
+       "description": "Dry"
+      },
+      {
+       "value": 4,
+       "description": "Fan"
+      },
+      {
+       "value": 5,
+       "description": "Heat"
+      }
+     ]
+    },
+    {
+     "iid": 3,
+     "type": "urn:miot-spec-v2:property:target-temperature:00000021:xiaomi-ma2:1",
+     "description": "Target Temperature",
+     "format": "float",
+     "access": [
+      "read",
+      "write",
+      "notify"
+     ],
+     "unit": "celsius",
+     "value-range": [
+      16,
+      31,
+      0.5
+     ]
+    }
+   ]
+  },
+  {
+   "iid": 3,
+   "type": "urn:miot-spec-v2:service:fan-control:00007809:xiaomi-ma2:1",
+   "description": "Fan Control",
+   "properties": [
+    {
+     "iid": 1,
+     "type": "urn:miot-spec-v2:property:fan-level:00000016:xiaomi-ma2:1",
+     "description": "Fan Level",
+     "format": "uint8",
+     "access": [
+      "read",
+      "write",
+      "notify"
+     ],
+     "value-list": [
+      {
+       "value": 0,
+       "description": "Auto"
+      },
+      {
+       "value": 1,
+       "description": "Level1"
+      },
+      {
+       "value": 2,
+       "description": "Level2"
+      },
+      {
+       "value": 3,
+       "description": "Level3"
+      },
+      {
+       "value": 4,
+       "description": "Level4"
+      },
+      {
+       "value": 5,
+       "description": "Level5"
+      },
+      {
+       "value": 6,
+       "description": "Level6"
+      },
+      {
+       "value": 7,
+       "description": "Level7"
+      }
+     ]
+    },
+    {
+     "iid": 2,
+     "type": "urn:miot-spec-v2:property:vertical-swing:00000018:xiaomi-ma2:1",
+     "description": "Vertical Swing",
+     "format": "bool",
+     "access": [
+      "read",
+      "write",
+      "notify"
+     ]
+    },
+    {
+     "iid": 3,
+     "type": "urn:miot-spec-v2:property:fan-level:00000016:xiaomi-ma2:1",
+     "description": "Stepless Fan Level",
+     "format": "uint8",
+     "access": [
+      "read",
+      "write",
+      "notify"
+     ],
+     "value-range": [
+      1,
+      101,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "iid": 4,
+   "type": "urn:miot-spec-v2:service:environment:0000780A:xiaomi-ma2:1",
+   "description": "Environment",
+   "properties": [
+    {
+     "iid": 1,
+     "type": "urn:miot-spec-v2:property:temperature:00000020:xiaomi-ma2:1",
+     "description": "Temperature",
+     "format": "float",
+     "access": [
+      "read",
+      "notify"
+     ],
+     "unit": "celsius",
+     "value-range": [
+      -20,
+      80,
+      0.5
+     ]
+    }
+   ]
+  }
+ ]
+}
