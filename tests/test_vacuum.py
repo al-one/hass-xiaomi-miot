@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock, PropertyMock, patch
 
 import pytest
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.components.vacuum import VacuumEntityFeature
+from homeassistant.components.vacuum import VacuumActivity, VacuumEntityFeature
 
 from custom_components.xiaomi_miot.vacuum import (
     MiotVacuumEntity,
@@ -163,6 +163,7 @@ async def test_update_current_room_from_cloud_map():
     entity._prop_map_obj_name = SimpleNamespace(
         from_device=Mock(return_value='user/device/0')
     )
+    entity._attr_activity = VacuumActivity.CLEANING
     entity._state_attrs = {}
 
     room = {'id': 3, 'name': 'Living Room', 'x': 244, 'y': -19, 'yaw': 7853}
@@ -203,8 +204,33 @@ async def test_update_current_room_skips_incompatible_map_format():
         info=SimpleNamespace(model='roborock.vacuum.s5'),
     )
     entity._prop_map_obj_name = SimpleNamespace(from_device=Mock())
+    entity._attr_activity = VacuumActivity.CLEANING
+    entity._state_attrs = {}
 
     await entity._async_update_current_room()
 
+    entity._prop_map_obj_name.from_device.assert_not_called()
+    cloud.async_get_interim_file.assert_not_awaited()
+
+
+async def test_update_current_room_clears_location_when_not_cleaning():
+    cloud = SimpleNamespace(async_get_interim_file=AsyncMock())
+    entity = object.__new__(MiotVacuumEntity)
+    entity.device = SimpleNamespace(
+        cloud=cloud,
+        info=SimpleNamespace(model='xiaomi.vacuum.d102gl'),
+    )
+    entity._prop_map_obj_name = SimpleNamespace(from_device=Mock())
+    entity._attr_activity = VacuumActivity.DOCKED
+    entity._state_attrs = {
+        'current_room': 'Living Room',
+        'current_room_id': 3,
+        'current_position': {'x': 244, 'y': -19},
+        'status': 'Charging',
+    }
+
+    await entity._async_update_current_room()
+
+    assert entity._state_attrs == {'status': 'Charging'}
     entity._prop_map_obj_name.from_device.assert_not_called()
     cloud.async_get_interim_file.assert_not_awaited()

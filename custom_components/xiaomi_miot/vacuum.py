@@ -186,7 +186,11 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
     async def _async_update_current_room(self):
         """Resolve the vacuum's current room from its encrypted cloud map."""
+        for key in ('current_room', 'current_room_id', 'current_position'):
+            self._state_attrs.pop(key, None)
         if (
+            self._attr_activity != VacuumActivity.CLEANING
+            or
             self.model not in XIAOMI_JSON_MAP_MODELS
             or not self._prop_map_obj_name
             or not self.xiaomi_cloud
