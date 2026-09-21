@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, PropertyMock, patch
 
 import pytest
 from homeassistant.exceptions import HomeAssistantError
@@ -152,3 +152,59 @@ async def test_get_segments_reports_refresh_failure(vacuum):
     vacuum.async_call_action.return_value = SimpleNamespace(is_success=False)
     with pytest.raises(HomeAssistantError, match='refresh'):
         await vacuum.async_get_segments()
+
+
+async def test_update_current_room_from_cloud_map():
+    entity = object.__new__(MiotVacuumEntity)
+    entity.device = SimpleNamespace(
+        cloud=SimpleNamespace(async_get_interim_file=AsyncMock(return_value=b'map')),
+        info=SimpleNamespace(model='xiaomi.vacuum.d102gl'),
+    )
+    entity._prop_map_obj_name = SimpleNamespace(
+        from_device=Mock(return_value='user/device/0')
+    )
+    entity._state_attrs = {}
+
+    room = {'id': 3, 'name': 'Living Room', 'x': 244, 'y': -19, 'yaw': 7853}
+    with (
+        patch.object(
+            MiotVacuumEntity, 'miot_did', new_callable=PropertyMock,
+            return_value='1234567890',
+        ),
+        patch(
+            'custom_components.xiaomi_miot.vacuum.decrypt_xiaomi_vacuum_map',
+            return_value={'map': 'data'},
+        ) as decrypt,
+        patch(
+            'custom_components.xiaomi_miot.vacuum.vacuum_room_from_map',
+            return_value=room,
+        ),
+    ):
+        await entity._async_update_current_room()
+
+    entity.device.cloud.async_get_interim_file.assert_awaited_once_with(
+        'user/device/0'
+    )
+    decrypt.assert_called_once_with(
+        b'map', 'xiaomi.vacuum.d102gl', '1234567890'
+    )
+    assert entity._state_attrs == {
+        'current_room': 'Living Room',
+        'current_room_id': 3,
+        'current_position': {'x': 244, 'y': -19, 'yaw': 7853},
+    }
+
+
+async def test_update_current_room_skips_incompatible_map_format():
+    cloud = SimpleNamespace(async_get_interim_file=AsyncMock())
+    entity = object.__new__(MiotVacuumEntity)
+    entity.device = SimpleNamespace(
+        cloud=cloud,
+        info=SimpleNamespace(model='roborock.vacuum.s5'),
+    )
+    entity._prop_map_obj_name = SimpleNamespace(from_device=Mock())
+
+    await entity._async_update_current_room()
+
+    entity._prop_map_obj_name.from_device.assert_not_called()
+    cloud.async_get_interim_file.assert_not_awaited()

@@ -30,6 +30,12 @@ from . import (
     bind_services_to_entries,
 )
 from .core.utils import DeviceException
+from .core.xiaomi_vacuum_map import (
+    XIAOMI_JSON_MAP_MODELS,
+    decrypt_xiaomi_vacuum_map,
+    vacuum_map_object_name,
+    vacuum_room_from_map,
+)
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
@@ -118,6 +124,10 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         self._act_start_room_sweep = miot_service.get_action(
             'start_vacuum_room_sweep', 'start_room_sweep'
         )
+        map_service = miot_service.spec.get_service('vacuum_map')
+        self._prop_map_obj_name = (
+            map_service.get_property('map_obj_name') if map_service else None
+        )
 
         if self._prop_power:
             self._supported_features |= VacuumEntityFeature.TURN_ON
@@ -172,6 +182,41 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 self._attr_activity = VacuumActivity.ERROR
             else:
                 self._attr_activity = VacuumActivity.IDLE
+        await self._async_update_current_room()
+
+    async def _async_update_current_room(self):
+        """Resolve the vacuum's current room from its encrypted cloud map."""
+        if (
+            self.model not in XIAOMI_JSON_MAP_MODELS
+            or not self._prop_map_obj_name
+            or not self.xiaomi_cloud
+        ):
+            return
+        object_name = vacuum_map_object_name(
+            self._prop_map_obj_name.from_device(self.device)
+        )
+        if not object_name:
+            return
+        try:
+            raw_map = await self.xiaomi_cloud.async_get_interim_file(object_name)
+            if not raw_map:
+                return
+            map_data = decrypt_xiaomi_vacuum_map(
+                raw_map, self.model, str(self.miot_did)
+            )
+            room = vacuum_room_from_map(map_data)
+        except Exception as exc:  # Map support must not make the vacuum unavailable.
+            self.logger.debug('%s: Unable to resolve current room: %s', self.name, exc)
+            return
+        if not room:
+            return
+        self._state_attrs.update({
+            'current_room': room['name'],
+            'current_room_id': room['id'],
+            'current_position': {
+                key: room[key] for key in ('x', 'y', 'yaw') if key in room
+            },
+        })
 
     async def async_turn_on(self, **kwargs):
         if self._prop_power:
