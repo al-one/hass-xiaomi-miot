@@ -169,6 +169,11 @@
             "total_devices": "米家裝置總數量"
         }
     },
+    "device": {
+        "manual_scenes": {
+            "name": "米家場景"
+        }
+    },
     "entity": {
         "button": {
             "info": {

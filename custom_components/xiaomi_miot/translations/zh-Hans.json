@@ -182,6 +182,11 @@
             "total_devices": "米家设备总数量"
         }
     },
+    "device": {
+        "manual_scenes": {
+            "name": "米家场景"
+        }
+    },
     "entity": {
         "button": {
             "info": {

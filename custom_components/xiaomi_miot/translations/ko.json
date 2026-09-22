@@ -179,6 +179,11 @@
             "total_devices": "미홈 기기 총 개수"
         }
     },
+    "device": {
+        "manual_scenes": {
+            "name": "Xiaomi Home 장면"
+        }
+    },
     "entity": {
         "button": {
             "info": {

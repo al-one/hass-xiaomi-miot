@@ -551,7 +551,7 @@ class MiotCloud(micloud.MiCloud):
         if self.is_token_expired(rdt):
             if await self.async_check_auth(notify=True):
                 rdt = await self.async_request_api(api, data, debug=False, timeout=20) or {}
-        if rdt.get('code') or 'result' not in rdt:
+        if rdt.get('code') != 0 or 'result' not in rdt:
             raise MiCloudException(
                 f'Xiaomi manual scene request failed: '
                 f'{rdt.get("code")}, {rdt.get("message") or "invalid response"}'
@@ -565,17 +565,25 @@ class MiotCloud(micloud.MiCloud):
             owner_uid = home.get('uid') or self.user_id
             if not home_id or not owner_uid:
                 continue
-            result = await self._async_request_manual_scene_api(
-                'GetManualSceneList',
-                {
-                    'home_id': str(home_id),
-                    'owner_uid': str(owner_uid),
-                    'source': 'zkp',
-                    'get_type': 2,
-                },
-            )
-            if not isinstance(result, list):
-                raise MiCloudException('Xiaomi manual scene list is invalid')
+            try:
+                result = await self._async_request_manual_scene_api(
+                    'GetManualSceneList',
+                    {
+                        'home_id': str(home_id),
+                        'owner_uid': str(owner_uid),
+                        'source': 'zkp',
+                        'get_type': 2,
+                    },
+                )
+                if not isinstance(result, list):
+                    raise MiCloudException('Xiaomi manual scene list is invalid')
+            except MiCloudException as exc:
+                _LOGGER.warning(
+                    'Unable to get Xiaomi Home manual scenes for %s: %s',
+                    home.get('name') or 'unnamed home',
+                    exc,
+                )
+                continue
             for scene in result:
                 if not isinstance(scene, dict):
                     continue

@@ -37,18 +37,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     except MiCloudException as exc:
         _LOGGER.warning('Unable to get Xiaomi Home manual scenes: %s', exc)
         return
-    names = Counter(scene['scene_name'] for scene in scenes)
+    names = _manual_scene_button_names(scenes)
     async_add_entities([
-        ManualSceneButton(
-            entry.cloud,
-            scene,
-            (
-                f'{scene["home_name"]} {scene["scene_name"]}'
-                if names[scene['scene_name']] > 1 and scene['home_name']
-                else scene['scene_name']
-            ),
-        )
-        for scene in scenes
+        ManualSceneButton(entry.cloud, scene, name)
+        for scene, name in zip(scenes, names)
     ])
 
 
@@ -83,6 +75,28 @@ class ButtonEntity(XEntity, BaseEntity):
 XEntity.CLS[ENTITY_DOMAIN] = ButtonEntity
 
 
+def _manual_scene_button_names(scenes):
+    scene_counts = Counter(scene['scene_name'] for scene in scenes)
+    names = [
+        (
+            f'{scene.get("home_name") or scene["home_id"]} '
+            f'{scene["scene_name"]}'
+            if scene_counts[scene['scene_name']] > 1
+            else scene['scene_name']
+        )
+        for scene in scenes
+    ]
+    name_counts = Counter(names)
+    return [
+        (
+            f'{name} {scene["home_id"]}-{scene["scene_id"]}'
+            if name_counts[name] > 1
+            else name
+        )
+        for scene, name in zip(scenes, names)
+    ]
+
+
 class ManualSceneButton(BaseEntity):
     _attr_has_entity_name = True
     _attr_icon = 'mdi:play'
@@ -97,7 +111,8 @@ class ManualSceneButton(BaseEntity):
         )
         self._attr_device_info = {
             'identifiers': {(DOMAIN, f'{cloud.unique_id}-manual-scenes')},
-            'name': 'Xiaomi Home Scenes',
+            'name': '米家场景',
+            'translation_key': 'manual_scenes',
             'manufacturer': 'Xiaomi',
             'model': 'Manual scenes',
         }

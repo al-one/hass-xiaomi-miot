@@ -239,6 +239,11 @@
             "total_devices": "Total number of MiHome devices"
         }
     },
+    "device": {
+        "manual_scenes": {
+            "name": "Xiaomi Home scenes"
+        }
+    },
     "entity": {
         "button": {
             "info": {
