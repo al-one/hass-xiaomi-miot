@@ -184,7 +184,7 @@
     },
     "device": {
         "manual_scenes": {
-            "name": "米家场景"
+            "name": "米家手动场景"
         }
     },
     "entity": {

@@ -181,7 +181,7 @@
     },
     "device": {
         "manual_scenes": {
-            "name": "Xiaomi Home 장면"
+            "name": "Xiaomi Home 수동 장면"
         }
     },
     "entity": {

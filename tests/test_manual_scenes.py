@@ -140,6 +140,7 @@ def test_manual_scene_button_names_disambiguate_homes():
         {'scene_id': '22', 'scene_name': 'Sleep', 'home_id': '2', 'home_name': ''},
         {'scene_id': '33', 'scene_name': 'Work', 'home_id': '3', 'home_name': 'Home'},
         {'scene_id': '44', 'scene_name': 'Work', 'home_id': '4', 'home_name': 'Home'},
+        {'scene_id': '55', 'scene_name': 'Away', 'home_id': '5', 'home_name': 'Family'},
     ]
 
     assert _manual_scene_button_names(scenes) == [
@@ -147,6 +148,7 @@ def test_manual_scene_button_names_disambiguate_homes():
         '2 Sleep',
         'Home Work 3-33',
         'Home Work 4-44',
+        'Family Away',
     ]
 
 

@@ -241,7 +241,7 @@
     },
     "device": {
         "manual_scenes": {
-            "name": "Xiaomi Home scenes"
+            "name": "Xiaomi Home manual scenes"
         }
     },
     "entity": {

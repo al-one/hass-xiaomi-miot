@@ -76,14 +76,8 @@ XEntity.CLS[ENTITY_DOMAIN] = ButtonEntity
 
 
 def _manual_scene_button_names(scenes):
-    scene_counts = Counter(scene['scene_name'] for scene in scenes)
     names = [
-        (
-            f'{scene.get("home_name") or scene["home_id"]} '
-            f'{scene["scene_name"]}'
-            if scene_counts[scene['scene_name']] > 1
-            else scene['scene_name']
-        )
+        f'{scene.get("home_name") or scene["home_id"]} {scene["scene_name"]}'
         for scene in scenes
     ]
     name_counts = Counter(names)
@@ -111,7 +105,7 @@ class ManualSceneButton(BaseEntity):
         )
         self._attr_device_info = {
             'identifiers': {(DOMAIN, f'{cloud.unique_id}-manual-scenes')},
-            'name': '米家场景',
+            'name': '米家手动场景',
             'translation_key': 'manual_scenes',
             'manufacturer': 'Xiaomi',
             'model': 'Manual scenes',
