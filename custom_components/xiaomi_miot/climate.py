@@ -194,6 +194,13 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 if self._attr_preset_modes:
                     self._attr_supported_features |= ClimateEntityFeature.PRESET_MODE
             elif prop.in_list(['fan_level', 'speed_level', 'heat_level']):
+                if prop.value_range and self._conv_speed:
+                    # Some specs expose a discrete fan_level and a stepless
+                    # fan_level (value-range) with the same friendly_name, so both
+                    # reach the climate entity; the stepless one would override the
+                    # discrete one and turn fan_modes into 101 levels with no auto.
+                    # Prefer the already-matched discrete fan_level.
+                    continue
                 self._conv_speed = conv
                 self._attr_fan_modes = prop.list_descriptions(lower=True)
                 self._attr_supported_features |= ClimateEntityFeature.FAN_MODE

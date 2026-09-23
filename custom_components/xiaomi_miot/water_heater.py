@@ -101,6 +101,11 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         return None
 
     @property
+    def state(self):
+        """Return the current state."""
+        return self.current_operation
+
+    @property
     def operation_list(self):
         """Return the list of available operation modes."""
         for p in self._prop_modes:

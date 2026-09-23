@@ -1440,13 +1440,24 @@ MIIO_TO_MIOT_SPECS = {
     'viomi.juicer.v1': {
         # ["work_status","run_status","mode","cooked_time","curr_tempe","cook_start","rev","stand_top_num","mode_sort"        ,"cook_status","warm_time","cook_time","left_time","voice"]
         # [0,           ,768         ,7     ,0            ,-300        ,1699143554  ,0    ,0              ,'7-8-9-4-3-1-5-2-6',1            ,6514       ,1668       ,0          ,0      ]
-        'miio_props': ['work_status', 'run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'warm_time', 'cook_time',  'voice'],
-        'entity_attrs': ['work_status', 'run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'warm_time', 'cook_time',  'voice'],
+        'miio_props': ['run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'cook_status', 'warm_time', 'cook_time',  'voice'],
+        'entity_attrs': ['run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'cook_status', 'warm_time', 'cook_time',  'voice'],
         'chunk_properties': 1,
         'miio_specs': {
-            'prop.2.1': {'prop': 'cook_status'},
-            'prop.2.2': {'prop': 'left_time'},
-            'prop.2.3': {'prop': 'curr_tempe'},
+            # work_status 状态映射: 0-6 -> MIoT status 1,2,3,4,5,6,8
+            'prop.2.1': {'prop': 'work_status', 'dict': {
+                0: 1,  # 待机 -> Idle
+                1: 2,  # 已预约 -> Delay
+                2: 3,  # 预约准备 -> Cooker Boiling
+                3: 4,  # 料理中 -> Cooker Heating
+                4: 5,  # 保温中 -> Keep Warm
+                5: 6,  # 完成回待机 -> End
+                6: 8,  # 完成 -> Cooker Finish
+            }, 'default': 1},
+            # left_time: 秒 -> 分钟
+            'prop.2.2': {'prop': 'left_time', 'value_ratio': 0.016667},
+            # curr_tempe: 0.1°C -> °C
+            'prop.2.3': {'prop': 'curr_tempe', 'value_ratio': 0.1},
         },
     },
     'yunmi.plmachine.mg2': {
