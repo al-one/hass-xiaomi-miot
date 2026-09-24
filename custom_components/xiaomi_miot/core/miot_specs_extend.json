@@ -383,6 +383,50 @@
     }
   ],
 
+  "leshow.humidifier.jsq3": [
+    {
+      "iid": 8,
+      "properties": [
+        {
+          "iid": 4,
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 8,
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 10,
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 11,
+          "access": ["read"]
+        },
+        {
+          "iid": 12,
+          "access": ["read"]
+        },
+        {
+          "iid": 13,
+          "access": ["read"]
+        },
+        {
+          "iid": 14,
+          "access": ["read"]
+        },
+        {
+          "iid": 15,
+          "access": ["read"]
+        },
+        {
+          "iid": 16,
+          "access": ["read"]
+        }
+      ]
+    }
+  ],
+
   "hfjh.fishbowl.m100": [
     {
       "iid": 15,
