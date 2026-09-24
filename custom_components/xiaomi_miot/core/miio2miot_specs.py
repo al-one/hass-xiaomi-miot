@@ -1424,11 +1424,11 @@ MIIO_TO_MIOT_SPECS = {
         'entity_attrs': ['ScreenOn', 'Error', 'SmartCool', 'SmartFreeze'],
         'miio_specs': {
             'prop.2.1': {'prop': 'Mode', 'setter': 'setMode', 'dict': {
-                'smart': 1,
-                'holiday': 2,
-                'energy': 3,
-                'none': 4,
-            }, 'default': 1},
+                'smart': 0,
+                'holiday': 1,
+                'energy': 2,
+                'none': 3,
+            }, 'default': 0},
             'prop.3.1': {'prop': 'RCSetTemp', 'setter': 'setRCSetTemp'},
             'prop.3.2': {'prop': 'RCSet', 'setter': 'setRCSet', 'format': 'onoff'},
             'prop.3.3': {'prop': 'RCSetTemp'},
