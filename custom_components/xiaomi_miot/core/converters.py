@@ -110,7 +110,7 @@ class MiotPropConv(BaseConv):
                 self.desc = self.prop.use_desc(self.domain)
 
     def decode(self, device: 'Device', payload: dict, value):
-        if self.desc and self.prop:
+        if self.desc and self.prop and value is not None:
             value = self.prop.list_description(value)
             if self.domain == 'sensor' and isinstance(value, str):
                 value = value.lower()
