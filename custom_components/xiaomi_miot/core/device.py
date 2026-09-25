@@ -1,14 +1,17 @@
 import logging
 import copy
 import re
+import json
 from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
 from functools import cached_property
+import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
 from homeassistant.components import persistent_notification
 from homeassistant.helpers.event import async_call_later, async_track_time_interval
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.device_registry as dr
 
 from .const import (
@@ -192,6 +195,7 @@ class Device(CustomConfigHelper):
         self.converters: list[BaseConv] = []
         self.coordinators: list[DataCoordinator] = []
         self.main_coordinators: list[DataCoordinator] = []
+        self.vacuum_map_coordinator: Optional[DataCoordinator] = None
         self.log = logging.getLogger(f'{__name__}.{self.model}')
 
     async def async_init(self):
@@ -582,6 +586,20 @@ class Device(CustomConfigHelper):
             lst.append(
                 DataCoordinator(self, self.update_miio_commands, update_interval=timedelta(seconds=interval)),
             )
+        if self.vacuum_map_property and not self.custom_config_bool('disable_map_camera'):
+            # Own, much slower coordinator: this downloads+decrypts a cloud
+            # file (not a local miIO property poll), so it's independent of
+            # the interval/chunk_coordinators tuning above. 30s matches how
+            # fluidly a live cleaning session's robot position/trail update
+            # without pushing so hard it risks Xiaomi cloud rate-limiting.
+            # This is the single source of truth for the decoded map
+            # (Device.data['vacuum_map']) - camera.py's RobotMapCamera reads
+            # it via self.vacuum_map_coordinator instead of downloading its
+            # own copy, so gating on the same `disable_map_camera` flag the
+            # camera used to check on its own actually stops all cloud
+            # polling for opted-out users, not just the camera's rendering.
+            self.vacuum_map_coordinator = DataCoordinator(self, self.update_vacuum_map, update_interval=timedelta(seconds=30))
+            lst.append(self.vacuum_map_coordinator)
         self.coordinators.extend(lst)
 
         idx = 0
@@ -1387,6 +1405,96 @@ class Device(CustomConfigHelper):
             self.data['updated'] = dt.now()
             self.dispatch(self.decode_attrs(attrs))
         return attrs
+
+    @cached_property
+    def vacuum_map_property(self):
+        """The vacuum's own map_obj_name property, if the spec has one
+        (SIID10 PIID1 on xiaomi.vacuum.ov42gl/H50 Pro) - resolved from the
+        spec rather than a hardcoded model check, so any device sharing the
+        exact same `vacuum_map` service/property is picked up automatically.
+        The AES decrypt algorithm in `core/vacuum_map.py` is only confirmed
+        correct for 3iRobotics-manufactured units though - `update_vacuum_map`
+        double-checks the cloud response before trusting it (see its own
+        comment), so exposing this property alone doesn't guarantee the map
+        will actually decode for a different manufacturer's device.
+
+        Underscore, not dash: `get_service`/`get_property` match literally
+        (see `convert_globs_to_pattern` in core/utils.py, plain
+        `fnmatch.translate` with no dash/underscore normalization) against
+        `MiotService`/`MiotProperty.name`, which are stored underscored -
+        same convention camera.py's own `spec.get_service('vacuum_map')`
+        and vacuum.py's `get_property('restricted_sweep_areas')` etc. use.
+        A dashed query here always returned None, silently disabling this
+        coordinator (and the whole map camera feature) for every user of
+        this model."""
+        if not self.spec:
+            return None
+        srv = self.spec.get_service('vacuum_map')
+        return srv.get_property('map_obj_name') if srv else None
+
+    async def update_vacuum_map(self):
+        """Downloads and decrypts this vacuum's cloud map file (see
+        core/vacuum_map.py for the full pipeline). The decoded JSON is
+        stashed on `self.data['vacuum_map']` - not exposed as a regular
+        property/sensor since it's a large nested structure, not a simple
+        value. camera.py's RobotMapCamera is the reader: it subscribes to
+        this method's coordinator (`self.vacuum_map_coordinator`) instead of
+        polling the cloud itself, so this is the single source of truth for
+        the decoded map - see `init_coordinators` for the `disable_map_camera`
+        gating that also applies here."""
+        from .vacuum_map import decrypt_map_payload, MAP_FILE_URL_API
+
+        prop = self.vacuum_map_property
+        if not prop or not self.local or not self.cloud or not self.did:
+            return self.data.get('vacuum_map')
+        try:
+            results = await self.local.async_get_properties_for_mapping(
+                did=self.did,
+                mapping={'map_obj_name': {'siid': prop.siid, 'piid': prop.iid}},
+            )
+            obj_name = None
+            for item in results or []:
+                if item.get('code') == 0 and item.get('value'):
+                    obj_name = (json.loads(item['value']) or {}).get('obj_name')
+                    break
+            if not obj_name:
+                return self.data.get('vacuum_map')
+
+            result = await self.cloud.async_request_api(MAP_FILE_URL_API, {'obj_name': obj_name}) or {}
+            url = (result.get('result') or {}).get('url')
+            if not url:
+                self.log.debug('%s: vacuum map url missing in response: %s', self.name_model, result)
+                return self.data.get('vacuum_map')
+
+            # The decrypt algorithm was reverse-engineered specifically from
+            # 3iRobotics' own plugin (identifiable by this bucket name
+            # prefix in the signed URL) - refuse to even try decoding a
+            # response that doesn't match, rather than raising a confusing
+            # decrypt error for some other manufacturer's vacuum that
+            # happens to expose the same map-obj-name property.
+            if '3irobotic-' not in url:
+                self.log.warning(
+                    '%s: vacuum map url does not look like a 3iRobotics bucket, skipping decode: %s',
+                    self.name_model, url,
+                )
+                return self.data.get('vacuum_map')
+
+            session = async_get_clientsession(self.hass)
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                raw_bytes = await resp.read()
+            map_data = decrypt_map_payload(raw_bytes, self.model, str(self.did))
+            if map_data != self.data.get('vacuum_map'):
+                # Only replace with a new object when the content actually
+                # changed - camera.py's render cache keys off id(map_data),
+                # so keeping the same reference across identical polls lets
+                # it skip a full Pillow re-render for no reason every 30s.
+                self.data['vacuum_map'] = map_data
+            return self.data['vacuum_map']
+        except Exception as exc:
+            # A transient cloud/network miss shouldn't blank out an
+            # otherwise-good map - keep serving the last successful decode.
+            self.log.debug('%s: update vacuum map failed, keeping last map: %s', self.name_model, exc)
+            return self.data.get('vacuum_map')
 
     @cached_property
     def custom_miio_properties(self):
