@@ -597,9 +597,13 @@ class XiaoaiConversationSensor(MiCoordinatorEntity, BaseSensorSubEntity):
         }
         try:
             res = await mic.async_request_api(api, data=dat, method='GET', cookies=cks) or {}
-            rdt = res.get('data', {})
-            if not isinstance(rdt, dict):
+            rdt = res.get('data')
+            if rdt is None:
+                return {}
+            if isinstance(rdt, (str, bytes, bytearray)):
                 rdt = json.loads(rdt) or {}
+            if not isinstance(rdt, dict):
+                return {}
         except (TypeError, ValueError, Exception) as exc:
             rdt = {}
             _LOGGER.warning(
