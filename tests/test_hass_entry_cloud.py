@@ -172,6 +172,36 @@ async def test_async_unload_clears_clouds_map(entry, hass):
     assert entry.clouds == {}
 
 
+async def test_cloud_devices_can_be_renewed_and_are_throttled(entry, hass):
+    old = {
+        "device": {
+            "did": "device",
+            "mac": "aa:bb:cc:dd:ee:ff",
+            "localip": "192.0.2.1",
+        }
+    }
+    new = {
+        "device": {
+            "did": "device",
+            "mac": "aa:bb:cc:dd:ee:ff",
+            "localip": "192.0.2.2",
+        }
+    }
+    cloud = SimpleNamespace(
+        async_get_devices_by_key=AsyncMock(side_effect=[old, new]),
+    )
+    entry.clouds[CloudSid.XIAOMIIO] = cloud
+
+    assert await entry.get_cloud_devices() == old
+    entry._cloud_devices_updated -= 301
+    assert await entry.get_cloud_devices(renew=True) == new
+    assert await entry.get_cloud_devices(renew=True) == new
+    assert cloud.async_get_devices_by_key.await_count == 2
+    cloud.async_get_devices_by_key.assert_awaited_with(
+        "did", renew=True, filters=entry.get_config(),
+    )
+
+
 async def test_auth_failed_xiaomiio_loaded_starts_reauth(entry, hass):
     captured = {}
 
