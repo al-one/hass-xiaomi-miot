@@ -1533,6 +1533,36 @@ DEVICE_CUSTOMIZES = {
     'mmgg.feeder.petfeeder:pet_food_out': {
         'action_params': 1,
     },
+    'huoman.feeder.pf20i': {
+        'converters': [],
+        'append_converters': [
+            {
+                'class': MiotActionConv,
+                'services': ['pet_feeder'],
+                'kwargs': {
+                    'attr': 'feeding_measure',
+                    'domain': 'number',
+                    'action_name': 'pet_food_out',
+                    'option': {
+                        'action_value_only': True,
+                        'default': 1,
+                        'name': '出粮份数',
+                        'unique_id': 'pet_feeder-2.feeding_measure-5',
+                        'use_unique_attr': True,
+                    },
+                },
+            },
+        ],
+        'button_actions': 'pet_food_out,reset_desiccant_life',
+        'sensor_properties': 'fault,desiccant_left_time',
+        'switch_properties': 'indicator_light.on,physical_controls_locked',
+    },
+    'huoman.feeder.pf20i:indicator_light.on': {
+        'name': '夜间模式',
+    },
+    'huoman.feeder.pf20i:pet_food_out': {
+        'action_params': '{{ attrs["number.feeding_measure"]|default(1) }}',
+    },
     'mmgg.litter_box.lbc1': {
         'binary_sensor_properties': 'warehouse_uninstall,cover_open,roller_uninstall,device_dump,'
                                     'cat_enter_state,cat_near_state,enter_time_too_long',
