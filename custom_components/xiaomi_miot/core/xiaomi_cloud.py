@@ -185,6 +185,42 @@ class MiotCloud(micloud.MiCloud):
             vls = [val]
         return vls.pop(0)
 
+    async def async_get_interim_file(self, object_name: str):
+        """Download a Xiaomi cloud object without exposing its signed URL."""
+        if not object_name:
+            return None
+        for api in (
+            'v2/home/get_interim_file_url_pro',
+            'v2/home/get_interim_file_url',
+        ):
+            try:
+                response = await self.async_request_api(
+                    api,
+                    {'obj_name': object_name},
+                    debug=False,
+                    timeout=self.http_timeout,
+                ) or {}
+            except (aiohttp.ClientError, asyncio.TimeoutError, MiCloudException) as exc:
+                _LOGGER.debug('Unable to get Xiaomi cloud object URL: %s', exc)
+                continue
+            url = (response.get('result') or {}).get('url')
+            if not url:
+                continue
+            try:
+                session = async_create_clientsession(self.hass)
+                async with session.get(
+                    url, timeout=aiohttp.ClientTimeout(total=self.http_timeout)
+                ) as result:
+                    if result.status == 200:
+                        return await result.read()
+                    _LOGGER.debug(
+                        'Unable to download Xiaomi cloud object: HTTP %s',
+                        result.status,
+                    )
+            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+                _LOGGER.debug('Unable to download Xiaomi cloud object: %s', exc)
+        return None
+
     async def async_check_auth(self, *, notify: bool = True):
         if self.service_token:
             api = 'v2/message/v2/check_new_msg'
