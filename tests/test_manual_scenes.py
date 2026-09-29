@@ -186,3 +186,25 @@ async def test_manual_scene_button_reports_cloud_error():
 
     with pytest.raises(HomeAssistantError, match='Sleep'):
         await button.async_press()
+
+
+@pytest.mark.parametrize('response', [None, [], ['bad'], 'bad', {'code': 0}, {'code': -1}])
+async def test_manual_scene_api_rejects_malformed_responses(response):
+    cloud = MiotCloud.__new__(MiotCloud)
+    cloud.is_token_expired = lambda result: False
+    cloud.async_request_api = AsyncMock(return_value=response)
+    with pytest.raises(MiCloudException):
+        await cloud._async_request_manual_scene_api('method', {})
+
+
+async def test_scene_discovery_refetches_and_skips_malformed_entries():
+    cloud = MiotCloud.__new__(MiotCloud)
+    cloud.user_id = '1000'
+    cloud.async_get_homerooms = AsyncMock(return_value=[None, {'id': '1'}])
+    cloud._async_request_manual_scene_api = AsyncMock(side_effect=[
+        [None, {'scene_id': 'bad', 'scene_name': []}, {'scene_id': '11', 'scene_name': 'Sleep'}],
+        [{'scene_id': '22', 'scene_name': 'Work'}],
+    ])
+    assert [scene['scene_id'] for scene in await cloud.async_get_manual_scenes()] == ['11']
+    assert [scene['scene_id'] for scene in await cloud.async_get_manual_scenes()] == ['22']
+    assert cloud._async_request_manual_scene_api.await_count == 2
