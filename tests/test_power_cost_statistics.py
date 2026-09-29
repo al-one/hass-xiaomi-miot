@@ -23,7 +23,9 @@ def make_sensor(hass, key, ratio):
     sensor._attr_native_unit_of_measurement = 'kWh'
     sensor._attr_native_value = None
     sensor.custom_value_ratio = ratio
-    sensor.async_on_remove = Mock()
+    # The entity is deliberately not added to a real platform in this unit
+    # test; execute its registered cleanup to avoid leaking the midnight timer.
+    sensor.async_on_remove = Mock(side_effect=lambda remove: remove())
     device = SimpleNamespace(props={}, data={}, log=Mock())
     device._filter_power_cost_statistics = MethodType(Device._filter_power_cost_statistics, device)
     sensor.device = device
