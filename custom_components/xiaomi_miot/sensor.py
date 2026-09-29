@@ -17,6 +17,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.restore_state import RestoreEntity, RestoredExtraData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.util.unit_conversion import EnergyConverter
 
 from . import (
     DOMAIN,
@@ -136,6 +137,13 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                 self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
 
     def get_state(self) -> dict:
+        if POWER_COST_PATTERN.search(self.attr):
+            # These are native values, not another raw converter update.
+            return {
+                'native_value': self._attr_native_value,
+                'native_unit_of_measurement': self.native_unit_of_measurement,
+                'power_cost_period': getattr(self, '_power_cost_period', None),
+            }
         return {self.attr: self._attr_native_value}
 
     async def async_added_to_hass(self):
@@ -147,11 +155,28 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
         self._power_cost_period = current_period
         restored = await self.async_get_last_state()
         if restored:
-            restored_value = normalize_power_cost_value(restored.state)
+            extra = await self.async_get_last_extra_data()
+            extra = extra.as_dict() if extra else {}
+            # Earlier versions saved native values under the converter name.
+            restored_value = normalize_power_cost_value(
+                extra.get('native_value', extra.get(self.attr, restored.state))
+            )
+            unit = extra.get('native_unit_of_measurement')
+            if unit is None:
+                unit = (self.native_unit_of_measurement if self.attr in extra
+                        else restored.attributes.get('unit_of_measurement'))
+            if restored_value is not None and unit != self.native_unit_of_measurement:
+                if unit in EnergyConverter.VALID_UNITS and self.native_unit_of_measurement in EnergyConverter.VALID_UNITS:
+                    restored_value = EnergyConverter.convert(
+                        restored_value, unit, self.native_unit_of_measurement,
+                    )
+                else:
+                    restored_value = None
+            restored_value = normalize_power_cost_value(restored_value)
             restored_at = restored.last_changed.astimezone(
                 local_zone(self.hass)
             )
-            restored_period = power_cost_period(
+            restored_period = extra.get('power_cost_period') or power_cost_period(
                 self.attr,
                 restored_at,
             )
@@ -159,6 +184,15 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                 self._attr_native_value = None
             else:
                 self._attr_native_value = restored_value
+                # Device.props stores cloud units; restore its matching baseline
+                # before the first cloud poll so it cannot accept a false reset.
+                key = self.conv.attr
+                ratio = self.custom_value_ratio or 1
+                attrs = self.device._filter_power_cost_statistics(
+                    {key: restored_value / ratio}, now,
+                )
+                self.device.props.update(attrs)
+                self._attr_native_value = float(self.device.props[key]) * ratio
         self.async_on_remove(
             async_track_time_change(
                 self.hass,
@@ -177,6 +211,8 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
             return
         self._power_cost_period = period
         self._attr_native_value = 0
+        self.device.props[self.conv.attr] = 0
+        self.device.data.setdefault('_power_cost_periods', {})[self.conv.attr] = period
         self.async_write_ha_state()
 
     def set_state(self, data: dict):
