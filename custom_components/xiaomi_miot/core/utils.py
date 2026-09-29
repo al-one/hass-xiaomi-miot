@@ -40,6 +40,8 @@ def parse_power_cost_records(records: list) -> list:
             value = []
         parsed.append({**record, 'value': value if isinstance(value, list) else []})
     return parsed
+
+
 def power_cost_period(attribute: str, timestamp: datetime) -> str | None:
     """Return the local reset period for a power cost attribute."""
     if match := POWER_COST_PATTERN.search(attribute):
