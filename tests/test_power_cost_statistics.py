@@ -11,7 +11,7 @@ from homeassistant.helpers.restore_state import RestoredExtraData
 from custom_components.xiaomi_miot.core.converters import BaseConv
 from custom_components.xiaomi_miot.core.device import Device, DeviceInfo
 from custom_components.xiaomi_miot.core.hass_entity import XEntity
-from custom_components.xiaomi_miot.core.utils import local_zone, power_cost_period
+from custom_components.xiaomi_miot.core.utils import local_zone, power_cost_period, parse_power_cost_records
 from custom_components.xiaomi_miot.core.templates import template
 from homeassistant.util import dt as dt_util
 from homeassistant.setup import async_setup_component
@@ -122,6 +122,15 @@ def daily_record(value, days=0):
     return {'time': int((now + timedelta(days=days)).timestamp()), 'value': value}
 
 
+def test_record_parser_preserves_dates_and_does_not_mutate_response():
+    records = [{'time': 123, 'value': 'bad'}, None, {'time': 456, 'value': '[0]'}]
+    assert parse_power_cost_records(records) == [
+        {'time': 123, 'value': []}, {}, {'time': 456, 'value': [0]},
+    ]
+    assert records[0]['value'] == 'bad'
+    assert records[2]['value'] == '[0]'
+
+
 @pytest.mark.parametrize('response', [None, {}, [], {'code': 1, 'result': []},
                                      {'code': -1, 'result': []}, {'result': {}}, {'result': []}])
 async def test_bad_or_empty_responses_keep_existing_values(hass, response):
@@ -138,7 +147,7 @@ async def test_bad_or_empty_responses_keep_existing_values(hass, response):
                                   '["bad"]', '[NaN]', '[Infinity]', '[-1]', '{}'])
 def test_bad_record_does_not_invalidate_other_daily_value(hass, value):
     result = template('micloud_statistics_power_cost', hass).async_render({
-        'result': [daily_record(value), daily_record('[1.2]')],
+        'result': parse_power_cost_records([daily_record(value), daily_record('[1.2]')]),
     })
     assert result == {'power_cost_today': 1.2, 'power_cost_month': None}
 
@@ -153,7 +162,7 @@ async def test_failed_first_command_keeps_second_command_suffix(hass):
 
 def test_missing_today_is_not_zero_and_future_day_is_excluded(hass):
     result = template('micloud_statistics_power_cost', hass).async_render({
-        'result': [daily_record('[4]', -1), daily_record('[999]', 1)],
+        'result': parse_power_cost_records([daily_record('[4]', -1), daily_record('[999]', 1)]),
     })
     assert result['power_cost_today'] is None
     expected_month = 4 if dt_util.now().day > 1 else None
@@ -178,7 +187,7 @@ def test_daily_template_uses_local_calendar_boundaries(hass, freezer, zone, inst
     midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
     try:
         result = template('micloud_statistics_power_cost', hass).async_render({
-            'result': [{'time': int(midnight.timestamp()), 'value': '[0]'}],
+            'result': parse_power_cost_records([{'time': int(midnight.timestamp()), 'value': '[0]'}]),
         })
         assert result == {'power_cost_today': 0, 'power_cost_month': 0}
     finally:

@@ -40,6 +40,7 @@ from .utils import (
     DeviceException,
     is_offline_exception,
     normalize_power_cost_value,
+    parse_power_cost_records,
     power_cost_period,
     update_attrs_with_suffix,
 )
@@ -1301,6 +1302,8 @@ class Device(CustomConfigHelper):
                 log('Ignore invalid power statistics response: %s', c['key'])
                 rls = missing
             elif tpl := c.get('template'):
+                if power_cost:
+                    rdt = {**rdt, 'result': parse_power_cost_records(rdt['result'])}
                 try:
                     rls = template(tpl, self.hass).async_render(rdt or {})
                 except TemplateError:
