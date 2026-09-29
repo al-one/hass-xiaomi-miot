@@ -15,10 +15,11 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+CLOUD_DEVICES_REFRESH_INTERVAL = 300
+
 
 class HassEntry:
     ALL: dict[str, 'HassEntry'] = {}
-    cloud_devices = None
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry):
         self.id = entry.entry_id
@@ -30,6 +31,9 @@ class HassEntry:
         self.did_to_unique = {}
         self.clouds: dict[CloudSid, Optional[MiotCloud]] = {}
         self._cloud_lock = asyncio.Lock()
+        self.cloud_devices = None
+        self._cloud_devices_lock = asyncio.Lock()
+        self._cloud_devices_updated = 0.0
 
     @staticmethod
     def init(hass: HomeAssistant, entry: ConfigEntry):
@@ -174,21 +178,38 @@ class HassEntry:
             return
         await start_reauth(self.hass, data={'sid': sid.value})
 
-    async def get_cloud_devices(self):
-        if isinstance(self.cloud_devices, dict):
+    async def get_cloud_devices(self, renew=False):
+        now = self.hass.loop.time()
+        if isinstance(self.cloud_devices, dict) and (
+            not renew
+            or now - self._cloud_devices_updated < CLOUD_DEVICES_REFRESH_INTERVAL
+        ):
             return self.cloud_devices
-        cloud = await self.get_cloud()
-        if not cloud:
-            return {}
-        config = self.get_config()
-        self.cloud_devices = await cloud.async_get_devices_by_key('did', filters=config) or {}
-        for did, info in self.cloud_devices.items():
-            mac = info.get('mac') or did
-            self.mac_to_did[mac] = did
-        return self.cloud_devices
+        async with self._cloud_devices_lock:
+            now = self.hass.loop.time()
+            if isinstance(self.cloud_devices, dict) and (
+                not renew
+                or now - self._cloud_devices_updated < CLOUD_DEVICES_REFRESH_INTERVAL
+            ):
+                return self.cloud_devices
+            cloud = await self.get_cloud()
+            if not cloud:
+                return self.cloud_devices or {}
+            config = self.get_config()
+            devices = await cloud.async_get_devices_by_key(
+                'did', renew=renew, filters=config,
+            ) or {}
+            self._cloud_devices_updated = now
+            if devices:
+                self.cloud_devices = devices
+                self.mac_to_did.clear()
+                for did, info in devices.items():
+                    mac = info.get('mac') or did
+                    self.mac_to_did[mac] = did
+            return self.cloud_devices or {}
 
-    async def get_cloud_device(self, did=None, mac=None):
-        devices = await self.get_cloud_devices()
+    async def get_cloud_device(self, did=None, mac=None, renew=False):
+        devices = await self.get_cloud_devices(renew=renew)
         if mac and not did:
             did = self.mac_to_did.get(mac)
         if did:
