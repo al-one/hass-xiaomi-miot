@@ -102,6 +102,7 @@ def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, hass
     assert monthly_number._attr_translation_key == (
         "plug_04_monthly_energy_alert_threshold"
     )
+    assert not hasattr(monthly_number, "_attr_name")
     power = next(
         converter for converter in device.converters
         if converter.domain == "sensor"
@@ -109,7 +110,16 @@ def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, hass
         and converter.prop.service.iid == 11
         and converter.prop.iid == 2
     )
-    assert SensorEntity(device, power)._attr_translation_key == "plug_04_real_time_power"
+    power_sensor = SensorEntity(device, power)
+    assert power_sensor._attr_translation_key == "plug_04_real_time_power"
+    assert not hasattr(power_sensor, "_attr_name")
+    power_sensor.platform_data = SimpleNamespace(
+        platform_name="xiaomi_miot", domain="sensor"
+    )
+    assert power_sensor._name_internal(None, {
+        "component.xiaomi_miot.entity.sensor.plug_04_real_time_power.name":
+        "Real-Time Power",
+    }) == "Real-Time Power"
     accumulation = next(
         converter for converter in device.converters
         if converter.domain == "binary_sensor"
