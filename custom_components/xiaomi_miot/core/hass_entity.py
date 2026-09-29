@@ -160,6 +160,12 @@ class XEntity(BasicEntity):
             self._attr_name = name
             self._attr_translation_key = None
 
+        if self._miot_property and self._attr_translation_key:
+            keys = device.custom_config('property_translation_keys') or {}
+            self._attr_translation_key = keys.get(
+                self._miot_property.unique_prop, self._attr_translation_key
+            )
+
         self.listen_attrs = {self.attr} | set(conv.attrs)
         if getattr(self, '_attr_name', None):
             self._attr_name = self._attr_name.replace(device.name, '').strip()
