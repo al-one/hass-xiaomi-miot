@@ -113,9 +113,9 @@ def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, hass
     power_sensor = SensorEntity(device, power)
     assert power_sensor._attr_translation_key == "plug_04_real_time_power"
     assert not hasattr(power_sensor, "_attr_name")
-    power_sensor.platform_data = SimpleNamespace(
-        platform_name="xiaomi_miot", domain="sensor"
-    )
+    platform = SimpleNamespace(platform_name="xiaomi_miot", domain="sensor")
+    power_sensor.platform = platform
+    power_sensor.platform_data = platform
     assert power_sensor._name_internal(None, {
         "component.xiaomi_miot.entity.sensor.plug_04_real_time_power.name":
         "Real-Time Power",
