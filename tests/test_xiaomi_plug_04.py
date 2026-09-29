@@ -7,6 +7,7 @@ from homeassistant.util import dt as dt_util
 from custom_components.xiaomi_miot.core.miot_spec import MiotSpec
 from custom_components.xiaomi_miot.core.templates import template
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
+from custom_components.xiaomi_miot.number import NumberEntity
 
 
 MODEL = "xiaomi.plug.04"
@@ -52,6 +53,19 @@ def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, hass
                     },
                 ],
             },
+            {
+                "iid": 10,
+                "type": "urn:miot-spec-v2:service:over-use-ele-alert:0000780E:xiaomi-04:1",
+                "properties": [{
+                    "iid": 3,
+                    "type": "urn:xiaomi-spec:property:over-ele-month:00000003:xiaomi-04:1",
+                    "description": "over-ele-month",
+                    "format": "uint16",
+                    "access": ["read", "write", "notify"],
+                    "unit": "minutes",
+                    "value-range": [20, 1800, 1],
+                }],
+            },
         ],
     })
     device = make_device(spec, model=MODEL)
@@ -73,6 +87,13 @@ def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, hass
     assert device.custom_config("sensor_attributes") == "power_cost_today,power_cost_month"
     assert DEVICE_CUSTOMIZES[f"{MODEL}:power_cost_today"]["value_ratio"] == 1
     assert DEVICE_CUSTOMIZES[f"{MODEL}:power_cost_month"]["value_ratio"] == 1
+    monthly_limit = next(
+        converter for converter in device.converters
+        if converter.domain == "number"
+        and converter.prop.service.iid == 10
+        and converter.prop.iid == 3
+    )
+    assert NumberEntity(device, monthly_limit).native_unit_of_measurement == "kWh"
 
     device.local = SimpleNamespace()
     device.cloud = SimpleNamespace()
