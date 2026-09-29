@@ -133,6 +133,8 @@ def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, hass
 
     device.local = SimpleNamespace()
     device.cloud = SimpleNamespace()
+    config = {"username": "test-user", "conn_mode": "auto"}
+    device.entry.get_config = lambda key=None, default=None: config.get(key, default)
     assert device.use_local is True
     assert device.auto_cloud is True
 
