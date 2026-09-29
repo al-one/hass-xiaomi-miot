@@ -1,5 +1,7 @@
 """Model-specific cloud energy and local property mapping for xiaomi.plug.04."""
 
+import json
+from pathlib import Path
 from types import SimpleNamespace
 
 from homeassistant.util import dt as dt_util
@@ -7,7 +9,9 @@ from homeassistant.util import dt as dt_util
 from custom_components.xiaomi_miot.core.miot_spec import MiotSpec
 from custom_components.xiaomi_miot.core.templates import template
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
+from custom_components.xiaomi_miot.binary_sensor import BinarySensorEntity
 from custom_components.xiaomi_miot.number import NumberEntity
+from custom_components.xiaomi_miot.sensor import SensorEntity
 
 
 MODEL = "xiaomi.plug.04"
@@ -93,7 +97,29 @@ def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, hass
         and converter.prop.service.iid == 10
         and converter.prop.iid == 3
     )
-    assert NumberEntity(device, monthly_limit).native_unit_of_measurement == "kWh"
+    monthly_number = NumberEntity(device, monthly_limit)
+    assert monthly_number.native_unit_of_measurement == "kWh"
+    assert monthly_number._attr_translation_key == (
+        "plug_04_monthly_energy_alert_threshold"
+    )
+    power = next(
+        converter for converter in device.converters
+        if converter.domain == "sensor"
+        and getattr(converter, "prop", None)
+        and converter.prop.service.iid == 11
+        and converter.prop.iid == 2
+    )
+    assert SensorEntity(device, power)._attr_translation_key == "plug_04_real_time_power"
+    accumulation = next(
+        converter for converter in device.converters
+        if converter.domain == "binary_sensor"
+        and getattr(converter, "prop", None)
+        and converter.prop.service.iid == 11
+        and converter.prop.iid == 3
+    )
+    assert BinarySensorEntity(device, accumulation)._attr_translation_key == (
+        "plug_04_energy_accumulation_mode"
+    )
 
     device.local = SimpleNamespace()
     device.cloud = SimpleNamespace()
@@ -108,3 +134,29 @@ def test_plug_04_cloud_values_are_already_kwh(hass):
     })
     assert rendered["power_cost_today"] == 0.35
     assert rendered["power_cost_month"] == 0.35
+
+
+def test_plug_04_property_names_are_model_scoped_and_translated():
+    keys = DEVICE_CUSTOMIZES[MODEL]["property_translation_keys"]
+    assert len(set(keys.values())) == len(keys)
+
+    domains = {
+        "prop.2.2": "select",
+        "prop.11.2": "sensor",
+        "prop.11.3": "binary_sensor",
+    }
+    for domain in ("sensor", "switch", "number"):
+        for prop in DEVICE_CUSTOMIZES[MODEL][f"{domain}_properties"].split(","):
+            if prop.startswith("prop."):
+                domains[prop] = domain
+    assert set(keys) == set(domains)
+
+    translations = Path("custom_components/xiaomi_miot/translations")
+    for language in ("en", "zh-Hans"):
+        content = json.loads((translations / f"{language}.json").read_text())
+        names = [
+            content["entity"][domains[prop]][key]["name"]
+            for prop, key in keys.items()
+        ]
+        assert all(names)
+        assert len(names) == len(set(names))
