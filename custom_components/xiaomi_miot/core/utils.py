@@ -42,7 +42,7 @@ def normalize_power_cost_value(value) -> float | None:
         return None
     try:
         value = float(value)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return None
     return value if math.isfinite(value) and value >= 0 else None
 

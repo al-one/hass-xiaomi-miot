@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
 from functools import cached_property
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import TemplateError
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
 from homeassistant.components import persistent_notification
@@ -1284,20 +1285,39 @@ class Device(CustomConfigHelper):
                 'time_end': now + 60,
                 'limit': int(c.get('limit') or 1),
             }
-            rdt = await self.cloud.async_request_api('v2/user/statistics', pms) or {}
-            self.log.info('Got micloud statistics: %s', rdt)
-            if tpl := c.get('template'):
-                tpl = template(tpl, self.hass)
-                rls = tpl.async_render(rdt)
+            power_cost = c.get('template') == 'micloud_statistics_power_cost'
+            missing = {'power_cost_today': None, 'power_cost_month': None}
+            try:
+                rdt = await self.cloud.async_request_api('v2/user/statistics', pms)
+            except (MiCloudException, TimeoutError):
+                self.log.debug('Cloud statistics request unavailable: %s', c['key'])
+                rdt = None
+            if power_cost and (
+                not isinstance(rdt, dict)
+                or rdt.get('code', 0) != 0
+                or not isinstance(rdt.get('result'), list)
+            ):
+                log = self.log.debug if rdt is None or rdt == {} else self.log.warning
+                log('Ignore invalid power statistics response: %s', c['key'])
+                rls = missing
+            elif tpl := c.get('template'):
+                try:
+                    rls = template(tpl, self.hass).async_render(rdt or {})
+                except TemplateError:
+                    self.log.warning('Ignore invalid statistics template data: %s', c['key'])
+                    if not power_cost:
+                        continue
+                    rls = missing
             else:
                 rls = [
                     v.get('value')
-                    for v in rdt
+                    for v in (rdt or [])
                     if 'value' in v
                 ]
             if anm := c.get('attribute'):
                 attrs[anm] = rls
             elif isinstance(rls, dict):
+                # Reserve suffixes even when an earlier energy command failed.
                 update_attrs_with_suffix(attrs, rls)
         attrs = self._filter_power_cost_statistics(attrs, dt.now())
         if attrs:
