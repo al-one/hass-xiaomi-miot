@@ -37,9 +37,6 @@ def make_lan_device(hass, mode):
         async_set_props=AsyncMock(return_value=RESULT),
         async_do_action=AsyncMock(return_value={"code": 0}),
     )
-    device.custom_config_bool = lambda key, default=None: key in {
-        "auto_cloud", "miot_cloud_write", "miot_cloud_action",
-    }
     device.decode = lambda value: {}
     device.dispatch = lambda value, **kwargs: None
     return device
@@ -111,6 +108,7 @@ async def test_local_manual_read_retries_local_after_failure(hass):
 
 async def test_local_write_ignores_cloud_override_and_does_not_retry(hass):
     device = make_lan_device(hass, "local")
+    device.custom_config_bool = lambda key, default=None: True
     device._local_state = False
     device.local.async_send.side_effect = DeviceException("result unknown")
     with pytest.raises(DeviceException):
@@ -123,6 +121,7 @@ async def test_local_write_ignores_cloud_override_and_does_not_retry(hass):
 
 async def test_local_action_ignores_cloud_override(hass):
     device = make_lan_device(hass, "local")
+    device.custom_config_bool = lambda key, default=None: True
     device._local_state = False
     await device.async_call_action(2, 1, cloud=True, force_params=True)
     device.local.async_send.assert_awaited_once()
