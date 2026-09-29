@@ -387,6 +387,9 @@
         "number": {
             "pet_drinking_fountain-out_water_interval": {
                 "name": "出水间隔"
+            },
+            "over_use_ele_alert-over_ele_month": {
+                "name": "月用电提醒阈值"
             }
         },
         "humidifier": {

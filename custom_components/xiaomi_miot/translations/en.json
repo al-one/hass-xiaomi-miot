@@ -334,6 +334,9 @@
         "number": {
             "pet_drinking_fountain-out_water_interval": {
                 "name": "Water Interval"
+            },
+            "over_use_ele_alert-over_ele_month": {
+                "name": "Monthly Energy Alert Threshold"
             }
         },
         "climate": {

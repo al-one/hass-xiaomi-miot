@@ -2541,14 +2541,19 @@ DEVICE_CUSTOMIZES = {
         'auto_cloud': True,
         # Direct 11.1 differs between LAN and cloud; use daily statistics instead.
         'exclude_miot_properties': 'power_consumption',
-        'sensor_properties': 'fault',
+        'sensor_properties': 'fault,prop.8.8,prop.8.9',
         'binary_sensor_properties': 'power_consumption_accumulation_way',
+        'switch_properties': 'prop.3.1,prop.4.7,prop.4.8,prop.5.1,prop.8.1,prop.8.4,'
+                             'prop.8.6,prop.10.1',
+        'number_properties': 'prop.3.2,prop.3.3,prop.4.3,prop.4.4,prop.4.5,prop.4.6,'
+                             'prop.8.2,prop.8.5,prop.8.7,prop.9.4,prop.10.2,prop.10.3',
         'select_properties': 'default_power_on_state',
         'sensor_attributes': 'power_cost_today,power_cost_month',
         'stat_power_cost_key': '11.1',
     },
     'xiaomi.plug.04:power_cost_today': {'value_ratio': 1, **ENERGY_KWH},
     'xiaomi.plug.04:power_cost_month': {'value_ratio': 1, **ENERGY_KWH},
+    'xiaomi.plug.04:over_ele_month-10-3': {'unit_of_measurement': 'kWh'},
     'xiaomi.plug.mcn003': {
         'button_actions': 'toggle',
         'sensor_properties': 'fault,electric_power',
