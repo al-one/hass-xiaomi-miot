@@ -81,6 +81,22 @@ async def test_manual_scene_api_requires_zero_code():
         await cloud._async_request_manual_scene_api('method', {})
 
 
+@pytest.mark.parametrize('authorized', [True, False])
+async def test_manual_scene_auth_refresh_retries_only_a_rejected_request(authorized):
+    cloud = MiotCloud.__new__(MiotCloud)
+    cloud.async_check_auth = AsyncMock(return_value=authorized)
+    cloud.async_request_api = AsyncMock(side_effect=[
+        {'code': 3}, {'code': 0, 'result': True},
+    ])
+    if authorized:
+        assert await cloud._async_request_manual_scene_api('NewRunScene', {}) is True
+    else:
+        with pytest.raises(MiCloudException):
+            await cloud._async_request_manual_scene_api('NewRunScene', {})
+    cloud.async_check_auth.assert_awaited_once_with(notify=True)
+    assert cloud.async_request_api.await_count == 1 + int(authorized)
+
+
 async def test_run_manual_scene_uses_scene_owner_and_scope():
     cloud = MiotCloud.__new__(MiotCloud)
     cloud._async_request_manual_scene_api = AsyncMock(return_value=True)
