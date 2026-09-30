@@ -1,11 +1,18 @@
-"""Model-specific cloud energy and local property mapping for xiaomi.plug.04."""
+"""Model-specific cloud energy and local property mapping for xiaomi.plug.04.
+
+The fixture is a readable-property subset of the public 0000D032 instance:
+https://miot-spec.org/miot-spec-v2/instance?type=urn:miot-spec-v2:device:outlet:0000A002:xiaomi-04:1:0000D032
+"""
 
 import json
+import logging
+from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 from homeassistant.util import dt as dt_util
+from homeassistant.helpers.entity_platform import EntityPlatform
 
 from custom_components.xiaomi_miot.core.miot_spec import MiotSpec
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
@@ -19,61 +26,8 @@ from custom_components.xiaomi_miot.select import SelectEntity
 MODEL = "xiaomi.plug.04"
 
 
-def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, hass):
-    spec = MiotSpec(hass, {
-        "type": "urn:miot-spec-v2:device:outlet:0000A002:xiaomi-04:1",
-        "services": [
-            {
-                "iid": 2,
-                "type": "urn:miot-spec-v2:service:switch:0000780C:xiaomi-04:1",
-                "properties": [{
-                    "iid": 1,
-                    "type": "urn:miot-spec-v2:property:on:00000006:xiaomi-04:1",
-                    "format": "bool",
-                    "access": ["read", "write", "notify"],
-                }],
-            },
-            {
-                "iid": 11,
-                "type": "urn:miot-spec-v2:service:power-consumption:0000780E:xiaomi-04:1",
-                "properties": [
-                    {
-                        "iid": 1,
-                        "type": "urn:miot-spec-v2:property:power-consumption:0000002F:xiaomi-04:1",
-                        "format": "float",
-                        "access": ["read", "notify"],
-                        "unit": "kWh",
-                    },
-                    {
-                        "iid": 2,
-                        "type": "urn:miot-spec-v2:property:electric-power:00000066:xiaomi-04:1",
-                        "format": "uint16",
-                        "access": ["read", "notify"],
-                        "unit": "watt",
-                    },
-                    {
-                        "iid": 3,
-                        "type": "urn:miot-spec-v2:property:power-consumption-accumulation-way:00000183:xiaomi-04:1",
-                        "format": "bool",
-                        "access": ["read", "notify"],
-                    },
-                ],
-            },
-            {
-                "iid": 10,
-                "type": "urn:miot-spec-v2:service:over-use-ele-alert:0000780E:xiaomi-04:1",
-                "properties": [{
-                    "iid": 3,
-                    "type": "urn:xiaomi-spec:property:over-ele-month:00000003:xiaomi-04:1",
-                    "description": "over-ele-month",
-                    "format": "uint16",
-                    "access": ["read", "write", "notify"],
-                    "unit": "minutes",
-                    "value-range": [20, 1800, 1],
-                }],
-            },
-        ],
-    })
+async def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, load_miot_spec, hass):
+    spec = load_miot_spec("xiaomi.plug.04.json")
     device = make_device(spec, model=MODEL)
 
     assert device.custom_config("miot_local") is True
@@ -115,13 +69,6 @@ def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, hass
     power_sensor = SensorEntity(device, power)
     assert power_sensor._attr_translation_key == "plug_04_real_time_power"
     assert not hasattr(power_sensor, "_attr_name")
-    platform = SimpleNamespace(platform_name="xiaomi_miot", domain="sensor")
-    power_sensor.platform = platform
-    power_sensor.platform_data = platform
-    assert power_sensor._name_internal(None, {
-        "component.xiaomi_miot.entity.sensor.plug_04_real_time_power.name":
-        "Real-Time Power",
-    }) == "Real-Time Power"
     accumulation = next(
         converter for converter in device.converters
         if converter.domain == "binary_sensor"
@@ -139,6 +86,18 @@ def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, hass
     device.entry.get_config = lambda key=None, default=None: config.get(key, default)
     assert device.use_local is True
     assert device.auto_cloud is True
+    platform = EntityPlatform(
+        hass=hass, logger=logging.getLogger(__name__), domain='sensor',
+        platform_name='xiaomi_miot',
+        platform=SimpleNamespace(async_setup_platform=AsyncMock()),
+        scan_interval=timedelta(seconds=30), entity_namespace=None,
+    )
+    try:
+        await platform.async_setup({})
+        await platform.async_add_entities([power_sensor])
+        assert power_sensor.name == 'Real-Time Power'
+    finally:
+        await platform.async_reset()
 
 
 async def test_plug_04_cloud_values_are_already_kwh(hass, make_device):
@@ -186,66 +145,12 @@ def test_plug_04_property_names_are_model_scoped_and_translated():
         assert len(names) == len(set(names))
 
 
-async def test_all_named_plug_04_entities_use_spec_units_and_write_mapping(hass, make_device):
-    # Compact snapshot of the public xiaomi-04:1:0000D032 specification.
-    # No production state or credentials are needed for these entity checks.
-    services = {
-        2: 'switch', 3: 'indicator-light', 4: 'charging-protection',
-        5: 'cycle-cycle', 8: 'quick-countdown', 9: 'max-power-limit',
-        10: 'over-use-ele-alert', 11: 'power-consumption',
-    }
-    rows = [
-        (2, 2, 'default-power-on-state', 'uint8', None, None),
-        (3, 1, 'mode', 'bool', None, None),
-        (3, 2, 'start-time', 'uint16', 'minutes', [0, 1440, 1]),
-        (3, 3, 'end-time', 'uint16', 'minutes', [0, 1440, 1]),
-        (4, 3, 'protection-time', 'uint16', 'minutes', [0, 1439, 1]),
-        (4, 4, 'power-power', 'uint16', 'watt', [1, 600, 1]),
-        (4, 5, 'protect-start-time', 'uint16', 'minutes', [0, 1439, 1]),
-        (4, 6, 'protect-end-time', 'uint16', 'minutes', [0, 1439, 1]),
-        (4, 7, 'period', 'bool', None, None),
-        (4, 8, 'on-off', 'bool', None, None),
-        (5, 1, 'status', 'bool', None, None),
-        (8, 1, 'on-off', 'bool', None, None),
-        (8, 2, 'duration', 'uint16', 'minutes', [0, 1439, 1]),
-        (8, 4, 'delay-on', 'bool', None, None),
-        (8, 5, 'delay-on-timer', 'uint16', 'minutes', [1, 1439, 1]),
-        (8, 6, 'delay-off', 'bool', None, None),
-        (8, 7, 'delay-off-timer', 'uint16', 'minutes', [1, 1439, 1]),
-        (8, 8, 'delay-on-left-timer', 'uint16', 'minutes', [0, 1439, 1]),
-        (8, 9, 'delay-off-left-timer', 'uint16', 'minutes', [0, 1439, 1]),
-        (9, 4, 'power', 'uint16', 'watt', [100, 2500, 1]),
-        (10, 1, 'on-off', 'bool', None, None),
-        (10, 2, 'over-ele-day', 'uint16', 'kWh', [1, 60, 1]),
-        (10, 3, 'over-ele-month', 'uint16', 'minutes', [20, 1800, 1]),
-        (11, 2, 'electric-power', 'uint16', 'watt', [0, 10000, 1]),
-        (11, 3, 'power-consumption-accumulation-way', 'bool', None, None),
-    ]
-    data = []
-    for siid, name in services.items():
-        props = []
-        for sid, piid, prop_name, fmt, unit, limits in rows:
-            if sid != siid:
-                continue
-            prop = {
-                'iid': piid, 'type': f'urn:xiaomi-spec:property:{prop_name}:00000001:xiaomi-04:1',
-                'format': fmt, 'access': ['read', 'notify'],
-            }
-            if siid != 11 and (siid, piid) not in ((8, 8), (8, 9)):
-                prop['access'].append('write')
-            if unit:
-                prop['unit'] = unit
-            if limits:
-                prop['value-range'] = limits
-            if (siid, piid) == (2, 2):
-                prop['value-list'] = [{'value': v, 'description': n} for v, n in enumerate(('Default', 'Off', 'On'))]
-            props.append(prop)
-        data.append({'iid': siid, 'type': f'urn:xiaomi-spec:service:{name}:00007801:xiaomi-04:1', 'properties': props})
-    device = make_device(MiotSpec(hass, {
-        'type': 'urn:miot-spec-v2:device:outlet:0000A002:xiaomi-04:1:0000D032',
-        'services': data,
-    }), model=MODEL)
-    device.async_set_properties = AsyncMock(return_value=[])
+async def test_all_named_plug_04_entities_use_spec_units_and_write_mapping(hass, make_device, load_miot_spec):
+    device = make_device(load_miot_spec("xiaomi.plug.04.json"), model=MODEL)
+    async def write_properties(params):
+        return [{**param, 'code': 0} for param in params]
+
+    device.async_set_properties = AsyncMock(side_effect=write_properties)
     classes = {'sensor': SensorEntity, 'number': NumberEntity, 'switch': SwitchEntity,
                'select': SelectEntity, 'binary_sensor': BinarySensorEntity}
     checked = set()
