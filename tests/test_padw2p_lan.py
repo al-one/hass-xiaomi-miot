@@ -54,15 +54,19 @@ def test_padw2p_keeps_existing_cloud_energy_source():
 
 
 async def test_lan_mapping_uses_existing_chunking(hass):
+    responses = [
+        {"did": "test-device", "siid": 3, "piid": p, "code": 0, "value": p * 10}
+        for p in (2, 3, 4)
+    ]
     miio = SimpleNamespace(send=AsyncMock(side_effect=[
-        {"result": RESULT * 2}, {"result": RESULT},
+        {"result": responses[:2]}, {"result": responses[2:]},
     ]))
     local = MiotDevice(hass, miio)
     mapping = {str(p): {"siid": 3, "piid": p} for p in (2, 3, 4)}
     result = await local.async_get_properties_for_mapping(
         did="test-device", mapping=mapping, max_properties=2,
     )
-    assert len(result) == 3
+    assert result == responses
     assert miio.send.await_args_list[0].args == (
         "get_properties", [
             {"did": "test-device", "siid": 3, "piid": 2},
@@ -108,7 +112,7 @@ async def test_local_manual_read_retries_local_after_failure(hass):
 
 async def test_local_write_ignores_cloud_override_and_does_not_retry(hass):
     device = make_lan_device(hass, "local")
-    device.custom_config_bool = lambda key, default=None: True
+    device.custom_config_bool = lambda key, default=None: key == "miot_cloud_write"
     device._local_state = False
     device.local.async_send.side_effect = DeviceException("result unknown")
     with pytest.raises(DeviceException):
@@ -121,7 +125,7 @@ async def test_local_write_ignores_cloud_override_and_does_not_retry(hass):
 
 async def test_local_action_ignores_cloud_override(hass):
     device = make_lan_device(hass, "local")
-    device.custom_config_bool = lambda key, default=None: True
+    device.custom_config_bool = lambda key, default=None: key == "miot_cloud_action"
     device._local_state = False
     await device.async_call_action(2, 1, cloud=True, force_params=True)
     device.local.async_send.assert_awaited_once()
