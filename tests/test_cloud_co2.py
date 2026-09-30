@@ -204,3 +204,18 @@ def test_other_models_keep_standard_co2_polling(make_device, load_miot_spec):
     assert device.miio_cloud_records == []
     sensor = make_sensor(device)
     assert sensor._cloud_record_max_age is None
+
+
+async def test_device_recovery_republishes_fresh_duplicate(co2_device):
+    device = co2_device
+    sensor = make_sensor(device)
+    records = [record(timestamp=int(dt.now().timestamp()))]
+    await update(device, records)
+    device.available = False
+    await update(device, records)
+    assert not sensor.available
+    device.dispatch = Mock(wraps=device.dispatch)
+    device.available = True
+    await update(device, records)
+    assert sensor.available
+    device.dispatch.assert_called_once()

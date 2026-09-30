@@ -213,6 +213,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
             observation = self.device.data.get('_cloud_record_observations', {}).get(self.conv.attr)
             if not observation or not -60 <= dt.now().timestamp() - observation['timestamp'] <= self._cloud_record_max_age:
                 return False
+            return self.device.available
         return super().available
 
     async def _restore_cloud_property(self):

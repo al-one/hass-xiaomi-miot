@@ -1449,10 +1449,10 @@ class Device(CustomConfigHelper):
         if not observation:
             return
         max_age = self.custom_config_integer('miio_cloud_record_max_age', 900)
-        fresh = -60 <= now - observation['timestamp'] <= max_age
+        available = self.available and -60 <= now - observation['timestamp'] <= max_age
         availability = self.data.setdefault('_cloud_record_available', {})
-        if changed or availability.get(attr) != fresh:
-            availability[attr] = fresh
+        if changed or availability.get(attr) != available:
+            availability[attr] = available
             self.dispatch(self.decode_attrs({attr: observation['value']}))
 
     @cached_property
