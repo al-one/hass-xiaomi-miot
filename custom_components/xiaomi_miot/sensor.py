@@ -13,8 +13,11 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorStateClass,
 )
+from homeassistant.core import callback
+from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.restore_state import RestoreEntity, RestoredExtraData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.util.unit_conversion import EnergyConverter
 
 from . import (
     DOMAIN,
@@ -33,7 +36,13 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
-from .core.utils import local_zone, get_translation
+from .core.utils import (
+    POWER_COST_PATTERN,
+    get_translation,
+    local_zone,
+    normalize_power_cost_value,
+    power_cost_period,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -128,7 +137,84 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                 self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
 
     def get_state(self) -> dict:
+        if POWER_COST_PATTERN.search(self.attr):
+            # These are native values, not another raw converter update.
+            return {
+                'native_value': self._attr_native_value,
+                'native_unit_of_measurement': self.native_unit_of_measurement,
+                'power_cost_period': getattr(self, '_power_cost_period', None),
+            }
         return {self.attr: self._attr_native_value}
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if not POWER_COST_PATTERN.search(self.attr):
+            return
+        now = datetime.now(local_zone(self.hass))
+        current_period = power_cost_period(self.attr, now)
+        self._power_cost_period = current_period
+        restored = await self.async_get_last_state()
+        if restored:
+            extra = await self.async_get_last_extra_data()
+            extra = extra.as_dict() if extra else {}
+            restored_value = self._restored_power_cost_value(restored, extra)
+            restored_at = restored.last_changed.astimezone(
+                local_zone(self.hass)
+            )
+            restored_period = extra.get('power_cost_period') or power_cost_period(
+                self.attr,
+                restored_at,
+            )
+            if restored_value is None or restored_period != current_period:
+                self._attr_native_value = None
+            else:
+                self._attr_native_value = restored_value
+                # Device.props stores cloud units; restore its matching baseline
+                # before the first cloud poll so it cannot accept a false reset.
+                key = self.conv.attr
+                ratio = self.custom_value_ratio or 1
+                attrs = self.device._filter_power_cost_statistics(
+                    {key: restored_value / ratio}, now,
+                )
+                self.device.props.update(attrs)
+                self._attr_native_value = float(self.device.props[key]) * ratio
+        self.async_on_remove(
+            async_track_time_change(
+                self.hass,
+                self._reset_power_cost_period,
+                hour=0,
+                minute=0,
+                second=0,
+            )
+        )
+
+    def _restored_power_cost_value(self, state, extra):
+        """Read native or legacy restore data without applying the cloud ratio."""
+        value = normalize_power_cost_value(
+            extra.get('native_value', extra.get(self.attr, state.state))
+        )
+        unit = extra.get('native_unit_of_measurement')
+        if unit is None:
+            # Legacy converter data is native; the state is in display units.
+            unit = (self.native_unit_of_measurement if self.attr in extra
+                    else state.attributes.get('unit_of_measurement'))
+        if value is not None and unit != self.native_unit_of_measurement:
+            if unit not in EnergyConverter.VALID_UNITS or self.native_unit_of_measurement not in EnergyConverter.VALID_UNITS:
+                return None
+            value = EnergyConverter.convert(value, unit, self.native_unit_of_measurement)
+        return normalize_power_cost_value(value)
+
+    @callback
+    def _reset_power_cost_period(self, now: datetime):
+        """Reset accumulated power at an observed local period boundary."""
+        period = power_cost_period(self.attr, now)
+        if not period or period == self._power_cost_period:
+            return
+        self._power_cost_period = period
+        self._attr_native_value = 0
+        self.device.props[self.conv.attr] = 0
+        self.device.data.setdefault('_power_cost_periods', {})[self.conv.attr] = period
+        self.async_write_ha_state()
 
     def set_state(self, data: dict):
         value = self.conv.value_from_dict(data)
@@ -144,8 +230,33 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                     value = round(float(value), 3)
             except (TypeError, ValueError):
                 value = None
+            period = power_cost_period(
+                self.attr,
+                datetime.now(local_zone(self.hass)),
+            )
+            if period:
+                value = normalize_power_cost_value(value)
+                if value is None:
+                    return
             if self.device_class == SensorDeviceClass.TIMESTAMP:
                 value = datetime_with_tzinfo(value)
+            previous = getattr(self, '_attr_native_value', None)
+            if (
+                period
+                and getattr(self, '_power_cost_period', None) == period
+                and previous is not None
+                and value < previous
+            ):
+                self.log.warning(
+                    'Ignore decreasing power cost in the same period: '
+                    '%s: %s -> %s',
+                    self.attr,
+                    previous,
+                    value,
+                )
+                return
+            if period:
+                self._power_cost_period = period
             self._attr_native_value = value
 
     @cached_property
