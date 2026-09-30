@@ -7,11 +7,14 @@ def set_callback_via_param_index(index=0, key=None):
     def cbk(prop, params, props, **kwargs):
         if prop in props:
             if isinstance(params, dict):
-                props[prop] = params.get(key or prop)
+                if (key or prop) in params:
+                    props[prop] = params[key or prop]
             elif isinstance(params, (list, tuple)) and len(params) > index:
                 value = params[index]
                 if key and isinstance(value, dict):
-                    value = value.get(key)
+                    if key not in value:
+                        return
+                    value = value[key]
                 props[prop] = value
         _LOGGER.debug('New miio props after setting %s(%s): %s', prop, params, props)
     return cbk
