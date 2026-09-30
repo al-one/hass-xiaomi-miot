@@ -157,22 +157,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
         if restored:
             extra = await self.async_get_last_extra_data()
             extra = extra.as_dict() if extra else {}
-            # Earlier versions saved native values under the converter name.
-            restored_value = normalize_power_cost_value(
-                extra.get('native_value', extra.get(self.attr, restored.state))
-            )
-            unit = extra.get('native_unit_of_measurement')
-            if unit is None:
-                unit = (self.native_unit_of_measurement if self.attr in extra
-                        else restored.attributes.get('unit_of_measurement'))
-            if restored_value is not None and unit != self.native_unit_of_measurement:
-                if unit in EnergyConverter.VALID_UNITS and self.native_unit_of_measurement in EnergyConverter.VALID_UNITS:
-                    restored_value = EnergyConverter.convert(
-                        restored_value, unit, self.native_unit_of_measurement,
-                    )
-                else:
-                    restored_value = None
-            restored_value = normalize_power_cost_value(restored_value)
+            restored_value = self._restored_power_cost_value(restored, extra)
             restored_at = restored.last_changed.astimezone(
                 local_zone(self.hass)
             )
@@ -202,6 +187,22 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                 second=0,
             )
         )
+
+    def _restored_power_cost_value(self, state, extra):
+        """Read native or legacy restore data without applying the cloud ratio."""
+        value = normalize_power_cost_value(
+            extra.get('native_value', extra.get(self.attr, state.state))
+        )
+        unit = extra.get('native_unit_of_measurement')
+        if unit is None:
+            # Legacy converter data is native; the state is in display units.
+            unit = (self.native_unit_of_measurement if self.attr in extra
+                    else state.attributes.get('unit_of_measurement'))
+        if value is not None and unit != self.native_unit_of_measurement:
+            if unit not in EnergyConverter.VALID_UNITS or self.native_unit_of_measurement not in EnergyConverter.VALID_UNITS:
+                return None
+            value = EnergyConverter.convert(value, unit, self.native_unit_of_measurement)
+        return normalize_power_cost_value(value)
 
     @callback
     def _reset_power_cost_period(self, now: datetime):
