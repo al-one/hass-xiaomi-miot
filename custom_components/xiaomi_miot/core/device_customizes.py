@@ -1452,6 +1452,13 @@ DEVICE_CUSTOMIZES = {
                              'eco_code,ringer_music',
         'number_properties': 'videodelay,volume',
     },
+    'miaomiaoce.airm.co2': {
+        'exclude_miot_properties': 'co2_density',
+        'miio_cloud_records': 'prop.3.1029:5',
+        'miio_cloud_records_interval': 60,
+        'miio_cloud_record_properties': {'prop.3.1029': 'environment.co2_density'},
+        'miio_cloud_record_max_age': 900,
+    },
     'miaomiaoce.sensor_ht.t1': {
         'exclude_miot_services': 'battery',  # -704002000
     },

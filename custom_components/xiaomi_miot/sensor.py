@@ -18,6 +18,7 @@ from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.restore_state import RestoreEntity, RestoredExtraData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util.unit_conversion import EnergyConverter
+from homeassistant.util import dt
 
 from . import (
     DOMAIN,
@@ -40,6 +41,7 @@ from .core.utils import (
     POWER_COST_PATTERN,
     get_translation,
     local_zone,
+    latest_cloud_property,
     normalize_power_cost_value,
     power_cost_period,
 )
@@ -124,6 +126,13 @@ def datetime_with_tzinfo(value):
 
 class SensorEntity(XEntity, BaseEntity, RestoreEntity):
     def on_init(self):
+        records = self.device.custom_config('miio_cloud_record_properties', {})
+        self._cloud_record_max_age = (
+            self.device.custom_config_integer('miio_cloud_record_max_age', 900)
+            if self.conv.attr in records.values() else None
+        )
+        if self._cloud_record_max_age is not None:
+            self._attr_suggested_display_precision = 0
         self._attr_state_class = self.custom_config('state_class')
         self._attr_native_unit_of_measurement = self.custom_config('unit_of_measurement')
         if self._miot_property:
@@ -137,6 +146,13 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                 self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
 
     def get_state(self) -> dict:
+        if getattr(self, '_cloud_record_max_age', None) is not None:
+            observation = self.device.data.get('_cloud_record_observations', {}).get(self.conv.attr, {})
+            return {
+                self.attr: observation.get('value'),
+                'source_timestamp': observation.get('timestamp'),
+                'native_unit_of_measurement': self.native_unit_of_measurement,
+            }
         if POWER_COST_PATTERN.search(self.attr):
             # These are native values, not another raw converter update.
             return {
@@ -148,6 +164,9 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
+        if getattr(self, '_cloud_record_max_age', None) is not None:
+            await self._restore_cloud_property()
+            return
         if not POWER_COST_PATTERN.search(self.attr):
             return
         now = datetime.now(local_zone(self.hass))
@@ -188,6 +207,35 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
             )
         )
 
+    @property
+    def available(self):
+        if getattr(self, '_cloud_record_max_age', None) is not None:
+            observation = self.device.data.get('_cloud_record_observations', {}).get(self.conv.attr)
+            if not observation or not -60 <= dt.now().timestamp() - observation['timestamp'] <= self._cloud_record_max_age:
+                return False
+        return super().available
+
+    async def _restore_cloud_property(self):
+        """Restore source time alongside the native value, never the poll time."""
+        observations = self.device.data.setdefault('_cloud_record_observations', {})
+        extra = await self.async_get_last_extra_data()
+        extra = extra.as_dict() if extra else {}
+        restored = None
+        if extra.get('native_unit_of_measurement') == self.native_unit_of_measurement:
+            restored = latest_cloud_property([{
+                'time': extra.get('source_timestamp'),
+                'value': json.dumps([extra.get(self.attr)]),
+            }], dt.now().timestamp(), self._miot_property.value_range)
+        current = observations.get(self.conv.attr)
+        if restored and (not current or restored['timestamp'] > current['timestamp']):
+            observations[self.conv.attr] = restored
+        observation = observations.get(self.conv.attr)
+        self._attr_native_value = None
+        if observation:
+            self.device.props[self.conv.attr] = observation['value']
+            self._attr_available = self.device.available
+            self.set_state(self.device.decode_attrs({self.conv.attr: observation['value']}))
+
     def _restored_power_cost_value(self, state, extra):
         """Read native or legacy restore data without applying the cloud ratio."""
         value = normalize_power_cost_value(
@@ -226,7 +274,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
             try:
                 if ratio := self.custom_value_ratio:
                     value = round(float(value) * ratio, 3)
-                elif self.state_class:
+                elif self.state_class and getattr(self, '_cloud_record_max_age', None) is None:
                     value = round(float(value), 3)
             except (TypeError, ValueError):
                 value = None

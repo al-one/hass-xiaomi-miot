@@ -27,6 +27,39 @@ POWER_COST_PATTERN = re.compile(
 )
 
 
+def latest_cloud_property(records, now, value_range):
+    """Select an unambiguous integer observation, independent of record order."""
+    if not isinstance(records, list):
+        return None
+    observations = {}
+    conflicts = set()
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        timestamp = record.get('time')
+        if (type(timestamp) is not int or timestamp <= 0
+                or timestamp > now + 60):
+            continue
+        try:
+            values = json.loads(record.get('value'))
+        except (TypeError, ValueError):
+            continue
+        if not isinstance(values, list) or len(values) != 1:
+            continue
+        value = values[0]
+        if (type(value) is not int or not value_range[0] <= value <= value_range[1]):
+            continue
+        if timestamp in observations and observations[timestamp] != value:
+            conflicts.add(timestamp)
+        observations[timestamp] = value
+    for timestamp in conflicts:
+        observations.pop(timestamp, None)
+    if not observations:
+        return None
+    timestamp = max(observations)
+    return {'value': observations[timestamp], 'timestamp': timestamp}
+
+
 def parse_power_cost_records(records: list) -> list:
     """Decode statistics without losing the date of an invalid record."""
     parsed = []
