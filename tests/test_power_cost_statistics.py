@@ -1,6 +1,6 @@
 """Native-unit restoration and the device's raw cloud baseline."""
 
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta
 from types import SimpleNamespace, MethodType
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -15,9 +15,18 @@ from custom_components.xiaomi_miot.core.utils import local_zone, power_cost_peri
 from custom_components.xiaomi_miot.core.templates import template
 from homeassistant.util import dt as dt_util
 from homeassistant.setup import async_setup_component
-from pytest_homeassistant_custom_component.common import mock_restore_cache_with_extra_data
+from pytest_homeassistant_custom_component.common import (
+    async_fire_time_changed,
+    mock_restore_cache_with_extra_data,
+)
 from custom_components.xiaomi_miot.core.miot_spec import MiotSpec
 from custom_components.xiaomi_miot.sensor import SensorEntity
+
+
+@pytest.fixture(autouse=True)
+def fixed_energy_time(freezer):
+    """Keep relative day/month records independent of the execution date."""
+    freezer.move_to('2026-09-29T12:00:00+00:00')
 
 
 def make_sensor(hass, key, ratio):
@@ -165,8 +174,7 @@ def test_missing_today_is_not_zero_and_future_day_is_excluded(hass):
         'result': parse_power_cost_records([daily_record('[4]', -1), daily_record('[999]', 1)]),
     })
     assert result['power_cost_today'] is None
-    expected_month = 4 if dt_util.now().day > 1 else None
-    assert result['power_cost_month'] == expected_month
+    assert result['power_cost_month'] == 4
 
 
 @pytest.mark.parametrize('key', ['power_cost_today', 'power_cost_month'])
@@ -181,6 +189,7 @@ def test_period_change_accepts_nonzero_first_sample(key, new_value):
 @pytest.mark.parametrize('instant', ['2026-01-01T00:00:00', '2028-02-29T12:00:00', '2026-03-08T03:05:00', '2026-11-01T01:30:00'])
 def test_daily_template_uses_local_calendar_boundaries(hass, freezer, zone, instant):
     from zoneinfo import ZoneInfo
+    original_zone = dt_util.DEFAULT_TIME_ZONE
     dt_util.set_default_time_zone(ZoneInfo(zone))
     now = datetime.fromisoformat(instant).replace(tzinfo=ZoneInfo(zone))
     freezer.move_to(now)
@@ -191,12 +200,13 @@ def test_daily_template_uses_local_calendar_boundaries(hass, freezer, zone, inst
         })
         assert result == {'power_cost_today': 0, 'power_cost_month': 0}
     finally:
-        dt_util.set_default_time_zone(UTC)
+        dt_util.set_default_time_zone(original_zone)
 
 
 @pytest.mark.parametrize('key', ['power_cost_today', 'power_cost_month'])
 @pytest.mark.parametrize('legacy', [True, False])
-async def test_actual_platform_restore_update_and_unload(hass, make_device, key, legacy):
+async def test_actual_platform_restore_update_and_unload(hass, make_device, freezer, key, legacy):
+    freezer.move_to(datetime(2026, 9, 29, 23, 59, tzinfo=local_zone(hass)))
     spec = MiotSpec(hass, {
         'type': 'urn:miot-spec-v2:device:outlet:0000A002:test-energy:1',
         'services': [],
@@ -223,12 +233,28 @@ async def test_actual_platform_restore_update_and_unload(hass, make_device, key,
     assert sensor.native_value == 17.5
     assert device.props[key] == 1750
     assert device._filter_power_cost_statistics({key: 0}, now) == {}
-    device.dispatch(device.decode_attrs({key: 1780}))
+    attrs = device._filter_power_cost_statistics({key: 1780}, now)
+    device.props.update(attrs)
+    device.dispatch(device.decode_attrs(attrs))
     await hass.async_block_till_done()
     assert sensor.native_value == 17.8
+    # An ordinary midnight resets only the day; month-end resets both.
+    for instant in (datetime(2026, 9, 30), datetime(2026, 10, 1)):
+        freezer.move_to(instant.replace(tzinfo=local_zone(hass)))
+        async_fire_time_changed(hass, dt_util.utcnow())
+        await hass.async_block_till_done()
+        expected = 17.8 if key == 'power_cost_month' and instant.month == 9 else 0
+        assert sensor.native_value == expected
+        assert device.props[key] == pytest.approx(expected / 0.01)
+        assert device.data['_power_cost_periods'][key] == power_cost_period(sensor.attr, dt_util.now())
     await component.async_remove_entity(sensor.entity_id)
     await hass.async_block_till_done()
     # HA retains a registry placeholder; the active entity and listener are gone.
     assert hass.states.get(sensor.entity_id).state == 'unavailable'
     assert sensor not in component.entities
     assert sensor.on_device_update not in device.listeners
+    period = device.data['_power_cost_periods'][key]
+    freezer.move_to(datetime(2026, 11, 1, tzinfo=local_zone(hass)))
+    async_fire_time_changed(hass, dt_util.utcnow())
+    await hass.async_block_till_done()
+    assert device.data['_power_cost_periods'][key] == period
