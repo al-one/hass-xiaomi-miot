@@ -40,6 +40,7 @@ from .utils import (
     DeviceException,
     is_offline_exception,
     normalize_power_cost_value,
+    power_cost_decreased,
     parse_power_cost_records,
     power_cost_period,
     update_attrs_with_suffix,
@@ -1350,10 +1351,16 @@ class Device(CustomConfigHelper):
                 result.pop(key)
                 continue
             previous = normalize_power_cost_value(self.props.get(key))
+            # Old restore data only retained the native value rounded to 3
+            # decimals. Compare in that precision until a real sample replaces it.
+            restore_scales = self.data.get('_power_cost_restore_scales', {})
+            scale = restore_scales.get(key)
+            comparison = round(value * scale, 3) if scale else value
+            baseline = round(previous * scale, 3) if scale and previous is not None else previous
             if (
                 periods.get(key) == period
                 and previous is not None
-                and value < previous
+                and power_cost_decreased(comparison, baseline)
             ):
                 self.log.warning(
                     'Ignore decreasing power cost in the same period: '
@@ -1365,6 +1372,9 @@ class Device(CustomConfigHelper):
                 )
                 result.pop(key)
                 continue
+            if periods.get(key) == period and previous is not None and not scale and value < previous:
+                result[key] = self.props[key]
+            restore_scales.pop(key, None)
             periods[key] = period
         return result
 
