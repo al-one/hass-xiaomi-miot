@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
 from functools import cached_property
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import TemplateError
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
 from homeassistant.util import dt
 from homeassistant.components import persistent_notification
@@ -38,6 +39,9 @@ from .utils import (
     get_value,
     DeviceException,
     is_offline_exception,
+    normalize_power_cost_value,
+    parse_power_cost_records,
+    power_cost_period,
     update_attrs_with_suffix,
 )
 from .templates import template
@@ -1289,27 +1293,80 @@ class Device(CustomConfigHelper):
                 'time_end': now + 60,
                 'limit': int(c.get('limit') or 1),
             }
-            rdt = await self.cloud.async_request_api('v2/user/statistics', pms) or {}
-            self.log.info('Got micloud statistics: %s', rdt)
-            if tpl := c.get('template'):
-                tpl = template(tpl, self.hass)
-                rls = tpl.async_render(rdt)
+            power_cost = c.get('template') == 'micloud_statistics_power_cost'
+            missing = {'power_cost_today': None, 'power_cost_month': None}
+            try:
+                rdt = await self.cloud.async_request_api('v2/user/statistics', pms)
+            except (MiCloudException, TimeoutError):
+                self.log.debug('Cloud statistics request unavailable: %s', c['key'])
+                rdt = None
+            if power_cost and (
+                not isinstance(rdt, dict)
+                or rdt.get('code', 0) != 0
+                or not isinstance(rdt.get('result'), list)
+            ):
+                log = self.log.debug if rdt is None or rdt == {} else self.log.warning
+                log('Ignore invalid power statistics response: %s', c['key'])
+                rls = missing
+            elif tpl := c.get('template'):
+                if power_cost:
+                    rdt = {**rdt, 'result': parse_power_cost_records(rdt['result'])}
+                try:
+                    rls = template(tpl, self.hass).async_render(rdt or {})
+                except TemplateError:
+                    self.log.warning('Ignore invalid statistics template data: %s', c['key'])
+                    if not power_cost:
+                        continue
+                    rls = missing
             else:
                 rls = [
                     v.get('value')
-                    for v in rdt
+                    for v in (rdt or [])
                     if 'value' in v
                 ]
             if anm := c.get('attribute'):
                 attrs[anm] = rls
             elif isinstance(rls, dict):
+                # Reserve suffixes even when an earlier energy command failed.
                 update_attrs_with_suffix(attrs, rls)
+        attrs = self._filter_power_cost_statistics(attrs, dt.now())
         if attrs:
             self.available = True
             self.props.update(attrs)
             self.data['updated'] = dt.now()
             self.dispatch(self.decode_attrs(attrs))
         return attrs
+
+    def _filter_power_cost_statistics(self, attrs, now):
+        """Filter invalid and decreasing power cost statistics."""
+        result = dict(attrs)
+        periods = self.data.setdefault('_power_cost_periods', {})
+        for key in list(result):
+            period = power_cost_period(key, now)
+            if not period:
+                continue
+            value = normalize_power_cost_value(result[key])
+            if value is None:
+                result.pop(key)
+                continue
+            previous = normalize_power_cost_value(self.props.get(key))
+            if (
+                periods.get(key) == period
+                and previous is not None
+                and value < previous
+            ):
+                self.log.warning(
+                    'Ignore decreasing power cost in the same period: '
+                    '%s: %s -> %s, period=%s',
+                    key,
+                    previous,
+                    value,
+                    period,
+                )
+                result.pop(key)
+                continue
+            periods[key] = period
+        return result
 
     @cached_property
     def miio_cloud_records(self):
