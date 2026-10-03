@@ -236,7 +236,7 @@ DEVICE_CUSTOMIZES = {
     },
     'careli.fryer.*': {
         'interval_seconds': 120,
-        'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
+        'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook,resume_cooking',
         'sensor_properties': 'status,fault,left_time,appoint_time_left',
         'switch_properties': 'auto_keep_warm,current_keep_warm,preheat,turn_pot_cfg,turn_pot_config',
         'select_properties': 'mode,food_quanty,preheat_switch,turn_pot,texture,target_cooking_measure',
