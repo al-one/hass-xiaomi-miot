@@ -1,8 +1,60 @@
 """Tests for Xiaomi MIoT device registry compatibility."""
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+
+from custom_components.xiaomi_miot import _handle_device_registry_event, HassEntry, DOMAIN
 
 from custom_components.xiaomi_miot.core.device import Device, DeviceInfo
+
+
+@pytest.mark.parametrize('modern', [False, True])
+@pytest.mark.parametrize('found', [False, True])
+async def test_registry_event_uses_public_lookup_and_preserves_disable(hass, modern, found):
+    identifiers = {(DOMAIN, 'test-device')}
+    miot_device = SimpleNamespace(
+        identifiers=identifiers, coordinators=[object()],
+        async_unload=AsyncMock(), log=Mock(),
+    )
+
+    class ModernEntry:
+        id = 'test-device'
+        config_entry_id = 'test-entry'
+        name_by_user = None
+        disabled = True
+
+        @property
+        def config_entries(self):
+            raise AssertionError('Deprecated config_entries must not be read')
+
+    device = ModernEntry() if modern else SimpleNamespace(
+        id='test-device', config_entries={'test-entry'},
+        name_by_user=None, disabled=True,
+    )
+    device.identifiers = identifiers
+
+    class Registry:
+        async_get = Mock(return_value=device if found else None)
+
+        @property
+        def devices(self):
+            raise AssertionError('Deprecated devices mapping must not be read')
+
+    registry = Registry()
+    listener = Mock()
+    entry = SimpleNamespace(devices={'test-device': miot_device})
+    with (
+        patch('custom_components.xiaomi_miot.dr.async_get', return_value=registry),
+        patch.object(type(hass.bus), 'async_listen', listener),
+        patch.dict(HassEntry.ALL, {'test-entry': entry}),
+    ):
+        await _handle_device_registry_event(hass)
+        handler = listener.call_args.args[1]
+        await handler(SimpleNamespace(data={'action': 'update', 'device_id': 'test-device'}))
+        await handler(SimpleNamespace(data={'action': 'update'}))
+    registry.async_get.assert_called_once_with('test-device')
+    assert miot_device.async_unload.await_count == int(found)
 
 
 def _make_device(hass, *, unique_id, entry_id="test-entry"):
