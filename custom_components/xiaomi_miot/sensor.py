@@ -55,9 +55,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     cloud = await entry.get_cloud()
 
     if cloud:
-        if not entry.get_config('disable_message'):
-            hass.data[DOMAIN]['accounts'].setdefault(cloud.user_id, {})
+        hass.data[DOMAIN]['accounts'].setdefault(cloud.user_id, {})
 
+        if not entry.get_config('disable_message'):
             if not hass.data[DOMAIN]['accounts'][cloud.user_id].get('messenger'):
                 entity = MihomeMessageSensor(hass, cloud)
                 await entity.coordinator.async_config_entry_first_refresh()
