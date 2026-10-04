@@ -1,10 +1,13 @@
 """Support button entity for Xiaomi Miot."""
+from collections import Counter
 import logging
 
 from homeassistant.components.button import (
     DOMAIN as ENTITY_DOMAIN,
     ButtonEntity as BaseEntity,
 )
+from homeassistant.const import CONF_USERNAME
+from homeassistant.exceptions import HomeAssistantError
 
 from . import (
     DOMAIN,
@@ -15,6 +18,7 @@ from . import (
     async_setup_config_entry,
 )
 from .core.templates import template
+from .core.xiaomi_cloud import MiCloudException
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -23,8 +27,21 @@ SERVICE_TO_METHOD = {}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
+    entry = HassEntry.init(hass, config_entry)
+    entry.new_adder(ENTITY_DOMAIN, async_add_entities)
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
+    if not entry.get_config(CONF_USERNAME) or not entry.cloud:
+        return
+    try:
+        scenes = await entry.cloud.async_get_manual_scenes()
+    except MiCloudException as exc:
+        _LOGGER.warning('Unable to get Xiaomi Home manual scenes: %s', exc)
+        return
+    names = _manual_scene_button_names(scenes)
+    async_add_entities([
+        ManualSceneButton(entry.cloud, scene, name)
+        for scene, name in zip(scenes, names)
+    ])
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -56,6 +73,58 @@ class ButtonEntity(XEntity, BaseEntity):
 
 
 XEntity.CLS[ENTITY_DOMAIN] = ButtonEntity
+
+
+def _manual_scene_button_names(scenes):
+    names = [
+        f'{scene.get("home_name") or scene["home_id"]} {scene["scene_name"]}'
+        for scene in scenes
+    ]
+    name_counts = Counter(names)
+    return [
+        (
+            f'{name} {scene["home_id"]}-{scene["scene_id"]}'
+            if name_counts[name] > 1
+            else name
+        )
+        for scene, name in zip(scenes, names)
+    ]
+
+
+class ManualSceneButton(BaseEntity):
+    _attr_has_entity_name = True
+    _attr_icon = 'mdi:play'
+
+    def __init__(self, cloud, scene, name):
+        self.cloud = cloud
+        self.scene = scene
+        self._attr_name = name
+        self._attr_unique_id = (
+            f'{cloud.unique_id}-manual-scene-'
+            f'{scene["home_id"]}-{scene["scene_id"]}'
+        )
+        self._attr_device_info = {
+            'identifiers': {(DOMAIN, f'{cloud.unique_id}-manual-scenes')},
+            'name': '米家手动场景',
+            'translation_key': 'manual_scenes',
+            'manufacturer': 'Xiaomi',
+            'model': 'Manual scenes',
+        }
+        self._attr_extra_state_attributes = {
+            'home_name': scene.get('home_name') or None,
+        }
+
+    async def async_press(self):
+        try:
+            success = await self.cloud.async_run_manual_scene(self.scene)
+        except MiCloudException as exc:
+            raise HomeAssistantError(
+                f'Unable to run Xiaomi Home scene: {self.name}'
+            ) from exc
+        if not success:
+            raise HomeAssistantError(
+                f'Unable to run Xiaomi Home scene: {self.name}'
+            )
 
 
 class ButtonSubEntity(BaseEntity, BaseSubEntity):
