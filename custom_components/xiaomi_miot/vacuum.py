@@ -203,7 +203,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     async def async_set_fan_speed(self, fan_speed, **kwargs):
         if self._prop_fan:
             val = self._prop_fan.list_value(fan_speed)
-            return self.async_set_property(self._prop_fan, val)
+            return await self.async_set_property(self._prop_fan, val)
         return False
 
     async def async_send_command(self, command, params=None, **kwargs):
