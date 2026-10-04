@@ -22,7 +22,7 @@ from homeassistant.components.camera import (
 )
 from homeassistant.components.ffmpeg import async_get_image, DATA_FFMPEG
 from homeassistant.helpers.event import async_track_point_in_utc_time
-from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
+from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream, async_get_clientsession
 from haffmpeg.camera import CameraMjpeg
 
 from . import (
@@ -508,7 +508,7 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             if self._prop_stream_address:
                 self._last_url = self._prop_stream_address.from_dict(odt)
                 self.schedule_update_ha_state()
-                self.async_check_stream_address(self._last_url)
+                await self.async_check_stream_address(self._last_url)
                 if not kwargs.get('scheduled') or self.custom_config('keep_streaming'):
                     self._schedule_stream_refresh()
             odt['expire_at'] = f'{datetime.fromtimestamp(self._url_expiration)}'
@@ -520,22 +520,23 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
             })
         return self._last_url
 
-    def async_check_stream_address(self, url):
+    async def async_check_stream_address(self, url):
         if not url or self.custom_config_bool('disable_check_stream'):
             return False
-        res = requests.head(url)
-        if res.status_code > 200:
-            self.update_attrs({
-                'stream_http_status':  res.status_code,
-                'stream_http_reason':  res.reason,
-            })
-            _LOGGER.warning(
-                '%s: stream address status invalid: %s (%s)',
-                self.name,
-                res.status_code,
-                res.reason,
-            )
-            return False
+        session = async_get_clientsession(self.hass)
+        async with session.head(url, allow_redirects=False) as res:
+            if res.status > 200:
+                self.update_attrs({
+                    'stream_http_status': res.status,
+                    'stream_http_reason': res.reason,
+                })
+                _LOGGER.warning(
+                    '%s: stream address status invalid: %s (%s)',
+                    self.name,
+                    res.status,
+                    res.reason,
+                )
+                return False
         return True
 
     async def _handle_stream_refresh(self, now, *_):
