@@ -451,6 +451,130 @@
     }
   ],
 
+  "lumi.gateway.mitw01": [
+    {
+      "iid": 4,
+      "type": "urn:miot-spec-v2:service:light",
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:brightness",
+          "description": "Brightness",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [1, 100, 1]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:color",
+          "description": "Color",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "rgb",
+          "value-range": [1, 16777215, 1]
+        }
+      ]
+    },
+    {
+      "iid": 5,
+      "type": "urn:miot-spec-v2:service:illumination-sensor",
+      "description": "Illumination Sensor",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:illumination",
+          "description": "Illumination",
+          "format": "uint32",
+          "access": ["read"],
+          "unit": "lux",
+          "value-range": [0, 100000, 1]
+        }
+      ]
+    },
+    {
+      "iid": 6,
+      "type": "urn:miot-spec-v2:service:legacy-gateway",
+      "description": "Legacy Gateway",
+      "properties": [
+        {
+          "iid": 7,
+          "type": "urn:miot-spec-v2:property:gateway-volume",
+          "description": "Gateway Volume",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:arm-wait-time",
+          "description": "Arm Wait Time",
+          "format": "uint16",
+          "access": ["read", "write"],
+          "unit": "seconds",
+          "value-range": [0, 60, 1]
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:alarm-time-len",
+          "description": "Alarm Duration",
+          "format": "uint16",
+          "access": ["read", "write"],
+          "unit": "seconds",
+          "value-range": [0, 3600, 1]
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:en-alarm-light",
+          "description": "Alarm Light Duration",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-range": [0, 59, 1]
+        },
+        {
+          "iid": 8,
+          "type": "urn:miot-spec-v2:property:doorbell-push",
+          "description": "Doorbell Push",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 6,
+          "type": "urn:miot-spec-v2:property:doorbell-volume",
+          "description": "Doorbell Volume",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [0, 100, 1]
+        },
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:raw-rgb",
+          "description": "Raw RGB",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "value-range": [0, 1694498815, 1]
+        },
+        {
+          "iid": 9,
+          "type": "urn:miot-spec-v2:property:corridor-light",
+          "description": "Corridor Light",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:night-light-rgb",
+          "description": "Night Light RGB",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "value-range": [0, 1694498815, 1]
+        }
+      ]
+    }
+  ],
+
   "lumi.motion.bmgl01": [
     {
       "iid": 2,

@@ -1384,6 +1384,12 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 10,
         'exclude_miot_properties': 'name,mode',
     },
+    'lumi.gateway.mitw01': {
+        'switch_properties': 'legacy_gateway.doorbell_push,legacy_gateway.corridor_light',
+        'number_properties': 'legacy_gateway.gateway_volume,legacy_gateway.arm_wait_time,'
+                             'legacy_gateway.alarm_time_len,legacy_gateway.en_alarm_light,'
+                             'legacy_gateway.doorbell_volume,legacy_gateway.raw_rgb,legacy_gateway.night_light_rgb',
+    },
     'lumi.motion.bmgl01': {
         'use_ble_object': True,
         'sensor_attributes': 'trigger_at',
