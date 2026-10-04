@@ -207,6 +207,15 @@
             "power_cost_month_2": {
                 "name": "月电量"
             },
+            "plug_04_real_time_power": {
+                "name": "实时功率"
+            },
+            "plug_04_delayed_on_remaining": {
+                "name": "延时开启剩余时间"
+            },
+            "plug_04_delayed_off_remaining": {
+                "name": "延时关闭剩余时间"
+            },
             "prop_cal_day-power_cost-today": {
                 "name": "日电量"
             },
@@ -374,6 +383,9 @@
             },
             "pet_drinking_fountain-fault": {
                 "name": "故障"
+            },
+            "plug_04_energy_accumulation_mode": {
+                "name": "耗电量属性为累加值"
             }
         },
         "switch": {
@@ -382,11 +394,76 @@
             },
             "physical_controls_locked-physical_controls_locked": {
                 "name": "童锁"
+            },
+            "plug_04_indicator_dnd": {
+                "name": "指示灯勿扰模式"
+            },
+            "plug_04_charging_protection_schedule": {
+                "name": "充电保护定时生效"
+            },
+            "plug_04_charging_protection_enable": {
+                "name": "充电保护设置生效"
+            },
+            "plug_04_cycle_task_enable": {
+                "name": "循环任务启用"
+            },
+            "plug_04_quick_auto_off_enable": {
+                "name": "快捷倒计时关闭启用"
+            },
+            "plug_04_delayed_on_enable": {
+                "name": "延时开启启用"
+            },
+            "plug_04_delayed_off_enable": {
+                "name": "延时关闭启用"
+            },
+            "plug_04_energy_alert_enable": {
+                "name": "用电超限提醒启用"
+            }
+        },
+        "select": {
+            "plug_04_power_on_behavior": {
+                "name": "上电恢复方式"
             }
         },
         "number": {
             "pet_drinking_fountain-out_water_interval": {
                 "name": "出水间隔"
+            },
+            "plug_04_indicator_dnd_start": {
+                "name": "指示灯勿扰开始（午夜后分钟）"
+            },
+            "plug_04_indicator_dnd_end": {
+                "name": "指示灯勿扰结束（午夜后分钟）"
+            },
+            "plug_04_charging_protection_duration": {
+                "name": "充电保护时长"
+            },
+            "plug_04_charging_protection_power": {
+                "name": "充电保护功率阈值"
+            },
+            "plug_04_charging_protection_start": {
+                "name": "充电保护开始（午夜后分钟）"
+            },
+            "plug_04_charging_protection_end": {
+                "name": "充电保护结束（午夜后分钟）"
+            },
+            "plug_04_quick_auto_off_duration": {
+                "name": "快捷倒计时关闭时长"
+            },
+            "plug_04_delayed_on_duration": {
+                "name": "延时开启时长"
+            },
+            "plug_04_delayed_off_duration": {
+                "name": "延时关闭时长"
+            },
+            "plug_04_max_power_threshold": {
+                "name": "最大功率限制阈值"
+            },
+            "plug_04_daily_energy_alert_threshold": {
+                "name": "日用电提醒阈值"
+            },
+            "plug_04_monthly_energy_alert_threshold": {
+                "name": "月用电提醒阈值"
             }
         },
         "humidifier": {

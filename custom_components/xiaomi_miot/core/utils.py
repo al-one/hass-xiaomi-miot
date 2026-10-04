@@ -62,6 +62,13 @@ def normalize_power_cost_value(value) -> float | None:
     return value if math.isfinite(value) and value >= 0 else None
 
 
+def power_cost_decreased(value: float, previous: float) -> bool:
+    """Ignore arithmetic roundoff, not measurement-sized decreases."""
+    return value < previous and previous - value > 8 * max(
+        math.ulp(value), math.ulp(previous),
+    )
+
+
 def get_value(obj, key, def_value=None, sep='.'):
     keys = f'{key}'.split(sep)
     result = obj

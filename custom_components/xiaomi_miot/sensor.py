@@ -41,6 +41,7 @@ from .core.utils import (
     get_translation,
     local_zone,
     normalize_power_cost_value,
+    power_cost_decreased,
     power_cost_period,
 )
 
@@ -139,11 +140,16 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
     def get_state(self) -> dict:
         if POWER_COST_PATTERN.search(self.attr):
             # These are native values, not another raw converter update.
-            return {
+            state = {
                 'native_value': self._attr_native_value,
                 'native_unit_of_measurement': self.native_unit_of_measurement,
                 'power_cost_period': getattr(self, '_power_cost_period', None),
             }
+            key = self.conv.attr
+            if key not in self.device.data.get('_power_cost_restore_scales', {}):
+                state['raw_value'] = self.device.props.get(key)
+                state['value_ratio'] = self.custom_value_ratio or 1
+            return state
         return {self.attr: self._attr_native_value}
 
     async def async_added_to_hass(self):
@@ -173,11 +179,27 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                 # before the first cloud poll so it cannot accept a false reset.
                 key = self.conv.attr
                 ratio = self.custom_value_ratio or 1
+                raw_value = normalize_power_cost_value(extra.get('raw_value'))
+                legacy_precision = (
+                    extra.get('value_ratio') != ratio
+                    or extra.get('native_unit_of_measurement') != self.native_unit_of_measurement
+                    or raw_value is None
+                    or round(raw_value * ratio, 3) != round(restored_value, 3)
+                )
+                seed_legacy = (
+                    legacy_precision
+                    and self.device.data.get('_power_cost_periods', {}).get(key) != current_period
+                )
+                if legacy_precision:
+                    raw_value = restored_value / ratio
                 attrs = self.device._filter_power_cost_statistics(
-                    {key: restored_value / ratio}, now,
+                    {key: raw_value}, now,
                 )
                 self.device.props.update(attrs)
-                self._attr_native_value = float(self.device.props[key]) * ratio
+                self._attr_native_value = round(float(self.device.props[key]) * ratio, 3)
+                # Filtering the seed is not a new cloud observation.
+                if seed_legacy and key in attrs:
+                    self.device.data.setdefault('_power_cost_restore_scales', {})[key] = ratio
         self.async_on_remove(
             async_track_time_change(
                 self.hass,
@@ -213,6 +235,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
         self._power_cost_period = period
         self._attr_native_value = 0
         self.device.props[self.conv.attr] = 0
+        self.device.data.get('_power_cost_restore_scales', {}).pop(self.conv.attr, None)
         self.device.data.setdefault('_power_cost_periods', {})[self.conv.attr] = period
         self.async_write_ha_state()
 
@@ -245,7 +268,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                 period
                 and getattr(self, '_power_cost_period', None) == period
                 and previous is not None
-                and value < previous
+                and power_cost_decreased(value, previous)
             ):
                 self.log.warning(
                     'Ignore decreasing power cost in the same period: '

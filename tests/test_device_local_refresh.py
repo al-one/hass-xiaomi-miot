@@ -79,7 +79,9 @@ async def test_refresh_local_device_keeps_old_client_when_new_info_is_invalid(ha
 
 
 async def test_third_local_failure_refreshes_address_and_retries(hass):
-    device, _ = make_device(hass, {})
+    device, entry = make_device(hass, {})
+    config = {"username": "test-user", "conn_mode": "auto"}
+    entry.get_config = lambda key=None, default=None: config.get(key, default)
     device._local_fails = 2
     device.async_refresh_local_device = AsyncMock(return_value=True)
     device.local = SimpleNamespace(

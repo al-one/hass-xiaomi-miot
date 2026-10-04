@@ -264,6 +264,15 @@
             "power_cost_month_2": {
                 "name": "Energy Month"
             },
+            "plug_04_real_time_power": {
+                "name": "Real-Time Power"
+            },
+            "plug_04_delayed_on_remaining": {
+                "name": "Delayed Turn-On Time Remaining"
+            },
+            "plug_04_delayed_off_remaining": {
+                "name": "Delayed Turn-Off Time Remaining"
+            },
             "props-clean_area": {
                 "name": "Clean Area"
             },
@@ -316,6 +325,9 @@
             },
             "pet_drinking_fountain-fault": {
                 "name": "Fault"
+            },
+            "plug_04_energy_accumulation_mode": {
+                "name": "Energy Property Uses Cumulative Values"
             }
         },
         "switch": {
@@ -324,16 +336,79 @@
             },
             "physical_controls_locked-physical_controls_locked": {
                 "name": "Child Lock"
+            },
+            "plug_04_indicator_dnd": {
+                "name": "Indicator Do Not Disturb"
+            },
+            "plug_04_charging_protection_schedule": {
+                "name": "Charging Protection Schedule Enabled"
+            },
+            "plug_04_charging_protection_enable": {
+                "name": "Charging Protection Settings Enabled"
+            },
+            "plug_04_cycle_task_enable": {
+                "name": "Cycle Task Enabled"
+            },
+            "plug_04_quick_auto_off_enable": {
+                "name": "Quick Auto-Off Enabled"
+            },
+            "plug_04_delayed_on_enable": {
+                "name": "Delayed Turn-On Enabled"
+            },
+            "plug_04_delayed_off_enable": {
+                "name": "Delayed Turn-Off Enabled"
+            },
+            "plug_04_energy_alert_enable": {
+                "name": "Energy Overuse Alerts Enabled"
             }
         },
         "select": {
             "pet_drinking_fountain-mode": {
                 "name": "Water Mode"
+            },
+            "plug_04_power_on_behavior": {
+                "name": "Power-On Behavior"
             }
         },
         "number": {
             "pet_drinking_fountain-out_water_interval": {
                 "name": "Water Interval"
+            },
+            "plug_04_indicator_dnd_start": {
+                "name": "Indicator DND Start (Minutes After Midnight)"
+            },
+            "plug_04_indicator_dnd_end": {
+                "name": "Indicator DND End (Minutes After Midnight)"
+            },
+            "plug_04_charging_protection_duration": {
+                "name": "Charging Protection Duration"
+            },
+            "plug_04_charging_protection_power": {
+                "name": "Charging Protection Power Threshold"
+            },
+            "plug_04_charging_protection_start": {
+                "name": "Charging Protection Start (Minutes After Midnight)"
+            },
+            "plug_04_charging_protection_end": {
+                "name": "Charging Protection End (Minutes After Midnight)"
+            },
+            "plug_04_quick_auto_off_duration": {
+                "name": "Quick Auto-Off Duration"
+            },
+            "plug_04_delayed_on_duration": {
+                "name": "Turn-On Delay"
+            },
+            "plug_04_delayed_off_duration": {
+                "name": "Turn-Off Delay"
+            },
+            "plug_04_max_power_threshold": {
+                "name": "Maximum Power Limit Threshold"
+            },
+            "plug_04_daily_energy_alert_threshold": {
+                "name": "Daily Energy Alert Threshold"
+            },
+            "plug_04_monthly_energy_alert_threshold": {
+                "name": "Monthly Energy Alert Threshold"
             }
         },
         "climate": {

@@ -40,6 +40,7 @@ from .utils import (
     DeviceException,
     is_offline_exception,
     normalize_power_cost_value,
+    power_cost_decreased,
     parse_power_cost_records,
     power_cost_period,
     update_attrs_with_suffix,
@@ -857,7 +858,7 @@ class Device(CustomConfigHelper):
 
     @property
     def auto_cloud(self):
-        if not self.cloud:
+        if self.local_only or not self.cloud:
             return False
         return self.custom_config_bool('auto_cloud')
 
@@ -908,6 +909,13 @@ class Device(CustomConfigHelper):
             use_cloud = False if use_local else self.use_cloud
         if auto_cloud is None:
             auto_cloud = self.auto_cloud
+        if self.local_only:
+            use_local = self.use_local
+            use_cloud = False
+            auto_cloud = False
+        elif self.cloud_only:
+            use_local = False
+            use_cloud = self.cloud
         if check_lan is None:
             check_lan = self.custom_config_bool('check_lan')
 
@@ -961,7 +969,7 @@ class Device(CustomConfigHelper):
                 self.miot_results.set_results(results, mapping)
             except (DeviceException, OSError) as exc:
                 self._local_fails += 1
-                if self._local_fails >= 3:
+                if self._local_fails >= 3 and not self.local_only:
                     refreshed = False
                     try:
                         refreshed = await self.async_refresh_local_device()
@@ -1118,9 +1126,9 @@ class Device(CustomConfigHelper):
             return {'error': 'Mapping error'}
         try:
             results = []
-            if self.use_local and self._local_state:
+            if self.use_local and (self.local_only or self._local_state is not False):
                 results = await self.local.async_get_properties_for_mapping(did=self.did, mapping=mapping)
-            elif self.cloud:
+            elif self.cloud and not self.local_only:
                 results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
         except (DeviceException, MiCloudException) as exc:
             self.log.error(
@@ -1140,8 +1148,8 @@ class Device(CustomConfigHelper):
     async def async_set_properties(self, params):
         results = []
         cloud_params = []
-        cloud_write = self.cloud and self.custom_config_bool('miot_cloud_write')
-        if not self._local_state or self.cloud_only or cloud_write:
+        cloud_write = not self.local_only and self.cloud and self.custom_config_bool('miot_cloud_write')
+        if not self.local_only and (self._local_state is False or self.use_cloud or cloud_write):
             cloud_params = params
         elif self.miio2miot:
             for param in params:
@@ -1153,7 +1161,7 @@ class Device(CustomConfigHelper):
                 results.append(await self.miio2miot.async_set_property(self.local, siid, piid, param['value']))
         elif self.local:
             results = await self.local.async_send('set_properties', params)
-        if self.cloud and cloud_params:
+        if self.cloud and cloud_params and not self.local_only:
             if self.custom_config_bool('cloud_set_single'):
                 results.extend([
                     res[0]
@@ -1219,19 +1227,19 @@ class Device(CustomConfigHelper):
             'in':   params or [],
         }
         cloud = None
-        if kwargs.get('cloud'):
+        if not self.local_only and kwargs.get('cloud'):
             cloud = self.cloud
-        elif self.custom_config_bool('miot_cloud_action'):
+        elif not self.local_only and self.custom_config_bool('miot_cloud_action'):
             cloud = self.cloud
-        elif self.auto_cloud and not self._local_state:
+        elif self.auto_cloud and self._local_state is False:
             cloud = self.cloud
         elif self.use_cloud:
             cloud = self.cloud
         try:
-            if self.miio2miot and self.miio2miot.has_setter(siid, aiid=aiid):
-                result = await self.miio2miot.async_call_action(self.local, siid, aiid, params)
-            elif cloud:
+            if cloud:
                 result = await cloud.async_do_action(pms)
+            elif self.miio2miot and self.miio2miot.has_setter(siid, aiid=aiid):
+                result = await self.miio2miot.async_call_action(self.local, siid, aiid, params)
             else:
                 if not kwargs.get('force_params'):
                     action = kwargs.get('action')
@@ -1343,10 +1351,16 @@ class Device(CustomConfigHelper):
                 result.pop(key)
                 continue
             previous = normalize_power_cost_value(self.props.get(key))
+            # Old restore data only retained the native value rounded to 3
+            # decimals. Compare in that precision until a real sample replaces it.
+            restore_scales = self.data.get('_power_cost_restore_scales', {})
+            scale = restore_scales.get(key)
+            comparison = round(value * scale, 3) if scale else value
+            baseline = round(previous * scale, 3) if scale and previous is not None else previous
             if (
                 periods.get(key) == period
                 and previous is not None
-                and value < previous
+                and power_cost_decreased(comparison, baseline)
             ):
                 self.log.warning(
                     'Ignore decreasing power cost in the same period: '
@@ -1358,6 +1372,9 @@ class Device(CustomConfigHelper):
                 )
                 result.pop(key)
                 continue
+            if periods.get(key) == period and previous is not None and not scale and value < previous:
+                result[key] = self.props[key]
+            restore_scales.pop(key, None)
             periods[key] = period
         return result
 
