@@ -141,7 +141,10 @@ class XEntity(BasicEntity):
                 self._attr_available = True
 
         elif isinstance(conv, MiotActionConv):
-            self.entity_id = device.spec.generate_entity_id(self, conv.action.name, conv.domain)
+            if conv.option.get('use_unique_attr'):
+                self.entity_id = device.spec.generate_entity_id(self, conv.attr, conv.domain)
+            else:
+                self.entity_id = device.spec.generate_entity_id(self, conv.action.name, conv.domain)
             self._attr_name = str(conv.action.friendly_desc)
             self._attr_translation_key = conv.action.friendly_name
             self._miot_service = conv.action.service
