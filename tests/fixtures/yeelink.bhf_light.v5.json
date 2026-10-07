@@ -1,0 +1,145 @@
+{
+  "type": "urn:miot-spec-v2:device:bath-heater:0000A028:yeelink-v5:1",
+  "description": "Bath Heater",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:yeelink-v5:1",
+      "description": "Device Information",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:manufacturer:00000001:yeelink-v5:1",
+          "description": "Device Manufacturer",
+          "format": "string",
+          "access": ["read"]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:model:00000002:yeelink-v5:1",
+          "description": "Device Model",
+          "format": "string",
+          "access": ["read"]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:serial-number:00000003:yeelink-v5:1",
+          "description": "Device Serial Number",
+          "format": "string",
+          "access": ["read"]
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:firmware-revision:00000005:yeelink-v5:1",
+          "description": "Current Firmware Version",
+          "format": "string",
+          "access": ["read"]
+        }
+      ]
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:light:00007802:yeelink-v5:1",
+      "description": "Light Bath Heater",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:on:00000006:yeelink-v5:1",
+          "description": "Switch Status",
+          "format": "bool",
+          "access": ["read", "write", "notify"]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:mode:00000008:yeelink-v5:1",
+          "description": "Mode",
+          "format": "uint8",
+          "access": ["write"],
+          "value-list": [
+            {"value": 1, "description": "Lighting"},
+            {"value": 2, "description": "Night Light"}
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:brightness:0000000D:yeelink-v5:1",
+          "description": "Brightness",
+          "format": "uint8",
+          "access": ["read", "write", "notify"],
+          "unit": "percentage",
+          "value-range": [1, 100, 1]
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:ptc-bath-heater:0000783B:yeelink-v5:1",
+      "description": "PTC Bath Heater",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:mode:00000008:yeelink-v5:1",
+          "description": "Mode",
+          "format": "uint8",
+          "access": ["read", "write", "notify"],
+          "value-list": [
+            {"value": 1, "description": "Dry"},
+            {"value": 2, "description": "Defog"},
+            {"value": 3, "description": "Quick Defog"},
+            {"value": 4, "description": "Quick Heat"},
+            {"value": 5, "description": "Idle"},
+            {"value": 6, "description": "None"}
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:heating:000000C7:yeelink-v5:1",
+          "description": "Heating",
+          "format": "bool",
+          "access": ["read", "write", "notify"]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:blow:000000CD:yeelink-v5:1",
+          "description": "Blow",
+          "format": "bool",
+          "access": ["read", "write", "notify"]
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:ventilation:000000CE:yeelink-v5:1",
+          "description": "Ventilation",
+          "format": "bool",
+          "access": ["read", "write", "notify"]
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:target-temperature:00000021:yeelink-v5:1",
+          "description": "Target Temperature",
+          "format": "uint8",
+          "access": ["read", "write", "notify"],
+          "unit": "celsius",
+          "value-range": [25, 45, 1]
+        },
+        {
+          "iid": 6,
+          "type": "urn:miot-spec-v2:property:temperature:00000020:yeelink-v5:1",
+          "description": "Temperature",
+          "format": "uint8",
+          "access": ["read"],
+          "unit": "celsius",
+          "value-range": [0, 50, 1]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:stop-working:00002825:yeelink-v5:1",
+          "description": "Stop Working",
+          "in": [],
+          "out": []
+        }
+      ]
+    }
+  ]
+}
