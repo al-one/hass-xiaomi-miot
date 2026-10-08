@@ -2978,9 +2978,15 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'µg/m³',
     },
     'zhimi.airp.rmb1': {
+        'sensor_properties': 'relative_humidity,pm2_5_density,temperature,filter_life_level,filter_left_time,'
+                             'filter_used_time,fault,moto_speed_rpm',
         'switch_properties': 'alarm',
-        'select_properties': 'brightness',
-        'number_properties': 'favorite_level',
+        'select_properties': 'brightness,temperature_display_unit',
+        'number_properties': 'favorite_level,aqi_updata_heartbeat',
+        'button_actions': 'reset_filter_life',
+        'configuration_entities': 'alarm,physical_controls_locked,brightness,temperature_display_unit,'
+                                  'aqi_updata_heartbeat,reset_filter_life',
+        'diagnostic_entities': 'fault,moto_speed_rpm',
     },
     'zhimi.airp.sa4': {
         'switch_properties': 'alarm',
