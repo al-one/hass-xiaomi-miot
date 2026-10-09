@@ -242,6 +242,10 @@ class XEntity(BasicEntity):
                 if conv := self.device.find_converter(key):
                     self._attr_extra_state_attributes[conv.attr] = self.device.props.get(conv.attr)
 
+        elif not only_info and self._attr_available != available:
+            self._attr_available = available
+            state_change = True
+
         if state_change and self.added:
             self._async_write_ha_state()
             state = data.get(self.attr, data)

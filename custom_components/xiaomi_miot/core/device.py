@@ -1040,6 +1040,9 @@ class Device(CustomConfigHelper):
             self.miot_results.to_attributes(self.props)
             self.data['updated'] = dt.now()
             self.dispatch(self.decode(results))
+        elif self.available != getattr(self, '_last_avail_dispatched', True):
+            self.dispatch({}, log=False)
+        self._last_avail_dispatched = self.available
         self.dispatch_info()
         await self.offline_notify()
         return self.miot_results
