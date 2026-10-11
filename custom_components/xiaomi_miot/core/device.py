@@ -42,6 +42,7 @@ from .utils import (
     normalize_power_cost_value,
     power_cost_decreased,
     parse_power_cost_records,
+    power_cost_record_dates,
     power_cost_period,
     update_attrs_with_suffix,
 )
@@ -1314,6 +1315,8 @@ class Device(CustomConfigHelper):
                     rdt = {**rdt, 'result': parse_power_cost_records(rdt['result'])}
                 try:
                     rls = template(tpl, self.hass).async_render(rdt or {})
+                    if power_cost and isinstance(rls, dict):
+                        rls = self._validate_power_cost_coverage(c, rdt['result'], rls, dt.now())
                 except TemplateError:
                     self.log.warning('Ignore invalid statistics template data: %s', c['key'])
                     if not power_cost:
@@ -1338,10 +1341,34 @@ class Device(CustomConfigHelper):
             self.dispatch(self.decode_attrs(attrs))
         return attrs
 
+    def _validate_power_cost_coverage(self, command, records, attrs, now):
+        """Reject missing or ambiguous observed days, not sparse zero-use days."""
+        dates, conflicts = power_cost_record_dates(records, now)
+        period = now.strftime('%Y-%m')
+        key = (command.get('type', 'stat_day_v3'), command['key'],
+               command.get('day') or 7, command.get('limit') or 1)
+        coverage = self.data.setdefault('_power_cost_coverage', {})
+        previous = coverage.get(key, {})
+        seen = previous.get('dates', set()) if previous.get('period') == period else set()
+        missing = seen - dates
+        reason = 'conflicting_records' if conflicts else 'missing_records' if missing else None
+        coverage[key] = {'period': period, 'dates': seen | dates, 'reason': reason}
+        if reason:
+            attrs = dict(attrs)
+            attrs['power_cost_month'] = None
+            if now.date() in conflicts:
+                attrs['power_cost_today'] = None
+            self.log.debug(
+                'Ignore incomplete monthly power statistics: %s, missing=%s, conflicting=%s',
+                reason, len(missing), len(conflicts),
+            )
+        return attrs
+
     def _filter_power_cost_statistics(self, attrs, now):
         """Filter invalid and decreasing power cost statistics."""
         result = dict(attrs)
         periods = self.data.setdefault('_power_cost_periods', {})
+        rejections = self.data.setdefault('_power_cost_rejections', {})
         for key in list(result):
             period = power_cost_period(key, now)
             if not period:
@@ -1362,7 +1389,8 @@ class Device(CustomConfigHelper):
                 and previous is not None
                 and power_cost_decreased(comparison, baseline)
             ):
-                self.log.warning(
+                log = self.log.debug if rejections.get(key) == period else self.log.warning
+                log(
                     'Ignore decreasing power cost in the same period: '
                     '%s: %s -> %s, period=%s',
                     key,
@@ -1370,11 +1398,13 @@ class Device(CustomConfigHelper):
                     value,
                     period,
                 )
+                rejections[key] = period
                 result.pop(key)
                 continue
             if periods.get(key) == period and previous is not None and not scale and value < previous:
                 result[key] = self.props[key]
             restore_scales.pop(key, None)
+            rejections.pop(key, None)
             periods[key] = period
         return result
 
