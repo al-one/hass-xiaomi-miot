@@ -183,6 +183,14 @@ xiaomi_miot:
     - motion_video_latest
 ```
 
+### Vacuum current room
+
+The Xiaomi X20 Pro (`xiaomi.vacuum.d102gl`) exposes `current_room`,
+`current_room_id`, and `current_position` while cleaning. This requires Xiaomi
+cloud access even when commands use LAN. Location refreshes at most once per
+minute and clears outside cleaning or when map retrieval fails. Map names and
+boundaries are managed in Xiaomi Home.
+
 ### YAML configuration reloading
 This component has added support for configuration reloading (to avoid having to restart [HomeAssistant](https://www.home-assistant.io) instance after a YAML configuration change):
 > [🔨 Developer tools](https://my.home-assistant.io/redirect/developer_states) > [YAML Configuration](https://my.home-assistant.io/redirect/server_controls) > YAML configuration reloading > 🔍 Look for `Xiaomi Miot` (almost at the bottom of the list)
