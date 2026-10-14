@@ -20,7 +20,6 @@ from homeassistant.components.camera import (
     CameraEntityFeature,  # v2022.5
     CameraState,
 )
-from homeassistant.components.stream import const as stream_const
 from homeassistant.components.ffmpeg import async_get_image, DATA_FFMPEG
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
@@ -304,23 +303,27 @@ class CameraEntity(XEntity, BaseCameraEntity):
     async def image_source(self):
         return self._attr_camera_image
 
-    async def stream_source(self):
+    @property
+    def is_cloud_alarm_recording(self):
         url = self._attr_stream_source
-        if url and self.device.cloud:
-            parsed = urlsplit(url)
-            host = parsed.hostname or ''
-            if (
-                parsed.scheme == 'https'
-                and parsed.path == '/common/app/m3u8'
-                and (
-                    host == XIAOMI_SMARTCAMERA_HOST
-                    or host.endswith(f'.{XIAOMI_SMARTCAMERA_HOST}')
-                )
-            ):
-                option = getattr(stream_const, 'CONF_HLS_EXTENSION_PICKY', None)
-                if option:
-                    self.stream_options[option] = False
-        return url
+        if not url or not self.device.cloud:
+            return False
+        parsed = urlsplit(url)
+        host = parsed.hostname or ''
+        return (
+            parsed.scheme == 'https'
+            and parsed.path == '/common/app/m3u8'
+            and (
+                host == XIAOMI_SMARTCAMERA_HOST
+                or host.endswith(f'.{XIAOMI_SMARTCAMERA_HOST}')
+            )
+        )
+
+    async def stream_source(self):
+        # Alarm clips are finite recordings; HA's camera stream expects live input.
+        if self.is_cloud_alarm_recording:
+            return None
+        return self._attr_stream_source
 
     def update_motion_video(self, data: dict):
         tim = data.get('motion_video_time')
@@ -335,8 +338,9 @@ class CameraEntity(XEntity, BaseCameraEntity):
             if fid := adt.get('fileId'):
                 self._attr_camera_image = self.get_alarm_image_address(fid, adt.get('imgStoreId'), True)
                 self._attr_stream_source = self.get_alarm_m3u8_url(fid, adt.get('isAlarm'))
+                self._attr_extra_state_attributes.pop('stream_address', None)
                 self._attr_extra_state_attributes.update({
-                    'stream_address': self._attr_stream_source,
+                    'motion_video_media_source': f'media-source://{DOMAIN}/{self.entity_id}',
                 })
 
     async def async_update(self):
