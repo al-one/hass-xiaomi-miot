@@ -23,8 +23,10 @@ def _make_converter_camera(url, *, cloud=True):
 @pytest.mark.asyncio
 async def test_alarm_recording_is_not_opened_as_a_live_camera_stream():
     camera = _make_converter_camera(ALARM_M3U8_URL)
+    camera.entity_id = 'camera.doorbell'
     assert camera.is_cloud_alarm_recording
     assert await camera.stream_source() is None
+    assert camera.recording_media_source == 'media-source://xiaomi_miot/camera.doorbell'
 
 
 def test_alarm_event_exposes_media_source_and_keeps_snapshot(monkeypatch):
@@ -61,6 +63,7 @@ async def test_non_alarm_camera_sources_keep_live_streams(url, cloud):
     camera = _make_converter_camera(url, cloud=cloud)
 
     assert await camera.stream_source() == url
+    assert camera.recording_media_source is None
     assert camera.stream_options == {}
 
 

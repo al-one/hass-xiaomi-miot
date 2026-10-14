@@ -134,7 +134,7 @@ def download_and_remux_recording(
     cache_path: Path,
     ffmpeg_binary: str,
 ) -> Path:
-    """Fetch, decrypt, and stream-copy all playlist segments to one MP4."""
+    """Fetch and decrypt every segment, then encode browser-compatible video."""
     _validate_xiaomi_url(playlist_url)
     cache_path = Path(cache_path)
     cache_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -208,7 +208,19 @@ def download_and_remux_recording(
                         str(concat_file),
                         "-map",
                         "0",
-                        "-c",
+                        "-c:v",
+                        "libx264",
+                        "-pix_fmt",
+                        "yuv420p",
+                        "-preset",
+                        "veryfast",
+                        "-crf",
+                        "20",
+                        "-threads",
+                        "2",
+                        "-fps_mode",
+                        "vfr",
+                        "-c:a",
                         "copy",
                         "-movflags",
                         "+faststart",

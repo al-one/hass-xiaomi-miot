@@ -147,7 +147,7 @@ def test_encrypted_playlist_remux_keeps_all_frames_and_audio(tmp_path, media):
     output = tmp_path / "recording.mp4"
     recording.download_and_remux_recording(playlist_url, output, "ffmpeg")
 
-    assert _probe(output, "stream=codec_name,nb_read_frames") == ["mpeg4", "16"]
+    assert _probe(output, "stream=codec_name,nb_read_frames") == ["h264", "16"]
     streams = subprocess.run(
         [
             "ffprobe",
