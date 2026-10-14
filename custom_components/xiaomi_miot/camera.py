@@ -325,6 +325,12 @@ class CameraEntity(XEntity, BaseCameraEntity):
             return None
         return self._attr_stream_source
 
+    @property
+    def recording_media_source(self):
+        if self.is_cloud_alarm_recording:
+            return f'media-source://{DOMAIN}/{self.entity_id}'
+        return None
+
     def update_motion_video(self, data: dict):
         tim = data.get('motion_video_time')
         if self._last_motion_time == tim:
