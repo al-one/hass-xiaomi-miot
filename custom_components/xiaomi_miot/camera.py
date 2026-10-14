@@ -9,7 +9,7 @@ import re
 import collections
 from os import urandom
 from functools import partial
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 from datetime import datetime, timedelta
 
 from homeassistant.const import STATE_IDLE
@@ -20,6 +20,7 @@ from homeassistant.components.camera import (
     CameraEntityFeature,  # v2022.5
     CameraState,
 )
+from homeassistant.components.stream import const as stream_const
 from homeassistant.components.ffmpeg import async_get_image, DATA_FFMPEG
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
@@ -47,6 +48,7 @@ from .core.miot_spec import (
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 SCAN_INTERVAL = timedelta(seconds=60)
+XIAOMI_SMARTCAMERA_HOST = 'business.smartcamera.api.io.mi.com'
 
 SERVICE_TO_METHOD = {}
 
@@ -303,7 +305,22 @@ class CameraEntity(XEntity, BaseCameraEntity):
         return self._attr_camera_image
 
     async def stream_source(self):
-        return self._attr_stream_source
+        url = self._attr_stream_source
+        if url and self.device.cloud:
+            parsed = urlsplit(url)
+            host = parsed.hostname or ''
+            if (
+                parsed.scheme == 'https'
+                and parsed.path == '/common/app/m3u8'
+                and (
+                    host == XIAOMI_SMARTCAMERA_HOST
+                    or host.endswith(f'.{XIAOMI_SMARTCAMERA_HOST}')
+                )
+            ):
+                option = getattr(stream_const, 'CONF_HLS_EXTENSION_PICKY', None)
+                if option:
+                    self.stream_options[option] = False
+        return url
 
     def update_motion_video(self, data: dict):
         tim = data.get('motion_video_time')
