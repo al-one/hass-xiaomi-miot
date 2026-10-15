@@ -166,6 +166,7 @@ def _make_miot_doorbell_camera(device_url=None):
             async_wake_sleepy_device=AsyncMock(return_value=True)),
         did='1037929737',
         model='madv.cateye.mowl3g',
+        name_model='Doorbell(madv.cateye.mowl3g)',
         custom_config=lambda key=None, default=None: (
             device_url if key == 'live_stream_url' else default),
     )
@@ -190,3 +191,20 @@ async def test_miot_doorbell_without_live_url_keeps_old_path():
     from homeassistant.components.camera import CameraEntityFeature
     camera = _make_miot_doorbell_camera(device_url=None)
     assert not (camera.supported_features & CameraEntityFeature.STREAM)
+
+def test_miot_camera_feature_reads_device_customize_after_reload(monkeypatch):
+    from homeassistant.components.camera import CameraEntityFeature
+    from custom_components.xiaomi_miot.camera import MiotCameraEntity
+    from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
+
+    model = 'madv.cateye.mowl3g'
+    monkeypatch.setitem(DEVICE_CUSTOMIZES, model, {
+        'live_stream_url': 'rtsp://192.0.2.10/doorbell',
+    })
+    camera = MiotCameraEntity.__new__(MiotCameraEntity)
+    camera.device = SimpleNamespace(info=SimpleNamespace(model=model))
+    camera.hass = None
+    camera.entity_id = None
+    camera._supported_features = CameraEntityFeature(0)
+
+    assert camera.supported_features & CameraEntityFeature.STREAM
