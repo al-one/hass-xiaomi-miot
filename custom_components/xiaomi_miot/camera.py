@@ -284,6 +284,30 @@ class CameraEntity(XEntity, BaseCameraEntity):
         BaseCameraEntity.__init__(self, self.hass)
         self._attr_brand = self.device_info.get('manufacturer')
         self._attr_model = self.device_info.get('model')
+        if self.custom_config('live_stream_url'):
+            self._supported_features |= CameraEntityFeature.STREAM
+
+    async def async_wake_device_for_live(self):
+        # Mi Home opens live by waking the sleepy doorbell first, then
+        # streaming. `wakeup` RPC times out (code -3) on madv/midr cateye
+        # models while `wakeup_host` returns ok; helper tries both.
+        cloud = self.device.cloud
+        if not cloud or not getattr(self.device, 'did', None):
+            return False
+        wake = getattr(cloud, 'async_wake_sleepy_device', None)
+        if not wake:
+            return False
+        try:
+            return await wake(self.device.did, self.model) or False
+        except Exception:  # noqa: BLE001 - live stays best effort
+            return False
+
+    async def async_get_live_stream_source(self):
+        url = self.custom_config('live_stream_url')
+        if not url:
+            return None
+        await self.async_wake_device_for_live()
+        return url
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -303,6 +327,8 @@ class CameraEntity(XEntity, BaseCameraEntity):
         return self._attr_camera_image
 
     async def stream_source(self):
+        if live := await self.async_get_live_stream_source():
+            return live
         return self._attr_stream_source
 
     def update_motion_video(self, data: dict):

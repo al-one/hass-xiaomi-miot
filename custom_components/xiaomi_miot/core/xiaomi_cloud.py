@@ -137,6 +137,34 @@ class MiotCloud(micloud.MiCloud):
     async def async_do_action(self, params=None):
         return await self.async_request_miot_spec('action', params)
 
+    async def async_wake_sleepy_device(self, did, model=None):
+        # Battery doorbells sleep off LAN. `wakeup` times out (code -3) on
+        # madv/midr cateye models while `wakeup_host` returns ok and the
+        # device answers CS2 discovery again. Try host wake first, then legacy.
+        did = str(did)
+        attempts = [
+            ('wakeup_host', {}),
+            ('wakeup', {'video': '1'}),
+        ]
+        if model and ('.cateye.' not in str(model) and 'doorbell' not in str(model)):
+            attempts.reverse()
+        last = None
+        for method, params in attempts:
+            try:
+                rsp = await self.async_request_api(
+                    f'home/rpc/{did}',
+                    {'id': 1, 'method': method, 'params': params},
+                    debug=False,
+                ) or {}
+            except Exception as exc:  # noqa: BLE001 - wake is best effort
+                last = exc
+                continue
+            if rsp.get('code') == 0:
+                return True
+            last = rsp
+        _LOGGER.debug('Wake sleepy device %s failed: %s', did, last)
+        return False
+
     async def async_request_miot_spec(self, api, params=None, **kwargs):
         resp = await self.async_request_api('miotspec/' + api, {
             'params': params or [],
