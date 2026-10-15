@@ -208,3 +208,24 @@ def test_miot_camera_feature_reads_device_customize_after_reload(monkeypatch):
     camera._supported_features = CameraEntityFeature(0)
 
     assert camera.supported_features & CameraEntityFeature.STREAM
+
+@pytest.mark.asyncio
+async def test_miot_doorbell_proxy_uses_live_feed_before_motion_thumbnail():
+    live_url = 'rtsp://192.0.2.10/doorbell'
+    camera = _make_miot_doorbell_camera(device_url=live_url)
+    camera._motion_enable = True
+    camera.get_motion_image_address = lambda **kwargs: 'https://example.invalid/motion.jpg'
+
+    assert await camera.image_source() == live_url
+    camera.device.cloud.async_wake_sleepy_device.assert_awaited_once_with(
+        '1037929737', 'madv.cateye.mowl3g')
+
+
+@pytest.mark.asyncio
+async def test_miot_doorbell_proxy_without_live_url_keeps_motion_thumbnail():
+    camera = _make_miot_doorbell_camera(device_url=None)
+    camera._motion_enable = True
+    camera.get_motion_image_address = lambda **kwargs: 'https://example.invalid/motion.jpg'
+
+    assert await camera.image_source() == 'https://example.invalid/motion.jpg'
+    camera.device.cloud.async_wake_sleepy_device.assert_not_awaited()

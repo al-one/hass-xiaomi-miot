@@ -534,6 +534,9 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return await fun
 
     async def image_source(self, **kwargs):
+        # The live doorbell proxy must not serve an old motion thumbnail.
+        if live := await self.async_get_live_stream_source():
+            return live
         if self._motion_enable:
             kwargs['crypto'] = True
             return self.get_motion_image_address(**kwargs)
