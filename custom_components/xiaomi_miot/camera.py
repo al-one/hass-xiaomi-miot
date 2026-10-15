@@ -298,6 +298,29 @@ class CameraEntity(XEntity, BaseCameraEntity):
             pass
         return features
 
+    def custom_config(self, key=None, default=None):
+        # Entity customize first (options flow `customizing_entity`), then
+        # model customize (`customizing_device` options or
+        # `device_customizes` YAML, the recommended path). Model level keeps
+        # working when entity options are unavailable (e.g. entries set up
+        # before the option existed, YAML-only installs).
+        if key is None:
+            cfg = dict(super().custom_config(None, {}) or {})
+            try:
+                dev = self.device.custom_config(None, {}) if self.device else {}
+            except Exception:  # noqa: BLE001 - live stays best effort
+                dev = {}
+            return {**(dev or {}), **cfg}
+        val = super().custom_config(key, None)
+        if val is not None:
+            return val
+        try:
+            if self.device:
+                return self.device.custom_config(key, default)
+        except Exception:  # noqa: BLE001 - live stays best effort
+            pass
+        return default
+
     async def async_wake_device_for_live(self):
         # Mi Home opens live by waking the sleepy doorbell first, then
         # streaming. `wakeup` RPC times out (code -3) on madv/midr cateye
