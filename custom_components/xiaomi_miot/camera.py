@@ -422,6 +422,12 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if miot_service:
             self._prop_motion_tracking = miot_service.bool_property('motion_detection', 'motion_tracking')
 
+    @property
+    def supported_features(self):
+        # MiioEntity precedes BaseCameraEntity in this class's MRO and would
+        # otherwise hide the live camera feature calculation.
+        return BaseCameraEntity.supported_features.fget(self)
+
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
 
