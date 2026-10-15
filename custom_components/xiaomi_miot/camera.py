@@ -356,7 +356,10 @@ class CameraEntity(XEntity, BaseCameraEntity):
             self._attr_should_poll = False
             self.update_motion_video(self.device.props)
 
-    async def image_source(self):
+    async def image_source(self, **kwargs):
+        # The live doorbell proxy must not serve an old motion thumbnail.
+        if live := await self.async_get_live_stream_source():
+            return live
         return self._attr_camera_image
 
     async def stream_source(self):
