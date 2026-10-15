@@ -284,8 +284,19 @@ class CameraEntity(XEntity, BaseCameraEntity):
         BaseCameraEntity.__init__(self, self.hass)
         self._attr_brand = self.device_info.get('manufacturer')
         self._attr_model = self.device_info.get('model')
-        if self.custom_config('live_stream_url'):
-            self._supported_features |= CameraEntityFeature.STREAM
+
+    @property
+    def supported_features(self):
+        # Computed live: customizes load after entities init on some
+        # setups, so a flag set once in on_init stays off. Reading the
+        # option here keeps wake->stream available after any reload.
+        features = self._supported_features
+        try:
+            if self.custom_config('live_stream_url'):
+                features |= CameraEntityFeature.STREAM
+        except Exception:  # noqa: BLE001 - live stays best effort
+            pass
+        return features
 
     async def async_wake_device_for_live(self):
         # Mi Home opens live by waking the sleepy doorbell first, then
