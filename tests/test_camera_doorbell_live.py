@@ -229,3 +229,21 @@ async def test_miot_doorbell_proxy_without_live_url_keeps_motion_thumbnail():
 
     assert await camera.image_source() == 'https://example.invalid/motion.jpg'
     camera.device.cloud.async_wake_sleepy_device.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_converter_camera_still_prefers_live_source_over_stale_thumbnail():
+    wake = AsyncMock(return_value=True)
+    camera = _make_camera(live_url='rtsp://192.0.2.10/doorbell', wake=wake)
+    camera._attr_camera_image = 'https://example.invalid/stale-motion.jpg'
+
+    assert await camera.image_source() == 'rtsp://192.0.2.10/doorbell'
+    wake.assert_awaited_once_with('1037929737', 'madv.cateye.mowl3g')
+
+
+@pytest.mark.asyncio
+async def test_converter_camera_still_without_live_url_keeps_thumbnail():
+    camera = _make_camera(live_url=None)
+    camera._attr_camera_image = 'https://example.invalid/stale-motion.jpg'
+
+    assert await camera.image_source() == 'https://example.invalid/stale-motion.jpg'
