@@ -96,6 +96,7 @@ class BaseCameraEntity(Camera):
     _last_url = None
     _url_expiration = 0
     _extra_arguments = None
+    _alarm_events: dict | None = None
     device: Device = None
 
     def __init__(self, hass: HomeAssistant):
@@ -238,6 +239,58 @@ class BaseCameraEntity(Camera):
         else:
             self.log.info('Camera events is empty. %s', rdt)
         return adt
+
+    async def get_alarm_events(self, begin=0, ended=None, doorbell=False, page_size=50):
+        """Return every cloud event in [begin, ended] newest first, keeping raw fields."""
+        cloud = self.device.cloud
+        if not cloud:
+            return []
+        api = cloud.get_api_by_host('business.smartcamera.api.io.mi.com', 'common/app/get/eventlist')
+        page_size = min(max(int(page_size), 1), 50)
+        end = ended or int(time.time() * 1000 + 999)
+        events: dict[str, dict] = {}
+        while end >= begin:
+            rqd = {
+                'did': self.device.did,
+                'model': self.model,
+                'doorBell': doorbell,
+                'eventType': 'Default',
+                'needMerge': True,
+                'sortType': 'DESC',
+                'region': str(cloud.default_server).upper(),
+                'language': locale.getlocale()[0],
+                'beginTime': begin,
+                'endTime': end,
+                'limit': page_size,
+            }
+            rdt = await cloud.async_request_api(api, rqd, method='GET', crypt=True) or {}
+            rls = [ev for ev in (rdt.get('data', {}).get('thirdPartPlayUnits') or []) if isinstance(ev, dict)]
+            if not rls:
+                break
+            for ev in rls:
+                events.setdefault(str(ev.get('fileId') or f"{ev.get('createTime')}:{ev.get('videoStoreId')}"), ev)
+            oldest = min(int(ev.get('createTime') or 0) for ev in rls)
+            next_end = min(oldest, end) - 1
+            if len(rls) < page_size or next_end >= end:
+                break
+            end = next_end
+        return sorted(events.values(), key=lambda ev: int(ev.get('createTime') or 0), reverse=True)
+
+    async def async_list_alarm_events(self, begin=0, ended=None):
+        """Refresh the per-event index that media_source resolves fileId against."""
+        events = await self.get_alarm_events(begin, ended, self.is_doorbell)
+        self._alarm_events = {str(ev['fileId']): ev for ev in events if ev.get('fileId')}
+        return events
+
+    async def async_alarm_event_url(self, file_id) -> str | None:
+        """Return the m3u8 URL of one listed event, listing full history once if unknown."""
+        file_id = str(file_id)
+        if not self._alarm_events or file_id not in self._alarm_events:
+            await self.async_list_alarm_events()
+        event = (self._alarm_events or {}).get(file_id)
+        if event is None:
+            return None
+        return self.get_alarm_m3u8_url(file_id, event.get('isAlarm'))
 
     def get_alarm_m3u8_url(self, fileId, isAlarm=False, videoCodec='H265'):
         cloud = self.device.cloud

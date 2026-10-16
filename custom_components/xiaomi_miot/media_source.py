@@ -6,6 +6,7 @@ import asyncio
 import logging
 import secrets
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import override
 
@@ -42,6 +43,7 @@ class _Recording:
     identity: str
     opaque_id: str
     path: Path
+    file_id: str | None = None
 
 
 @dataclass(slots=True)
@@ -49,6 +51,7 @@ class _RecordingStore:
     root: Path
     locks: dict[str, asyncio.Lock] = field(default_factory=dict)
     by_camera: dict[str, _Recording] = field(default_factory=dict)
+    by_event: dict[str, _Recording] = field(default_factory=dict)
     by_id: dict[str, _Recording] = field(default_factory=dict)
     view_registered: bool = False
 
@@ -94,14 +97,21 @@ class XiaomiRecordingSource(MediaSource):
                 children=children,
             )
 
-        camera = _camera_by_entity_id(self.hass, item.identifier)
+        entity_id, _, file_id = (item.identifier or "").partition("/")
+        camera = _camera_by_entity_id(self.hass, entity_id)
         if camera is None:
             raise BrowseError("Xiaomi camera recording is unavailable")
-        return self._browse_camera(camera)
+        if file_id:
+            event = (getattr(camera, "_alarm_events", None) or {}).get(file_id, {"fileId": file_id})
+            return self._browse_event(camera, event)
+        return await self._browse_camera_events(camera)
 
     @override
     async def async_resolve_media(self, item: MediaSourceItem) -> PlayMedia:
-        camera = _camera_by_entity_id(self.hass, item.identifier)
+        entity_id, _, file_id = (item.identifier or "").partition("/")
+        if file_id:
+            return await self._resolve_event(entity_id, file_id)
+        camera = _camera_by_entity_id(self.hass, entity_id)
         if camera is None:
             raise Unresolvable("Xiaomi camera recording is unavailable")
 
@@ -165,6 +175,53 @@ class XiaomiRecordingSource(MediaSource):
             self.store.by_id[opaque_id] = recording
             return PlayMedia(_play_url(opaque_id), "video/mp4")
 
+    async def _resolve_event(self, entity_id: str, file_id: str) -> PlayMedia:
+        """Download one listed cloud event by fileId; each event has its own cache file."""
+        camera = _camera_by_entity_id(self.hass, entity_id)
+        if camera is None or not hasattr(camera, "async_alarm_event_url"):
+            raise Unresolvable("Xiaomi camera recording is unavailable")
+        key = f"{entity_id}/{file_id}"
+        cache_path = self.store.root / f"{camera_cache_key(key)}.mp4"
+        lock = self.store.locks.setdefault(key, asyncio.Lock())
+
+        async with lock:
+            current = self.store.by_event.get(key)
+            if current is not None and _is_current_file(current.path, self.store.root):
+                return PlayMedia(_play_url(current.opaque_id), "video/mp4")
+
+            source_url = await camera.async_alarm_event_url(file_id)
+            if not isinstance(source_url, str):
+                raise Unresolvable("Xiaomi event recording is unavailable")
+            manager = self.hass.data.get(DATA_FFMPEG)
+            ffmpeg_binary = getattr(manager, "binary", None)
+            if not ffmpeg_binary:
+                _remove_file(cache_path)
+                raise Unresolvable("Xiaomi recording support is unavailable")
+            try:
+                await self.hass.async_add_executor_job(
+                    download_and_remux_recording,
+                    source_url,
+                    cache_path,
+                    ffmpeg_binary,
+                )
+            except RecordingError:
+                _remove_file(cache_path)
+                raise Unresolvable("Unable to load the Xiaomi event recording") from None
+
+            if current is not None:
+                self.store.by_id.pop(current.opaque_id, None)
+            opaque_id = secrets.token_urlsafe(24)
+            recording = _Recording(
+                entity_id,
+                recording_identity(source_url, None),
+                opaque_id,
+                cache_path,
+                file_id,
+            )
+            self.store.by_event[key] = recording
+            self.store.by_id[opaque_id] = recording
+            return PlayMedia(_play_url(opaque_id), "video/mp4")
+
     @override
     async def async_search_media(self, item, query):
         raise NotImplementedError
@@ -181,6 +238,33 @@ class XiaomiRecordingSource(MediaSource):
             media_class=MediaClass.VIDEO,
             media_content_type=MediaType.VIDEO,
             title=title,
+            can_play=True,
+            can_expand=False,
+        )
+
+    async def _browse_camera_events(self, camera) -> BrowseMediaSource:
+        node = self._browse_camera(camera)
+        try:
+            events = await camera.async_list_alarm_events()
+        except Exception as err:  # a failed cloud list must not hide the latest-clip node
+            _LOGGER.warning("Listing Xiaomi alarm events failed: %s", err)
+            events = []
+        node.can_expand = True
+        node.children_media_class = MediaClass.VIDEO
+        node.children = [
+            self._browse_event(camera, event) for event in events if event.get("fileId")
+        ]
+        return node
+
+    @staticmethod
+    def _browse_event(camera, event: dict) -> BrowseMediaSource:
+        created = datetime.fromtimestamp(int(event.get("createTime") or 0) / 1000, UTC)
+        return BrowseMediaSource(
+            domain=DOMAIN,
+            identifier=f"{camera.entity_id}/{event['fileId']}",
+            media_class=MediaClass.VIDEO,
+            media_content_type=MediaType.VIDEO,
+            title=f"{camera.name or camera.entity_id} — {created:%Y-%m-%d %H:%M:%S} UTC",
             can_play=True,
             can_expand=False,
         )
@@ -207,14 +291,24 @@ class XiaomiRecordingView(HomeAssistantView):
         if (
             recording is None
             or camera is None
-            or recording_identity(
-                getattr(camera, "_attr_stream_source", ""),
-                _motion_time(camera),
-            )
-            != recording.identity
-            or self.store.by_camera.get(recording.entity_id) is not recording
             or not _is_current_file(recording.path, self.store.root)
         ):
+            raise web.HTTPNotFound
+        if recording.file_id is None:
+            current = (
+                recording_identity(
+                    getattr(camera, "_attr_stream_source", ""),
+                    _motion_time(camera),
+                )
+                == recording.identity
+                and self.store.by_camera.get(recording.entity_id) is recording
+            )
+        else:
+            current = (
+                self.store.by_event.get(f"{recording.entity_id}/{recording.file_id}")
+                is recording
+            )
+        if not current:
             raise web.HTTPNotFound
         return web.FileResponse(recording.path, headers={"Content-Type": "video/mp4"})
 

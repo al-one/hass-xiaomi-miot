@@ -17,6 +17,7 @@ from homeassistant.setup import async_setup_component
 from custom_components.xiaomi_miot import DOMAIN
 from custom_components.xiaomi_miot.core import recording
 from custom_components.xiaomi_miot.media_source import async_get_media_source
+from custom_components.xiaomi_miot.camera import BaseCameraEntity
 
 CAMERA_ID = "camera.doorbell"
 HOST = "https://cam.io.mi.com"
@@ -283,3 +284,130 @@ async def test_changed_identity_network_failure_removes_old_clip(
         await source.async_resolve_media(item)
     assert not old_path.exists()
     assert old_play.url.rsplit("/", 1)[-1].split(".")[0] not in source.store.by_id
+
+
+class _EventCloud:
+    default_server = "cn"
+
+    def __init__(self, pages):
+        self.pages = list(pages)
+        self.calls = []
+
+    def get_api_by_host(self, host, path):
+        return f"https://{host}/{path}"
+
+    async def async_request_api(self, api, data, method="GET", crypt=False):
+        self.calls.append(data)
+        return {"data": {"thirdPartPlayUnits": self.pages.pop(0) if self.pages else []}}
+
+
+def _event_entity(cloud):
+    return SimpleNamespace(
+        device=SimpleNamespace(cloud=cloud, did="42"),
+        model="madv.cateye.mowl3g",
+    )
+
+
+class _EventCamera:
+    entity_id = CAMERA_ID
+    name = "Front door"
+    is_cloud_alarm_recording = True
+    _attr_stream_source = f"{HOST}/common/app/m3u8"
+    _attr_extra_state_attributes: dict = {}
+
+    def __init__(self, urls):
+        self.urls = urls
+
+    async def async_alarm_event_url(self, file_id):
+        return self.urls.get(file_id)
+
+
+@pytest.mark.asyncio
+async def test_event_list_pages_full_history_with_raw_fields():
+    cloud = _EventCloud(
+        [
+            [
+                {"fileId": "a", "createTime": 3000, "videoStoreId": 1, "imgStoreId": 2, "isAlarm": True},
+                {"fileId": "b", "createTime": 2000, "videoStoreId": 3, "imgStoreId": 4, "isAlarm": False},
+            ],
+            [{"fileId": "c", "createTime": 1500, "videoStoreId": 5, "imgStoreId": 6}],
+        ]
+    )
+    events = await BaseCameraEntity.get_alarm_events(
+        _event_entity(cloud), 0, 5000, True, page_size=2
+    )
+    assert [event["fileId"] for event in events] == ["a", "b", "c"]
+    assert events[0]["createTime"] == 3000
+    assert events[0]["imgStoreId"] == 2
+    assert [call["limit"] for call in cloud.calls] == [2, 2]
+    assert cloud.calls[1]["endTime"] == 1999
+    assert all(call["beginTime"] == 0 and call["doorBell"] is True for call in cloud.calls)
+
+
+@pytest.mark.asyncio
+async def test_event_list_never_requests_more_than_fifty():
+    cloud = _EventCloud([[]])
+    assert await BaseCameraEntity.get_alarm_events(
+        _event_entity(cloud), 0, 5000, False, page_size=500
+    ) == []
+    assert cloud.calls[0]["limit"] == 50
+
+
+@pytest.mark.asyncio
+async def test_alarm_event_url_lists_history_once_for_unknown_file():
+    entity = SimpleNamespace(_alarm_events=None, listed=0)
+
+    async def list_events():
+        entity.listed += 1
+        entity._alarm_events = {"a": {"fileId": "a", "isAlarm": True}}
+
+    entity.async_list_alarm_events = list_events
+    entity.get_alarm_m3u8_url = lambda file_id, is_alarm=False, **kwargs: f"m3u8:{file_id}:{is_alarm}"
+    assert await BaseCameraEntity.async_alarm_event_url(entity, "a") == "m3u8:a:True"
+    assert entity.listed == 1
+    assert await BaseCameraEntity.async_alarm_event_url(entity, "a") == "m3u8:a:True"
+    assert entity.listed == 1
+    assert await BaseCameraEntity.async_alarm_event_url(entity, "zz") is None
+    assert entity.listed == 2
+
+
+@pytest.mark.asyncio
+async def test_per_event_resolve_keeps_each_clip_addressable(
+    hass, hass_client, hass_client_no_auth, monkeypatch, tmp_path, media
+):
+    playlist_url, objects, requested = media
+    other_url = playlist_url.replace("fixture", "fixture2")
+    objects[other_url] = objects[playlist_url]
+    camera = _EventCamera({"a": playlist_url, "b": other_url})
+    hass.data.setdefault(DOMAIN, {})["entities"] = {CAMERA_ID: camera}
+    hass.data[DATA_FFMPEG] = SimpleNamespace(binary="ffmpeg")
+    monkeypatch.setattr(
+        hass.config, "path", lambda *parts: str(tmp_path.joinpath(*parts))
+    )
+    assert await async_setup_component(hass, "http", {})
+    source = await async_get_media_source(hass)
+
+    item_a = MediaSourceItem(hass, DOMAIN, f"{CAMERA_ID}/a", None)
+    item_b = MediaSourceItem(hass, DOMAIN, f"{CAMERA_ID}/b", None)
+    play_a = await source.async_resolve_media(item_a)
+    play_b = await source.async_resolve_media(item_b)
+    assert play_a.url != play_b.url
+    assert await source.async_resolve_media(item_a) == play_a
+    assert requested.count(playlist_url) == 1
+    assert requested.count(other_url) == 1
+    path_a = source.store.by_event[f"{CAMERA_ID}/a"].path
+    path_b = source.store.by_event[f"{CAMERA_ID}/b"].path
+    assert path_a != path_b
+    assert path_a.exists() and path_b.exists()
+
+    client = await hass_client()
+    anon = await hass_client_no_auth()
+    assert (await anon.get(play_a.url)).status == 401
+    assert (await client.get(play_a.url)).status == 200
+    assert (await client.get(play_b.url)).status == 200
+
+    camera.urls.pop("b")
+    with pytest.raises(Unresolvable):
+        await source.async_resolve_media(
+            MediaSourceItem(hass, DOMAIN, f"{CAMERA_ID}/missing", None)
+        )
