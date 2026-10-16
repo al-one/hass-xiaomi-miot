@@ -9,6 +9,7 @@ import re
 import subprocess
 import tempfile
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import parse_qs, urljoin, urlsplit
 
@@ -20,6 +21,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 MAX_PLAYLIST_BYTES = 1024 * 1024
 MAX_SEGMENT_BYTES = 32 * 1024 * 1024
 MAX_RECORDING_BYTES = 128 * 1024 * 1024
+MAX_THUMBNAIL_BYTES = 8 * 1024 * 1024
 MAX_SEGMENTS = 512
 MAX_REDIRECTS = 5
 REQUEST_TIMEOUT = (5, 20)
@@ -133,8 +135,9 @@ def download_and_remux_recording(
     playlist_url: str,
     cache_path: Path,
     ffmpeg_binary: str,
+    transcode: bool = True,
 ) -> Path:
-    """Fetch and decrypt every segment, then encode browser-compatible video."""
+    """Fetch and decrypt every segment; transcode for browsers, or stream-copy when transcode is False."""
     _validate_xiaomi_url(playlist_url)
     cache_path = Path(cache_path)
     cache_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -206,22 +209,7 @@ def download_and_remux_recording(
                         "0",
                         "-i",
                         str(concat_file),
-                        "-map",
-                        "0",
-                        "-c:v",
-                        "libx264",
-                        "-pix_fmt",
-                        "yuv420p",
-                        "-preset",
-                        "veryfast",
-                        "-crf",
-                        "20",
-                        "-threads",
-                        "2",
-                        "-fps_mode",
-                        "vfr",
-                        "-c:a",
-                        "copy",
+                        *_codec_args(transcode),
                         "-movflags",
                         "+faststart",
                         "-y",
@@ -256,6 +244,72 @@ def download_and_remux_recording(
                 output_tmp.unlink(missing_ok=True)
             except OSError:
                 pass
+
+
+def _codec_args(transcode: bool) -> list[str]:
+    if not transcode:
+        return ["-map", "0", "-c", "copy"]
+    return [
+        "-map",
+        "0",
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-preset",
+        "veryfast",
+        "-crf",
+        "20",
+        "-threads",
+        "2",
+        "-fps_mode",
+        "vfr",
+        "-c:a",
+        "copy",
+    ]
+
+
+def archive_name(created_ms: object, event_type: object, file_id: object) -> str:
+    """Return the UTC start time, event type and fileId stem used for archived clips."""
+    try:
+        started = datetime.fromtimestamp(int(created_ms) / 1000, UTC)
+    except (TypeError, ValueError, OverflowError, OSError):
+        raise RecordingError("Invalid Xiaomi alarm event time") from None
+    return f"{started:%Y%m%dT%H%M%SZ}_{_safe_token(event_type, 'event', 32)}_{_safe_token(file_id, 'clip', 64)}"
+
+
+def _safe_token(value: object, default: str, limit: int) -> str:
+    token = re.sub(r"[^A-Za-z0-9_-]+", "-", str(value or "")).strip("-")[:limit]
+    return token or default
+
+
+def archive_clip(playlist_url: str, clip_path: Path, ffmpeg_binary: str) -> Path:
+    """Stream-copy one finite recording to clip_path unless it is already archived."""
+    clip_path = Path(clip_path)
+    if clip_path.is_file() and clip_path.stat().st_size > 0:
+        return clip_path
+    return download_and_remux_recording(playlist_url, clip_path, ffmpeg_binary, transcode=False)
+
+
+def download_thumbnail(image_url: str, key: bytes, iv: bytes, output_path: Path) -> Path:
+    """Fetch and decrypt one cloud JPEG thumbnail unless it is already archived."""
+    output_path = Path(output_path)
+    if output_path.is_file() and output_path.stat().st_size > 0:
+        return output_path
+    if len(key) != 16 or len(iv) != 16:
+        raise RecordingError("Invalid Xiaomi thumbnail key")
+    data = _decrypt_segment(_read_limited_url(image_url, MAX_THUMBNAIL_BYTES), key, iv)
+    if not data.startswith(b"\xff\xd8\xff"):
+        raise RecordingError("Invalid Xiaomi thumbnail")
+    temp_path = output_path.with_name(f".{output_path.stem}.{os.urandom(6).hex()}.tmp")
+    try:
+        temp_path.write_bytes(data)
+        os.chmod(temp_path, 0o600)
+        os.replace(temp_path, output_path)
+    except OSError:
+        temp_path.unlink(missing_ok=True)
+        raise RecordingError("Unable to write Xiaomi thumbnail") from None
+    return output_path
 
 
 def _parse_attribute_list(value: str) -> dict[str, str]:

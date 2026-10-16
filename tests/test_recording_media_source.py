@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import subprocess
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -17,7 +19,7 @@ from homeassistant.setup import async_setup_component
 from custom_components.xiaomi_miot import DOMAIN
 from custom_components.xiaomi_miot.core import recording
 from custom_components.xiaomi_miot.media_source import async_get_media_source
-from custom_components.xiaomi_miot.camera import BaseCameraEntity
+from custom_components.xiaomi_miot.camera import ARCHIVE_EVENT, SERVICE_TO_METHOD, BaseCameraEntity
 
 CAMERA_ID = "camera.doorbell"
 HOST = "https://cam.io.mi.com"
@@ -411,3 +413,110 @@ async def test_per_event_resolve_keeps_each_clip_addressable(
         await source.async_resolve_media(
             MediaSourceItem(hass, DOMAIN, f"{CAMERA_ID}/missing", None)
         )
+
+
+def test_archive_name_is_utc_type_and_file_id():
+    created = int(datetime(2026, 10, 16, 9, 19, 16, tzinfo=UTC).timestamp() * 1000)
+    assert recording.archive_name(created, "Bell:Pass", "590510936741910273") == (
+        "20261016T091916Z_Bell-Pass_590510936741910273"
+    )
+    with pytest.raises(recording.RecordingError):
+        recording.archive_name("bad", "Bell", "1")
+
+
+def test_thumbnail_decrypts_jpeg_and_is_archived_once(monkeypatch, tmp_path):
+    jpeg = b"\xff\xd8\xff" + b"thumbnail"
+    iv = bytes(range(16, 32))
+    url = f"{HOST}/alarm/img.jpg?signature=fixture"
+    requested = []
+
+    def get(u, **kwargs):
+        requested.append(u)
+        return _Response(_encrypt(jpeg, iv))
+
+    monkeypatch.setattr(recording.requests, "get", get)
+    out = tmp_path / "thumb.jpg"
+    recording.download_thumbnail(url, KEY, iv, out)
+    assert out.read_bytes() == jpeg
+    assert out.stat().st_mode & 0o777 == 0o600
+    recording.download_thumbnail(url, KEY, iv, out)
+    assert requested == [url]
+
+
+def test_thumbnail_rejects_non_jpeg(monkeypatch, tmp_path):
+    iv = bytes(range(16, 32))
+    monkeypatch.setattr(
+        recording.requests, "get", lambda u, **kwargs: _Response(_encrypt(b"plain", iv))
+    )
+    out = tmp_path / "bad.jpg"
+    with pytest.raises(recording.RecordingError):
+        recording.download_thumbnail(f"{HOST}/alarm/img.jpg?x=1", KEY, iv, out)
+    assert not out.exists()
+
+
+@pytest.mark.asyncio
+async def test_archive_service_is_idempotent_and_fires_event(hass, tmp_path, media):
+    playlist_url, objects, requested = media
+    created = int(datetime(2026, 10, 16, 9, 19, 16, tzinfo=UTC).timestamp() * 1000)
+    iv = bytes(range(16, 32))
+    img_url = f"{HOST}/alarm/img.jpg?signature=fixture"
+    objects[img_url] = _encrypt(b"\xff\xd8\xff" + b"thumb", iv)
+    hass.data[DATA_FFMPEG] = SimpleNamespace(binary="ffmpeg")
+    seen = []
+    hass.bus.async_listen(ARCHIVE_EVENT, lambda event: seen.append(event.data))
+
+    class _Cam:
+        hass = None
+        is_doorbell = True
+        device = SimpleNamespace(
+            cloud=SimpleNamespace(ssecurity=base64.b64encode(KEY).decode())
+        )
+        _segment_iv_hex = iv.hex()
+
+        async def get_alarm_events(self, begin=0, ended=None, doorbell=False, page_size=50):
+            return [
+                {
+                    "fileId": "590510936741910273",
+                    "createTime": created,
+                    "duration": 20.51,
+                    "eventType": "Bell:Pass",
+                    "isAlarm": True,
+                    "imgStoreId": "CAMERA_IMG_fixture",
+                }
+            ]
+
+        def get_alarm_m3u8_url(self, file_id, is_alarm=False, videoCodec="H265"):
+            return playlist_url
+
+        def get_alarm_image_address(self, file_id, store_id, crypto=False):
+            return img_url
+
+    cam = _Cam()
+    cam.hass = hass
+    first = await BaseCameraEntity.async_archive_alarm_events(cam, 0, None, str(tmp_path))
+    await hass.async_block_till_done()
+    stem = "20261016T091916Z_Bell-Pass_590510936741910273"
+    clip = tmp_path / f"{stem}.mp4"
+    assert [item["path"] for item in first] == [str(clip)]
+    assert clip.is_file()
+    assert (tmp_path / f"{stem}.jpg").is_file()
+    assert float(_probe(clip, "format=duration")[0]) > 0
+    assert first[0]["start"] == "2026-10-16T09:19:16+00:00"
+    assert first[0]["end"] == "2026-10-16T09:19:36.510000+00:00"
+    assert first[0]["type"] == "Bell:Pass"
+    assert first[0]["fileId"] == "590510936741910273"
+    assert seen == first
+    playlist_hits = requested.count(playlist_url)
+    assert playlist_hits == 1
+
+    second = await BaseCameraEntity.async_archive_alarm_events(cam, 0, None, str(tmp_path))
+    assert second == []
+    assert requested.count(playlist_url) == playlist_hits
+
+
+def test_archive_service_schema_defaults():
+    schema = SERVICE_TO_METHOD["archive_alarm_events"]["schema"]
+    data = schema({"entity_id": CAMERA_ID})
+    assert data["begin"] == 0
+    assert "ended" not in data
+    assert "archive_dir" not in data
