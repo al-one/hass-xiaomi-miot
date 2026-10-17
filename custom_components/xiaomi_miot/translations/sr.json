@@ -1,0 +1,547 @@
+{
+  "config": {
+    "flow_title": "Xiaomi Miot",
+    "step": {
+      "user": {
+        "title": "Изаберите акцију",
+        "data": {
+          "action": "Акција"
+        }
+      },
+      "token": {
+        "description": "Конфигуришите информације о уређају.",
+        "data": {
+          "host": "Локална IP адреса",
+          "token": "Токен",
+          "name": "Назив уређаја",
+          "scan_interval": "Интервал ажурирања стања (секунде)"
+        }
+      },
+      "cloud": {
+        "description": "Конфигуришите Xiaomi cloud налог.\n{tip}",
+        "data": {
+          "username": "Xiaomi ID налога / Емаил",
+          "password": "Лозинка",
+          "captcha": "Captcha",
+          "verify_ticket": "Код за двофакторску верификацију",
+          "server_country": "Локација сервера MiCloud",
+          "conn_mode": "Режим повезивања уређаја",
+          "trans_options": "Опис вредности својства превода",
+          "filter_models": "Филтрирај уређаје по моделу/дому/WiFi (Напредно)"
+        }
+      },
+      "cloud_filter": {
+        "title": "Филтер cloud уређаја",
+        "description": "Можете укључити или искључити уређаје да интегришете само оне које желите.\n{tip}",
+        "data": {
+          "filter_model": "Филтер модела уређаја",
+          "model_list": "Листа модела уређаја",
+          "filter_home_id": "Филтер дома",
+          "home_id_list": "Листа домова",
+          "filter_ssid": "Филтер WiFi SSID",
+          "ssid_list": "Листа WiFi SSID",
+          "filter_bssid": "Филтер WiFi BSSID",
+          "bssid_list": "Листа WiFi BSSID",
+          "filter_did": "Филтер уређаја",
+          "did_list": "Листа уређаја",
+          "home_ids": "Филтер дома (оставите празно за чување)"
+        },
+        "data_description": {
+          "filter_did": "У режиму искључивања, ако не означите ниједну опцију на листи, то је еквивалентно укључивању свих уређаја.",
+          "home_ids": "Након означавања ове опције и слања, вратићете се на тренутну страницу,\nи листа уређаја ће се освежити и филтрирати уређаје из означених домова."
+        }
+      },
+      "customizing": {
+        "title": "Прилагођавање ентитета / уређаја",
+        "description": "{tip}",
+        "data": {
+          "domain": "Изаберите домен ентитета",
+          "entity": "Изаберите ентитет",
+          "model": "Изаберите модел уређаја",
+          "model_specified": "Одређени модел уређаја (опционо)",
+          "only_main_entity": "Само главни (parent) ентитети",
+          "yaml_mode": "YAML режим",
+          "yaml_customizes": "Прилагођени YAML код",
+          "reset_customizes": "Ресетуј на подразумеване прилагодбе",
+          "bool2selects": "Прилагођене опције"
+        }
+      },
+      "reauth_password": {
+        "title": "Xiaomi поновна аутентификација — унесите лозинку налога",
+        "description": "Пријавите се на Xiaomi да освежите своје сачуване акредитиве. Ваша постојећа конфигурација остаје иста.",
+        "data": {
+          "password": "Лозинка"
+        }
+      },
+      "reauth_verify": {
+        "title": "Xiaomi поновна аутентификација — унесите верификациони код",
+        "description": "Отворите [овај линк]({verify_url}) у свом прегледачу, затражите код, затим овде налепите верификациони тикет.",
+        "data": {
+          "verify_ticket": "Верификациони тикет"
+        }
+      },
+      "reauth_captcha": {
+        "title": "Xiaomi поновна аутентификација — унесите captcha",
+        "description": "Прочитајте captcha слику и унесите знакове.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+        "data": {
+          "captcha": "Captcha"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Није могуће повезати се са Xiaomi.",
+      "cannot_login": "Неуспешна пријава на Xiaomi налог. Молимо проверите акредитиве налога. Ако покушаји пријаве више пута не успеју, покушајте поново да се пријавите на званичном Xiaomi сајту (mi.com) користећи исто мрежно окружење.",
+      "cannot_reach": "Није могуће приступити Xiaomi API интерфејсу",
+      "tzinfo_error": "Изгледа да постоји проблем са вашим Hass окружењем. Проверите конфигурацију временске зоне",
+      "none_devices": "Нема пронађених уређаја под овим Xiaomi налогом",
+      "need_verify": "Потребан је верификациони код.",
+      "invalid_auth": "Xiaomi је одбио акредитиве.\n{tip}",
+      "need_captcha": "Потребан је captcha.",
+      "save_failed": "Неуспешно чување освежених акредитива. Молимо покушајте поново.",
+      "unknown": "Неочекивана грешка."
+    },
+    "abort": {
+      "config_saved": "Конфигурација сачувана! [Прилагодите поново](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nНеке прилагођене опције могу захтевати [поновно учитавање интеграције](/developer-tools/yaml) да би ступиле на снагу.",
+      "already_configured": "Овај уређај је већ конфигурисан.",
+      "not_xiaomi_miio": "Овај уређај не подржава miio/miot протокол.",
+      "unsupported_sid": "Поновна аутентификација није подржана за овај налог.",
+      "wrong_account": "Аутентификација се не поклапа са конфигурисаним Xiaomi налогом.",
+      "reauth_successful": "Xiaomi налог је освежен."
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "Xiaomi Miot",
+        "description": "Конфигуришите информације о уређају.",
+        "data": {
+          "host": "IP адреса уређаја",
+          "token": "Токен",
+          "scan_interval": "Интервал ажурирања статуса (секунде)",
+          "miot_cloud": "Омогући miot cloud (Прво конфигуришите налог у YAML-у)"
+        }
+      },
+      "cloud": {
+        "description": "Конфигуришите Xiaomi cloud налог.\n{tip}",
+        "data": {
+          "username": "Xiaomi ID налога / Емаил",
+          "password": "Лозинка",
+          "captcha": "Captcha",
+          "verify_ticket": "Код за двофакторску верификацију",
+          "server_country": "Локација сервера MiCloud",
+          "conn_mode": "Режим повезивања уређаја",
+          "renew_devices": "Форсирај освежавање уређаја",
+          "trans_options": "Опис вредности својства превода",
+          "disable_message": "Онемогући Mihome сензор обавештења",
+          "disable_scene_history": "Онемогући Mihome сензор историје сцена"
+        }
+      },
+      "cloud_filter": {
+        "title": "Филтер cloud уређаја",
+        "description": "Можете укључити или искључити уређаје да интегришете само оне које желите.\n{tip}",
+        "data": {
+          "filter_model": "Филтер модела уређаја",
+          "model_list": "Листа модела уређаја",
+          "filter_home_id": "Филтер дома",
+          "home_id_list": "Листа домова",
+          "filter_ssid": "Филтер WiFi SSID",
+          "ssid_list": "Листа WiFi SSID",
+          "filter_bssid": "Филтер WiFi BSSID",
+          "bssid_list": "Листа WiFi BSSID",
+          "filter_did": "Филтер уређаја",
+          "did_list": "Листа уређаја",
+          "home_ids": "Филтер дома (оставите празно за чување)"
+        },
+        "data_description": {
+          "filter_did": "У режиму искључивања, ако не означите ниједну опцију на листи, то је еквивалентно укључивању свих уређаја.",
+          "home_ids": "Након означавања ове опције и слања, вратићете се на тренутну страницу,\nи листа уређаја ће се освежити и филтрирати уређаје из означених домова."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Неуспешно повезивање са уређајем",
+      "cannot_login": "Неуспешна пријава на Xiaomi налог. Молимо проверите акредитиве налога. Ако покушаји пријаве више пута не успеју, покушајте поново да се пријавите на званичном Xiaomi сајту (mi.com) користећи исто мрежно окружење.",
+      "cannot_reach": "Није могуће приступити Xiaomi API интерфејсу",
+      "tzinfo_error": "Изгледа да постоји проблем са вашим Hass окружењем. Проверите конфигурацију временске зоне",
+      "none_devices": "Нема пронађених уређаја под овим Xiaomi налогом",
+      "need_verify": "Ова пријава захтева безбедносну верификацију. Молимо отворите верификациони линк испод да пошаљете мобилни/емаил верификациони код. Након што примите код, немојте га верификовати на веб страници. Вратите се у Home Assistant и унесите га у поље испод."
+    },
+    "abort": {
+      "show_customizes": "Додајте нову интеграцију да бисте изменили прилагођавања.\n{link}\n{tip}"
+    }
+  },
+  "system_health": {
+    "info": {
+      "component_version": "Верзија прилагођене компоненте",
+      "can_reach_server": "Приступ Xiaomi API серверу",
+      "can_reach_spec": "Приступ MIoT-Spec серверу",
+      "logged_accounts": "Број пријављених налога",
+      "total_devices": "Укупан број MiHome уређаја"
+    }
+  },
+  "entity": {
+    "button": {
+      "info": {
+        "name": "Информације"
+      }
+    },
+    "sensor": {
+      "clean_area": {
+        "name": "Очићена површина"
+      },
+      "clean_time": {
+        "name": "Време чишћења"
+      },
+      "power_cost_today": {
+        "name": "Потрошња енергије данас"
+      },
+      "power_cost_month": {
+        "name": "Потрошња енергије месец"
+      },
+      "power_cost_today_2": {
+        "name": "Потрошња енергије данас"
+      },
+      "power_cost_month_2": {
+        "name": "Потрошња енергије месец"
+      },
+      "props-clean_area": {
+        "name": "Очићена површина"
+      },
+      "props-clean_time": {
+        "name": "Време чишћења"
+      },
+      "lock": {
+        "state": {
+          "bluetooth": "Bluetooth",
+          "password": "Лозинка",
+          "biological": "Биометрија",
+          "key": "Кључ",
+          "turntable": "Ручица",
+          "nfc": "NFC",
+          "one_time_password": "Једнократна лозинка",
+          "two_step_verification": "Двофакторска верификација",
+          "coercion": "Присилно",
+          "homekit": "Homekit",
+          "manual": "Ручно",
+          "automatic": "Аутоматски"
+        }
+      },
+      "lock_action": {
+        "state": {
+          "outside_unlock": "Откључај споља",
+          "lock": "Закључај",
+          "anti_lock_on": "Укључи anti-lock",
+          "anti_lock_off": "Искључи anti-lock",
+          "inside_unlock": "Откључај изнутра",
+          "lock_inside": "Закључај изнутра",
+          "child_lock_on": "Укључи дечију заштиту",
+          "child_lock_off": "Искључи дечију заштиту",
+          "lock_outside": "Закључај споља"
+        }
+      },
+      "door_state": {
+        "state": {
+          "open": "Отворена",
+          "close": "Затворена",
+          "close_timeout": "Истек времена затварања",
+          "knock": "Куцање",
+          "breaking": "Провала",
+          "stuck": "Заглављено"
+        }
+      }
+    },
+    "binary_sensor": {
+      "pet_drinking_fountain-water_shortage_status": {
+        "name": "Недостатак воде"
+      },
+      "pet_drinking_fountain-fault": {
+        "name": "Грешка"
+      }
+    },
+    "switch": {
+      "no_disturb-no_disturb": {
+        "name": "Не узнемиравај"
+      },
+      "physical_controls_locked-physical_controls_locked": {
+        "name": "Дечија заштита"
+      }
+    },
+    "select": {
+      "pet_drinking_fountain-mode": {
+        "name": "Режим воде"
+      }
+    },
+    "number": {
+      "pet_drinking_fountain-out_water_interval": {
+        "name": "Интервал воде"
+      }
+    },
+    "climate": {
+      "air_conditioner": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Ауто",
+              "low": "Низак",
+              "medium": "Средњи",
+              "middle": "Средњи",
+              "high": "Висок",
+              "quiet": "Тихи",
+              "turbo": "Турбо",
+              "level1": "Ниво 1",
+              "level2": "Ниво 2",
+              "level3": "Ниво 3",
+              "level4": "Ниво 4",
+              "level5": "Ниво 5",
+              "level6": "Ниво 6",
+              "level7": "Ниво 7"
+            }
+          },
+          "swing_mode": {
+            "state": {
+              "off": "Искључено",
+              "vertical": "Вертикално",
+              "horizontal": "Хоризонтално",
+              "both": "Оба"
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "services": {
+    "send_command": {
+      "name": "Пошаљи команду",
+      "description": "Пошаљи miio команду",
+      "fields": {
+        "entity_id": {
+          "name": "ID ентитета",
+          "description": ""
+        },
+        "method": {
+          "name": "Метод",
+          "description": ""
+        },
+        "params": {
+          "name": "Параметри",
+          "description": ""
+        }
+      }
+    },
+    "get_properties": {
+      "name": "Преузми својства",
+      "description": "Преузми MIoT својства",
+      "fields": {
+        "entity_id": {
+          "name": "ID ентитета",
+          "description": ""
+        },
+        "mapping": {
+          "name": "Мапирање",
+          "description": ""
+        },
+        "update_entity": {
+          "name": "Ажурирај ентитет",
+          "description": ""
+        }
+      }
+    },
+    "set_property": {
+      "name": "Постави својство",
+      "description": "Постави MIoT својство",
+      "fields": {
+        "entity_id": {
+          "name": "ID ентитета",
+          "description": ""
+        },
+        "field": {
+          "name": "Поље",
+          "description": ""
+        },
+        "value": {
+          "name": "Вредност",
+          "description": ""
+        }
+      }
+    },
+    "set_miot_property": {
+      "name": "Постави MIoT својство",
+      "description": "Постави MIoT својство преко siid/piid",
+      "fields": {
+        "entity_id": {
+          "name": "ID ентитета",
+          "description": ""
+        },
+        "siid": {
+          "name": "",
+          "description": ""
+        },
+        "piid": {
+          "name": "",
+          "description": ""
+        },
+        "value": {
+          "name": "",
+          "description": ""
+        }
+      }
+    },
+    "call_action": {
+      "name": "Позови акцију",
+      "description": "Позови MIoT акцију",
+      "fields": {
+        "entity_id": {
+          "name": "ID ентитета",
+          "description": ""
+        },
+        "siid": {
+          "name": "",
+          "description": ""
+        },
+        "aiid": {
+          "name": "",
+          "description": ""
+        },
+        "params": {
+          "name": "",
+          "description": ""
+        }
+      }
+    },
+    "intelligent_speaker": {
+      "name": "Паметни звучник",
+      "description": "Паметни звучник за XiaoAi",
+      "fields": {
+        "entity_id": {
+          "name": "ID ентитета",
+          "description": "XiaoAi ID ентитета"
+        },
+        "text": {
+          "name": "Текст",
+          "description": ""
+        },
+        "execute": {
+          "name": "Изврши",
+          "description": ""
+        },
+        "silent": {
+          "name": "Тихо",
+          "description": ""
+        }
+      }
+    },
+    "xiaoai_wakeup": {
+      "name": "XiaoAi буђење",
+      "description": "Пробуди XiaoAi звучник",
+      "fields": {
+        "entity_id": {
+          "name": "ID ентитета",
+          "description": "XiaoAi ID ентитета"
+        },
+        "text": {
+          "name": "Текст",
+          "description": ""
+        }
+      }
+    },
+    "get_device_data": {
+      "name": "Преузми податке уређаја",
+      "description": "Преузми податке Xiaomi уређаја из облака",
+      "fields": {
+        "entity_id": {
+          "name": "ID ентитета",
+          "description": ""
+        },
+        "type": {
+          "name": "Тип",
+          "description": ""
+        },
+        "key": {
+          "name": "Кључ",
+          "description": ""
+        },
+        "time_start": {
+          "name": "Време почетка",
+          "description": ""
+        },
+        "time_end": {
+          "name": "Време завршетка",
+          "description": ""
+        },
+        "limit": {
+          "name": "Ограничење",
+          "description": ""
+        },
+        "group": {
+          "name": "Група",
+          "description": ""
+        }
+      }
+    },
+    "renew_devices": {
+      "name": "Освежи уређаје",
+      "description": "Освежи кеширане Xiaomi уређаје",
+      "fields": {
+        "username": {
+          "name": "Корисничко име",
+          "description": ""
+        }
+      }
+    },
+    "get_token": {
+      "name": "Преузми токен",
+      "description": "Преузми токен Xiaomi уређаја",
+      "fields": {
+        "name": {
+          "name": "Назив",
+          "description": ""
+        }
+      }
+    },
+    "get_bindkey": {
+      "name": "Преузми bindkey",
+      "description": "Преузми bindkey за BLE уређај",
+      "fields": {
+        "entity_id": {
+          "name": "ID ентитета",
+          "description": ""
+        },
+        "did": {
+          "name": "DID",
+          "description": ""
+        }
+      }
+    },
+    "request_xiaomi_api": {
+      "name": "Захтев Xiaomi API",
+      "description": "Захтев Xiaomi API",
+      "fields": {
+        "entity_id": {
+          "name": "ID ентитета",
+          "description": ""
+        },
+        "api": {
+          "name": "API",
+          "description": ""
+        },
+        "data": {
+          "name": "Подаци",
+          "description": ""
+        },
+        "method": {
+          "name": "Метод",
+          "description": ""
+        },
+        "crypt": {
+          "name": "Шифровање",
+          "description": ""
+        },
+        "sid": {
+          "name": "",
+          "description": ""
+        }
+      }
+    }
+  }
+}
