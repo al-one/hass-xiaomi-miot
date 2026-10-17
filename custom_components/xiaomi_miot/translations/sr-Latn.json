@@ -1,0 +1,606 @@
+{
+    "config": {
+        "flow_title": "Xiaomi Miot",
+        "step": {
+            "user": {
+                "title": "Izaberite akciju",
+                "data": {
+                    "action": "Akcija"
+                }
+            },
+            "token": {
+                "description": "Konfigurišite informacije o uređaju.",
+                "data": {
+                    "host": "Lokalna IP adresa",
+                    "token": "Token",
+                    "name": "Naziv uređaja",
+                    "scan_interval": "Interval ažuriranja stanja (sekunde)"
+                }
+            },
+            "cloud": {
+                "description": "Konfigurišite Xiaomi cloud nalog.\n{tip}",
+                "data": {
+                    "username": "Xiaomi ID naloga / Email",
+                    "password": "Lozinka",
+                    "captcha": "Captcha",
+                    "verify_ticket": "Kod za dvofaktorsku verifikaciju",
+                    "server_country": "Lokacija servera MiCloud",
+                    "conn_mode": "Režim povezivanja uređaja",
+                    "trans_options": "Opis vrednosti svojstva prevoda",
+                    "filter_models": "Filtriraj uređaje po modelu/domu/WiFi (Napredno)"
+                }
+            },
+            "cloud_filter": {
+                "title": "Filter cloud uređaja",
+                "description": "Možete uključiti ili isključiti uređaje da integrišete samo one koje želite.\n{tip}",
+                "data": {
+                    "filter_model": "Filter modela uređaja",
+                    "model_list": "Lista modela uređaja",
+                    "filter_home_id": "Filter doma",
+                    "home_id_list": "Lista domova",
+                    "filter_ssid": "Filter WiFi SSID",
+                    "ssid_list": "Lista WiFi SSID",
+                    "filter_bssid": "Filter WiFi BSSID",
+                    "bssid_list": "Lista WiFi BSSID",
+                    "filter_did": "Filter uređaja",
+                    "did_list": "Lista uređaja",
+                    "home_ids": "Filter doma (ostavite prazno za čuvanje)"
+                },
+                "data_description": {
+                    "filter_did": "U režimu isključivanja, ako ne označite nijednu opciju na listi, to je ekvivalentno uključivanju svih uređaja.",
+                    "home_ids": "Nakon označavanja ove opcije i slanja, vratićete se na trenutnu stranicu,\ni lista uređaja će se osvežiti i filtrirati uređaje iz označenih domova."
+                }
+            },
+            "customizing": {
+                "title": "Prilagođavanje entiteta / uređaja",
+                "description": "{tip}",
+                "data": {
+                    "domain": "Izaberite domen entiteta",
+                    "entity": "Izaberite entitet",
+                    "model": "Izaberite model uređaja",
+                    "model_specified": "Određeni model uređaja (opciono)",
+                    "only_main_entity": "Samo glavni (parent) entiteti",
+                    "yaml_mode": "YAML režim",
+                    "yaml_customizes": "Prilagođeni YAML kod",
+                    "reset_customizes": "Resetuj na podrazumevane prilagodbe",
+                    "binary_sensor_attributes": "binary_sensor_attributes",
+                    "binary_sensor_properties": "binary_sensor_properties",
+                    "bind_sensor": "bind_sensor",
+                    "bind_xiaoai": "bind_xiaoai",
+                    "brightness_for_off": "brightness_for_off",
+                    "brightness_for_on": "brightness_for_on",
+                    "button_actions": "button_actions",
+                    "button_properties": "button_properties",
+                    "chunk_properties": "chunk_properties",
+                    "close_texts": "close_texts",
+                    "closed_position": "closed_position",
+                    "cloud_delay_update": "cloud_delay_update",
+                    "configuration_entities": "configuration_entities",
+                    "coord_type": "coord_type",
+                    "current_temp_property": "current_temp_property",
+                    "descriptions_for_on": "descriptions_for_on",
+                    "descriptions_for_off": "descriptions_for_off",
+                    "deviated_position": "deviated_position",
+                    "device_class": "device_class",
+                    "diagnostic_entities": "diagnostic_entities",
+                    "disable_preset_modes": "disable_preset_modes",
+                    "entity_category": "entity_category",
+                    "exclude_miot_properties": "exclude_miot_properties",
+                    "exclude_miot_services": "exclude_miot_services",
+                    "exclude_type": "exclude_type",
+                    "feeding_measure": "feeding_measure",
+                    "filter_home": "filter_home",
+                    "interval_seconds": "interval_seconds",
+                    "main_miot_services": "main_miot_services",
+                    "miot_did": "miot_did",
+                    "mitv_lan_host": "mitv_lan_host",
+                    "motion_stream_slice": "motion_stream_slice",
+                    "motion_timeout": "motion_timeout",
+                    "number_properties": "number_properties",
+                    "open_texts": "open_texts",
+                    "percentage_property": "percentage_property",
+                    "scanner_properties": "scanner_properties",
+                    "screenshot_compress": "screenshot_compress",
+                    "select_actions": "select_actions",
+                    "select_properties": "select_properties",
+                    "sensor_attributes": "sensor_attributes",
+                    "sensor_properties": "sensor_properties",
+                    "sources_via_apps": "sources_via_apps",
+                    "sources_via_keycodes": "sources_via_keycodes",
+                    "speed_property": "speed_property",
+                    "stat_power_cost_key": "stat_power_cost_key",
+                    "stat_power_cost_type": "stat_power_cost_type",
+                    "state_class": "state_class",
+                    "state_property": "state_property",
+                    "switch_properties": "switch_properties",
+                    "target_position_properties": "target_position_properties",
+                    "television_name": "television_name",
+                    "text_actions": "text_actions",
+                    "time_properties": "time_properties",
+                    "turn_on_hvac": "turn_on_hvac",
+                    "unit_of_measurement": "unit_of_measurement",
+                    "value_ratio": "value_ratio",
+                    "video_attribute": "video_attribute",
+                    "yeelight_smooth_off": "yeelight_smooth_off",
+                    "yeelight_smooth_on": "yeelight_smooth_on",
+                    "bool2selects": "Prilagođene opcije"
+                }
+            },
+            "reauth_password": {
+                "title": "Xiaomi ponovna autentifikacija — unesite lozinku naloga",
+                "description": "Prijavite se na Xiaomi da osvežite svoje sačuvane akreditive. Vaša postojeća konfiguracija ostaje ista.",
+                "data": {
+                    "password": "Lozinka"
+                }
+            },
+            "reauth_verify": {
+                "title": "Xiaomi ponovna autentifikacija — unesite verifikacioni kod",
+                "description": "Otvorite [ovaj link]({verify_url}) u svom pregledaču, zatražite kod, zatim ovde nalepite verifikacioni tiket.",
+                "data": {
+                    "verify_ticket": "Verifikacioni tiket"
+                }
+            },
+            "reauth_captcha": {
+                "title": "Xiaomi ponovna autentifikacija — unesite captcha",
+                "description": "Pročitajte captcha sliku i unesite znakove.\n\n![Captcha](data:image/jpeg;base64,{captcha_image})",
+                "data": {
+                    "captcha": "Captcha"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Nije moguće povezati se sa Xiaomi.",
+            "cannot_login": "Neuspešna prijava na Xiaomi nalog. Molimo proverite akreditive naloga. Ako pokušaji prijave više puta ne uspeju, pokušajte ponovo da se prijavite na zvaničnom Xiaomi sajtu (mi.com) koristeći isto mrežno okruženje.",
+            "cannot_reach": "Nije moguće pristupiti Xiaomi API interfejsu",
+            "tzinfo_error": "Izgleda da postoji problem sa vašim Hass okruženjem. Proverite konfiguraciju vremenske zone",
+            "none_devices": "Nema pronađenih uređaja pod ovim Xiaomi nalogom",
+            "need_verify": "Potreban je verifikacioni kod.",
+            "invalid_auth": "Xiaomi je odbio akreditive.\n{tip}",
+            "need_captcha": "Potreban je captcha.",
+            "save_failed": "Neuspešno čuvanje osveženih akreditiva. Molimo pokušajte ponovo.",
+            "unknown": "Neočekivana greška."
+        },
+        "abort": {
+            "config_saved": "Konfiguracija sačuvana! [Prilagodite ponovo](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nNeke prilagođene opcije mogu zahtevati [ponovno učitavanje integracije](/developer-tools/yaml) da bi stupile na snagu.",
+            "already_configured": "Ovaj uređaj je već konfigurisán.",
+            "not_xiaomi_miio": "Ovaj uređaj ne podržava miio/miot protokol.",
+            "unsupported_sid": "Ponovna autentifikacija nije podržana za ovaj nalog.",
+            "wrong_account": "Autentifikacija se ne poklapa sa konfigurisanim Xiaomi nalogom.",
+            "reauth_successful": "Xiaomi nalog je osvežen."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Xiaomi Miot",
+                "description": "Konfigurišite informacije o uređaju.",
+                "data": {
+                    "host": "IP adresa uređaja",
+                    "token": "Token",
+                    "scan_interval": "Interval ažuriranja statusa (sekunde)",
+                    "miot_cloud": "Omogući miot cloud (Prvo konfigurišite nalog u YAML-u)"
+                }
+            },
+            "cloud": {
+                "description": "Konfigurišite Xiaomi cloud nalog.\n{tip}",
+                "data": {
+                    "username": "Xiaomi ID naloga / Email",
+                    "password": "Lozinka",
+                    "captcha": "Captcha",
+                    "verify_ticket": "Kod za dvofaktorsku verifikaciju",
+                    "server_country": "Lokacija servera MiCloud",
+                    "conn_mode": "Režim povezivanja uređaja",
+                    "renew_devices": "Forsiraj osvežavanje uređaja",
+                    "trans_options": "Opis vrednosti svojstva prevoda",
+                    "disable_message": "Onemogući Mihome senzor obaveštenja",
+                    "disable_scene_history": "Onemogući Mihome senzor istorije scena"
+                }
+            },
+            "cloud_filter": {
+                "title": "Filter cloud uređaja",
+                "description": "Možete uključiti ili isključiti uređaje da integrišete samo one koje želite.\n{tip}",
+                "data": {
+                    "filter_model": "Filter modela uređaja",
+                    "model_list": "Lista modela uređaja",
+                    "filter_home_id": "Filter doma",
+                    "home_id_list": "Lista domova",
+                    "filter_ssid": "Filter WiFi SSID",
+                    "ssid_list": "Lista WiFi SSID",
+                    "filter_bssid": "Filter WiFi BSSID",
+                    "bssid_list": "Lista WiFi BSSID",
+                    "filter_did": "Filter uređaja",
+                    "did_list": "Lista uređaja",
+                    "home_ids": "Filter doma (ostavite prazno za čuvanje)"
+                },
+                "data_description": {
+                    "filter_did": "U režimu isključivanja, ako ne označite nijednu opciju na listi, to je ekvivalentno uključivanju svih uređaja.",
+                    "home_ids": "Nakon označavanja ove opcije i slanja, vratićete se na trenutnu stranicu,\ni lista uređaja će se osvežiti i filtrirati uređaje iz označenih domova."
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Neuspešno povezivanje sa uređajem",
+            "cannot_login": "Neuspešna prijava na Xiaomi nalog. Molimo proverite akreditive naloga. Ako pokušaji prijave više puta ne uspeju, pokušajte ponovo da se prijavite na zvaničnom Xiaomi sajtu (mi.com) koristeći isto mrežno okruženje.",
+            "cannot_reach": "Nije moguće pristupiti Xiaomi API interfejsu",
+            "tzinfo_error": "Izgleda da postoji problem sa vašim Hass okruženjem. Proverite konfiguraciju vremenske zone",
+            "none_devices": "Nema pronađenih uređaja pod ovim Xiaomi nalogom",
+            "need_verify": "Ova prijava zahteva bezbednosnu verifikaciju. Molimo otvorite verifikacioni link ispod da pošaljete mobilni/email verifikacioni kod. Nakon što primite kod, nemojte ga verifikovati na veb stranici. Vratite se u Home Assistant i unesite ga u polje ispod."
+        },
+        "abort": {
+            "show_customizes": "Dodajte novu integraciju da biste izmenili prilagođavanja.\n{link}\n{tip}"
+        }
+    },
+    "system_health": {
+        "info": {
+            "component_version": "Verzija prilagođene komponente",
+            "can_reach_server": "Pristup Xiaomi API serveru",
+            "can_reach_spec": "Pristup MIoT-Spec serveru",
+            "logged_accounts": "Broj prijavljenih naloga",
+            "total_devices": "Ukupan broj MiHome uređaja"
+        }
+    },
+    "entity": {
+        "button": {
+            "info": {
+                "name": "Informacije"
+            }
+        },
+        "sensor": {
+            "clean_area": {
+                "name": "Očišćena površina"
+            },
+            "clean_time": {
+                "name": "Vreme čišćenja"
+            },
+            "power_cost_today": {
+                "name": "Potrošnja energije danas"
+            },
+            "power_cost_month": {
+                "name": "Potrošnja energije mesec"
+            },
+            "power_cost_today_2": {
+                "name": "Potrošnja energije danas"
+            },
+            "power_cost_month_2": {
+                "name": "Potrošnja energije mesec"
+            },
+            "props-clean_area": {
+                "name": "Očišćena površina"
+            },
+            "props-clean_time": {
+                "name": "Vreme čišćenja"
+            },
+            "lock": {
+                "state": {
+                    "bluetooth": "Bluetooth",
+                    "password": "Lozinka",
+                    "biological": "Biometrija",
+                    "key": "Ključ",
+                    "turntable": "Ručica",
+                    "nfc": "NFC",
+                    "one_time_password": "Jednokratna lozinka",
+                    "two_step_verification": "Dvofaktorska verifikacija",
+                    "coercion": "Prisilno",
+                    "homekit": "Homekit",
+                    "manual": "Ručno",
+                    "automatic": "Automatski"
+                }
+            },
+            "lock_action": {
+                "state": {
+                    "outside_unlock": "Otključaj spolja",
+                    "lock": "Zaključaj",
+                    "anti_lock_on": "Uključi anti-lock",
+                    "anti_lock_off": "Isključi anti-lock",
+                    "inside_unlock": "Otključaj iznutra",
+                    "lock_inside": "Zaključaj iznutra",
+                    "child_lock_on": "Uključi dečiju zaštitu",
+                    "child_lock_off": "Isključi dečiju zaštitu",
+                    "lock_outside": "Zaključaj spolja"
+                }
+            },
+            "door_state": {
+                "state": {
+                    "open": "Otvorena",
+                    "close": "Zatvorena",
+                    "close_timeout": "Istek vremena zatvaranja",
+                    "knock": "Kucanje",
+                    "breaking": "Provala",
+                    "stuck": "Zaglavljeno"
+                }
+            }
+        },
+        "binary_sensor": {
+            "pet_drinking_fountain-water_shortage_status": {
+                "name": "Nedostatak vode"
+            },
+            "pet_drinking_fountain-fault": {
+                "name": "Greška"
+            }
+        },
+        "switch": {
+            "no_disturb-no_disturb": {
+                "name": "Ne uznemiravaj"
+            },
+            "physical_controls_locked-physical_controls_locked": {
+                "name": "Dečija zaštita"
+            }
+        },
+        "select": {
+            "pet_drinking_fountain-mode": {
+                "name": "Režim vode"
+            }
+        },
+        "number": {
+            "pet_drinking_fountain-out_water_interval": {
+                "name": "Interval vode"
+            }
+        },
+        "climate": {
+            "air_conditioner": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "auto": "Auto",
+                            "low": "Nizak",
+                            "medium": "Srednji",
+                            "middle": "Srednji",
+                            "high": "Visok",
+                            "quiet": "Tihi",
+                            "turbo": "Turbo",
+                            "level1": "Nivo 1",
+                            "level2": "Nivo 2",
+                            "level3": "Nivo 3",
+                            "level4": "Nivo 4",
+                            "level5": "Nivo 5",
+                            "level6": "Nivo 6",
+                            "level7": "Nivo 7"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "off": "Isključeno",
+                            "vertical": "Vertikalno",
+                            "horizontal": "Horizontalno",
+                            "both": "Oba"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "services": {
+        "send_command": {
+            "name": "Pošalji komandu",
+            "description": "Pošalji miio komandu",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entiteta",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Metod",
+                    "description": ""
+                },
+                "params": {
+                    "name": "Parametri",
+                    "description": ""
+                }
+            }
+        },
+        "get_properties": {
+            "name": "Preuzmi svojstva",
+            "description": "Preuzmi MIoT svojstva",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entiteta",
+                    "description": ""
+                },
+                "mapping": {
+                    "name": "Mapiranje",
+                    "description": ""
+                },
+                "update_entity": {
+                    "name": "Ažuriraj entitet",
+                    "description": ""
+                }
+            }
+        },
+        "set_property": {
+            "name": "Postavi svojstvo",
+            "description": "Postavi MIoT svojstvo",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entiteta",
+                    "description": ""
+                },
+                "field": {
+                    "name": "Polje",
+                    "description": ""
+                },
+                "value": {
+                    "name": "Vrednost",
+                    "description": ""
+                }
+            }
+        },
+        "set_miot_property": {
+            "name": "Postavi MIoT svojstvo",
+            "description": "Postavi MIoT svojstvo preko siid/piid",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entiteta",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "piid": {
+                    "name": "",
+                    "description": ""
+                },
+                "value": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        },
+        "call_action": {
+            "name": "Pozovi akciju",
+            "description": "Pozovi MIoT akciju",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entiteta",
+                    "description": ""
+                },
+                "siid": {
+                    "name": "",
+                    "description": ""
+                },
+                "aiid": {
+                    "name": "",
+                    "description": ""
+                },
+                "params": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        },
+        "intelligent_speaker": {
+            "name": "Pametni zvučnik",
+            "description": "Pametni zvučnik za XiaoAi",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entiteta",
+                    "description": "XiaoAi ID entiteta"
+                },
+                "text": {
+                    "name": "Tekst",
+                    "description": ""
+                },
+                "execute": {
+                    "name": "Izvrši",
+                    "description": ""
+                },
+                "silent": {
+                    "name": "Tiho",
+                    "description": ""
+                }
+            }
+        },
+        "xiaoai_wakeup": {
+            "name": "XiaoAi buđenje",
+            "description": "Probudi XiaoAi zvučnik",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entiteta",
+                    "description": "XiaoAi ID entiteta"
+                },
+                "text": {
+                    "name": "Tekst",
+                    "description": ""
+                }
+            }
+        },
+        "get_device_data": {
+            "name": "Preuzmi podatke uređaja",
+            "description": "Preuzmi podatke Xiaomi uređaja iz oblaka",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entiteta",
+                    "description": ""
+                },
+                "type": {
+                    "name": "Tip",
+                    "description": ""
+                },
+                "key": {
+                    "name": "Ključ",
+                    "description": ""
+                },
+                "time_start": {
+                    "name": "Vreme početka",
+                    "description": ""
+                },
+                "time_end": {
+                    "name": "Vreme završetka",
+                    "description": ""
+                },
+                "limit": {
+                    "name": "Ograničenje",
+                    "description": ""
+                },
+                "group": {
+                    "name": "Grupa",
+                    "description": ""
+                }
+            }
+        },
+        "renew_devices": {
+            "name": "Osveži uređaje",
+            "description": "Osveži keširane Xiaomi uređaje",
+            "fields": {
+                "username": {
+                    "name": "Korisničko ime",
+                    "description": ""
+                }
+            }
+        },
+        "get_token": {
+            "name": "Preuzmi token",
+            "description": "Preuzmi token Xiaomi uređaja",
+            "fields": {
+                "name": {
+                    "name": "Naziv",
+                    "description": ""
+                }
+            }
+        },
+        "get_bindkey": {
+            "name": "Preuzmi bindkey",
+            "description": "Preuzmi bindkey za BLE uređaj",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entiteta",
+                    "description": ""
+                },
+                "did": {
+                    "name": "DID",
+                    "description": ""
+                }
+            }
+        },
+        "request_xiaomi_api": {
+            "name": "Zahtev Xiaomi API",
+            "description": "Zahtev Xiaomi API",
+            "fields": {
+                "entity_id": {
+                    "name": "ID entiteta",
+                    "description": ""
+                },
+                "api": {
+                    "name": "API",
+                    "description": ""
+                },
+                "data": {
+                    "name": "Podaci",
+                    "description": ""
+                },
+                "method": {
+                    "name": "Metod",
+                    "description": ""
+                },
+                "crypt": {
+                    "name": "Šifrovanje",
+                    "description": ""
+                },
+                "sid": {
+                    "name": "",
+                    "description": ""
+                }
+            }
+        }
+    }
+}
