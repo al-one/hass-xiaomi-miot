@@ -1114,6 +1114,7 @@ DEVICE_CUSTOMIZES = {
         'sensor_attributes': 'event.7.4:start,event.7.4:duration,event.7.4:area,event.7.4:result',
         'miio_cloud_records': 'event.7.4:1',
         'miio_cloud_records_interval': 300,
+        'miio_cloud_records_days': 365,
         'miio_event_7.4_template': 'ijai_vacuum_v3_clean_record',
     },
     'ijai.vacuum.v3:cleaning_area': {

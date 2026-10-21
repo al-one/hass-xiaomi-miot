@@ -1,7 +1,10 @@
 """Coverage for the ijai.vacuum.v3 customization and its cleaning-record template."""
 
 import json
+import time
+from types import SimpleNamespace
 
+from custom_components.xiaomi_miot.core.device import Device
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.core.templates import CUSTOM_TEMPLATES, template
 
@@ -80,3 +83,43 @@ async def test_clean_record_template_without_records(hass):
     assert result['duration'] == 0
     assert result['area'] == 0
     assert result['result'] == 'unknown'
+
+
+async def cloud_records_time_start(days):
+    """Run update_miio_cloud_records on a stub device and return the requested time_start."""
+    calls = []
+
+    async def get_user_device_data(did, key, typ, **kwargs):
+        calls.append(kwargs)
+        return []
+
+    device = SimpleNamespace(
+        did='1',
+        cloud=SimpleNamespace(async_get_user_device_data=get_user_device_data),
+        miio_cloud_records=['event.7.4:1'],
+        custom_config_integer=lambda key, default=None: days if key == 'miio_cloud_records_days' else default,
+        custom_config=lambda key, default=None: None,
+        props={},
+        data={},
+        available=False,
+        dispatch=lambda *args, **kwargs: None,
+        decode_attrs=lambda attrs: attrs,
+    )
+    await Device.update_miio_cloud_records(device)
+    return calls[0]['time_start']
+
+
+async def test_cloud_records_window_defaults_to_32_days():
+    start = await cloud_records_time_start(None)
+
+    assert abs(start - (time.time() - 32 * 86400)) < 10
+
+
+async def test_cloud_records_window_is_configurable():
+    start = await cloud_records_time_start(365)
+
+    assert abs(start - (time.time() - 365 * 86400)) < 10
+
+
+def test_customization_looks_back_a_year_for_cleaning_records():
+    assert DEVICE_CUSTOMIZES['ijai.vacuum.v3']['miio_cloud_records_days'] == 365

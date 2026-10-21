@@ -1374,13 +1374,14 @@ class Device(CustomConfigHelper):
             return
 
         attrs = {}
+        days = self.custom_config_integer('miio_cloud_records_days') or 32
         for c in keys:
             mat = re.match(r'^\s*(?:(\w+)\.?)([\w.]+)(?::(\d+))?(?::(\w+))?\s*$', c)
             if not mat:
                 continue
             typ, key, lmt, gby = mat.groups()
             kws = {
-                'time_start': int(dt.now().timestamp()) - 86400 * 32,
+                'time_start': int(dt.now().timestamp()) - 86400 * days,
                 'limit': int(lmt or 1),
             }
             if gby:
