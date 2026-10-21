@@ -928,6 +928,7 @@
       ]
     }
   ],
+  "viomi.vacuum.v10": "viomi.vacuum.v8",
   "viomi.vacuum.v18": [
     {
       "iid": 2,
