@@ -2,6 +2,7 @@
 import logging
 import asyncio
 from datetime import timedelta
+from time import monotonic
 
 from homeassistant.components.vacuum import (  # noqa: F401
     DOMAIN as ENTITY_DOMAIN,
@@ -24,6 +25,12 @@ from .core.utils import DeviceException
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
+)
+from .core.xiaomi_vacuum_map import (
+    XIAOMI_JSON_MAP_MODELS,
+    decrypt_xiaomi_vacuum_map,
+    vacuum_map_object_name,
+    vacuum_room_from_map,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -88,6 +95,14 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         self._srv_audio = miot_service.spec.get_service('audio', 'voice')
         if self._srv_audio and not self._act_locate:
             self._act_locate = self._srv_audio.get_action('find_device', 'position')
+        self._current_room_attrs = {}
+        self._current_room_updated_at = None
+        self._current_room_lock = asyncio.Lock()
+        map_service = miot_service.spec.get_service('vacuum_map')
+        self._prop_map_obj_name = (
+            map_service.get_property('map_obj_name') if map_service else None
+        )
+
         self._act_charge = None
         for srv in [*miot_service.spec.get_services('battery', 'go_charging'), miot_service]:
             act = srv.get_action('start_charge', 'start_charging')
@@ -115,8 +130,9 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._supported_features |= VacuumEntityFeature.LOCATE
         self._supported_features |= VacuumEntityFeature.SEND_COMMAND
 
-    async def async_update(self):
-        await super().async_update()
+    async def async_update_from_device(self):
+        await super().async_update_from_device()
+        self._state_attrs = dict(self._state_attrs)
         if not self._available:
             return
         if self._prop_status:
@@ -145,6 +161,57 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 self._attr_activity = VacuumActivity.ERROR
             else:
                 self._attr_activity = VacuumActivity.IDLE
+        async with self._current_room_lock:
+            await self._async_update_current_room()
+        return self._state_attrs
+
+    async def _async_update_current_room(self):
+        """Resolve the vacuum's current room from its encrypted cloud map."""
+        for key in ('current_room', 'current_room_id', 'current_position'):
+            self._state_attrs.pop(key, None)
+        if (
+            self._attr_activity != VacuumActivity.CLEANING
+            or
+            self.model not in XIAOMI_JSON_MAP_MODELS
+            or not self._prop_map_obj_name
+            or not self.xiaomi_cloud
+        ):
+            self._current_room_attrs = {}
+            self._current_room_updated_at = None
+            return
+        now = monotonic()
+        if (self._current_room_updated_at is not None
+                and now - self._current_room_updated_at < SCAN_INTERVAL.total_seconds()):
+            self._state_attrs.update(self._current_room_attrs)
+            return
+        self._current_room_updated_at = now
+        self._current_room_attrs = {}
+        object_name = vacuum_map_object_name(
+            self._prop_map_obj_name.from_device(self.device)
+        )
+        if not object_name:
+            return
+        try:
+            raw_map = await self.xiaomi_cloud.async_get_interim_file(object_name)
+            if not raw_map:
+                return
+            map_data = decrypt_xiaomi_vacuum_map(
+                raw_map, self.model, str(self.miot_did)
+            )
+            room = vacuum_room_from_map(map_data)
+        except Exception as exc:  # Map support must not make the vacuum unavailable.
+            self.logger.debug('%s: Unable to resolve current room: %s', self.name, exc)
+            return
+        if not room:
+            return
+        self._current_room_attrs = {
+            'current_room': room['name'],
+            'current_room_id': room['id'],
+            'current_position': {
+                key: room[key] for key in ('x', 'y', 'yaw') if key in room
+            },
+        }
+        self._state_attrs.update(self._current_room_attrs)
 
     async def async_turn_on(self, **kwargs):
         if self._prop_power:
