@@ -122,6 +122,63 @@ class BaseCameraEntity(Camera):
             return True
         return False
 
+    def _live_stream_url(self):
+        # Optional `live_stream_url` custom config (e.g. a local go2rtc RTSP
+        # URL for sleepy battery doorbells). Entity customize first, then
+        # model customize (`customizing_device` options or
+        # `device_customizes` YAML, the recommended path).
+        try:
+            url = self.custom_config('live_stream_url')
+        except Exception:  # noqa: BLE001 - live stays best effort
+            url = None
+        if url:
+            return url
+        try:
+            device = getattr(self, 'device', None)
+            if device:
+                return device.custom_config('live_stream_url')
+        except Exception:  # noqa: BLE001 - live stays best effort
+            pass
+        return None
+
+    @property
+    def supported_features(self):
+        # Computed live: customizes can load after entities init, so a flag
+        # set once at setup stays off. Reading the option here keeps
+        # wake->stream available after any reload, on every camera class.
+        features = self._supported_features
+        try:
+            if self._live_stream_url():
+                features |= CameraEntityFeature.STREAM
+        except Exception:  # noqa: BLE001 - live stays best effort
+            pass
+        return features
+
+    async def async_wake_device_for_live(self):
+        # Mi Home opens live by waking the sleepy doorbell first, then
+        # streaming. `wakeup` RPC times out (code -3) on madv/midr cateye
+        # models while `wakeup_host` returns ok; helper tries both.
+        device = getattr(self, 'device', None)
+        cloud = getattr(device, 'cloud', None)
+        did = getattr(device, 'did', None)
+        model = getattr(device, 'model', None) or getattr(self, 'model', None)
+        if not cloud or not did:
+            return False
+        wake = getattr(cloud, 'async_wake_sleepy_device', None)
+        if not wake:
+            return False
+        try:
+            return await wake(did, model) or False
+        except Exception:  # noqa: BLE001 - live stays best effort
+            return False
+
+    async def async_get_live_stream_source(self):
+        url = self._live_stream_url()
+        if not url:
+            return None
+        await self.async_wake_device_for_live()
+        return url
+
     async def image_source(self, **kwargs):
         raise NotImplementedError()
 
@@ -299,10 +356,15 @@ class CameraEntity(XEntity, BaseCameraEntity):
             self._attr_should_poll = False
             self.update_motion_video(self.device.props)
 
-    async def image_source(self):
+    async def image_source(self, **kwargs):
+        # The live doorbell proxy must not serve an old motion thumbnail.
+        if live := await self.async_get_live_stream_source():
+            return live
         return self._attr_camera_image
 
     async def stream_source(self):
+        if live := await self.async_get_live_stream_source():
+            return live
         return self._attr_stream_source
 
     def update_motion_video(self, data: dict):
@@ -363,6 +425,12 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if miot_service:
             self._prop_motion_tracking = miot_service.bool_property('motion_detection', 'motion_tracking')
 
+    @property
+    def supported_features(self):
+        # MiioEntity precedes BaseCameraEntity in this class's MRO and would
+        # otherwise hide the live camera feature calculation.
+        return BaseCameraEntity.supported_features.fget(self)
+
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
 
@@ -386,6 +454,10 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         if self._prop_stream_address:
             self._supported_features |= CameraEntityFeature.STREAM
             self._sub_motion_stream = True
+        # Sleepy battery doorbell with a configured live URL: the single
+        # base helper decides; recordings path below is unchanged.
+        elif self._live_stream_url():
+            self._supported_features |= CameraEntityFeature.STREAM
         elif self._miot_service.name in ['camera_control'] or self.is_doorbell:
             if self.custom_config_bool('use_motion_stream'):
                 pass
@@ -450,6 +522,10 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return True
 
     async def stream_source(self, **kwargs):
+        # Sleepy battery doorbells: wake first, then stream the configured
+        # live URL (e.g. local go2rtc). Recordings path below is unchanged.
+        if live := await self.async_get_live_stream_source():
+            return live
         fun = self.async_get_stream_address()
         if self._motion_enable:
             kwargs['crypto'] = True
@@ -461,6 +537,9 @@ class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
         return await fun
 
     async def image_source(self, **kwargs):
+        # The live doorbell proxy must not serve an old motion thumbnail.
+        if live := await self.async_get_live_stream_source():
+            return live
         if self._motion_enable:
             kwargs['crypto'] = True
             return self.get_motion_image_address(**kwargs)
