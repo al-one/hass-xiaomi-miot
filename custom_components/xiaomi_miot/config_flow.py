@@ -1099,6 +1099,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             vol.Optional('trans_options', default=user_input.get('trans_options', False)): bool,
             vol.Optional('disable_message', default=user_input.get('disable_message', False)): bool,
             vol.Optional('disable_scene_history', default=user_input.get('disable_scene_history', False)): bool,
+            vol.Optional('disable_manual_scenes', default=user_input.get('disable_manual_scenes', False)): bool,
         })
         return self.async_show_form(
             step_id='cloud',

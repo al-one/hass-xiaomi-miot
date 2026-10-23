@@ -193,7 +193,8 @@
                     "renew_devices": "Force renew devices",
                     "trans_options": "Translation property value description",
                     "disable_message": "Disable Mihome notification sensor",
-                    "disable_scene_history": "Disable Mihome scene history sensor"
+                    "disable_scene_history": "Disable Mihome scene history sensor",
+                    "disable_manual_scenes": "Disable Xiaomi Home manual scene controls"
                 }
             },
             "cloud_filter": {
@@ -239,9 +240,23 @@
             "total_devices": "Total number of MiHome devices"
         }
     },
+    "exceptions": {
+        "scene_unavailable": {
+            "message": "This scene has no available execution channel."
+        },
+        "scene_busy": {
+            "message": "This scene is already being activated."
+        },
+        "scene_failed": {
+            "message": "The scene activation was rejected."
+        },
+        "scene_result_unknown": {
+            "message": "The scene result is unknown. It was not retried."
+        }
+    },
     "device": {
         "manual_scenes": {
-            "name": "Xiaomi Home manual scenes"
+            "name": "Xiaomi Home Scenes Manual Controls"
         }
     },
     "entity": {

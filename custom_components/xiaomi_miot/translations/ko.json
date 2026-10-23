@@ -133,7 +133,8 @@
                     "renew_devices": "기기 목록 강제 갱신",
                     "trans_options": "속성 값 설명 번역",
                     "disable_message": "미홈 알림 센서 비활성화",
-                    "disable_scene_history": "미홈 장면 기록 센서 비활성화"
+                    "disable_scene_history": "미홈 장면 기록 센서 비활성화",
+                    "disable_manual_scenes": "Xiaomi Home 장면 수동 제어 비활성화"
                 }
             },
             "cloud_filter": {
@@ -179,9 +180,23 @@
             "total_devices": "미홈 기기 총 개수"
         }
     },
+    "exceptions": {
+        "scene_unavailable": {
+            "message": "이 장면에 사용할 수 있는 실행 경로가 없습니다."
+        },
+        "scene_busy": {
+            "message": "이 장면이 이미 실행 중입니다."
+        },
+        "scene_failed": {
+            "message": "장면 실행 요청이 거부되었습니다."
+        },
+        "scene_result_unknown": {
+            "message": "장면 실행 결과를 알 수 없어 자동 재시도하지 않았습니다."
+        }
+    },
     "device": {
         "manual_scenes": {
-            "name": "Xiaomi Home 수동 장면"
+            "name": "Xiaomi Home 장면 수동 제어"
         }
     },
     "entity": {

@@ -383,6 +383,7 @@ class MiotCloud(micloud.MiCloud):
                 )
             self.attrs['timeouts'] = 0
         except asyncio.TimeoutError as exc:
+            self._manual_scene_cloud_status(False)
             if raise_timeout:
                 raise exc
             self.attrs.setdefault('timeouts', 0)
@@ -393,19 +394,40 @@ class MiotCloud(micloud.MiCloud):
                 _LOGGER.warning('Request xiaomi api: %s timeout (%s times)', api, self.attrs['timeouts'])
             return None
         except asyncio.exceptions.CancelledError as exc:
+            if api.startswith(MANUAL_SCENE_API + '/'):
+                raise
             _LOGGER.warning('Request xiaomi api: %s was cancelled, likely due to timeout: %s', api, exc)
             return None
+        except (aiohttp.ClientConnectionError, requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout):
+            self._manual_scene_cloud_status(False)
+            raise
         except (TypeError, ValueError) as exc:
             rdt = None
             err = exc
-        code = rdt.get('code') if rdt else None
+        code = rdt.get('code') if isinstance(rdt, dict) else None
+        scene_request = api.startswith(MANUAL_SCENE_API + '/')
         if code == 3:
             self._logout()
-            _LOGGER.warning('Unauthorized while request to %s, response: %s, logged out.', api, rsp)
+            if scene_request:
+                _LOGGER.warning('Xiaomi manual scene authorization rejected')
+            else:
+                _LOGGER.warning('Unauthorized while request to %s, response: %s, logged out.', api, rsp)
         elif code or not rdt:
-            fun = _LOGGER.info if rdt else _LOGGER.warning
-            fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp, exc_info=err)
+            if scene_request:
+                _LOGGER.debug('Xiaomi manual scene response unavailable, code=%s', code)
+            else:
+                fun = _LOGGER.info if rdt else _LOGGER.warning
+                fun('Request xiaomi api: %s %s failed, response: %s', api, data, rsp, exc_info=err)
+        if isinstance(rdt, dict) and type(rdt.get('code')) is int and rdt['code'] == 0:
+            self._manual_scene_cloud_status(True)
         return rdt
+
+    def _manual_scene_cloud_status(self, available):
+        entry = getattr(self, 'hass_entry', None)
+        manager = getattr(entry, 'manual_scenes', None) if entry is not None else None
+        if manager is not None:
+            manager.cloud_status(available)
 
     async def async_get_device(self, mac=None, host=None):
         dvs = await self.async_get_devices() or []
@@ -464,7 +486,7 @@ class MiotCloud(micloud.MiCloud):
                 has_more = result.get('has_more') and start_did
         return list(devices.values())
 
-    async def get_home_devices(self):
+    async def get_home_devices(self, *, strict=False):
         rdt = await self.async_request_api('v2/homeroom/gethome_merged', {
             'fg': True,
             'fetch_share': True,
@@ -474,7 +496,15 @@ class MiotCloud(micloud.MiCloud):
             'app_ver': 7,
             'plat_form': 0,
         }, debug=False, timeout=60) or {}
+        if strict and (not isinstance(rdt, dict) or type(rdt.get('code')) is not int
+                       or rdt['code'] != 0 or 'error' in rdt
+                       or not isinstance(rdt.get('result'), dict)
+                       or not isinstance(rdt['result'].get('homelist'), list)):
+            raise MiCloudException('Xiaomi scene homes response is invalid')
         result = rdt.get('result') or {}
+        if strict:
+            # Scene discovery needs only homes, not the device/room mapping.
+            return result
         if not result:
             _LOGGER.warning('Got xiaomi home devices for %s failed: %s', self.username, rdt)
         devices = result.setdefault('devices', {})
@@ -572,6 +602,25 @@ class MiotCloud(micloud.MiCloud):
     async def async_get_homerooms(self, renew=False):
         dat = await self.async_get_devices(renew=renew, return_all=True) or {}
         return dat.get('homes') or []
+
+    async def async_get_manual_scene_homes(self):
+        """A complete, validated home snapshot without refreshing every device."""
+        result = await self.get_home_devices(strict=True)
+        homes = result['homelist']
+        if any(not isinstance(home, dict) for home in homes):
+            raise MiCloudException('Xiaomi scene homes list is invalid')
+        return homes
+
+    async def async_get_manual_scene_home(self, home):
+        """Keep per-home failure distinct from a confirmed empty scene list."""
+        result = await self._async_request_manual_scene_api('GetManualSceneList', {
+            'home_id': manual_scene_id(home['home_id']),
+            'owner_uid': manual_scene_id(home['owner_uid']),
+            'source': 'zkp', 'get_type': 2,
+        })
+        if not isinstance(result, list):
+            raise MiCloudException('Xiaomi manual scene list is invalid')
+        return result
 
     async def _async_request_manual_scene_api(self, method, data):
         api = f'{MANUAL_SCENE_API}/{method}'

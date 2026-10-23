@@ -377,6 +377,11 @@ async def async_unload_entry(hass: hass_core.HomeAssistant, config_entry: config
     return unload_ok
 
 
+async def async_remove_entry(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
+    from .core.manual_scenes import async_remove_scene_cache
+    await async_remove_scene_cache(hass, config_entry.entry_id)
+
+
 def init_integration_data(hass):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN].setdefault('entries', {})
@@ -592,7 +597,8 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
         if device_id not in registry.devices:
             return
         device = registry.async_get(device_id)
-        if not device or not device.identifiers:
+        if (not device or not device.identifiers
+                or device.entry_type == dr.DeviceEntryType.SERVICE):
             return
         identifier = next(iter(device.identifiers))
         if identifier[0] != DOMAIN:
@@ -625,6 +631,8 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
 async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, config_entry: ConfigEntry, device: dr.DeviceEntry):
     """Supported from Hass v2022.3"""
     entry = HassEntry.init(hass, config_entry)
+    if entry.cloud and (DOMAIN, f'{entry.cloud.unique_id}-manual-scenes') in device.identifiers:
+        return False
     cloud_device = None
     identifier = next(iter(device.identifiers))
     if len(identifier) >= 2 and identifier[0] == DOMAIN:

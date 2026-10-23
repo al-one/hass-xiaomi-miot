@@ -326,3 +326,44 @@ async def test_different_manual_scenes_do_not_share_an_execution_lock():
         release.set()
         await asyncio.gather(*tasks)
     assert not cloud._manual_scene_in_flight
+
+
+@pytest.mark.parametrize('response', [
+    None, [], {'code': False, 'result': {'homelist': []}},
+    {'code': 3, 'result': {'homelist': []}}, {'code': 0, 'result': {}},
+    {'code': 0, 'result': {'homelist': [None]}},
+])
+async def test_complete_home_discovery_rejects_failure_instead_of_empty(response):
+    cloud = MiotCloud.__new__(MiotCloud)
+    cloud.async_request_api = AsyncMock(return_value=response)
+    with pytest.raises(MiCloudException):
+        await cloud.async_get_manual_scene_homes()
+
+
+async def test_confirmed_empty_home_snapshot_is_valid_and_needs_no_device_poll():
+    cloud = MiotCloud.__new__(MiotCloud)
+    cloud.async_request_api = AsyncMock(return_value={'code': 0, 'result': {'homelist': []}})
+    assert await cloud.async_get_manual_scene_homes() == []
+    cloud.async_request_api.assert_awaited_once()
+
+
+async def test_passive_status_recovery_uses_valid_existing_traffic(hass):
+    from unittest.mock import Mock
+    cloud = MiotCloud(hass, 'demo', 'synthetic', 'cn')
+    cloud.service_token = 'synthetic'
+    manager = SimpleNamespace(cloud_status=Mock())
+    cloud.hass_entry = SimpleNamespace(manual_scenes=manager)
+    cloud.async_request_rc4_api = AsyncMock(side_effect=[TimeoutError(), '{"code":0,"result":[]}'])
+    assert await cloud.async_request_api('synthetic/read', {}, debug=False) is None
+    await cloud.async_request_api('synthetic/read', {}, debug=False)
+    assert [call.args for call in manager.cloud_status.call_args_list] == [(False,), (True,)]
+
+
+async def test_scene_cancellation_is_not_swallowed_or_retried(hass):
+    cloud = MiotCloud(hass, 'demo', 'synthetic', 'cn')
+    cloud.service_token = 'synthetic'
+    cloud.async_request_rc4_api = AsyncMock(side_effect=asyncio.CancelledError())
+    with pytest.raises(asyncio.CancelledError):
+        await cloud.async_run_manual_scene({'owner_uid': '1000', 'home_id': '1', 'scene_id': '11'})
+    assert not cloud._manual_scene_in_flight
+    cloud.async_request_rc4_api.assert_awaited_once()
