@@ -63,6 +63,18 @@ CUSTOM_TEMPLATES = {
                                    "'month': result[:day] | sum(attribute='value.pc'),"
                                    "'month_duration': result[:day] | sum(attribute='value.pc_time'),"
                                    "} }}",
+    'ijai_vacuum_v3_clean_record': "{%- set val = (result.0 | default({})).get('value','[]') | from_json %}"
+                                   "{%- set ts = val | selectattr('piid','eq',27) | map(attribute='value') | first | default(0) %}"
+                                   "{%- set du = val | selectattr('piid','eq',28) | map(attribute='value') | first | default(0) %}"
+                                   "{%- set ar = val | selectattr('piid','eq',29) | map(attribute='value') | first | default(0) %}"
+                                   "{%- set st = val | selectattr('piid','eq',37) | map(attribute='value') | first | default(0) %}"
+                                   "{%- set sts = ['unknown','finished','stopped_by_app','stopped_by_button','error'] %}"
+                                   "{{ {"
+                                   "'start': ts | timestamp_local if ts else None,"
+                                   "'duration': (du / 60) | round(0) | int,"
+                                   "'area': ar,"
+                                   "'result': sts[st] if st < 5 else 'unknown',"
+                                   "} }}",
     'lock_event_7_template':  "{%- set val = (result.0 | default({})).get('value','[-1]') %}"
                               "{%- set val = (val | from_json).0 | string %}"
                               "{%- set evt = val[:2] | int(-1,16) %}"

@@ -1104,6 +1104,26 @@ DEVICE_CUSTOMIZES = {
         'unit_of_measurement': 'min',
         'device_class': 'duration',
     },
+    'ijai.vacuum.v3': {
+        'sensor_properties': 'vacuum.status,door_state,main_brush_life,side_brush_life,hypa_life,mop_life,'
+                             'fault,cleaning_time,cleaning_area,cloth_state,'
+                             'main_brush_hours,side_brush_hours,hypa_hours,mop_hours,'
+                             'cur_map_id,map_num,dnd_enable',
+        'switch_properties': 'repeat_state,alarm,tank_shake,remember_state',
+        'select_properties': 'mode,sweep_type,suction_state,water_state,mop_route,shake_shift',
+        'sensor_attributes': 'event.7.4:start,event.7.4:duration,event.7.4:area,event.7.4:result',
+        'miio_cloud_records': 'event.7.4:1',
+        'miio_cloud_records_interval': 300,
+        'miio_cloud_records_days': 365,
+        'miio_event_7.4_template': 'ijai_vacuum_v3_clean_record',
+    },
+    'ijai.vacuum.v3:cleaning_area': {
+        'unit_of_measurement': '㎡',
+    },
+    'ijai.vacuum.v3:cleaning_time': {
+        'unit_of_measurement': 'min',
+        'device_class': 'duration',
+    },
     'ijai.vacuum.*': {
         'interval_seconds': 120,
         'button_actions': 'start_sweep*,start_only_sweep,start_mop,start_charge,stop_*',
