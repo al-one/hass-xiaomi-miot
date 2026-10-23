@@ -2691,4 +2691,509 @@ TRANSLATION_LANGUAGES = {
             'Manual': 'Manuel',
         },        
     },    
+
+    'ko': {
+        'off': '꺼짐',
+        'idle': '대기',
+        'busy': '작동 중',
+        'pause': '일시정지',
+        'fault': '고장',
+
+        '_globals': {
+            'mode': '모드',
+            'switch status': '전원',
+            'battery level': '배터리 잔량',
+            'target temperature': '희망 온도',
+            'temperature': '온도',
+            'relative humidity': '습도',
+            'illumination': '조도',
+            'indicator light': '표시등',
+            'physical control locked': '차일드 락',
+            'physical controls locked': '차일드 락',
+            'child lock': '차일드 락',
+            'device fault': '고장',
+            'alarm': '알림음',
+            'screen': '화면',
+            'delay time': '예약 시간',
+            'delay remain time': '예약 남은 시간',
+            'horizontal swing': '좌우 회전',
+            'vertical swing': '상하 회전',
+            'horizontal swing included angle': '좌우 회전 각도',
+            'vertical swing included angle': '상하 회전 각도',
+            'symmetrical swing h': '좌우 대칭 회전',
+            'symmetrical swing v': '상하 대칭 회전',
+            'left angle': '좌측 각도',
+            'right angle': '우측 각도',
+            'up angle': '상단 각도',
+            'down angle': '하단 각도',
+            'symmetrical_swing_h': '좌우 대칭 회전',
+            'symmetrical_swing_v': '상하 대칭 회전',
+            'left_angle': '좌측 각도',
+            'right_angle': '우측 각도',
+            'up_angle': '상단 각도',
+            'down_angle': '하단 각도',
+            'dm service': '',
+            'off to center': '정지 시 중앙 복귀',
+            'back to center': '중앙 복귀',
+            'loop mode': '모드 전환',
+            'loop gear': '풍량 전환',
+            'toggle mode': '모드 전환',
+            'toggle': '전원 전환',
+            'stepless fan level': '무단 풍량',
+            'gear fan level': '단계 풍량',
+            'speed level': '풍량 단계',
+            'off delay time': '꺼짐 예약 시간',
+            'turn left': '좌로 회전',
+            'turn right': '우로 회전',
+            'turn upward': '위로 회전',
+            'turn downward': '아래로 회전',
+            'start left': '좌로 회전',
+            'start right': '우로 회전',
+            'start up': '위로 회전',
+            'start down': '아래로 회전',
+            'swing all': '전방향 회전',
+            'swing lr manual': '좌우 수동 회전',
+            'swing updown manual': '상하 수동 회전',
+            'target humidity': '희망 습도',
+            'water level': '수위',
+            'brightness': '밝기',
+            'self clean': '자가 세척',
+            'filter life level': '필터 수명',
+            'reset filter life': '필터 수명 초기화',
+            'reset filter': '필터 수명 초기화',
+            'start self clean': '자가 세척 시작',
+            'stop self clean': '자가 세척 중지',
+            'stop work': '작동 중지',
+            'no disturb': '방해 금지',
+            'dry after off': '꺼진 뒤 건조',
+            'dry left time': '건조 남은 시간',
+            'is warming up': '예열 중',
+            'has someone duration': '재실 지속 시간',
+            'no one duration': '부재 지속 시간',
+            'occupancy status': '재실 상태',
+            'customized property 1': '사용자 정의 속성 1',
+            'customized service for ble': 'BLE 사용자 정의',
+        },
+
+        'fan_level': {
+            'auto': '자동',
+            'low': '약',
+            'medium': '중',
+            'middle': '중간',
+            'high': '강',
+            'quiet': '저소음',
+            'turbo': '터보',
+            'level1': '1단',
+            'level2': '2단',
+            'level3': '3단',
+            'level4': '4단',
+            'level5': '5단',
+            'level6': '6단',
+            'level7': '7단',
+        },
+
+        'mode': {
+            'auto': '자동',
+            'basic': '기본',
+            'low': '약',
+            'medium': '중',
+            'high': '강',
+            'sleep': '취침',
+            'smart': '스마트',
+            'favorite': '즐겨찾기',
+        },
+
+        'fan': {
+            'fan': '선풍기',
+        },
+
+        # 서비스 이름이 접두사로 붙으므로 서비스 내부에서는 짧게 (예: 예약 + 시간)
+        'delay': {
+            'delay': '예약',
+            'delay time': '시간',
+            'delay remain time': '남은 시간',
+        },
+
+        'screen.brightness': {
+            'dim': '어둡게',
+            'normal': '보통',
+        },
+
+        # 서비스 이름이 속성 앞에 붙으므로 비워서 없앤다 (예: 'Environment 온도' -> '온도')
+        'environment': {
+            'environment': '',
+        },
+
+        'humidifier': {
+            'humidifier': '가습기',
+            'water level': '수위',
+            'overwet protect': '과습 방지',
+            'automatic air drying': '자동 건조',
+            'air dry remain time': '건조 남은 시간',
+        },
+
+        'humidifier.mode': {
+            'constant humidity': '항습',
+            'sleep': '취침',
+            'strong': '강력',
+        },
+
+        'humidifier.fault': {
+            'no faults': '정상',
+            'moto fault': '모터 고장',
+            'pump fault': '펌프 고장',
+            'hum error': '가습 오류',
+            'pump idling': '펌프 공회전',
+            'lack of water': '물 부족',
+        },
+
+        'filter': {
+            'filter': '필터',
+            'filter life level': '수명',
+        },
+
+        'clean': {
+            'clean': '세척',
+            'self clean': '자가 세척',
+            'clean left time': '남은 시간',
+        },
+
+        'clean.self_clean': {
+            'ready': '준비',
+            'in progress': '진행 중',
+            'finished': '완료',
+        },
+
+        'dehumidifier': {
+            'dehumidifier': '제습기',
+        },
+
+        'dehumidifier.mode': {
+            'smart': '스마트',
+            'sleep': '취침',
+            'clothes drying': '의류 건조',
+        },
+
+        'dehumidifier.fault': {
+            'no faults': '정상',
+            'water full': '물통 가득참',
+            'sensor fault1': '센서 고장1',
+            'sensor fault2': '센서 고장2',
+            'communication fault1': '통신 오류1',
+            'filter clean': '필터 청소 필요',
+            'defrost': '제상 중',
+            'fan motor': '팬 모터 이상',
+            'overload': '과부하',
+            'lack of refrigerant': '냉매 부족',
+            'out of temperature': '동작 온도 범위 초과',
+        },
+
+        'indicator_light.mode': {
+            'close': '꺼짐',
+            'half': '중간',
+            'full': '밝게',
+        },
+
+        'occupancy_sensor': {
+            'occupancy sensor': '재실 감지',
+            'has someone duration': '재실 지속 시간',
+            'no one duration': '부재 지속 시간',
+            'occupancy status': '재실 상태',
+        },
+
+        'occupancy_sensor.occupancy_status': {
+            'no one': '없음',
+            'has one': '있음',
+        },
+
+        'kettle': {
+            'kettle': '전기포트',
+            'auto keep warm': '자동 보온',
+            'keep warm temperature': '보온 온도',
+        },
+
+        'kettle.status': {
+            'idle': '대기',
+            'heating': '가열 중',
+            'boiling': '끓는 중',
+            'cooling': '식히는 중',
+            'keep warm': '보온 중',
+        },
+
+        # 'function'은 서비스 이름이 접두사로 붙으므로 비워서 없앤다
+        'function': {
+            'function': '',
+            'keep warm time': '보온 시간',
+            'warming time': '보온 경과 시간',
+            'target mode': '목표 모드',
+            'heat mode': '가열 모드',
+            'boil mode': '끓임 모드',
+            'extended mode': '확장 모드',
+            'custom_knob_temp': '다이얼 온도 지정',
+            'lift_remember_temp': '들어올림 온도 기억',
+            'boiling_reminder': '끓음 알림',
+            'keep_warm_reminder': '보온 알림',
+            'kettle_lifting': '들어올림 감지',
+        },
+
+        'swing_lr_manual': {
+            'none': '없음',
+            'left': '왼쪽',
+            'right': '오른쪽',
+        },
+
+        'swing_updown_manual': {
+            'none': '없음',
+            'up': '위',
+            'down': '아래',
+        },
+
+        'air_conditioner': {
+            'air conditioner': '에어컨',
+        },
+
+        'air_conditioner.mode': {
+            'cool': '냉방',
+            'dry': '제습',
+            'fan': '송풍',
+            'heat': '난방',
+        },
+
+        'air_fresh.mode': {
+            'auto': '자동',
+            'interval': '간헐',
+            'smart': '스마트',
+            'silent': '저소음',
+            'strong': '강력',
+            'none': '수동',
+            'sleep': '취침',
+            'favorite': '즐겨찾기',
+        },
+
+        'battery': {
+            'battery battery level': '배터리 잔량',
+            'battery charging state': '충전 상태',
+        },
+
+        'door_state': {
+            'open': '열림',
+            'close': '닫힘',
+            'close_timeout': '닫힘 시간 초과',
+            'knock': '노크',
+            'breaking': '침입',
+            'stuck': '끼임',
+        },
+
+        'fan.mode': {
+            'basic': '기본',
+            'basic wind': '기본 바람',
+            'straight wind': '직풍',
+            'natural wind': '자연풍',
+            'energy saving': '절전',
+            'none': '없음',
+            'baby': '아기',
+            'smart': '스마트',
+            'sleep': '취침',
+            'strong': '강풍',
+            'circular wind': '순환풍',
+        },
+
+        'ir_aircondition_control': {
+            'ir aircondition control': '적외선 에어컨 제어',
+            'mode for ir': '모드',
+            'temperature for ir': '희망 온도',
+            'turn on': '켜기',
+            'turn off': '끄기',
+            'fan speed down': '풍량 감소',
+            'fan speed up': '풍량 증가',
+            'temperature down': '온도 낮춤',
+            'temperature up': '온도 높임',
+        },
+
+        'ir_aircondition_control.ir_mode': {
+            'auto': '자동',
+            'cool': '냉방',
+            'dry': '제습',
+            'fan': '송풍',
+            'heat': '난방',
+        },
+
+        'light': {
+            'light': '조명',
+        },
+
+        'light.mode': {
+            'day': '주간',
+            'night': '야간',
+            'color': '컬러',
+            'warmth': '따뜻한 빛',
+            'tv': 'TV 모드',
+            'reading': '독서 모드',
+            'computer': '컴퓨터 모드',
+            'hospitality': '접객 모드',
+            'entertainment': '엔터테인먼트 모드',
+            'lighting': '조명',
+            'night light': '야간 조명',
+        },
+
+        'lock_method': {
+            'bluetooth': '블루투스',
+            'password': '비밀번호',
+            'biological': '생체 인식',
+            'key': '열쇠',
+            'turntable': '회전 손잡이',
+            'nfc': 'NFC',
+            'one_time_password': '일회용 비밀번호',
+            'two_step_verification': '2단계 인증',
+            'coercion': '강압 해제',
+            'homekit': 'HomeKit',
+            'manual': '수동',
+            'automatic': '자동',
+        },
+
+        'lock_action': {
+            'outside_unlock': '외부에서 잠금 해제',
+            'lock': '잠금',
+            'anti_lock_on': '이중 잠금 설정',
+            'anti_lock_off': '이중 잠금 해제',
+            'inside_unlock': '내부에서 잠금 해제',
+            'lock_inside': '내부에서 잠금',
+            'child_lock_on': '차일드 락 설정',
+            'child_lock_off': '차일드 락 해제',
+            'lock_outside': '외부에서 잠금',
+        },
+
+        'magnet_sensor': {
+            'magnet sensor': '문/창문 센서',
+        },
+
+        'motion_sensor': {
+            'motion sensor': '동작 감지 센서',
+            'motion sensor illumination': '조도',
+        },
+
+        'physical_control_locked': {
+            'physical control locked': '차일드 락',
+        },
+
+        'play_control': {
+            'play control': '재생 제어',
+            'keycodes': '키 코드',
+        },
+
+        'power_consumption': {
+            'power consumption': '전력 소비량',
+            'power consumption electric power': '전력',
+            'power consumption electric current': '전류',
+            'power consumption electric voltage': '전압',
+        },
+
+        'ptc_bath_heater': {
+            'ptc bath heater': '욕실 난방기',
+        },
+
+        'ptc_bath_heater.mode': {
+            'fan': '송풍',
+            'heat': '난방',
+            'ventilate': '환기',
+            'dry': '건조',
+            'defog': '김서림 제거',
+            'quick heat': '급속 난방',
+            'quick defog': '급속 김서림 제거',
+        },
+
+        'speaker': {
+            'speaker': '스피커',
+            'speaker volume': '음량',
+        },
+
+        'sweep.suction_state': {
+            'medium': '중',
+            'silent': '저소음',
+            'slient': '저소음',
+            'standard': '표준',
+            'turbo': '터보',
+        },
+
+        'television': {
+            'input control': '입력 선택',
+            'tv input control': 'TV 입력 선택',
+        },
+
+        'temperature_humidity_sensor': {
+            'temperature humidity sensor temperature': '온도',
+            'temperature humidity sensor relative humidity': '습도',
+            'temperature humidity sensor atmospheric pressure': '기압',
+        },
+
+        'vacuum': {
+            'robot cleaner': '로봇청소기',
+            'robot cleaner status': '로봇청소기 상태',
+        },
+
+        'vacuum.mode': {
+            'basic': '기본',
+            'silent': '저소음',
+            'standard': '표준',
+            'strong': '강력',
+            'turbo': '터보',
+            'full speed': '최대',
+        },
+
+        'washer': {
+            'drying level': '건조 강도',
+            'rinsh times': '헹굼 횟수',
+            'spin speed': '탈수 속도',
+            'target water level': '희망 수위',
+        },
+
+        'washer.mode': {
+            'baby care': '아기 옷',
+            'boiling': '삶음',
+            'color protection': '색상 보호',
+            'cotton': '면',
+            'daily wash': '일반 세탁',
+            'delicate wash': '섬세 세탁',
+            'down coat': '패딩',
+            'drum clean': '통세척',
+            'drum dry': '통건조',
+            'dry air wash': '에어워시',
+            'dry timing': '시간 건조',
+            'dry': '건조',
+            'gold wash': '골드 워시',
+            'heavy wash': '강력 세탁',
+            'intensive': '집중',
+            'jacket': '재킷',
+            'jeans': '청바지',
+            'mite removal': '진드기 제거',
+            'quick wash dry': '쾌속 세탁+건조',
+            'quick wash': '쾌속 세탁',
+            'rinse spin': '헹굼+탈수',
+            'rinse': '헹굼',
+            'shirt': '셔츠',
+            'silk': '실크',
+            'soak wash': '불림 세탁',
+            'sock': '양말',
+            'spin': '탈수',
+            'sportswear': '운동복',
+            'super quick': '초쾌속',
+            'synthetic': '합성 섬유',
+            'towel': '수건',
+            'underwear': '속옷',
+            'user define': '사용자 설정',
+            'wash dry': '세탁+건조',
+            'wool': '울',
+        },
+
+        'washer.drying_level': {
+            'moist': '약건조',
+            'normal': '표준',
+            'extra': '강건조',
+            'none': '없음',
+        },
+
+        'water_heater': {
+            'water heater': '온수기',
+        },
+    },
 }
