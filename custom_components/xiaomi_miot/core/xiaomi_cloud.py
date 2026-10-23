@@ -515,6 +515,8 @@ class MiotCloud(micloud.MiCloud):
             filters = {}
         fls = ['ssid', 'bssid', 'home_id', 'model', 'did']
         dvs = await self.async_get_devices(renew=renew) or []
+        if not dvs:
+            _LOGGER.warning('No devices returned by Xiaomi cloud for %s (%s)', self.username, self.default_server)
         for d in dvs:
             if not isinstance(d, dict):
                 continue

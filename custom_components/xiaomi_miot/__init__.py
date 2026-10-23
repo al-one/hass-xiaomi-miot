@@ -309,7 +309,7 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', username, exc)
         return False
     if not devices:
-        _LOGGER.warning('None device in xiaomi cloud: %s', username)
+        _LOGGER.debug('No Xiaomi cloud devices matched the configured filters for %s', username)
     else:
         _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', username, len(devices))
     for d in devices.values():
