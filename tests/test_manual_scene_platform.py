@@ -155,7 +155,8 @@ async def test_confirmed_empty_removes_active_buttons_without_deleting_registry(
 
 
 @pytest.mark.parametrize('hook', ['async_added_to_hass', 'async_prepare_to_add_to_hass'])
-async def test_metadata_deleted_during_real_entity_addition_leaves_no_orphan(hass, scene_platform, hook):
+@pytest.mark.parametrize('change', ['delete', 'replace', 'readd'])
+async def test_metadata_deleted_during_real_entity_addition_leaves_no_orphan(hass, scene_platform, hook, change):
     if not hasattr(platform_module.ManualSceneButton, hook):
         pytest.skip('This Home Assistant version has no entity preparation hook')
     config, manager, cloud = scene_platform()
@@ -173,12 +174,23 @@ async def test_metadata_deleted_during_real_entity_addition_leaves_no_orphan(has
         cloud.async_get_manual_scene_home.return_value = []
         manager.request_refresh()
         await manager._task
+        if change != 'delete':
+            cloud.async_get_manual_scene_home.return_value = [{
+                'scene_id': '12' if change == 'replace' else '11', 'scene_name': 'Changed',
+            }]
+            manager.request_refresh()
+            await manager._task
         release.set()
         assert await setup
         await hass.async_block_till_done()
-    assert manager.scenes == {}
-    assert not [entity for entity in hass.data['button'].entities
-                if isinstance(entity, platform_module.ManualSceneButton)]
+    active = [entity for entity in hass.data['button'].entities
+              if isinstance(entity, platform_module.ManualSceneButton)]
+    if change == 'delete':
+        assert manager.scenes == {} and not active
+    else:
+        assert len(active) == 1
+        assert active[0].scene['scene_id'] == ('12' if change == 'replace' else '11')
+        assert active[0].name == 'Home Changed'
 
 
 async def test_real_reload_and_option_toggle_keep_entity_identity(hass, scene_platform):
