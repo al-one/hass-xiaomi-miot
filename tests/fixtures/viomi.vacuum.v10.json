@@ -1,0 +1,202 @@
+{
+  "type": "urn:miot-spec-v2:device:vacuum:0000A006:viomi-v10:1",
+  "description": "Robot Cleaner",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:viomi-v10:1",
+      "description": "Device Information",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:manufacturer:00000001:viomi-v10:1",
+          "description": "Device Manufacturer",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:model:00000002:viomi-v10:1",
+          "description": "Device Model",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:serial-number:00000003:viomi-v10:1",
+          "description": "Device Serial Number",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:firmware-revision:00000005:viomi-v10:1",
+          "description": "Current Firmware Version",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:vacuum:00007810:viomi-v10:1",
+      "description": "Robot Cleaner",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:status:00000007:viomi-v10:1",
+          "description": "Status",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Sleep"
+            },
+            {
+              "value": 1,
+              "description": "Idle"
+            },
+            {
+              "value": 2,
+              "description": "Paused"
+            },
+            {
+              "value": 3,
+              "description": "Sweeping"
+            },
+            {
+              "value": 4,
+              "description": "Go Charging"
+            },
+            {
+              "value": 5,
+              "description": "Charging"
+            },
+            {
+              "value": 6,
+              "description": "Sweeping and Mopping"
+            },
+            {
+              "value": 7,
+              "description": "Mopping"
+            },
+            {
+              "value": 8,
+              "description": "Updating"
+            }
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:mode:00000008:viomi-v10:1",
+          "description": "Mode",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Silent"
+            },
+            {
+              "value": 1,
+              "description": "Medium"
+            },
+            {
+              "value": 2,
+              "description": "Basic"
+            },
+            {
+              "value": 3,
+              "description": "Strong"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:start-sweep:00002804:viomi-v10:1",
+          "description": "Start Sweep",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:action:stop-sweeping:00002805:viomi-v10:1",
+          "description": "Stop Sweeping",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:action:start-sweep-mop:00002835:viomi-v10:1",
+          "description": "Start Sweep Mop",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:action:start-mop:00002834:viomi-v10:1",
+          "description": "Start Mop",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:action:pause-sweeping:00002805:viomi-v10:1",
+          "description": "Pause Sweeping",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:battery:00007805:viomi-v10:1",
+      "description": "Battery",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:battery-level:00000014:viomi-v10:1",
+          "description": "Battery Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:start-charge:00002802:viomi-v10:1",
+          "description": "Start Charge",
+          "in": [],
+          "out": []
+        }
+      ]
+    }
+  ]
+}

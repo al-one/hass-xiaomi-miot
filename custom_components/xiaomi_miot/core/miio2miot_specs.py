@@ -1733,6 +1733,13 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {'prop': 'battary_life'},
         },
     },
+    'viomi.vacuum.v10': {
+        'extend_model': 'viomi.vacuum.v8',
+        'miio_specs': {
+            # viomi-v10 spec status values match the miio run_state values
+            'prop.2.1': {'prop': 'run_state'},
+        },
+    },
     'viomi.waterheater.e1': {
         'chunk_properties': 1,
         'miio_commands': [
