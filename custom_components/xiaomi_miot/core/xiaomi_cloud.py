@@ -515,6 +515,8 @@ class MiotCloud(micloud.MiCloud):
             filters = {}
         fls = ['ssid', 'bssid', 'home_id', 'model', 'did']
         dvs = await self.async_get_devices(renew=renew) or []
+        if not dvs:
+            _LOGGER.warning('No devices returned by Xiaomi cloud for %s (%s)', self.username, self.default_server)
         for d in dvs:
             if not isinstance(d, dict):
                 continue
@@ -616,6 +618,12 @@ class MiotCloud(micloud.MiCloud):
                 self._finalize_login_response(response)
             auth = self._login_step1()
             location = auth.get('location', '')
+            # After identity verify, serviceLogin often returns ssecurity with no
+            # redirect location. service_token is already set by finalize; calling
+            # `_login_step2()` would re-submit the password and can re-trigger
+            # verification. Treat this as a completed login.
+            if self.ssecurity and self.service_token and not location:
+                return True
         elif auth:
             auth.update(login_data)
         else:
