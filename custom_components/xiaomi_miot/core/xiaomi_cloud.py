@@ -65,6 +65,32 @@ UA = "Android-7.1.1-1.0.0-ONEPLUS A3010-136-%s APP/xiaomi.smarthome APPV/62830"
 MANUAL_SCENE_API = 'appgateway/miot/appsceneservice/AppSceneService'
 
 
+def manual_scene_id(value):
+    """Keep the original API identifier; bool and container values are not IDs."""
+    if type(value) not in (str, int) or not str(value).strip():
+        raise MiCloudException('Xiaomi manual scene identifier is invalid')
+    return str(value)
+
+
+def normalize_manual_scene(scene, home_id, owner_uid, home_name=''):
+    """Validate scope before attaching the requesting home's metadata."""
+    if not isinstance(scene, dict):
+        raise MiCloudException('Xiaomi manual scene record is invalid')
+    scene_id = manual_scene_id(scene.get('scene_id'))
+    name = scene.get('scene_name')
+    if not isinstance(name, str) or not name.strip():
+        raise MiCloudException('Xiaomi manual scene name is invalid')
+    for field, expected in (('home_id', home_id), ('owner_uid', owner_uid)):
+        if field in scene and manual_scene_id(scene[field]) != expected:
+            raise MiCloudException('Xiaomi manual scene scope does not match')
+    result = {'scene_id': scene_id, 'scene_name': name,
+              'home_id': home_id, 'owner_uid': owner_uid,
+              'home_name': home_name if isinstance(home_name, str) else ''}
+    if scene.get('room_id') is not None:
+        result['room_id'] = manual_scene_id(scene['room_id'])
+    return result
+
+
 class MiotCloud(micloud.MiCloud):
     user_id = None
     cuser_id = None
@@ -555,7 +581,8 @@ class MiotCloud(micloud.MiCloud):
         if self.is_token_expired(rdt):
             if await self.async_check_auth(notify=True):
                 rdt = await self.async_request_api(api, data, debug=False, timeout=20) or {}
-        if not isinstance(rdt, dict) or rdt.get('code') != 0 or 'result' not in rdt:
+        if (not isinstance(rdt, dict) or type(rdt.get('code')) is not int
+                or rdt['code'] != 0 or 'error' in rdt or 'result' not in rdt):
             raise MiCloudException(
                 'Xiaomi manual scene request failed: '
                 + str(rdt.get('code') if isinstance(rdt, dict) else 'invalid response')
@@ -567,9 +594,10 @@ class MiotCloud(micloud.MiCloud):
         for home in await self.async_get_homerooms():
             if not isinstance(home, dict):
                 continue
-            home_id = home.get('id')
-            owner_uid = home.get('uid') or self.user_id
-            if not home_id or not owner_uid:
+            try:
+                home_id = manual_scene_id(home.get('id'))
+                owner_uid = manual_scene_id(home.get('uid', self.user_id))
+            except MiCloudException:
                 continue
             try:
                 result = await self._async_request_manual_scene_api(
@@ -590,34 +618,43 @@ class MiotCloud(micloud.MiCloud):
                     exc,
                 )
                 continue
+            records = {}
+            conflicts = set()
             for scene in result:
-                if not isinstance(scene, dict):
+                try:
+                    scene = normalize_manual_scene(
+                        scene, home_id, owner_uid, home.get('name'),
+                    )
+                except MiCloudException:
                     continue
-                scene_id = scene.get('scene_id')
-                scene_name = scene.get('scene_name')
-                if scene_id is None or not isinstance(scene_name, str) or not scene_name:
-                    continue
-                scenes.append({
-                    **scene,
-                    'scene_id': str(scene_id),
-                    'home_id': str(home_id),
-                    'home_name': home.get('name') or '',
-                    'owner_uid': str(owner_uid),
-                })
+                key = scene['scene_id']
+                if key in records and records[key] != scene:
+                    conflicts.add(key)
+                records[key] = scene
+            scenes.extend(scene for key, scene in records.items() if key not in conflicts)
         return scenes
 
     async def async_run_manual_scene(self, scene):
         data = {
-            'owner_uid': scene['owner_uid'],
-            'scene_id': scene['scene_id'],
+            'owner_uid': manual_scene_id(scene.get('owner_uid')),
+            'scene_id': manual_scene_id(scene.get('scene_id')),
             'scene_type': 2,
         }
-        if home_id := scene.get('home_id'):
-            data['home_id'] = home_id
-        if room_id := scene.get('room_id'):
-            data['room_id'] = room_id
-        result = await self._async_request_manual_scene_api('NewRunScene', data)
-        return bool(result)
+        for field in ('home_id', 'room_id'):
+            if scene.get(field) is not None:
+                data[field] = manual_scene_id(scene[field])
+        key = (data['owner_uid'], data.get('home_id'), data['scene_id'])
+        running = self.__dict__.setdefault('_manual_scene_in_flight', set())
+        if key in running:
+            raise MiCloudException('Xiaomi manual scene is already running')
+        running.add(key)
+        try:
+            result = await self._async_request_manual_scene_api('NewRunScene', data)
+            if type(result) is not bool:
+                raise MiCloudException('Xiaomi manual scene execution result is invalid')
+            return result
+        finally:
+            running.discard(key)
 
     async def async_get_beaconkey(self, did):
         dat = {'did': did, 'pdid': 1}

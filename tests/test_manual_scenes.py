@@ -1,3 +1,4 @@
+import asyncio
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -224,3 +225,104 @@ async def test_scene_discovery_refetches_and_skips_malformed_entries():
     assert [scene['scene_id'] for scene in await cloud.async_get_manual_scenes()] == ['11']
     assert [scene['scene_id'] for scene in await cloud.async_get_manual_scenes()] == ['22']
     assert cloud._async_request_manual_scene_api.await_count == 2
+
+
+@pytest.mark.parametrize('response', [
+    {'code': False, 'result': True}, {'code': 0.0, 'result': True},
+    {'code': 0, 'error': {'code': -1}, 'result': True},
+])
+async def test_manual_scene_api_rejects_ambiguous_success_envelopes(response):
+    cloud = MiotCloud.__new__(MiotCloud)
+    cloud.is_token_expired = lambda result: False
+    cloud.async_request_api = AsyncMock(return_value=response)
+    with pytest.raises(MiCloudException):
+        await cloud._async_request_manual_scene_api('NewRunScene', {})
+    assert cloud.async_request_api.await_count == 1
+
+
+@pytest.mark.parametrize('result', ['true', 1, {'unexpected': True}, [True], None])
+async def test_manual_scene_execution_requires_boolean_result(result):
+    cloud = MiotCloud.__new__(MiotCloud)
+    cloud._async_request_manual_scene_api = AsyncMock(return_value=result)
+    with pytest.raises(MiCloudException):
+        await cloud.async_run_manual_scene({'owner_uid': '1000', 'scene_id': '11'})
+    assert cloud._async_request_manual_scene_api.await_count == 1
+
+
+@pytest.mark.parametrize('field,value', [
+    ('scene_id', True), ('scene_id', ''), ('scene_id', {}),
+    ('owner_uid', False), ('home_id', []), ('room_id', True),
+])
+async def test_manual_scene_invalid_execution_identity_is_not_sent(field, value):
+    cloud = MiotCloud.__new__(MiotCloud)
+    cloud._async_request_manual_scene_api = AsyncMock(return_value=True)
+    scene = {'owner_uid': '1000', 'scene_id': '11', field: value}
+    with pytest.raises(MiCloudException):
+        await cloud.async_run_manual_scene(scene)
+    cloud._async_request_manual_scene_api.assert_not_awaited()
+
+
+async def test_manual_scene_discovery_rejects_conflicting_scope_and_duplicate_ids():
+    cloud = MiotCloud.__new__(MiotCloud)
+    cloud.user_id = '1000'
+    cloud.async_get_homerooms = AsyncMock(return_value=[{'id': '1'}])
+    cloud._async_request_manual_scene_api = AsyncMock(return_value=[
+        {'scene_id': True, 'scene_name': 'Invalid'},
+        {'scene_id': '11', 'scene_name': 'Wrong home', 'home_id': '2'},
+        {'scene_id': '12', 'scene_name': 'Wrong owner', 'owner_uid': '2000'},
+        {'scene_id': '13', 'scene_name': 'One'},
+        {'scene_id': '13', 'scene_name': 'Different'},
+        {'scene_id': '14', 'scene_name': 'Valid'},
+        {'scene_id': '14', 'scene_name': 'Valid'},
+    ])
+    assert [s['scene_id'] for s in await cloud.async_get_manual_scenes()] == ['14']
+
+
+async def test_manual_scene_rejects_overlap_and_releases_guard_after_cancellation():
+    cloud = MiotCloud.__new__(MiotCloud)
+    entered = asyncio.Event()
+
+    async def execute(*args):
+        entered.set()
+        await asyncio.Event().wait()
+
+    cloud._async_request_manual_scene_api = AsyncMock(side_effect=execute)
+    scene = {'owner_uid': '1000', 'home_id': '1', 'scene_id': '11'}
+    first = asyncio.create_task(cloud.async_run_manual_scene(scene))
+    await entered.wait()
+    try:
+        with pytest.raises(MiCloudException, match='already running'):
+            await cloud.async_run_manual_scene(dict(scene))
+        assert cloud._async_request_manual_scene_api.await_count == 1
+    finally:
+        first.cancel()
+        await asyncio.gather(first, return_exceptions=True)
+    assert not cloud._manual_scene_in_flight
+    cloud._async_request_manual_scene_api = AsyncMock(return_value=True)
+    assert await cloud.async_run_manual_scene(scene) is True
+
+
+async def test_different_manual_scenes_do_not_share_an_execution_lock():
+    cloud = MiotCloud.__new__(MiotCloud)
+    entered = asyncio.Event()
+    release = asyncio.Event()
+
+    async def execute(*args):
+        entered.set()
+        await release.wait()
+        return True
+
+    cloud._async_request_manual_scene_api = AsyncMock(side_effect=execute)
+    tasks = []
+    try:
+        for scene_id in ('11', '12'):
+            tasks.append(asyncio.create_task(cloud.async_run_manual_scene({
+                'owner_uid': '1000', 'home_id': '1', 'scene_id': scene_id,
+            })))
+        await entered.wait()
+        await asyncio.sleep(0)
+        assert cloud._async_request_manual_scene_api.await_count == 2
+    finally:
+        release.set()
+        await asyncio.gather(*tasks)
+    assert not cloud._manual_scene_in_flight
