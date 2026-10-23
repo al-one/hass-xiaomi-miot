@@ -174,3 +174,18 @@ async def test_cleanup_only_runs_when_alias_matches(hass):
     assert hass_entry.clouds == {}
     # HassEntry.ALL entry removed since the instance still matches
     assert "eid" not in HassEntry.ALL
+
+async def test_setup_empty_filtered_inventory_does_not_warn(hass, caplog):
+    init_integration_data(hass)
+    fake_cloud = MiotCloud.__new__(MiotCloud)
+    fake_cloud.sid = "xiaomiio"
+    fake_cloud.user_id = "u"
+    fake_cloud.default_server = "cn"
+    fake_cloud.async_check_auth = AsyncMock(return_value=True)
+    fake_entry_obj = _make_entry_obj(fake_cloud)
+    with patch("custom_components.xiaomi_miot.HassEntry.init", return_value=fake_entry_obj), \
+         patch("custom_components.xiaomi_miot.async_setup_customizes", AsyncMock()), \
+         patch.object(hass.config_entries, "async_forward_entry_setups", AsyncMock()):
+        await async_setup_entry(hass, _entry(hass))
+    assert "None device in xiaomi cloud" not in caplog.text
+    assert "No devices returned by Xiaomi cloud" not in caplog.text
