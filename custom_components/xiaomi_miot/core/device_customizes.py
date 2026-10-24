@@ -3087,6 +3087,20 @@ DEVICE_CUSTOMIZES = {
     'zhimi.humidifier.ca4:water_level': {
         'value_ratio': 100 / 120,
     },
+    'zhimi.humidifier.ca6': {
+        'sensor_properties': 'water_level,actual_speed,self_clean_percent',
+        'switch_properties': 'alarm,other.clean,humidifier.automatic_air_drying',
+        'select_properties': 'screen.brightness',
+        'without_mode_off': True,
+        'chunk_coordinators': [
+            {'interval': 30, 'props': 'self_clean_percent', 'cloud': True},
+        ],
+    },
+    'zhimi.humidifier.ca6:self_clean_percent': {
+        'device_class': 'duration',
+        'unit_of_measurement': 'min',
+        'state_class': 'measurement',
+    },
     'zhimi.humidifier.cb1:water_level': {
         'state_class': 'measurement',
         'unit_of_measurement': '%',
