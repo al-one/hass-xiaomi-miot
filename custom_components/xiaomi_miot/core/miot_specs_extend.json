@@ -1972,6 +1972,50 @@
         }
       ]
     }
+  ],
+  "zhimi.toilet.va1": [
+    {
+      "iid": 2,
+      "properties": [
+        {"iid": 4, "value-range": [], "value-list": [{"value": 1, "description": "Weakest"}, {"value": 2, "description": "Weak"}, {"value": 3, "description": "Strong"}, {"value": 4, "description": "Strongest"}]},
+        {"iid": 5, "value-range": [], "value-list": [{"value": 1, "description": "Last"}, {"value": 2, "description": "Later"}, {"value": 3, "description": "Front"}, {"value": 4, "description": "Foremost"}]},
+        {"iid": 7, "value-list": [{"value": 1, "description": "Posterior Wash"}, {"value": 2, "description": "Feminine Wash"}, {"value": 3, "description": "Air Dry"}, {"value": 4, "description": "Idle"}]},
+        {"iid": 101, "type": "urn:zhimi-spec:property:water-temperature", "description": "Water Temperature", "format": "uint8", "access": ["read", "write", "notify"], "value-range": [], "value-list": [{"value": 0, "description": "Close"}, {"value": 1, "description": "Low"}, {"value": 2, "description": "Middle"}, {"value": 3, "description": "High"}, {"value": 4, "description": "Strong"}]},
+        {"iid": 102, "type": "urn:zhimi-spec:property:wind-temperature", "description": "Wind Temperature", "format": "uint8", "access": ["read", "write", "notify"], "value-range": [], "value-list": [{"value": 0, "description": "Close"}, {"value": 1, "description": "Low"}, {"value": 2, "description": "Middle"}, {"value": 3, "description": "High"}, {"value": 4, "description": "Strong"}]},
+        {"iid": 103, "type": "urn:zhimi-spec:property:current-inwater-temp", "description": "Current Inwater Temperature", "format": "uint8", "access": ["read", "notify"], "unit": "celsius"},
+        {"iid": 104, "type": "urn:zhimi-spec:property:user-work-statue", "description": "User Work Statue", "format": "uint8", "access": ["read", "notify"], "value-list": [{"value": 0, "description": "Idle"}, {"value": 1, "description": "Work-User1"}, {"value": 2, "description": "Work-User2"}, {"value": 3, "description": "Work-User3"}, {"value": 4, "description": "Work-User4"}]}
+      ],
+      "actions": [
+        {"iid": 1, "type": "urn:miot-spec-v2:action:stop-working:00002825:zhimi-va1:1", "description": "Stop Working", "in": [], "out": []},
+        {"iid": 101, "type": "urn:zhimi-spec:action:stoving", "description": "Start Air Dry", "in": [], "out": []},
+        {"iid": 102, "type": "urn:zhimi-spec:action:hip-washing", "description": "Start Hip Wash", "in": [], "out": []},
+        {"iid": 103, "type": "urn:zhimi-spec:action:women-washing", "description": "Start Women Wash", "in": [], "out": []},
+        {"iid": 104, "type": "urn:zhimi-spec:action:user-one-process", "description": "Start User One Process", "in": [], "out": []},
+        {"iid": 105, "type": "urn:zhimi-spec:action:user-two-process", "description": "Start User Two Process", "in": [], "out": []},
+        {"iid": 106, "type": "urn:zhimi-spec:action:user-three-process", "description": "Start User Three Process", "in": [], "out": []},
+        {"iid": 107, "type": "urn:zhimi-spec:action:user-four-process", "description": "Start User Four Process", "in": [], "out": []}
+      ]
+    },
+    {
+      "iid": 3,
+      "properties": [
+        {"iid": 2, "value-range": [], "value-list": [{"value": 0, "description": "Off"}, {"value": 1, "description": "Low"}, {"value": 2, "description": "Medium"}, {"value": 3, "description": "High"}, {"value": 4, "description": "Strong"}]},
+        {"iid": 101, "type": "urn:zhimi-spec:property:seat-ring", "description": "Seat Ring", "format": "bool", "access": ["read", "notify"]},
+        {"iid": 102, "type": "urn:zhimi-spec:property:closestool-cover", "description": "Closestool Cover", "format": "bool", "access": ["read", "notify"]},
+        {"iid": 103, "type": "urn:zhimi-spec:property:current-seat-temp", "description": "Current Seat Temp", "format": "int8", "access": ["read", "notify"], "unit": "celsius"},
+        {"iid": 104, "type": "urn:zhimi-spec:property:seat-heat-save", "description": "Seat Heat Save", "format": "bool", "access": ["read", "write", "notify"]},
+        {"iid": 105, "type": "urn:zhimi-spec:property:seat-heat-save-start-time", "description": "Seat Heat Save Start Time", "format": "uint32", "access": ["read", "write", "notify"], "unit": "seconds", "value-range": [0, 86400, 60]},
+        {"iid": 106, "type": "urn:zhimi-spec:property:seat-heat-save-end-time", "description": "Seat Heat Save End Time", "format": "uint32", "access": ["read", "write", "notify"], "unit": "seconds", "value-range": [0, 86400, 60]}
+      ]
+    },
+    {
+      "iid": 4,
+      "properties": [
+        {"iid": 101, "type": "urn:zhimi-spec:property:night-save", "description": "Night Save", "format": "bool", "access": ["read", "write", "notify"]},
+        {"iid": 102, "type": "urn:zhimi-spec:property:night-save-start-time", "description": "Night Save Start Time", "format": "uint32", "access": ["read", "write", "notify"], "unit": "seconds", "value-range": [0, 86400, 60]},
+        {"iid": 103, "type": "urn:zhimi-spec:property:night-save-end-time", "description": "Night Save End Time", "format": "uint32", "access": ["read", "write", "notify"], "unit": "seconds", "value-range": [0, 86400, 60]}
+      ]
+    }
   ]
 
 }

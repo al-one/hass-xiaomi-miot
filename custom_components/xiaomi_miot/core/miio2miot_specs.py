@@ -3031,6 +3031,75 @@ MIIO_TO_MIOT_SPECS = {
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
         },
     },
+    'zhimi.toilet.va1': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [
+                    'power', 'onseat_state', 'seat_ring', 'closestool_cover',
+                    'inwater_temp', 'water_temp_lvl', 'seat_temp', 'seat_temp_lvl',
+                    'flow_level', 'wind_temp_lvl', 'nozzle_level', 'night_led',
+                    'deodorize', 'filter_life', 'mode', 'user_work_statue', 'buzzer',
+                ],
+                'values': True,
+            },
+            {
+                'method': 'get_prop',
+                'params': [
+                    'seat_temp_lvl', 'night_led', 'nled_smart',
+                    'nl_start_time', 'nl_end_time',
+                    'sh_smart', 'sh_start_time', 'sh_end_time',
+                ],
+                'values': [
+                    '_u_seat_temp_lvl', '_u_night_led', 'nled_smart',
+                    'nl_start_time', 'nl_end_time',
+                    'sh_smart', 'sh_start_time', 'sh_end_time',
+                ],
+            },
+        ],
+        'miio_specs': {
+            # siid 2: toilet (官方 + 扩展)
+            'prop.2.1': {'prop': 'power', 'setter': 'set_power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'onseat_state', 'format': 'bool'},
+            'prop.2.4': {'prop': 'flow_level', 'setter': 'set_flow_level'},
+            'prop.2.5': {'prop': 'nozzle_level', 'setter': 'set_nozzle_level'},
+            'prop.2.6': {'prop': 'deodorize', 'setter': 'set_deodorizer', 'format': 'onoff'},
+            'prop.2.7': {'prop': 'mode', 'dict': {'idle': 4, 'heatwind': 3, 'hipclean': 1, 'womanclean': 2}, 'default': 4},
+            'prop.2.101': {'prop': 'water_temp_lvl', 'setter': 'set_watertemp_lvl'},
+            'prop.2.102': {'prop': 'wind_temp_lvl', 'setter': 'set_windtemp_lvl'},
+            'prop.2.103': {'prop': 'inwater_temp'},
+            'prop.2.104': {'prop': 'user_work_statue'},
+            'action.2.1': {'setter': 'set_stop'},
+            'action.2.101': {'setter': 'set_mode', 'set_template': '{{ ["heatwind"] }}'},
+            'action.2.102': {'setter': 'set_mode', 'set_template': '{{ ["hipclean"] }}'},
+            'action.2.103': {'setter': 'set_mode', 'set_template': '{{ ["womanclean"] }}'},
+            'action.2.104': {'setter': 'switch_user', 'set_template': '{{ [1] }}'},
+            'action.2.105': {'setter': 'switch_user', 'set_template': '{{ [2] }}'},
+            'action.2.106': {'setter': 'switch_user', 'set_template': '{{ [3] }}'},
+            'action.2.107': {'setter': 'switch_user', 'set_template': '{{ [4] }}'},
+            # siid 3: seat (官方 + 扩展)
+            'prop.3.1': {'prop': 'seat_temp_lvl', 'template': '{{ value > 0 }}', 'setter': 'set_seattemp_lvl', 'set_template': '{{ [2 if value else 0] }}'},
+            'prop.3.2': {'prop': 'seat_temp_lvl', 'setter': 'set_seattemp_lvl'},
+            'prop.3.101': {'prop': 'seat_ring', 'format': 'bool'},
+            'prop.3.102': {'prop': 'closestool_cover', 'format': 'bool'},
+            'prop.3.103': {'prop': 'seat_temp'},
+            'prop.3.104': {'prop': 'sh_smart', 'setter': 'set_sh_smart', 'format': 'onoff'},
+            'prop.3.105': {'prop': 'sh_start_time', 'setter': 'set_sh_start_time'},
+            'prop.3.106': {'prop': 'sh_end_time', 'setter': 'set_sh_end_time'},
+            # siid 4: night-light (官方 + 扩展)
+            'prop.4.1': {'prop': 'night_led', 'setter': 'set_night_led', 'format': 'onoff'},
+            'prop.4.101': {'prop': 'nled_smart', 'setter': 'set_nled_smart', 'format': 'onoff'},
+            'prop.4.102': {'prop': 'nl_start_time', 'setter': 'set_nl_start_time'},
+            'prop.4.103': {'prop': 'nl_end_time', 'setter': 'set_nl_end_time'},
+            # siid 5: filter
+            'prop.5.1': {'prop': 'filter_life'},
+            # siid 6: alarm
+            'prop.6.1': {'prop': 'buzzer', 'setter': 'set_buzzer', 'format': 'onoff'},
+        },
+        'ignore_result': True,
+    },
+
     'qmi.powerstrip.v1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
