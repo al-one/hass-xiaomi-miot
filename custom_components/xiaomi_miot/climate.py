@@ -166,6 +166,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
         self._power_hvac_mode = None
 
         self._prop_temperature_name = self.custom_config('current_temp_property') or 'indoor_temperature'
+        swing_property = self.custom_config('swing_property')
 
         hvac_modes = set()
         for attr in self.conv.attrs:
@@ -173,6 +174,10 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             prop = getattr(conv, 'prop', None) if conv else None
             if not isinstance(prop, MiotProperty):
                 continue
+            elif swing_property and prop.in_list([swing_property]):
+                self._conv_swing = conv
+                self._attr_swing_modes = [SWING_ON, SWING_OFF]
+                self._attr_supported_features |= ClimateEntityFeature.SWING_MODE
             elif prop.in_list(['on']):
                 self._conv_power = conv
                 self._attr_supported_features |= ClimateEntityFeature.TURN_ON
@@ -288,6 +293,8 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 self._attr_fan_mode = str(val).lower()
         if self._conv_swing:
             val = self._conv_swing.value_from_dict(data)
+            if isinstance(val, str) and self._conv_swing.prop.value_list:
+                val = self._conv_swing.prop.list_value(val)
             if val is not None:
                 self._attr_swing_mode = SWING_ON if val else SWING_OFF
         if self._conv_swing_h:
@@ -400,7 +407,12 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     async def async_set_swing_mode(self, swing_mode: str):
         if not self._conv_swing:
             return
-        await self.device.async_write({self._conv_swing.full_name: swing_mode == SWING_ON})
+        val = swing_mode == SWING_ON
+        if self._conv_swing.prop.value_list:
+            val = int(val)
+            if self._conv_swing.desc:
+                val = self._conv_swing.prop.list_description(val)
+        await self.device.async_write({self._conv_swing.full_name: val})
 
     async def async_set_swing_horizontal_mode(self, swing_horizontal_mode: str):
         if not self._conv_swing_h:

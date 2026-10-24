@@ -3081,6 +3081,8 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'countdown_time',
         'brightness_for_on': 0,
         'brightness_for_off': 2,
+        'swing_property': 'heater.mode',
+        'climate_translation_key': 'fan_heater',
     },
     'zhimi.humidifier.ca4:water_level': {
         'value_ratio': 100 / 120,
