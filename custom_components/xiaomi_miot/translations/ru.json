@@ -165,16 +165,76 @@
             },
             "physical_controls_locked-physical_controls_locked": {
                 "name": "Детский замок"
+            },
+            "humidifier-automatic_air_drying": {
+                "name": "Автоматическая сушка"
+            },
+            "light-off_delay": {
+                "name": "Задержка выключения"
+            }
+        },
+        "sensor": {
+            "other-self_clean_percent": {
+                "name": "Самоочистка"
             }
         },
         "select": {
             "pet_drinking_fountain-mode": {
                 "name": "Режим воды"
+            },
+            "screen-brightness": {
+                "state": {
+                    "Dark": "Выключен",
+                    "Glimmer": "Тусклый",
+                    "Brightest": "Яркий"
+                }
+            },
+            "heater-heat_level": {
+                "state": {
+                    "High": "Сильный",
+                    "Low": "Слабый"
+                }
             }
         },
         "number": {
             "pet_drinking_fountain-out_water_interval": {
                 "name": "Интервал воды"
+            },
+            "light-off_delay_time": {
+                "name": "Время до выключения"
+            }
+        },
+        "light": {
+            "light": {
+                "state_attributes": {
+                    "effect": {
+                        "state": {
+                            "Reading": "Чтение",
+                            "Computer": "Компьютер",
+                            "Night Reading": "Ночное чтение",
+                            "Anti-blue": "Защита глаз",
+                            "Effective Work": "Продуктивная работа"
+                        }
+                    }
+                }
+            }
+        },
+        "climate": {
+            "fan_heater": {
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "high": "Сильный",
+                            "low": "Слабый"
+                        }
+                    },
+                    "swing_mode": {
+                        "state": {
+                            "on": "Включено",
+                            "off": "Выключено"
+                        }
+                    }
+                }
             }
         }
     },
