@@ -2851,6 +2851,10 @@ DEVICE_CUSTOMIZES = {
     'yeelink.light.fancl5': {
         'number_properties': 'fan_speed_std,fan_speed_rec,dl_brightness,nl_brightness',
     },
+    'yeelink.light.lamp2': {
+        'switch_properties': 'off_delay',
+        'number_properties': 'off_delay_time',
+    },
     'yeelink.light.lamp22': {
         'interval_seconds': 120,
         'chunk_coordinators': [
@@ -3081,9 +3085,25 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'countdown_time',
         'brightness_for_on': 0,
         'brightness_for_off': 2,
+        'swing_property': 'heater.mode',
+        'climate_translation_key': 'fan_heater',
     },
     'zhimi.humidifier.ca4:water_level': {
         'value_ratio': 100 / 120,
+    },
+    'zhimi.humidifier.ca6': {
+        'sensor_properties': 'water_level,actual_speed,self_clean_percent',
+        'switch_properties': 'alarm,other.clean,humidifier.automatic_air_drying',
+        'select_properties': 'screen.brightness',
+        'without_mode_off': True,
+        'chunk_coordinators': [
+            {'interval': 30, 'props': 'self_clean_percent', 'cloud': True},
+        ],
+    },
+    'zhimi.humidifier.ca6:self_clean_percent': {
+        'device_class': 'duration',
+        'unit_of_measurement': 'min',
+        'state_class': 'measurement',
     },
     'zhimi.humidifier.cb1:water_level': {
         'state_class': 'measurement',
