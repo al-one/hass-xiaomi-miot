@@ -372,6 +372,16 @@
                         }
                     }
                 }
+            },
+            "fan_heater": {
+                "state_attributes": {
+                    "swing_mode": {
+                        "state": {
+                            "on": "On",
+                            "off": "Off"
+                        }
+                    }
+                }
             }
         }
     },
