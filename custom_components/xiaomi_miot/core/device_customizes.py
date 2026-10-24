@@ -2851,6 +2851,10 @@ DEVICE_CUSTOMIZES = {
     'yeelink.light.fancl5': {
         'number_properties': 'fan_speed_std,fan_speed_rec,dl_brightness,nl_brightness',
     },
+    'yeelink.light.lamp2': {
+        'switch_properties': 'off_delay',
+        'number_properties': 'off_delay_time',
+    },
     'yeelink.light.lamp22': {
         'interval_seconds': 120,
         'chunk_coordinators': [
