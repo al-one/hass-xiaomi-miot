@@ -956,6 +956,7 @@ class Device(CustomConfigHelper):
                         results.extend(res)
                 self.available = True
                 self._local_fails = 0
+                self._lan_check_fails = 0
                 self._local_state = True
                 self.miot_results.updater = 'local'
                 results = self.normalize_miot_results(results)

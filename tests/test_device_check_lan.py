@@ -5,6 +5,7 @@ import pytest
 from custom_components.xiaomi_miot.climate import ClimateEntity
 from custom_components.xiaomi_miot.core.converters import MiotClimateConv
 from custom_components.xiaomi_miot.core.device import MiotDevice
+from custom_components.xiaomi_miot.core.utils import DeviceException
 
 
 def make_local(response):
@@ -89,4 +90,29 @@ async def test_passing_lan_check_resets_failures(make_device, load_miot_spec):
     assert device.available is True
 
     await poll(device)
+    assert device.available is True
+
+
+@pytest.mark.asyncio
+async def test_local_success_resets_lan_check_failures(make_device, load_miot_spec):
+    """With auto_cloud a failed local poll falls back to the cloud branch,
+    so a later local success must clear the LAN failures from the outage."""
+    device = make_cloud_device(make_device, load_miot_spec, *[OFFLINE] * 4)
+    device.local.async_get_properties_for_mapping = AsyncMock(side_effect=[
+        *[DeviceException("offline")] * 3, [], DeviceException("blip"),
+    ])
+
+    async def poll_auto():
+        await device.update_miot_status(
+            mapping=MAPPING, use_local=True, auto_cloud=True, check_lan=True, max_properties=5,
+        )
+
+    for _ in range(3):
+        await poll_auto()
+    assert device.available is False
+
+    await poll_auto()
+    assert device.available is True
+
+    await poll_auto()
     assert device.available is True
