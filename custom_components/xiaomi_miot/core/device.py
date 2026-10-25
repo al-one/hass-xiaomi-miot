@@ -179,6 +179,7 @@ class Device(CustomConfigHelper):
     _local_state = None
     _cloud_fails = 0
     _cloud_state = None
+    _lan_check_fails = 0
     _proxy_device = None
     _miot_mapping = None
     _exclude_miot_services = None
@@ -1028,10 +1029,16 @@ class Device(CustomConfigHelper):
                 if results is None:
                     raise MiCloudException('Cloud API returned None response, possible timeout or empty data')
                 if check_lan and self.local:
-                    await self.local.async_info()
+                    try:
+                        await self.local.async_info()
+                        self._lan_check_fails = 0
+                    except (DeviceException, OSError) as exc:
+                        self._lan_check_fails += 1
+                        log = self.log.warning if self._lan_check_fails == 3 else self.log.info
+                        log('%s: LAN check failed %s times: %s', self.name, self._lan_check_fails, exc)
                 if self._cloud_state is False:
                     self.log.info('Cloud request succeeded again after %s failures, marking available', self._cloud_fails)
-                self.available = True
+                self.available = self._lan_check_fails < 3
                 self._cloud_fails = 0
                 self._cloud_state = True
                 results = self.normalize_miot_results(results)
