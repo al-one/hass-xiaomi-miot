@@ -1,4 +1,5 @@
 """Support for Xiaomi sensors."""
+import asyncio
 import logging
 import time
 import json
@@ -55,14 +56,19 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     cloud = await entry.get_cloud()
 
     if cloud:
-        hass.data[DOMAIN]['accounts'].setdefault(cloud.user_id, {})
+        account = hass.data[DOMAIN]['accounts'].setdefault(cloud.user_id, {})
 
         if not entry.get_config('disable_message'):
-            if not hass.data[DOMAIN]['accounts'][cloud.user_id].get('messenger'):
-                entity = MihomeMessageSensor(hass, cloud)
-                await entity.coordinator.async_config_entry_first_refresh()
-                hass.data[DOMAIN]['accounts'][cloud.user_id]['messenger'] = entity
-                async_add_entities([entity], update_before_add=False)
+            # Two region entries can race while the first sensor refresh awaits.
+            message_lock = account.get('messenger_lock')
+            if message_lock is None:
+                message_lock = account['messenger_lock'] = asyncio.Lock()
+            async with message_lock:
+                if not account.get('messenger'):
+                    entity = MihomeMessageSensor(hass, cloud)
+                    await entity.coordinator.async_config_entry_first_refresh()
+                    account['messenger'] = entity
+                    async_add_entities([entity], update_before_add=False)
 
         if not entry.get_config('disable_scene_history'):
             homes = await cloud.async_get_homerooms()
