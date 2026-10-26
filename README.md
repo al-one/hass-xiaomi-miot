@@ -152,6 +152,7 @@ climate.your_entity_id:
 camera.your_entity_id:
   video_attribute: 1   # https://github.com/al-one/hass-xiaomi-miot/issues/11#issuecomment-773054167
   keep_streaming: true # Continuously update stream address
+  use_p2p_stream: false # Disable live view via go2rtc xiaomi source (enabled for cameras with p2p-stream service)
 
 cover.your_entity_id:
   closed_position: 5     # Change cover state to closed when position <= 5%
@@ -196,6 +197,7 @@ This component has added support for configuration reloading (to avoid having to
 - 🌀 [fan](https://home.miot-spec.com/s/fan) / [ceiling-fan](https://home.miot-spec.com/s/ven_fan)
 - 🛀 [bath-heater](https://home.miot-spec.com/s/bhf_light) / 🔥 [heater](https://home.miot-spec.com/s/heater) / [thermostat](https://home.miot-spec.com/s/airrtc)
 - 📷 [camera](https://home.miot-spec.com/s/camera) / [video-doorbell](https://home.miot-spec.com/s/cateye) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-903078604)
+  - Live view uses the [go2rtc xiaomi source](https://github.com/AlexxIT/go2rtc/tree/master/internal/xiaomi) (go2rtc >= 1.9.13). The go2rtc bundled with HA does not load this module, so run the go2rtc add-on and set `go2rtc: url: http://localhost:1984` in `configuration.yaml`.
 - 📺 [television](https://home.miot-spec.com/s/tv) / 📽️ [projector](https://home.miot-spec.com/s/projector) / [tv-box](https://home.miot-spec.com/s/tvbox)
 - 🗣️ [intelligent-speaker](https://home.miot-spec.com/s/wifispeaker) [❓️](https://github.com/al-one/hass-xiaomi-miot/issues/100#issuecomment-885989099)
 - 🎮️ [ir-remote-control](https://home.miot-spec.com/s/chuangmi.remote) [❓️](https://github.com/al-one/hass-xiaomi-miot/commit/fbcc8063783e53b9480574536a034d338634f4e8#commitcomment-56563663)
