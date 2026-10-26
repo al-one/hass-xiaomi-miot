@@ -360,12 +360,16 @@ class CameraEntity(XEntity, BaseCameraEntity):
             return None
         did = str(self.device.did)
         if '.cateye.' in self.model:
-            # battery doorbells are sleeping and must be woken up before streaming
-            await cloud.async_request_api(f'home/rpc/{did}', {
-                'id': 1,
-                'method': 'wakeup',
-                'params': {'video': '1'},
-            })
+            # battery doorbells are sleeping and must be woken up before streaming,
+            # `wakeup` times out on some models (madv/midr) while `wakeup_host` works
+            for method, params in [('wakeup_host', {}), ('wakeup', {'video': '1'})]:
+                rdt = await cloud.async_request_api(f'home/rpc/{did}', {
+                    'id': 1,
+                    'method': method,
+                    'params': params,
+                }) or {}
+                if rdt.get('code') == 0:
+                    break
 
         key = X25519PrivateKey.generate()
         client_private = key.private_bytes(
