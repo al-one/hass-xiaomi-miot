@@ -96,6 +96,35 @@ class AttrConv(BaseConv):
     pass
 
 @dataclass
+class MiotConditionConv(BaseConv):
+    """A read-only reported condition derived from one reviewed numeric enum."""
+
+    source: 'MiotProperty' = None
+    value: int = None
+    values: tuple[int, ...] = ()
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.mi = self.source.unique_prop
+
+    @property
+    def availability_attr(self):
+        return f'{self.full_name}.available'
+
+    def decode(self, device: 'Device', payload: dict, value):
+        payload[self.full_name] = (
+            value == self.value if type(value) is int and value in self.values else None
+        )
+        payload[self.availability_attr] = True
+
+    def decode_unavailable(self, payload: dict):
+        payload[self.full_name] = None
+        payload[self.availability_attr] = False
+
+    def encode(self, device: 'Device', payload: dict, value):
+        """Reported conditions cannot be written to the appliance."""
+
+@dataclass
 class MiotPropConv(BaseConv):
     prop: 'MiotProperty' = None
     desc: bool = None

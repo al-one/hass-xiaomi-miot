@@ -24,7 +24,7 @@ from .const import (
 from .hass_entry import HassEntry
 from .hass_entity import XEntity, BasicEntity, convert_unique_id
 from .converters import (
-    BaseConv, InfoConv, MiotPropConv,
+    BaseConv, InfoConv, MiotPropConv, MiotConditionConv,
     MiotPropValueConv, MiotActionConv,
     AttrConv, MiotTargetPositionConv, MiotTimePropConv,
 )
@@ -556,6 +556,11 @@ class Device(CustomConfigHelper):
             for attr in self.custom_config_list(f'{d}_attributes') or []:
                 self.add_converter(AttrConv(attr, d))
 
+        if custom_converters is None:
+            from .dehumidifier_conditions import dehumidifier_condition_converters
+            for conv in dehumidifier_condition_converters(self):
+                self.add_converter(conv)
+
     async def init_coordinators(self):
         if dby := self.hass_device_disabled:
             self.log.debug('Device disabled by: %s', dby)
@@ -756,15 +761,32 @@ class Device(CustomConfigHelper):
         if not isinstance(value, dict):
             self.log.warning('Value is not dict: %s', value)
             return
-        if value.get('code', 0):
-            return
         siid = value.get('siid')
         piid = value.get('piid')
         if siid and piid:
             mi = MiotSpec.unique_prop(siid, piid=piid)
             for conv in self.converters:
                 if conv.mi == mi:
-                    conv.decode(self, payload, value.get('value'))
+                    if value.get('code', 0):
+                        if isinstance(conv, MiotConditionConv):
+                            conv.decode_unavailable(payload)
+                    else:
+                        conv.decode(self, payload, value.get('value'))
+
+    def decode_condition_results(self, payload: dict, mapping: dict):
+        """Invalidate only condition sources requested but absent/failed this poll."""
+        conditions = [c for c in self.converters if isinstance(c, MiotConditionConv)]
+        if not conditions:
+            return
+        requested = {
+            MiotSpec.unique_prop(m['siid'], piid=m['piid'])
+            for m in (mapping or {}).values()
+        }
+        for conv in conditions:
+            if conv.mi not in requested:
+                continue
+            if conv.full_name not in payload:
+                conv.decode_unavailable(payload)
 
     def decode_attrs(self, value: dict):
         if not isinstance(value, dict):
@@ -1039,7 +1061,10 @@ class Device(CustomConfigHelper):
         if results:
             self.miot_results.to_attributes(self.props)
             self.data['updated'] = dt.now()
-            self.dispatch(self.decode(results))
+        payload = self.decode(results)
+        self.decode_condition_results(payload, mapping)
+        if payload:
+            self.dispatch(payload)
         self.dispatch_info()
         await self.offline_notify()
         return self.miot_results

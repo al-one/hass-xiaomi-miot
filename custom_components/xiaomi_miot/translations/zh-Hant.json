@@ -361,6 +361,36 @@
             },
             "pet_drinking_fountain-fault": {
                 "name": "故障"
+            },
+            "dehumidifier_tank_full": {
+                "name": "水箱已滿"
+            },
+            "dehumidifier_temperature_humidity_sensor_fault": {
+                "name": "溫濕度感應器故障"
+            },
+            "dehumidifier_coil_temperature_sensor_fault": {
+                "name": "盤管溫度感應器故障"
+            },
+            "dehumidifier_internal_communication_fault": {
+                "name": "內部通訊故障"
+            },
+            "dehumidifier_filter_cleaning_due": {
+                "name": "需要清潔濾網"
+            },
+            "dehumidifier_defrosting": {
+                "name": "除霜中"
+            },
+            "dehumidifier_fan_fault": {
+                "name": "風扇故障"
+            },
+            "dehumidifier_compressor_overload_protection": {
+                "name": "壓縮機過載保護"
+            },
+            "dehumidifier_low_refrigerant_protection": {
+                "name": "冷媒不足保護"
+            },
+            "dehumidifier_operating_temperature_out_of_range": {
+                "name": "超出運作溫度範圍"
             }
         },
         "switch": {

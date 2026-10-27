@@ -28,6 +28,7 @@ from .core.miot_spec import (
 )
 from .core.xiaomi_cloud import MiotCloud
 from .core.utils import local_zone
+from .core.converters import MiotConditionConv
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -92,9 +93,40 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class BinarySensorEntity(XEntity, BaseEntity, RestoreEntity):
+    async def async_get_last_extra_data(self):
+        if isinstance(self.conv, MiotConditionConv):
+            return None
+        return await super().async_get_last_extra_data()
+
+    def on_init(self):
+        if isinstance(self.conv, MiotConditionConv):
+            self._attr_is_on = None
+            self._source_available = True
+            self._attr_available = self.device.available
+
+    def on_device_update(self, data: dict, only_info=False):
+        if not isinstance(self.conv, MiotConditionConv):
+            return super().on_device_update(data, only_info=only_info)
+        # A successful unrelated property read must not revive a failed source.
+        changed = False
+        if not self.device.available:
+            self._source_available = False
+            self._attr_is_on = None
+        elif not only_info and self.attr in data:
+            self._source_available = data.get(self.conv.availability_attr, True)
+            self.set_state(data)
+            changed = True
+        available = self.device.available and self._source_available
+        changed = changed or self._attr_available != available
+        self._attr_available = available
+        if changed and self.added:
+            self._async_write_ha_state()
+
     def set_state(self, data: dict):
         val = self.conv.value_from_dict(data)
         if val is None:
+            if isinstance(self.conv, MiotConditionConv):
+                self._attr_is_on = None
             return
         if self.custom_reverse:
             self._attr_extra_state_attributes['reverse_state'] = True
@@ -102,6 +134,9 @@ class BinarySensorEntity(XEntity, BaseEntity, RestoreEntity):
         self._attr_is_on = val
 
     def get_state(self) -> dict:
+        if isinstance(self.conv, MiotConditionConv):
+            # Restored enum comparisons are not a current appliance reading.
+            return {}
         return {self.attr: not self._attr_is_on if self.custom_reverse else self._attr_is_on}
 
     @cached_property
