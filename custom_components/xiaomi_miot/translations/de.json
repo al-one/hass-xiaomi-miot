@@ -160,6 +160,36 @@
             },
             "pet_drinking_fountain-fault": {
                 "name": "Fehler"
+            },
+            "dehumidifier_tank_full": {
+                "name": "Wassertank voll"
+            },
+            "dehumidifier_temperature_humidity_sensor_fault": {
+                "name": "Störung des Temperatur- und Feuchtigkeitssensors"
+            },
+            "dehumidifier_coil_temperature_sensor_fault": {
+                "name": "Störung des Rohrtemperatursensors"
+            },
+            "dehumidifier_internal_communication_fault": {
+                "name": "Störung der internen Kommunikation"
+            },
+            "dehumidifier_filter_cleaning_due": {
+                "name": "Filterreinigung erforderlich"
+            },
+            "dehumidifier_defrosting": {
+                "name": "Abtauen"
+            },
+            "dehumidifier_fan_fault": {
+                "name": "Lüfterstörung"
+            },
+            "dehumidifier_compressor_overload_protection": {
+                "name": "Überlastschutz des Kompressors"
+            },
+            "dehumidifier_low_refrigerant_protection": {
+                "name": "Schutz bei Kältemittelmangel"
+            },
+            "dehumidifier_operating_temperature_out_of_range": {
+                "name": "Temperatur außerhalb des Betriebsbereichs"
             }
         },
         "switch": {

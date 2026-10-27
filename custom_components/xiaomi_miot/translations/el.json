@@ -160,6 +160,36 @@
             },
             "pet_drinking_fountain-fault": {
                 "name": "Σφάλμα"
+            },
+            "dehumidifier_tank_full": {
+                "name": "Γεμάτο δοχείο νερού"
+            },
+            "dehumidifier_temperature_humidity_sensor_fault": {
+                "name": "Βλάβη αισθητήρα θερμοκρασίας και υγρασίας"
+            },
+            "dehumidifier_coil_temperature_sensor_fault": {
+                "name": "Βλάβη αισθητήρα θερμοκρασίας σωλήνα"
+            },
+            "dehumidifier_internal_communication_fault": {
+                "name": "Βλάβη εσωτερικής επικοινωνίας"
+            },
+            "dehumidifier_filter_cleaning_due": {
+                "name": "Απαιτείται καθαρισμός φίλτρου"
+            },
+            "dehumidifier_defrosting": {
+                "name": "Απόψυξη"
+            },
+            "dehumidifier_fan_fault": {
+                "name": "Βλάβη ανεμιστήρα"
+            },
+            "dehumidifier_compressor_overload_protection": {
+                "name": "Προστασία υπερφόρτωσης συμπιεστή"
+            },
+            "dehumidifier_low_refrigerant_protection": {
+                "name": "Προστασία λόγω έλλειψης ψυκτικού"
+            },
+            "dehumidifier_operating_temperature_out_of_range": {
+                "name": "Θερμοκρασία εκτός εύρους λειτουργίας"
             }
         },
         "switch": {

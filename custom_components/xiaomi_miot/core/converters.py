@@ -97,29 +97,29 @@ class AttrConv(BaseConv):
 
 @dataclass
 class MiotConditionConv(BaseConv):
-    """A read-only reported condition derived from one reviewed numeric enum."""
+    """Report whether the device's status code matches one named condition."""
 
-    source: 'MiotProperty' = None
-    value: int = None
-    values: tuple[int, ...] = ()
+    source_property: 'MiotProperty' = None
+    active_code: int = None
+    known_codes: tuple[int, ...] = ()
 
     def __post_init__(self):
         super().__post_init__()
-        self.mi = self.source.unique_prop
+        self.mi = self.source_property.unique_prop
 
     @property
-    def availability_attr(self):
+    def availability_attribute(self):
         return f'{self.full_name}.available'
 
-    def decode(self, device: 'Device', payload: dict, value):
-        payload[self.full_name] = (
-            value == self.value if type(value) is int and value in self.values else None
-        )
-        payload[self.availability_attr] = True
+    def decode(self, device: 'Device', payload: dict, reported_code):
+        # Reject booleans: Python considers True equal to the integer 1.
+        is_known_code = type(reported_code) is int and reported_code in self.known_codes
+        payload[self.full_name] = reported_code == self.active_code if is_known_code else None
+        payload[self.availability_attribute] = True
 
-    def decode_unavailable(self, payload: dict):
+    def mark_unavailable(self, payload: dict):
         payload[self.full_name] = None
-        payload[self.availability_attr] = False
+        payload[self.availability_attribute] = False
 
     def encode(self, device: 'Device', payload: dict, value):
         """Reported conditions cannot be written to the appliance."""

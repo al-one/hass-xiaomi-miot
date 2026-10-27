@@ -256,6 +256,36 @@
             },
             "pet_drinking_fountain-fault": {
                 "name": "Lỗi"
+            },
+            "dehumidifier_tank_full": {
+                "name": "Bình nước đầy"
+            },
+            "dehumidifier_temperature_humidity_sensor_fault": {
+                "name": "Lỗi cảm biến nhiệt độ và độ ẩm"
+            },
+            "dehumidifier_coil_temperature_sensor_fault": {
+                "name": "Lỗi cảm biến nhiệt độ ống"
+            },
+            "dehumidifier_internal_communication_fault": {
+                "name": "Lỗi giao tiếp nội bộ"
+            },
+            "dehumidifier_filter_cleaning_due": {
+                "name": "Cần vệ sinh bộ lọc"
+            },
+            "dehumidifier_defrosting": {
+                "name": "Đang xả băng"
+            },
+            "dehumidifier_fan_fault": {
+                "name": "Lỗi quạt"
+            },
+            "dehumidifier_compressor_overload_protection": {
+                "name": "Bảo vệ quá tải máy nén"
+            },
+            "dehumidifier_low_refrigerant_protection": {
+                "name": "Bảo vệ khi thiếu môi chất lạnh"
+            },
+            "dehumidifier_operating_temperature_out_of_range": {
+                "name": "Nhiệt độ ngoài phạm vi hoạt động"
             }
         },
         "switch": {

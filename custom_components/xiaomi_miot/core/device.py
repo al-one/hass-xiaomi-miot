@@ -557,9 +557,9 @@ class Device(CustomConfigHelper):
                 self.add_converter(AttrConv(attr, d))
 
         if custom_converters is None:
-            from .dehumidifier_conditions import dehumidifier_condition_converters
-            for conv in dehumidifier_condition_converters(self):
-                self.add_converter(conv)
+            from .dehumidifier_conditions import create_dehumidifier_condition_converters
+            for converter in create_dehumidifier_condition_converters(self):
+                self.add_converter(converter)
 
     async def init_coordinators(self):
         if dby := self.hass_device_disabled:
@@ -769,24 +769,26 @@ class Device(CustomConfigHelper):
                 if conv.mi == mi:
                     if value.get('code', 0):
                         if isinstance(conv, MiotConditionConv):
-                            conv.decode_unavailable(payload)
+                            conv.mark_unavailable(payload)
                     else:
                         conv.decode(self, payload, value.get('value'))
 
-    def decode_condition_results(self, payload: dict, mapping: dict):
-        """Invalidate only condition sources requested but absent/failed this poll."""
-        conditions = [c for c in self.converters if isinstance(c, MiotConditionConv)]
-        if not conditions:
+    def mark_missing_condition_readings_unavailable(self, payload: dict, requested_properties: dict):
+        """Mark conditions unavailable when their requested property has no response."""
+        condition_converters = [
+            converter for converter in self.converters if isinstance(converter, MiotConditionConv)
+        ]
+        if not condition_converters:
             return
-        requested = {
-            MiotSpec.unique_prop(m['siid'], piid=m['piid'])
-            for m in (mapping or {}).values()
+        requested_property_ids = {
+            MiotSpec.unique_prop(address['siid'], piid=address['piid'])
+            for address in (requested_properties or {}).values()
         }
-        for conv in conditions:
-            if conv.mi not in requested:
+        for converter in condition_converters:
+            if converter.mi not in requested_property_ids:
                 continue
-            if conv.full_name not in payload:
-                conv.decode_unavailable(payload)
+            if converter.full_name not in payload:
+                converter.mark_unavailable(payload)
 
     def decode_attrs(self, value: dict):
         if not isinstance(value, dict):
@@ -1062,7 +1064,7 @@ class Device(CustomConfigHelper):
             self.miot_results.to_attributes(self.props)
             self.data['updated'] = dt.now()
         payload = self.decode(results)
-        self.decode_condition_results(payload, mapping)
+        self.mark_missing_condition_readings_unavailable(payload, mapping)
         if payload:
             self.dispatch(payload)
         self.dispatch_info()

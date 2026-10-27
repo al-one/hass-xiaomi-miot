@@ -95,47 +95,47 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class BinarySensorEntity(XEntity, BaseEntity, RestoreEntity):
     async def async_get_last_extra_data(self):
         if isinstance(self.conv, MiotConditionConv):
+            # A saved "tank not full" state is not a fresh reading after restart.
             return None
         return await super().async_get_last_extra_data()
 
     def on_init(self):
         if isinstance(self.conv, MiotConditionConv):
             self._attr_is_on = None
-            self._source_available = True
+            self._condition_property_available = True
             self._attr_available = self.device.available
 
     def on_device_update(self, data: dict, only_info=False):
         if not isinstance(self.conv, MiotConditionConv):
             return super().on_device_update(data, only_info=only_info)
-        # A successful unrelated property read must not revive a failed source.
-        changed = False
+        # A temperature update cannot establish whether the status property is readable.
+        state_changed = False
         if not self.device.available:
-            self._source_available = False
+            self._condition_property_available = False
             self._attr_is_on = None
         elif not only_info and self.attr in data:
-            self._source_available = data.get(self.conv.availability_attr, True)
+            self._condition_property_available = data.get(self.conv.availability_attribute, True)
             self.set_state(data)
-            changed = True
-        available = self.device.available and self._source_available
-        changed = changed or self._attr_available != available
-        self._attr_available = available
-        if changed and self.added:
+            state_changed = True
+        condition_available = self.device.available and self._condition_property_available
+        state_changed = state_changed or self._attr_available != condition_available
+        self._attr_available = condition_available
+        if state_changed and self.added:
             self._async_write_ha_state()
 
     def set_state(self, data: dict):
-        val = self.conv.value_from_dict(data)
-        if val is None:
+        is_on = self.conv.value_from_dict(data)
+        if is_on is None:
             if isinstance(self.conv, MiotConditionConv):
                 self._attr_is_on = None
             return
         if self.custom_reverse:
             self._attr_extra_state_attributes['reverse_state'] = True
-            val = not val
-        self._attr_is_on = val
+            is_on = not is_on
+        self._attr_is_on = is_on
 
     def get_state(self) -> dict:
         if isinstance(self.conv, MiotConditionConv):
-            # Restored enum comparisons are not a current appliance reading.
             return {}
         return {self.attr: not self._attr_is_on if self.custom_reverse else self._attr_is_on}
 
