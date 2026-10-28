@@ -1,3 +1,4 @@
+import json
 from typing import TYPE_CHECKING, Any
 from dataclasses import dataclass
 from homeassistant.util import color, percentage
@@ -228,6 +229,81 @@ class MiotTimePropConv(MiotPropConv):
         if isinstance(value, dt_time):
             seconds = value.hour * 3600 + value.minute * 60 + value.second
             super().encode(device, payload, seconds)
+
+# The DND (`enable_time_period`) and cleaning-schedule (`order_clean`)
+# converters that used to live here were removed: xiaomi.vacuum.ov42gl's own
+# vacuum.py entity already builds equivalent time/switch/select sub-entities
+# directly off core/vacuum_schedule.py's pure-logic helpers (with correct
+# read-modify-write via its own in-memory `self._dnd`/`self._schedule`
+# state), so these converters were redundant duplicate entities - and their
+# read-modify-write cache (a `payload[...]` key read back from
+# `device.props`) never actually round-tripped through `device.props`,
+# silently clobbering sibling schedule fields on every write. See
+# core/vacuum_schedule.py for the live implementation.
+
+# Confirmed empirically by triggering each real fault and reading `fault`
+# (SIID2 PIID3) while the Xiaomi Home app showed the same fault on screen.
+# The spec gives this property no value-list (unlike e.g. `status`), so
+# these labels are empirical data, not sourced from the spec. Any other
+# code just shows as "Unknown fault (code N)" - extend this table as more
+# real faults are observed.
+FAULT_LABELS = {
+    0: 'No Fault',
+    320004: 'Wheel Error (turn the robot upside down and clean the wheels)',
+    210031: 'Clean Water Tank Empty or Not Installed (refill or install it)',
+    210032: 'Dirty Water Tank Full or Not Installed (empty or install the tank)',
+    210013: 'Dust Compartment Not Installed',
+    210002: 'Wheels Suspended (place the robot on a flat, level surface)',
+    210005: "Path Blocked (check for obstacles in the robot's path)",
+    210009: "Couldn't Return to Charging Station (make sure the dock is powered on and its surroundings are clear)",
+}
+
+@dataclass
+class MiotFaultLabelConv(MiotPropConv):
+    """Translates the raw `fault` code into a human-readable label (see
+    FAULT_LABELS above). The vacuum entity's own state just shows "paused"
+    for any hardware fault, with no detail - this is what actually shows
+    what's wrong. Read-only; no encode() override needed."""
+
+    def decode(self, device: 'Device', payload: dict, value):
+        try:
+            code = int(value)
+        except (TypeError, ValueError):
+            BaseConv.decode(self, device, payload, value)
+            return
+        BaseConv.decode(self, device, payload, FAULT_LABELS.get(code, f'Unknown fault (code {code})'))
+
+# `base_station_working_status` (SIID2 PIID18) holds JSON like
+# {"mode":3,"progress":69} while the base station is actively drying/
+# emptying dust/washing the mop - the built-in status sensor only shows the
+# spec's own vague "StationWorking"/"MultiTaskStationWorking" labels for
+# that whole period, with no detail on which of the three it actually is.
+# `mode` values are only confirmed by testing so far (1 Drying, 2 Dust
+# Emptying - confirmed via "Empty Dust" button, 3 Mop Washing); extend
+# BASE_STATION_MODE_LABELS as more are identified. This intentionally
+# doesn't attempt to hide/blank the value outside those periods (that would
+# need reading the sibling `status` property here too, adding real
+# complexity for a cosmetic-only improvement) - a stale reading is still
+# clearly labeled "Base Station Activity", not mistakeable for the main
+# vacuum status.
+BASE_STATION_MODE_LABELS = {1: 'Drying', 2: 'Dust Emptying', 3: 'Mop Washing'}
+
+@dataclass
+class MiotBaseStationModeConv(MiotPropConv):
+    def decode(self, device: 'Device', payload: dict, value):
+        try:
+            parsed = json.loads(value) if isinstance(value, str) else (value or {})
+        except (TypeError, ValueError):
+            parsed = {}
+        mode = parsed.get('mode')
+        if mode is None:
+            BaseConv.decode(self, device, payload, None)
+            return
+        label = BASE_STATION_MODE_LABELS.get(mode, f'Unknown mode ({mode})')
+        progress = parsed.get('progress')
+        if progress is not None:
+            label = f'{label} ({progress}%)'
+        BaseConv.decode(self, device, payload, label)
 
 @dataclass
 class MiotColorTempConv(MiotPropConv):
