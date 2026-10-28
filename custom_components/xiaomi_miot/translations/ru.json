@@ -157,6 +157,36 @@
             },
             "pet_drinking_fountain-fault": {
                 "name": "Неисправность"
+            },
+            "dehumidifier_tank_full": {
+                "name": "Бак полон"
+            },
+            "dehumidifier_temperature_humidity_sensor_fault": {
+                "name": "Неисправность датчика температуры и влажности"
+            },
+            "dehumidifier_coil_temperature_sensor_fault": {
+                "name": "Неисправность датчика температуры трубки"
+            },
+            "dehumidifier_internal_communication_fault": {
+                "name": "Ошибка внутренней связи"
+            },
+            "dehumidifier_filter_cleaning_due": {
+                "name": "Требуется очистка фильтра"
+            },
+            "dehumidifier_defrosting": {
+                "name": "Размораживание"
+            },
+            "dehumidifier_fan_fault": {
+                "name": "Неисправность вентилятора"
+            },
+            "dehumidifier_compressor_overload_protection": {
+                "name": "Защита от перегрузки компрессора"
+            },
+            "dehumidifier_low_refrigerant_protection": {
+                "name": "Защита при нехватке хладагента"
+            },
+            "dehumidifier_operating_temperature_out_of_range": {
+                "name": "Температура вне рабочего диапазона"
             }
         },
         "switch": {

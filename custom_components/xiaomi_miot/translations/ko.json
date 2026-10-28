@@ -256,6 +256,36 @@
             },
             "pet_drinking_fountain-fault": {
                 "name": "고장"
+            },
+            "dehumidifier_tank_full": {
+                "name": "물통 가득 참"
+            },
+            "dehumidifier_temperature_humidity_sensor_fault": {
+                "name": "온습도 센서 고장"
+            },
+            "dehumidifier_coil_temperature_sensor_fault": {
+                "name": "배관 온도 센서 고장"
+            },
+            "dehumidifier_internal_communication_fault": {
+                "name": "내부 통신 오류"
+            },
+            "dehumidifier_filter_cleaning_due": {
+                "name": "필터 청소 필요"
+            },
+            "dehumidifier_defrosting": {
+                "name": "성에 제거 중"
+            },
+            "dehumidifier_fan_fault": {
+                "name": "팬 고장"
+            },
+            "dehumidifier_compressor_overload_protection": {
+                "name": "압축기 과부하 보호"
+            },
+            "dehumidifier_low_refrigerant_protection": {
+                "name": "냉매 부족 보호"
+            },
+            "dehumidifier_operating_temperature_out_of_range": {
+                "name": "작동 온도 범위 벗어남"
             }
         },
         "switch": {

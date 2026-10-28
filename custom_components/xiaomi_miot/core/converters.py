@@ -96,6 +96,35 @@ class AttrConv(BaseConv):
     pass
 
 @dataclass
+class MiotConditionConv(BaseConv):
+    """Report whether the device's status code matches one named condition."""
+
+    source_property: 'MiotProperty' = None
+    active_code: int = None
+    known_codes: tuple[int, ...] = ()
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.mi = self.source_property.unique_prop
+
+    @property
+    def availability_attribute(self):
+        return f'{self.full_name}.available'
+
+    def decode(self, device: 'Device', payload: dict, reported_code):
+        # Reject booleans: Python considers True equal to the integer 1.
+        is_known_code = type(reported_code) is int and reported_code in self.known_codes
+        payload[self.full_name] = reported_code == self.active_code if is_known_code else None
+        payload[self.availability_attribute] = True
+
+    def mark_unavailable(self, payload: dict):
+        payload[self.full_name] = None
+        payload[self.availability_attribute] = False
+
+    def encode(self, device: 'Device', payload: dict, value):
+        """Reported conditions cannot be written to the appliance."""
+
+@dataclass
 class MiotPropConv(BaseConv):
     prop: 'MiotProperty' = None
     desc: bool = None

@@ -242,6 +242,36 @@
             },
             "pet_drinking_fountain-fault": {
                 "name": "Hiba"
+            },
+            "dehumidifier_tank_full": {
+                "name": "Tartály megtelt"
+            },
+            "dehumidifier_temperature_humidity_sensor_fault": {
+                "name": "Hőmérséklet- és páratartalom-érzékelő hibája"
+            },
+            "dehumidifier_coil_temperature_sensor_fault": {
+                "name": "Csőhőmérséklet-érzékelő hibája"
+            },
+            "dehumidifier_internal_communication_fault": {
+                "name": "Belső kommunikációs hiba"
+            },
+            "dehumidifier_filter_cleaning_due": {
+                "name": "Szűrőtisztítás szükséges"
+            },
+            "dehumidifier_defrosting": {
+                "name": "Leolvasztás"
+            },
+            "dehumidifier_fan_fault": {
+                "name": "Ventilátorhiba"
+            },
+            "dehumidifier_compressor_overload_protection": {
+                "name": "Kompresszor túlterhelésvédelme"
+            },
+            "dehumidifier_low_refrigerant_protection": {
+                "name": "Hűtőközeghiány miatti védelem"
+            },
+            "dehumidifier_operating_temperature_out_of_range": {
+                "name": "Üzemi hőmérséklet a megengedett tartományon kívül"
             }
         },
         "switch": {
