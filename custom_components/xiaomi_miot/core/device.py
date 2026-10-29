@@ -1008,19 +1008,24 @@ class Device(CustomConfigHelper):
                     raise MiCloudException('Cloud API returned None response, possible timeout or empty data')
                 if check_lan and self.local:
                     await self.local.async_info()
+                if self._cloud_state is False:
+                    self.log.info('Cloud request succeeded again after %s failures, marking available', self._cloud_fails)
                 self.available = True
                 self._cloud_fails = 0
                 self._cloud_state = True
                 results = self.normalize_miot_results(results)
                 self.miot_results.set_results(results, mapping)
             except MiCloudException as exc:
+                was_unavailable = self._cloud_state is False
                 self._cloud_fails += 1
                 self._cloud_state = self._cloud_fails <= 3
                 self.miot_results.errors = exc
 
                 if not self._cloud_state:
                     self.available = False
-                    self.log.error('Cloud request failed %s times, marking unavailable. %s', self._cloud_fails, exc)
+                    # Log the transition to unavailable once, not on every poll while the cloud stays down
+                    log = self.log.debug if was_unavailable else self.log.error
+                    log('Cloud request failed %s times, marking unavailable. %s', self._cloud_fails, exc)
                 else:
                     self.log.info('Cloud request failed (%sth time), will retry. %s', self._cloud_fails, exc)
 
