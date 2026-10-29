@@ -358,7 +358,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         )
 
     async def async_step_cloud(self, user_input=None):
-        # pylint: disable=invalid-name
         errors = {}
         if user_input is None:
             user_input = {}
