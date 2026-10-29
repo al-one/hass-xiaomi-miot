@@ -507,6 +507,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         except MiCloudNeedVerify:
             return await self.async_step_reauth_verify()
         except MiCloudAuthenticationError as err:
+            if self._reauth_captcha_challenge(candidate):
+                return await self.async_step_reauth_captcha()
             errors['base'] = 'invalid_auth'
             self.placeholders['tip'] = str(err)
             return self._show_reauth_form(
@@ -515,6 +517,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 errors=errors,
             )
         except Exception:
+            if self._reauth_captcha_challenge(candidate):
+                return await self.async_step_reauth_captcha()
             errors['base'] = 'unknown'
             return self._show_reauth_form(
                 'reauth_password',
