@@ -15,6 +15,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.helpers.entity_platform import EntityPlatform
 
 from custom_components.xiaomi_miot.core.miot_spec import MiotSpec
+from custom_components.xiaomi_miot.core.utils import DeviceException
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.binary_sensor import BinarySensorEntity
 from custom_components.xiaomi_miot.number import NumberEntity
@@ -24,6 +25,20 @@ from custom_components.xiaomi_miot.select import SelectEntity
 
 
 MODEL = "xiaomi.plug.04"
+
+
+async def test_plug_04_local_mode_does_not_fall_back_to_cloud(hass, make_device, load_miot_spec):
+    device = make_device(load_miot_spec('xiaomi.plug.04.json'), model=MODEL)
+    config = {'username': 'test-user', 'conn_mode': 'local'}
+    device.entry.get_config = lambda key=None, default=None: config.get(key, default)
+    device.local = SimpleNamespace(
+        async_get_properties_for_mapping=AsyncMock(side_effect=DeviceException('offline')),
+    )
+    device.cloud = SimpleNamespace(async_get_properties_for_mapping=AsyncMock(return_value=[]))
+    await device.update_miot_status(
+        mapping={'switch.on': {'siid': 2, 'piid': 1}}, max_properties=1,
+    )
+    device.cloud.async_get_properties_for_mapping.assert_not_awaited()
 
 
 def test_plug_04_chinese_select_translation_preserves_existing_entities():
