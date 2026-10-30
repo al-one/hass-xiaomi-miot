@@ -58,7 +58,7 @@ class XiaoaiPlayText(intent.IntentHandler):
         states = match_states_from_slots(intent_obj, slots, [Platform.MEDIA_PLAYER])
         state = states[0]
         for sta in states:
-            if 'xiaomi' in state.entity_id:
+            if 'xiaomi' in sta.entity_id:
                 state = sta
                 break
 
@@ -108,7 +108,7 @@ class XiaoaiExecuteCommand(intent.IntentHandler):
         states = match_states_from_slots(intent_obj, slots, [Platform.MEDIA_PLAYER])
         state = states[0]
         for sta in states:
-            if 'xiaomi' in state.entity_id:
+            if 'xiaomi' in sta.entity_id:
                 state = sta
                 break
 
