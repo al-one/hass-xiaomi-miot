@@ -1,6 +1,8 @@
 """Support for Xiaomi vacuums."""
 import logging
 import asyncio
+import json
+import time
 from datetime import timedelta
 
 from homeassistant.components.vacuum import (  # noqa: F401
@@ -9,6 +11,12 @@ from homeassistant.components.vacuum import (  # noqa: F401
     VacuumActivity,
     VacuumEntityFeature,  # v2022.5
 )
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+try:
+    from homeassistant.components.vacuum import Segment  # v2026.3
+except ImportError:
+    Segment = None
 
 from . import (
     DOMAIN,
@@ -49,7 +57,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for srv in spec.get_services(ENTITY_DOMAIN, 'mopping_machine'):
             if not srv.get_property('status'):
                 continue
-            if model in MIOT_LOCAL_MODELS:
+            if model.startswith('xtl.vacuum.') and spec.get_service('robotic_vacuum'):
+                entities.append(MiotXtlVacuumEntity(config, srv))
+            elif model in MIOT_LOCAL_MODELS:
                 entities.append(MiotVacuumEntity(config, srv))
             elif 'roborock.' in model or 'rockrobo.' in model:
                 entities.append(MiotRoborockVacuumEntity(config, srv))
@@ -404,3 +414,184 @@ class MiotViomiVacuumEntity(MiotVacuumEntity):
     async def async_clean_point(self, point):
         await self.async_miio_command('set_uploadmap', [0])
         return await self.async_miio_command('set_pointclean', [1, *point])
+
+
+class MiotXtlVacuumEntity(MiotVacuumEntity):
+    """XTL (Jonr P20 etc.): rooms, zones and spot via robotic-vacuum:start-clean.
+
+    start-clean takes [clean-type, clean-values] where clean-values is a JSON string:
+    3 = rooms "[3,4]" (room_id from the cloud map), 4 = zones, 8 ints per rectangle
+    "[x1,y1,x2,y1,x2,y2,x1,y2]" in the map position frame, 6 = spot "".
+    The robot ignores start-clean while a task is open, so stop-clean goes first.
+    See https://github.com/al-one/hass-xiaomi-miot/issues/2961
+    """
+    ROOMS_TTL = 3600
+
+    def __init__(self, config: dict, miot_service: MiotService):
+        super().__init__(config, miot_service)
+        self._srv_robot = miot_service.spec.get_service('robotic_vacuum')
+        self._act_start_clean = self._srv_robot.get_action('start_clean')
+        self._act_stop_clean = self._srv_robot.get_action('stop_clean')
+        self._act_clean_count = self._srv_robot.get_action('set_clean_count')
+        self._act_map_data = self._srv_robot.get_action('get_map_data')
+        self._prop_task = self._srv_robot.get_property('clean_type_status')
+        self._prop_return = self._srv_robot.get_property('return_status')
+        self._rooms = {}
+        self._rooms_time = 0
+        if self._act_start_clean:
+            self._supported_features |= VacuumEntityFeature.CLEAN_SPOT
+            if Segment and hasattr(VacuumEntityFeature, 'CLEAN_AREA'):
+                self._supported_features |= VacuumEntityFeature.CLEAN_AREA
+
+    @property
+    def supported_features(self):
+        return VacuumEntityFeature(self._supported_features)
+
+    async def async_update(self):
+        await super().async_update()
+        if not self._available or time.time() - self._rooms_time < self.ROOMS_TTL:
+            return
+        await self.async_refresh_rooms()
+
+    async def async_refresh_rooms(self):
+        """Read the room list from the map file the robot uploads to the cloud."""
+        self._rooms_time = time.time()
+        try:
+            rooms = await self.async_get_cloud_rooms()
+        except Exception as exc:
+            self.logger.warning('%s: Failed to load rooms from the cloud map: %s', self.name_model, exc)
+            return self._rooms
+        if rooms is None:
+            return self._rooms
+        self._rooms = rooms
+        self._state_attrs['rooms'] = {rid: r['name'] for rid, r in rooms.items()}
+        self._check_segments_changed()
+        return rooms
+
+    async def async_get_cloud_rooms(self):
+        cloud = self.xiaomi_cloud
+        if not cloud:
+            return None
+        obj_name = None
+        if self._act_map_data:
+            # out: map-data == "<uid>/<did>/0", the live map file
+            res = await self.async_call_action(self._act_map_data)
+            for out in res.get('out') or []:
+                obj_name = out.get('value') if isinstance(out, dict) else out
+        if not obj_name:
+            obj_name = f'{cloud.user_id}/{self.miot_did}/0'
+        url = None
+        for api in ['v2/home/get_interim_file_url_pro', 'v2/home/get_interim_file_url']:
+            rdt = await cloud.async_request_api(api, {'obj_name': obj_name}) or {}
+            if url := (rdt.get('result') or {}).get('url'):
+                break
+        if not url:
+            return None
+        session = async_get_clientsession(self.hass)
+        async with session.get(url, timeout=30) as rsp:
+            rsp.raise_for_status()
+            outer = json.loads(await rsp.read())
+        fields = outer.get('fields') or []
+        infos = json.loads(fields[3]) if len(fields) > 3 and fields[3] else []
+        outlines = {r['id']: r.get('data') or [] for r in (fields[9] if len(fields) > 9 else None) or []}
+        rooms = {}
+        for info in infos:
+            rid = info.get('room_id')
+            if rid is None:
+                continue
+            name = str(info.get('name') or '').strip()
+            if not name:
+                name = f'Room {rid}'
+                if area := _polygon_area(outlines.get(rid)):
+                    # unnamed in the app: the size helps to tell rooms apart (5 cm per map unit)
+                    name = f'{name} ({area * 0.0025:.1f} m²)'
+            rooms[rid] = {'name': name, 'id': info.get('id')}
+        self.logger.debug('%s: Rooms from %s: %s', self.name_model, obj_name, rooms)
+        return rooms
+
+    def _check_segments_changed(self):
+        if self.registry_entry is None or not (self._supported_features & VacuumEntityFeature.CLEAN_AREA):
+            return
+        last_seen = self.last_seen_segments
+        if last_seen is None:
+            return
+        if {s.id for s in last_seen} != {str(rid) for rid in self._rooms}:
+            self.async_create_segments_issue()
+
+    async def async_get_segments(self):
+        if not self._rooms or time.time() - self._rooms_time > 60:
+            await self.async_refresh_rooms()
+        return [Segment(id=str(rid), name=r['name']) for rid, r in self._rooms.items()]
+
+    async def async_clean_segments(self, segment_ids, **kwargs):
+        return await self.async_clean_rooms([int(s) for s in segment_ids])
+
+    async def async_clean_rooms(self, rooms, repeats=None):
+        return await self.async_start_clean(3, json.dumps([int(r) for r in rooms], separators=(',', ':')), repeats)
+
+    async def async_clean_zones(self, zones, repeats=None):
+        """zones: [[x1, y1, x2, y2], ...] in the map position frame (same as the vacuum position)."""
+        values = []
+        for z in zones:
+            x1, y1, x2, y2 = (int(round(v)) for v in z[:4])
+            x1, x2 = sorted([x1, x2])
+            y1, y2 = sorted([y1, y2])
+            values.extend([x1, y1, x2, y1, x2, y2, x1, y2])
+        if not values:
+            return False
+        return await self.async_start_clean(4, json.dumps(values, separators=(',', ':')), repeats)
+
+    async def async_clean_spot(self, **kwargs):
+        return await self.async_start_clean(6, '')
+
+    async def async_start_clean(self, clean_type, values, repeats=None):
+        if not self._act_start_clean:
+            return False
+        if self._task_open():
+            await self.async_call_action(self._act_stop_clean)
+            await asyncio.sleep(2)
+        if repeats and self._act_clean_count:
+            await self.async_call_action(self._act_clean_count, [min(max(int(repeats), 1), 2)])
+        result = await self.async_call_action(self._act_start_clean, [clean_type, values])
+        self.logger.info('%s: Start clean %s %s: %s', self.name_model, clean_type, values, result)
+        return result
+
+    def _task_open(self):
+        if not self._act_stop_clean:
+            return False
+        task = self._prop_task.from_device(self.device) if self._prop_task else None
+        ret = self._prop_return.from_device(self.device) if self._prop_return else None
+        # clean-type-status 0 None / 1 Idle, return-status 0 None / 1 Idle
+        return task not in (0, 1) or ret not in (0, 1, None)
+
+    async def async_stop(self, **kwargs):
+        # stop-sweeping is acknowledged but leaves the task open, stop-clean ends it
+        if self._act_stop_clean:
+            return await self.async_call_action(self._act_stop_clean)
+        return await super().async_stop(**kwargs)
+
+    async def async_send_command(self, command, params=None, **kwargs):
+        """Roborock-style commands, e.g. from the Xiaomi Vacuum Map Card.
+
+        app_segment_clean: [3, 4] or [{"segments": [3, 4], "repeat": 1}]
+        app_zoned_clean:   [[x1, y1, x2, y2, repeats], ...]
+        """
+        if command == 'app_segment_clean':
+            repeats = None
+            if params and isinstance(params[0], dict):
+                repeats = params[0].get('repeat')
+                params = params[0].get('segments') or []
+            return await self.async_clean_rooms(params or [], repeats)
+        if command == 'app_zoned_clean':
+            zones = [z for z in params or [] if len(z) >= 4]
+            repeats = zones[0][4] if zones and len(zones[0]) > 4 else None
+            return await self.async_clean_zones(zones, repeats)
+        return await super().async_send_command(command, params, **kwargs)
+
+
+def _polygon_area(data):
+    """Shoelace area of a flat [x0, y0, x1, y1, ...] outline, in map units²."""
+    if not data or len(data) < 6:
+        return 0
+    pts = list(zip(data[::2], data[1::2]))
+    return abs(sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(pts, pts[1:] + pts[:1]))) / 2
