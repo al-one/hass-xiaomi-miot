@@ -236,7 +236,7 @@ DEVICE_CUSTOMIZES = {
     },
     'careli.fryer.*': {
         'interval_seconds': 120,
-        'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook',
+        'button_actions': 'air_fryer.start_cook,pause,cancel_cooking,resume_cook,resume_cooking',
         'sensor_properties': 'status,fault,left_time,appoint_time_left',
         'switch_properties': 'auto_keep_warm,current_keep_warm,preheat,turn_pot_cfg,turn_pot_config',
         'select_properties': 'mode,food_quanty,preheat_switch,turn_pot,texture,target_cooking_measure',
@@ -1980,6 +1980,9 @@ DEVICE_CUSTOMIZES = {
         ],
     },
 
+    'viomi.vacuum.v10': {
+        'miio_properties': 's_area,s_time',
+    },
     'viomi.vacuum.v18': {
         'sensor_properties': 'vacuum.status,fault,door_state,mop_state,hypa_life,hypa_hours,'
                              'main_brush_life,main_brush_hours,side_brush_life,side_brush_hours,'
@@ -3094,6 +3097,19 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'alarm,other.clean,humidifier.dry',
         'select_properties': 'screen.brightness',
         'number_properties': 'speed_level',
+    },
+    'zhimi.toilet.va1': {
+        'binary_sensor_properties': 'toilet.seating_state,seat.seat_ring,seat.closestool_cover',
+        'sensor_properties': 'toilet.mode,toilet.current_inwater_temp,seat.current_seat_temp,'
+                             'filter.filter_life_level,toilet.user_work_statue',
+        'switch_properties': 'toilet.on,toilet.deodorization,alarm.alarm,seat.heating,'
+                             'seat.seat_heat_save,night_light.night_save',
+        'select_properties': 'toilet.washing_strength,toilet.nozzle_position,seat.heat_level,'
+                             'toilet.water_temperature,toilet.wind_temperature',
+        'number_properties': 'night_light.night_save_start_time,night_light.night_save_end_time,'
+                             'seat.seat_heat_save_start_time,seat.seat_heat_save_end_time',
+        'button_actions': 'stop_working,stoving,hip_washing,women_washing,'
+                          'user_one_process,user_two_process,user_three_process,user_four_process',
     },
     'zhimi.toilet.pa5': {
         'button_actions': 'flushing,open_cover_circle,close_cover_circle,stoving,hip_washing,women_washing,'

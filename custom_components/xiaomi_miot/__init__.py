@@ -594,9 +594,7 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
         action = event.data['action']
         registry = dr.async_get(hass)
         device_id = event.data.get('device_id')
-        if device_id not in registry.devices:
-            return
-        device = registry.async_get(device_id)
+        device = registry.async_get(device_id) if device_id else None
         if (not device or not device.identifiers
                 or device.entry_type == dr.DeviceEntryType.SERVICE):
             return
@@ -604,7 +602,12 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
         if identifier[0] != DOMAIN:
             return
         miot_device = None
-        for entry_id in device.config_entries:
+        if hasattr(device, 'config_entry_id'):
+            # hass 2026.8+: a device belongs to a single config entry
+            entry_ids = [device.config_entry_id] if device.config_entry_id else []
+        else:
+            entry_ids = device.config_entries
+        for entry_id in entry_ids:
             entry = HassEntry.ALL.get(entry_id)
             if not entry:
                 continue
