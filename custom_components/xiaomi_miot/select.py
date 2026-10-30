@@ -41,6 +41,7 @@ class SelectEntity(XEntity, BaseEntity, RestoreEntity):
     _attr_options = []
 
     def on_init(self):
+        self._attr_options = []
         if self._miot_property:
             self._attr_options = self._miot_property.list_descriptions()
         if self._miot_action:
