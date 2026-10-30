@@ -11,7 +11,9 @@ from homeassistant.helpers.restore_state import RestoredExtraData
 from custom_components.xiaomi_miot.core.converters import BaseConv
 from custom_components.xiaomi_miot.core.device import Device, DeviceInfo
 from custom_components.xiaomi_miot.core.hass_entity import XEntity
-from custom_components.xiaomi_miot.core.utils import local_zone, power_cost_period, parse_power_cost_records
+from custom_components.xiaomi_miot.core.utils import (
+    local_zone, power_cost_period, parse_power_cost_records, power_cost_decreased,
+)
 from custom_components.xiaomi_miot.core.templates import template
 from homeassistant.util import dt as dt_util
 from homeassistant.setup import async_setup_component
@@ -87,6 +89,83 @@ async def test_restore_previous_day_does_not_block_new_day(hass):
         await sensor.async_added_to_hass()
     assert sensor.native_value is None
     assert sensor.device._filter_power_cost_statistics({'power_cost_today': 15}, now) == {'power_cost_today': 15}
+
+
+@pytest.mark.parametrize('key,raw,ratio', [
+    ('power_cost_today', 164, 0.01),
+    ('power_cost_today_2', 14, 0.01),
+    ('power_cost_today', 1522893, 0.000001),
+    ('power_cost_month', 2752913, 0.000001),
+])
+@pytest.mark.parametrize('exact', [False, True])
+async def test_restore_preserves_raw_precision_and_accepts_identical_sample(hass, key, raw, ratio, exact):
+    sensor = make_sensor(hass, key, ratio)
+    now = datetime.now(local_zone(hass))
+    period = power_cost_period(sensor.attr, now)
+    native = round(raw * ratio, 3)
+    extra = {
+        'native_value': native, 'native_unit_of_measurement': 'kWh',
+        'power_cost_period': period,
+    }
+    if exact:
+        extra.update(raw_value=raw, value_ratio=ratio)
+    sensor.async_get_last_extra_data = AsyncMock(return_value=RestoredExtraData(extra))
+    sensor.async_get_last_state = AsyncMock(return_value=State(
+        'sensor.test_energy', str(native), {'unit_of_measurement': 'kWh'},
+        last_changed=now,
+    ))
+    with patch.object(XEntity, 'async_added_to_hass', new=AsyncMock()):
+        await sensor.async_added_to_hass()
+    assert sensor.native_value == native
+    if exact:
+        assert sensor.device.props[key] == raw
+        assert sensor.get_state()['raw_value'] == raw
+    else:
+        assert 'raw_value' not in sensor.get_state()
+    assert sensor.device._filter_power_cost_statistics({key: 0}, now) == {}
+    assert sensor.device._filter_power_cost_statistics({key: raw / 2}, now) == {}
+    attrs = sensor.device._filter_power_cost_statistics({key: raw}, now)
+    assert attrs == {key: raw}
+    sensor.device.props.update(attrs)
+    sensor.set_state({key: raw})
+    assert sensor.native_value == native
+    assert sensor.get_state()['raw_value'] == raw
+    # Once a real sample establishes precision, even a sub-display decline is rejected.
+    assert sensor.device._filter_power_cost_statistics({key: raw - 1}, now) == {}
+
+
+def test_raw_roundoff_keeps_baseline_without_warning():
+    key = 'power_cost_today'
+    now = datetime.now().astimezone()
+    device = SimpleNamespace(
+        props={key: 14.000000000000002}, log=Mock(),
+        data={'_power_cost_periods': {key: power_cost_period(key, now)}},
+    )
+    assert Device._filter_power_cost_statistics(device, {key: 14.0}, now) == device.props
+    device.log.warning.assert_not_called()
+
+
+@pytest.mark.parametrize('value,previous,decreased', [
+    (1.64, 1.6400000000000001, False),
+    (14.0, 14.000000000000002, False),
+    (0, 1e-15, True),
+    (1522893, 1523000, True),
+    (16.8, 17.5, True),
+])
+def test_decrease_tolerance_is_only_arithmetic_roundoff(value, previous, decreased):
+    assert power_cost_decreased(value, previous) is decreased
+
+
+def test_legacy_precision_does_not_leak_across_periods():
+    key = 'power_cost_today'
+    now = datetime.now().astimezone()
+    device = SimpleNamespace(
+        props={key: 1523000}, log=Mock(),
+        data={'_power_cost_periods': {key: power_cost_period(key, now - timedelta(days=1))},
+              '_power_cost_restore_scales': {key: 0.000001}},
+    )
+    assert Device._filter_power_cost_statistics(device, {key: 0}, now) == {key: 0}
+    assert key not in device.data['_power_cost_restore_scales']
 
 
 @pytest.mark.parametrize('value', [None, '', 'bad', float('nan'), float('inf'), -1, True])
