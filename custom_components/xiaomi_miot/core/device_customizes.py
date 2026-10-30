@@ -1980,6 +1980,9 @@ DEVICE_CUSTOMIZES = {
         ],
     },
 
+    'viomi.vacuum.v10': {
+        'miio_properties': 's_area,s_time',
+    },
     'viomi.vacuum.v18': {
         'sensor_properties': 'vacuum.status,fault,door_state,mop_state,hypa_life,hypa_hours,'
                              'main_brush_life,main_brush_hours,side_brush_life,side_brush_hours,'
