@@ -125,7 +125,8 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             if val is None:
                 pass
             elif val in self._prop_status.list_search(
-                'Cleaning', 'Sweeping', 'Mopping', 'Sweeping And Mopping', 'Washing', 'Go Washing',
+                'Cleaning', 'Sweeping', 'Mopping', 'Sweeping And Mopping', 'Sweeping and Mopping',
+                'Washing', 'Go Washing',
                 'Part Sweeping', 'Zone Sweeping', 'Select Sweeping', 'Spot Sweeping', 'Goto Target',
                 'Starting', 'Working', 'Busy', 'DustCollecting'
             ):
@@ -203,7 +204,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
     async def async_set_fan_speed(self, fan_speed, **kwargs):
         if self._prop_fan:
             val = self._prop_fan.list_value(fan_speed)
-            return self.async_set_property(self._prop_fan, val)
+            return await self.async_set_property(self._prop_fan, val)
         return False
 
     async def async_send_command(self, command, params=None, **kwargs):
