@@ -103,6 +103,7 @@ def _make_registry_device(**kwargs):
     return SimpleNamespace(
         id="device-id",
         identifiers={("xiaomi_miot", "aa:bb:cc:dd:ee:01")},
+        entry_type=None,
         name_by_user=None,
         disabled=False,
         **kwargs,

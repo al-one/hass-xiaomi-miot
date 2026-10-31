@@ -127,7 +127,8 @@
                     "renew_devices": "更新裝置列表",
                     "trans_options": "翻譯屬性值描述",
                     "disable_message": "停用米家 APP 通知訊息實體",
-                    "disable_scene_history": "停用米家場景歷史實體"
+                    "disable_scene_history": "停用米家場景歷史實體",
+                    "disable_manual_scenes": "停用米家場景手動控制"
                 }
             },
             "cloud_filter": {
@@ -167,6 +168,25 @@
             "can_reach_spec": "可取得 MIoT 規格",
             "logged_accounts": "已登入的帳號數量",
             "total_devices": "米家裝置總數量"
+        }
+    },
+    "exceptions": {
+        "scene_unavailable": {
+            "message": "此場景沒有可用的執行通道。"
+        },
+        "scene_busy": {
+            "message": "此場景正在執行，請勿重複觸發。"
+        },
+        "scene_failed": {
+            "message": "場景執行請求被拒絕。"
+        },
+        "scene_result_unknown": {
+            "message": "場景執行結果未知，未自動重試。"
+        }
+    },
+    "device": {
+        "manual_scenes": {
+            "name": "米家場景手動控制"
         }
     },
     "entity": {

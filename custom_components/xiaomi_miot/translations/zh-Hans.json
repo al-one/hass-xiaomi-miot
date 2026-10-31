@@ -136,7 +136,8 @@
                     "renew_devices": "更新设备列表",
                     "trans_options": "翻译属性值描述",
                     "disable_message": "禁用米家APP通知消息实体",
-                    "disable_scene_history": "禁用米家场景历史实体"
+                    "disable_scene_history": "禁用米家场景历史实体",
+                    "disable_manual_scenes": "禁用米家场景手动控制"
                 }
             },
             "cloud_filter": {
@@ -180,6 +181,25 @@
             "can_reach_spec": "可获取MIoT规格",
             "logged_accounts": "已登录的账户数量",
             "total_devices": "米家设备总数量"
+        }
+    },
+    "exceptions": {
+        "scene_unavailable": {
+            "message": "此场景没有可用的执行通道。"
+        },
+        "scene_busy": {
+            "message": "此场景正在执行，请勿重复触发。"
+        },
+        "scene_failed": {
+            "message": "场景执行请求被拒绝。"
+        },
+        "scene_result_unknown": {
+            "message": "场景执行结果未知，未自动重试。"
+        }
+    },
+    "device": {
+        "manual_scenes": {
+            "name": "米家场景手动控制"
         }
     },
     "entity": {
