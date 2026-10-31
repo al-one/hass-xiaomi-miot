@@ -2348,7 +2348,17 @@ MIIO_TO_MIOT_SPECS = {
             'prop.2.4': {'prop': 'color_mode'},
         },
     },
-    'yeelink.light.lamp2': 'yeelink.light.ceiling16',
+    'yeelink.light.lamp2': {
+        'extend_model': 'yeelink.light.ceiling16',
+        'miio_specs': {
+            'prop.2.102': {
+                'prop': 'delayoff',
+                'setter': 'cron_add',
+                'set_template': '{{ {"method": "cron_add", "params": [0, value|int]} if value|int > 0 '
+                                'else {"method": "cron_del", "params": [0, 0]} }}',
+            },
+        },
+    },
     'yeelink.light.lamp3': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},

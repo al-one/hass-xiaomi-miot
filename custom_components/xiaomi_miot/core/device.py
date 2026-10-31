@@ -617,9 +617,9 @@ class Device(CustomConfigHelper):
         if self.miio2miot:
             chunks = []
 
-        def update_factory(mapping, notify=False, chunk_services=None):
+        def update_factory(mapping, notify=False, chunk_services=None, use_cloud=None):
             async def _update():
-                result = await self.update_miot_status(mapping, chunk_services=chunk_services)
+                result = await self.update_miot_status(mapping, use_cloud=use_cloud, chunk_services=chunk_services)
                 if notify:
                     for entity in self.entities.values():
                         if isinstance(entity, XEntity):
@@ -651,8 +651,9 @@ class Device(CustomConfigHelper):
                 all_mapping.pop(k, None)
             notify = chunk.get('notify')
             chunk_services = chunk.get('chunk_services', 0)
+            use_cloud = True if chunk.get('cloud') and self.cloud else None
             coo = DataCoordinator(
-                self, update_factory(mapping, notify, chunk_services=chunk_services),
+                self, update_factory(mapping, notify, chunk_services=chunk_services, use_cloud=use_cloud),
                 name=f'chunk_{index}',
                 update_interval=timedelta(seconds=inter),
             )

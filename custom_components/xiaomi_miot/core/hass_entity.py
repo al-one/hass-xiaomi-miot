@@ -159,6 +159,8 @@ class XEntity(BasicEntity):
         if name := conv.option.get('name'):
             self._attr_name = name
             self._attr_translation_key = None
+        if tkey := self.custom_config(f'{conv.domain}_translation_key'):
+            self._attr_translation_key = tkey
 
         self.listen_attrs = {self.attr} | set(conv.attrs)
         if getattr(self, '_attr_name', None):
