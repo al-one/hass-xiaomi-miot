@@ -286,7 +286,6 @@ class ReauthState:
 
 
 class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=DOMAIN):
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
     filter_models = None
 
     @staticmethod
@@ -359,8 +358,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         )
 
     async def async_step_cloud(self, user_input=None):
-        # pylint: disable=invalid-name
-        self.CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
         errors = {}
         if user_input is None:
             user_input = {}

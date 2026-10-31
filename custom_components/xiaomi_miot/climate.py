@@ -26,6 +26,7 @@ from homeassistant.components.climate import (
 )
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util.unit_conversion import TemperatureConverter
 
 from . import (
     DOMAIN,
@@ -95,7 +96,18 @@ class BaseClimateEntity(BaseEntity):
     _attr_swing_horizontal_modes = None
     _attr_max_temp = None
     _attr_min_temp = None
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_current_temperature = None
+    _attr_native_target_temperature = None
+    _attr_native_target_temperature_high = None
+    _attr_native_target_temperature_low = None
+
+    if not hasattr(BaseEntity, 'native_temperature_unit'):  # HA < 2026.11
+        temperature_unit = property(lambda self: self._attr_native_temperature_unit)
+        current_temperature = property(lambda self: getattr(self, '_attr_native_current_temperature', None))
+        target_temperature = property(lambda self: getattr(self, '_attr_native_target_temperature', None))
+        target_temperature_high = property(lambda self: getattr(self, '_attr_native_target_temperature_high', None))
+        target_temperature_low = property(lambda self: getattr(self, '_attr_native_target_temperature_low', None))
 
     def on_init(self):
         self._attr_hvac_modes = []
@@ -141,7 +153,9 @@ class BaseClimateEntity(BaseEntity):
                     UnitOfTemperature.KELVIN,
                     UnitOfTemperature.FAHRENHEIT,
                 ]:
-                    ext[ATTR_CURRENT_TEMPERATURE] = self.hass.config.units.temperature(num, unit)
+                    ext[ATTR_CURRENT_TEMPERATURE] = TemperatureConverter.convert(
+                        num, unit, self._attr_native_temperature_unit,
+                    )
                 elif cls == SensorDeviceClass.HUMIDITY.value:
                     ext[ATTR_CURRENT_HUMIDITY] = num
         if ext:
@@ -218,7 +232,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 self._attr_min_temp = prop.range_min()
                 self._attr_max_temp = prop.range_max()
                 self._attr_target_temperature_step = prop.range_step()
-                self._attr_temperature_unit = self.prop_temperature_unit(prop)
+                self._attr_native_temperature_unit = self.prop_temperature_unit(prop)
                 self._attr_supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE
             elif prop.in_list([self._prop_temperature_name, 'temperature']):
                 if prop.in_list([self._prop_temperature_name]):
@@ -227,7 +241,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                     self._conv_current_temp = conv
                 else:
                     continue
-                self._attr_temperature_unit = self.prop_temperature_unit(prop)
+                self._attr_native_temperature_unit = self.prop_temperature_unit(prop)
             elif prop.in_list(['relative_humidity', 'humidity']):
                 self._conv_current_humidity = conv
             elif prop.in_list(['target_humidity']):
@@ -299,11 +313,11 @@ class ClimateEntity(XEntity, BaseClimateEntity):
         if self._conv_target_temp:
             val = self._conv_target_temp.value_from_dict(data)
             if val is not None:
-                self._attr_target_temperature = val
+                self._attr_native_target_temperature = val
         if self._conv_current_temp:
             val = self._conv_current_temp.value_from_dict(data)
             if val is not None:
-                self._attr_current_temperature = val
+                self._attr_native_current_temperature = val
 
         if self._conv_target_humidity:
             val = self._conv_target_humidity.value_from_dict(data)
@@ -317,7 +331,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     def update_attrs(self, attrs):
         temp = attrs.get(ATTR_CURRENT_TEMPERATURE)
         if temp is not None:
-            self._attr_current_temperature = temp
+            self._attr_native_current_temperature = temp
         humi = attrs.get(ATTR_CURRENT_HUMIDITY)
         if humi is not None:
             self._attr_current_humidity = humi
@@ -364,8 +378,8 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 self.log.warning('Unsupported hvac mode: %s', hvac)
             elif (desc := mode.get('description')) is not None:
                 dat[self._conv_mode.full_name] = desc
-                if self._conv_target_temp and self._attr_target_temperature and hvac in [HVACMode.HEAT, HVACMode.COOL]:
-                    dat[self._conv_target_temp.full_name] = self._attr_target_temperature
+                if self._conv_target_temp and self._attr_native_target_temperature and hvac in [HVACMode.HEAT, HVACMode.COOL]:
+                    dat[self._conv_target_temp.full_name] = self._attr_native_target_temperature
 
         temp = kwargs.get(ATTR_TEMPERATURE)
         if temp and self._conv_target_temp:
@@ -447,21 +461,21 @@ class MiirClimateEntity(MiotEntity, BaseClimateEntity, RestoreEntity):
                 elif mk == HVACMode.OFF:
                     self._attr_hvac_modes.append(mk)
 
-        self._attr_current_temperature = None
-        self._attr_temperature_unit = UnitOfTemperature.CELSIUS
+        self._attr_native_current_temperature = None
+        self._attr_native_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_max_temp = DEFAULT_MAX_TEMP
         self._attr_min_temp = DEFAULT_MIN_TEMP
         self._attr_target_temperature_step = 1
         self._prop_temperature = miot_service.get_property('ir_temperature')
         if self._prop_temperature:
             self._supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE
-            self._attr_temperature_unit = self._prop_temperature.unit_of_measurement
+            self._attr_native_temperature_unit = self._prop_temperature.unit_of_measurement
             self._attr_target_temperature_step = self._prop_temperature.range_step() or 1
             self._attr_max_temp = self._prop_temperature.range_max() or DEFAULT_MAX_TEMP
             self._attr_min_temp = self._prop_temperature.range_min() or DEFAULT_MIN_TEMP
-        self._attr_target_temperature_high = self._attr_max_temp
-        self._attr_target_temperature_low = self._attr_min_temp
-        self._attr_target_temperature = int((self._attr_max_temp - self._attr_min_temp) / 1.2) + self._attr_min_temp
+        self._attr_native_target_temperature_high = self._attr_max_temp
+        self._attr_native_target_temperature_low = self._attr_min_temp
+        self._attr_native_target_temperature = int((self._attr_max_temp - self._attr_min_temp) / 1.2) + self._attr_min_temp
 
         self._fan_modes = {}
         self._attr_fan_modes = []
@@ -488,7 +502,7 @@ class MiirClimateEntity(MiotEntity, BaseClimateEntity, RestoreEntity):
     async def async_update(self):
         self.update_bind_sensor()
         if ATTR_CURRENT_TEMPERATURE in self._state_attrs:
-            self._attr_current_temperature = self._state_attrs.get(ATTR_CURRENT_TEMPERATURE)
+            self._attr_native_current_temperature = self._state_attrs.get(ATTR_CURRENT_TEMPERATURE)
 
     @property
     def is_on(self):
@@ -548,7 +562,7 @@ class MiirClimateEntity(MiotEntity, BaseClimateEntity, RestoreEntity):
         if ATTR_TEMPERATURE in kwargs:
             val = kwargs.get(ATTR_TEMPERATURE)
             if ret := await self.async_set_property(self._prop_temperature, val):
-                self._attr_target_temperature = val
+                self._attr_native_target_temperature = val
         return ret
 
     async def async_set_fan_mode(self, fan_mode):
