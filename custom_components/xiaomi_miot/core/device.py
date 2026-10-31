@@ -1003,7 +1003,9 @@ class Device(CustomConfigHelper):
         if use_cloud:
             try:
                 self.miot_results.updater = 'cloud'
-                results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
+                results = await self.cloud.async_get_properties_for_mapping(
+                    self.did, mapping, use_rpc=self.custom_config_bool('miot_cloud_rpc'),
+                )
                 if results is None:
                     raise MiCloudException('Cloud API returned None response, possible timeout or empty data')
                 if check_lan and self.local:
@@ -1121,7 +1123,9 @@ class Device(CustomConfigHelper):
             if self.use_local and self._local_state:
                 results = await self.local.async_get_properties_for_mapping(did=self.did, mapping=mapping)
             elif self.cloud:
-                results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
+                results = await self.cloud.async_get_properties_for_mapping(
+                    self.did, mapping, use_rpc=self.custom_config_bool('miot_cloud_rpc'),
+                )
         except (DeviceException, MiCloudException) as exc:
             self.log.error(
                 'Got exception while get properties: %s, mapping: %s, miio: %s',

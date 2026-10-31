@@ -103,7 +103,7 @@ class MiotCloud(micloud.MiCloud):
         uid = self.user_id or self.username
         return f'{uid}-{self.default_server}-{self.sid}'
 
-    async def async_get_properties_for_mapping(self, did, mapping: dict):
+    async def async_get_properties_for_mapping(self, did, mapping: dict, use_rpc=False):
         pms = []
         rmp = {}
         for k, v in mapping.items():
@@ -113,7 +113,11 @@ class MiotCloud(micloud.MiCloud):
             p = v.get('piid')
             pms.append({'did': str(did), 'siid': s, 'piid': p})
             rmp[f'prop.{s}.{p}'] = k
-        rls = await self.async_get_props(pms)
+        rls = None
+        if use_rpc:
+            rls = await self.async_get_props_rpc(did, pms)
+        if rls is None:
+            rls = await self.async_get_props(pms)
         if not rls:
             return None
         dls = []
@@ -129,6 +133,25 @@ class MiotCloud(micloud.MiCloud):
 
     async def async_get_props(self, params=None):
         return await self.async_request_miot_spec('prop/get', params)
+
+    async def async_get_props_rpc(self, did, params):
+        """Read properties live from the device through the cloud RPC relay.
+
+        `miotspec/prop/get` returns the values cached by the cloud, which can stay
+        stale for devices that do not report every change. Returns None on any
+        failure so the caller can fall back to the cached read.
+        """
+        try:
+            rsp = await self.async_request_api(f'v2/home/rpc/{did}', {
+                'method': 'get_properties',
+                'params': params or [],
+            }) or {}
+        except (MiCloudException, TypeError, ValueError):
+            return None
+        result = rsp.get('result')
+        if rsp.get('code') != 0 or not isinstance(result, list) or not result:
+            return None
+        return result
 
     @aiohttp_retry(3, logger=_LOGGER)
     async def async_set_props(self, params=None):

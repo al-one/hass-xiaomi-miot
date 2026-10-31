@@ -1116,6 +1116,8 @@ DEVICE_CUSTOMIZES = {
         'miio_cloud_records_interval': 300,
         'miio_cloud_records_days': 365,
         'miio_event_7.4_template': 'ijai_vacuum_v3_clean_record',
+        'miot_cloud_rpc': True,
+        'interval_seconds': 30,
     },
     'ijai.vacuum.v3:cleaning_area': {
         'unit_of_measurement': '㎡',
