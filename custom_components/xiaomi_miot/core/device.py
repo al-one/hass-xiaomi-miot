@@ -1277,6 +1277,9 @@ class Device(CustomConfigHelper):
     def cloud_statistics_commands(self):
         commands = self.custom_config_list('micloud_statistics') or []
         if keys := self.custom_config_list('stat_power_cost_key'):
+            tpl = self.custom_config(
+                'stat_power_cost_template', 'micloud_statistics_power_cost',
+            )
             for k in keys:
                 commands.append({
                     'type': self.custom_config('stat_power_cost_type', 'stat_day_v3'),
@@ -1284,7 +1287,7 @@ class Device(CustomConfigHelper):
                     'day': 32,
                     'limit': 31,
                     'attribute': None,
-                    'template': 'micloud_statistics_power_cost',
+                    'template': tpl,
                 })
         return commands
 
