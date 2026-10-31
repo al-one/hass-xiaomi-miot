@@ -1160,6 +1160,7 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     'iot.switch.padw2p': {
+        'auto_cloud': True,
         'sensor_properties': 'temperature,electric_power,electric_current,voltage',
         'select_properties': 'default_power_on_state',
         'switch_properties': 'screen.on,self_check,leak_switch,voice_switch',
