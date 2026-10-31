@@ -1445,6 +1445,20 @@ DEVICE_CUSTOMIZES = {
     'lxzn.switch.cbcsmj:voltage': {'value_ratio': 0.1},
     'lxzn.switch.cbcsmj:electric_current': {'value_ratio': 0.001},
 
+    'ykcn.switch.cbcsmj': {
+        'sensor_properties': 'electric_power',
+        'select_properties': 'default_power_on_state',
+        'switch_properties': 'electric_alarm_set,overcurrent_set,overvoltage_set,undervoltage_set',
+        'number_properties': 'electric_alarm,overcurrent_alarm,overvoltage_alarm,undervoltage_alarm',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'miio_cloud_records': 'prop.3.1:32:raw',
+        'miio_prop_3.1_template': 'ykcn_switch_cbcsmj_power_cost',
+    },
+    'ykcn.switch.cbcsmj:voltage': {'value_ratio': 0.1},
+    'ykcn.switch.cbcsmj:electric_current': {'value_ratio': 0.001},
+    'ykcn.switch.cbcsmj:power_cost_today': ENERGY_KWH,
+    'ykcn.switch.cbcsmj:power_cost_month': ENERGY_KWH,
+
     'madv.cateye.mi3iot': {
         'binary_sensor_properties': 'madv_doorbell.motion_detection',
         'sensor_properties': 'battery_level',

@@ -1,0 +1,62 @@
+{
+  "type": "urn:miot-spec-v2:device:switch:0000A003:ykcn-cbcsmj:1",
+  "description": "Switch",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:ykcn-cbcsmj:1",
+      "description": "Device Information",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:manufacturer:00000001:ykcn-cbcsmj:1", "description": "Device Manufacturer", "format": "string", "access": ["read"]},
+        {"iid": 2, "type": "urn:miot-spec-v2:property:model:00000002:ykcn-cbcsmj:1", "description": "Device Model", "format": "string", "access": ["read"]},
+        {"iid": 3, "type": "urn:miot-spec-v2:property:serial-number:00000003:ykcn-cbcsmj:1", "description": "Device ID", "format": "string", "access": ["read"], "comment": "设备ID"},
+        {"iid": 4, "type": "urn:miot-spec-v2:property:firmware-revision:00000005:ykcn-cbcsmj:1", "description": "Current Firmware Version", "format": "string", "access": ["read"]},
+        {"iid": 5, "type": "urn:miot-spec-v2:property:serial-no:000000FF:ykcn-cbcsmj:1", "description": "Serial Number", "format": "string", "access": ["read", "notify"], "comment": "SN码"}
+      ],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:switch:0000780C:ykcn-cbcsmj:1",
+      "description": "Switch",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:on:00000006:ykcn-cbcsmj:1", "description": "Switch Status", "format": "bool", "access": ["read", "write", "notify"], "comment": "开关"},
+        {"iid": 5, "type": "urn:miot-spec-v2:property:fault:00000009:ykcn-cbcsmj:1", "description": "Device Fault", "format": "uint8", "access": ["read", "notify"], "value-list": [{"value": 0, "description": "No Faults", "comment": "无故障"}, {"value": 1, "description": "Faults", "comment": "功率过高"}], "gatt-access": [], "comment": "故障"},
+        {"iid": 8, "type": "urn:miot-spec-v2:property:default-power-on-state:00000105:ykcn-cbcsmj:1", "description": "Default Power On State", "format": "uint8", "access": ["read", "write", "notify"], "value-list": [{"value": 0, "description": "Off", "comment": "上电关闭"}, {"value": 2, "description": "Default", "comment": "断电记忆"}, {"value": 1, "description": "On", "comment": "上电打开"}], "gatt-access": [], "comment": "默认上电状态"}
+      ],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:power-consumption:0000780E:ykcn-cbcsmj:1",
+      "description": "Power Consumption",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:power-consumption:0000002F:ykcn-cbcsmj:1", "description": "Power Consumption", "format": "uint32", "access": ["read", "notify"], "unit": "kWh", "value-range": [0, 99999999, 1], "gatt-access": [], "comment": "耗电量"},
+        {"iid": 2, "type": "urn:miot-spec-v2:property:electric-current:00000030:ykcn-cbcsmj:1", "description": "Electric Current", "format": "uint32", "access": ["read", "notify"], "value-range": [0, 16777216, 1], "gatt-access": [], "comment": "电流"},
+        {"iid": 3, "type": "urn:miot-spec-v2:property:voltage:00000031:ykcn-cbcsmj:1", "description": "Voltage", "format": "uint32", "access": ["read", "notify"], "value-range": [0, 65535, 1], "gatt-access": [], "comment": "电压"},
+        {"iid": 6, "type": "urn:miot-spec-v2:property:electric-power:00000066:ykcn-cbcsmj:1", "description": "Electric Power", "format": "int32", "access": ["read", "notify"], "unit": "watt", "value-range": [0, 16777216, 1], "gatt-access": [], "comment": "电功率"}
+      ],
+      "actions": [],
+      "events": []
+    },
+    {
+      "iid": 4,
+      "type": "urn:ykcn-spec:service:fault-setting:00007801:ykcn-cbcsmj:1",
+      "description": "fault-setting",
+      "properties": [
+        {"iid": 1, "type": "urn:ykcn-spec:property:electric-alarm:00000001:ykcn-cbcsmj:1", "description": "electric-alarm", "format": "uint8", "access": ["read", "notify", "write"], "unit": "watt", "value-range": [1, 26, 1], "gatt-access": [], "comment": "功率过高-伐值设置"},
+        {"iid": 2, "type": "urn:ykcn-spec:property:electric-alarm-set:00000002:ykcn-cbcsmj:1", "description": "", "format": "bool", "access": ["read", "notify", "write"], "comment": "功率过高告警设置"},
+        {"iid": 5, "type": "urn:ykcn-spec:property:overcurrent-alarm:00000005:ykcn-cbcsmj:1", "description": "overcurrent-alarm", "format": "uint8", "access": ["read", "notify", "write"], "unit": "A", "value-range": [1, 82, 1], "gatt-access": [], "comment": "过流告警-阀值设置"},
+        {"iid": 6, "type": "urn:ykcn-spec:property:overcurrent-set:00000006:ykcn-cbcsmj:1", "description": "", "format": "bool", "access": ["read", "notify", "write"], "comment": "过流告警设置"},
+        {"iid": 7, "type": "urn:ykcn-spec:property:overvoltage-alarm:00000007:ykcn-cbcsmj:1", "description": "", "format": "uint16", "access": ["read", "write", "notify"], "unit": "V", "value-range": [220, 265, 1], "comment": "过压告警-阀值设置"},
+        {"iid": 8, "type": "urn:ykcn-spec:property:overvoltage-set:00000008:ykcn-cbcsmj:1", "description": "", "format": "bool", "access": ["read", "notify", "write"], "comment": "过压告警设置"},
+        {"iid": 9, "type": "urn:ykcn-spec:property:undervoltage-alarm:00000009:ykcn-cbcsmj:1", "description": "undervoltage-alarm", "format": "uint8", "access": ["read", "notify", "write"], "unit": "V", "value-range": [76, 240, 1], "gatt-access": [], "comment": "欠压告警-闽值设置"},
+        {"iid": 10, "type": "urn:ykcn-spec:property:undervoltage-set:0000000a:ykcn-cbcsmj:1", "description": "", "format": "bool", "access": ["read", "notify", "write"], "comment": "欠压告警设置"}
+      ],
+      "actions": [],
+      "events": []
+    }
+  ]
+}
