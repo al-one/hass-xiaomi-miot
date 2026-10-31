@@ -46,7 +46,13 @@ def test_ykcn_switch_cbcsmj_exposes_supported_entities(make_device, load_miot_sp
         "undervoltage_alarm",
     } <= set(numbers)
     assert "default_power_on_state" in selects
-    assert {"electric_power", "voltage", "electric_current"} <= set(sensors)
+    assert {"electric_power", "voltage", "electric_current", "fault"} <= set(sensors)
+    # fault carries a value list (no fault / over power), so it is a text
+    # sensor rather than a binary_sensor.
+    assert not any(
+        c.domain == "binary_sensor" and "fault" in (c.attr or "")
+        for c in device.converters
+    )
     # the device has no heat sensor, so no heat-alert entities are created
     assert not any("heat_alert" in name for name in switches)
     assert not any("heat_alert" in name for name in numbers)

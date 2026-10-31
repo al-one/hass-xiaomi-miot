@@ -1446,7 +1446,7 @@ DEVICE_CUSTOMIZES = {
     'lxzn.switch.cbcsmj:electric_current': {'value_ratio': 0.001},
 
     'ykcn.switch.cbcsmj': {
-        'sensor_properties': 'electric_power',
+        'sensor_properties': 'electric_power,fault',
         'select_properties': 'default_power_on_state',
         'switch_properties': 'electric_alarm_set,overcurrent_set,overvoltage_set,undervoltage_set',
         'number_properties': 'electric_alarm,overcurrent_alarm,overvoltage_alarm,undervoltage_alarm',
