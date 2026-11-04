@@ -327,7 +327,7 @@ class MiotSpec(MiotSpecInstance):
                         'Renew miot spec instances: %s, count: %s, model: %s',
                         fnm, len(sdt) - 1, model,
                     )
-            except (TypeError, ValueError, BaseException) as exc:
+            except Exception as exc:
                 if not cached:
                     raise exc
                 dat = cached
@@ -369,7 +369,7 @@ class MiotSpec(MiotSpecInstance):
                 dat = await MiotSpec.async_download_miot_spec(hass, url, tries=3)
                 dat['_updated_time'] = now
                 await store.async_save(dat)
-            except (TypeError, ValueError, BaseException) as exc:
+            except Exception as exc:
                 if cached:
                     dat = cached
                 else:
@@ -441,7 +441,7 @@ class MiotSpec(MiotSpecInstance):
                 dat = await MiotSpec.async_download_miot_spec(hass, url, tries=3)
                 dat['_updated_time'] = now
                 await store.async_save(dat)
-            except (TypeError, ValueError, BaseException) as exc:
+            except Exception as exc:
                 if cached:
                     dat = cached
                 else:
@@ -473,7 +473,7 @@ class MiotSpec(MiotSpecInstance):
                 except asyncio.TimeoutError as exc:
                     exception = exc
                     _LOGGER.warning('Timeout when trying to request %s', url)
-                except BaseException as exc:
+                except Exception as exc:
                     exception = exc
                     _LOGGER.warning('Got exception %s when trying to request %s', exc, url)
             tries -= 1
