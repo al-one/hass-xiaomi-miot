@@ -184,7 +184,7 @@ async def test_reauth_verify_empty_ticket_keeps_form_with_need_verify(flow_cls):
     )
     flow.async_show_form = MagicMock(side_effect=_fake_show_form)
     candidate = SimpleNamespace(
-        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart", "identity_ticket_sent": True},
         async_login_attempt=AsyncMock(),
     )
     flow._candidate = candidate
@@ -205,14 +205,14 @@ async def test_reauth_verify_verification_error_keeps_form(flow_cls):
     )
     flow.async_show_form = MagicMock(side_effect=_fake_show_form)
     candidate = SimpleNamespace(
-        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart", "identity_ticket_sent": True},
         async_login_attempt=AsyncMock(side_effect=MiCloudVerificationError("X")),
     )
     flow._candidate = candidate
 
     out = await flow.async_step_reauth_verify({"verify_ticket": "T"})
 
-    assert out["errors"]["base"] == "need_verify"
+    assert out["errors"]["base"] == "verify_invalid"
 
 
 async def test_reauth_verify_micoapi_sts_retry_runs_once(flow_cls):
@@ -227,6 +227,7 @@ async def test_reauth_verify_micoapi_sts_retry_runs_once(flow_cls):
     candidate = SimpleNamespace(
         attrs={
             "verify_url": "https://account.xiaomi.com/identity/authStart",
+            "identity_ticket_sent": True,
             "service_token": "OLD",
             "ssecurity": "OLD",
             "async_session": object(),
@@ -265,7 +266,7 @@ async def test_reauth_verify_micoapi_second_sts_returns_unknown(flow_cls):
     )
     flow.async_show_form = MagicMock(side_effect=_fake_show_form)
     candidate = SimpleNamespace(
-        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart", "identity_ticket_sent": True},
         service_token="OLD",
         ssecurity="OLD",
         async_session=object(),
@@ -582,18 +583,18 @@ async def test_reauth_password_form_exposes_only_tip(flow_cls):
     assert set(out["description_placeholders"]) == {"tip"}
 
 
-async def test_reauth_verify_form_exposes_only_tip_and_url(flow_cls):
+async def test_reauth_verify_form_does_not_expose_identity_url(flow_cls):
     flow = flow_cls()
     flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
     flow.context = {"entry_id": "eid"}
     flow.async_show_form = MagicMock(side_effect=_fake_show_form)
     flow._candidate = SimpleNamespace(
-        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart", "identity_ticket_sent": True},
     )
 
     out = await flow.async_step_reauth_verify()
 
-    assert set(out["description_placeholders"]) == {"tip", "verify_url"}
+    assert set(out["description_placeholders"]) == {"tip"}
 
 
 async def test_reauth_captcha_form_exposes_only_tip_and_image(flow_cls):
