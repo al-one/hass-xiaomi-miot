@@ -31,6 +31,7 @@ DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
 DEFAULT_MIN_TEMP = 40
 DEFAULT_MAX_TEMP = 65
+HAS_NATIVE_TEMPERATURE = hasattr(WaterHeaterEntity, 'native_temperature_unit')
 
 SERVICE_TO_METHOD = {}
 
@@ -120,14 +121,14 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         raise NotImplementedError()
 
     @property
-    def current_temperature(self):
+    def native_current_temperature(self):
         """Return the current temperature."""
         if self._prop_temperature:
             return round(self._prop_temperature.from_device(self.device) or 0, 2)
         return None
 
     @property
-    def temperature_unit(self):
+    def native_temperature_unit(self):
         prop = self._prop_temperature or self._prop_target_temp
         if prop:
             if prop.unit in ['celsius', UnitOfTemperature.CELSIUS]:
@@ -158,7 +159,7 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         raise NotImplementedError()
 
     @property
-    def target_temperature(self):
+    def native_target_temperature(self):
         """Return the temperature we try to reach."""
         if self._prop_target_temp:
             val = round(self._prop_target_temp.from_device(self.device) or 0, 2)
@@ -170,14 +171,14 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
         return None
 
     @property
-    def target_temperature_high(self):
+    def native_target_temperature_high(self):
         """Return the highbound target temperature we try to reach."""
         if self._prop_target_temp:
             return self._prop_target_temp.range_max()
         return None
 
     @property
-    def target_temperature_low(self):
+    def native_target_temperature_low(self):
         """Return the lowbound target temperature we try to reach."""
         if self._prop_target_temp:
             return self._prop_target_temp.range_min()
@@ -186,12 +187,12 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     @property
     def min_temp(self):
         """Return the minimum temperature."""
-        return self.target_temperature_low or DEFAULT_MIN_TEMP
+        return self.native_target_temperature_low or DEFAULT_MIN_TEMP
 
     @property
     def max_temp(self):
         """Return the maximum temperature."""
-        return self.target_temperature_high or DEFAULT_MAX_TEMP
+        return self.native_target_temperature_high or DEFAULT_MAX_TEMP
 
     @property
     def is_away_mode_on(self):
@@ -205,3 +206,12 @@ class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
     def turn_away_mode_off(self):
         """Turn away mode off."""
         raise NotImplementedError()
+
+
+if not HAS_NATIVE_TEMPERATURE:
+    # HA before 2026.11 exposes the non-native property names.
+    MiotWaterHeaterEntity.current_temperature = MiotWaterHeaterEntity.native_current_temperature
+    MiotWaterHeaterEntity.temperature_unit = MiotWaterHeaterEntity.native_temperature_unit
+    MiotWaterHeaterEntity.target_temperature = MiotWaterHeaterEntity.native_target_temperature
+    MiotWaterHeaterEntity.target_temperature_high = MiotWaterHeaterEntity.native_target_temperature_high
+    MiotWaterHeaterEntity.target_temperature_low = MiotWaterHeaterEntity.native_target_temperature_low
