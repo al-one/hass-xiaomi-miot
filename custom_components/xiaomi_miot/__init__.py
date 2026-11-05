@@ -910,6 +910,8 @@ class MiotEntityInterface:
 
 
 class MiotEntity(MiioEntity):
+    _entity_domain = DOMAIN
+
     def __init__(self, miot_service=None, device=None, **kwargs):
         self._config = dict(kwargs.get('config') or {})
         name = kwargs.get(CONF_NAME) or self._config.get(CONF_NAME) or ''
@@ -929,13 +931,13 @@ class MiotEntity(MiioEntity):
                     unreadable_properties=self.device._unreadable_properties,
                 ) or {}
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
-            self.entity_id = self._miot_service.generate_entity_id(self)
+            self.entity_id = self._miot_service.generate_entity_id(self, domain=self._entity_domain)
             self._attr_translation_key = self._miot_service.name
         if not self.entity_id and self.model:
             mls = f'{self.model}..'.split('.')
             mac = re.sub(r'[\W_]+', '', self.unique_mac)
             obj = f'{mls[0]}_{mls[2]}_{mac[-4:]}_{mls[1]}'
-            self.entity_id = f'{DOMAIN}.{slugify_object_id(obj)}'
+            self.entity_id = f'{self._entity_domain}.{slugify_object_id(obj)}'
         self._success_code = 0
         self.logger.info('%s: Initializing miot device with mapping: %s', self.name_model, self._miot_mapping)
 

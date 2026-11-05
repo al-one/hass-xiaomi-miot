@@ -412,6 +412,7 @@ XEntity.CLS[ENTITY_DOMAIN] = ClimateEntity
 
 
 class MiirClimateEntity(MiotEntity, BaseClimateEntity, RestoreEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._available = True

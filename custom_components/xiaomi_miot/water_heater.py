@@ -59,6 +59,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class MiotWaterHeaterEntity(MiotToggleEntity, WaterHeaterEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 
