@@ -1,5 +1,6 @@
 """Support number entity for Xiaomi Miot."""
 import logging
+import math
 
 from homeassistant.components.number import (
     DOMAIN as ENTITY_DOMAIN,
@@ -7,6 +8,7 @@ from homeassistant.components.number import (
     NumberMode,
 )
 from homeassistant.helpers.event import async_call_later
+from homeassistant.exceptions import ServiceValidationError
 
 from . import (
     DOMAIN,
@@ -52,7 +54,23 @@ class NumberEntity(XEntity, RestoreNumber):
             return
         self._attr_native_value = val
 
+    def _validated_native_value(self, value: float):
+        if not math.isfinite(value):
+            raise ServiceValidationError('Number value must be finite')
+        if self._miot_property and self._miot_property.is_integer:
+            if not math.isclose(value, round(value), rel_tol=0, abs_tol=1e-9):
+                raise ServiceValidationError('Number value must be an integer')
+            # Avoid truncating floating-point representation noise in the converter.
+            value = round(value)
+        step = self.native_step
+        if step and step > 0:
+            position = (value - self.native_min_value) / step
+            if not math.isclose(position, round(position), rel_tol=0, abs_tol=1e-7):
+                raise ServiceValidationError('Number value does not match the native step')
+        return value
+
     async def async_set_native_value(self, value: float):
+        value = self._validated_native_value(value)
         await self.device.async_write({self.attr: value})
 
         if self._miot_action:
