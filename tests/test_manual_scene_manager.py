@@ -316,3 +316,53 @@ async def test_stop_event_closes_owned_tasks_and_timer(managers):
     await manager.hass.async_block_till_done()
     assert manager._closed and manager._timer is None
     assert manager._unsub_stop is None
+
+
+async def test_home_reads_have_bounded_parallelism_and_unload_owns_workers(managers):
+    manager, cloud = managers()
+    cloud.async_get_manual_scene_homes.return_value = [
+        {**HOME, 'id': str(number)} for number in range(1, 9)
+    ]
+    entered = asyncio.Event()
+    active = set()
+    maximum = 0
+
+    async def records(home):
+        nonlocal maximum
+        active.add(home['home_id'])
+        maximum = max(maximum, len(active))
+        if len(active) == 3:
+            entered.set()
+        try:
+            await asyncio.Event().wait()
+        finally:
+            active.remove(home['home_id'])
+
+    cloud.async_get_manual_scene_home.side_effect = records
+    await manager.async_start()
+    task = manager._task
+    try:
+        async with asyncio.timeout(1):
+            await entered.wait()
+        assert maximum == 3
+        assert cloud.async_get_manual_scene_home.await_count == 3
+    finally:
+        await manager.async_close()
+    assert task.cancelled() and not active
+    assert manager._task is None and manager._timer is None
+    manager._store.async_save.assert_not_awaited()
+
+
+async def test_parallel_home_failure_retains_only_its_matching_owner(managers):
+    manager, cloud = managers()
+    cloud.async_get_manual_scene_homes.return_value = [HOME, {**HOME, 'id': '2'}]
+    await manager.async_start()
+    await manager._task
+    async def records(home):
+        if home['home_id'] == '1':
+            raise MiCloudException('synthetic failure')
+        return [{'scene_id': '12', 'scene_name': 'New'}]
+    cloud.async_get_manual_scene_home.side_effect = records
+    await refresh(manager)
+    assert set(manager.scenes) == {KEY, ('2', '12')}
+    assert manager.get_scene(KEY)['owner_uid'] == '1000'

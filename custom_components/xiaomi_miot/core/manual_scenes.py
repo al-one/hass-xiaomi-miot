@@ -19,6 +19,7 @@ from .xiaomi_cloud import MiCloudException, manual_scene_id, normalize_manual_sc
 
 _LOGGER = logging.getLogger(__name__)
 REFRESH_INTERVAL = 600
+HOME_READ_CONCURRENCY = 3
 
 
 def scene_key(scene):
@@ -209,7 +210,8 @@ class ManualScenes:
             self._homes, self._scenes = selected, retained
             self.notify()
         updated = {}
-        for home_id, home in selected.items():
+
+        async def read_home(home_id, home):
             try:
                 records = await self.cloud.async_get_manual_scene_home(home)
                 scenes = self._parse_scenes(home, records)
@@ -223,6 +225,22 @@ class ManualScenes:
             if not self.enabled:
                 return
             updated.update(scenes)
+
+        # Bound both requests and worker tasks. The refresh owns every worker,
+        # so cancellation/unload cannot leave background cloud reads running.
+        homes_to_read = iter(selected.items())
+
+        async def worker():
+            for home_id, home in homes_to_read:
+                if not self.enabled:
+                    return
+                await read_home(home_id, home)
+
+        async with asyncio.TaskGroup() as group:
+            for _ in range(min(HOME_READ_CONCURRENCY, len(selected))):
+                group.create_task(worker())
+        if not self.enabled:
+            return
         self._homes, self._scenes = selected, updated
         self.notify()
         payload = {'account': self._account, 'homes': [
