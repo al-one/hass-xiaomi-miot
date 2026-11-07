@@ -55,6 +55,7 @@ XEntity.CLS[ENTITY_DOMAIN] = SwitchEntity
 
 
 class MiotSwitchEntity(MiotToggleEntity, BaseEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._attr_icon = self._miot_service.entity_icon

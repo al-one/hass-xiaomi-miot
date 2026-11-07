@@ -291,6 +291,7 @@ XEntity.CLS[ENTITY_DOMAIN] = SensorEntity
 
 
 class MiotSensorEntity(MiotEntity, BaseEntity):
+    _entity_domain = ENTITY_DOMAIN
 
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
