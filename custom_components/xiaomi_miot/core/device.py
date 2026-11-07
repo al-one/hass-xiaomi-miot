@@ -1137,6 +1137,8 @@ class Device(CustomConfigHelper):
         try:
             results = await self.async_set_properties([pms])
             result = MiotResults(results).first
+            if result and self.is_miot_set_property_ack(pms, result.result):
+                result = MiotResult({**result.result, 'code': 0})
         except (DeviceException, MiCloudException) as exc:
             self.log.warning('Set miot property %s failed: %s', pms, exc)
             return MiotResult({}, code=-1, error=str(exc))
