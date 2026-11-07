@@ -620,9 +620,9 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
             return
         miot_device.log.info('Device registry updated: %s', [action, identifier, device.disabled])
         if device.disabled and miot_device.coordinators:
-            await miot_device.async_unload()
+            await miot_device.async_unload(unload_spec=False)
         if not device.disabled and not miot_device.coordinators:
-            await miot_device.init_coordinators()
+            await miot_device.async_init()
     hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, updated)
 
 

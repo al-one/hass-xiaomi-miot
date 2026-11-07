@@ -124,7 +124,7 @@ def _make_miot_device():
     async def init_coordinators():
         miot_device.init_called = True
 
-    miot_device.init_coordinators = init_coordinators
+    miot_device.async_init = init_coordinators
     return miot_device
 
 
@@ -189,11 +189,11 @@ async def test_registry_event_matches_owned_identifier(owner, disabled, identifi
     registry = Mock(spec=["async_get", "async_remove_device"])
     registry.async_get.return_value = device
     miot_device = _make_miot_device()
-    miot_device.init_coordinators = AsyncMock()
+    miot_device.async_init = AsyncMock()
     miot_device.async_unload = AsyncMock()
     miot_device.coordinators = [object()] if disabled else []
     wrong_device = _make_miot_device()
-    wrong_device.init_coordinators = AsyncMock()
+    wrong_device.async_init = AsyncMock()
     wrong_device.async_unload = AsyncMock()
     entries = {
         "test-entry": SimpleNamespace(devices={"did": miot_device}),
@@ -202,12 +202,12 @@ async def test_registry_event_matches_owned_identifier(owner, disabled, identifi
     with patch.dict("custom_components.xiaomi_miot.HassEntry.ALL", entries, clear=True):
         await _fire_device_registry_update(registry, device.id)
     if disabled:
-        miot_device.async_unload.assert_awaited_once_with()
-        miot_device.init_coordinators.assert_not_awaited()
+        miot_device.async_unload.assert_awaited_once_with(unload_spec=False)
+        miot_device.async_init.assert_not_awaited()
     else:
-        miot_device.init_coordinators.assert_awaited_once_with()
+        miot_device.async_init.assert_awaited_once_with()
         miot_device.async_unload.assert_not_awaited()
-    wrong_device.init_coordinators.assert_not_awaited()
+    wrong_device.async_init.assert_not_awaited()
     wrong_device.async_unload.assert_not_awaited()
 
 
@@ -247,7 +247,7 @@ async def test_linked_registry_device_disable_and_enable_events(hass, disabled):
         miot_device.coordinators.append(coordinator)
     with patch.dict("custom_components.xiaomi_miot.HassEntry.ALL", {
         entry.entry_id: SimpleNamespace(devices={"did": miot_device}),
-    }, clear=True), patch.object(miot_device, "init_coordinators", new_callable=AsyncMock) as init:
+    }, clear=True), patch.object(miot_device, "async_init", new_callable=AsyncMock) as init:
         await _handle_device_registry_event(hass)
         registry.async_update_device(
             device.id, disabled_by=dr.DeviceEntryDisabler.USER if disabled else None
@@ -336,3 +336,85 @@ async def test_registry_rename_delete_unloads_linked_device():
         await _fire_device_registry_update(registry, device.id)
     miot_device.async_unload.assert_awaited_once_with()
     registry.async_remove_device.assert_called_once_with(device.id)
+
+
+@pytest.mark.parametrize("disable_before_first_poll", [False, True])
+async def test_linked_device_continuous_disable_enable(hass, load_miot_spec, disable_before_first_poll):
+    """Restart polling on the same runtime without discarding live entity specs."""
+    from datetime import timedelta
+    from homeassistant.util import dt
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+    from custom_components.xiaomi_miot import _handle_device_registry_event
+    from custom_components.xiaomi_miot.core.hass_entry import HassEntry
+    from custom_components.xiaomi_miot.core.miot_spec import MiotSpec
+
+    entry = MockConfigEntry(domain="xiaomi_miot", data={"scan_interval": 10})
+    entry.add_to_hass(hass)
+    runtime_entry = HassEntry(hass, entry)
+    source_spec = load_miot_spec("xiaomi.airp.mb5.json")
+    info = DeviceInfo({"did": "test-device", "mac": "aa:bb:cc:dd:ee:01",
+                       "name": "Test Device", "model": "test.device.model", "urn": source_spec.type})
+    device = Device(info, runtime_entry)
+    runtime_entry.devices[info.unique_id] = device
+    registry = dr.async_get(hass)
+    registered = registry.async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers=device.identifiers | {("other", "foreign")},
+    )
+    listener = Mock()
+    device.add_listener(listener)
+    async def poll(*args, **kwargs):
+        device.dispatch({"sample": True})
+        return {"sample": True}
+
+    with patch.dict(HassEntry.ALL, {entry.entry_id: runtime_entry}, clear=True), patch.object(
+        MiotSpec, "async_from_type", new=AsyncMock(return_value=source_spec)
+    ) as fetch, patch.object(device, "update_miot_status", side_effect=poll) as network:
+        await device.async_init()
+        await _handle_device_registry_event(hass)
+        original_spec = device.spec
+        original_converters = tuple(device.converters)
+        original_identifiers = registered.identifiers
+        assert device.coordinators and device.main_coordinators
+
+        async def advance(seconds):
+            async_fire_time_changed(hass, dt.utcnow() + timedelta(seconds=seconds))
+            await hass.async_block_till_done()
+
+        if not disable_before_first_poll:
+            await advance(2)
+            assert network.await_count > 0
+        for cycle in range(2):
+            stopped = tuple(device.coordinators)
+            registry.async_update_device(registered.id, disabled_by=dr.DeviceEntryDisabler.USER)
+            await hass.async_block_till_done()
+            count = network.await_count
+            await advance(30)
+            assert network.await_count == count
+            registry.async_update_device(registered.id, disabled_by=None)
+            await hass.async_block_till_done()
+            await advance(2)
+            assert network.await_count > count, "Polling must resume after disabling the same runtime"
+            resumed = network.await_count
+            await advance(15)
+            assert network.await_count > resumed, "Periodic polling must remain scheduled"
+            assert device.spec is original_spec
+            assert tuple(device.converters) == original_converters
+            assert all(coo not in stopped for coo in device.coordinators)
+            assert device.main_coordinators
+            assert all(coo in device.coordinators for coo in device.main_coordinators)
+            assert device._unsub_purge is not None
+            assert runtime_entry.devices[info.unique_id] is device
+            assert registry.async_get(registered.id).identifiers == original_identifiers
+            fetch.assert_awaited_once()
+        assert listener.call_count > 0
+        assert device.listeners == [listener]
+        with patch.object(hass.config_entries, "async_forward_entry_unload", return_value=True):
+            assert await runtime_entry.async_unload()
+        assert entry.entry_id not in HassEntry.ALL
+        assert device.spec is None
+        assert device.model not in hass.data["xiaomi_miot"]["miot_specs"]
+        assert not device.coordinators and not device.main_coordinators
+        assert device._unsub_purge is None
+        count = network.await_count
+        await advance(60)
+        assert network.await_count == count
