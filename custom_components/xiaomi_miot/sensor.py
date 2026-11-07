@@ -152,6 +152,11 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
             return state
         return {self.attr: self._attr_native_value}
 
+    def _restore_state(self, data: dict):
+        # Energy needs native units and a matching period, not raw conversion.
+        if not POWER_COST_PATTERN.search(self.attr):
+            super()._restore_state(data)
+
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
         if not POWER_COST_PATTERN.search(self.attr):
@@ -160,13 +165,16 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
         current_period = power_cost_period(self.attr, now)
         self._power_cost_period = current_period
         restored = await self.async_get_last_state()
-        if restored:
-            extra = await self.async_get_last_extra_data()
-            extra = extra.as_dict() if extra else {}
+        extra = await self.async_get_last_extra_data()
+        extra = extra.as_dict() if extra else {}
+        # Without a saved state, require explicit native-unit/period metadata.
+        if restored or (
+            extra.get('power_cost_period') == current_period
+            and extra.get('native_unit_of_measurement') == self.native_unit_of_measurement
+            and 'native_value' in extra
+        ):
             restored_value = self._restored_power_cost_value(restored, extra)
-            restored_at = restored.last_changed.astimezone(
-                local_zone(self.hass)
-            )
+            restored_at = restored.last_changed.astimezone(local_zone(self.hass)) if restored else now
             restored_period = extra.get('power_cost_period') or power_cost_period(
                 self.attr,
                 restored_at,
@@ -213,7 +221,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
     def _restored_power_cost_value(self, state, extra):
         """Read native or legacy restore data without applying the cloud ratio."""
         value = normalize_power_cost_value(
-            extra.get('native_value', extra.get(self.attr, state.state))
+            extra.get('native_value', extra.get(self.attr, state.state if state else None))
         )
         unit = extra.get('native_unit_of_measurement')
         if unit is None:

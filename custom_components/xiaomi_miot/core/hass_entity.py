@@ -269,7 +269,10 @@ class XEntity(BasicEntity):
         if call := getattr(self, 'async_get_last_extra_data', None):
             data: RestoredExtraData = await call()
             if data and self.listen_attrs & data.as_dict().keys():
-                self.set_state(data.as_dict())
+                self._restore_state(data.as_dict())
+
+    def _restore_state(self, data: dict):
+        self.set_state(data)
 
     async def async_will_remove_from_hass(self) -> None:
         self.device.remove_listener(self.on_device_update)

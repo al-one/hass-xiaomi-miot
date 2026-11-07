@@ -465,3 +465,48 @@ async def test_actual_platform_restore_update_and_unload(hass, make_device, free
     async_fire_time_changed(hass, dt_util.utcnow())
     await hass.async_block_till_done()
     assert device.data['_power_cost_periods'][key] == period
+
+
+@pytest.mark.parametrize('key', ['power_cost_today', 'power_cost_month_2'])
+@pytest.mark.parametrize('kind,expected', [
+    ('native', 17.5), ('zero', 0), ('stale', None),
+    ('wrong_unit', None), ('undated', None), ('legacy', None),
+    ('invalid', None), ('exact', 1.523),
+])
+async def test_recorderless_restore_requires_native_unit_and_period(hass, make_device, key, kind, expected):
+    spec = MiotSpec(hass, {
+        'type': 'urn:miot-spec-v2:device:outlet:0000A002:test-energy:1',
+        'services': [],
+    })
+    device = make_device(spec, model='test.energy', customizes={
+        'unit_of_measurement': 'kWh', 'device_class': 'energy',
+        'state_class': 'total_increasing', 'value_ratio': 0.01,
+        'sensor_attributes': key,
+    })
+    sensor = SensorEntity(device, device.find_converter(f'sensor.{key}'))
+    sensor.async_on_remove = Mock(side_effect=lambda remove: remove())
+    now = datetime.now(local_zone(hass))
+    extra = {
+        'native_value': 0 if kind == 'zero' else 17.5,
+        'native_unit_of_measurement': 'Wh' if kind == 'wrong_unit' else 'kWh',
+        'power_cost_period': 'previous' if kind == 'stale' else power_cost_period(sensor.attr, now),
+    }
+    if kind == 'exact':
+        extra.update(native_value=1.523, raw_value=152.2893, value_ratio=0.01)
+    if kind == 'invalid':
+        extra['native_value'] = 'unavailable'
+    if kind == 'undated':
+        extra.pop('power_cost_period')
+    if kind == 'legacy':
+        extra = {sensor.attr: 17.5}
+    sensor.async_get_last_state = AsyncMock(return_value=None)
+    sensor.async_get_last_extra_data = AsyncMock(return_value=RestoredExtraData(extra))
+    await sensor.async_added_to_hass()
+    assert sensor.native_value == expected
+    if expected is not None:
+        assert device.props[key] == pytest.approx(152.2893 if kind == 'exact' else expected / 0.01)
+        if kind == 'exact':
+            assert sensor.get_state()['raw_value'] == 152.2893
+    else:
+        assert key not in device.props
+    await sensor.async_will_remove_from_hass()
