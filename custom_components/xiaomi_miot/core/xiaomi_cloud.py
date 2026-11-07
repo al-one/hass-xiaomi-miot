@@ -818,8 +818,10 @@ class MiotCloud(micloud.MiCloud):
         identity_session = resp.cookies.get('identity_session')
         if not identity_session:
             raise MiCloudException('Xiaomi identity session missing')
-        self.attrs['identity_session'] = identity_session
-        data = self.json_decode(resp.text)
+        try:
+            data = self.json_decode(resp.text)
+        except (TypeError, ValueError):
+            raise MiCloudException('Xiaomi identity response unparseable') from None
         if not isinstance(data, dict):
             raise MiCloudException('Xiaomi identity response unparseable')
         flag = data.get('flag')
@@ -827,6 +829,7 @@ class MiotCloud(micloud.MiCloud):
         if not isinstance(options, list):
             raise MiCloudException('Xiaomi identity options unparseable')
         options = [option for option in options if type(option) is int]
+        self.attrs['identity_session'] = identity_session
         self.attrs['identity_options'] = options
         self.attrs['identity_preferred_flag'] = flag
         return options or False
@@ -938,6 +941,8 @@ class MiotCloud(micloud.MiCloud):
                 raise MiCloudException('Xiaomi verify response unparseable')
             last = data
             if type(data.get('code')) is int and data['code'] == 0:
+                if not data.get('location'):
+                    raise MiCloudException('Xiaomi verify did not return location')
                 self._clear_identity_challenge()
                 return data
         if last and last.get('code') != 0:

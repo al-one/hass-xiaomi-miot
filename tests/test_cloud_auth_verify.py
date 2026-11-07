@@ -80,7 +80,7 @@ async def test_verify_ticket_pins_trust_false_and_payload(hass):
     def _capture(*args, **kwargs):
         captured["args"] = args
         captured.update(kwargs)
-        return {"code": 0}
+        return {"code": 0, "location": "/identity/result/check"}
 
     c.account_post = _capture
     await hass.async_add_executor_job(c.verify_ticket, "TICKET")

@@ -319,3 +319,127 @@ async def test_delivery_failure_does_not_show_the_code_sent_prompt(hass):
     await flow.check_xiaomi_account({'username': 'test-user', 'password': 'test-password'}, errors)
     assert errors == {'base': 'cannot_send_verify'}
     assert not c.attrs.get('identity_ticket_sent')
+
+
+@pytest.mark.parametrize("location", [None, "", False])
+async def test_incomplete_verification_preserves_challenge_for_retry(hass, location):
+    c = _cloud(hass)
+    _identity(c, 8)
+    c.account_post = Mock(side_effect=[
+        {"code": 0}, {"code": 0, "location": location},
+        {"code": 0, "location": "/identity/result/check"},
+    ])
+    await hass.async_add_executor_job(c.send_verify_ticket)
+    before = dict(c.attrs)
+    with pytest.raises(MiCloudException, match="location"):
+        await hass.async_add_executor_job(c.verify_ticket, "valid-code")
+    assert c.attrs == before
+    await hass.async_add_executor_job(c.send_verify_ticket)
+    await hass.async_add_executor_job(c.verify_ticket, "valid-code")
+    assert c.account_post.call_count == 3
+    c.account_get.assert_called_once()
+    assert not c.attrs
+
+
+async def test_identity_json_error_is_fixed_and_does_not_publish_session(hass):
+    c = _cloud(hass)
+    c.attrs["verify_url"] = VERIFY_URL
+    c.account_get = Mock(return_value=SimpleNamespace(
+        text="PRIVATE_RESPONSE not json",
+        cookies=requests.cookies.cookiejar_from_dict({"identity_session": "new-session"}),
+    ))
+    with pytest.raises(MiCloudException, match="identity response unparseable") as caught:
+        await hass.async_add_executor_job(c.send_verify_ticket)
+    assert "PRIVATE_RESPONSE" not in str(caught.value)
+    assert not c.attrs.get("identity_session")
+    assert not c.attrs.get("identity_ticket_sent")
+
+
+@pytest.mark.parametrize("sid", [CloudSid.XIAOMIIO, CloudSid.MICOAPI])
+async def test_reauth_incomplete_verification_keeps_candidate_and_sid(hass, sid):
+    c = _cloud(hass)
+    c.sid = sid
+    _identity(c, 8)
+    c.account_post = Mock(side_effect=[{"code": 0}, {"code": 0}])
+    await hass.async_add_executor_job(c.send_verify_ticket)
+    flow = XiaomiMiotFlowHandler()
+    flow.hass, flow.context, flow._candidate = hass, {}, c
+    flow._reauth = SimpleNamespace(sid=sid)
+    flow.async_show_form = Mock(side_effect=lambda **kw: {"type": "form", **kw})
+    flow._persist_and_reload = AsyncMock()
+    out = await flow.async_step_reauth_verify({"verify_ticket": "valid-code"})
+    assert out["step_id"] == "reauth_verify"
+    assert out["errors"] == {"base": "unknown"}
+    assert flow._candidate is c
+    assert c.sid == sid
+    assert c.attrs["identity_session"] == "test-identity"
+    assert c.attrs["identity_ticket_sent"]
+    flow._persist_and_reload.assert_not_awaited()
+
+
+@pytest.mark.parametrize("sid", [CloudSid.XIAOMIIO, CloudSid.MICOAPI])
+async def test_reauth_malformed_identity_list_uses_delivery_error(hass, sid):
+    c = _cloud(hass)
+    c.sid = sid
+    c.attrs["verify_url"] = VERIFY_URL
+    c.account_get = Mock(return_value=SimpleNamespace(
+        text="not json", cookies=requests.cookies.cookiejar_from_dict({"identity_session": "new-session"}),
+    ))
+    flow = XiaomiMiotFlowHandler()
+    flow.hass, flow.context, flow._candidate = hass, {}, c
+    flow._reauth = SimpleNamespace(sid=sid)
+    flow.async_show_form = Mock(side_effect=lambda **kw: {"type": "form", **kw})
+    out = await flow.async_step_reauth_verify()
+    assert out["step_id"] == "reauth_verify"
+    assert out["errors"] == {"base": "cannot_send_verify"}
+    assert flow._candidate is c
+    assert c.sid == sid
+    assert not c.attrs.get("identity_ticket_sent")
+
+
+@pytest.mark.parametrize("flow_cls", [XiaomiMiotFlowHandler, OptionsFlowHandler])
+async def test_cloud_form_malformed_identity_list_uses_delivery_error(hass, flow_cls):
+    c = _cloud(hass)
+    c.attrs["verify_url"] = VERIFY_URL
+    c.account_get = Mock(return_value=SimpleNamespace(
+        text="not json", cookies=requests.cookies.cookiejar_from_dict({"identity_session": "new-session"}),
+    ))
+    c.async_check_auth = AsyncMock(side_effect=MiCloudNeedVerify("need_verify").with_url(VERIFY_URL))
+    flow = flow_cls.__new__(flow_cls)
+    flow.hass, flow.context, flow.cloud = hass, {}, c
+    errors = {}
+    await flow.check_xiaomi_account({"username": "test-user", "password": "test-password"}, errors)
+    assert errors == {"base": "cannot_send_verify"}
+    assert not c.attrs.get("identity_ticket_sent")
+
+
+@pytest.mark.parametrize("flow_cls", [XiaomiMiotFlowHandler, OptionsFlowHandler])
+async def test_cloud_form_incomplete_verification_retains_challenge(hass, flow_cls):
+    c = _cloud(hass)
+    _identity(c, 8)
+    c.account_post = Mock(side_effect=[{"code": 0}, {"code": 0}])
+    await hass.async_add_executor_job(c.send_verify_ticket)
+    flow = flow_cls.__new__(flow_cls)
+    flow.hass, flow.context, flow.cloud = hass, {"need_verify": True}, c
+    errors = {}
+    await flow.check_xiaomi_account({"username": "test-user", "password": "test-password",
+                                     "verify_ticket": "valid-code"}, errors)
+    assert errors == {"base": "cannot_login"}
+    assert c.attrs["identity_session"] == "test-identity"
+    assert c.attrs["identity_ticket_sent"]
+    assert flow.context["need_verify"]
+
+
+@pytest.mark.parametrize("payload", [[], {"options": "invalid"}])
+async def test_invalid_identity_structure_does_not_publish_session(hass, payload):
+    c = _cloud(hass)
+    c.attrs["verify_url"] = VERIFY_URL
+    c.account_get = Mock(return_value=SimpleNamespace(
+        text=json.dumps(payload),
+        cookies=requests.cookies.cookiejar_from_dict({"identity_session": "new-session"}),
+    ))
+    c.account_post = Mock()
+    with pytest.raises(MiCloudException):
+        await hass.async_add_executor_job(c.send_verify_ticket)
+    assert not c.attrs.get("identity_session")
+    c.account_post.assert_not_called()
