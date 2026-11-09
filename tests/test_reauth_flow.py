@@ -9,6 +9,7 @@ from custom_components.xiaomi_miot.config_flow import XiaomiMiotFlowHandler
 from custom_components.xiaomi_miot.core.xiaomi_cloud import (
     CloudSid,
     MiCloudAuthenticationError,
+    MiCloudException,
     MiCloudNeedVerify,
     MiCloudStsUnauthorized,
     MiCloudVerificationError,
@@ -110,6 +111,58 @@ async def test_reauth_password_invalid_auth_returns_invalid_auth(flow_cls):
     out = await flow.async_step_reauth_password({"password": "p"})
 
     assert out["errors"]["base"] == "invalid_auth"
+
+
+def _password_flow_with(flow_cls, error):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.XIAOMIIO,
+        entry=SimpleNamespace(
+            data={
+                "username": "u",
+                "server_country": "cn",
+                "user_id": "u",
+                "sid": "xiaomiio",
+            },
+            entry_id="eid",
+        ),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = flow._make_candidate("u", "p", "cn", CloudSid.XIAOMIIO)
+    candidate.async_login_attempt = AsyncMock(side_effect=error)
+    flow._make_candidate = MagicMock(return_value=candidate)
+    return flow, candidate
+
+
+@pytest.mark.parametrize("error", [
+    MiCloudAuthenticationError("Xiaomi captcha rejected"),
+    MiCloudException("Xiaomi login requires captcha"),
+])
+async def test_reauth_password_captcha_error_routes_to_captcha(flow_cls, error):
+    flow, candidate = _password_flow_with(flow_cls, error)
+    candidate.attrs.update(
+        captcha_url="https://account.xiaomi.com/captcha",
+        captchaImg="image",
+        captchaIck="ick",
+    )
+
+    out = await flow.async_step_reauth_password({"password": "p"})
+
+    assert out["step_id"] == "reauth_captcha"
+    assert out["description_placeholders"]["captcha_image"] == "image"
+    assert flow._candidate is candidate
+
+
+async def test_reauth_password_error_with_incomplete_captcha_keeps_form(flow_cls):
+    flow, candidate = _password_flow_with(flow_cls, MiCloudException("X"))
+    candidate.attrs.update(captchaImg="image", captchaIck="ick")
+
+    out = await flow.async_step_reauth_password({"password": "p"})
+
+    assert out["step_id"] == "reauth_password"
+    assert out["errors"]["base"] == "unknown"
 
 
 async def test_reauth_password_need_verify_routes_to_verify(flow_cls):
