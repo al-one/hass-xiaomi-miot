@@ -150,7 +150,10 @@
             "cannot_reach": "Nie można uzyskać dostępu do interfejsu API Xiaomi",
             "tzinfo_error": "Zobacz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Brak urządzeń na koncie w chmurze Xiaomi",
-            "need_verify": "To logowanie wymaga weryfikacji bezpieczeństwa. Otwórz poniższy link weryfikacyjny, aby wysłać kod na telefon/e-mail. Po otrzymaniu kodu nie weryfikuj go na stronie internetowej. Wróć do Home Assistant i wpisz go w polu poniżej."
+            "need_verify": "Wpisz kod weryfikacyjny wysłany przez tę integrację. Pozostaw tę stronę otwartą i nie proś o kod w innej przeglądarce.",
+            "cannot_send_verify": "Nie udało się wysłać kodu weryfikacyjnego. Spróbuj ponownie później.",
+            "verify_invalid": "Kod weryfikacyjny został odrzucony. Sprawdź kod wysłany przez tę integrację.",
+            "need_identity_captcha": "Najpierw rozwiąż CAPTCHA i pozostaw pole kodu SMS/e-mail puste. Następnie zostanie wysłany kod weryfikacyjny."
         },
         "abort": {
             "show_customizes": "[Add a new integration](/_my_redirect/config_flow_start?domain=xiaomi_miot) to modify customization.\n{link}\n{tip}"

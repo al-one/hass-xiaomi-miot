@@ -150,7 +150,10 @@
             "cannot_reach": "Nem sikerült elérni a Xiaomi API felületet",
             "tzinfo_error": "Probléma van a Hass környezetével. Kérjük, olvassa el a következő leírást: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Nincsenek eszközök ezen Xiaomi fiók alatt",
-            "need_verify": "Ez a bejelentkezés biztonsági ellenőrzést igényel. Nyisd meg az alábbi ellenőrzési linket a telefonos/e-mailes kód elküldéséhez. A kód megérkezése után ne a weboldalon ellenőrizd. Térj vissza a Home Assistantba, és írd be az alábbi mezőbe."
+            "need_verify": "Írd be az integráció által küldött ellenőrző kódot. Hagyd nyitva ezt az oldalt, és ne kérj kódot másik böngészőben.",
+            "cannot_send_verify": "Nem sikerült elküldeni az ellenőrző kódot. Próbáld újra később.",
+            "verify_invalid": "Az ellenőrző kódot a rendszer elutasította. Ellenőrizd az integráció által küldött kódot.",
+            "need_identity_captcha": "Először töltsd ki a képes CAPTCHA mezőt, az SMS-/e-mail-kód mezőt hagyd üresen. Ezután a rendszer elküldi az ellenőrző kódot."
         },
         "abort": {
             "show_customizes": "[Új integráció hozzáadása](/_my_redirect/config_flow_start?domain=xiaomi_miot) a testreszabás módosításához.\n{link}\n{tip}"

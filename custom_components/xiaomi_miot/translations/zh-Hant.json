@@ -157,7 +157,10 @@
             "cannot_reach": "無法存取小米 API",
             "tzinfo_error": "您的 Hass 環境看起來有點問題，請參考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "該小米帳號下沒有裝置",
-            "need_verify": "本次登入需要安全驗證。請開啟下方驗證連結發送手機/電子郵件驗證碼，收到驗證碼後不要在網頁驗證，回到 Home Assistant 填入下方輸入框。"
+            "need_verify": "請輸入本整合傳送的驗證碼。請在此頁面完成驗證，無需另開小米驗證網頁。",
+            "cannot_send_verify": "無法傳送驗證碼，請稍後重試。",
+            "verify_invalid": "驗證碼未通過，請核對由本整合傳送的驗證碼。",
+            "need_identity_captcha": "請先填寫圖片驗證碼，手機/電子郵件驗證碼暫時留空。通過後將傳送驗證碼。"
         },
         "abort": {
             "show_customizes": "請再次添加[`Xiaomi Miot`](/_my_redirect/config_flow_start?domain=xiaomi_miot)整合來修改自訂選項\n{link}\n{tip}"

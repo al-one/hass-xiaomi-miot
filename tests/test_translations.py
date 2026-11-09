@@ -35,6 +35,11 @@ def test_translation_has_reauth_keys_without_legacy_micoapi(name):
     assert "{verify_url}" not in steps["reauth_verify"]["description"]
     assert "{captcha_image}" in steps["reauth_captcha"]["description"]
 
+    # The options flow reuses check_xiaomi_account, so it needs the same errors.
+    options_error = (data.get("options") or {}).get("error") or {}
+    for key in ("need_verify", "cannot_send_verify", "verify_invalid", "need_identity_captcha"):
+        assert options_error.get(key) == config["error"].get(key)
+
     option_steps = (data.get("options") or {}).get("step") or {}
     assert "micoapi" not in option_steps
     cloud = option_steps.get("cloud") or {}
