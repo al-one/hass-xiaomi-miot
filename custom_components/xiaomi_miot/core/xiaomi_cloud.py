@@ -853,7 +853,19 @@ class MiotCloud(micloud.MiCloud):
             raise MiCloudException('Xiaomi verify no supported method')
         flag = preferred if preferred in supported else supported[0]
         self.attrs['identity_verify_flag'] = flag
-        api = '/identity/auth/sendPhoneTicket' if flag == 4 else '/identity/auth/sendEmailTicket'
+        channel = 'Phone' if flag == 4 else 'Email'
+        try:
+            # Select the delivery channel inside the identity session before sending.
+            probe = self.account_get(
+                f'/identity/auth/verify{channel}',
+                params={'_flag': flag, '_json': 'true'},
+                cookies={'identity_session': self.attrs['identity_session']},
+            )
+        except requests.exceptions.RequestException as exc:
+            raise MiCloudException('Xiaomi verification channel request failed') from exc
+        if not isinstance(probe, dict) or probe.get('code') != 0:
+            raise MiCloudException('Xiaomi verification channel unavailable')
+        api = f'/identity/auth/send{channel}Ticket'
         try:
             data = self.account_post(
                 api,

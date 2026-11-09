@@ -32,10 +32,19 @@ def _response(data=None, cookies=None, content=None):
 
 def _identity(c, flag=4):
     c.attrs["verify_url"] = VERIFY_URL
-    c.account_get = Mock(return_value=_response(
-        {"code": 2, "flag": flag, "options": [4, 8]},
-        {"identity_session": "test-identity"},
-    ))
+    channel = "Phone" if flag == 4 else "Email"
+
+    def _account_get(url, **kwargs):
+        if "identity/list" in url:
+            return _response(
+                {"code": 2, "flag": flag, "options": [4, 8]},
+                {"identity_session": "test-identity"},
+            )
+        if f"/identity/auth/verify{channel}" in url:
+            return {"code": 0, f"masked{channel}": "masked"}
+        raise AssertionError(f"Unexpected account GET: {url}")
+
+    c.account_get = Mock(side_effect=_account_get)
 
 
 @pytest.mark.parametrize("flag,method", [(4, "Phone"), (8, "Email")])
@@ -51,9 +60,9 @@ async def test_delivery_and_code_retries_keep_the_issued_session(hass, flag, met
         await hass.async_add_executor_job(c.verify_ticket, "wrong-code")
     assert c.attrs["identity_session"] == "test-identity"
     await hass.async_add_executor_job(c.verify_ticket, "valid-code")
-    c.account_get.assert_called_once_with(
-        "https://account.xiaomi.com/identity/list?context=example", response=True,
-    )
+    list_calls = [call.args[0] for call in c.account_get.call_args_list if "identity/list" in call.args[0]]
+    assert list_calls == ["https://account.xiaomi.com/identity/list?context=example"]
+    assert any(f"/identity/auth/verify{method}" in call.args[0] for call in c.account_get.call_args_list)
     calls = c.account_post.call_args_list
     assert [call.args[0] for call in calls] == [
         f"/identity/auth/send{method}Ticket", f"/identity/auth/verify{method}",
@@ -61,6 +70,36 @@ async def test_delivery_and_code_retries_keep_the_issued_session(hass, flag, met
     ]
     assert {call.kwargs["cookies"]["identity_session"] for call in calls} == {"test-identity"}
     assert not c.attrs
+
+
+@pytest.mark.parametrize("flag,method", [(4, "Phone"), (8, "Email")])
+async def test_delivery_selects_the_channel_before_sending(hass, flag, method):
+    c = _cloud(hass)
+    _identity(c, flag)
+    c.account_post = Mock(return_value={"code": 0})
+    await hass.async_add_executor_job(c.send_verify_ticket)
+    calls = c.account_get.call_args_list
+    assert [call.args[0] for call in calls] == [
+        "https://account.xiaomi.com/identity/list?context=example",
+        f"/identity/auth/verify{method}",
+    ]
+    assert calls[1].kwargs["params"] == {"_flag": flag, "_json": "true"}
+    assert calls[1].kwargs["cookies"] == {"identity_session": "test-identity"}
+
+
+async def test_unavailable_channel_does_not_send_a_code(hass):
+    c = _cloud(hass)
+    _identity(c)
+    c.account_get = Mock(side_effect=[
+        _response({"code": 2, "flag": 4, "options": [4, 8]},
+                  {"identity_session": "test-identity"}),
+        {"code": 70016},
+    ])
+    c.account_post = Mock()
+    with pytest.raises(MiCloudException, match="channel"):
+        await hass.async_add_executor_job(c.send_verify_ticket)
+    c.account_post.assert_not_called()
+    assert not c.attrs.get("identity_ticket_sent")
 
 
 @pytest.mark.parametrize("path", ["/identity/authStart", "/fe/service/identity/authStart"])
@@ -137,6 +176,8 @@ class _Wire:
             return _response(cookies={"ick": "test-ick"})
         if path == f"/identity/auth/verify{channel}":
             assert cookies["identity_session"] == "test-identity"
+            if method == "GET":
+                return _response({"code": 0, f"masked{channel}": "masked"})
             if data["ticket"] != "valid-code":
                 return _response({"code": 70014})
             return _response({"code": 0, "location": "https://account.xiaomi.com/identity/result/check"})
@@ -337,7 +378,8 @@ async def test_incomplete_verification_preserves_challenge_for_retry(hass, locat
     await hass.async_add_executor_job(c.send_verify_ticket)
     await hass.async_add_executor_job(c.verify_ticket, "valid-code")
     assert c.account_post.call_count == 3
-    c.account_get.assert_called_once()
+    list_calls = [call.args[0] for call in c.account_get.call_args_list if "identity/list" in call.args[0]]
+    assert list_calls == ["https://account.xiaomi.com/identity/list?context=example"]
     assert not c.attrs
 
 
