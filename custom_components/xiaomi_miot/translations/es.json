@@ -66,7 +66,7 @@
             },
             "reauth_verify": {
                 "title": "Reautenticación de Xiaomi — introduce el código de verificación",
-                "description": "Abre [este enlace]({verify_url}) en el navegador, solicita un código y pega aquí el código de verificación.",
+                "description": "Introduce el código de verificación enviado por esta integración. Mantén esta página abierta; no solicites un código en otro navegador.\n{tip}",
                 "data": {
                     "verify_ticket": "Código de verificación"
                 }
@@ -85,11 +85,14 @@
             "cannot_reach": "No se puede acceder a la interfaz de la API de Xiaomi",
             "tzinfo_error": "Parece que hay un problema con tu entorno de Hass. Por favor, consulta: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "No se encontraron dispositivos bajo esta cuenta de Xiaomi",
-            "need_verify": "Se requiere un código de verificación.",
+            "need_verify": "Introduce el código de verificación enviado por esta integración. Mantén esta página abierta; no solicites un código en otro navegador.",
             "invalid_auth": "Xiaomi ha rechazado las credenciales.\n{tip}",
             "need_captcha": "Se requiere un captcha.",
             "save_failed": "No se pudieron guardar las credenciales actualizadas. Inténtalo de nuevo.",
-            "unknown": "Error inesperado."
+            "unknown": "Error inesperado.",
+            "cannot_send_verify": "No se pudo enviar el código de verificación. Inténtalo más tarde.",
+            "verify_invalid": "El código de verificación fue rechazado. Comprueba el código enviado por esta integración.",
+            "need_identity_captcha": "Completa primero el CAPTCHA y deja vacío el código de SMS/correo. Después se enviará un código de verificación."
         },
         "abort": {
             "config_saved": "¡Configuración guardada! [Personalizar de nuevo](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlgunas opciones personalizadas pueden requerir [recargar la integración](/developer-tools/yaml) para que surtan efecto.",
@@ -147,7 +150,10 @@
             "cannot_reach": "No se puede acceder a la interfaz de la API de Xiaomi",
             "tzinfo_error": "Parece que hay un problema con tu entorno de Hass. Por favor, consulta: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "No se encontraron dispositivos bajo esta cuenta de Xiaomi",
-            "need_verify": "Este inicio de sesión requiere verificación de seguridad. Abre el enlace de verificación de abajo para enviar el código por móvil/correo. Después de recibir el código, no lo verifiques en la página web. Vuelve a Home Assistant e introdúcelo en el campo de abajo."
+            "need_verify": "Introduce el código de verificación enviado por esta integración. Mantén esta página abierta; no solicites un código en otro navegador.",
+            "cannot_send_verify": "No se pudo enviar el código de verificación. Inténtalo más tarde.",
+            "verify_invalid": "El código de verificación fue rechazado. Comprueba el código enviado por esta integración.",
+            "need_identity_captcha": "Completa primero el CAPTCHA y deja vacío el código de SMS/correo. Después se enviará un código de verificación."
         },
         "abort": {
             "show_customizes": "[Agregar una nueva integración](/_my_redirect/config_flow_start?domain=xiaomi_miot) para modificar la personalización.\n{link}\n{tip}"
