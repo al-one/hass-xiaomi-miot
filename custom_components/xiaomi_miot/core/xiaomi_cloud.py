@@ -843,7 +843,10 @@ class MiotCloud(micloud.MiCloud):
             return
         options = self.attrs.get('identity_options')
         if not (options and self.attrs.get('identity_session')):
-            options = self.check_identity_list(url) or []
+            try:
+                options = self.check_identity_list(url) or []
+            except requests.exceptions.RequestException as exc:
+                raise MiCloudException('Xiaomi identity list request failed') from exc
         preferred = self.attrs.get('identity_preferred_flag')
         supported = [flag for flag in options if flag in (4, 8)]
         if not supported:
@@ -864,12 +867,17 @@ class MiotCloud(micloud.MiCloud):
         except Exception as exc:
             raise MiCloudException('Xiaomi verification code request failed') from exc
         if not isinstance(data, dict):
+            self.attrs.pop('identity_send_captcha', None)
+            self._clear_captcha_attrs()
             raise MiCloudException('Xiaomi verification code response unparseable')
         if type(data.get('code')) is int and data['code'] == 0:
             self.attrs['identity_ticket_sent'] = True
             self.attrs.pop('identity_send_captcha', None)
             self._clear_captcha_attrs()
             return
+        # A failed attempt consumes any captcha challenge shown for it.
+        self.attrs.pop('identity_send_captcha', None)
+        self._clear_captcha_attrs()
         if data.get('code') == 87001 and data.get('captchaUrl'):
             cap = self._absolutize(data['captchaUrl'])
             if parse.urlsplit(cap).scheme != 'https' or parse.urlsplit(cap).hostname != 'account.xiaomi.com':

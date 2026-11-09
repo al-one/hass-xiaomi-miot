@@ -443,3 +443,44 @@ async def test_invalid_identity_structure_does_not_publish_session(hass, payload
         await hass.async_add_executor_job(c.send_verify_ticket)
     assert not c.attrs.get("identity_session")
     c.account_post.assert_not_called()
+
+
+@pytest.mark.parametrize("failure", [{"code": 70022}, []])
+async def test_failed_delivery_discards_the_consumed_captcha(hass, failure):
+    c = _cloud(hass)
+    _identity(c)
+    c._get_captcha = Mock(side_effect=lambda url: c.attrs.update(
+        captcha_url=url, captchaIck="old-ick", captchaImg="old-img",
+    ))
+    c.account_post = Mock(side_effect=[
+        {"code": 87001, "captchaUrl": "/captcha/image"}, failure,
+    ])
+    with pytest.raises(MiCloudException):
+        await hass.async_add_executor_job(c.send_verify_ticket)
+    assert c.attrs["identity_send_captcha"]
+    with pytest.raises(MiCloudException):
+        await hass.async_add_executor_job(c.send_verify_ticket, "answer")
+    assert not c.attrs.get("identity_send_captcha")
+    assert not c.attrs.get("captchaImg")
+    assert not c.attrs.get("captchaIck")
+
+
+async def test_identity_list_network_error_is_a_delivery_error(hass):
+    c = _cloud(hass)
+    c.attrs["verify_url"] = VERIFY_URL
+    c.account_get = Mock(side_effect=requests.Timeout("slow"))
+    with pytest.raises(MiCloudException, match="identity list"):
+        await hass.async_add_executor_job(c.send_verify_ticket)
+
+
+async def test_reauth_delivery_network_error_shows_error(hass):
+    c = _cloud(hass)
+    c.attrs["verify_url"] = VERIFY_URL
+    c.account_get = Mock(side_effect=requests.ConnectionError("offline"))
+    flow = XiaomiMiotFlowHandler()
+    flow.hass, flow.context, flow._candidate = hass, {}, c
+    flow.async_show_form = Mock(side_effect=lambda **kw: {"type": "form", **kw})
+    out = await flow.async_step_reauth_verify()
+    assert out["step_id"] == "reauth_verify"
+    assert out["errors"] == {"base": "cannot_send_verify"}
+    assert "identity list" in out["description_placeholders"]["tip"]
