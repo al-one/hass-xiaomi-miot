@@ -1140,10 +1140,23 @@ class Device(CustomConfigHelper):
         try:
             results = []
             if self.use_local and (self.local_only or self._local_state is not False):
-                results = await self.local.async_get_properties_for_mapping(did=self.did, mapping=mapping)
+                try:
+                    results = await self.local.async_get_properties_for_mapping(did=self.did, mapping=mapping)
+                    self._local_fails = 0
+                    self._local_state = True
+                except (DeviceException, OSError) as exc:
+                    self._local_fails += 1
+                    self._local_state = self._local_fails < 3
+                    if self.local_only or not self.auto_cloud:
+                        raise
+                    self.log.warning(
+                        '%s: Local read failed, falling back to cloud: %s',
+                        self.name, exc,
+                    )
+                    results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
             elif self.cloud and not self.local_only:
                 results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
-        except (DeviceException, MiCloudException) as exc:
+        except (DeviceException, MiCloudException, OSError) as exc:
             self.log.error(
                 'Got exception while get properties: %s, mapping: %s, miio: %s',
                 exc, mapping, self.info.miio_info,
