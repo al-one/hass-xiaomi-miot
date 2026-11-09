@@ -10,6 +10,7 @@ from custom_components.xiaomi_miot.cddz_pc03w.const import (
     extract_bits,
     set_bits,
 )
+from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 
 
 def test_power_control_values_match_vendor_plugin():
@@ -48,3 +49,8 @@ def test_state_labels_cover_vendor_enum():
         5: "强制重启中",
         6: "强制关机中",
     }
+
+
+def test_native_switch_is_excluded():
+    customize = DEVICE_CUSTOMIZES["cddz.plug.pc03w"]
+    assert customize["exclude_miot_properties"] == "switch.on"
