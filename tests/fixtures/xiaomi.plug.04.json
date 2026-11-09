@@ -1,0 +1,542 @@
+{
+  "type": "urn:miot-spec-v2:device:outlet:0000A002:xiaomi-04:1:0000D032",
+  "description": "xiaomi plug 04",
+  "services": [
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:switch:0000780C:xiaomi-04:1:0000D032",
+      "description": "Switch",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:on:00000006:xiaomi-04:1:0000D032",
+          "description": "Switch Status",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "source": 1,
+          "comment": "开关"
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:default-power-on-state:00000105:xiaomi-04:1:0000D032",
+          "description": "Default Power On State",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Default",
+              "comment": "断电记忆"
+            },
+            {
+              "value": 1,
+              "description": "Off",
+              "comment": "上电关闭"
+            },
+            {
+              "value": 2,
+              "description": "On",
+              "comment": "上电打开"
+            }
+          ],
+          "source": 1,
+          "comment": "默认上电状态"
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:fault:00000009:xiaomi-04:1:0000D032",
+          "description": "Device Fault",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "No Fault",
+              "comment": "无故障"
+            },
+            {
+              "value": 1,
+              "description": "Over Temperature",
+              "comment": "过温"
+            },
+            {
+              "value": 2,
+              "description": "Overload",
+              "comment": "过载"
+            }
+          ],
+          "source": 1,
+          "comment": "设备故障"
+        }
+      ],
+      "comment": "开关"
+    },
+    {
+      "iid": 11,
+      "type": "urn:miot-spec-v2:service:power-consumption:0000780E:xiaomi-04:1:0000D032",
+      "description": "Power Consumption",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:power-consumption:0000002F:xiaomi-04:1:0000D032",
+          "description": "Power Consumption",
+          "format": "float",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "kWh",
+          "value-range": [
+            0,
+            65535,
+            0.01
+          ],
+          "source": 1,
+          "comment": "耗电量"
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:electric-power:00000066:xiaomi-04:1:0000D032",
+          "description": "Electric Power",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "watt",
+          "value-range": [
+            0,
+            10000,
+            1
+          ],
+          "source": 1,
+          "comment": "电功率"
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:power-consumption-accumulation-way:00000183:xiaomi-04:1:0000D032",
+          "description": "Power Consumption Accumulate Way",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "source": 1,
+          "comment": "耗电量使用累加形式"
+        }
+      ],
+      "comment": "功耗参数"
+    },
+    {
+      "iid": 3,
+      "type": "urn:xiaomi-spec:service:indicator-light:00007801:xiaomi-04:1",
+      "description": "indicator-light",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:xiaomi-spec:property:mode:00000001:xiaomi-04:1",
+          "description": "",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "comment": "勿扰模式"
+        },
+        {
+          "iid": 2,
+          "type": "urn:xiaomi-spec:property:start-time:00000002:xiaomi-04:1",
+          "description": "",
+          "format": "uint16",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            1440,
+            1
+          ],
+          "comment": "开启时间"
+        },
+        {
+          "iid": 3,
+          "type": "urn:xiaomi-spec:property:end-time:00000003:xiaomi-04:1",
+          "description": "",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            1440,
+            1
+          ],
+          "comment": "结束时间"
+        }
+      ],
+      "comment": "指示灯与勿扰模式"
+    },
+    {
+      "iid": 4,
+      "type": "urn:xiaomi-spec:service:charging-protection:00007802:xiaomi-04:1",
+      "description": "charging-protection",
+      "properties": [
+        {
+          "iid": 3,
+          "type": "urn:xiaomi-spec:property:protection-time:00000001:xiaomi-04:1",
+          "description": "protection-time",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            1439,
+            1
+          ],
+          "gatt-access": [],
+          "comment": "保护时长"
+        },
+        {
+          "iid": 4,
+          "type": "urn:xiaomi-spec:property:power-power:00000002:xiaomi-04:1",
+          "description": "",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "watt",
+          "value-range": [
+            1,
+            600,
+            1
+          ],
+          "comment": "功率阈值"
+        },
+        {
+          "iid": 5,
+          "type": "urn:xiaomi-spec:property:protect-start-time:00000003:xiaomi-04:1",
+          "description": "protect-start-time",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            1439,
+            1
+          ],
+          "gatt-access": [],
+          "comment": "设置生效起始时间"
+        },
+        {
+          "iid": 6,
+          "type": "urn:xiaomi-spec:property:protect-end-time:00000004:xiaomi-04:1",
+          "description": "protect-end-time",
+          "format": "uint16",
+          "access": [
+            "write",
+            "notify",
+            "read"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            1439,
+            1
+          ],
+          "gatt-access": [],
+          "comment": "设置生效结束时间"
+        },
+        {
+          "iid": 7,
+          "type": "urn:xiaomi-spec:property:period:00000005:xiaomi-04:1",
+          "description": "",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "comment": "保护生效时间开关"
+        },
+        {
+          "iid": 8,
+          "type": "urn:xiaomi-spec:property:on-off:00000006:xiaomi-04:1",
+          "description": "",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "comment": "设置有效期开关"
+        }
+      ],
+      "comment": "充电保护"
+    },
+    {
+      "iid": 5,
+      "type": "urn:xiaomi-spec:service:cycle-cycle:00007803:xiaomi-04:1",
+      "description": "cycle-cycle",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:xiaomi-spec:property:status:00000001:xiaomi-04:1",
+          "description": "status",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "gatt-access": [],
+          "comment": "状态，true：启用中；false：未启用"
+        }
+      ],
+      "comment": "循环任务"
+    },
+    {
+      "iid": 8,
+      "type": "urn:xiaomi-spec:service:quick-countdown:00007804:xiaomi-04:1",
+      "description": "quick-countdown",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:xiaomi-spec:property:on-off:00000001:xiaomi-04:1",
+          "description": "",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "comment": "状态；开启:ture；关闭;false"
+        },
+        {
+          "iid": 2,
+          "type": "urn:xiaomi-spec:property:duration:00000002:xiaomi-04:1",
+          "description": "duration",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            1439,
+            1
+          ],
+          "gatt-access": [],
+          "comment": "时长"
+        },
+        {
+          "iid": 4,
+          "type": "urn:xiaomi-spec:property:delay-on:00000004:xiaomi-04:1",
+          "description": "",
+          "format": "bool",
+          "access": [
+            "write",
+            "read",
+            "notify"
+          ],
+          "comment": "延时开启"
+        },
+        {
+          "iid": 5,
+          "type": "urn:xiaomi-spec:property:delay-on-timer:00000005:xiaomi-04:1",
+          "description": "",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            1,
+            1439,
+            1
+          ],
+          "comment": "延时开时长"
+        },
+        {
+          "iid": 6,
+          "type": "urn:xiaomi-spec:property:delay-off:00000006:xiaomi-04:1",
+          "description": "",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "comment": "延时关"
+        },
+        {
+          "iid": 7,
+          "type": "urn:xiaomi-spec:property:delay-off-timer:00000007:xiaomi-04:1",
+          "description": "",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            1,
+            1439,
+            1
+          ],
+          "comment": "延时关闭时长"
+        },
+        {
+          "iid": 8,
+          "type": "urn:xiaomi-spec:property:delay-on-left-timer:00000008:xiaomi-04:1",
+          "description": "",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            1439,
+            1
+          ],
+          "comment": "延时开启 剩余时间"
+        },
+        {
+          "iid": 9,
+          "type": "urn:xiaomi-spec:property:delay-off-left-timer:00000009:xiaomi-04:1",
+          "description": "",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            1439,
+            1
+          ],
+          "comment": "延时关闭 剩余时间"
+        }
+      ],
+      "comment": "快捷倒计时关闭"
+    },
+    {
+      "iid": 9,
+      "type": "urn:xiaomi-spec:service:max-power-limit:00007805:xiaomi-04:1",
+      "description": "max-power-limit",
+      "properties": [
+        {
+          "iid": 4,
+          "type": "urn:xiaomi-spec:property:power:00000001:xiaomi-04:1",
+          "description": "",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "watt",
+          "value-range": [
+            100,
+            2500,
+            1
+          ],
+          "comment": "功率阈值"
+        }
+      ],
+      "comment": "最大功率限制"
+    },
+    {
+      "iid": 10,
+      "type": "urn:xiaomi-spec:service:over-use-ele-alert:00007806:xiaomi-04:1",
+      "description": "over-use-ele-alert",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:xiaomi-spec:property:on-off:00000001:xiaomi-04:1",
+          "description": "",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "comment": "开关"
+        },
+        {
+          "iid": 2,
+          "type": "urn:xiaomi-spec:property:over-ele-day:00000002:xiaomi-04:1",
+          "description": "",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "kWh",
+          "value-range": [
+            1,
+            60,
+            1
+          ],
+          "comment": "过度用电提醒-日 默认3"
+        },
+        {
+          "iid": 3,
+          "type": "urn:xiaomi-spec:property:over-ele-month:00000003:xiaomi-04:1",
+          "description": "over-ele-month",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            20,
+            1800,
+            1
+          ],
+          "gatt-access": [],
+          "comment": "过度用电提醒-月 默认80"
+        }
+      ],
+      "comment": "过度用电提醒"
+    }
+  ]
+}

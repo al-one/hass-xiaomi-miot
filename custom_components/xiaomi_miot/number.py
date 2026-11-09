@@ -41,7 +41,10 @@ class NumberEntity(XEntity, RestoreNumber):
             self._attr_native_step = self._miot_property.range_step()
             self._attr_native_max_value = self._miot_property.range_max()
             self._attr_native_min_value = self._miot_property.range_min()
-            self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
+            self._attr_native_unit_of_measurement = (
+                self.custom_config('unit_of_measurement')
+                or self._miot_property.unit_of_measurement
+            )
 
     def get_state(self) -> dict:
         return {self.attr: self._attr_native_value}
