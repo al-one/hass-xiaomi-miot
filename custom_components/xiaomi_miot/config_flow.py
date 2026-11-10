@@ -433,7 +433,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         home_ids = user_input.pop('home_ids', [])
         if user_input.pop('filtering', None) or home_ids:
             schema = await self.get_cloud_filter_schema(user_input, errors, schema, via_did=via_did, home_ids=home_ids)
-        elif user_input:
+        else:
             if not self.config_data:
                 self.config_data = {}
             self.config_data.update({
@@ -447,8 +447,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 title=f"Xiaomi: {self.config_data.get('user_id')}",
                 data=self.config_data,
             )
-        else:
-            errors['base'] = 'unknown'
         return self.async_show_form(
             step_id='cloud_filter',
             data_schema=schema,
@@ -1181,7 +1179,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                 **user_input,
             }
             schema = await self.get_cloud_filter_schema(user_input, errors, schema, via_did=via_did, home_ids=home_ids)
-        elif user_input:
+        else:
             self.config_data.update({
                 **(self.cloud.to_config() or {}),
                 'filter_models': self.filter_models,
@@ -1198,8 +1196,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
             self.hass.config_entries.async_update_entry(self.config_entry, data=self.config_data)
             _LOGGER.debug('Xiaomi cloud options updated with %s devices', len(self.devices or []))
             return self.async_create_entry(title='', data={})
-        else:
-            errors['base'] = 'unknown'
         return self.async_show_form(
             step_id='cloud_filter',
             data_schema=schema,
