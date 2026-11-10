@@ -1,0 +1,385 @@
+{
+  "type": "urn:miot-spec-v2:device:dehumidifier:0000A02D:dmaker-22ht:1",
+  "description": "Dehumidifier",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:dmaker-22ht:1",
+      "description": "Device Information",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:manufacturer:00000001:dmaker-22ht:1",
+          "description": "Device Manufacturer",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:model:00000002:dmaker-22ht:1",
+          "description": "Device Model",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:serial-number:00000003:dmaker-22ht:1",
+          "description": "Device ID",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:firmware-revision:00000005:dmaker-22ht:1",
+          "description": "Current Firmware Version",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:serial-no:000000FF:dmaker-22ht:1",
+          "description": "Serial Number",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:dehumidifier:00007841:dmaker-22ht:1",
+      "description": "Dehumidifier",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:on:00000006:dmaker-22ht:1",
+          "description": "Switch Status",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:fault:00000009:dmaker-22ht:1",
+          "description": "Device Fault",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "No Faults"
+            },
+            {
+              "value": 1,
+              "description": "Water Full"
+            },
+            {
+              "value": 2,
+              "description": "Sensor Fault1"
+            },
+            {
+              "value": 3,
+              "description": "Sensor Fault2"
+            },
+            {
+              "value": 4,
+              "description": "Communication Fault1"
+            },
+            {
+              "value": 5,
+              "description": "Filter Clean"
+            },
+            {
+              "value": 6,
+              "description": "Defrost"
+            },
+            {
+              "value": 7,
+              "description": "Fan Motor"
+            },
+            {
+              "value": 8,
+              "description": "Overload"
+            },
+            {
+              "value": 9,
+              "description": "Lack Of Refrigerant"
+            },
+            {
+              "value": 10,
+              "description": "Out Of Temperature"
+            }
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:mode:00000008:dmaker-22ht:1",
+          "description": "Mode",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Smart"
+            },
+            {
+              "value": 1,
+              "description": "Sleep"
+            },
+            {
+              "value": 2,
+              "description": "Clothes Drying"
+            }
+          ]
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:target-humidity:00000022:dmaker-22ht:1",
+          "description": "Target Humidity",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            40,
+            70,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:environment:0000780A:dmaker-22ht:1",
+      "description": "Environment",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:relative-humidity:0000000C:dmaker-22ht:1",
+          "description": "Relative Humidity",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:temperature:00000020:dmaker-22ht:1",
+          "description": "Temperature",
+          "format": "float",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "celsius",
+          "value-range": [
+            -30,
+            100,
+            0.1
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 4,
+      "type": "urn:miot-spec-v2:service:alarm:00007804:dmaker-22ht:1",
+      "description": "Alarm",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:alarm:00000012:dmaker-22ht:1",
+          "description": "Alarm",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 5,
+      "type": "urn:miot-spec-v2:service:indicator-light:00007803:dmaker-22ht:1",
+      "description": "Indicator Light",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:on:00000006:dmaker-22ht:1",
+          "description": "Switch Status",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:mode:00000008:dmaker-22ht:1",
+          "description": "Mode",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Close"
+            },
+            {
+              "value": 1,
+              "description": "Half"
+            },
+            {
+              "value": 2,
+              "description": "Full"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 6,
+      "type": "urn:miot-spec-v2:service:physical-controls-locked:00007807:dmaker-22ht:1",
+      "description": "Physical Control Locked",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:physical-controls-locked:0000001D:dmaker-22ht:1",
+          "description": "Physical Control Locked",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 7,
+      "type": "urn:dmaker-spec:service:dm-service:00007801:dmaker-22ht:1",
+      "description": "dm-service",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:dmaker-spec:property:off-delay-time:00000001:dmaker-22ht:1",
+          "description": "off-delay-time",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            480,
+            1
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:dmaker-spec:property:dry-after-off:00000002:dmaker-22ht:1",
+          "description": "dry-after-off",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:dmaker-spec:property:dry-left-time:00000003:dmaker-22ht:1",
+          "description": "dry-left-time",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "seconds",
+          "value-range": [
+            0,
+            2400,
+            1
+          ]
+        },
+        {
+          "iid": 4,
+          "type": "urn:dmaker-spec:property:is-warming-up:00000004:dmaker-22ht:1",
+          "description": "is-warming-up",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:dmaker-spec:action:toggle:00002801:dmaker-22ht:1",
+          "description": "toggle",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:dmaker-spec:action:loop-mode:00002802:dmaker-22ht:1",
+          "description": "loop-mode",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 3,
+          "type": "urn:dmaker-spec:action:reset-filter:00002803:dmaker-22ht:1",
+          "description": "reset-filter",
+          "in": [],
+          "out": []
+        }
+      ],
+      "events": [
+        {
+          "iid": 1,
+          "type": "urn:dmaker-spec:event:tank-full:00005001:dmaker-22ht:1",
+          "description": "tank-full",
+          "arguments": []
+        }
+      ]
+    }
+  ]
+}
