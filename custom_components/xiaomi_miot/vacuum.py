@@ -1,4 +1,5 @@
 """Support for Xiaomi vacuums."""
+import json
 import logging
 import asyncio
 from datetime import timedelta
@@ -9,6 +10,12 @@ from homeassistant.components.vacuum import (  # noqa: F401
     VacuumActivity,
     VacuumEntityFeature,  # v2022.5
 )
+from homeassistant.exceptions import HomeAssistantError
+
+try:
+    from homeassistant.components.vacuum import Segment
+except ImportError:  # Room cleaning is unavailable on older supported HA versions.
+    Segment = None
 
 from . import (
     DOMAIN,
@@ -96,6 +103,35 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
                 self._act_charge = act
                 break
 
+        # Room cleaning.  Newer MIoT vacuums use room_information plus
+        # get_room_configs; older ijai vacuums expose the map room list and
+        # set-room-clean instead.  Detect both from the MIoT spec.
+        self._srv_map = miot_service.spec.get_service('map')
+        self._prop_cur_map_id = self._srv_map.get_property('cur_map_id') if self._srv_map else None
+        self._act_get_map_room_list = (
+            self._srv_map.get_action('get_map_room_list') if self._srv_map else None
+        )
+        self._srv_sweep = miot_service.spec.get_service('sweep', 'clean')
+        self._act_set_room_clean = (
+            self._srv_sweep.get_action('set_room_clean') if self._srv_sweep else None
+        )
+        self._prop_clean_room_ids = (
+            self._srv_sweep.get_property('clean_room_ids') if self._srv_sweep else None
+        )
+        self._prop_clean_room_mode = (
+            self._srv_sweep.get_property('clean_room_mode') if self._srv_sweep else None
+        )
+        self._prop_clean_room_oper = (
+            self._srv_sweep.get_property('clean_room_oper') if self._srv_sweep else None
+        )
+        self._act_start_room_sweep = miot_service.get_action('start_room_sweep')
+        self._prop_sweep_mop_type = miot_service.get_property('sweep_mop_type')
+        self._prop_room_information = miot_service.get_property('room_information')
+        self._act_get_room_configs = miot_service.get_action('get_room_configs')
+        self._act_set_room_clean_configs = miot_service.get_action(
+            'set_room_clean_configs'
+        )
+
         if self._prop_power:
             self._supported_features |= VacuumEntityFeature.TURN_ON
             self._supported_features |= VacuumEntityFeature.TURN_OFF
@@ -114,7 +150,120 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             self._supported_features |= VacuumEntityFeature.STATE
         if self._act_locate:
             self._supported_features |= VacuumEntityFeature.LOCATE
+        if self.supports_room_cleaning:
+            self._supported_features |= VacuumEntityFeature.CLEAN_AREA
         self._supported_features |= VacuumEntityFeature.SEND_COMMAND
+
+    @property
+    def supports_room_cleaning(self):
+        if Segment is None:
+            return False
+        if self._prop_room_information and self._act_get_room_configs:
+            return bool(
+                self._act_start_room_sweep or self._act_set_room_clean_configs
+            )
+        return bool(
+            self._act_get_map_room_list
+            and self._prop_cur_map_id
+            and self._prop_clean_room_ids
+            and (self._act_set_room_clean or self._act_start_room_sweep)
+        )
+
+    async def async_get_segments(self):
+        """Return rooms exposed by the vacuum map."""
+        if not self.supports_room_cleaning:
+            return []
+
+        if self._prop_room_information and self._act_get_room_configs:
+            in_properties = self._act_get_room_configs.in_properties()
+            params = self._act_get_room_configs.in_params_from_attrs(
+                {in_properties[0].full_name: ''}
+            ) if in_properties else []
+            result = await self.async_call_action(
+                self._act_get_room_configs, params, force_params=True
+            )
+            if not result.is_success:
+                raise HomeAssistantError('Unable to refresh vacuum rooms')
+            props = await self.device.async_get_properties(
+                [{'siid': self._prop_room_information.service.iid,
+                  'piid': self._prop_room_information.iid}],
+                update_entity=True,
+                throw=True,
+            )
+            value = props.get(self._prop_room_information.full_name)
+            segments = _parse_room_information(value)
+        else:
+            map_id = self._prop_cur_map_id.from_device(self.device)
+            if map_id is None:
+                map_id = self._state_attrs.get(self._prop_cur_map_id.full_name)
+            if map_id is None:
+                raise HomeAssistantError('Unable to read vacuum map id')
+            try:
+                map_id = int(map_id)
+            except (TypeError, ValueError):
+                pass
+            result = await self.async_call_action(
+                self._act_get_map_room_list, [map_id]
+            )
+            if not result.is_success:
+                raise HomeAssistantError('Unable to read vacuum rooms')
+            out = result.get('out') or []
+            value = out[0].get('value') if out and isinstance(out[0], dict) else None
+            segments = _parse_map_room_list(value)
+
+        self._state_attrs['room_mapping'] = [
+            [segment.id, segment.id, segment.name] for segment in segments
+        ]
+        return segments
+
+    async def async_clean_segments(self, segment_ids, **kwargs):
+        """Send the vacuum to the selected room ids."""
+        if not segment_ids or not self.supports_room_cleaning:
+            return False
+
+        ids = ','.join(str(segment_id) for segment_id in segment_ids)
+        if self._act_set_room_clean:
+            # Older ijai vacuums start room cleaning directly with the room
+            # ids, cleaning mode (global/edge) and operation (start).
+            mode = 0
+            if self._prop_clean_room_mode and self._prop_clean_room_mode.value_list:
+                mode = self._prop_clean_room_mode.value_list[0].get('value', 0)
+            params = self._act_set_room_clean.in_params([ids, mode, 1])
+            result = await self.async_call_action(
+                self._act_set_room_clean, params, force_params=True
+            )
+        else:
+            if self._act_set_room_clean_configs:
+                prop = self._prop_sweep_mop_type
+                if not prop:
+                    raise HomeAssistantError(
+                        'Vacuum room cleaning requires a cleaning mode'
+                    )
+                values = await self.device.async_get_properties(
+                    [{'siid': prop.service.iid, 'piid': prop.iid}], throw=True,
+                )
+                mode = values.get(prop.full_name)
+                if (isinstance(mode, bool) or not isinstance(mode, int)
+                        or (prop.value_list and mode not in [
+                            v['value'] for v in prop.value_list
+                        ])):
+                    raise HomeAssistantError('Unable to read vacuum cleaning mode')
+                config = _room_clean_config(segment_ids, mode)
+                params = self._act_set_room_clean_configs.in_params([config])
+                result = await self.async_call_action(
+                    self._act_set_room_clean_configs, params, force_params=True
+                )
+                if not result.is_success:
+                    raise HomeAssistantError(
+                        'Unable to configure vacuum room cleaning'
+                    )
+            params = self._act_start_room_sweep.in_params([ids])
+            result = await self.async_call_action(
+                self._act_start_room_sweep, params, force_params=True
+            )
+        if not result.is_success:
+            raise HomeAssistantError('Unable to start vacuum room cleaning')
+        return True
 
     async def async_update(self):
         await super().async_update()
@@ -213,6 +362,64 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         This method must be run in the event loop.
         """
         return await self.async_miio_command(command, params)
+
+
+def _parse_room_information(value):
+    """Convert a MIoT room_information property into HA segments."""
+    if Segment is None or not value:
+        return []
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except (TypeError, ValueError):
+            return []
+    if not isinstance(value, dict):
+        return []
+    rooms = value.get('rooms')
+    if not isinstance(rooms, list):
+        return []
+    segments = []
+    for room in rooms:
+        if not isinstance(room, dict) or room.get('id') is None:
+            continue
+        name = room.get('name') or str(room['id'])
+        segments.append(Segment(id=str(room['id']), name=str(name)))
+    return segments
+
+
+def _parse_map_room_list(value):
+    """Convert a MIoT map room list into HA segments."""
+    if Segment is None or not value:
+        return []
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except (TypeError, ValueError):
+            return []
+    if not isinstance(value, list):
+        return []
+    segments = []
+    for room in value:
+        if not isinstance(room, dict) or room.get('id') is None:
+            continue
+        name = room.get('name') or str(room['id'])
+        segments.append(Segment(id=str(room['id']), name=str(name)))
+    return segments
+
+
+def _room_clean_config(segment_ids, clean_mode):
+    """Build the room-cleaning configuration used by newer MIoT vacuums."""
+    rooms = []
+    for segment_id in segment_ids:
+        try:
+            rooms.append(int(segment_id))
+        except (TypeError, ValueError):
+            rooms.append(str(segment_id))
+    return json.dumps({
+        'rooms': rooms,
+        'clean_mode': clean_mode,
+        'is_ai_cleaning': False,
+    }, separators=(',', ':'))
 
 
 class MiotRoborockVacuumEntity(MiotVacuumEntity):
