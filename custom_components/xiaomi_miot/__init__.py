@@ -589,16 +589,19 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
         action = event.data['action']
         registry = dr.async_get(hass)
         device_id = event.data.get('device_id')
-        if device_id not in registry.devices:
-            return
-        device = registry.async_get(device_id)
+        device = registry.async_get(device_id) if device_id else None
         if not device or not device.identifiers:
             return
         identifier = next(iter(device.identifiers))
         if identifier[0] != DOMAIN:
             return
         miot_device = None
-        for entry_id in device.config_entries:
+        if hasattr(device, 'config_entry_id'):
+            # hass 2026.8+: a device belongs to a single config entry
+            entry_ids = [device.config_entry_id] if device.config_entry_id else []
+        else:
+            entry_ids = device.config_entries
+        for entry_id in entry_ids:
             entry = HassEntry.ALL.get(entry_id)
             if not entry:
                 continue
@@ -907,6 +910,8 @@ class MiotEntityInterface:
 
 
 class MiotEntity(MiioEntity):
+    _entity_domain = DOMAIN
+
     def __init__(self, miot_service=None, device=None, **kwargs):
         self._config = dict(kwargs.get('config') or {})
         name = kwargs.get(CONF_NAME) or self._config.get(CONF_NAME) or ''
@@ -926,13 +931,13 @@ class MiotEntity(MiioEntity):
                     unreadable_properties=self.device._unreadable_properties,
                 ) or {}
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
-            self.entity_id = self._miot_service.generate_entity_id(self)
+            self.entity_id = self._miot_service.generate_entity_id(self, domain=self._entity_domain)
             self._attr_translation_key = self._miot_service.name
         if not self.entity_id and self.model:
             mls = f'{self.model}..'.split('.')
             mac = re.sub(r'[\W_]+', '', self.unique_mac)
             obj = f'{mls[0]}_{mls[2]}_{mac[-4:]}_{mls[1]}'
-            self.entity_id = f'{DOMAIN}.{slugify_object_id(obj)}'
+            self.entity_id = f'{self._entity_domain}.{slugify_object_id(obj)}'
         self._success_code = 0
         self.logger.info('%s: Initializing miot device with mapping: %s', self.name_model, self._miot_mapping)
 

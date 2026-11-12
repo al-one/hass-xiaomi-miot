@@ -75,7 +75,7 @@
             },
             "reauth_verify": {
                 "title": "Xiaomi yeniden kimlik doğrulama — doğrulama kodunu girin",
-                "description": "Tarayıcınızda [bu bağlantıyı]({verify_url}) açın, bir kod isteyin ve ardından doğrulama kodunu buraya yapıştırın.",
+                "description": "Bu entegrasyonun gönderdiği doğrulama kodunu girin. Bu sayfayı açık tutun; başka bir tarayıcıdan kod istemeyin.\n{tip}",
                 "data": {
                     "verify_ticket": "Doğrulama kodu"
                 }
@@ -94,11 +94,14 @@
             "cannot_reach": "Xiaomi API arayüzüne erişilemiyor",
             "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
-            "need_verify": "Doğrulama kodu gereklidir.",
+            "need_verify": "Bu entegrasyonun gönderdiği doğrulama kodunu girin. Bu sayfayı açık tutun; başka bir tarayıcıdan kod istemeyin.",
             "invalid_auth": "Xiaomi kimlik bilgilerini reddetti.\n{tip}",
             "need_captcha": "Captcha gereklidir.",
             "save_failed": "Yenilenen kimlik bilgileri kaydedilemedi. Lütfen tekrar deneyin.",
-            "unknown": "Beklenmeyen hata."
+            "unknown": "Beklenmeyen hata.",
+            "cannot_send_verify": "Doğrulama kodu gönderilemedi. Daha sonra tekrar deneyin.",
+            "verify_invalid": "Doğrulama kodu reddedildi. Bu entegrasyonun gönderdiği kodu kontrol edin.",
+            "need_identity_captcha": "Önce görsel CAPTCHA kodunu girin ve SMS/e-posta kodunu boş bırakın. Ardından doğrulama kodu gönderilecektir."
         },
         "abort": {
             "config_saved": "Yapılandırma kaydedildi! [Tekrar özelleştir](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nBazı özel seçeneklerin etkili olması için [entegrasyonun yeniden yüklenmesi](/developer-tools/yaml) gerekebilir.",
@@ -164,7 +167,10 @@
             "cannot_reach": "Xiaomi API arayüzüne erişilemiyor",
             "tzinfo_error": "Hass ortamınızda bir sorun var gibi görünüyor. Lütfen şu adrese bakın: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Bu Xiaomi hesabında cihaz bulunamadı",
-            "need_verify": "Bu giriş güvenlik doğrulaması gerektiriyor. Lütfen aşağıdaki doğrulama bağlantısını açarak mobil/e-posta doğrulama kodunu gönderin. Doğrulama kodunu aldıktan sonra web sayfasında doğrulamayın. Home Assistant'a dönün ve aşağıdaki giriş kutusuna girin."
+            "need_verify": "Bu entegrasyonun gönderdiği doğrulama kodunu girin. Bu sayfayı açık tutun; başka bir tarayıcıdan kod istemeyin.",
+            "cannot_send_verify": "Doğrulama kodu gönderilemedi. Daha sonra tekrar deneyin.",
+            "verify_invalid": "Doğrulama kodu reddedildi. Bu entegrasyonun gönderdiği kodu kontrol edin.",
+            "need_identity_captcha": "Önce görsel CAPTCHA kodunu girin ve SMS/e-posta kodunu boş bırakın. Ardından doğrulama kodu gönderilecektir."
         },
         "abort": {
             "show_customizes": "Özelleştirmeyi değiştirmek için [yeni bir entegrasyon ekleyin](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{link}\n{tip}"
