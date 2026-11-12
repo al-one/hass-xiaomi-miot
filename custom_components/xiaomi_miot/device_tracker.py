@@ -90,6 +90,7 @@ XEntity.CLS['scanner'] = ScannerEntity
 
 
 class MiotTrackerEntity(MiotEntity, BaseTrackerEntity):
+    _entity_domain = ENTITY_DOMAIN
     _attr_latitude = None
     _attr_longitude = None
     _attr_location_accuracy = 0

@@ -73,6 +73,50 @@ async def test_local_manual_read_retries_local_after_failure(hass):
     device.cloud.async_get_properties_for_mapping.assert_not_awaited()
 
 
+async def test_auto_manual_read_falls_back_to_cloud(hass):
+    device = make_mode_device(hass, "auto")
+    device.spec = SimpleNamespace()
+    device.local.async_get_properties_for_mapping.side_effect = DeviceException("offline")
+    result = await device.async_get_properties(MAPPING, update_entity=False)
+    device.local.async_get_properties_for_mapping.assert_awaited_once()
+    device.cloud.async_get_properties_for_mapping.assert_awaited_once()
+    assert result == {"switch.on": True}
+    assert device._local_fails == 1
+
+
+async def test_local_manual_read_failure_does_not_use_cloud(hass):
+    device = make_mode_device(hass, "local")
+    device.spec = SimpleNamespace()
+    device.local.async_get_properties_for_mapping.side_effect = DeviceException("offline")
+    result = await device.async_get_properties(MAPPING, update_entity=False)
+    device.cloud.async_get_properties_for_mapping.assert_not_awaited()
+    assert "error" in result
+
+
+async def test_auto_manual_read_without_auto_cloud_does_not_fall_back(hass):
+    device = make_mode_device(hass, "auto")
+    device.custom_config_bool = lambda key, default=None: key == "miot_local"
+    device.spec = SimpleNamespace()
+    device.local.async_get_properties_for_mapping.side_effect = DeviceException("offline")
+    result = await device.async_get_properties(MAPPING, update_entity=False)
+    device.cloud.async_get_properties_for_mapping.assert_not_awaited()
+    assert "error" in result
+
+
+async def test_manual_read_failures_mark_local_unavailable(hass):
+    device = make_mode_device(hass, "auto")
+    device.spec = SimpleNamespace()
+    device.local.async_get_properties_for_mapping.side_effect = DeviceException("offline")
+    for _ in range(3):
+        await device.async_get_properties(MAPPING, update_entity=False)
+    assert device._local_state is False
+    device.local.async_get_properties_for_mapping.reset_mock()
+    device.cloud.async_get_properties_for_mapping.reset_mock()
+    await device.async_get_properties(MAPPING, update_entity=False)
+    device.local.async_get_properties_for_mapping.assert_not_awaited()
+    device.cloud.async_get_properties_for_mapping.assert_awaited_once()
+
+
 async def test_local_write_ignores_cloud_override_and_does_not_retry(hass):
     device = make_mode_device(hass, "local")
     device.custom_config_bool = lambda key, default=None: key == "miot_cloud_write"

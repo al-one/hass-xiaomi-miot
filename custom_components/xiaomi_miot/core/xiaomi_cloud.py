@@ -659,13 +659,10 @@ class MiotCloud(micloud.MiCloud):
         if http_code == 200:
             return True
         elif http_code == 403:
-            raise MiCloudAccessDenied(f'Login to xiaomi error: {response.text} ({http_code})')
+            raise MiCloudAccessDenied(f'Xiaomi login returned HTTP {http_code}')
         else:
-            _LOGGER.error(
-                'Xiaomi login request returned status %s, reason: %s, content: %s',
-                http_code, response.reason, response.text,
-            )
-            raise MiCloudException(f'Login to xiaomi error: {response.text} ({http_code})')
+            _LOGGER.error('Xiaomi login request returned status %s', http_code)
+            raise MiCloudException(f'Xiaomi login returned HTTP {http_code}')
 
     def _login_step1(self):
         self.cookies.update({'sdkVersion': '3.8.6', 'deviceId': self.client_id})
@@ -730,6 +727,8 @@ class MiotCloud(micloud.MiCloud):
 
         if ntf := auth.get('notificationUrl'):
             ntf = self._absolutize(ntf)
+            if self.attrs.get('verify_url') != ntf:
+                self._clear_identity_challenge()
             self.attrs['verify_url'] = ntf
             raise MiCloudNeedVerify('need_verify').with_url(ntf)
 
@@ -825,30 +824,136 @@ class MiotCloud(micloud.MiCloud):
         raise MiCloudAuthenticationError('Xiaomi login step3 missing service token')
 
     def _get_captcha(self, url):
-        response = self.session.get(url)
+        response = self.session.get(url, timeout=self.http_timeout)
         if ick := response.cookies.get('ick'):
             self.attrs['captchaIck'] = ick
             self.attrs['captchaImg'] = base64.b64encode(response.content).decode()
         return ick
 
     def check_identity_list(self, url, path='fe/service/identity/authStart'):
-        if path not in url:
-            return None
-        resp = self.account_get(url.replace(path, 'identity/list'), response=True)
+        parsed = parse.urlsplit(url)
+        if parsed.scheme != 'https' or parsed.hostname != 'account.xiaomi.com':
+            raise MiCloudException('Xiaomi identity URL invalid')
+        if not parsed.path.endswith('/identity/authStart'):
+            raise MiCloudException('Xiaomi identity URL unsupported')
+        list_url = parse.urlunsplit(parsed._replace(path='/identity/list'))
+        resp = self.account_get(list_url, response=True)
         identity_session = resp.cookies.get('identity_session')
         if not identity_session:
             raise MiCloudException('Xiaomi identity session missing')
-        self.attrs['identity_session'] = identity_session
-        data = self.json_decode(resp.text) or {}
-        flag = data.get('flag', 4)
+        try:
+            data = self.json_decode(resp.text)
+        except (TypeError, ValueError):
+            raise MiCloudException('Xiaomi identity response unparseable') from None
+        if not isinstance(data, dict):
+            raise MiCloudException('Xiaomi identity response unparseable')
+        flag = data.get('flag')
         options = data.get('options', [flag])
+        if not isinstance(options, list):
+            raise MiCloudException('Xiaomi identity options unparseable')
+        options = [option for option in options if type(option) is int]
+        self.attrs['identity_session'] = identity_session
+        self.attrs['identity_options'] = options
+        self.attrs['identity_preferred_flag'] = flag
         return options or False
+
+    def send_verify_ticket(self, captcha=None):
+        """Request a code in the same identity session that will verify it."""
+        url = self.attrs.get('verify_url')
+        if not url:
+            raise MiCloudException('Xiaomi verify URL missing')
+        if self.attrs.get('identity_ticket_sent') and not captcha:
+            return
+        options = self.attrs.get('identity_options')
+        if not (options and self.attrs.get('identity_session')):
+            try:
+                options = self.check_identity_list(url) or []
+            except requests.exceptions.RequestException as exc:
+                raise MiCloudException('Xiaomi identity list request failed') from exc
+        preferred = self.attrs.get('identity_preferred_flag')
+        supported = [flag for flag in options if flag in (4, 8)]
+        if not supported:
+            raise MiCloudException('Xiaomi verify no supported method')
+        flag = preferred if preferred in supported else supported[0]
+        self.attrs['identity_verify_flag'] = flag
+        channel = 'Phone' if flag == 4 else 'Email'
+        try:
+            # Select the delivery channel inside the identity session before sending.
+            probe = self.account_get(
+                f'/identity/auth/verify{channel}',
+                params={'_flag': flag, '_json': 'true'},
+                cookies={'identity_session': self.attrs['identity_session']},
+            )
+        except requests.exceptions.RequestException as exc:
+            raise MiCloudException('Xiaomi verification channel request failed') from exc
+        if not isinstance(probe, dict) or probe.get('code') != 0:
+            raise MiCloudException('Xiaomi verification channel unavailable')
+        api = f'/identity/auth/send{channel}Ticket'
+        try:
+            data = self.account_post(
+                api,
+                params={'_dc': int(time.time() * 1000)},
+                data={'_flag': flag, 'retry': 0, '_json': 'true', 'icode': captcha or ''},
+                cookies={
+                    'identity_session': self.attrs['identity_session'],
+                    'ick': self.attrs.get('captchaIck', ''),
+                },
+            )
+        except Exception as exc:
+            raise MiCloudException('Xiaomi verification code request failed') from exc
+        if not isinstance(data, dict):
+            self.attrs.pop('identity_send_captcha', None)
+            self._clear_captcha_attrs()
+            raise MiCloudException('Xiaomi verification code response unparseable')
+        if type(data.get('code')) is int and data['code'] == 0:
+            self.attrs['identity_ticket_sent'] = True
+            self.attrs.pop('identity_send_captcha', None)
+            self._clear_captcha_attrs()
+            return
+        # A failed attempt consumes any captcha challenge shown for it.
+        self.attrs.pop('identity_send_captcha', None)
+        self._clear_captcha_attrs()
+        if data.get('code') == 87001 and data.get('captchaUrl'):
+            cap = self._absolutize(data['captchaUrl'])
+            if parse.urlsplit(cap).scheme != 'https' or parse.urlsplit(cap).hostname != 'account.xiaomi.com':
+                raise MiCloudException('Xiaomi captcha URL invalid')
+            self.attrs['identity_send_captcha'] = True
+            self.attrs['captcha_url'] = cap
+            try:
+                self._get_captcha(cap)
+            except Exception:
+                self.attrs.pop('identity_send_captcha', None)
+                self._clear_captcha_attrs()
+                raise MiCloudException('Xiaomi captcha download failed') from None
+            if not self._has_complete_captcha():
+                self.attrs.pop('identity_send_captcha', None)
+                self._clear_captcha_attrs()
+                raise MiCloudException('Xiaomi captcha challenge incomplete')
+            raise MiCloudException('Xiaomi identity code requires captcha')
+        code = data.get('code')
+        code = code if type(code) is int else 'unknown'
+        raise MiCloudException(f'Xiaomi verification code request failed (code={code})')
+
+    def _clear_identity_challenge(self):
+        """Discard only the completed or replaced identity challenge."""
+        if self.attrs.get('identity_send_captcha'):
+            self._clear_captcha_attrs()
+        for key in ('verify_url', 'identity_session', 'identity_options',
+                    'identity_verify_flag', 'identity_preferred_flag',
+                    'identity_ticket_sent', 'identity_send_captcha'):
+            self.attrs.pop(key, None)
 
     def verify_ticket(self, ticket):
         url = self.attrs.get('verify_url')
         if not url:
             raise MiCloudException('Xiaomi verify URL missing')
-        options = self.check_identity_list(url) or []
+        options = self.attrs.get('identity_options')
+        if not (options and self.attrs.get('identity_session')):
+            raise MiCloudException('Xiaomi verification session expired; restart login')
+        if not self.attrs.get('identity_ticket_sent'):
+            raise MiCloudException('Request a Xiaomi verification code before submitting it')
+        if flag := self.attrs.get('identity_verify_flag'):
+            options = [flag]
         if not options:
             raise MiCloudException('Xiaomi verify no supported method')
         last = None
@@ -878,8 +983,10 @@ class MiotCloud(micloud.MiCloud):
             if not isinstance(data, dict):
                 raise MiCloudException('Xiaomi verify response unparseable')
             last = data
-            if data.get('code') == 0:
-                self.attrs.pop('identity_session', None)
+            if type(data.get('code')) is int and data['code'] == 0:
+                if not data.get('location'):
+                    raise MiCloudException('Xiaomi verify did not return location')
+                self._clear_identity_challenge()
                 return data
         if last and last.get('code') != 0:
             raise MiCloudVerificationError('Xiaomi verification ticket rejected')
@@ -896,6 +1003,7 @@ class MiotCloud(micloud.MiCloud):
             **kwargs.get('cookies', {}),
         }
         kwargs.setdefault('headers', {'User-Agent': self.useragent})
+        kwargs.setdefault('timeout', (min(5, self.http_timeout), self.http_timeout))
         response = kwargs.pop('response', None)
         resp = self.session.request(method, url, **kwargs)
         try:
@@ -907,8 +1015,8 @@ class MiotCloud(micloud.MiCloud):
             }
         cookies = resp.cookies.get_dict()
         self.cookies.update(cookies)
-        log = _LOGGER.warning if data.get('code') else _LOGGER.info
-        log('Account request: %s' % [url, kwargs, resp.text, cookies])
+        _LOGGER.debug('Xiaomi account request %s %s: code=%s',
+                      method, parse.urlsplit(url).path, data.get('code'))
         if response:
             return resp
         return data
@@ -942,6 +1050,9 @@ class MiotCloud(micloud.MiCloud):
         mic.user_id = str(config.get('user_id') or '')
         if a := hass.data[DOMAIN].get('sessions', {}).get(mic.unique_id):
             mic = copy(a)
+            # A client's challenge and response cookies must not mutate its cache owner.
+            mic.attrs = copy(a.attrs)
+            mic.cookies = copy(a.cookies)
             if hass_entry is not None:
                 mic.hass_entry = hass_entry
             mic.merger_config(config)

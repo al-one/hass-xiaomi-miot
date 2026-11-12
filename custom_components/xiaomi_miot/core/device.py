@@ -1031,19 +1031,24 @@ class Device(CustomConfigHelper):
                     raise MiCloudException('Cloud API returned None response, possible timeout or empty data')
                 if check_lan and self.local:
                     await self.local.async_info()
+                if self._cloud_state is False:
+                    self.log.info('Cloud request succeeded again after %s failures, marking available', self._cloud_fails)
                 self.available = True
                 self._cloud_fails = 0
                 self._cloud_state = True
                 results = self.normalize_miot_results(results)
                 self.miot_results.set_results(results, mapping)
             except MiCloudException as exc:
+                was_unavailable = self._cloud_state is False
                 self._cloud_fails += 1
                 self._cloud_state = self._cloud_fails <= 3
                 self.miot_results.errors = exc
 
                 if not self._cloud_state:
                     self.available = False
-                    self.log.error('Cloud request failed %s times, marking unavailable. %s', self._cloud_fails, exc)
+                    # Log the transition to unavailable once, not on every poll while the cloud stays down
+                    log = self.log.debug if was_unavailable else self.log.error
+                    log('Cloud request failed %s times, marking unavailable. %s', self._cloud_fails, exc)
                 else:
                     self.log.info('Cloud request failed (%sth time), will retry. %s', self._cloud_fails, exc)
 
@@ -1063,6 +1068,9 @@ class Device(CustomConfigHelper):
             self.miot_results.to_attributes(self.props)
             self.data['updated'] = dt.now()
             self.dispatch(self.decode(results))
+        elif self.available != getattr(self, '_last_avail_dispatched', True):
+            self.dispatch({}, log=False)
+        self._last_avail_dispatched = self.available
         self.dispatch_info()
         await self.offline_notify()
         return self.miot_results
@@ -1142,12 +1150,27 @@ class Device(CustomConfigHelper):
         try:
             results = []
             if self.use_local and (self.local_only or self._local_state is not False):
-                results = await self.local.async_get_properties_for_mapping(did=self.did, mapping=mapping)
+                try:
+                    results = await self.local.async_get_properties_for_mapping(did=self.did, mapping=mapping)
+                    self._local_fails = 0
+                    self._local_state = True
+                except (DeviceException, OSError) as exc:
+                    self._local_fails += 1
+                    self._local_state = self._local_fails < 3
+                    if self.local_only or not self.auto_cloud:
+                        raise
+                    self.log.warning(
+                        '%s: Local read failed, falling back to cloud: %s',
+                        self.name, exc,
+                    )
+                    results = await self.cloud.async_get_properties_for_mapping(
+                        self.did, mapping, use_rpc=self.custom_config_bool('miot_cloud_rpc'),
+                    )
             elif self.cloud and not self.local_only:
                 results = await self.cloud.async_get_properties_for_mapping(
                     self.did, mapping, use_rpc=self.custom_config_bool('miot_cloud_rpc'),
                 )
-        except (DeviceException, MiCloudException) as exc:
+        except (DeviceException, MiCloudException, OSError) as exc:
             self.log.error(
                 'Got exception while get properties: %s, mapping: %s, miio: %s',
                 exc, mapping, self.info.miio_info,
@@ -1281,6 +1304,9 @@ class Device(CustomConfigHelper):
     def cloud_statistics_commands(self):
         commands = self.custom_config_list('micloud_statistics') or []
         if keys := self.custom_config_list('stat_power_cost_key'):
+            tpl = self.custom_config(
+                'stat_power_cost_template', 'micloud_statistics_power_cost',
+            )
             for k in keys:
                 commands.append({
                     'type': self.custom_config('stat_power_cost_type', 'stat_day_v3'),
@@ -1288,7 +1314,7 @@ class Device(CustomConfigHelper):
                     'day': 32,
                     'limit': 31,
                     'attribute': None,
-                    'template': 'micloud_statistics_power_cost',
+                    'template': tpl,
                 })
         return commands
 

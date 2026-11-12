@@ -13,6 +13,14 @@ def _cloud(hass):
     return MiotCloud(hass, "u", "p", "cn", "xiaomiio")
 
 
+def _issued_challenge(c, flag=4):
+    c.attrs.update(
+        verify_url="https://account.xiaomi.com/identity/authStart",
+        identity_session="IS", identity_options=[flag],
+        identity_verify_flag=flag, identity_ticket_sent=True,
+    )
+
+
 async def test_verify_ticket_missing_url_raises_micloud(hass):
     init_integration_data(hass)
     c = _cloud(hass)
@@ -24,20 +32,15 @@ async def test_verify_ticket_missing_identity_session_raises_micloud(hass):
     init_integration_data(hass)
     c = _cloud(hass)
     c.attrs["verify_url"] = "https://account.xiaomi.com/identity/authStart"
-    c.check_identity_list = lambda url, path="fe/service/identity/authStart": (_ for _ in ()).throw(MiCloudException("missing"))
-    # The above hack won't propagate cleanly; use a real exception-raising stub:
-    def _raise(*a, **k):
-        raise MiCloudException("Xiaomi identity session missing")
-    c.check_identity_list = _raise
-    with pytest.raises(MiCloudException):
+    # Verification must not open a new identity session for an existing code.
+    with pytest.raises(MiCloudException, match="session expired"):
         await hass.async_add_executor_job(c.verify_ticket, "TICKET")
 
 
 async def test_verify_ticket_non_zero_each_method_raises_verification(hass):
     init_integration_data(hass)
     c = _cloud(hass)
-    c.attrs["verify_url"] = "https://account.xiaomi.com/identity/authStart"
-    c.check_identity_list = lambda url, path="fe/service/identity/authStart": [4]
+    _issued_challenge(c)
     c.account_post = lambda *a, **k: {"code": 87001}
     with pytest.raises(MiCloudVerificationError):
         await hass.async_add_executor_job(c.verify_ticket, "TICKET")
@@ -48,9 +51,7 @@ async def test_verify_ticket_non_zero_each_method_raises_verification(hass):
 async def test_verify_ticket_success_returns_data(hass):
     init_integration_data(hass)
     c = _cloud(hass)
-    c.attrs["verify_url"] = "https://account.xiaomi.com/identity/authStart"
-    c.attrs["identity_session"] = "IS"
-    c.check_identity_list = lambda url, path="fe/service/identity/authStart": [4]
+    _issued_challenge(c)
     c.account_post = lambda *a, **k: {"code": 0, "location": "/x?userId=1"}
     ret = await hass.async_add_executor_job(c.verify_ticket, "TICKET")
     assert ret.get("code") == 0
@@ -61,9 +62,7 @@ async def test_verify_ticket_success_returns_data(hass):
 async def test_verify_ticket_no_supported_method_raises_micloud(hass):
     init_integration_data(hass)
     c = _cloud(hass)
-    c.attrs["verify_url"] = "https://account.xiaomi.com/identity/authStart"
-    # Return a flag that has no api mapping (not 4 or 8)
-    c.check_identity_list = lambda url, path="fe/service/identity/authStart": [99]
+    _issued_challenge(c, flag=99)
     with pytest.raises(MiCloudException):
         await hass.async_add_executor_job(c.verify_ticket, "TICKET")
 
@@ -75,15 +74,13 @@ async def test_verify_ticket_pins_trust_false_and_payload(hass):
     7f454747 locked down."""
     init_integration_data(hass)
     c = _cloud(hass)
-    c.attrs["verify_url"] = "https://account.xiaomi.com/identity/authStart"
-    c.attrs["identity_session"] = "IS"
-    c.check_identity_list = lambda url, path="fe/service/identity/authStart": [4]
+    _issued_challenge(c)
     captured = {}
 
     def _capture(*args, **kwargs):
         captured["args"] = args
         captured.update(kwargs)
-        return {"code": 0}
+        return {"code": 0, "location": "/identity/result/check"}
 
     c.account_post = _capture
     await hass.async_add_executor_job(c.verify_ticket, "TICKET")
