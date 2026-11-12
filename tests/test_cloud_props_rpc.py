@@ -76,3 +76,37 @@ async def test_get_props_rpc_returns_none_on_error_response(hass):
     for response in (None, {}, {'code': -1, 'message': 'offline'}, {'code': 0, 'result': []}):
         with patch.object(c, 'async_request_api', AsyncMock(return_value=response)):
             assert await c.async_get_props_rpc('1', [{'did': '1', 'siid': 2, 'piid': 1}]) is None
+
+
+async def test_rpc_property_errors_are_filled_from_cached_values(hass):
+    c = _cloud(hass)
+    partial = [
+        {'code': 0, 'did': '1', 'siid': 2, 'piid': 1, 'value': 4},
+        {'code': -4001, 'did': '1', 'siid': 3, 'piid': 1},
+    ]
+    cached = [CACHED[1]]
+    with patch.object(c, 'async_get_props', AsyncMock(return_value=cached)) as cached_read, \
+            patch.object(c, 'async_get_props_rpc', AsyncMock(return_value=partial)):
+        result = await c.async_get_properties_for_mapping('1', MAPPING, use_rpc=True)
+
+    assert cached_read.await_args.args[0] == [{'did': '1', 'siid': 3, 'piid': 1}]
+    assert {r['prop']: r['value'] for r in result} == {'vacuum.status': 4, 'battery_level': 99}
+
+
+async def test_rpc_items_without_a_known_property_use_cached_values(hass):
+    c = _cloud(hass)
+    odd = [{'did': '1', 'foo': 'bar'}]
+    with patch.object(c, 'async_get_props', AsyncMock(return_value=CACHED)), \
+            patch.object(c, 'async_get_props_rpc', AsyncMock(return_value=odd)):
+        result = await c.async_get_properties_for_mapping('1', MAPPING, use_rpc=True)
+
+    assert {r['prop']: r['value'] for r in result} == {'vacuum.status': 3, 'battery_level': 99}
+
+
+async def test_complete_rpc_result_does_not_read_the_cache(hass):
+    c = _cloud(hass)
+    with patch.object(c, 'async_get_props', AsyncMock(return_value=CACHED)) as cached, \
+            patch.object(c, 'async_get_props_rpc', AsyncMock(return_value=LIVE)):
+        await c.async_get_properties_for_mapping('1', MAPPING, use_rpc=True)
+
+    cached.assert_not_awaited()

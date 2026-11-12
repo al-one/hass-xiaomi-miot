@@ -118,6 +118,14 @@ class MiotCloud(micloud.MiCloud):
             rls = await self.async_get_props_rpc(did, pms)
         if rls is None:
             rls = await self.async_get_props(pms)
+        elif use_rpc:
+            # The relay can answer with per-property errors or leave properties out.
+            # Fill those from the cached read instead of reporting them as missing.
+            rls = [v for v in rls if isinstance(v, dict) and v.get('code', 0) == 0]
+            got = {f"prop.{v.get('siid')}.{v.get('piid')}" for v in rls}
+            missing = [pm for pm in pms if f"prop.{pm['siid']}.{pm['piid']}" not in got]
+            if missing:
+                rls.extend(await self.async_get_props(missing) or [])
         if not rls:
             return None
         dls = []
@@ -138,8 +146,10 @@ class MiotCloud(micloud.MiCloud):
         """Read properties live from the device through the cloud RPC relay.
 
         `miotspec/prop/get` returns the values cached by the cloud, which can stay
-        stale for devices that do not report every change. Returns None on any
-        failure so the caller can fall back to the cached read.
+        stale for devices that do not report every change. Returns None when the
+        relay rejects the request or answers without a usable list, so the caller
+        can fall back to the cached read. Network errors are not caught here, same
+        as `async_get_props`.
         """
         try:
             rsp = await self.async_request_api(f'v2/home/rpc/{did}', {

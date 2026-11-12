@@ -82,7 +82,7 @@ async def test_clean_record_template_without_records(hass):
     assert result['start'] is None
     assert result['duration'] == 0
     assert result['area'] == 0
-    assert result['result'] == 'unknown'
+    assert result['result'] is None
 
 
 async def cloud_records_time_start(days):
@@ -123,3 +123,18 @@ async def test_cloud_records_window_is_configurable():
 
 def test_customization_looks_back_a_year_for_cleaning_records():
     assert DEVICE_CUSTOMIZES['ijai.vacuum.v3']['miio_cloud_records_days'] == 365
+
+
+async def test_clean_record_template_status_zero_is_not_missing(hass):
+    result = template('ijai_vacuum_v3_clean_record', hass).async_render({
+        'result': [cleaning_record(1789819165, 60, 1, 0)],
+    })
+
+    assert result['result'] == 'unknown'
+
+
+def test_customization_reads_through_rpc_at_the_generic_interval():
+    customize = DEVICE_CUSTOMIZES['ijai.vacuum.v3']
+
+    assert customize['miot_cloud_rpc'] is True
+    assert 'interval_seconds' not in customize

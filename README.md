@@ -130,6 +130,8 @@ domain.your_entity_id:
   check_lan: true         # Check LAN connection in cloud mode
   miio_properties: power,battery # Get miio properties to state attributes
   miio_cloud_props: prop.power,event.dev_online
+  miot_cloud_rpc: true    # Read cloud properties live through the device RPC relay instead of the cached `miotspec/prop/get`
+  miio_cloud_records_days: 365 # Days of cloud event records to look back (default: 32)
 
 # Custom sub entities
 domain.parent_entity_id:
