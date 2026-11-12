@@ -61,11 +61,14 @@ def test_room_clean_config():
 async def test_clean_segments_uses_set_room_clean(make_device, load_miot_spec):
     spec = load_miot_spec(f"{MODEL}.json")
     entity = _entity(make_device(spec, model=MODEL), spec)
+    entity.async_set_miot_property = AsyncMock()
     entity.async_call_action = AsyncMock(
         return_value=MiotResult({"code": 0})
     )
 
     await entity.async_clean_segments(["10", "11"])
+
+    entity.async_set_miot_property.assert_awaited_once_with(2, 8, 7)
 
     entity.async_call_action.assert_awaited_once_with(
         entity._act_set_room_clean,

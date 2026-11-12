@@ -124,6 +124,7 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         self._prop_clean_room_oper = (
             self._srv_sweep.get_property('clean_room_oper') if self._srv_sweep else None
         )
+        self._prop_sweep_type = miot_service.get_property('sweep_type')
         self._act_start_room_sweep = miot_service.get_action('start_room_sweep')
         self._prop_sweep_mop_type = miot_service.get_property('sweep_mop_type')
         self._prop_room_information = miot_service.get_property('room_information')
@@ -210,11 +211,54 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             out = result.get('out') or []
             value = out[0].get('value') if out and isinstance(out[0], dict) else None
             segments = _parse_map_room_list(value)
+            if _is_placeholder_room_list(segments):
+                camera_segments = self._segments_from_map_camera()
+                if camera_segments:
+                    segments = camera_segments
 
         self._state_attrs['room_mapping'] = [
             [segment.id, segment.id, segment.name] for segment in segments
         ]
         return segments
+
+    def _segments_from_map_camera(self):
+        """Read room segments from a map extractor camera for this vacuum.
+
+        Some ijai firmware only reports a placeholder room through the local
+        MIoT room list, while the cloud map (and its camera in HA) has the
+        actual rooms.  Use that source only when the local list is a placeholder.
+        """
+        if Segment is None or not self.hass:
+            return []
+        name = str(getattr(self.device, 'name', '') or '').strip().lower()
+        if not name:
+            return []
+        best = []
+        for entity_id in self.hass.states.async_entity_ids('camera'):
+            state = self.hass.states.get(entity_id)
+            if not state:
+                continue
+            rooms = state.attributes.get('rooms')
+            if not isinstance(rooms, dict) or not rooms:
+                continue
+            friendly = str(state.attributes.get('friendly_name') or '').lower()
+            if name not in friendly:
+                continue
+            segments = []
+            for key, room in rooms.items():
+                if not isinstance(room, dict):
+                    continue
+                room_id = room.get('number', key)
+                if room_id is None:
+                    continue
+                segments.append(Segment(
+                    id=str(room_id),
+                    name=str(room.get('name') or room_id),
+                ))
+            if len(segments) > len(best):
+                best = segments
+        best.sort(key=lambda segment: _segment_sort_key(segment.id))
+        return best
 
     async def async_clean_segments(self, segment_ids, **kwargs):
         """Send the vacuum to the selected room ids."""
@@ -223,6 +267,20 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
 
         ids = ','.join(str(segment_id) for segment_id in segment_ids)
         if self._act_set_room_clean:
+            # Older ijai vacuums require the room-custom sweep type before
+            # the set-room-clean action is accepted.
+            if self._prop_sweep_type and self._prop_sweep_type.value_list:
+                sweep_types = [
+                    value.get('value')
+                    for value in self._prop_sweep_type.value_list
+                ]
+                if 7 in sweep_types:
+                    await self.async_set_miot_property(
+                        self._prop_sweep_type.service.iid,
+                        self._prop_sweep_type.iid,
+                        7,
+                    )
+                    await asyncio.sleep(0.5)
             # Older ijai vacuums start room cleaning directly with the room
             # ids, cleaning mode (global/edge) and operation (start).
             mode = 0
@@ -362,6 +420,23 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
         This method must be run in the event loop.
         """
         return await self.async_miio_command(command, params)
+
+
+def _is_placeholder_room_list(segments):
+    """Return True when rooms look like the robot's generic room1 entry."""
+    if not segments:
+        return True
+    return all(
+        str(segment.name).lower().startswith('room')
+        for segment in segments
+    )
+
+
+def _segment_sort_key(segment_id):
+    try:
+        return 0, int(segment_id)
+    except (TypeError, ValueError):
+        return 1, str(segment_id)
 
 
 def _parse_room_information(value):
