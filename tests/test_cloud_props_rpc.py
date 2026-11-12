@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 
 from custom_components.xiaomi_miot import init_integration_data
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
-from custom_components.xiaomi_miot.core.xiaomi_cloud import MiotCloud
+from custom_components.xiaomi_miot.core.xiaomi_cloud import RPC_MAX_PROPERTIES, MiotCloud
 
 MAPPING = {
     'vacuum.status': {'siid': 2, 'piid': 1},
@@ -110,3 +110,41 @@ async def test_complete_rpc_result_does_not_read_the_cache(hass):
         await c.async_get_properties_for_mapping('1', MAPPING, use_rpc=True)
 
     cached.assert_not_awaited()
+
+
+async def test_rpc_items_without_a_value_are_read_from_the_cache(hass):
+    c = _cloud(hass)
+    no_value = [
+        {'code': 0, 'did': '1', 'siid': 2, 'piid': 1, 'value': 4},
+        {'code': 0, 'did': '1', 'siid': 3, 'piid': 1},
+    ]
+    with patch.object(c, 'async_get_props', AsyncMock(return_value=[CACHED[1]])), \
+            patch.object(c, 'async_get_props_rpc', AsyncMock(return_value=no_value)):
+        result = await c.async_get_properties_for_mapping('1', MAPPING, use_rpc=True)
+
+    assert {r['prop']: r['value'] for r in result} == {'vacuum.status': 4, 'battery_level': 99}
+
+
+async def test_get_props_rpc_sends_large_requests_in_batches(hass):
+    c = _cloud(hass)
+    params = [{'did': '1', 'siid': 2, 'piid': i} for i in range(RPC_MAX_PROPERTIES * 2 + 1)]
+
+    async def relay(api, data):
+        return {'code': 0, 'result': [dict(p, value=1) for p in data['params']]}
+
+    with patch.object(c, 'async_request_api', AsyncMock(side_effect=relay)) as request:
+        result = await c.async_get_props_rpc('1', params)
+
+    assert request.await_count == 3
+    assert all(len(call.args[1]['params']) <= RPC_MAX_PROPERTIES for call in request.await_args_list)
+    assert len(result) == len(params)
+
+
+async def test_get_props_rpc_keeps_batches_that_succeeded(hass):
+    c = _cloud(hass)
+    params = [{'did': '1', 'siid': 2, 'piid': i} for i in range(RPC_MAX_PROPERTIES + 1)]
+    answers = [{'code': 0, 'result': []}, {'code': 0, 'result': LIVE[:1]}]
+    with patch.object(c, 'async_request_api', AsyncMock(side_effect=answers)):
+        result = await c.async_get_props_rpc('1', params)
+
+    assert result == LIVE[:1]
