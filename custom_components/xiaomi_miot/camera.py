@@ -1,4 +1,6 @@
 """Support for Xiaomi cameras."""
+import asyncio
+import aiohttp
 import logging
 import json
 import time
@@ -54,6 +56,9 @@ SERVICE_TO_METHOD = {}
 
 # https://github.com/AlexxIT/go2rtc/tree/master/internal/xiaomi
 P2P_VENDORS = {1: 'tutk', 3: 'agora', 4: 'cs2', 6: 'mtp'}
+P2P_IMAGE_TIMEOUT = 8
+# a running xiaomi producer has no url in go2rtc's api and HA then fails every webrtc offer (go2rtc#2619)
+P2P_IMAGE_INTERVAL = 60
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -287,6 +292,9 @@ class CameraEntity(XEntity, BaseCameraEntity):
     _use_p2p_stream = False
     _p2p_stream_url = None
     _p2p_stream_expires = 0
+    _p2p_image_task = None
+    _p2p_image_size = None
+    _p2p_image_time = 0
 
     def on_init(self):
         BaseCameraEntity.__init__(self, self.hass)
@@ -297,6 +305,7 @@ class CameraEntity(XEntity, BaseCameraEntity):
             self._use_p2p_stream = self.custom_config_bool('use_p2p_stream', True)
         if self._use_p2p_stream:
             self._attr_supported_features = CameraEntityFeature.STREAM
+            self._p2p_stream_lock = asyncio.Lock()
 
     @property
     def available(self):
@@ -344,16 +353,53 @@ class CameraEntity(XEntity, BaseCameraEntity):
     async def async_camera_image(self, width=None, height=None):
         provider = getattr(self, '_webrtc_provider', None)
         if self._use_p2p_stream and provider:
+            if self._last_image and time.time() - self._p2p_image_time < P2P_IMAGE_INTERVAL:
+                return self._last_image
+            # go2rtc decodes HEVC for each snapshot (5-7s, more on a cold P2P connect) and HA cancels at 10s,
+            # so the request is shared by concurrent callers and keeps running to refresh the image for the next one
+            task = self._p2p_image_task
+            if not task or task.done() or self._p2p_image_size != (width, height):
+                task = self.hass.async_create_background_task(
+                    self.async_get_provider_image(provider, width, height),
+                    f'{self.entity_id} p2p image',
+                )
+                self._p2p_image_task = task
+                self._p2p_image_size = (width, height)
             try:
-                if image := await provider.async_get_image(self, width=width, height=height):
-                    return image
-            except Exception as exc:
-                self.log.info('Get camera image from %s failed: %s', type(provider).__name__, exc)
+                async with asyncio.timeout(P2P_IMAGE_TIMEOUT):
+                    if image := await asyncio.shield(task):
+                        return image
+            except TimeoutError:
+                self.log.info('Get camera image from %s timed out', type(provider).__name__)
+            if self._last_image:
+                return self._last_image
         return await super().async_camera_image(width, height)
+
+    async def async_get_provider_image(self, provider, width=None, height=None):
+        try:
+            image = await provider.async_get_image(self, width=width, height=height)
+        except Exception as exc:
+            self.log.info('Get camera image from %s failed: %s', type(provider).__name__, exc)
+            return None
+        if image:
+            self._last_image = image
+            self._p2p_image_time = time.time()
+        return image
 
     async def async_get_p2p_stream_url(self):
         if self._p2p_stream_url and time.time() < self._p2p_stream_expires:
             return self._p2p_stream_url
+        # concurrent offers must share one key pair, each new url makes go2rtc open another producer
+        async with self._p2p_stream_lock:
+            if self._p2p_stream_url and time.time() < self._p2p_stream_expires:
+                return self._p2p_stream_url
+            try:
+                return await self.async_request_p2p_stream_url()
+            except (MiCloudException, requests.exceptions.RequestException, aiohttp.ClientError, OSError) as exc:
+                self.log.info('Get camera p2p stream failed: %s', exc)
+                return None
+
+    async def async_request_p2p_stream_url(self):
         cloud = self.device.cloud
         host = self.device.info.host
         if not cloud or not host:
@@ -386,11 +432,12 @@ class CameraEntity(XEntity, BaseCameraEntity):
             'model': self.model,
         }
         expires = None
+        # debug=False keeps the key material of the responses out of the log
         rdt = await cloud.async_request_api('v2/device/miss_get_vendor', {
             'app_pubkey': client_public,
             'did': did,
             'support_vendors': 'TUTK_CS2_MTP',
-        }) or {}
+        }, debug=False) or {}
         res = rdt.get('result') or {}
         if vendor := res.get('vendor'):
             vid = vendor.get('vendor')
@@ -400,7 +447,7 @@ class CameraEntity(XEntity, BaseCameraEntity):
                 'client_private': client_private,
                 'device_public': res.get('public_key'),
                 'sign': res.get('sign'),
-                'vendor': P2P_VENDORS.get(vid, str(vid)),
+                'vendor': P2P_VENDORS.get(vid, vid),
             })
             if vid == 1:
                 query['uid'] = params.get('p2p_id')
@@ -410,12 +457,9 @@ class CameraEntity(XEntity, BaseCameraEntity):
             rdt = await cloud.async_request_api('device/devicepass', {
                 'did': did,
                 'toSignAppData': client_public,
-            }) or {}
+            }, debug=False) or {}
             res = rdt.get('result') or {}
-            if not res.get('p2p_id'):
-                self.log.info('Get camera p2p stream failed (offline or unsupported): %s', rdt)
-                return None
-            query['uid'] = res['p2p_id']
+            query['uid'] = res.get('p2p_id')
             if res.get('signForAppData'):
                 query.update({
                     'client_public': client_public,
@@ -425,12 +469,22 @@ class CameraEntity(XEntity, BaseCameraEntity):
                 })
             else:
                 query['password'] = res.get('password')
+        if missing := [k for k, v in query.items() if not v]:
+            self.log.info(
+                'Get camera p2p stream failed (offline or unsupported), missing %s, code: %s, message: %s',
+                missing, rdt.get('code'), rdt.get('message'),
+            )
+            return None
 
         # keep the url until the keys expire, go2rtc reuses the producer of an unchanged url
         now = time.time()
-        self._p2p_stream_expires = min(int(expires or 0) - 600, now + 86400) if expires else now + 3600
+        try:
+            expires = int(expires) - 600 if expires else now + 3600
+        except (TypeError, ValueError):
+            expires = now + 3600
+        self._p2p_stream_expires = min(expires, now + 86400)
         self._p2p_stream_url = f'xiaomi://{host}?{urlencode(query)}'
-        self.log.debug('Camera p2p stream: %s', self._p2p_stream_url.split('&client_private=')[0])
+        self.log.debug('Camera p2p stream: xiaomi://%s did=%s vendor=%s', host, did, query.get('vendor', 'legacy'))
         return self._p2p_stream_url
 
     def update_motion_video(self, data: dict):
