@@ -14,6 +14,7 @@ OUTAGE = MiCloudException("Cloud API returned None response, possible timeout or
 
 
 def make_device(hass, *responses):
+    config = {"username": "test-user", "conn_mode": "auto"}
     entry = SimpleNamespace(
         id="test-entry",
         hass=hass,
@@ -21,7 +22,7 @@ def make_device(hass, *responses):
             user_id="test-user",
             async_get_properties_for_mapping=AsyncMock(side_effect=list(responses)),
         ),
-        get_config=lambda key=None, default=None: default,
+        get_config=lambda key=None, default=None: config.get(key, default),
     )
     info = DeviceInfo({
         "did": "123456",
