@@ -1,0 +1,117 @@
+{
+  "type": "urn:miot-spec-v2:device:gateway:0000A019:lumi-mitw01:2",
+  "description": "Gateway",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:lumi-mitw01:1",
+      "description": "Device Information",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:manufacturer:00000001:lumi-mitw01:1",
+          "description": "Device Manufacturer",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:model:00000002:lumi-mitw01:1",
+          "description": "Device Model",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:serial-number:00000003:lumi-mitw01:1",
+          "description": "Device Serial Number",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:firmware-revision:00000005:lumi-mitw01:1",
+          "description": "Current Firmware Version",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:gateway:00007875:lumi-mitw01:1",
+      "description": "Gateway",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:guard-mode:000000B6:lumi-mitw01:1",
+          "description": "Guard Mode",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:alarm:00007804:lumi-mitw01:1",
+      "description": "Alarm",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:alarm:00000012:lumi-mitw01:1",
+          "description": "Alarm",
+          "format": "bool",
+          "access": [
+            "read",
+            "write"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:volume:00000013:lumi-mitw01:1",
+          "description": "Volume",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 4,
+      "type": "urn:miot-spec-v2:service:light:00007802:lumi-mitw01:1",
+      "description": "Light",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:on:00000006:lumi-mitw01:1",
+          "description": "Switch Status",
+          "format": "bool",
+          "access": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    }
+  ]
+}
