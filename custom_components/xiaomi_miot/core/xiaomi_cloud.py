@@ -365,9 +365,6 @@ class MiotCloud(micloud.MiCloud):
             elif self.attrs['timeouts'] <= 5:
                 _LOGGER.warning('Request xiaomi api: %s timeout (%s times)', api, self.attrs['timeouts'])
             return None
-        except asyncio.exceptions.CancelledError as exc:
-            _LOGGER.warning('Request xiaomi api: %s was cancelled, likely due to timeout: %s', api, exc)
-            return None
         except (TypeError, ValueError) as exc:
             rdt = None
             err = exc
