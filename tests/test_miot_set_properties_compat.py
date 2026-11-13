@@ -57,6 +57,23 @@ def test_set_property_error_accepts_mixed_batch_without_value(make_device, load_
     assert err is None
 
 
+@pytest.mark.parametrize("reverse", [False, True])
+def test_set_property_error_reports_error_in_mixed_batch(make_device, load_miot_spec, reverse):
+    device = make_device(load_miot_spec("cnhdm.airrtc.wkq01.json"))
+    requests = [
+        {"did": "test-device", "siid": 2, "piid": 3, "value": 0},
+        {"did": "test-device", "siid": 2, "piid": 5, "value": 25},
+    ]
+    accepted = {"did": "test-device", "siid": 2, "piid": 3}
+    failing = {"did": "test-device", "siid": 2, "piid": 5, "value": 25, "code": -4002}
+    responses = [failing, accepted] if reverse else [accepted, failing]
+
+    err = device.set_property_error(requests, responses)
+
+    assert isinstance(err, MiotResult)
+    assert err.code == -4002
+
+
 @pytest.mark.parametrize("shorter", [False, True])
 def test_set_property_error_accepts_mixed_batch_success(make_device, load_miot_spec, shorter):
     device = make_device(load_miot_spec("cnhdm.airrtc.wkq01.json"))
