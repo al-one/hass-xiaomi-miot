@@ -262,12 +262,18 @@ class Device(CustomConfigHelper):
         )
         return True
 
-    async def async_unload(self):
+    async def async_unload(self, *, unload_spec=True):
         for coo in self.coordinators:
             await coo.async_shutdown()
 
-        self.spec = None
-        self.hass.data[DOMAIN].setdefault('miot_specs', {}).pop(self.model, None)
+        self.coordinators.clear()
+        self.main_coordinators.clear()
+
+        # A registry disable retains entities and their converters/spec references.
+        # Only final unload should invalidate their shared specification cache.
+        if unload_spec:
+            self.spec = None
+            self.hass.data[DOMAIN].setdefault('miot_specs', {}).pop(self.model, None)
 
         if self._unsub_purge:
             self._unsub_purge()
