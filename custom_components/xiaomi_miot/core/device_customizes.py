@@ -1223,11 +1223,11 @@ DEVICE_CUSTOMIZES = {
     },
     'leshow.humidifier.jsq3': {
         'miot_type': 'urn:miot-spec-v2:device:humidifier:0000A00E:leshow-jsq3:2',
-        'button_actions': 'filter.reset_filter_life',
         'sensor_properties': 'humidifier.water_level',
         'switch_properties': 'alarm,heater_turn,screen.on',
         'number_properties': 'brightness',
-        'binary_sensor_attributes': 'push.humidity_fault,push.pb_com_fault,push.pump_fault,push.dump,push.water_over,push.water_lack,push.ptc_fault,push.wash_need',
+        'button_actions': 'filter.reset_filter_life',
+        'binary_sensor_properties': 'humidify_fault,pb_com_fault,pump_fault,dump,water_over,water_lack,ptc_fault,wash_need,filter_life',
     },
     'linp.doorbell.g04': {
         'sensor_properties': 'pressed_key',
