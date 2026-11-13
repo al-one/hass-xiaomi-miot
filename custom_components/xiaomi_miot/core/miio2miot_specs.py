@@ -1087,6 +1087,13 @@ MIIO_TO_MIOT_SPECS = {
             },
         },
     },
+    'philips.light.candle2': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {'prop': 'cct', 'setter': True},
+        },
+    },
     'philips.light.cbulb': {
         'extend_model': 'philips.light.bulb',
         'miio_specs': {
