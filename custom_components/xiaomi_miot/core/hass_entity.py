@@ -116,6 +116,7 @@ class XEntity(BasicEntity):
         self.conv = conv
         self.attr = conv.full_name
         self.log = device.log
+        self._device_marked_unavailable = False
 
         if isinstance(conv, MiotServiceConv):
             if conv.option.get('use_unique_attr'):
@@ -236,11 +237,23 @@ class XEntity(BasicEntity):
 
         if keys := self.listen_attrs & data.keys():
             self._attr_available = available
+            self._device_marked_unavailable = not available
             self.set_state(data)
             state_change = True
             for key in keys:
                 if conv := self.device.find_converter(key):
                     self._attr_extra_state_attributes[conv.attr] = self.device.props.get(conv.attr)
+
+        elif not only_info and not isinstance(self.conv, InfoConv):
+            if not available and self._attr_available:
+                self._attr_available = False
+                self._device_marked_unavailable = True
+                state_change = True
+            elif available and self._device_marked_unavailable:
+                self._device_marked_unavailable = False
+                if not self._attr_available:
+                    self._attr_available = True
+                    state_change = True
 
         if state_change and self.added:
             self._async_write_ha_state()

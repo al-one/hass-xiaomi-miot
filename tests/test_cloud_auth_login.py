@@ -148,6 +148,120 @@ async def test_login_verify_fe_skip_url_returns_success(hass):
     ]
 
 
+
+async def test_login_verify_fetches_ssecurity_via_step1(hass):
+    """Regression: verify+finalize must not finish without ssecurity.
+
+    v1.1.5 returned True as soon as `_finalize_login_response()` saw a
+    serviceToken. That left ssecurity=None and every api.io.mi.com call failed
+    with invalid signature / empty device list. Master continues into
+    `_login_step1()`; lock that behaviour in.
+    """
+    init_integration_data(hass)
+    c = MiotCloud(hass, "u", "p", "cn", "xiaomiio")
+    c.verify_ticket = lambda ticket: {"code": 0, "location": "/identity/result/check?id=1"}
+    c.session = SimpleNamespace(headers={})
+
+    finalize_response = _FakeResponse(
+        cookies={"serviceToken": "TOKEN", "userId": "1", "cUserId": "C1"},
+        url="https://account.xiaomi.com/identity/result/check?id=1",
+    )
+    step3_response = _FakeResponse(
+        cookies={"serviceToken": "TOKEN2", "userId": "1"},
+        status_code=200,
+        url="https://sts.api.io.mi.com/sts",
+    )
+
+    def _account_get(url, method="GET", **kwargs):
+        if url == "/identity/result/check?id=1":
+            return finalize_response
+        if url == "https://sts.api.io.mi.com/sts":
+            return step3_response
+        raise AssertionError(f"unexpected url: {url}")
+
+    c.account_get = _account_get
+
+    step1_called = []
+    step2_called = []
+
+    def _login_step1():
+        step1_called.append(True)
+        # Finalize already set the token; step1 only supplies ssecurity+location.
+        assert c.service_token == "TOKEN"
+        assert c.ssecurity is None
+        c.ssecurity = "SSEC"
+        return {"code": 0, "location": "https://sts.api.io.mi.com/sts", "ssecurity": "SSEC"}
+
+    def _login_step2(**kwargs):
+        step2_called.append(kwargs)
+        raise AssertionError("_login_step2 should not run when step1 returned location")
+
+    c._login_step1 = _login_step1
+    c._login_step2 = _login_step2
+
+    ret = await hass.async_add_executor_job(
+        c._login_request,
+        {"verify_ticket": "TICKET"},
+    )
+
+    assert ret is True
+    assert step1_called == [True]
+    assert step2_called == []
+    assert c.ssecurity == "SSEC"
+    assert c.service_token == "TOKEN2"
+
+
+async def test_login_verify_step1_without_location_completes(hass):
+    """After verify, step1 may return ssecurity with no location.
+
+    In that case we already have service_token from finalize; do not fall through
+    into `_login_step2()` (password re-auth / possible second verification).
+    """
+    init_integration_data(hass)
+    c = MiotCloud(hass, "u", "p", "cn", "xiaomiio")
+    c.verify_ticket = lambda ticket: {"code": 0, "location": "/identity/result/check?id=1"}
+    c.session = SimpleNamespace(headers={})
+
+    finalize_response = _FakeResponse(
+        cookies={"serviceToken": "TOKEN", "userId": "1"},
+        url="https://account.xiaomi.com/identity/result/check?id=1",
+    )
+
+    def _account_get(url, method="GET", **kwargs):
+        if url == "/identity/result/check?id=1":
+            return finalize_response
+        raise AssertionError(f"unexpected url: {url}")
+
+    c.account_get = _account_get
+
+    step2_called = []
+
+    def _login_step1():
+        c.ssecurity = "SSEC"
+        return {"code": 0, "ssecurity": "SSEC"}  # no location
+
+    def _login_step2(**kwargs):
+        step2_called.append(True)
+        raise AssertionError("_login_step2 must not run")
+
+    def _login_step3(location):
+        raise AssertionError("_login_step3 must not run without location")
+
+    c._login_step1 = _login_step1
+    c._login_step2 = _login_step2
+    c._login_step3 = _login_step3
+
+    ret = await hass.async_add_executor_job(
+        c._login_request,
+        {"verify_ticket": "TICKET"},
+    )
+
+    assert ret is True
+    assert step2_called == []
+    assert c.ssecurity == "SSEC"
+    assert c.service_token == "TOKEN"
+
+
 async def test_extract_fe_skip_url_ignores_html_only_value(hass):
     init_integration_data(hass)
     c = MiotCloud(hass, "u", "p", "cn", "xiaomiio")

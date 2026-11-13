@@ -75,7 +75,7 @@
             },
             "reauth_verify": {
                 "title": "Xác thực lại Xiaomi — nhập mã xác minh",
-                "description": "Mở [liên kết này]({verify_url}) trong trình duyệt, yêu cầu mã rồi dán mã xác minh vào đây.",
+                "description": "Nhập mã xác minh do tích hợp này gửi. Giữ trang này mở và không yêu cầu mã trong trình duyệt khác.\n{tip}",
                 "data": {
                     "verify_ticket": "Mã xác minh"
                 }
@@ -94,11 +94,14 @@
             "cannot_reach": "Không thể truy cập API Xiaomi",
             "tzinfo_error": "Có vẻ môi trường Hass của bạn gặp vấn đề. Xem: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Không tìm thấy thiết bị nào trong tài khoản Xiaomi này",
-            "need_verify": "Cần có mã xác minh.",
+            "need_verify": "Nhập mã xác minh do tích hợp này gửi. Giữ trang này mở và không yêu cầu mã trong trình duyệt khác.",
             "invalid_auth": "Xiaomi đã từ chối thông tin xác thực.\n{tip}",
             "need_captcha": "Cần có mã captcha.",
             "save_failed": "Không thể lưu thông tin xác thực đã làm mới. Vui lòng thử lại.",
-            "unknown": "Lỗi không mong muốn."
+            "unknown": "Lỗi không mong muốn.",
+            "cannot_send_verify": "Không thể gửi mã xác minh. Vui lòng thử lại sau.",
+            "verify_invalid": "Mã xác minh bị từ chối. Hãy kiểm tra mã do tích hợp này gửi.",
+            "need_identity_captcha": "Trước tiên hãy nhập CAPTCHA và để trống mã SMS/email. Sau đó mã xác minh sẽ được gửi."
         },
         "abort": {
             "config_saved": "Đã lưu cấu hình! [Tùy chỉnh lại](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nMột số tùy chọn cần [tải lại tích hợp](/developer-tools/yaml) để có hiệu lực.",
@@ -164,7 +167,10 @@
             "cannot_reach": "Không thể truy cập API Xiaomi",
             "tzinfo_error": "Có vẻ môi trường Hass của bạn gặp vấn đề. Xem: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Không tìm thấy thiết bị nào trong tài khoản Xiaomi này",
-            "need_verify": "Đăng nhập này cần xác thực bảo mật. Hãy mở liên kết xác thực bên dưới để gửi mã xác minh qua điện thoại/email. Sau khi nhận mã, không xác minh trên trang web. Quay lại Home Assistant và nhập mã vào ô bên dưới."
+            "need_verify": "Nhập mã xác minh do tích hợp này gửi. Giữ trang này mở và không yêu cầu mã trong trình duyệt khác.",
+            "cannot_send_verify": "Không thể gửi mã xác minh. Vui lòng thử lại sau.",
+            "verify_invalid": "Mã xác minh bị từ chối. Hãy kiểm tra mã do tích hợp này gửi.",
+            "need_identity_captcha": "Trước tiên hãy nhập CAPTCHA và để trống mã SMS/email. Sau đó mã xác minh sẽ được gửi."
         },
         "abort": {
             "show_customizes": "[Thêm tích hợp mới](/_my_redirect/config_flow_start?domain=xiaomi_miot) để chỉnh sửa tùy chỉnh.\n{link}\n{tip}"
