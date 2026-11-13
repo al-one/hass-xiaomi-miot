@@ -1,0 +1,113 @@
+{
+  "type": "urn:miot-spec-v2:device:air-purifier:0000A007:zhimi-rmb1:2",
+  "description": "Air Purifier",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:zhimi-rmb1:1",
+      "description": "Device Information",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:manufacturer:00000001:zhimi-rmb1:1", "description": "Device Manufacturer", "format": "string", "access": ["read"]},
+        {"iid": 2, "type": "urn:miot-spec-v2:property:model:00000002:zhimi-rmb1:1", "description": "Device Model", "format": "string", "access": ["read"]},
+        {"iid": 3, "type": "urn:miot-spec-v2:property:serial-number:00000003:zhimi-rmb1:1", "description": "Device ID", "format": "string", "access": ["read"]},
+        {"iid": 4, "type": "urn:miot-spec-v2:property:firmware-revision:00000005:zhimi-rmb1:1", "description": "Current Firmware Version", "format": "string", "access": ["read"]},
+        {"iid": 5, "type": "urn:miot-spec-v2:property:serial-no:000000FF:zhimi-rmb1:1", "description": "Serial Number", "format": "string", "access": ["read", "notify"]}
+      ]
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:air-purifier:00007811:zhimi-rmb1:1",
+      "description": "Air Purifier",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:on:00000006:zhimi-rmb1:1", "description": "Switch Status", "format": "bool", "access": ["read", "write", "notify"], "unit": "none"},
+        {"iid": 2, "type": "urn:miot-spec-v2:property:fault:00000009:zhimi-rmb1:1", "description": "Device Fault", "format": "uint8", "access": ["read", "notify"], "value-list": [{"value": 0, "description": "No Faults"}, {"value": 2, "description": "Motor Stop"}, {"value": 3, "description": "Sensor Lost"}]},
+        {"iid": 4, "type": "urn:miot-spec-v2:property:mode:00000008:zhimi-rmb1:1", "description": "Mode", "format": "uint8", "access": ["read", "write", "notify"], "value-list": [{"value": 0, "description": "Auto"}, {"value": 1, "description": "Sleep"}, {"value": 2, "description": "Favorite"}]}
+      ],
+      "actions": [
+        {"iid": 1, "type": "urn:miot-spec-v2:action:toggle:00002811:zhimi-rmb1:1", "description": "Toggle", "in": [], "out": []}
+      ]
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:environment:0000780A:zhimi-rmb1:1",
+      "description": "Environment",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:relative-humidity:0000000C:zhimi-rmb1:1", "description": "Relative Humidity", "format": "uint8", "access": ["read", "notify"], "unit": "percentage", "value-range": [0, 100, 1]},
+        {"iid": 4, "type": "urn:miot-spec-v2:property:pm2.5-density:00000034:zhimi-rmb1:1", "description": "PM2.5 Density", "format": "uint16", "access": ["read", "notify"], "unit": "μg/m3", "value-range": [0, 600, 1]},
+        {"iid": 7, "type": "urn:miot-spec-v2:property:temperature:00000020:zhimi-rmb1:1", "description": "Temperature", "format": "float", "access": ["read", "notify"], "unit": "celsius", "value-range": [-30, 100, 0.1]}
+      ]
+    },
+    {
+      "iid": 4,
+      "type": "urn:miot-spec-v2:service:filter:0000780B:zhimi-rmb1:1",
+      "description": "Filter",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:filter-life-level:0000001E:zhimi-rmb1:1", "description": "Filter Life Level", "format": "uint8", "access": ["read", "notify"], "unit": "percentage", "value-range": [0, 100, 1]},
+        {"iid": 3, "type": "urn:miot-spec-v2:property:filter-used-time:00000048:zhimi-rmb1:1", "description": "Filter Used Time", "format": "uint16", "access": ["read", "notify"], "unit": "days", "value-range": [0, 1000, 1]},
+        {"iid": 4, "type": "urn:miot-spec-v2:property:filter-left-time:0000001F:zhimi-rmb1:1", "description": "Filter Left Time", "format": "uint16", "access": ["read", "notify"], "unit": "days", "value-range": [0, 1000, 1]}
+      ],
+      "actions": [
+        {"iid": 1, "type": "urn:miot-spec-v2:action:reset-filter-life:00002803:zhimi-rmb1:1", "description": "Reset Filter Life", "in": [3], "out": []}
+      ]
+    },
+    {
+      "iid": 6,
+      "type": "urn:miot-spec-v2:service:alarm:00007804:zhimi-rmb1:1",
+      "description": "Alarm",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:alarm:00000012:zhimi-rmb1:1", "description": "Alarm", "format": "bool", "access": ["read", "write", "notify"]}
+      ]
+    },
+    {
+      "iid": 8,
+      "type": "urn:miot-spec-v2:service:physical-controls-locked:00007807:zhimi-rmb1:1",
+      "description": "Physical Control Locked",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:physical-controls-locked:0000001D:zhimi-rmb1:1", "description": "Physical Control Locked", "format": "bool", "access": ["read", "write", "notify"]}
+      ]
+    },
+    {
+      "iid": 13,
+      "type": "urn:miot-spec-v2:service:screen:00007806:zhimi-rmb1:1",
+      "description": "Screen",
+      "properties": [
+        {"iid": 2, "type": "urn:miot-spec-v2:property:brightness:0000000D:zhimi-rmb1:1", "description": "Brightness", "format": "uint8", "access": ["read", "write", "notify"], "unit": "percentage", "value-list": [{"value": 0, "description": "Close"}, {"value": 1, "description": "Bright"}, {"value": 2, "description": "Brightest"}]}
+      ]
+    },
+    {
+      "iid": 14,
+      "type": "urn:miot-spec-v2:service:device-display-unit:000078AC:zhimi-rmb1:1",
+      "description": "Device Display Unit",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:temperature-display-unit:00000116:zhimi-rmb1:1", "description": "Temperature Display Unit", "format": "uint8", "access": ["read", "write", "notify"], "value-list": [{"value": 1, "description": "Celsius"}, {"value": 2, "description": "Fahrenheit"}]}
+      ]
+    },
+    {
+      "iid": 9,
+      "type": "urn:zhimi-spec:service:custom-service:00007801:zhimi-rmb1:1",
+      "description": "custom-service",
+      "properties": [
+        {"iid": 1, "type": "urn:zhimi-spec:property:moto-speed-rpm:00000001:zhimi-rmb1:1", "description": "moto-speed-rpm", "format": "uint16", "access": ["read", "notify"], "value-range": [0, 2500, 1]},
+        {"iid": 10, "type": "urn:zhimi-spec:property:country-code:00000008:zhimi-rmb1:1", "description": "country-code", "format": "int32", "access": ["read", "notify", "write"], "value-list": [{"value": 2, "description": "EU"}, {"value": 1, "description": "US"}, {"value": 82, "description": "KR"}, {"value": 886, "description": "TW"}, {"value": 66, "description": "TH"}, {"value": 44, "description": "UK"}, {"value": 91, "description": "IN"}]},
+        {"iid": 11, "type": "urn:zhimi-spec:property:favorite-level:00000002:zhimi-rmb1:1", "description": "favorite-level", "format": "uint8", "access": ["read", "notify", "write"], "value-range": [0, 14, 1]}
+      ],
+      "actions": [
+        {"iid": 1, "type": "urn:zhimi-spec:action:toggle-mode:00002801:zhimi-rmb1:1", "description": "toggle-mode", "in": [], "out": []}
+      ],
+      "events": [
+        {"iid": 1, "type": "urn:zhimi-spec:event:fault-motor-stuck:00005001:zhimi-rmb1:1", "description": "fault-motor-stuck", "arguments": []},
+        {"iid": 2, "type": "urn:zhimi-spec:event:childlock-trigger:00005002:zhimi-rmb1:1", "description": "childlock-trigger", "arguments": []},
+        {"iid": 3, "type": "urn:zhimi-spec:event:door-opened:00005003:zhimi-rmb1:1", "description": "door-opened", "arguments": []},
+        {"iid": 5, "type": "urn:zhimi-spec:event:filter-exhausted:00005005:zhimi-rmb1:1", "description": "filter-exhausted", "arguments": []}
+      ]
+    },
+    {
+      "iid": 11,
+      "type": "urn:zhimi-spec:service:aqi:00007803:zhimi-rmb1:1",
+      "description": "aqi",
+      "properties": [
+        {"iid": 4, "type": "urn:zhimi-spec:property:aqi-updata-heartbeat:00000004:zhimi-rmb1:1", "description": "aqi-updata-heartbeat", "format": "uint16", "access": ["read", "notify", "write"], "unit": "none", "value-range": [0, 65535, 1]}
+      ]
+    }
+  ]
+}
