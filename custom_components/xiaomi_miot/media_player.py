@@ -996,7 +996,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
         except json.decoder.JSONDecodeError:
             rdt = {}
             if req:
-                self.logger.warning('%s: Invalid response data: %s with %s', req.content, kwargs)
+                self.logger.warning('%s: Invalid response data: %s with %s', self.name_model, req.content, kwargs)
         return rdt.get('data') or {}
 
     async def async_request_mitv_api(self, path, **kwargs):

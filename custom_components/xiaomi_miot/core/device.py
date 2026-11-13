@@ -1320,7 +1320,7 @@ class Device(CustomConfigHelper):
             self.log.warning('Call miot action %s failed: %s', pms, exc)
             return MiotResult({}, code=-1, error=str(exc))
         except (TypeError, ValueError) as exc:
-            self.log.warning('Call miot action %s failed: %s, result: %s', pms, exc)
+            self.log.warning('Call miot action %s failed: %s', pms, exc)
             return MiotResult({}, code=-1, error=str(exc))
         if result.is_success:
             self.log.debug('Call miot action %s, result: %s', pms, result)
