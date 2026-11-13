@@ -26,6 +26,8 @@ DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 async def async_setup_entry(hass, config_entry, async_add_entities):
     HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
+    from .cddz_pc03w import async_setup_cddz_platform
+    await async_setup_cddz_platform(hass, config_entry, ENTITY_DOMAIN, async_add_entities)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
