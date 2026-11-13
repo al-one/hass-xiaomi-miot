@@ -3066,6 +3066,7 @@ DEVICE_CUSTOMIZES = {
     'zhimi.fan.za4': {
         'miot_type': 'urn:miot-spec-v2:device:fan:0000A005:zhimi-za4:3',
         'number_select_properties': 'fan_level',
+        'number_properties': 'horizontal_swing_included_angle',
     },
     'zhimi.fan.za5': {
         **CHUNK_1,
