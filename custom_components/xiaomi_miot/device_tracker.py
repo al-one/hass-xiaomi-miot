@@ -9,6 +9,7 @@ from homeassistant.components.device_tracker import (
     ScannerEntity as BaseScannerEntity,
 )
 from homeassistant.components.device_tracker.const import SourceType
+from homeassistant.exceptions import TemplateError
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import (
@@ -26,6 +27,7 @@ from .core.miot_spec import (
     MiotService,
 )
 from .core.coord_transform import gcj02_to_wgs84, bd09_to_wgs84
+from .core.templates import template
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
@@ -114,14 +116,28 @@ class MiotTrackerEntity(MiotEntity, BaseTrackerEntity):
     async def transform_coord(self, default=None):
         if not (self._attr_latitude or self._attr_longitude):
             return
-        typ = self.custom_config('coord_type') or default
-        if not typ:
-            return
-        typ = f'{typ}'.lower()
+        typ = f'{self.custom_config("coord_type") or default or ""}'.strip()
+        if '{{' in typ:
+            typ = self.render_coord_type(typ)
+        else:
+            typ = typ.lower()
         if typ == 'gcj02':
             self._attr_longitude, self._attr_latitude = gcj02_to_wgs84(self._attr_longitude, self._attr_latitude)
         if typ == 'bd09':
             self._attr_longitude, self._attr_latitude = bd09_to_wgs84(self._attr_longitude, self._attr_latitude)
+
+    def render_coord_type(self, tpl):
+        if not self.hass:
+            return ''
+        try:
+            val = template(tpl, self.hass).async_render(
+                {'data': dict(self._state_attrs or {})},
+                parse_result=False,
+            )
+        except TemplateError as exc:
+            self.logger.warning('%s: Invalid coord_type: %s', self.name_model, exc)
+            return ''
+        return f'{val or ""}'.strip().lower()
 
     @property
     def should_poll(self):

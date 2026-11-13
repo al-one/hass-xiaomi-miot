@@ -2782,6 +2782,10 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,rinse_status',
         'number_properties': 'target_temperature',
     },
+    # https://github.com/al-one/hass-xiaomi-miot/issues/3058
+    'xiaoxun.watch.sw773': {
+        'coord_type': "{{ 'bd09' if data.get('locationinfo.maptype')|int(1) == 0 else 'gcj02' }}",
+    },
     'xjx.toilet.relax': {
         'button_actions': 'flush_on',
     },
