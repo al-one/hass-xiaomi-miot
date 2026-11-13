@@ -183,6 +183,38 @@ xiaoai_wakeup:
       selector:
         text:
 
+archive_alarm_events:
+  description: Archive Xiaomi doorbell cloud events as stream-copied MP4 clips and JPEG thumbnails.
+  fields:
+    entity_id:
+      description: ID of the camera entity.
+      example: camera.xiaomi_doorbell
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_miot
+          domain: camera
+    begin:
+      description: Start of the cloud event window, in milliseconds since epoch. 0 lists full history.
+      default: 0
+      example: 0
+      selector:
+        number:
+          min: 0
+          mode: box
+    ended:
+      description: End of the cloud event window, in milliseconds since epoch. Defaults to now.
+      example: 1792000000000
+      selector:
+        number:
+          min: 0
+          mode: box
+    archive_dir:
+      description: Directory for archived clips. Defaults to the Home Assistant config path xiaomi_miot_clips.
+      example: /config/xiaomi_miot_clips
+      selector:
+        text:
+
 get_device_data:
   description: Get xiaomi device data from cloud.
   fields:

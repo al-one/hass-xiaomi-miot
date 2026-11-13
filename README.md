@@ -238,6 +238,21 @@ This component has added support for configuration reloading (to avoid having to
 - Window and Door Sensor (like: [lumi.sensor_magnet.v1](https://home.miot-spec.com/s/lumi.sensor_magnet.v1))
 
 
+## Cloud alarm recordings
+
+For cloud cameras that expose the latest alarm event, open **Media → Xiaomi
+recordings** and select the camera. The `motion_video_media_source` attribute
+also provides its `media-source://xiaomi_miot/camera.…` ID for playback actions.
+The camera entity continues to show the event snapshot; local and RTSP live
+streams keep their existing behavior.
+
+Xiaomi alarm playlists can contain separately encrypted MP4 fragments. The
+integration downloads every fragment and joins them into one MP4 with the
+configured FFmpeg binary, preserving video and audio. Only the latest recording
+is cached per camera. Playback requires Home Assistant authentication and
+supports seeking. Video codec support depends on the player, as no transcoding
+is performed.
+
 ## Services
 
 > Since the HA support service response has been for some time, this component no longer triggers events starting from v0.7.18.

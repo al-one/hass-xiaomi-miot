@@ -7,10 +7,12 @@ import base64
 import requests
 import re
 import collections
+import voluptuous as vol
 from os import urandom
 from functools import partial
-from urllib.parse import urlencode
-from datetime import datetime, timedelta
+from urllib.parse import urlencode, urlsplit
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 from homeassistant.const import STATE_IDLE
 from homeassistant.core import HomeAssistant
@@ -21,6 +23,7 @@ from homeassistant.components.camera import (
     CameraState,
 )
 from homeassistant.components.ffmpeg import async_get_image, DATA_FFMPEG
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from haffmpeg.camera import CameraMjpeg
@@ -38,17 +41,38 @@ from . import (
     MiCloudException,
     async_setup_config_entry,
     bind_services_to_entries,
+    XIAOMI_MIIO_SERVICE_SCHEMA,
 )
 from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
+from .core.recording import (
+    RecordingError,
+    archive_clip,
+    archive_name,
+    download_thumbnail,
+)
 
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 SCAN_INTERVAL = timedelta(seconds=60)
+XIAOMI_SMARTCAMERA_HOST = 'business.smartcamera.api.io.mi.com'
+ARCHIVE_DIR_NAME = 'xiaomi_miot_clips'
+ARCHIVE_EVENT = f'{DOMAIN}_clip_archived'
+ARCHIVE_INTERVAL = 3600
+ARCHIVE_WINDOW_MS = 7 * 86400 * 1000
 
-SERVICE_TO_METHOD = {}
+SERVICE_TO_METHOD = {
+    'archive_alarm_events': {
+        'method': 'async_archive_alarm_events',
+        'schema': XIAOMI_MIIO_SERVICE_SCHEMA.extend({
+            vol.Optional('begin', default=0): int,
+            vol.Optional('ended'): int,
+            vol.Optional('archive_dir'): cv.string,
+        }),
+    },
+}
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -95,6 +119,7 @@ class BaseCameraEntity(Camera):
     _last_url = None
     _url_expiration = 0
     _extra_arguments = None
+    _alarm_events: dict | None = None
     device: Device = None
 
     def __init__(self, hass: HomeAssistant):
@@ -238,6 +263,58 @@ class BaseCameraEntity(Camera):
             self.log.info('Camera events is empty. %s', rdt)
         return adt
 
+    async def get_alarm_events(self, begin=0, ended=None, doorbell=False, page_size=50):
+        """Return every cloud event in [begin, ended] newest first, keeping raw fields."""
+        cloud = self.device.cloud
+        if not cloud:
+            return []
+        api = cloud.get_api_by_host('business.smartcamera.api.io.mi.com', 'common/app/get/eventlist')
+        page_size = min(max(int(page_size), 1), 50)
+        end = ended or int(time.time() * 1000 + 999)
+        events: dict[str, dict] = {}
+        while end >= begin:
+            rqd = {
+                'did': self.device.did,
+                'model': self.model,
+                'doorBell': doorbell,
+                'eventType': 'Default',
+                'needMerge': True,
+                'sortType': 'DESC',
+                'region': str(cloud.default_server).upper(),
+                'language': locale.getlocale()[0],
+                'beginTime': begin,
+                'endTime': end,
+                'limit': page_size,
+            }
+            rdt = await cloud.async_request_api(api, rqd, method='GET', crypt=True) or {}
+            rls = [ev for ev in (rdt.get('data', {}).get('thirdPartPlayUnits') or []) if isinstance(ev, dict)]
+            if not rls:
+                break
+            for ev in rls:
+                events.setdefault(str(ev.get('fileId') or f"{ev.get('createTime')}:{ev.get('videoStoreId')}"), ev)
+            oldest = min(int(ev.get('createTime') or 0) for ev in rls)
+            next_end = min(oldest, end) - 1
+            if len(rls) < page_size or next_end >= end:
+                break
+            end = next_end
+        return sorted(events.values(), key=lambda ev: int(ev.get('createTime') or 0), reverse=True)
+
+    async def async_list_alarm_events(self, begin=0, ended=None):
+        """Refresh the per-event index that media_source resolves fileId against."""
+        events = await self.get_alarm_events(begin, ended, self.is_doorbell)
+        self._alarm_events = {str(ev['fileId']): ev for ev in events if ev.get('fileId')}
+        return events
+
+    async def async_alarm_event_url(self, file_id) -> str | None:
+        """Return the m3u8 URL of one listed event, listing full history once if unknown."""
+        file_id = str(file_id)
+        if not self._alarm_events or file_id not in self._alarm_events:
+            await self.async_list_alarm_events()
+        event = (self._alarm_events or {}).get(file_id)
+        if event is None:
+            return None
+        return self.get_alarm_m3u8_url(file_id, event.get('isAlarm'))
+
     def get_alarm_m3u8_url(self, fileId, isAlarm=False, videoCodec='H265'):
         cloud = self.device.cloud
         if not cloud or not fileId:
@@ -273,12 +350,62 @@ class BaseCameraEntity(Camera):
             url = f'-decryption_key {key} -decryption_iv {self._segment_iv_hex} -i "crypto+{url}"'
         return url
 
+    async def async_archive_alarm_events(self, begin=0, ended=None, archive_dir=None):
+        """Archive each listed cloud event once as a stream-copied MP4 plus JPEG thumbnail."""
+        root = Path(archive_dir or self.hass.config.path(ARCHIVE_DIR_NAME))
+        root.mkdir(parents=True, exist_ok=True)
+        ffmpeg_binary = getattr(self.hass.data.get(DATA_FFMPEG), 'binary', None)
+        if not ffmpeg_binary:
+            raise RecordingError('Xiaomi recording support is unavailable')
+        archived = []
+        for ev in await self.get_alarm_events(begin, ended, self.is_doorbell):
+            file_id = str(ev.get('fileId') or '')
+            if not file_id:
+                continue
+            stem = archive_name(ev.get('createTime'), ev.get('eventType'), file_id)
+            clip = root / f'{stem}.mp4'
+            if clip.is_file() and clip.stat().st_size > 0:
+                continue
+            url = self.get_alarm_m3u8_url(file_id, ev.get('isAlarm'))
+            if not url:
+                continue
+            try:
+                await self.hass.async_add_executor_job(archive_clip, url, clip, ffmpeg_binary)
+            except RecordingError as exc:
+                _LOGGER.warning('Xiaomi alarm clip archive skipped for %s: %s', file_id, exc)
+                continue
+            thumb = root / f'{stem}.jpg'
+            if ev.get('imgStoreId') and not thumb.is_file():
+                try:
+                    img_url = self.get_alarm_image_address(file_id, ev.get('imgStoreId'))
+                    key = base64.b64decode(self.device.cloud.ssecurity)
+                    iv = bytes.fromhex(self._segment_iv_hex)
+                    await self.hass.async_add_executor_job(download_thumbnail, img_url, key, iv, thumb)
+                except (RecordingError, TypeError, ValueError, OSError):
+                    _LOGGER.warning('Xiaomi alarm thumbnail skipped for %s', file_id)
+            created = int(ev.get('createTime') or 0)
+            duration = float(ev.get('duration') or 0)
+            payload = {
+                'path': str(clip),
+                'start': datetime.fromtimestamp(created / 1000, UTC).isoformat(),
+                'end': datetime.fromtimestamp(created / 1000 + duration, UTC).isoformat() if duration else None,
+                'type': ev.get('eventType'),
+                'fileId': file_id,
+            }
+            self.hass.bus.async_fire(ARCHIVE_EVENT, payload)
+            archived.append(payload)
+        _LOGGER.info('Xiaomi alarm archive: %d new clip(s) in %s', len(archived), root)
+        return archived
+
 
 class CameraEntity(XEntity, BaseCameraEntity):
     _attr_should_poll = True
     _attr_camera_image = None
     _attr_stream_source = None
     _last_motion_time = None
+    _archive_task = None
+    _archive_at = 0.0
+    _archive_full_done = False
 
     def on_init(self):
         BaseCameraEntity.__init__(self, self.hass)
@@ -302,8 +429,33 @@ class CameraEntity(XEntity, BaseCameraEntity):
     async def image_source(self):
         return self._attr_camera_image
 
+    @property
+    def is_cloud_alarm_recording(self):
+        url = self._attr_stream_source
+        if not url or not self.device.cloud:
+            return False
+        parsed = urlsplit(url)
+        host = parsed.hostname or ''
+        return (
+            parsed.scheme == 'https'
+            and parsed.path == '/common/app/m3u8'
+            and (
+                host == XIAOMI_SMARTCAMERA_HOST
+                or host.endswith(f'.{XIAOMI_SMARTCAMERA_HOST}')
+            )
+        )
+
     async def stream_source(self):
+        # Alarm clips are finite recordings; HA's camera stream expects live input.
+        if self.is_cloud_alarm_recording:
+            return None
         return self._attr_stream_source
+
+    @property
+    def recording_media_source(self):
+        if self.is_cloud_alarm_recording:
+            return f'media-source://{DOMAIN}/{self.entity_id}'
+        return None
 
     def update_motion_video(self, data: dict):
         tim = data.get('motion_video_time')
@@ -318,11 +470,13 @@ class CameraEntity(XEntity, BaseCameraEntity):
             if fid := adt.get('fileId'):
                 self._attr_camera_image = self.get_alarm_image_address(fid, adt.get('imgStoreId'), True)
                 self._attr_stream_source = self.get_alarm_m3u8_url(fid, adt.get('isAlarm'))
+                self._attr_extra_state_attributes.pop('stream_address', None)
                 self._attr_extra_state_attributes.update({
-                    'stream_address': self._attr_stream_source,
+                    'motion_video_media_source': f'media-source://{DOMAIN}/{self.entity_id}',
                 })
 
     async def async_update(self):
+        before = self._last_motion_time
         adt = None
         stm = int(time.time() - 86400 * 7) * 1000
         if not self.device.cloud:
@@ -337,6 +491,22 @@ class CameraEntity(XEntity, BaseCameraEntity):
             self.log.debug('Camera alarm data: %s', adt)
             self._attr_available = True
             self.update_motion_video(adt)
+        if self.device.cloud and (self._last_motion_time != before or time.monotonic() >= self._archive_at):
+            self._schedule_archive()
+
+    def _schedule_archive(self):
+        if self._archive_task and not self._archive_task.done():
+            return
+        self._archive_at = time.monotonic() + ARCHIVE_INTERVAL
+        self._archive_task = self.hass.async_create_background_task(
+            self._async_archive_catch_up(), f'{DOMAIN}.archive.{self.entity_id}',
+        )
+
+    async def _async_archive_catch_up(self):
+        # First run walks the full cloud history; later runs re-check the last week.
+        begin = int(time.time() * 1000) - ARCHIVE_WINDOW_MS if self._archive_full_done else 0
+        await self.async_archive_alarm_events(begin)
+        self._archive_full_done = True
 
 
 XEntity.CLS[ENTITY_DOMAIN] = CameraEntity
