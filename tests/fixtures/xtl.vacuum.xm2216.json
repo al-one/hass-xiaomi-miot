@@ -1,0 +1,551 @@
+{
+  "type": "urn:miot-spec-v2:device:vacuum:0000A006:xtl-xm2216:4",
+  "description": "Robot Cleaner",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:xtl-xm2216:1",
+      "description": "Device Information",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:manufacturer:00000001:xtl-xm2216:1",
+          "description": "Device Manufacturer",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:model:00000002:xtl-xm2216:1",
+          "description": "Device Model",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:serial-number:00000003:xtl-xm2216:1",
+          "description": "Device ID",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:firmware-revision:00000005:xtl-xm2216:1",
+          "description": "Current Firmware Version",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:serial-no:000000FF:xtl-xm2216:1",
+          "description": "Serial Number",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:vacuum:00007810:xtl-xm2216:1",
+      "description": "Robot Cleaner",
+      "properties": [
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:status:00000007:xtl-xm2216:1",
+          "description": "Status",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "Idle"
+            },
+            {
+              "value": 2,
+              "description": "Busy"
+            },
+            {
+              "value": 3,
+              "description": "Delay"
+            },
+            {
+              "value": 4,
+              "description": "Mopping"
+            },
+            {
+              "value": 5,
+              "description": "Sweeping and Mopping"
+            },
+            {
+              "value": 6,
+              "description": "Paused"
+            },
+            {
+              "value": 7,
+              "description": "Sweeping"
+            },
+            {
+              "value": 8,
+              "description": "Error"
+            },
+            {
+              "value": 9,
+              "description": "Charging"
+            },
+            {
+              "value": 10,
+              "description": "Go Charging"
+            },
+            {
+              "value": 11,
+              "description": "BreakCharging"
+            },
+            {
+              "value": 12,
+              "description": "GoWash"
+            },
+            {
+              "value": 13,
+              "description": "Charged"
+            },
+            {
+              "value": 14,
+              "description": "BuildingMap"
+            },
+            {
+              "value": 15,
+              "description": "Updating"
+            },
+            {
+              "value": 16,
+              "description": "Sleeping"
+            },
+            {
+              "value": 17,
+              "description": "Relocation"
+            },
+            {
+              "value": 18,
+              "description": "StationWorking"
+            },
+            {
+              "value": 19,
+              "description": "MappingPause"
+            },
+            {
+              "value": 20,
+              "description": "GoChargeBreak"
+            },
+            {
+              "value": 21,
+              "description": "WashBreak"
+            },
+            {
+              "value": 22,
+              "description": "Linking Device"
+            },
+            {
+              "value": 23,
+              "description": "GoDust"
+            }
+          ],
+          "gatt-access": []
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:start-sweep:00002804:xtl-xm2216:1",
+          "description": "Start Sweep",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:action:stop-sweeping:00002805:xtl-xm2216:1",
+          "description": "Stop Sweeping",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 7,
+          "type": "urn:miot-spec-v2:action:pause-sweeping:00002863:xtl-xm2216:1",
+          "description": "Pause Sweeping",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 16,
+      "type": "urn:miot-spec-v2:service:battery:00007805:xtl-xm2216:1",
+      "description": "Battery",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:battery-level:00000014:xtl-xm2216:1",
+          "description": "Battery Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:start-charge:00002802:xtl-xm2216:1",
+          "description": "Start Charge",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 17,
+      "type": "urn:xtl-spec:service:robotic-vacuum:00007802:xtl-xm2216:1",
+      "description": "robotic-vacuum",
+      "properties": [
+        {
+          "iid": 8,
+          "type": "urn:xtl-spec:property:clean-type:00000008:xtl-xm2216:1",
+          "description": "",
+          "format": "uint8",
+          "access": [],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "FullClean"
+            },
+            {
+              "value": 2,
+              "description": "QMAP"
+            },
+            {
+              "value": 3,
+              "description": "AreaClean"
+            },
+            {
+              "value": 4,
+              "description": "ZoneClean"
+            },
+            {
+              "value": 5,
+              "description": "CarpetClean"
+            },
+            {
+              "value": 6,
+              "description": "SpotClean"
+            }
+          ]
+        },
+        {
+          "iid": 9,
+          "type": "urn:xtl-spec:property:clean-type-status:00000009:xtl-xm2216:1",
+          "description": "",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "None"
+            },
+            {
+              "value": 1,
+              "description": "Idle"
+            },
+            {
+              "value": 2,
+              "description": "Full Clean"
+            },
+            {
+              "value": 3,
+              "description": "Full Pause"
+            },
+            {
+              "value": 4,
+              "description": "Full Resume"
+            },
+            {
+              "value": 5,
+              "description": "QMAP"
+            },
+            {
+              "value": 6,
+              "description": "QMAP Pause"
+            },
+            {
+              "value": 7,
+              "description": "QMAP Resume"
+            },
+            {
+              "value": 8,
+              "description": "Area Clean"
+            },
+            {
+              "value": 9,
+              "description": "Area Pause"
+            },
+            {
+              "value": 10,
+              "description": "Area Resume"
+            },
+            {
+              "value": 11,
+              "description": "Zone Clean"
+            },
+            {
+              "value": 12,
+              "description": "Zone Pause"
+            },
+            {
+              "value": 13,
+              "description": "Zone Resume"
+            },
+            {
+              "value": 14,
+              "description": "Carpet Clean"
+            },
+            {
+              "value": 15,
+              "description": "Carpet Pause"
+            },
+            {
+              "value": 16,
+              "description": "Carpet Resume"
+            },
+            {
+              "value": 17,
+              "description": "Spot Clean"
+            },
+            {
+              "value": 18,
+              "description": "Spot Pause"
+            }
+          ]
+        },
+        {
+          "iid": 13,
+          "type": "urn:xtl-spec:property:fan-mode:0000000d:xtl-xm2216:1",
+          "description": "",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Quiet"
+            },
+            {
+              "value": 1,
+              "description": "Auto"
+            },
+            {
+              "value": 2,
+              "description": "Strong"
+            },
+            {
+              "value": 3,
+              "description": "Max"
+            }
+          ]
+        },
+        {
+          "iid": 14,
+          "type": "urn:xtl-spec:property:clean-count:0000000e:xtl-xm2216:1",
+          "description": "",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "Once"
+            },
+            {
+              "value": 2,
+              "description": "Twice"
+            }
+          ]
+        },
+        {
+          "iid": 34,
+          "type": "urn:xtl-spec:property:clean-values:00000022:xtl-xm2216:1",
+          "description": "",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 37,
+          "type": "urn:xtl-spec:property:map-infos:00000025:xtl-xm2216:1",
+          "description": "",
+          "format": "string",
+          "access": []
+        },
+        {
+          "iid": 38,
+          "type": "urn:xtl-spec:property:map-data:00000026:xtl-xm2216:1",
+          "description": "",
+          "format": "string",
+          "access": []
+        },
+        {
+          "iid": 48,
+          "type": "urn:xtl-spec:property:return-status:00000030:xtl-xm2216:1",
+          "description": "",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "None"
+            },
+            {
+              "value": 1,
+              "description": "Idle"
+            },
+            {
+              "value": 2,
+              "description": "Run"
+            },
+            {
+              "value": 3,
+              "description": "Pause"
+            },
+            {
+              "value": 4,
+              "description": "Resume"
+            }
+          ]
+        },
+        {
+          "iid": 55,
+          "type": "urn:xtl-spec:property:robot-set-status:00000037:xtl-xm2216:1",
+          "description": "",
+          "format": "uint8",
+          "access": [],
+          "value-range": [
+            0,
+            255,
+            1
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:xtl-spec:action:start-clean:00002801:xtl-xm2216:1",
+          "description": "start-clean",
+          "in": [
+            8,
+            34
+          ],
+          "out": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:xtl-spec:action:pause-continue-work:00002802:xtl-xm2216:1",
+          "description": "pause-continue-work",
+          "in": [
+            55
+          ],
+          "out": []
+        },
+        {
+          "iid": 3,
+          "type": "urn:xtl-spec:action:stop-clean:00002803:xtl-xm2216:1",
+          "description": "stop-clean",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 12,
+          "type": "urn:xtl-spec:action:get-map-data:0000280c:xtl-xm2216:1",
+          "description": "get-map-data",
+          "in": [],
+          "out": [
+            38
+          ]
+        },
+        {
+          "iid": 13,
+          "type": "urn:xtl-spec:action:get-map-infos:0000280d:xtl-xm2216:1",
+          "description": "get-map-infos",
+          "in": [],
+          "out": [
+            37
+          ]
+        },
+        {
+          "iid": 28,
+          "type": "urn:xtl-spec:action:set-clean-count:0000281c:xtl-xm2216:1",
+          "description": "set-clean-count",
+          "in": [
+            14
+          ],
+          "out": []
+        }
+      ],
+      "events": [
+        {
+          "iid": 1,
+          "type": "urn:xtl-spec:event:map-data-report:00005001:xtl-xm2216:1",
+          "description": "map-data-report",
+          "arguments": [
+            38
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:xtl-spec:event:map-infos-report:00005002:xtl-xm2216:1",
+          "description": "map-infos-report",
+          "arguments": [
+            37
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:xtl-spec:event:message-notification:00005003:xtl-xm2216:1",
+          "description": "message-notification",
+          "arguments": [
+            63
+          ]
+        }
+      ]
+    }
+  ]
+}
