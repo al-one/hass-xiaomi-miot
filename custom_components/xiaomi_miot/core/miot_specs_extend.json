@@ -1942,6 +1942,40 @@
     }
   ],
   "zhimi.humidifier.cb1": "zhimi.humidifier.ca1",
+  "zhimi.humidifier.v1": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:target-humidity",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "unit": "percentage",
+          "value-range": [30, 80, 1]
+        }
+      ]
+    },
+    {
+      "iid": 300,
+      "type": "urn:miot-spec-v2:service:screen",
+      "description": "Screen",
+      "properties": [
+        {
+          "iid": 301,
+          "type": "urn:miot-spec-v2:property:brightness",
+          "description": "Brightness",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 0, "description": "Bright"},
+            {"value": 1, "description": "Dim"},
+            {"value": 2, "description": "Off"}
+          ]
+        }
+      ]
+    }
+  ],
 
   "xiaomi.heater.ma8": [
     {
