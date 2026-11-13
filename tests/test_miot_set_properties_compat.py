@@ -193,6 +193,7 @@ async def test_single_property_accepts_echo_without_value(make_device, load_miot
     device.dispatch = Mock()
     result = await device.async_set_miot_property(2, 3, False)
     assert result.is_success
+    assert result.to_json()['value'] is False
     device.dispatch.assert_called_once()
 
 
