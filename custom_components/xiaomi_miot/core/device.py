@@ -1056,7 +1056,9 @@ class Device(CustomConfigHelper):
         if use_cloud:
             try:
                 self.miot_results.updater = 'cloud'
-                results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
+                results = await self.cloud.async_get_properties_for_mapping(
+                    self.did, mapping, use_rpc=self.custom_config_bool('miot_cloud_rpc'),
+                )
                 if results is None:
                     raise MiCloudException('Cloud API returned None response, possible timeout or empty data')
                 if check_lan and self.local:
@@ -1193,9 +1195,13 @@ class Device(CustomConfigHelper):
                         '%s: Local read failed, falling back to cloud: %s',
                         self.name, exc,
                     )
-                    results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
+                    results = await self.cloud.async_get_properties_for_mapping(
+                        self.did, mapping, use_rpc=self.custom_config_bool('miot_cloud_rpc'),
+                    )
             elif self.cloud and not self.local_only:
-                results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
+                results = await self.cloud.async_get_properties_for_mapping(
+                    self.did, mapping, use_rpc=self.custom_config_bool('miot_cloud_rpc'),
+                )
         except (DeviceException, MiCloudException, OSError) as exc:
             self.log.error(
                 'Got exception while get properties: %s, mapping: %s, miio: %s',
@@ -1491,13 +1497,14 @@ class Device(CustomConfigHelper):
             return
 
         attrs = {}
+        days = self.custom_config_integer('miio_cloud_records_days') or 32
         for c in keys:
             mat = re.match(r'^\s*(?:(\w+)\.?)([\w.]+)(?::(\d+))?(?::(\w+))?\s*$', c)
             if not mat:
                 continue
             typ, key, lmt, gby = mat.groups()
             kws = {
-                'time_start': int(dt.now().timestamp()) - 86400 * 32,
+                'time_start': int(dt.now().timestamp()) - 86400 * days,
                 'limit': int(lmt or 1),
             }
             if gby:

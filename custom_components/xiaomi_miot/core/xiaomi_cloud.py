@@ -60,6 +60,9 @@ class MiCloudStsUnauthorized(MiCloudAccessDenied):
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.addFilter(logger_filter)
 
+# The cloud RPC relay returns an empty result when asked for roughly 30 properties or more at once.
+RPC_MAX_PROPERTIES = 20
+
 ACCOUNT_BASE = 'https://account.xiaomi.com'
 UA = "Android-7.1.1-1.0.0-ONEPLUS A3010-136-%s APP/xiaomi.smarthome APPV/62830"
 
@@ -103,7 +106,7 @@ class MiotCloud(micloud.MiCloud):
         uid = self.user_id or self.username
         return f'{uid}-{self.default_server}-{self.sid}'
 
-    async def async_get_properties_for_mapping(self, did, mapping: dict):
+    async def async_get_properties_for_mapping(self, did, mapping: dict, use_rpc=False):
         pms = []
         rmp = {}
         for k, v in mapping.items():
@@ -113,7 +116,19 @@ class MiotCloud(micloud.MiCloud):
             p = v.get('piid')
             pms.append({'did': str(did), 'siid': s, 'piid': p})
             rmp[f'prop.{s}.{p}'] = k
-        rls = await self.async_get_props(pms)
+        rls = None
+        if use_rpc:
+            rls = await self.async_get_props_rpc(did, pms)
+        if rls is None:
+            rls = await self.async_get_props(pms)
+        elif use_rpc:
+            # The relay can answer with per-property errors or leave properties out.
+            # Fill those from the cached read instead of reporting them as missing.
+            rls = [v for v in rls if isinstance(v, dict) and v.get('code', 0) == 0 and 'value' in v]
+            got = {f"prop.{v.get('siid')}.{v.get('piid')}" for v in rls}
+            missing = [pm for pm in pms if f"prop.{pm['siid']}.{pm['piid']}" not in got]
+            if missing:
+                rls.extend(await self.async_get_props(missing) or [])
         if not rls:
             return None
         dls = []
@@ -129,6 +144,31 @@ class MiotCloud(micloud.MiCloud):
 
     async def async_get_props(self, params=None):
         return await self.async_request_miot_spec('prop/get', params)
+
+    async def async_get_props_rpc(self, did, params):
+        """Read properties live from the device through the cloud RPC relay.
+
+        `miotspec/prop/get` returns the values cached by the cloud, which can stay
+        stale for devices that do not report every change. The relay answers a
+        request for too many properties with an empty result, so they are sent in
+        batches of `RPC_MAX_PROPERTIES`. Returns None when no batch produced a
+        usable list, so the caller can fall back to the cached read. Network
+        errors are not caught here, same as `async_get_props`.
+        """
+        params = params or []
+        results = []
+        for i in range(0, max(len(params), 1), RPC_MAX_PROPERTIES):
+            try:
+                rsp = await self.async_request_api(f'v2/home/rpc/{did}', {
+                    'method': 'get_properties',
+                    'params': params[i:i + RPC_MAX_PROPERTIES],
+                }) or {}
+            except (MiCloudException, TypeError, ValueError):
+                continue
+            result = rsp.get('result')
+            if rsp.get('code') == 0 and isinstance(result, list):
+                results.extend(result)
+        return results or None
 
     @aiohttp_retry(3, logger=_LOGGER)
     async def async_set_props(self, params=None):
