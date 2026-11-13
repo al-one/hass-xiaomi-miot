@@ -139,9 +139,13 @@ class MiotPropValueConv(MiotPropConv):
 class MiotActionConv(BaseConv):
     action: 'MiotAction' = None
     prop: 'MiotProperty' = None
+    service: 'MiotService' = None
+    action_name: str = None
 
     def __post_init__(self):
         super().__post_init__()
+        if not self.action and self.service:
+            self.action = self.service.get_action(self.action_name)
         if not self.mi:
             from .miot_spec import MiotSpec
             self.mi = MiotSpec.unique_prop(self.action.siid, aiid=self.action.iid)

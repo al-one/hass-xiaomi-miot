@@ -42,6 +42,14 @@ class NumberEntity(XEntity, RestoreNumber):
             self._attr_native_max_value = self._miot_property.range_max()
             self._attr_native_min_value = self._miot_property.range_min()
             self._attr_native_unit_of_measurement = self._miot_property.unit_of_measurement
+        if self.conv.option.get('action_value_only'):
+            self._attr_native_value = self.conv.option.get('default')
+            self.device.props[self.attr] = self._attr_native_value
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        if self.conv.option.get('action_value_only'):
+            self.device.props[self.attr] = self._attr_native_value
 
     def get_state(self) -> dict:
         return {self.attr: self._attr_native_value}
@@ -51,8 +59,16 @@ class NumberEntity(XEntity, RestoreNumber):
         if val is None:
             return
         self._attr_native_value = val
+        if self.conv.option.get('action_value_only'):
+            self.device.props[self.attr] = val
 
     async def async_set_native_value(self, value: float):
+        if self.conv.option.get('action_value_only'):
+            self._attr_native_value = value
+            self.device.props[self.attr] = value
+            self.async_write_ha_state()
+            return
+
         await self.device.async_write({self.attr: value})
 
         if self._miot_action:
