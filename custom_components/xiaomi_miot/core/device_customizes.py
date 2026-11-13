@@ -3021,6 +3021,9 @@ DEVICE_CUSTOMIZES = {
             {'interval': 301, 'props': 'filter_*'},
         ],
     },
+    'zhimi.airp.vb4': {
+        'select_properties': 'brightness,temperature_display_unit',
+    },
     'zhimi.airp.vb4:pm10_density': {
         'unit_of_measurement': 'µg/m³',
     },
