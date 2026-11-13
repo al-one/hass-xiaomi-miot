@@ -11,6 +11,7 @@ from . import (
     XIAOMI_CONFIG_SCHEMA as PLATFORM_SCHEMA,  # noqa: F401
     HassEntry,
     XEntity,
+    BaseSubEntity,
     async_setup_config_entry,
 )
 
@@ -94,3 +95,31 @@ class TextEntity(XEntity, BaseEntity):
 
 
 XEntity.CLS[ENTITY_DOMAIN] = TextEntity
+
+
+class TextSubEntity(BaseEntity, BaseSubEntity):
+    """A text sub-entity with no backing MIoT property, following the same
+    shape as ButtonSubEntity/SelectSubEntity in button.py/select.py. Useful
+    when a value needs to be written somewhere other than a single spec
+    property (e.g. as one field inside a larger JSON action payload) via
+    `option['async_set_value_action']`. That callback receives this entity
+    and the new value, and is responsible for calling the device, updating
+    `_attr_native_value`/`_attr_name` on success, and writing HA state -
+    letting it decide whether (and how) the value actually sticks rather
+    than assuming every write succeeds."""
+
+    def __init__(self, parent, attr, option=None):
+        BaseSubEntity.__init__(self, parent, attr, option, domain=ENTITY_DOMAIN)
+        self._available = True
+        self._attr_native_value = self._option.get('native_value', '')
+        self._async_set_action = self._option.get('async_set_value_action')
+
+    def update(self, data=None):
+        return
+
+    async def async_set_value(self, value: str):
+        if self._async_set_action:
+            await self._async_set_action(self, value)
+            return
+        self._attr_native_value = value
+        self.async_write_ha_state()
