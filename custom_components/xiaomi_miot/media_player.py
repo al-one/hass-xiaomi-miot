@@ -332,6 +332,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
 
 
 class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         BaseMediaPlayerEntity.__init__(self, miot_service)
@@ -559,7 +560,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
 
         # e.g. audio/mpeg, but also keeps backward compatibility with old enum keys
         if media_type.startswith('audio/') or media_type in {'audio', 'music', 'voice', 'mp3', 'tts'}:
-            return await self.async_play_music(media_id)
+            return await self.async_play_music(media_id, announce=kwargs.get("announce", False))
 
         api = 'https://api2.mina.mi.com/remote/ubus'
         dat = {
@@ -575,6 +576,7 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
     async def async_play_music(self, media_id, audio_id='1582971365183456177', id='355454500', **kwargs):
         if not (aid := self.xiaoai_id):
             return
+
         music = {
             "payload": {
                 "audio_type": "MUSIC",
@@ -611,6 +613,19 @@ class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
         rdt = await self.xiaoai_cloud.async_request_api(api, data=dat, method='POST') or {}
         logger = rdt.get('code') and self.logger.warning or self.logger.info
         logger('%s: Play Music: %s', self.name_model, [dat, rdt])
+
+        # if this is a TTS announce message
+        if kwargs.get('announce'):
+            loop_dat = {
+                'deviceId': aid,
+                'path': 'mediaplayer',
+                'method': 'player_set_loop',
+                'message': json.dumps({'type': 2, 'media': 'common'}),
+            }
+
+            rdt = await self.xiaoai_cloud.async_request_api(api, data=loop_dat, method='POST') or {}
+            logger = rdt.get('code') and self.logger.warning or self.logger.info
+            logger('%s: Play Music: %s', self.name_model, [loop_dat, rdt])
 
     async def async_intelligent_speaker(self, text, execute=False, silent=False, **kwargs):
         if srv := self._intelligent_speaker:
@@ -991,6 +1006,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
 
 
 class MiirMediaPlayerEntity(MiirToggleEntity, MediaPlayerEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 

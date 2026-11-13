@@ -147,12 +147,26 @@ class BaseFlowHandler:
         if not self.cloud:
             self.cloud = await MiotCloud.from_token(self.hass, user_input, login=False)
             self.cloud.login_times = 0
+        changed = (
+            self.cloud.username != user_input.get(CONF_USERNAME)
+            or self.cloud.password != user_input.get(CONF_PASSWORD)
+        )
         self.cloud.merger_config(user_input)
+        if changed or (self.context.get('need_verify') and not self.cloud.attrs.get('verify_url')):
+            for key in ('need_verify', 'verify_url', 'captchaIck'):
+                self.context.pop(key, None)
+            user_input.pop('verify_ticket', None)
+            user_input.pop('captcha', None)
         login_data = {}
         if verify_ticket := user_input.pop('verify_ticket', None):
             login_data['verify_ticket'] = verify_ticket
         if captcha := user_input.pop('captcha', None):
             login_data['captcha'] = captcha
+        if self.cloud.attrs.get('identity_send_captcha') and login_data.get('captcha'):
+            await self.hass.async_add_executor_job(self.cloud.send_verify_ticket, login_data['captcha'])
+            raise MiCloudNeedVerify('need_verify').with_url(self.cloud.attrs['verify_url'])
+        if self.context.get('need_verify') and not login_data and self.cloud.attrs.get('verify_url'):
+            raise MiCloudNeedVerify('need_verify').with_url(self.cloud.attrs['verify_url'])
         if login_data:
             await self.cloud.async_login(login_data=login_data)
         elif not await self.cloud.async_check_auth(notify=False):
@@ -178,22 +192,35 @@ class BaseFlowHandler:
                 errors['base'] = exc.message
                 self.context[exc.message] = True
                 self.context['verify_url'] = exc.url
-                self.placeholders.update({
-                    'url': exc.url,
-                    'tip': f'[打开验证网页 | Open the verification page]({exc.url})',
-                })
+                try:
+                    if not mic.attrs.get('identity_send_captcha'):
+                        await self.hass.async_add_executor_job(mic.send_verify_ticket)
+                    self.placeholders['tip'] = ''
+                    self.context.pop('captchaIck', None)
+                except MiCloudException as send_error:
+                    errors['base'] = 'cannot_send_verify'
+                    self.placeholders['tip'] = f'⚠️ {send_error}'
+            elif isinstance(exc, MiCloudVerificationError) and mic:
+                errors['base'] = 'verify_invalid'
+                self.placeholders['tip'] = ''
             elif isinstance(exc, MiCloudAccessDenied) and mic:
                 if url := mic.attrs.pop('captchaImg', None):
                     err = f'Captcha:\n![captcha](data:image/jpeg;base64,{url})'
                     self.placeholders['tip'] = f'⚠️ {err}'
                     self.context['captchaIck'] = mic.attrs.get('captchaIck')
-            elif isinstance(exc, requests.exceptions.ConnectionError):
+            elif isinstance(exc, (requests.exceptions.ConnectionError, requests.exceptions.Timeout)):
                 errors['base'] = 'cannot_reach'
             elif 'ZoneInfoNotFoundError' in err:
                 errors['base'] = 'tzinfo_error'
-            unm = mic.username if mic else user_input.get(CONF_USERNAME)
-            _LOGGER.error('Setup xiaomi cloud for user: %s failed.', unm, exc_info=True)
+            if mic and mic.attrs.get('identity_send_captcha') and mic.attrs.get('captchaImg'):
+                self.context['need_verify'] = True
+                self.context['captchaIck'] = mic.attrs.get('captchaIck')
+                self.placeholders['tip'] = f'![captcha](data:image/jpeg;base64,{mic.attrs["captchaImg"]})'
+                errors['base'] = 'need_identity_captcha'
+            _LOGGER.error('Setup xiaomi cloud failed.', exc_info=True)
         if not errors:
+            self.context.pop('need_verify', None)
+            self.context.pop('verify_url', None)
             self.devices = dvs
             persistent_notification.dismiss(self.hass, f'{DOMAIN}-login')
         return user_input
@@ -286,7 +313,6 @@ class ReauthState:
 
 
 class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=DOMAIN):
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
     filter_models = None
 
     @staticmethod
@@ -359,8 +385,6 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         )
 
     async def async_step_cloud(self, user_input=None):
-        # pylint: disable=invalid-name
-        self.CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
         errors = {}
         if user_input is None:
             user_input = {}
@@ -406,7 +430,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         home_ids = user_input.pop('home_ids', [])
         if user_input.pop('filtering', None) or home_ids:
             schema = await self.get_cloud_filter_schema(user_input, errors, schema, via_did=via_did, home_ids=home_ids)
-        elif user_input:
+        else:
             if not self.config_data:
                 self.config_data = {}
             self.config_data.update({
@@ -415,13 +439,11 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 'filter_models': self.filter_models,
                 CONF_CONFIG_VERSION: ENTRY_VERSION,
             })
-            _LOGGER.debug('Setup xiaomi cloud: %s', {**self.config_data, CONF_PASSWORD: '*', 'service_token': '*'})
+            _LOGGER.debug('Xiaomi cloud setup completed with %s devices', len(self.devices or []))
             return self.async_create_entry(
                 title=f"Xiaomi: {self.config_data.get('user_id')}",
                 data=self.config_data,
             )
-        else:
-            errors['base'] = 'unknown'
         return self.async_show_form(
             step_id='cloud_filter',
             data_schema=schema,
@@ -507,6 +529,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         except MiCloudNeedVerify:
             return await self.async_step_reauth_verify()
         except MiCloudAuthenticationError as err:
+            if self._reauth_captcha_challenge(candidate):
+                return await self.async_step_reauth_captcha()
             errors['base'] = 'invalid_auth'
             self.placeholders['tip'] = str(err)
             return self._show_reauth_form(
@@ -515,6 +539,8 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                 errors=errors,
             )
         except Exception:
+            if self._reauth_captcha_challenge(candidate):
+                return await self.async_step_reauth_captcha()
             errors['base'] = 'unknown'
             return self._show_reauth_form(
                 'reauth_password',
@@ -540,7 +566,23 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         candidate = self._candidate
         schema = vol.Schema({vol.Required('verify_ticket'): str})
         verify_url = candidate.attrs.get('verify_url') if candidate else None
-        placeholders = {'verify_url': verify_url or ''}
+        placeholders = {}
+        if not candidate or not verify_url:
+            return self._show_reauth_form(
+                'reauth_password', vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                errors={'base': 'invalid_auth'},
+            )
+        if not candidate.attrs.get('identity_ticket_sent'):
+            try:
+                await self.hass.async_add_executor_job(candidate.send_verify_ticket)
+            except MiCloudException as send_error:
+                if self._reauth_captcha_challenge(candidate):
+                    return await self.async_step_reauth_captcha()
+                self.placeholders['tip'] = str(send_error)
+                return self._show_reauth_form(
+                    'reauth_verify', schema, errors={'base': 'cannot_send_verify'}, placeholders=placeholders,
+                )
+            user_input = None
         if user_input is None:
             return self._show_reauth_form(
                 'reauth_verify',
@@ -559,7 +601,7 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         try:
             ok = await candidate.async_login_attempt({'verify_ticket': ticket})
         except MiCloudVerificationError:
-            errors['base'] = 'need_verify'
+            errors['base'] = 'verify_invalid'
             return self._show_reauth_form(
                 'reauth_verify',
                 schema,
@@ -595,6 +637,11 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
                     'ssecurity',
                     'async_session',
                     'identity_session',
+                    'identity_options',
+                    'identity_verify_flag',
+                    'identity_preferred_flag',
+                    'identity_ticket_sent',
+                    'identity_send_captcha',
                     'verify_url',
                     'login_data',
             ):
@@ -676,6 +723,17 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
         captcha = (user_input.get('captcha') or '').strip()
         if not captcha:
             return self._show_reauth_captcha(candidate)
+        if candidate.attrs.get('identity_send_captcha'):
+            try:
+                await self.hass.async_add_executor_job(candidate.send_verify_ticket, captcha)
+            except MiCloudException:
+                if self._reauth_captcha_challenge(candidate):
+                    return self._show_reauth_captcha(candidate)
+                return self._show_reauth_form(
+                    'reauth_password', vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                    errors={'base': 'cannot_connect'},
+                )
+            return await self.async_step_reauth_verify()
         try:
             ok = await candidate.async_login_attempt({'captcha': captcha})
         except requests.exceptions.ConnectionError:
@@ -772,12 +830,10 @@ class XiaomiMiotFlowHandler(config_entries.ConfigFlow, BaseFlowHandler, domain=D
     def async_remove(self) -> None:
         candidate = getattr(self, '_candidate', None)
         if candidate is not None:
-            candidate.attrs.pop('login_data', None)
-            candidate.attrs.pop('verify_url', None)
-            candidate.attrs.pop('identity_session', None)
-            candidate.attrs.pop('captcha_url', None)
-            candidate.attrs.pop('captchaImg', None)
-            candidate.attrs.pop('captchaIck', None)
+            for key in ('login_data', 'verify_url', 'identity_session', 'identity_options',
+                        'identity_verify_flag', 'identity_preferred_flag', 'identity_ticket_sent',
+                        'identity_send_captcha', 'captcha_url', 'captchaImg', 'captchaIck'):
+                candidate.attrs.pop(key, None)
             candidate.password = None
             self._candidate = None
         super().async_remove()
@@ -1120,7 +1176,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                 **user_input,
             }
             schema = await self.get_cloud_filter_schema(user_input, errors, schema, via_did=via_did, home_ids=home_ids)
-        elif user_input:
+        else:
             self.config_data.update({
                 **(self.cloud.to_config() or {}),
                 'filter_models': self.filter_models,
@@ -1135,10 +1191,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow, BaseFlowHandler):
                 self.config_data.pop('filter_model', None)
                 self.config_data.pop('model_list', None)
             self.hass.config_entries.async_update_entry(self.config_entry, data=self.config_data)
-            _LOGGER.debug('Setup xiaomi cloud: %s', {**self.config_data, CONF_PASSWORD: '*', 'service_token': '*'})
+            _LOGGER.debug('Xiaomi cloud options updated with %s devices', len(self.devices or []))
             return self.async_create_entry(title='', data={})
-        else:
-            errors['base'] = 'unknown'
         return self.async_show_form(
             step_id='cloud_filter',
             data_schema=schema,

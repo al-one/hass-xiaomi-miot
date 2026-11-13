@@ -374,7 +374,7 @@ MIOT_LOCAL_MODELS = [
     'iot.plug.jdls1',
     'iot.plug.pw6u1',
     'iot.plug.socn1',
-    # 'iot.switch.padw2p',  # mesh
+    'iot.switch.padw2p',
     'iot.switch.padwb1',
     'iot.tow_w.jd015',
     'isa.camera.500dh',
@@ -852,6 +852,7 @@ MIOT_LOCAL_MODELS = [
     'xiaomi.airer.lyj3xs',
     'xiaomi.airer.pro3',
     'xiaomi.airp.cpa4',
+    'xiaomi.airp.mb5',
     'xiaomi.airp.mp4',
     'xiaomi.airp.mp5',
     'xiaomi.airp.pa1',

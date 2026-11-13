@@ -1424,11 +1424,11 @@ MIIO_TO_MIOT_SPECS = {
         'entity_attrs': ['ScreenOn', 'Error', 'SmartCool', 'SmartFreeze'],
         'miio_specs': {
             'prop.2.1': {'prop': 'Mode', 'setter': 'setMode', 'dict': {
-                'smart': 1,
-                'holiday': 2,
-                'energy': 3,
-                'none': 4,
-            }, 'default': 1},
+                'smart': 0,
+                'holiday': 1,
+                'energy': 2,
+                'none': 3,
+            }, 'default': 0},
             'prop.3.1': {'prop': 'RCSetTemp', 'setter': 'setRCSetTemp'},
             'prop.3.2': {'prop': 'RCSet', 'setter': 'setRCSet', 'format': 'onoff'},
             'prop.3.3': {'prop': 'RCSetTemp'},
@@ -1440,13 +1440,24 @@ MIIO_TO_MIOT_SPECS = {
     'viomi.juicer.v1': {
         # ["work_status","run_status","mode","cooked_time","curr_tempe","cook_start","rev","stand_top_num","mode_sort"        ,"cook_status","warm_time","cook_time","left_time","voice"]
         # [0,           ,768         ,7     ,0            ,-300        ,1699143554  ,0    ,0              ,'7-8-9-4-3-1-5-2-6',1            ,6514       ,1668       ,0          ,0      ]
-        'miio_props': ['work_status', 'run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'warm_time', 'cook_time',  'voice'],
-        'entity_attrs': ['work_status', 'run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'warm_time', 'cook_time',  'voice'],
+        'miio_props': ['run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'cook_status', 'warm_time', 'cook_time',  'voice'],
+        'entity_attrs': ['run_status', 'mode', 'cooked_time', 'cook_start', 'rev', 'stand_top_num', 'mode_sort', 'cook_status', 'warm_time', 'cook_time',  'voice'],
         'chunk_properties': 1,
         'miio_specs': {
-            'prop.2.1': {'prop': 'cook_status'},
-            'prop.2.2': {'prop': 'left_time'},
-            'prop.2.3': {'prop': 'curr_tempe'},
+            # work_status 状态映射: 0-6 -> MIoT status 1,2,3,4,5,6,8
+            'prop.2.1': {'prop': 'work_status', 'dict': {
+                0: 1,  # 待机 -> Idle
+                1: 2,  # 已预约 -> Delay
+                2: 3,  # 预约准备 -> Cooker Boiling
+                3: 4,  # 料理中 -> Cooker Heating
+                4: 5,  # 保温中 -> Keep Warm
+                5: 6,  # 完成回待机 -> End
+                6: 8,  # 完成 -> Cooker Finish
+            }, 'default': 1},
+            # left_time: 秒 -> 分钟
+            'prop.2.2': {'prop': 'left_time', 'value_ratio': 0.016667},
+            # curr_tempe: 0.1°C -> °C
+            'prop.2.3': {'prop': 'curr_tempe', 'value_ratio': 0.1},
         },
     },
     'yunmi.plmachine.mg2': {
@@ -1720,6 +1731,13 @@ MIIO_TO_MIOT_SPECS = {
             }, 'default': 1},
             'prop.2.2': {'prop': 'suction_grade', 'setter': 'set_suction'},
             'prop.3.1': {'prop': 'battary_life'},
+        },
+    },
+    'viomi.vacuum.v10': {
+        'extend_model': 'viomi.vacuum.v8',
+        'miio_specs': {
+            # viomi-v10 spec status values match the miio run_state values
+            'prop.2.1': {'prop': 'run_state'},
         },
     },
     'viomi.waterheater.e1': {
@@ -3020,6 +3038,75 @@ MIIO_TO_MIOT_SPECS = {
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
         },
     },
+    'zhimi.toilet.va1': {
+        'without_props': True,
+        'miio_commands': [
+            {
+                'method': 'get_prop',
+                'params': [
+                    'power', 'onseat_state', 'seat_ring', 'closestool_cover',
+                    'inwater_temp', 'water_temp_lvl', 'seat_temp', 'seat_temp_lvl',
+                    'flow_level', 'wind_temp_lvl', 'nozzle_level', 'night_led',
+                    'deodorize', 'filter_life', 'mode', 'user_work_statue', 'buzzer',
+                ],
+                'values': True,
+            },
+            {
+                'method': 'get_prop',
+                'params': [
+                    'seat_temp_lvl', 'night_led', 'nled_smart',
+                    'nl_start_time', 'nl_end_time',
+                    'sh_smart', 'sh_start_time', 'sh_end_time',
+                ],
+                'values': [
+                    '_u_seat_temp_lvl', '_u_night_led', 'nled_smart',
+                    'nl_start_time', 'nl_end_time',
+                    'sh_smart', 'sh_start_time', 'sh_end_time',
+                ],
+            },
+        ],
+        'miio_specs': {
+            # siid 2: toilet (官方 + 扩展)
+            'prop.2.1': {'prop': 'power', 'setter': 'set_power', 'format': 'onoff'},
+            'prop.2.2': {'prop': 'onseat_state', 'format': 'bool'},
+            'prop.2.4': {'prop': 'flow_level', 'setter': 'set_flow_level'},
+            'prop.2.5': {'prop': 'nozzle_level', 'setter': 'set_nozzle_level'},
+            'prop.2.6': {'prop': 'deodorize', 'setter': 'set_deodorizer', 'format': 'onoff'},
+            'prop.2.7': {'prop': 'mode', 'dict': {'idle': 4, 'heatwind': 3, 'hipclean': 1, 'womanclean': 2}, 'default': 4},
+            'prop.2.101': {'prop': 'water_temp_lvl', 'setter': 'set_watertemp_lvl'},
+            'prop.2.102': {'prop': 'wind_temp_lvl', 'setter': 'set_windtemp_lvl'},
+            'prop.2.103': {'prop': 'inwater_temp'},
+            'prop.2.104': {'prop': 'user_work_statue'},
+            'action.2.1': {'setter': 'set_stop'},
+            'action.2.101': {'setter': 'set_mode', 'set_template': '{{ ["heatwind"] }}'},
+            'action.2.102': {'setter': 'set_mode', 'set_template': '{{ ["hipclean"] }}'},
+            'action.2.103': {'setter': 'set_mode', 'set_template': '{{ ["womanclean"] }}'},
+            'action.2.104': {'setter': 'switch_user', 'set_template': '{{ [1] }}'},
+            'action.2.105': {'setter': 'switch_user', 'set_template': '{{ [2] }}'},
+            'action.2.106': {'setter': 'switch_user', 'set_template': '{{ [3] }}'},
+            'action.2.107': {'setter': 'switch_user', 'set_template': '{{ [4] }}'},
+            # siid 3: seat (官方 + 扩展)
+            'prop.3.1': {'prop': 'seat_temp_lvl', 'template': '{{ value > 0 }}', 'setter': 'set_seattemp_lvl', 'set_template': '{{ [2 if value else 0] }}'},
+            'prop.3.2': {'prop': 'seat_temp_lvl', 'setter': 'set_seattemp_lvl'},
+            'prop.3.101': {'prop': 'seat_ring', 'format': 'bool'},
+            'prop.3.102': {'prop': 'closestool_cover', 'format': 'bool'},
+            'prop.3.103': {'prop': 'seat_temp'},
+            'prop.3.104': {'prop': 'sh_smart', 'setter': 'set_sh_smart', 'format': 'onoff'},
+            'prop.3.105': {'prop': 'sh_start_time', 'setter': 'set_sh_start_time'},
+            'prop.3.106': {'prop': 'sh_end_time', 'setter': 'set_sh_end_time'},
+            # siid 4: night-light (官方 + 扩展)
+            'prop.4.1': {'prop': 'night_led', 'setter': 'set_night_led', 'format': 'onoff'},
+            'prop.4.101': {'prop': 'nled_smart', 'setter': 'set_nled_smart', 'format': 'onoff'},
+            'prop.4.102': {'prop': 'nl_start_time', 'setter': 'set_nl_start_time'},
+            'prop.4.103': {'prop': 'nl_end_time', 'setter': 'set_nl_end_time'},
+            # siid 5: filter
+            'prop.5.1': {'prop': 'filter_life'},
+            # siid 6: alarm
+            'prop.6.1': {'prop': 'buzzer', 'setter': 'set_buzzer', 'format': 'onoff'},
+        },
+        'ignore_result': True,
+    },
+
     'qmi.powerstrip.v1': {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},

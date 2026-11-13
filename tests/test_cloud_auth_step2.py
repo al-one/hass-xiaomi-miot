@@ -1,5 +1,6 @@
 """Tests for _login_step2 — typed rejections + captcha complete-challenge refresh."""
 import json
+from functools import partial
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -78,9 +79,10 @@ async def test_step2_initial_captcha_fetches_challenge_first(hass):
         "captchaUrl": "/captcha.png",
     })
     with pytest.raises(MiCloudException):
-        await hass.async_add_executor_job(c._login_step2)
+        await hass.async_add_executor_job(partial(c._login_step2, _sign="SIGN"))
     assert calls["captcha"] == 1
     assert c.attrs.get("captchaIck") == "ICK"
+    assert c.attrs["login_data"] == {"_sign": "SIGN"}
 
 
 async def test_step2_87001_refreshes_captcha_before_auth_error(hass):
@@ -103,17 +105,20 @@ async def test_step2_87001_refreshes_captcha_before_auth_error(hass):
         "captchaUrl": "/new.png",
     })
     with pytest.raises(MiCloudAuthenticationError):
-        await hass.async_add_executor_job(c._login_step2)
+        await hass.async_add_executor_job(partial(c._login_step2, _sign="SIGN"))
     assert c.attrs["captchaImg"] == "NEW"
     assert c.attrs["captchaIck"] == "NEW"
+    assert c.attrs["login_data"] == {"_sign": "SIGN"}
 
 
-async def test_step2_87001_captcha_refresh_failure_clears_attrs(hass):
+@pytest.mark.parametrize("error", [requests.exceptions.ConnectionError, requests.exceptions.Timeout])
+async def test_step2_87001_captcha_refresh_failure_clears_attrs(hass, error):
     init_integration_data(hass)
     c = _step2_cloud(hass)
+    c.attrs["login_data"] = {"_sign": "OLD"}
 
     def _boom(url):
-        raise requests.exceptions.ConnectionError("nope")
+        raise error("nope")
 
     c._get_captcha = _boom
     c.account_post = _stub_post_factory({
@@ -124,6 +129,72 @@ async def test_step2_87001_captcha_refresh_failure_clears_attrs(hass):
         await hass.async_add_executor_job(c._login_step2)
     assert "captchaImg" not in c.attrs
     assert "captchaIck" not in c.attrs
+    assert "captcha_url" not in c.attrs
+    assert "login_data" not in c.attrs
+
+
+async def test_step2_incomplete_captcha_clears_login_context(hass):
+    c = _step2_cloud(hass)
+    c.attrs["login_data"] = {"_sign": "OLD"}
+    c._get_captcha = lambda url: None
+    c.account_post = _stub_post_factory({"code": 87001, "captchaUrl": "/captcha.png"})
+    with pytest.raises(MiCloudException, match="challenge incomplete"):
+        await hass.async_add_executor_job(partial(c._login_step2, _sign="SIGN"))
+    assert c.attrs == {}
+
+
+@pytest.mark.parametrize("initial_code", [70016, 87001])
+async def test_login_captcha_retries_preserve_context_and_replace_cookie(hass, initial_code):
+    c = _step2_cloud(hass)
+    c._init_session()
+    responses = iter([
+        {"code": initial_code, "captchaUrl": "/first.png"},
+        {"code": 87001, "captchaUrl": "/second.png"},
+        {"location": "https://sts.api.io.mi.com/sts", "userId": "u"},
+    ])
+    posts = []
+
+    def _post(url, **kwargs):
+        posts.append(kwargs)
+        return _StubResp(json_data=next(responses))
+
+    def _captcha(url):
+        c.attrs.update(captchaImg=url, captchaIck=url)
+
+    c.account_post = _post
+    c._get_captcha = _captcha
+    context = {"_sign": "SIGN", "sid": "xiaomiio", "qs": "QUERY", "callback": "CALLBACK"}
+    error = MiCloudAuthenticationError if initial_code == 87001 else MiCloudException
+    with pytest.raises(error):
+        await hass.async_add_executor_job(partial(c._login_step2, **context))
+
+    session = c.session
+    with patch.object(c, "_login_step1") as step1, \
+         patch.object(c, "_login_step3", return_value=_StubResp()):
+        with pytest.raises(MiCloudAuthenticationError):
+            await hass.async_add_executor_job(c._login_request, {"captcha": "wrong"})
+        assert await hass.async_add_executor_job(c._login_request, {"captcha": "correct"})
+    step1.assert_not_called()
+    assert c.session is session
+    for post, answer, image in zip(posts[1:], ("wrong", "correct"), ("first", "second")):
+        assert post["data"]["captCode"] == answer
+        assert post["cookies"]["ick"] == f"https://account.xiaomi.com/{image}.png"
+        assert {key: post["data"][key] for key in context} == context
+
+
+async def test_login_captcha_without_saved_context_forwards_answer(hass):
+    c = _step2_cloud(hass)
+    c.attrs["captchaIck"] = "ICK"
+    with patch.object(c, "_login_step1", return_value={"_sign": "SIGN"}) as step1, \
+         patch.object(c, "account_post", return_value=_StubResp(json_data={
+             "location": "https://sts.api.io.mi.com/sts", "userId": "u",
+         })) as post, \
+         patch.object(c, "_login_step3", return_value=_StubResp()):
+        assert await hass.async_add_executor_job(c._login_request, {"captcha": "answer"})
+    step1.assert_called_once_with()
+    assert post.call_args.kwargs["data"]["captCode"] == "answer"
+    assert post.call_args.kwargs["data"]["_sign"] == "SIGN"
+    assert post.call_args.kwargs["cookies"]["ick"] == "ICK"
 
 
 async def test_step2_81003_raises_need_verify(hass):

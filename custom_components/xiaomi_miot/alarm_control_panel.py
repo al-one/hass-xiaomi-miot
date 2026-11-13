@@ -5,6 +5,7 @@ from homeassistant.components.alarm_control_panel import (
     DOMAIN as ENTITY_DOMAIN,
     AlarmControlPanelEntity,
     AlarmControlPanelEntityFeature,  # v2022.5
+    AlarmControlPanelState,
 )
 
 from . import (
@@ -20,8 +21,6 @@ from .core.miot_spec import (
     MiotSpec,
     MiotService,
 )
-from .core.const import AlarmControlPanelState
-
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 
@@ -52,6 +51,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class MiotAlarmEntity(MiotEntity, AlarmControlPanelEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         self._attr_code_arm_required = False
