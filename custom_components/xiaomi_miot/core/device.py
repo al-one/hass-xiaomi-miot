@@ -780,7 +780,8 @@ class Device(CustomConfigHelper):
             return False
         if 'did' in res and req.get('did') != res.get('did'):
             return False
-        if 'value' not in req or 'value' not in res or req.get('value') != res.get('value'):
+        # Some devices omit `value` from write acknowledgements; siid/piid already identify the write.
+        if 'value' in res and req.get('value') != res.get('value'):
             return False
         return True
 

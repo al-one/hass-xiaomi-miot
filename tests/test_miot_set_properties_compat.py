@@ -31,6 +31,32 @@ def test_set_property_error_accepts_matching_no_code_ack(make_device, load_miot_
     assert err is None
 
 
+@pytest.mark.parametrize("did", [{}, {"did": "test-device"}])
+def test_set_property_error_accepts_no_code_ack_without_value(make_device, load_miot_spec, did):
+    device = make_device(load_miot_spec("cnhdm.airrtc.wkq01.json"))
+    response = {**did, "siid": 2, "piid": 3}
+
+    err = device.set_property_error([REQUEST], [response])
+
+    assert err is None
+
+
+def test_set_property_error_accepts_mixed_batch_without_value(make_device, load_miot_spec):
+    device = make_device(load_miot_spec("cnhdm.airrtc.wkq01.json"))
+    requests = [
+        {"did": "test-device", "siid": 2, "piid": 3, "value": 0},
+        {"did": "test-device", "siid": 2, "piid": 5, "value": 25},
+    ]
+    responses = [
+        {"did": "test-device", "siid": 2, "piid": 3, "code": 0},
+        {"did": "test-device", "siid": 2, "piid": 5},
+    ]
+
+    err = device.set_property_error(requests, responses)
+
+    assert err is None
+
+
 @pytest.mark.parametrize("shorter", [False, True])
 def test_set_property_error_accepts_mixed_batch_success(make_device, load_miot_spec, shorter):
     device = make_device(load_miot_spec("cnhdm.airrtc.wkq01.json"))
@@ -55,7 +81,7 @@ def test_set_property_error_accepts_mixed_batch_success(make_device, load_miot_s
         ({"did": "test-device", "siid": 2, "piid": 9, "value": 0}, None),
         ({"did": "other-device", "siid": 2, "piid": 3, "value": 0}, None),
         ({"did": "test-device", "siid": 2, "piid": 3, "value": 1}, None),
-        ({"did": "test-device", "siid": 2, "piid": 3}, None),
+        ({"did": "test-device", "siid": 9, "piid": 3}, None),
         ({"did": "test-device", "siid": 2, "piid": 3, "value": 0, "code": -4002}, -4002),
         ({"did": "test-device", "siid": 2, "piid": 3, "value": 0, "code": None}, None),
     ],
@@ -140,6 +166,17 @@ async def test_single_property_accepts_matching_echo(make_device, load_miot_spec
     assert result.is_success
     device.dispatch.assert_called_once()
     assert "code" not in response
+
+
+@pytest.mark.parametrize("did", [{}, {"did": "test-device"}])
+async def test_single_property_accepts_echo_without_value(make_device, load_miot_spec, did):
+    device = make_device(load_miot_spec("cnhdm.airrtc.wkq01.json"))
+    response = {**did, "siid": 2, "piid": 3}
+    device.async_set_properties = AsyncMock(return_value=[response])
+    device.dispatch = Mock()
+    result = await device.async_set_miot_property(2, 3, False)
+    assert result.is_success
+    device.dispatch.assert_called_once()
 
 
 @pytest.mark.parametrize("response", [
