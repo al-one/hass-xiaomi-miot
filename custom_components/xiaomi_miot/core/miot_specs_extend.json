@@ -1619,6 +1619,22 @@
       ]
     }
   ],
+  "yeelink.light.lamp2": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:off-delay-time",
+          "description": "Off Delay Time",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 60, 1]
+        }
+      ]
+    }
+  ],
   "yeelink.light.panel1": "yeelink.light.ceiling1",
   "yeelink.light.panel3": "yeelink.light.ceiling1",
   "yeelink.mirror.bm1": [

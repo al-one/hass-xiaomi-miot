@@ -41,11 +41,13 @@ class HumidifierEntity(XEntity, BaseEntity):
     _conv_target_humidity = None
     _conv_current_humidity = None
     _target_humidity_ratio = 1
+    _without_mode_off = False
     _target_humidity_step = None
 
     def on_init(self):
         self._attr_available_modes = []
         self._target_humidity_ratio = self.custom_config_number('target_humidity_ratio', 1)
+        self._without_mode_off = self.custom_config_bool('without_mode_off', False)
 
         for attr in self.conv.attrs:
             conv = self.device.find_converter(attr)
@@ -54,8 +56,9 @@ class HumidifierEntity(XEntity, BaseEntity):
                 continue
             elif prop.in_list(['on']):
                 self._conv_power = conv
-                self._attr_available_modes.append(MODE_OFF)
-                self._attr_supported_features |= HumidifierEntityFeature.MODES
+                if not self._without_mode_off:
+                    self._attr_available_modes.append(MODE_OFF)
+                    self._attr_supported_features |= HumidifierEntityFeature.MODES
             elif prop.in_list(['mode', 'fan_level']) and not self._conv_mode:
                 self._conv_mode = conv
                 self._attr_available_modes.extend(prop.list_descriptions())
@@ -92,7 +95,7 @@ class HumidifierEntity(XEntity, BaseEntity):
             val = self._conv_power.value_from_dict(data)
             if val is not None:
                 self._attr_is_on = bool(val)
-                if not self._attr_is_on:
+                if not self._attr_is_on and not self._without_mode_off:
                     self._attr_mode = MODE_OFF
         if self._conv_target_humidity:
             val = self._conv_target_humidity.value_from_dict(data)
