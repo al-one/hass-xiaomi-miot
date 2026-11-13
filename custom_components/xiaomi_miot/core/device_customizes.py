@@ -2676,6 +2676,7 @@ DEVICE_CUSTOMIZES = {
         'interval_seconds': 120,
         'exclude_miot_services': 'vacuum_map,custom,voice_management',
         'number_properties': 'frequency_mop_wash_by_time',
+        'sensor_properties': 'fault,fault_ids,base_station_working_status',
         'button_actions': 'start_sweep,stop_sweeping,stop_and_gocharge,start_only_sweep,start_mop,start_sweep_mop,'
                           'pause_sweeping,continue_sweep,start_dust_arrest,start_mop_wash,start_dry,start_eject,'
                           'stop_mop_wash,stop_dry,back_mop_wash,start_charge,identify,'
