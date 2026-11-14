@@ -218,7 +218,7 @@ async def async_setup(hass, hass_config: dict):
                 raise MiCloudException('Login failed')
             hass.data[DOMAIN][CONF_XIAOMI_CLOUD] = mic
             hass.data[DOMAIN]['devices_by_mac'] = await mic.async_get_devices_by_key('mac') or {}
-            hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {CONF_XIAOMI_CLOUD: mic})
+            hass.data[DOMAIN]['accounts'].setdefault(mic.account_key, {CONF_XIAOMI_CLOUD: mic})
             cnt = len(hass.data[DOMAIN]['devices_by_mac'])
             _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', config.get(CONF_USERNAME), cnt)
         except (MiCloudException, MiCloudAccessDenied) as exc:
