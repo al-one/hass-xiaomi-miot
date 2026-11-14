@@ -170,6 +170,16 @@ domain.your_entity_id_xxxx:
   reverse_state: true  # Reverse the On/Off state of a binary sensor
 ```
 
+### Vacuum room cleaning
+
+Compatible MIoT vacuums expose their mapped rooms through Home Assistant's
+`vacuum.get_segments` action and support `vacuum.clean_area` after those rooms
+are mapped to Home Assistant areas in the vacuum entity settings.
+
+This covers both newer vacuums using `room_information` / `get_room_configs`
+and older `ijai.vacuum.v3` vacuums using `get-map-room-list` /
+`set-room-clean`. Room names and boundaries are managed in the Xiaomi Home app.
+
 ### Filter entity attributes
 
 > Too many entity attributes will make your HA's database very large. If some entity attributes are useless to you, you can configure `exclude_state_attributes` to ignore them.
