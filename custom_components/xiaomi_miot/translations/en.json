@@ -135,7 +135,7 @@
             },
             "reauth_verify": {
                 "title": "Xiaomi reauth — enter verification code",
-                "description": "Open [this link]({verify_url}) in your browser, request a code, then paste the verification ticket here.",
+                "description": "Enter the verification code sent by this integration. Keep this page open; do not request a code in a separate browser.\n{tip}",
                 "data": {
                     "verify_ticket": "Verification ticket"
                 }
@@ -154,11 +154,14 @@
             "cannot_reach": "Unable to access the Xiaomi API interface",
             "tzinfo_error": "There seems to be an issue with your Hass environment. Check your time zone configuration",
             "none_devices": "No devices found under this Xiaomi account",
-            "need_verify": "Verification code is required.",
+            "need_verify": "Enter the verification code sent by this integration. Keep this page open; do not request a code in a separate browser.",
             "invalid_auth": "Xiaomi rejected the credentials.\n{tip}",
             "need_captcha": "Captcha is required.",
             "save_failed": "Failed to save refreshed credentials. Please retry.",
-            "unknown": "Unexpected error."
+            "unknown": "Unexpected error.",
+            "cannot_send_verify": "Unable to send the verification code. Try again later.",
+            "verify_invalid": "The verification code was rejected. Check the code sent by this integration.",
+            "need_identity_captcha": "Complete the image CAPTCHA first and leave the SMS/email code blank. A verification code will then be sent."
         },
         "abort": {
             "config_saved": "Configuration saved! [Customize again](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nSome custom options may require [reloading the integration](/developer-tools/yaml) to take effect.",
@@ -224,7 +227,10 @@
             "cannot_reach": "Unable to access the Xiaomi API interface",
             "tzinfo_error": "There seems to be an issue with your Hass environment. Check your time zone configuration",
             "none_devices": "No devices found under this Xiaomi account",
-            "need_verify": "This login requires security verification. Please open the verification link below to send the mobile/email verification code. After receiving the verification code, do not verify it on the webpage. Go back to Home Assistant and enter it in the input box below."
+            "need_verify": "Enter the verification code sent by this integration. Keep this page open; do not request a code in a separate browser.",
+            "cannot_send_verify": "Unable to send the verification code. Try again later.",
+            "verify_invalid": "The verification code was rejected. Check the code sent by this integration.",
+            "need_identity_captcha": "Complete the image CAPTCHA first and leave the SMS/email code blank. A verification code will then be sent."
         },
         "abort": {
             "show_customizes": "Add a new integration to modify customization.\n{link}\n{tip}"

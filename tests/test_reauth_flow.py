@@ -9,6 +9,7 @@ from custom_components.xiaomi_miot.config_flow import XiaomiMiotFlowHandler
 from custom_components.xiaomi_miot.core.xiaomi_cloud import (
     CloudSid,
     MiCloudAuthenticationError,
+    MiCloudException,
     MiCloudNeedVerify,
     MiCloudStsUnauthorized,
     MiCloudVerificationError,
@@ -112,6 +113,58 @@ async def test_reauth_password_invalid_auth_returns_invalid_auth(flow_cls):
     assert out["errors"]["base"] == "invalid_auth"
 
 
+def _password_flow_with(flow_cls, error):
+    flow = flow_cls()
+    flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
+    flow.context = {"entry_id": "eid"}
+    flow._reauth = SimpleNamespace(
+        sid=CloudSid.XIAOMIIO,
+        entry=SimpleNamespace(
+            data={
+                "username": "u",
+                "server_country": "cn",
+                "user_id": "u",
+                "sid": "xiaomiio",
+            },
+            entry_id="eid",
+        ),
+    )
+    flow.async_show_form = MagicMock(side_effect=_fake_show_form)
+    candidate = flow._make_candidate("u", "p", "cn", CloudSid.XIAOMIIO)
+    candidate.async_login_attempt = AsyncMock(side_effect=error)
+    flow._make_candidate = MagicMock(return_value=candidate)
+    return flow, candidate
+
+
+@pytest.mark.parametrize("error", [
+    MiCloudAuthenticationError("Xiaomi captcha rejected"),
+    MiCloudException("Xiaomi login requires captcha"),
+])
+async def test_reauth_password_captcha_error_routes_to_captcha(flow_cls, error):
+    flow, candidate = _password_flow_with(flow_cls, error)
+    candidate.attrs.update(
+        captcha_url="https://account.xiaomi.com/captcha",
+        captchaImg="image",
+        captchaIck="ick",
+    )
+
+    out = await flow.async_step_reauth_password({"password": "p"})
+
+    assert out["step_id"] == "reauth_captcha"
+    assert out["description_placeholders"]["captcha_image"] == "image"
+    assert flow._candidate is candidate
+
+
+async def test_reauth_password_error_with_incomplete_captcha_keeps_form(flow_cls):
+    flow, candidate = _password_flow_with(flow_cls, MiCloudException("X"))
+    candidate.attrs.update(captchaImg="image", captchaIck="ick")
+
+    out = await flow.async_step_reauth_password({"password": "p"})
+
+    assert out["step_id"] == "reauth_password"
+    assert out["errors"]["base"] == "unknown"
+
+
 async def test_reauth_password_need_verify_routes_to_verify(flow_cls):
     flow = flow_cls()
     flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
@@ -184,7 +237,7 @@ async def test_reauth_verify_empty_ticket_keeps_form_with_need_verify(flow_cls):
     )
     flow.async_show_form = MagicMock(side_effect=_fake_show_form)
     candidate = SimpleNamespace(
-        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart", "identity_ticket_sent": True},
         async_login_attempt=AsyncMock(),
     )
     flow._candidate = candidate
@@ -205,14 +258,14 @@ async def test_reauth_verify_verification_error_keeps_form(flow_cls):
     )
     flow.async_show_form = MagicMock(side_effect=_fake_show_form)
     candidate = SimpleNamespace(
-        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart", "identity_ticket_sent": True},
         async_login_attempt=AsyncMock(side_effect=MiCloudVerificationError("X")),
     )
     flow._candidate = candidate
 
     out = await flow.async_step_reauth_verify({"verify_ticket": "T"})
 
-    assert out["errors"]["base"] == "need_verify"
+    assert out["errors"]["base"] == "verify_invalid"
 
 
 async def test_reauth_verify_micoapi_sts_retry_runs_once(flow_cls):
@@ -227,6 +280,7 @@ async def test_reauth_verify_micoapi_sts_retry_runs_once(flow_cls):
     candidate = SimpleNamespace(
         attrs={
             "verify_url": "https://account.xiaomi.com/identity/authStart",
+            "identity_ticket_sent": True,
             "service_token": "OLD",
             "ssecurity": "OLD",
             "async_session": object(),
@@ -265,7 +319,7 @@ async def test_reauth_verify_micoapi_second_sts_returns_unknown(flow_cls):
     )
     flow.async_show_form = MagicMock(side_effect=_fake_show_form)
     candidate = SimpleNamespace(
-        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart", "identity_ticket_sent": True},
         service_token="OLD",
         ssecurity="OLD",
         async_session=object(),
@@ -582,18 +636,18 @@ async def test_reauth_password_form_exposes_only_tip(flow_cls):
     assert set(out["description_placeholders"]) == {"tip"}
 
 
-async def test_reauth_verify_form_exposes_only_tip_and_url(flow_cls):
+async def test_reauth_verify_form_does_not_expose_identity_url(flow_cls):
     flow = flow_cls()
     flow.hass = SimpleNamespace(data={"xiaomi_miot": {}})
     flow.context = {"entry_id": "eid"}
     flow.async_show_form = MagicMock(side_effect=_fake_show_form)
     flow._candidate = SimpleNamespace(
-        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart"},
+        attrs={"verify_url": "https://account.xiaomi.com/identity/authStart", "identity_ticket_sent": True},
     )
 
     out = await flow.async_step_reauth_verify()
 
-    assert set(out["description_placeholders"]) == {"tip", "verify_url"}
+    assert set(out["description_placeholders"]) == {"tip"}
 
 
 async def test_reauth_captcha_form_exposes_only_tip_and_image(flow_cls):

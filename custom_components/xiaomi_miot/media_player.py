@@ -332,6 +332,7 @@ class BaseMediaPlayerEntity(MediaPlayerEntity, MiotEntityInterface, BaseEntity):
 
 
 class MiotMediaPlayerEntity(MiotEntity, BaseMediaPlayerEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
         BaseMediaPlayerEntity.__init__(self, miot_service)
@@ -1005,6 +1006,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
 
 
 class MiirMediaPlayerEntity(MiirToggleEntity, MediaPlayerEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 

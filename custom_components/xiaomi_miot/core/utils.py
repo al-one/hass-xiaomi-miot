@@ -9,7 +9,7 @@ import tzlocal
 import logging
 import fnmatch
 import voluptuous as vol
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Type, Tuple, Optional, Callable, Set
 from functools import wraps
 from homeassistant.core import HomeAssistant, split_entity_id  # noqa
@@ -28,8 +28,9 @@ POWER_COST_PATTERN = re.compile(
 
 
 def parse_power_cost_records(records: list) -> list:
-    """Decode statistics without losing the date of an invalid record."""
+    """Decode statistics, keeping invalid dates and removing exact duplicates."""
     parsed = []
+    seen = set()
     for record in records:
         if not isinstance(record, dict):
             parsed.append({})
@@ -38,8 +39,43 @@ def parse_power_cost_records(records: list) -> list:
             value = json.loads(record.get('value', '[]'))
         except (TypeError, ValueError):
             value = []
-        parsed.append({**record, 'value': value if isinstance(value, list) else []})
+        value = value if isinstance(value, list) else []
+        timestamp = record.get('time')
+        number = value[0] if value else None
+        if (type(timestamp) is int and timestamp > 0
+                and isinstance(number, (int, float))
+                and normalize_power_cost_value(number) is not None):
+            identity = (timestamp, number)
+            if identity in seen:
+                continue
+            seen.add(identity)
+        parsed.append({**record, 'value': value})
     return parsed
+
+
+def power_cost_record_dates(records: list, now: datetime) -> tuple[set, set]:
+    """Find observed local dates and ambiguous days, without inventing records."""
+    start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    end = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    dates = set()
+    conflicts = set()
+    for record in records:
+        try:
+            timestamp = int(record.get('time', 0))
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if not start.timestamp() <= timestamp < end.timestamp():
+            continue
+        values = record.get('value', [])
+        number = values[0] if values else None
+        if (not isinstance(number, (int, float))
+                or normalize_power_cost_value(number) is None):
+            continue
+        day = datetime.fromtimestamp(timestamp, now.tzinfo).date()
+        if day in dates:
+            conflicts.add(day)
+        dates.add(day)
+    return dates, conflicts
 
 
 def power_cost_period(attribute: str, timestamp: datetime) -> str | None:
@@ -60,6 +96,13 @@ def normalize_power_cost_value(value) -> float | None:
     except (TypeError, ValueError, OverflowError):
         return None
     return value if math.isfinite(value) and value >= 0 else None
+
+
+def power_cost_decreased(value: float, previous: float) -> bool:
+    """Ignore arithmetic roundoff, not measurement-sized decreases."""
+    return value < previous and previous - value > 8 * max(
+        math.ulp(value), math.ulp(previous),
+    )
 
 
 def get_value(obj, key, def_value=None, sep='.'):

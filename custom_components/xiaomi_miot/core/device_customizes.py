@@ -1160,6 +1160,7 @@ DEVICE_CUSTOMIZES = {
         ],
     },
     'iot.switch.padw2p': {
+        'auto_cloud': True,
         'sensor_properties': 'temperature,electric_power,electric_current,voltage',
         'select_properties': 'default_power_on_state',
         'switch_properties': 'screen.on,self_check,leak_switch,voice_switch',
@@ -1443,6 +1444,20 @@ DEVICE_CUSTOMIZES = {
     },
     'lxzn.switch.cbcsmj:voltage': {'value_ratio': 0.1},
     'lxzn.switch.cbcsmj:electric_current': {'value_ratio': 0.001},
+
+    'ykcn.switch.cbcsmj': {
+        'sensor_properties': 'electric_power,fault',
+        'select_properties': 'default_power_on_state',
+        'switch_properties': 'electric_alarm_set,overcurrent_set,overvoltage_set,undervoltage_set',
+        'number_properties': 'electric_alarm,overcurrent_alarm,overvoltage_alarm,undervoltage_alarm',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '3.1',
+        'stat_power_cost_template': 'ykcn_switch_cbcsmj_power_cost',
+    },
+    'ykcn.switch.cbcsmj:voltage': {'value_ratio': 0.1},
+    'ykcn.switch.cbcsmj:electric_current': {'value_ratio': 0.001},
+    'ykcn.switch.cbcsmj:power_cost_today': ENERGY_KWH,
+    'ykcn.switch.cbcsmj:power_cost_month': ENERGY_KWH,
 
     'madv.cateye.mi3iot': {
         'binary_sensor_properties': 'madv_doorbell.motion_detection',
@@ -2812,6 +2827,10 @@ DEVICE_CUSTOMIZES = {
         'switch_properties': 'icing,child_lock,drink_remind,switch_button,buzzer_enable',
         'select_properties': 'mode,rinse_status',
         'number_properties': 'target_temperature',
+    },
+    # https://github.com/al-one/hass-xiaomi-miot/issues/3058
+    'xiaoxun.watch.sw773': {
+        'coord_type': "{{ 'bd09' if data.get('locationinfo.maptype')|int(1) == 0 else 'gcj02' }}",
     },
     'xjx.toilet.relax': {
         'button_actions': 'flush_on',

@@ -66,7 +66,7 @@
             },
             "reauth_verify": {
                 "title": "Riautenticazione Xiaomi — inserisci il codice di verifica",
-                "description": "Apri [questo link]({verify_url}) nel browser, richiedi un codice, quindi incolla qui il codice di verifica.",
+                "description": "Inserisci il codice di verifica inviato da questa integrazione. Mantieni aperta questa pagina; non richiedere un codice in un altro browser.\n{tip}",
                 "data": {
                     "verify_ticket": "Codice di verifica"
                 }
@@ -85,11 +85,14 @@
             "cannot_reach": " Impossibile accedere all'API Xiaomi",
             "tzinfo_error": "Guardare: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Nessun dispositivo nell'account xiaomi cloud",
-            "need_verify": "È richiesto un codice di verifica.",
+            "need_verify": "Inserisci il codice di verifica inviato da questa integrazione. Mantieni aperta questa pagina; non richiedere un codice in un altro browser.",
             "invalid_auth": "Xiaomi ha rifiutato le credenziali.\n{tip}",
             "need_captcha": "È richiesto il captcha.",
             "save_failed": "Impossibile salvare le credenziali aggiornate. Riprova.",
-            "unknown": "Errore imprevisto."
+            "unknown": "Errore imprevisto.",
+            "cannot_send_verify": "Impossibile inviare il codice di verifica. Riprova più tardi.",
+            "verify_invalid": "Il codice di verifica è stato rifiutato. Controlla il codice inviato da questa integrazione.",
+            "need_identity_captcha": "Completa prima il CAPTCHA e lascia vuoto il codice SMS/e-mail. Verrà quindi inviato un codice di verifica."
         },
         "abort": {
             "config_saved": "Configurazione salvata! [Personalizza di nuovo](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nAlcune opzioni di personalizzazione richiedono [reload integration](/developer-tools/yaml) per avere effetto.",
@@ -148,7 +151,10 @@
             "cannot_reach": " Impossibile accedere all'API Xiaomi",
             "tzinfo_error": "Guardare: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Nessun dispositivo nell'account xiaomi cloud",
-            "need_verify": "Questo accesso richiede una verifica di sicurezza. Apri il link di verifica qui sotto per inviare il codice tramite telefono/e-mail. Dopo aver ricevuto il codice, non verificarlo nella pagina web. Torna in Home Assistant e inseriscilo nel campo sottostante."
+            "need_verify": "Inserisci il codice di verifica inviato da questa integrazione. Mantieni aperta questa pagina; non richiedere un codice in un altro browser.",
+            "cannot_send_verify": "Impossibile inviare il codice di verifica. Riprova più tardi.",
+            "verify_invalid": "Il codice di verifica è stato rifiutato. Controlla il codice inviato da questa integrazione.",
+            "need_identity_captcha": "Completa prima il CAPTCHA e lascia vuoto il codice SMS/e-mail. Verrà quindi inviato un codice di verifica."
         },
         "abort": {
             "show_customizes": "[Aggiungi nuova integrazione](/_my_redirect/config_flow_start?domain=xiaomi_miot) per modificare la personalizzazione.\n{link}\n{tip}"
