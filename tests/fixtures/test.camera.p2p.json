@@ -1,0 +1,26 @@
+{
+  "type": "urn:miot-spec-v2:device:camera:0000A01C:test-p2p:1",
+  "description": "Camera",
+  "services": [
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:camera-control:0000782F:test-p2p:1",
+      "description": "Camera Control",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:on:00000006:test-p2p:1", "description": "Switch Status", "format": "bool", "access": ["read", "write", "notify"]}
+      ]
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:p2p-stream:00007850:test-p2p:1",
+      "description": "P2P Stream",
+      "properties": [
+        {"iid": 1, "type": "urn:miot-spec-v2:property:stream-status:0000006D:test-p2p:1", "description": "Stream Status", "format": "uint8", "access": ["read", "notify"], "value-list": [{"value": 0, "description": "Idle"}, {"value": 1, "description": "Busy"}]}
+      ],
+      "actions": [
+        {"iid": 1, "type": "urn:miot-spec-v2:action:start-p2p-stream:0000204D:test-p2p:1", "description": "Start P2P Stream", "in": [], "out": [1]},
+        {"iid": 2, "type": "urn:miot-spec-v2:action:stop-stream:0000204E:test-p2p:1", "description": "Stop Stream", "in": [], "out": []}
+      ]
+    }
+  ]
+}
