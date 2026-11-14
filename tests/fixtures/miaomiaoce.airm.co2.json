@@ -1,0 +1,23 @@
+{
+  "type": "urn:miot-spec-v2:device:air-monitor:0000A008:miaomiaoce-co2:1",
+  "services": [
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:environment:0000780A:miaomiaoce-co2:1",
+      "description": "Environment",
+      "properties": [
+        {"iid": 1029, "type": "urn:miot-spec-v2:property:co2-density:0000004B:miaomiaoce-co2:1", "description": "CO2 Density", "format": "uint16", "access": ["read", "notify"], "unit": "ppm", "value-range": [400, 5000, 100]},
+        {"iid": 1001, "type": "urn:miot-spec-v2:property:temperature:00000020:miaomiaoce-co2:1", "description": "Temperature", "format": "float", "access": ["read", "notify"], "unit": "celsius", "value-range": [-30, 100, 0.1]},
+        {"iid": 1008, "type": "urn:miot-spec-v2:property:relative-humidity:0000001C:miaomiaoce-co2:1", "description": "Relative Humidity", "format": "float", "access": ["read", "notify"], "unit": "percentage", "value-range": [0, 100, 1]}
+      ]
+    },
+    {
+      "iid": 4,
+      "type": "urn:miot-spec-v2:service:battery:00007805:miaomiaoce-co2:1",
+      "description": "Battery",
+      "properties": [
+        {"iid": 1003, "type": "urn:miot-spec-v2:property:battery-level:00000014:miaomiaoce-co2:1", "description": "Battery Level", "format": "uint8", "access": ["read", "notify"], "unit": "percentage", "value-range": [0, 100, 1]}
+      ]
+    }
+  ]
+}
