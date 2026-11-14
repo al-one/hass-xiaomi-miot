@@ -26,6 +26,7 @@ from homeassistant.components.climate import (
 )
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util.unit_conversion import TemperatureConverter
 
 from . import (
     DOMAIN,
@@ -154,7 +155,9 @@ class BaseClimateEntity(BaseEntity):
                     UnitOfTemperature.KELVIN,
                     UnitOfTemperature.FAHRENHEIT,
                 ]:
-                    ext[ATTR_CURRENT_TEMPERATURE] = self.hass.config.units.temperature(num, unit)
+                    ext[ATTR_CURRENT_TEMPERATURE] = TemperatureConverter.convert(
+                        num, unit, self._get_temperature_attr('temperature_unit') or UnitOfTemperature.CELSIUS,
+                    )
                 elif cls == SensorDeviceClass.HUMIDITY.value:
                     ext[ATTR_CURRENT_HUMIDITY] = num
         if ext:

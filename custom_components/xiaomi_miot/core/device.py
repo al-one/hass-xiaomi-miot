@@ -262,12 +262,18 @@ class Device(CustomConfigHelper):
         )
         return True
 
-    async def async_unload(self):
+    async def async_unload(self, *, unload_spec=True):
         for coo in self.coordinators:
             await coo.async_shutdown()
 
-        self.spec = None
-        self.hass.data[DOMAIN].setdefault('miot_specs', {}).pop(self.model, None)
+        self.coordinators.clear()
+        self.main_coordinators.clear()
+
+        # A registry disable retains entities and their converters/spec references.
+        # Only final unload should invalidate their shared specification cache.
+        if unload_spec:
+            self.spec = None
+            self.hass.data[DOMAIN].setdefault('miot_specs', {}).pop(self.model, None)
 
         if self._unsub_purge:
             self._unsub_purge()
@@ -816,7 +822,7 @@ class Device(CustomConfigHelper):
                 params = data.get('params', [])
                 result = await self.async_set_properties(params)
                 success = True if result else False
-                if err := MiotResults(result).has_error:
+                if err := self.set_property_error(params, result):
                     success = False
                     self.log.warning('Device write error: %s', [payload, data, err])
 
@@ -836,6 +842,32 @@ class Device(CustomConfigHelper):
         if success:
             self.dispatch(payload)
         return result
+
+    def set_property_error(self, params: list, results: list):
+        for item in MiotResults(results).results:
+            if item.is_success:
+                continue
+            if any(self.is_miot_set_property_ack(req, item.result) for req in params):
+                continue
+            return item
+        return None
+
+    @staticmethod
+    def is_miot_set_property_ack(req: dict, res: dict) -> bool:
+        if 'code' in res:
+            return False
+        if res.get('error') is not None:
+            return False
+        if 'siid' not in res or req.get('siid') != res.get('siid'):
+            return False
+        if 'piid' not in res or req.get('piid') != res.get('piid'):
+            return False
+        if 'did' in res and req.get('did') != res.get('did'):
+            return False
+        # Some devices omit `value` from write acknowledgements; siid/piid already identify the write.
+        if 'value' in res and req.get('value') != res.get('value'):
+            return False
+        return True
 
     @property
     def use_local(self):
@@ -1247,6 +1279,8 @@ class Device(CustomConfigHelper):
         try:
             results = await self.async_set_properties([pms])
             result = MiotResults(results).first
+            if result and self.is_miot_set_property_ack(pms, result.result):
+                result = MiotResult({**result.result, 'code': 0, 'value': value})
         except (DeviceException, MiCloudException) as exc:
             self.log.warning('Set miot property %s failed: %s', pms, exc)
             return MiotResult({}, code=-1, error=str(exc))

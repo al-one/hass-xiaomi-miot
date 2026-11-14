@@ -10,19 +10,21 @@ jobs:
       github.event.action == 'opened'
       || (github.event.action == 'edited' && github.event.issue.comments < 1)
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - name: Format Message
         id: format
         shell: bash
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          body=$(cat <<EOF
-          ${{ github.event.issue.body }}
-          EOF)
-          body=$(sed '/^###/ s|\s/\s.*||' <<< "$body")
+          body=$(sed '/^###/ s|\s/\s.*||' <<< "$ISSUE_BODY")
+          delim="BODY_${RANDOM}${RANDOM}${RANDOM}"
           {
-            echo 'BODY<<EOF'
-            echo "$body"
-            echo EOF
+            echo "BODY<<${delim}"
+            printf '%s\n' "$body"
+            echo "${delim}"
           } >> "$GITHUB_OUTPUT"
 
       - id: chat
