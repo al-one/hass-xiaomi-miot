@@ -1414,6 +1414,11 @@ class Device(CustomConfigHelper):
     def _validate_power_cost_coverage(self, command, records, attrs, now):
         """Reject missing or ambiguous observed days, not sparse zero-use days."""
         dates, conflicts = power_cost_record_dates(records, now)
+        if now.date() not in dates:
+            self.log.debug(
+                'No valid power statistics for current day: key=%s, period=%s, current_month_days=%s',
+                command['key'], now.strftime('%Y-%m-%d'), len(dates),
+            )
         period = now.strftime('%Y-%m')
         key = (command.get('type', 'stat_day_v3'), command['key'],
                command.get('day') or 7, command.get('limit') or 1)
