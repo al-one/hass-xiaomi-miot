@@ -103,6 +103,12 @@ class MiotCloud(micloud.MiCloud):
         uid = self.user_id or self.username
         return f'{uid}-{self.default_server}-{self.sid}'
 
+    @property
+    def account_key(self):
+        """Identity of one account in one region, without the API session sid."""
+        uid = self.user_id or self.username
+        return f'{uid}-{self.default_server}'
+
     async def async_get_properties_for_mapping(self, did, mapping: dict):
         pms = []
         rmp = {}

@@ -15,6 +15,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.core import callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.restore_state import RestoreEntity, RestoredExtraData
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -52,12 +53,53 @@ DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 SERVICE_TO_METHOD = {}
 
 
+def _message_entity_id(cloud):
+    # Keep the historical entity ID for the default region to avoid breaking
+    # existing automations and restored state.
+    if cloud.default_server == 'cn':
+        return f'{ENTITY_DOMAIN}.mi_{cloud.user_id}_message'
+    return f'{ENTITY_DOMAIN}.mi_{cloud.user_id}_{cloud.default_server}_message'
+
+
+def _message_unique_id(cloud):
+    return f'{DOMAIN}-mihome-message-{cloud.account_key}'
+
+
+def _migrate_message_entity(hass, cloud):
+    """Move the legacy per-user message entity to the per-region identity."""
+    ent_reg = er.async_get(hass)
+    unique_id = _message_unique_id(cloud)
+    if ent_reg.async_get_entity_id(ENTITY_DOMAIN, DOMAIN, unique_id):
+        return
+
+    old_unique_id = f'{DOMAIN}-mihome-message-{cloud.user_id}'
+    old_entity_id = ent_reg.async_get_entity_id(ENTITY_DOMAIN, DOMAIN, old_unique_id)
+    if not old_entity_id:
+        return
+
+    legacy_entity_id = f'{ENTITY_DOMAIN}.mi_{cloud.user_id}_message'
+    entity_id = _message_entity_id(cloud)
+    if (
+        cloud.default_server != 'cn'
+        and old_entity_id == legacy_entity_id
+        and not ent_reg.async_get(entity_id)
+    ):
+        ent_reg.async_update_entity(
+            old_entity_id,
+            new_unique_id=unique_id,
+            new_entity_id=entity_id,
+        )
+    else:
+        ent_reg.async_update_entity(old_entity_id, new_unique_id=unique_id)
+
+
 async def async_setup_entry(hass, config_entry, async_add_entities):
     entry = HassEntry.init(hass, config_entry).new_adder(ENTITY_DOMAIN, async_add_entities)
     cloud = await entry.get_cloud()
 
     if cloud:
-        account = hass.data[DOMAIN]['accounts'].setdefault(cloud.user_id, {})
+        # One account can be added once per region; user_id alone is not unique.
+        account = hass.data[DOMAIN]['accounts'].setdefault(cloud.account_key, {})
 
         if not entry.get_config('disable_message'):
             # Two region entries can race while the first sensor refresh awaits.
@@ -66,6 +108,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 message_lock = account['messenger_lock'] = asyncio.Lock()
             async with message_lock:
                 if not account.get('messenger'):
+                    _migrate_message_entity(hass, cloud)
                     entity = MihomeMessageSensor(hass, cloud)
                     await entity.coordinator.async_config_entry_first_refresh()
                     account['messenger'] = entity
@@ -75,12 +118,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             homes = await cloud.async_get_homerooms()
             for home in homes:
                 home_id = home.get('id')
-                if hass.data[DOMAIN]['accounts'][cloud.user_id].get(f'scene_history_{home_id}'):
+                if account.get(f'scene_history_{home_id}'):
                     continue
 
                 entity = MihomeSceneHistorySensor(hass, cloud, home_id, home.get('uid'))
                 await entity.coordinator.async_config_entry_first_refresh()
-                hass.data[DOMAIN]['accounts'][cloud.user_id][f'scene_history_{home_id}'] = entity
+                account[f'scene_history_{home_id}'] = entity
                 async_add_entities([entity], update_before_add=False)
 
     await async_setup_config_entry(hass, config_entry, async_setup_platform, async_add_entities, ENTITY_DOMAIN)
@@ -435,8 +478,8 @@ class MihomeMessageSensor(MiCoordinatorEntity, BaseEntity, RestoreEntity):
         self.hass = hass
         self.cloud = cloud
         self.message = {}
-        self.entity_id = f'{ENTITY_DOMAIN}.mi_{cloud.user_id}_message'
-        self._attr_unique_id = f'{DOMAIN}-mihome-message-{cloud.user_id}'
+        self.entity_id = _message_entity_id(cloud)
+        self._attr_unique_id = _message_unique_id(cloud)
         self._attr_name = f'Xiaomi {cloud.user_id} message'
         self._attr_icon = 'mdi:message'
         self._attr_should_poll = False
@@ -473,7 +516,7 @@ class MihomeMessageSensor(MiCoordinatorEntity, BaseEntity, RestoreEntity):
         To be extended by integrations.
         """
         await super().async_will_remove_from_hass()
-        self.hass.data[DOMAIN]['accounts'].get(self.cloud.user_id, {}).pop('messenger', None)
+        self.hass.data[DOMAIN]['accounts'].get(self.cloud.account_key, {}).pop('messenger', None)
 
     @property
     def extra_restore_state_data(self):
@@ -614,7 +657,7 @@ class MihomeSceneHistorySensor(MiCoordinatorEntity, BaseEntity, RestoreEntity):
         To be extended by integrations.
         """
         await super().async_will_remove_from_hass()
-        self.hass.data[DOMAIN]['accounts'].get(self.cloud.user_id, {}).pop(f'scene_history_{self.home_id}', None)
+        self.hass.data[DOMAIN]['accounts'].get(self.cloud.account_key, {}).pop(f'scene_history_{self.home_id}', None)
 
     @property
     def extra_restore_state_data(self):
