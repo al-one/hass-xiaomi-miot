@@ -134,6 +134,12 @@ class XEntity(BasicEntity):
 
         elif isinstance(conv, MiotPropConv):
             self.entity_id = conv.prop.generate_entity_id(self, conv.domain)
+            # Qualify colliding defaults, not unique IDs or registered entity IDs.
+            if any(isinstance(c, MiotPropConv) and not isinstance(c, MiotServiceConv)
+                   and c.domain == conv.domain and c.prop and c.prop is not conv.prop
+                   and c.prop.generate_entity_id(self, c.domain) == self.entity_id
+                   for c in device.converters):
+                self.entity_id = device.spec.generate_entity_id(self, conv.prop.unique_name, conv.domain)
             self._attr_name = str(conv.prop.friendly_desc)
             self._attr_translation_key = conv.prop.friendly_name
             self._miot_service = conv.prop.service
@@ -160,12 +166,6 @@ class XEntity(BasicEntity):
         if name := conv.option.get('name'):
             self._attr_name = name
             self._attr_translation_key = None
-
-        if self._miot_property and self._attr_translation_key:
-            keys = device.custom_config('property_translation_keys') or {}
-            if key := keys.get(self._miot_property.unique_prop):
-                self._attr_translation_key = key
-                del self._attr_name  # Let Home Assistant use the translated name.
 
         self.listen_attrs = {self.attr} | set(conv.attrs)
         if getattr(self, '_attr_name', None):
