@@ -3036,6 +3036,8 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.2': {'prop': 'temp_dec', 'template': '{{ value / 10.0 }}'},
             'prop.4.1': {'prop': 'buzzer', 'setter': True, 'format': 'onoff'},
             'prop.5.1': {'prop': 'child_lock', 'setter': True, 'format': 'onoff'},
+            'prop.2.101': {'prop': 'limit_hum', 'setter': True},
+            'prop.300.301': {'prop': 'led_b', 'setter': True},
         },
     },
     'zhimi.toilet.va1': {
