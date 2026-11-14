@@ -535,6 +535,7 @@ async def test_actual_platform_restore_update_and_unload(hass, make_device, free
     await component.async_add_entities([sensor])
     await hass.async_block_till_done()
     assert sensor.native_value == 17.5
+    assert hass.states.get(sensor.entity_id).state == '17.5'
     assert device.props[key] == 1750
     assert device._filter_power_cost_statistics({key: 0}, now) == {}
     attrs = device._filter_power_cost_statistics({key: 1780}, now)

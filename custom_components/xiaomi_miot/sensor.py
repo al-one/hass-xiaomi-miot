@@ -246,7 +246,9 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
                 )
                 self.device.props.update(attrs)
                 self._attr_native_value = round(float(self.device.props[key]) * ratio, 3)
+                # Reuse the normal device offline/recovery lifecycle for this value.
                 self._attr_available = self.device.available
+                self._device_marked_unavailable = not self.device.available
                 # Filtering the seed is not a new cloud observation.
                 if seed_legacy and key in attrs:
                     self.device.data.setdefault('_power_cost_restore_scales', {})[key] = ratio
