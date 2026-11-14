@@ -43,7 +43,7 @@ def make_sensor(hass, key, ratio):
     # The entity is deliberately not added to a real platform in this unit
     # test; execute its registered cleanup to avoid leaking the midnight timer.
     sensor.async_on_remove = Mock(side_effect=lambda remove: remove())
-    device = SimpleNamespace(props={}, data={}, log=Mock())
+    device = SimpleNamespace(props={}, data={}, log=Mock(), available=True)
     device._filter_power_cost_statistics = MethodType(Device._filter_power_cost_statistics, device)
     sensor.device = device
     return sensor
