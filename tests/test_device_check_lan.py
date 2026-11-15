@@ -1,58 +1,40 @@
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from homeassistant.const import CONF_USERNAME
 
-from custom_components.xiaomi_miot.climate import ClimateEntity
-from custom_components.xiaomi_miot.core.converters import MiotClimateConv
+from custom_components.xiaomi_miot.core.const import CONF_CONN_MODE
 from custom_components.xiaomi_miot.core.device import MiotDevice
 from custom_components.xiaomi_miot.core.utils import DeviceException
-
-
-def make_local(response):
-    """A real MiotDevice with only the network layer (miio.send) mocked.
-
-    This drives the genuine async_info()/handle_response() path so the LAN
-    check raises the same utils.DeviceException the production code catches —
-    rather than asserting against an arbitrary exception type.
-    """
-    miio = Mock()
-    miio.addr = ("1.2.3.4", 54321)
-    miio.send = AsyncMock(return_value=response)
-    return MiotDevice(None, miio)
-
-
-def make_entity(make_device, spec):
-    """A plain (non-InfoConv) entity registered as a device update listener."""
-    device = make_device(
-        spec,
-        customizes={"converters": [{
-            "class": MiotClimateConv,
-            "services": ["thermostat"],
-            "kwargs": {"attr": "test_climate", "main_props": ["prop.2.8"]},
-        }]},
-    )
-    entity = ClimateEntity(device, device.find_converter("climate.test_climate"))
-    entity.added = True
-    entity._async_write_ha_state = Mock()
-    return device, entity
-
 
 MAPPING = {"prop.2.8": {"siid": 2, "piid": 8}}
 OFFLINE = None  # miio.send returns None when the device doesn't answer on LAN
 ONLINE = {"result": {"life": 1}}
 
 
+def make_local(*responses):
+    """A real MiotDevice with only miio.send mocked, so the genuine
+    async_info()/handle_response() path raises utils.DeviceException."""
+    miio = Mock()
+    miio.addr = ("1.2.3.4", 54321)
+    miio.send = AsyncMock(side_effect=list(responses))
+    return MiotDevice(None, miio)
+
+
 def make_cloud_device(make_device, load_miot_spec, *lan_responses):
-    device, _ = make_entity(make_device, load_miot_spec("cnhdm.airrtc.wkq01.json"))
+    """A device on a cloud account in auto mode, so update_miot_status
+    honours use_cloud/auto_cloud instead of routing everything to local."""
+    device = make_device(load_miot_spec("cnhdm.airrtc.wkq01.json"))
+    config = {CONF_USERNAME: "user", CONF_CONN_MODE: "auto"}
+    device.entry.get_config = lambda key=None, default=None: config.get(key, default)
     device.cloud = AsyncMock()
     device.cloud.async_get_properties_for_mapping = AsyncMock(return_value=[])
-    device.local = make_local(response=None)
-    device.local.miio.send = AsyncMock(side_effect=list(lan_responses))
+    device.local = make_local(*lan_responses)
     return device
 
 
-async def poll(device):
-    return await device.update_miot_status(mapping=MAPPING, use_cloud=True, check_lan=True)
+async def poll(device, check_lan=True):
+    return await device.update_miot_status(mapping=MAPPING, use_cloud=True, check_lan=check_lan)
 
 
 @pytest.mark.asyncio
@@ -63,7 +45,7 @@ async def test_failed_lan_check_does_not_raise(make_device, load_miot_spec):
     device = make_cloud_device(make_device, load_miot_spec, OFFLINE)
 
     assert await poll(device) is not None
-    assert device.local.miio.send.await_count == 1
+    assert device._lan_check_fails == 1
 
 
 @pytest.mark.asyncio
@@ -75,6 +57,7 @@ async def test_device_unavailable_after_three_failed_lan_checks(make_device, loa
     assert device.available is True
 
     await poll(device)
+    assert device._lan_check_fails == 3
     assert device.available is False
 
 
@@ -87,9 +70,22 @@ async def test_passing_lan_check_resets_failures(make_device, load_miot_spec):
     assert device.available is False
 
     await poll(device)
+    assert device._lan_check_fails == 0
     assert device.available is True
 
     await poll(device)
+    assert device.available is True
+
+
+@pytest.mark.asyncio
+async def test_disabling_check_lan_clears_failures(make_device, load_miot_spec):
+    device = make_cloud_device(make_device, load_miot_spec, OFFLINE, OFFLINE, OFFLINE)
+
+    for _ in range(3):
+        await poll(device)
+    assert device.available is False
+
+    await poll(device, check_lan=False)
     assert device.available is True
 
 
@@ -109,9 +105,11 @@ async def test_local_success_resets_lan_check_failures(make_device, load_miot_sp
 
     for _ in range(3):
         await poll_auto()
+    assert device._lan_check_fails == 3
     assert device.available is False
 
     await poll_auto()
+    assert device._lan_check_fails == 0
     assert device.available is True
 
     await poll_auto()

@@ -1035,11 +1035,14 @@ class Device(CustomConfigHelper):
                         self._lan_check_fails = 0
                     except (DeviceException, OSError) as exc:
                         self._lan_check_fails += 1
-                        log = self.log.warning if self._lan_check_fails == 3 else self.log.info
-                        log('%s: LAN check failed %s times: %s', self.name, self._lan_check_fails, exc)
-                if self._cloud_state is False:
-                    self.log.info('Cloud request succeeded again after %s failures, marking available', self._cloud_fails)
+                        fails = self._lan_check_fails
+                        log = self.log.info if fails < 3 else self.log.warning if fails == 3 else self.log.debug
+                        log('%s: LAN check failed %s times: %s', self.name, fails, exc)
+                else:
+                    self._lan_check_fails = 0
                 self.available = self._lan_check_fails < 3
+                if self._cloud_state is False and self.available:
+                    self.log.info('Cloud request succeeded again after %s failures, marking available', self._cloud_fails)
                 self._cloud_fails = 0
                 self._cloud_state = True
                 results = self.normalize_miot_results(results)
