@@ -2554,6 +2554,25 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode',
         'exclude_miot_properties': 'time_period_start,time_period_end,event_timezone'
     },
+    'xiaomi.plug.04': {
+        'miot_local': True,
+        'auto_cloud': True,
+        # Direct 11.1 differs between LAN and cloud; use daily statistics instead.
+        'exclude_miot_properties': 'power_consumption',
+        'sensor_properties': 'fault,delay_on_left_timer,delay_off_left_timer',
+        'binary_sensor_properties': 'power_consumption_accumulation_way',
+        'switch_properties': 'mode,period,charging_protection.on_off,delay_on,delay_off,'
+                             'quick_countdown.on_off,over_use_ele_alert.on_off,status',
+        'number_properties': 'start_time,end_time,protection_time,power_power,protect_start_time,'
+                             'protect_end_time,duration,delay_on_timer,delay_off_timer,power,'
+                             'over_ele_day,over_ele_month',
+        'select_properties': 'default_power_on_state',
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'stat_power_cost_key': '11.1',
+    },
+    'xiaomi.plug.04:power_cost_today': {'value_ratio': 1, **ENERGY_KWH},
+    'xiaomi.plug.04:power_cost_month': {'value_ratio': 1, **ENERGY_KWH},
+    'xiaomi.plug.04:over_ele_month': {'unit_of_measurement': 'kWh'},
     'xiaomi.plug.mcn003': {
         'button_actions': 'toggle',
         'sensor_properties': 'fault,electric_power',
