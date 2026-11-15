@@ -59,6 +59,7 @@ from .core.miot_spec import (
 _LOGGER = logging.getLogger(__name__)
 DATA_KEY = f'{ENTITY_DOMAIN}.{DOMAIN}'
 SCAN_INTERVAL = timedelta(seconds=30)
+RE_CJK = re.compile(r'[\u4e00-\u9fff]')
 
 SERVICE_TO_METHOD = {
     'intelligent_speaker': {
@@ -706,7 +707,7 @@ class MitvMediaPlayerEntity(MiotMediaPlayerEntity):
     @property
     def mitv_name(self):
         nam = self.device_info.get('name', '')
-        if not re.match(r'[^x00-xff]', nam):
+        if not nam or not RE_CJK.search(nam):
             nam = None
         nam = self.custom_config('television_name') or nam
         if not nam:
