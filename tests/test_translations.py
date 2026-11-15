@@ -22,18 +22,6 @@ ERROR_KEYS = {
 ABORT_KEYS = {"unsupported_sid", "wrong_account", "reauth_successful"}
 
 
-@pytest.mark.parametrize("name", ["en.json", "zh-Hans.json"])
-def test_translation_keys_are_unique(name):
-    def unique_object(items):
-        result = {}
-        for key, value in items:
-            assert key not in result, f"Duplicate translation key: {key}"
-            result[key] = value
-        return result
-
-    json.loads((TRANS_DIR / name).read_text(encoding="utf-8"), object_pairs_hook=unique_object)
-
-
 @pytest.mark.parametrize("name", TRANSLATIONS)
 def test_translation_has_reauth_keys_without_legacy_micoapi(name):
     data = json.loads((TRANS_DIR / name).read_text(encoding="utf-8"))

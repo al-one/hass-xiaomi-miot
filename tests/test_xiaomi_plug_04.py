@@ -4,8 +4,11 @@ The fixture is a readable-property subset of the public 0000D032 instance:
 https://miot-spec.org/miot-spec-v2/instance?type=urn:miot-spec-v2:device:outlet:0000A002:xiaomi-04:1:0000D032
 """
 
+import copy
+import json
 import logging
 from datetime import timedelta
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -14,6 +17,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import EntityPlatform
 from homeassistant.util import dt as dt_util
 
+from custom_components.xiaomi_miot import DOMAIN
 from custom_components.xiaomi_miot.binary_sensor import BinarySensorEntity
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.core.miot_spec import MiotSpec
@@ -26,13 +30,36 @@ from custom_components.xiaomi_miot.switch import SwitchEntity
 
 MODEL = "xiaomi.plug.04"
 ON_OFF = ("prop.4.8", "prop.8.1", "prop.10.1")
-EXPOSED_PROPERTIES = {
-    "prop.2.2", "prop.3.1", "prop.3.2", "prop.3.3",
-    "prop.4.3", "prop.4.4", "prop.4.5", "prop.4.6", "prop.4.7", "prop.4.8",
-    "prop.5.1", "prop.8.1", "prop.8.2", "prop.8.4", "prop.8.5",
-    "prop.8.6", "prop.8.7", "prop.8.8", "prop.8.9", "prop.9.4",
-    "prop.10.1", "prop.10.2", "prop.10.3", "prop.11.2", "prop.11.3",
+PROPERTY_IDS = {
+    "sensor": {(2, 3), (8, 8), (8, 9)},
+    "binary_sensor": {(11, 3)},
+    "switch": {(3, 1), (4, 7), (4, 8), (5, 1), (8, 1), (8, 4), (8, 6), (10, 1)},
+    "number": {(3, 2), (3, 3), (4, 3), (4, 4), (4, 5), (4, 6),
+               (8, 2), (8, 5), (8, 7), (9, 4), (10, 2), (10, 3)},
+    "select": {(2, 2)},
 }
+
+
+@pytest.fixture
+def plug_device(hass, make_device, load_miot_spec):
+    async def create(mode="auto", translations=None):
+        raw = copy.deepcopy(load_miot_spec("xiaomi.plug.04.json").raw)
+        spec = MiotSpec(hass, raw, translations=translations)
+        path = Path("custom_components/xiaomi_miot/core/miot_specs_extend.json")
+        extension = json.loads(path.read_text(encoding="utf-8"))[MODEL]
+        device = make_device(spec, model=MODEL, customizes={
+            **DEVICE_CUSTOMIZES[MODEL], "extend_miot_specs": extension,
+        })
+        config = {"username": "test-user", "conn_mode": mode}
+        device.entry.get_config = lambda key=None, default=None: config.get(key, default)
+        # Exercise the real extension gate on a fresh cached spec, without I/O.
+        hass.data[DOMAIN]["miot_specs"][MODEL] = spec
+        device.spec = None
+        device.converters.clear()
+        await device.get_spec()
+        assert device.conn_mode == mode
+        return device
+    return create
 
 
 def on_off_entities(device):
@@ -43,10 +70,28 @@ def on_off_entities(device):
     ]
 
 
-async def test_plug_04_local_mode_does_not_fall_back_to_cloud(hass, make_device, load_miot_spec):
-    device = make_device(load_miot_spec("xiaomi.plug.04.json"), model=MODEL)
-    config = {"username": "test-user", "conn_mode": "local"}
-    device.entry.get_config = lambda key=None, default=None: config.get(key, default)
+@pytest.mark.parametrize("offset", [0, 20])
+def test_plug_04_selection_follows_property_names(hass, make_device, load_miot_spec, offset):
+    raw = copy.deepcopy(load_miot_spec("xiaomi.plug.04.json").raw)
+    for service in raw["services"]:
+        for prop in service["properties"]:
+            prop["iid"] += offset
+    spec = MiotSpec(hass, raw)
+    for domain, ids in PROPERTY_IDS.items():
+        selectors = DEVICE_CUSTOMIZES[MODEL][f"{domain}_properties"].split(",")
+        assert all(not selector.startswith("prop.") for selector in selectors)
+        assert {(p.siid, p.iid) for p in spec.get_properties(*selectors)} == {
+            (sid, pid + offset) for sid, pid in ids
+        }
+    # The unit customization must follow the property name as well.
+    device = make_device(spec, model=MODEL)
+    conv = next(c for c in device.converters
+                if c.domain == "number" and c.prop.name == "over_ele_month")
+    assert NumberEntity(device, conv).native_unit_of_measurement == "kWh"
+
+
+async def test_plug_04_local_mode_does_not_fall_back_to_cloud(plug_device):
+    device = await plug_device("local")
     device.local = SimpleNamespace(
         async_get_properties_for_mapping=AsyncMock(side_effect=DeviceException("offline")),
     )
@@ -57,10 +102,9 @@ async def test_plug_04_local_mode_does_not_fall_back_to_cloud(hass, make_device,
     device.cloud.async_get_properties_for_mapping.assert_not_awaited()
 
 
-def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, load_miot_spec):
-    device = make_device(load_miot_spec("xiaomi.plug.04.json"), model=MODEL)
+async def test_plug_04_uses_cloud_daily_energy_without_local_counter(plug_device):
+    device = await plug_device()
     assert device.custom_config("miot_local") is True
-    assert device.custom_config("auto_cloud") is True
     mapping = device.miot_mapping()
     assert {"siid": 11, "piid": 1} not in mapping.values()
     assert {"siid": 11, "piid": 2} in mapping.values()
@@ -74,8 +118,6 @@ def test_plug_04_uses_cloud_daily_energy_without_local_counter(make_device, load
     assert DEVICE_CUSTOMIZES[f"{MODEL}:power_cost_month"]["value_ratio"] == 1
     device.local = SimpleNamespace()
     device.cloud = SimpleNamespace()
-    config = {"username": "test-user", "conn_mode": "auto"}
-    device.entry.get_config = lambda key=None, default=None: config.get(key, default)
     assert device.use_local is True
     assert device.auto_cloud is True
 
@@ -99,8 +141,9 @@ async def test_plug_04_cloud_values_are_already_kwh(hass, make_device):
     assert params["limit"] == 31
 
 
-async def test_plug_04_exposed_entities_keep_spec_names_units_and_write_targets(make_device, load_miot_spec):
-    device = make_device(load_miot_spec("xiaomi.plug.04.json"), model=MODEL)
+@pytest.mark.parametrize("mode", ["auto", "local", "cloud"])
+async def test_plug_04_entities_keep_spec_names_units_and_write_targets(plug_device, mode):
+    device = await plug_device(mode)
 
     async def write_properties(params):
         return [{**param, "code": 0} for param in params]
@@ -109,12 +152,13 @@ async def test_plug_04_exposed_entities_keep_spec_names_units_and_write_targets(
     classes = {"sensor": SensorEntity, "number": NumberEntity, "switch": SwitchEntity,
                "select": SelectEntity, "binary_sensor": BinarySensorEntity}
     checked = set()
+    expected = (set.union(*PROPERTY_IDS.values()) - {(2, 3)}) | {(11, 2)}
     for conv in device.converters:
         prop = getattr(conv, "prop", None)
-        if conv.domain not in classes or not prop or prop.unique_prop not in EXPOSED_PROPERTIES:
+        if conv.domain not in classes or not prop or (prop.siid, prop.iid) not in expected:
             continue
         entity = classes[conv.domain](device, conv)
-        checked.add(prop.unique_prop)
+        checked.add((prop.siid, prop.iid))
         assert entity.unique_id == f"{device.unique_id}-{prop.unique_name}"
         assert entity.name == prop.friendly_desc
         assert entity.name
@@ -123,7 +167,7 @@ async def test_plug_04_exposed_entities_keep_spec_names_units_and_write_targets(
             assert entity.native_max_value == prop.range_max()
             assert entity.native_step == prop.range_step()
             assert entity.native_unit_of_measurement == (
-                "kWh" if prop.unique_prop == "prop.10.3" else prop.unit_of_measurement
+                "kWh" if prop.name == "over_ele_month" else prop.unit_of_measurement
             )
             value = entity.native_min_value
             await entity.async_set_native_value(value)
@@ -137,49 +181,42 @@ async def test_plug_04_exposed_entities_keep_spec_names_units_and_write_targets(
             continue
         params = device.async_set_properties.await_args.args[0]
         assert params == [{"did": device.did, "siid": prop.siid, "piid": prop.iid, "value": value}]
-    assert checked == EXPOSED_PROPERTIES
-
-
-@pytest.mark.parametrize("reverse", [False, True])
-def test_plug_04_on_off_ids_are_distinct_and_order_independent(make_device, load_miot_spec, reverse):
-    spec = load_miot_spec("xiaomi.plug.04.json")
-    if reverse:
-        spec.services = dict(reversed(list(spec.services.items())))
-    device = make_device(spec, model=MODEL)
-    entities = on_off_entities(device)
-    assert len({e.entity_id for e in entities}) == 3
-    assert len({e.name for e in entities}) == 3
-    assert [e.entity_id for e in entities] == [
-        "switch.xiaomi_04_eeff_charging_protection_4_on_off_8",
-        "switch.xiaomi_04_eeff_quick_countdown_8_on_off_1",
-        "switch.xiaomi_04_eeff_over_use_ele_alert_10_on_off_1",
-    ]
+    assert checked == expected
 
 
 @pytest.mark.parametrize("language", ["en", "zh-Hans"])
-def test_plug_04_names_use_spec_translations(hass, make_device, load_miot_spec, language):
+async def test_plug_04_names_use_spec_translations(hass, plug_device, language):
     hass.config.language = language
     names = (["Charging protection enabled", "Quick countdown enabled", "Energy alerts enabled"]
              if language == "en" else ["充电保护设置生效", "快捷倒计时关闭启用", "用电超限提醒启用"])
-    raw = load_miot_spec("xiaomi.plug.04.json").raw
     translations = {language: {
         MiotSpec.spec_lang_key(int(key.split(".")[1]), piid=int(key.split(".")[2])): name
         for key, name in zip(ON_OFF, names)
     }}
-    device = make_device(MiotSpec(hass, raw, translations=translations), model=MODEL)
+    device = await plug_device(translations=translations)
     assert [e.name for e in on_off_entities(device)] == names
 
 
-async def test_plug_04_registry_keeps_existing_ids_and_user_names(hass, make_device, load_miot_spec):
-    device = make_device(load_miot_spec("xiaomi.plug.04.json"), model=MODEL)
+@pytest.mark.parametrize("mode", ["auto", "local", "cloud"])
+@pytest.mark.parametrize("existing", [False, True])
+async def test_plug_04_registry_keeps_distinct_entities_and_existing_names(hass, plug_device, mode, existing):
+    device = await plug_device(mode)
     entities = on_off_entities(device)
+    defaults = [e.entity_id for e in entities]
+    if mode == "cloud":
+        # Upstream deliberately skips local spec extensions in cloud-only mode.
+        assert defaults == ["switch.xiaomi_04_eeff_on_off"] * 3
+    else:
+        assert defaults == ["switch.xiaomi_04_eeff_" + suffix for suffix in
+                            ["charging_protection", "quick_countdown", "energy_alert"]]
     registry = er.async_get(hass)
     old_ids = ["xiaomi_04_eeff_on_off", "xiaomi_04_eeff_on_off_2", "custom_energy_warning"]
-    for entity, old_id in zip(entities, old_ids):
-        entry = registry.async_get_or_create(
-            "switch", "xiaomi_miot", entity.unique_id, suggested_object_id=old_id,
-        )
-        registry.async_update_entity(entry.entity_id, name="User chosen name")
+    if existing:
+        for entity, old_id in zip(entities, old_ids):
+            entry = registry.async_get_or_create(
+                "switch", "xiaomi_miot", entity.unique_id, suggested_object_id=old_id,
+            )
+            registry.async_update_entity(entry.entity_id, name="User chosen name")
     platform = EntityPlatform(
         hass=hass, logger=logging.getLogger(__name__), domain="switch",
         platform_name="xiaomi_miot",
@@ -189,11 +226,17 @@ async def test_plug_04_registry_keeps_existing_ids_and_user_names(hass, make_dev
     try:
         await platform.async_setup({})
         await platform.async_add_entities(entities)
-        assert [e.entity_id for e in entities] == ["switch." + old_id for old_id in old_ids]
+        assert len({e.entity_id for e in entities}) == 3
+        assert len({e.unique_id for e in entities}) == 3
+        if existing:
+            assert [e.entity_id for e in entities] == ["switch." + old_id for old_id in old_ids]
         for entity in entities:
             entry = registry.async_get(entity.entity_id)
             assert entry.unique_id == entity.unique_id
-            assert entry.name == "User chosen name"
-            assert hass.states.get(entity.entity_id).attributes["friendly_name"].endswith("User chosen name")
+            assert hass.states.get(entity.entity_id) is not None
+            if existing:
+                assert entry.name == "User chosen name"
+                assert hass.states.get(entity.entity_id).attributes["friendly_name"].endswith("User chosen name")
     finally:
         await platform.async_reset()
+    assert all(e.on_device_update not in device.listeners for e in entities)

@@ -134,12 +134,6 @@ class XEntity(BasicEntity):
 
         elif isinstance(conv, MiotPropConv):
             self.entity_id = conv.prop.generate_entity_id(self, conv.domain)
-            # Qualify colliding defaults, not unique IDs or registered entity IDs.
-            if any(isinstance(c, MiotPropConv) and not isinstance(c, MiotServiceConv)
-                   and c.domain == conv.domain and c.prop and c.prop is not conv.prop
-                   and c.prop.generate_entity_id(self, c.domain) == self.entity_id
-                   for c in device.converters):
-                self.entity_id = device.spec.generate_entity_id(self, conv.prop.unique_name, conv.domain)
             self._attr_name = str(conv.prop.friendly_desc)
             self._attr_translation_key = conv.prop.friendly_name
             self._miot_service = conv.prop.service

@@ -1960,6 +1960,11 @@
       ]
     }
   ],
+  "xiaomi.plug.04": [
+    {"iid": 4, "properties": [{"iid": 8, "description": "Charging Protection"}]},
+    {"iid": 8, "properties": [{"iid": 1, "description": "Quick Countdown"}]},
+    {"iid": 10, "properties": [{"iid": 1, "description": "Energy Alert"}]}
+  ],
   "xjx.toilet.relax": [
     {
       "iid": 2,
