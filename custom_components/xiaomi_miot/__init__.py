@@ -218,7 +218,7 @@ async def async_setup(hass, hass_config: dict):
                 raise MiCloudException('Login failed')
             hass.data[DOMAIN][CONF_XIAOMI_CLOUD] = mic
             hass.data[DOMAIN]['devices_by_mac'] = await mic.async_get_devices_by_key('mac') or {}
-            hass.data[DOMAIN]['accounts'].setdefault(mic.user_id, {CONF_XIAOMI_CLOUD: mic})
+            hass.data[DOMAIN]['accounts'].setdefault(mic.account_key, {CONF_XIAOMI_CLOUD: mic})
             cnt = len(hass.data[DOMAIN]['devices_by_mac'])
             _LOGGER.debug('Setup xiaomi cloud for user: %s, %s devices', config.get(CONF_USERNAME), cnt)
         except (MiCloudException, MiCloudAccessDenied) as exc:
@@ -592,8 +592,8 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
         device = registry.async_get(device_id) if device_id else None
         if not device or not device.identifiers:
             return
-        identifier = next(iter(device.identifiers))
-        if identifier[0] != DOMAIN:
+        identifiers = {identifier for identifier in device.identifiers if identifier[0] == DOMAIN}
+        if not identifiers:
             return
         miot_device = None
         if hasattr(device, 'config_entry_id'):
@@ -606,8 +606,9 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
             if not entry:
                 continue
             for d in entry.devices.values():
-                if d.identifiers == device.identifiers:
+                if matched := d.identifiers.intersection(identifiers):
                     miot_device = d
+                    identifier = next(iter(matched))
                     break
         if action == 'update' and device.name_by_user in ['delete', 'remove', '删除']:
             # remove from Hass
@@ -619,9 +620,9 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
             return
         miot_device.log.info('Device registry updated: %s', [action, identifier, device.disabled])
         if device.disabled and miot_device.coordinators:
-            await miot_device.async_unload()
+            await miot_device.async_unload(unload_spec=False)
         if not device.disabled and not miot_device.coordinators:
-            await miot_device.init_coordinators()
+            await miot_device.async_init()
     hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, updated)
 
 
@@ -629,11 +630,14 @@ async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, config
     """Supported from Hass v2022.3"""
     entry = HassEntry.init(hass, config_entry)
     cloud_device = None
-    identifier = next(iter(device.identifiers))
-    if len(identifier) >= 2 and identifier[0] == DOMAIN:
+    for identifier in device.identifiers:
+        if identifier[0] != DOMAIN:
+            continue
         mac = identifier[1].split('-')[0]
         if mac:
             cloud_device = await entry.get_cloud_device(mac=mac.upper())
+            if cloud_device:
+                break
     data = {**entry.entry.data}
     for typ in (['did'] if cloud_device else []):
         filter_typ = data.get(f'filter_{typ}')
@@ -910,6 +914,8 @@ class MiotEntityInterface:
 
 
 class MiotEntity(MiioEntity):
+    _entity_domain = DOMAIN
+
     def __init__(self, miot_service=None, device=None, **kwargs):
         self._config = dict(kwargs.get('config') or {})
         name = kwargs.get(CONF_NAME) or self._config.get(CONF_NAME) or ''
@@ -929,13 +935,13 @@ class MiotEntity(MiioEntity):
                     unreadable_properties=self.device._unreadable_properties,
                 ) or {}
             self._unique_id = f'{self._unique_id}-{self._miot_service.iid}'
-            self.entity_id = self._miot_service.generate_entity_id(self)
+            self.entity_id = self._miot_service.generate_entity_id(self, domain=self._entity_domain)
             self._attr_translation_key = self._miot_service.name
         if not self.entity_id and self.model:
             mls = f'{self.model}..'.split('.')
             mac = re.sub(r'[\W_]+', '', self.unique_mac)
             obj = f'{mls[0]}_{mls[2]}_{mac[-4:]}_{mls[1]}'
-            self.entity_id = f'{DOMAIN}.{slugify_object_id(obj)}'
+            self.entity_id = f'{self._entity_domain}.{slugify_object_id(obj)}'
         self._success_code = 0
         self.logger.info('%s: Initializing miot device with mapping: %s', self.name_model, self._miot_mapping)
 

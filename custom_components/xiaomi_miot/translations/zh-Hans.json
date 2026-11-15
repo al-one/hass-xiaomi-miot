@@ -78,7 +78,7 @@
             },
             "reauth_verify": {
                 "title": "重新授权 - 输入验证码",
-                "description": "点击打开[这个链接]({verify_url})，并发送验证码，并回到此页面输入验证码继续。",
+                "description": "请输入本集成发送的验证码。请在此页面完成验证，无需另开小米验证网页。\n{tip}",
                 "data": {
                     "verify_ticket": "验证码"
                 }
@@ -97,11 +97,14 @@
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的 Hass 环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备",
-            "need_verify": "需要验证码",
+            "need_verify": "请输入本集成发送的验证码。请在此页面完成验证，无需另开小米验证网页。",
             "invalid_auth": "登录失败\n{tip}",
             "need_captcha": "需要图形验证码",
             "save_failed": "保存失败，请重试",
-            "unknown": "未知错误"
+            "unknown": "未知错误",
+            "cannot_send_verify": "无法发送验证码，请稍后重试。",
+            "verify_invalid": "验证码未通过，请核对由本集成发送的验证码。",
+            "need_identity_captcha": "请先填写图形验证码，手机/邮箱验证码暂时留空。通过后将发送手机/邮箱验证码。"
         },
         "abort": {
             "config_saved": "配置已保存！[再次自定义](/_my_redirect/config_flow_start?domain=xiaomi_miot)。\n{tip}\n\n有些自定义选项需要[重载集成](/developer-tools/yaml)才能生效。",
@@ -167,7 +170,10 @@
             "cannot_reach": "无法访问小米API接口",
             "tzinfo_error": "你的Hass环境看起来有点问题，请参考: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "该小米账户下没有设备",
-            "need_verify": "本次登录需要安全验证。请打开下方验证链接发送手机/邮箱验证码，收到验证码后不要在网页验证，回到 Home Assistant 填入下方输入框。"
+            "need_verify": "请输入本集成发送的验证码。请在此页面完成验证，无需另开小米验证网页。",
+            "cannot_send_verify": "无法发送验证码，请稍后重试。",
+            "verify_invalid": "验证码未通过，请核对由本集成发送的验证码。",
+            "need_identity_captcha": "请先填写图形验证码，手机/邮箱验证码暂时留空。通过后将发送手机/邮箱验证码。"
         },
         "abort": {
             "show_customizes": "请再次添加[`Xiaomi Miot`](/_my_redirect/config_flow_start?domain=xiaomi_miot)集成来修改自定义选项\n{link}\n{tip}"

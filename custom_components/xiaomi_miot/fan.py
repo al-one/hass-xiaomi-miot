@@ -229,6 +229,7 @@ XEntity.CLS[ENTITY_DOMAIN] = FanEntity
 
 
 class MiirFanEntity(MiirToggleEntity, FanEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config: dict, miot_service: MiotService):
         super().__init__(miot_service, config=config, logger=_LOGGER)
 

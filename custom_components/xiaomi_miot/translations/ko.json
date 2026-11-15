@@ -75,7 +75,7 @@
             },
             "reauth_verify": {
                 "title": "샤오미 재인증 — 인증 코드 입력",
-                "description": "브라우저에서 [이 링크]({verify_url})를 열어 코드를 요청한 다음, 인증 티켓을 여기에 붙여넣으세요.",
+                "description": "이 통합이 보낸 인증 코드를 입력하세요. 이 페이지를 열어 두고 다른 브라우저에서 코드를 요청하지 마세요.\n{tip}",
                 "data": {
                     "verify_ticket": "인증 티켓"
                 }
@@ -94,11 +94,14 @@
             "cannot_reach": "샤오미 API 인터페이스에 접근할 수 없습니다",
             "tzinfo_error": "Home Assistant 환경에 문제가 있는 것 같습니다. 시간대 설정을 확인하세요",
             "none_devices": "이 샤오미 계정에서 기기를 찾을 수 없습니다",
-            "need_verify": "인증 코드가 필요합니다.",
+            "need_verify": "이 통합이 보낸 인증 코드를 입력하세요. 이 페이지를 열어 두고 다른 브라우저에서 코드를 요청하지 마세요.",
             "invalid_auth": "샤오미가 인증 정보를 거부했습니다.\n{tip}",
             "need_captcha": "보안 문자가 필요합니다.",
             "save_failed": "갱신된 인증 정보를 저장하지 못했습니다. 다시 시도하세요.",
-            "unknown": "예기치 않은 오류입니다."
+            "unknown": "예기치 않은 오류입니다.",
+            "cannot_send_verify": "인증 코드를 보낼 수 없습니다. 나중에 다시 시도하세요.",
+            "verify_invalid": "인증 코드가 거부되었습니다. 이 통합이 보낸 코드를 확인하세요.",
+            "need_identity_captcha": "먼저 이미지 CAPTCHA를 입력하고 SMS/이메일 코드 입력란은 비워 두세요. 이후 인증 코드가 전송됩니다."
         },
         "abort": {
             "config_saved": "설정이 저장되었습니다! [다시 사용자 지정하기](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\n일부 사용자 지정 옵션은 [통합 구성요소 다시 로드](/developer-tools/yaml)가 필요할 수 있습니다.",
@@ -164,7 +167,10 @@
             "cannot_reach": "샤오미 API 인터페이스에 접근할 수 없습니다",
             "tzinfo_error": "Home Assistant 환경에 문제가 있는 것 같습니다. 시간대 설정을 확인하세요",
             "none_devices": "이 샤오미 계정에서 기기를 찾을 수 없습니다",
-            "need_verify": "이 로그인에는 보안 인증이 필요합니다. 아래 인증 링크를 열어 휴대폰/이메일 인증 코드를 전송하세요. 인증 코드를 받은 뒤에는 웹페이지에서 인증하지 말고, Home Assistant로 돌아와 아래 입력란에 입력하세요."
+            "need_verify": "이 통합이 보낸 인증 코드를 입력하세요. 이 페이지를 열어 두고 다른 브라우저에서 코드를 요청하지 마세요.",
+            "cannot_send_verify": "인증 코드를 보낼 수 없습니다. 나중에 다시 시도하세요.",
+            "verify_invalid": "인증 코드가 거부되었습니다. 이 통합이 보낸 코드를 확인하세요.",
+            "need_identity_captcha": "먼저 이미지 CAPTCHA를 입력하고 SMS/이메일 코드 입력란은 비워 두세요. 이후 인증 코드가 전송됩니다."
         },
         "abort": {
             "show_customizes": "사용자 지정을 변경하려면 새 통합 구성요소를 추가하세요.\n{link}\n{tip}"

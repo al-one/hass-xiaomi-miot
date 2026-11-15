@@ -83,6 +83,7 @@ def import_miio_chuangmi_remote():
 
 
 class MiotRemoteEntity(MiotEntity, RemoteEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config, miot_spec: MiotSpec, device=None):
         self._miot_spec = miot_spec
         super().__init__(miot_service=None, device=device, config=config, logger=_LOGGER)

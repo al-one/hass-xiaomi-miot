@@ -94,7 +94,8 @@ class MiotSpecInstance:
 
     @staticmethod
     def format_desc_name(des, nam):
-        return MiotSpecInstance.format_name(nam if not des or re.match(r'[^x00-xff]', des) else des)
+        des = str(des or '').strip()
+        return MiotSpecInstance.format_name(des if des and des.isascii() else nam)
 
     @staticmethod
     def name_by_type(typ):

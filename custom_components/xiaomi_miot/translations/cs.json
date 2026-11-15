@@ -66,7 +66,7 @@
             },
             "reauth_verify": {
                 "title": "Opětovné ověření Xiaomi — zadejte ověřovací kód",
-                "description": "Otevřete [tento odkaz]({verify_url}) v prohlížeči, vyžádejte si kód a poté sem vložte ověřovací kód.",
+                "description": "Zadejte ověřovací kód odeslaný touto integrací. Nechte tuto stránku otevřenou a nežádejte o kód v jiném prohlížeči.\n{tip}",
                 "data": {
                     "verify_ticket": "Ověřovací kód"
                 }
@@ -85,11 +85,14 @@
             "cannot_reach": "Nelze získat přístup k Xiaomi API",
             "tzinfo_error": "Viz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi",
-            "need_verify": "Je vyžadován ověřovací kód.",
+            "need_verify": "Zadejte ověřovací kód odeslaný touto integrací. Nechte tuto stránku otevřenou a nežádejte o kód v jiném prohlížeči.",
             "invalid_auth": "Xiaomi odmítlo přihlašovací údaje.\n{tip}",
             "need_captcha": "Je vyžadován kód captcha.",
             "save_failed": "Nepodařilo se uložit obnovené přihlašovací údaje. Zkuste to znovu.",
-            "unknown": "Neočekávaná chyba."
+            "unknown": "Neočekávaná chyba.",
+            "cannot_send_verify": "Ověřovací kód se nepodařilo odeslat. Zkuste to později.",
+            "verify_invalid": "Ověřovací kód byl odmítnut. Zkontrolujte kód odeslaný touto integrací.",
+            "need_identity_captcha": "Nejprve vyplňte obrázkový CAPTCHA a kód SMS/e-mailu nechte prázdný. Poté bude odeslán ověřovací kód."
         },
         "abort": {
             "config_saved": "Konfigurace uložena! [Přizpůsobit znovu](/_my_redirect/config_flow_start?domain=xiaomi_miot).\n{tip}\n\nNěkteré přizpůsobitelné možnosti vyžadují [obnovení integrace](/developer-tools/yaml), aby se projevily.",
@@ -147,7 +150,10 @@
             "cannot_reach": "Nelze získat přístup k Xiaomi API",
             "tzinfo_error": "Viz: https://github.com/al-one/hass-xiaomi-miot/issues/260",
             "none_devices": "Žádné zařízení v cloudovém účtu Xiaomi",
-            "need_verify": "Toto přihlášení vyžaduje bezpečnostní ověření. Otevřete níže uvedený ověřovací odkaz a odešlete kód pro telefon/e-mail. Po obdržení kódu jej neověřujte na webové stránce. Vraťte se do Home Assistantu a zadejte jej do pole níže."
+            "need_verify": "Zadejte ověřovací kód odeslaný touto integrací. Nechte tuto stránku otevřenou a nežádejte o kód v jiném prohlížeči.",
+            "cannot_send_verify": "Ověřovací kód se nepodařilo odeslat. Zkuste to později.",
+            "verify_invalid": "Ověřovací kód byl odmítnut. Zkontrolujte kód odeslaný touto integrací.",
+            "need_identity_captcha": "Nejprve vyplňte obrázkový CAPTCHA a kód SMS/e-mailu nechte prázdný. Poté bude odeslán ověřovací kód."
         },
         "abort": {
             "show_customizes": "{link}\n{tip}"
