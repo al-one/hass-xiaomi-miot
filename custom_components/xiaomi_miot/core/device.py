@@ -4,6 +4,7 @@ import re
 from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
 from functools import cached_property
+from aiohttp import ClientError
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import TemplateError
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
@@ -1497,6 +1498,7 @@ class Device(CustomConfigHelper):
             return
 
         attrs = {}
+        properties = self.custom_config('miio_cloud_record_properties', {})
         for c in keys:
             mat = re.match(r'^\s*(?:(\w+)\.?)([\w.]+)(?::(\d+))?(?::(\w+))?\s*$', c)
             if not mat:
@@ -1508,14 +1510,13 @@ class Device(CustomConfigHelper):
             }
             if gby:
                 kws['group'] = gby
-            properties = self.custom_config('miio_cloud_record_properties', {})
             if prop_attr := properties.get(f'{typ}.{key}'):
                 # Keep the API status and source time for explicitly mapped records.
                 try:
                     response = await self.cloud.async_get_user_device_data(
                         self.did, key, typ, raw=True, **kws,
                     )
-                except MiCloudException:
+                except (MiCloudException, ClientError, OSError):
                     response = None
                     self.log.debug('Cloud property record request failed: %s', prop_attr)
                 self._update_cloud_property(prop_attr, response)

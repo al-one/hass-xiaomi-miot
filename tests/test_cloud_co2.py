@@ -1,13 +1,16 @@
 """Timestamped cloud CO2 observations, using the existing entity and coordinator."""
+import asyncio
 import json
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from aiohttp import ServerDisconnectedError
 from homeassistant.core import State
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt
 from pytest_homeassistant_custom_component.common import mock_restore_cache_with_extra_data
 
+from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.core.utils import latest_cloud_property
 from custom_components.xiaomi_miot.core.xiaomi_cloud import MiCloudException
 from custom_components.xiaomi_miot.sensor import SensorEntity
@@ -68,6 +71,7 @@ async def test_update_decrease_and_request_contract(co2_device):
     for value, offset in [(1218, -2), (1101, -1), (1101, 0)]:
         await update(device, [record(value, timestamp + offset)])
         assert sensor.native_value == value
+        assert type(sensor.native_value) is int
         assert sensor.available
     call = device.cloud.async_get_user_device_data.call_args
     assert call.args == ('test-device', '3.1029', 'prop')
@@ -149,8 +153,12 @@ async def test_actual_platform_identity_restore_freshness_unload(hass, co2_devic
     assert sensor.on_device_update not in device.listeners
 
 
-async def test_poll_mapping_coordinator_interval_and_other_sensors(co2_device):
+async def test_poll_mapping_coordinator_interval_and_other_sensors(co2_device, make_device, load_miot_spec):
     device = co2_device
+    with patch.dict(DEVICE_CUSTOMIZES, {device.model: {}}):
+        original = make_sensor(make_device(load_miot_spec('miaomiaoce.airm.co2.json'), model=device.model))
+    sensor = make_sensor(device)
+    assert (sensor.entity_id, sensor.unique_id) == (original.entity_id, original.unique_id)
     mapping = device.spec.services_mapping(exclude_properties=device._exclude_miot_properties)
     assert 'environment.co2_density' not in mapping
     assert {'environment.temperature', 'environment.relative_humidity', 'battery_level'} <= mapping.keys()
@@ -169,15 +177,49 @@ async def test_unmapped_cloud_records_keep_existing_behavior(co2_device):
     assert 'raw' not in device.cloud.async_get_user_device_data.call_args.kwargs
 
 
-async def test_initial_observation_wins_over_old_restore(hass, co2_device):
+@pytest.mark.parametrize('offset,expected', [(-1, 1101), (0, 1101), (1, 1218)])
+async def test_restore_uses_newest_observation(hass, co2_device, offset, expected):
     device = co2_device
     sensor = make_sensor(device)
     timestamp = int(dt.now().timestamp())
     await update(device, [record(1101, timestamp)])
-    sensor.async_get_last_extra_data = AsyncMock(return_value=None)
-    await sensor._restore_cloud_property()
-    assert sensor.native_value == 1101
+    mock_restore_cache_with_extra_data(hass, [(State(sensor.entity_id, '1218'), {
+        sensor.attr: 1218,
+        'source_timestamp': timestamp + offset,
+        'native_unit_of_measurement': 'ppm',
+    })])
+    assert await async_setup_component(hass, 'sensor', {})
+    component = hass.data['sensor']
+    await component.async_add_entities([sensor])
+    await hass.async_block_till_done()
+    assert hass.states.get(sensor.entity_id).state == str(expected)
+    assert device.props[sensor.conv.attr] == expected
+    assert sensor.get_state()['source_timestamp'] == timestamp + max(offset, 0)
+    await component.async_remove_entity(sensor.entity_id)
+
+
+@pytest.mark.parametrize('age', [0, 901])
+async def test_restored_offline_device_recovers_without_co2_update(hass, co2_device, age):
+    device = co2_device
+    device.available = False
+    sensor = make_sensor(device)
+    timestamp = int(dt.now().timestamp()) - age
+    mock_restore_cache_with_extra_data(hass, [(State(sensor.entity_id, '1218'), {
+        sensor.attr: 1218,
+        'source_timestamp': timestamp,
+        'native_unit_of_measurement': 'ppm',
+    })])
+    assert await async_setup_component(hass, 'sensor', {})
+    component = hass.data['sensor']
+    await component.async_add_entities([sensor])
+    await hass.async_block_till_done()
+    assert hass.states.get(sensor.entity_id).state == 'unavailable'
+    device.available = True
+    device.dispatch(device.decode_attrs({'environment.temperature': 24}))
+    await hass.async_block_till_done()
+    assert hass.states.get(sensor.entity_id).state == ('1218' if age == 0 else 'unavailable')
     assert sensor.get_state()['source_timestamp'] == timestamp
+    await component.async_remove_entity(sensor.entity_id)
 
 
 async def test_record_coordinator_uses_existing_setup_and_unload(co2_device):
@@ -196,6 +238,42 @@ async def test_failure_does_not_interrupt_other_record_commands(co2_device):
     device = co2_device
     device.cloud.async_get_user_device_data.side_effect = [MiCloudException('offline'), [{'value': '[7]'}]]
     assert await device.update_miio_cloud_records(['prop.3.1029:5', 'prop.other:1']) == {'prop.other': ['[7]']}
+
+
+@pytest.mark.parametrize('error', [MiCloudException, OSError, TimeoutError, ServerDisconnectedError])
+async def test_transport_failure_expires_sensor_and_continues(hass, co2_device, freezer, error):
+    device = co2_device
+    sensor = make_sensor(device)
+    timestamp = int(dt.now().timestamp())
+    await update(device, [record(timestamp=timestamp)])
+    assert await async_setup_component(hass, 'sensor', {})
+    component = hass.data['sensor']
+    await component.async_add_entities([sensor])
+    await hass.async_block_till_done()
+    assert hass.states.get(sensor.entity_id).state == '1218'
+    freezer.tick(901)
+    device.cloud.async_get_user_device_data.side_effect = [error('offline'), [{'value': '[7]'}]]
+    assert await device.update_miio_cloud_records(['prop.3.1029:5', 'prop.other:1']) == {'prop.other': ['[7]']}
+    await hass.async_block_till_done()
+    assert hass.states.get(sensor.entity_id).state == 'unavailable'
+    assert sensor.native_value == 1218
+    assert sensor.get_state()['source_timestamp'] == timestamp
+    assert device.available
+    await component.async_remove_entity(sensor.entity_id)
+
+
+async def test_cancelled_record_request_propagates(co2_device):
+    device = co2_device
+    await update(device, [record(timestamp=int(dt.now().timestamp()))])
+    observation = dict(device.data['_cloud_record_observations']['environment.co2_density'])
+    device.cloud.async_get_user_device_data.reset_mock()
+    device.cloud.async_get_user_device_data.side_effect = asyncio.CancelledError
+    device.dispatch = Mock()
+    with pytest.raises(asyncio.CancelledError):
+        await device.update_miio_cloud_records(['prop.3.1029:5', 'prop.other:1'])
+    device.cloud.async_get_user_device_data.assert_awaited_once()
+    device.dispatch.assert_not_called()
+    assert device.data['_cloud_record_observations']['environment.co2_density'] == observation
 
 
 def test_other_models_keep_standard_co2_polling(make_device, load_miot_spec):

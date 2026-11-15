@@ -309,6 +309,7 @@ class SensorEntity(XEntity, BaseEntity, RestoreEntity):
         if observation:
             self.device.props[self.conv.attr] = observation['value']
             self._attr_available = self.device.available
+            self._device_marked_unavailable = not self.device.available
             self.set_state(self.device.decode_attrs({self.conv.attr: observation['value']}))
 
     def _restored_power_cost_value(self, state, extra):
