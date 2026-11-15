@@ -10,6 +10,7 @@ from homeassistant.setup import async_setup_component
 from homeassistant.util import dt
 from pytest_homeassistant_custom_component.common import mock_restore_cache_with_extra_data
 
+from custom_components.xiaomi_miot.core.coordinator import DataCoordinator
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.core.utils import latest_cloud_property
 from custom_components.xiaomi_miot.core.xiaomi_cloud import MiCloudException
@@ -224,7 +225,6 @@ async def test_restored_offline_device_recovers_without_co2_update(hass, co2_dev
 
 async def test_record_coordinator_uses_existing_setup_and_unload(co2_device):
     device = co2_device
-    from custom_components.xiaomi_miot.core.coordinator import DataCoordinator
     with patch.object(DataCoordinator, 'async_setup', new=AsyncMock()):
         await device.init_coordinators()
     records = [c for c in device.coordinators if c.update_method == device.update_miio_cloud_records]
@@ -232,6 +232,33 @@ async def test_record_coordinator_uses_existing_setup_and_unload(co2_device):
     assert records[0].update_interval.total_seconds() == 60
     for coordinator in device.coordinators:
         await coordinator.async_shutdown()
+
+
+async def test_inflight_record_is_ignored_after_device_unload(hass, co2_device):
+    device = co2_device
+    started, release = asyncio.Event(), asyncio.Event()
+    timestamp = int(dt.now().timestamp())
+
+    async def response(*args, **kwargs):
+        started.set()
+        await release.wait()
+        return {'code': 0, 'result': [record(timestamp=timestamp)]}
+
+    device.cloud.async_get_user_device_data.side_effect = response
+    device.dispatch = Mock()
+    coordinator = DataCoordinator(device, device.update_miio_cloud_records)
+    device.coordinators.append(coordinator)
+    task = hass.async_create_task(coordinator.async_refresh())
+    try:
+        await started.wait()
+        await device.async_unload()
+    finally:
+        release.set()
+        await task
+    assert coordinator.last_exception is None
+    assert device.spec is None
+    assert 'environment.co2_density' not in device.props
+    device.dispatch.assert_not_called()
 
 
 async def test_failure_does_not_interrupt_other_record_commands(co2_device):

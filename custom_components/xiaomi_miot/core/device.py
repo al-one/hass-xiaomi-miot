@@ -1546,6 +1546,8 @@ class Device(CustomConfigHelper):
 
     def _update_cloud_property(self, attr, response):
         """Commit observations, not poll times; notify only on value/age changes."""
+        if not self.spec:
+            return
         prop = self.spec.get_property(attr)
         if not prop or not prop.value_range:
             return
