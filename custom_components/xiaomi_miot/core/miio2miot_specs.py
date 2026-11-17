@@ -1087,6 +1087,20 @@ MIIO_TO_MIOT_SPECS = {
             },
         },
     },
+    'philips.light.candle2': {
+        'miio_specs': {
+            'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
+            'prop.2.2': {'prop': 'bright', 'setter': True},
+            'prop.2.3': {
+                'prop': 'cct',
+                'setter': True,
+                # miio cct: 1 = warmest .. 100 = coldest
+                # miot percentage: 100 = warmest (2500K), so it needs inverting
+                'template': '{{ 101 - value|int(0) if value else 0 }}',
+                'set_template': '{{ [101 - value|int(0)] }}',
+            },
+        },
+    },
     'philips.light.cbulb': {
         'extend_model': 'philips.light.bulb',
         'miio_specs': {
