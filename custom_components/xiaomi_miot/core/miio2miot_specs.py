@@ -1100,21 +1100,21 @@ MIIO_TO_MIOT_SPECS = {
                 'set_template': '{{ [101 - value|int(0)] }}',
             },
             # delay off: miio `dv` is the remaining seconds, set with `delay_off`
-            'prop.2.4': {
+            'prop.2.101': {
                 'prop': 'dv',
                 'setter': 'delay_off',
                 'template': '{{ value|int(0) // 60 }}',
                 'set_template': '{{ [value|int(0) * 60] }}',
             },
             # built-in scenes: `snm` 1=bright 2=tv 3=warm 4=night
-            'prop.2.5': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
+            'prop.2.102': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
         },
     },
     'philips.light.cbulb': {
         'extend_model': 'philips.light.bulb',
         'miio_specs': {
             'prop.2.3': {'prop': 'cid', 'setter': True},
-            'prop.2.5': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
+            'prop.2.102': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
             'prop.2.6': {'prop': 'cid', 'template': '{{ 2 if val == 360 else 1 }}'},
         },
     },

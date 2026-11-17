@@ -13,8 +13,8 @@ MAPPING = {
     'prop.2.1': {'siid': 2, 'piid': 1},
     'prop.2.2': {'siid': 2, 'piid': 2},
     'prop.2.3': {'siid': 2, 'piid': 3},
-    'prop.2.4': {'siid': 2, 'piid': 4},
-    'prop.2.5': {'siid': 2, 'piid': 5},
+    'prop.2.101': {'siid': 2, 'piid': 101},
+    'prop.2.102': {'siid': 2, 'piid': 102},
 }
 
 # the mapping as proposed in PR #3043, without the colour-temp template
@@ -150,12 +150,12 @@ async def test_delay_off_number(hass, load_miot_spec):
     assert prop.unit_of_measurement == 'minutes'
 
     helper = Miio2MiotHelper.from_model(hass, MODEL, spec)
-    assert (await read_miot(helper, dv=3600))['prop.2.4'] == 60
-    assert (await read_miot(helper, dv=0))['prop.2.4'] == 0
+    assert (await read_miot(helper, dv=3600))['prop.2.101'] == 60
+    assert (await read_miot(helper, dv=0))['prop.2.101'] == 0
 
     dev = FakeMiioDevice()
-    await helper.async_set_property(dev, 2, 4, 45)
-    await helper.async_set_property(dev, 2, 4, 0)
+    await helper.async_set_property(dev, 2, 101, 45)
+    await helper.async_set_property(dev, 2, 101, 0)
     assert dev.sent == [['delay_off', [2700]], ['delay_off', [0]]]
 
 
@@ -167,16 +167,16 @@ async def test_scene_select(hass, load_miot_spec):
     assert prop.list_value('Warm') == 3
 
     helper = Miio2MiotHelper.from_model(hass, MODEL, spec)
-    assert (await read_miot(helper, snm=3))['prop.2.5'] == 3
+    assert (await read_miot(helper, snm=3))['prop.2.102'] == 3
 
     dev = FakeMiioDevice()
-    await helper.async_set_property(dev, 2, 5, 2)
+    await helper.async_set_property(dev, 2, 102, 2)
     assert dev.sent == [['apply_fixed_scene', [2]]]
 
 
 def test_scene_option_conversion(hass, load_miot_spec):
     spec = load_extended(load_miot_spec)
-    conv = MiotPropConv('light.scene', 'select', prop=spec.specs['prop.2.5'])
+    conv = MiotPropConv('light.scene', 'select', prop=spec.specs['prop.2.102'])
 
     payload = {}
     conv.decode(None, payload, 3)
@@ -186,4 +186,4 @@ def test_scene_option_conversion(hass, load_miot_spec):
     conv.encode(SimpleNamespace(did='test-device'), encoded, 'Night')
     assert encoded['params'][0]['value'] == 4
     assert encoded['params'][0]['siid'] == 2
-    assert encoded['params'][0]['piid'] == 5
+    assert encoded['params'][0]['piid'] == 102

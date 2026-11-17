@@ -653,7 +653,7 @@
       "iid": 2,
       "properties": [
         {
-          "iid": 4,
+          "iid": 101,
           "type": "urn:miot-spec-v2:property:delay-off:00000000",
           "description": "Delay Off",
           "format": "uint32",
@@ -662,7 +662,7 @@
           "value-range": [0, 360, 1]
         },
         {
-          "iid": 5,
+          "iid": 102,
           "type": "urn:miot-spec-v2:property:scene:00000000",
           "description": "Scene",
           "format": "uint8",
