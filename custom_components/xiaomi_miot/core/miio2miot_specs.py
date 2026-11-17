@@ -1091,7 +1091,23 @@ MIIO_TO_MIOT_SPECS = {
         'miio_specs': {
             'prop.2.1': {'prop': 'power', 'setter': True, 'format': 'onoff'},
             'prop.2.2': {'prop': 'bright', 'setter': True},
-            'prop.2.3': {'prop': 'cct', 'setter': True},
+            'prop.2.3': {
+                'prop': 'cct',
+                'setter': True,
+                # miio cct: 1 = warmest .. 100 = coldest
+                # miot percentage: 100 = warmest (2500K), so it needs inverting
+                'template': '{{ 101 - value|int(0) if value else 0 }}',
+                'set_template': '{{ [101 - value|int(0)] }}',
+            },
+            # delay off: miio `dv` is the remaining seconds, set with `delay_off`
+            'prop.2.101': {
+                'prop': 'dv',
+                'setter': 'delay_off',
+                'template': '{{ value|int(0) // 60 }}',
+                'set_template': '{{ [value|int(0) * 60] }}',
+            },
+            # built-in scenes: `snm` 1=bright 2=tv 3=warm 4=night
+            'prop.2.102': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
         },
     },
     'philips.light.cbulb': {
