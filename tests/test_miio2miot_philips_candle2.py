@@ -1,9 +1,8 @@
 """miio -> miot mapping for philips.light.candle2 (PR #3043)."""
 import json
 from pathlib import Path
-from types import SimpleNamespace
 
-from custom_components.xiaomi_miot.core.converters import MiotColorTempConv, MiotPropConv
+from custom_components.xiaomi_miot.core.converters import MiotColorTempConv
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.core.miio2miot import Miio2MiotHelper
 
@@ -81,17 +80,26 @@ def test_spec_is_registered(hass, load_miot_spec):
 
 def test_customizes_expose_entities():
     cfg = DEVICE_CUSTOMIZES[MODEL]
-    assert cfg['select_properties'] == 'scene'
     assert cfg['number_properties'] == 'delay_off'
+    assert cfg['mode_property'] == 'scene'
+    assert 'select_properties' not in cfg
 
 
 def test_customize_entities_are_created(make_device, load_miot_spec):
     device = make_device(load_extended(load_miot_spec), model=MODEL)
 
     delay = device.find_converter('number.light.delay_off')
-    scene = device.find_converter('select.light.scene')
     assert delay is not None and delay.domain == 'number'
-    assert scene is not None and scene.domain == 'select'
+
+    # the scene prop has to be on the light entity to show up as an effect
+    light = device.find_converter('light.light.on')
+    assert 'light.scene' in light.attrs
+
+    scene = device.find_converter('light.scene')
+    assert scene is not None and scene.desc
+    assert scene.prop.in_list(['mode', 'color_mode', DEVICE_CUSTOMIZES[MODEL]['mode_property']])
+    assert scene.prop.list_descriptions() == ['Bright', 'TV', 'Warm', 'Night']
+    assert device.find_converter('select.light.scene') is None
 
 
 async def test_keeps_power_and_brightness(hass, load_miot_spec):
@@ -174,16 +182,16 @@ async def test_scene_select(hass, load_miot_spec):
     assert dev.sent == [['apply_fixed_scene', [2]]]
 
 
-def test_scene_option_conversion(hass, load_miot_spec):
-    spec = load_extended(load_miot_spec)
-    conv = MiotPropConv('light.scene', 'select', prop=spec.specs['prop.2.102'])
+def test_scene_option_conversion(make_device, load_miot_spec):
+    device = make_device(load_extended(load_miot_spec), model=MODEL)
+    conv = device.find_converter('light.scene')
 
     payload = {}
-    conv.decode(None, payload, 3)
-    assert payload['select.light.scene'] == 'Warm'
+    conv.decode(device, payload, 3)
+    assert payload['light.scene'] == 'Warm'
 
     encoded = {}
-    conv.encode(SimpleNamespace(did='test-device'), encoded, 'Night')
+    conv.encode(device, encoded, 'Night')
     assert encoded['params'][0]['value'] == 4
     assert encoded['params'][0]['siid'] == 2
     assert encoded['params'][0]['piid'] == 102
