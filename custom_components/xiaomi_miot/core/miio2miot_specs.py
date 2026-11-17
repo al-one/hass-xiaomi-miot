@@ -1099,6 +1099,15 @@ MIIO_TO_MIOT_SPECS = {
                 'template': '{{ 101 - value|int(0) if value else 0 }}',
                 'set_template': '{{ [101 - value|int(0)] }}',
             },
+            # delay off: miio `dv` is the remaining seconds, set with `delay_off`
+            'prop.2.4': {
+                'prop': 'dv',
+                'setter': 'delay_off',
+                'template': '{{ value|int(0) // 60 }}',
+                'set_template': '{{ [value|int(0) * 60] }}',
+            },
+            # built-in scenes: `snm` 1=bright 2=tv 3=warm 4=night
+            'prop.2.5': {'prop': 'snm', 'setter': 'apply_fixed_scene'},
         },
     },
     'philips.light.cbulb': {

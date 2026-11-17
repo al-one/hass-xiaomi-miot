@@ -648,6 +648,36 @@
     }
   ],
 
+  "philips.light.candle2": [
+    {
+      "iid": 2,
+      "properties": [
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:delay-off:00000000",
+          "description": "Delay Off",
+          "format": "uint32",
+          "access": ["read", "write"],
+          "unit": "minutes",
+          "value-range": [0, 360, 1]
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:scene:00000000",
+          "description": "Scene",
+          "format": "uint8",
+          "access": ["read", "write"],
+          "value-list": [
+            {"value": 1, "description": "Bright"},
+            {"value": 2, "description": "TV"},
+            {"value": 3, "description": "Warm"},
+            {"value": 4, "description": "Night"}
+          ]
+        }
+      ]
+    }
+  ],
+
   "roborock.vacuum.a14": [
     {
       "iid": 2,

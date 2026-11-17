@@ -1705,6 +1705,10 @@ DEVICE_CUSTOMIZES = {
         'number_properties': 'sleep_duration,music_preview,sleep_volume,sleep_startbri,scene_volume',
         'button_actions': 'brightness_up,brightness_down,cct_up,cct_down,stop_preview',
     },
+    'philips.light.candle2': {
+        'select_properties': 'scene',
+        'number_properties': 'delay_off',
+    },
     'philips.light.strip3': {
         'switch_properties': 'mitv_rhythm,acousto_optic_rhythm',
         'select_properties': 'rhythm_sensitivity,rhythm_animation',
