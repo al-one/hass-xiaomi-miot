@@ -1,8 +1,9 @@
 """miio -> miot mapping for philips.light.candle2 (PR #3043)."""
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
-from custom_components.xiaomi_miot.core.converters import MiotColorTempConv
+from custom_components.xiaomi_miot.core.converters import MiotColorTempConv, MiotPropConv
 from custom_components.xiaomi_miot.core.device_customizes import DEVICE_CUSTOMIZES
 from custom_components.xiaomi_miot.core.miio2miot import Miio2MiotHelper
 
@@ -171,3 +172,18 @@ async def test_scene_select(hass, load_miot_spec):
     dev = FakeMiioDevice()
     await helper.async_set_property(dev, 2, 5, 2)
     assert dev.sent == [['apply_fixed_scene', [2]]]
+
+
+def test_scene_option_conversion(hass, load_miot_spec):
+    spec = load_extended(load_miot_spec)
+    conv = MiotPropConv('light.scene', 'select', prop=spec.specs['prop.2.5'])
+
+    payload = {}
+    conv.decode(None, payload, 3)
+    assert payload['select.light.scene'] == 'Warm'
+
+    encoded = {}
+    conv.encode(SimpleNamespace(did='test-device'), encoded, 'Night')
+    assert encoded['params'][0]['value'] == 4
+    assert encoded['params'][0]['siid'] == 2
+    assert encoded['params'][0]['piid'] == 5
