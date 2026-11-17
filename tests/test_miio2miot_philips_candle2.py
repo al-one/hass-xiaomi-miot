@@ -81,7 +81,7 @@ def test_spec_is_registered(hass, load_miot_spec):
 def test_customizes_expose_entities():
     cfg = DEVICE_CUSTOMIZES[MODEL]
     assert cfg['number_properties'] == 'delay_off'
-    assert cfg['mode_property'] == 'scene'
+    assert 'mode_property' not in cfg
     assert 'select_properties' not in cfg
 
 
@@ -91,13 +91,14 @@ def test_customize_entities_are_created(make_device, load_miot_spec):
     delay = device.find_converter('number.light.delay_off')
     assert delay is not None and delay.domain == 'number'
 
-    # the scene prop has to be on the light entity to show up as an effect
+    # the scene prop is declared as a `mode`, so the stock light converter
+    # registers it and the light entity exposes it as an effect
     light = device.find_converter('light.light.on')
-    assert 'light.scene' in light.attrs
+    assert 'light.mode' in light.attrs
 
-    scene = device.find_converter('light.scene')
+    scene = device.find_converter('light.mode')
     assert scene is not None and scene.desc
-    assert scene.prop.in_list(['mode', 'color_mode', DEVICE_CUSTOMIZES[MODEL]['mode_property']])
+    assert scene.prop.in_list(['mode', 'color_mode'])
     assert scene.prop.list_descriptions() == ['Bright', 'TV', 'Warm', 'Night']
     assert device.find_converter('select.light.scene') is None
 
@@ -184,11 +185,11 @@ async def test_scene_select(hass, load_miot_spec):
 
 def test_scene_option_conversion(make_device, load_miot_spec):
     device = make_device(load_extended(load_miot_spec), model=MODEL)
-    conv = device.find_converter('light.scene')
+    conv = device.find_converter('light.mode')
 
     payload = {}
     conv.decode(device, payload, 3)
-    assert payload['light.scene'] == 'Warm'
+    assert payload['light.mode'] == 'Warm'
 
     encoded = {}
     conv.encode(device, encoded, 'Night')

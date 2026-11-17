@@ -663,7 +663,7 @@
         },
         {
           "iid": 102,
-          "type": "urn:miot-spec-v2:property:scene:00000000",
+          "type": "urn:miot-spec-v2:property:mode:00000008",
           "description": "Scene",
           "format": "uint8",
           "access": ["read", "write"],

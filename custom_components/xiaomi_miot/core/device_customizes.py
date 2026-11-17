@@ -1707,16 +1707,6 @@ DEVICE_CUSTOMIZES = {
     },
     'philips.light.candle2': {
         'number_properties': 'delay_off',
-        'mode_property': 'scene',
-        'append_converters': [
-            {
-                'class': MiotLightConv,
-                'services': ['light'],
-                'converters': [
-                    {'props': ['scene'], 'desc': True},
-                ],
-            },
-        ],
     },
     'philips.light.strip3': {
         'switch_properties': 'mitv_rhythm,acousto_optic_rhythm',
