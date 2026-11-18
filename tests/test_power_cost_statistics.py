@@ -11,7 +11,10 @@ from homeassistant.helpers.restore_state import RestoredExtraData
 from custom_components.xiaomi_miot.core.converters import BaseConv
 from custom_components.xiaomi_miot.core.device import Device, DeviceInfo
 from custom_components.xiaomi_miot.core.hass_entity import XEntity
-from custom_components.xiaomi_miot.core.utils import local_zone, power_cost_period, parse_power_cost_records
+from custom_components.xiaomi_miot.core.utils import (
+    local_zone, power_cost_period, parse_power_cost_records, power_cost_decreased,
+    power_cost_record_dates,
+)
 from custom_components.xiaomi_miot.core.templates import template
 from homeassistant.util import dt as dt_util
 from homeassistant.setup import async_setup_component
@@ -40,7 +43,7 @@ def make_sensor(hass, key, ratio):
     # The entity is deliberately not added to a real platform in this unit
     # test; execute its registered cleanup to avoid leaking the midnight timer.
     sensor.async_on_remove = Mock(side_effect=lambda remove: remove())
-    device = SimpleNamespace(props={}, data={}, log=Mock())
+    device = SimpleNamespace(props={}, data={}, log=Mock(), available=True)
     device._filter_power_cost_statistics = MethodType(Device._filter_power_cost_statistics, device)
     sensor.device = device
     return sensor
@@ -87,6 +90,83 @@ async def test_restore_previous_day_does_not_block_new_day(hass):
         await sensor.async_added_to_hass()
     assert sensor.native_value is None
     assert sensor.device._filter_power_cost_statistics({'power_cost_today': 15}, now) == {'power_cost_today': 15}
+
+
+@pytest.mark.parametrize('key,raw,ratio', [
+    ('power_cost_today', 164, 0.01),
+    ('power_cost_today_2', 14, 0.01),
+    ('power_cost_today', 1522893, 0.000001),
+    ('power_cost_month', 2752913, 0.000001),
+])
+@pytest.mark.parametrize('exact', [False, True])
+async def test_restore_preserves_raw_precision_and_accepts_identical_sample(hass, key, raw, ratio, exact):
+    sensor = make_sensor(hass, key, ratio)
+    now = datetime.now(local_zone(hass))
+    period = power_cost_period(sensor.attr, now)
+    native = round(raw * ratio, 3)
+    extra = {
+        'native_value': native, 'native_unit_of_measurement': 'kWh',
+        'power_cost_period': period,
+    }
+    if exact:
+        extra.update(raw_value=raw, value_ratio=ratio)
+    sensor.async_get_last_extra_data = AsyncMock(return_value=RestoredExtraData(extra))
+    sensor.async_get_last_state = AsyncMock(return_value=State(
+        'sensor.test_energy', str(native), {'unit_of_measurement': 'kWh'},
+        last_changed=now,
+    ))
+    with patch.object(XEntity, 'async_added_to_hass', new=AsyncMock()):
+        await sensor.async_added_to_hass()
+    assert sensor.native_value == native
+    if exact:
+        assert sensor.device.props[key] == raw
+        assert sensor.get_state()['raw_value'] == raw
+    else:
+        assert 'raw_value' not in sensor.get_state()
+    assert sensor.device._filter_power_cost_statistics({key: 0}, now) == {}
+    assert sensor.device._filter_power_cost_statistics({key: raw / 2}, now) == {}
+    attrs = sensor.device._filter_power_cost_statistics({key: raw}, now)
+    assert attrs == {key: raw}
+    sensor.device.props.update(attrs)
+    sensor.set_state({key: raw})
+    assert sensor.native_value == native
+    assert sensor.get_state()['raw_value'] == raw
+    # Once a real sample establishes precision, even a sub-display decline is rejected.
+    assert sensor.device._filter_power_cost_statistics({key: raw - 1}, now) == {}
+
+
+def test_raw_roundoff_keeps_baseline_without_warning():
+    key = 'power_cost_today'
+    now = datetime.now().astimezone()
+    device = SimpleNamespace(
+        props={key: 14.000000000000002}, log=Mock(),
+        data={'_power_cost_periods': {key: power_cost_period(key, now)}},
+    )
+    assert Device._filter_power_cost_statistics(device, {key: 14.0}, now) == device.props
+    device.log.warning.assert_not_called()
+
+
+@pytest.mark.parametrize('value,previous,decreased', [
+    (1.64, 1.6400000000000001, False),
+    (14.0, 14.000000000000002, False),
+    (0, 1e-15, True),
+    (1522893, 1523000, True),
+    (16.8, 17.5, True),
+])
+def test_decrease_tolerance_is_only_arithmetic_roundoff(value, previous, decreased):
+    assert power_cost_decreased(value, previous) is decreased
+
+
+def test_legacy_precision_does_not_leak_across_periods():
+    key = 'power_cost_today'
+    now = datetime.now().astimezone()
+    device = SimpleNamespace(
+        props={key: 1523000}, log=Mock(),
+        data={'_power_cost_periods': {key: power_cost_period(key, now - timedelta(days=1))},
+              '_power_cost_restore_scales': {key: 0.000001}},
+    )
+    assert Device._filter_power_cost_statistics(device, {key: 0}, now) == {key: 0}
+    assert key not in device.data['_power_cost_restore_scales']
 
 
 @pytest.mark.parametrize('value', [None, '', 'bad', float('nan'), float('inf'), -1, True])
@@ -138,6 +218,230 @@ def test_record_parser_preserves_dates_and_does_not_mutate_response():
     ]
     assert records[0]['value'] == 'bad'
     assert records[2]['value'] == '[0]'
+
+
+@pytest.mark.parametrize('reverse', [False, True])
+async def test_exact_duplicate_daily_records_are_counted_once(hass, reverse):
+    records = [daily_record('[4]', -1), daily_record('[1]'), daily_record('[4]', -1)]
+    if reverse:
+        records.reverse()
+    device = cloud_device(hass, [{'code': 0, 'result': records}])
+    assert await device.update_cloud_statistics([energy_command('3.1')]) == {
+        'power_cost_today': 1, 'power_cost_month': 5,
+    }
+    assert records[0]['value'].startswith('[')
+
+
+@pytest.mark.parametrize('reverse', [False, True])
+@pytest.mark.parametrize('same_timestamp', [False, True])
+async def test_ambiguous_today_never_uses_order_or_maximum(hass, reverse, same_timestamp):
+    first = daily_record('[2]')
+    second = daily_record('[3]')
+    if not same_timestamp:
+        second['time'] += 60
+    records = [first, second]
+    if reverse:
+        records.reverse()
+    device = cloud_device(hass, [{'code': 0, 'result': records}])
+    device.props.update(power_cost_today=1, power_cost_month=4)
+    assert await device.update_cloud_statistics([energy_command('3.1')]) == {}
+    assert device.props == {'power_cost_today': 1, 'power_cost_month': 4}
+    device.dispatch.assert_not_called()
+
+
+async def test_ambiguous_history_keeps_valid_today(hass):
+    records = [daily_record('[2]', -1), daily_record('[3]', -1), daily_record('[1]')]
+    device = cloud_device(hass, [{'code': 0, 'result': records}])
+    assert await device.update_cloud_statistics([energy_command('3.1')]) == {'power_cost_today': 1}
+
+
+async def test_missing_observed_day_blocks_even_an_increasing_partial_sum(hass):
+    complete = [daily_record('[4]', -1), daily_record('[1]')]
+    partial = [daily_record('[8]')]
+    recovered = [daily_record('[4]', -1), daily_record('[9]')]
+    device = cloud_device(hass, [
+        {'code': 0, 'result': records} for records in (complete, partial, recovered)
+    ])
+    command = energy_command('3.1')
+    assert (await device.update_cloud_statistics([command]))['power_cost_month'] == 5
+    assert await device.update_cloud_statistics([command]) == {'power_cost_today': 8}
+    assert device.props['power_cost_month'] == 5
+    assert (await device.update_cloud_statistics([command]))['power_cost_month'] == 13
+    assert next(iter(device.data['_power_cost_coverage'].values()))['reason'] is None
+    assert device.cloud.async_request_api.await_count == 3
+
+
+async def test_sparse_first_observation_does_not_invent_missing_days(hass):
+    device = cloud_device(hass, [{'code': 0, 'result': [daily_record('[0]')]}])
+    assert await device.update_cloud_statistics([energy_command('3.1')]) == {
+        'power_cost_today': 0, 'power_cost_month': 0,
+    }
+    state = next(iter(device.data['_power_cost_coverage'].values()))
+    assert state['dates'] == {dt_util.now().date()}
+    assert state['reason'] is None
+
+
+@pytest.fixture
+def issue_3060_time(fixed_energy_time, freezer):
+    freezer.move_to('2026-11-14T12:00:00+00:00')
+
+
+@pytest.mark.parametrize('key', ['3.1', '11.1'])
+@pytest.mark.parametrize('missing_today', [False, True])
+@pytest.mark.parametrize('reverse', [False, True])
+async def test_reported_sparse_history_recovers_without_a_false_zero(
+    hass, issue_3060_time, caplog, key, missing_today, reverse,
+):
+    """Issue #3060 date layout, with synthetic values instead of usage data."""
+    offsets = (list(range(-1, -21, -1)) + list(range(-28, -32, -1))
+               if missing_today else list(range(0, -31, -1)))
+    records = [daily_record('[1]', day) for day in offsets]
+    if reverse:
+        records.reverse()
+    today = daily_record('[3]')
+    recovery = [record for record in records if record['time'] != today['time']]
+    recovery.append(today)
+    device = cloud_device(hass, [
+        {'code': 0, 'result': records}, {'code': 0, 'result': recovery},
+    ])
+    caplog.set_level('DEBUG', logger=device.log.name)
+    command = energy_command(key)
+    attrs = await device.update_cloud_statistics([command])
+    assert len(records) == (24 if missing_today else 31)
+    assert attrs['power_cost_month'] == (13 if missing_today else 14)
+    assert ('power_cost_today' not in attrs if missing_today else attrs['power_cost_today'] == 1)
+    assert next(iter(device.data['_power_cost_coverage'].values()))['reason'] is None
+    assert any('No valid power statistics for current day' in record.message
+               for record in caplog.records) is missing_today
+    assert await device.update_cloud_statistics([command]) == {
+        'power_cost_today': 3, 'power_cost_month': 16,
+    }
+    assert device.cloud.async_request_api.await_count == 2
+    assert all(isinstance(record['value'], str) for record in records)
+
+
+async def test_missing_today_keeps_same_day_baseline_until_a_valid_observation(hass):
+    device = cloud_device(hass, [
+        {'code': 0, 'result': [daily_record('[4]', -1), daily_record('[1]')]},
+        {'code': 0, 'result': [daily_record('[4]', -1)]},
+        {'code': 0, 'result': [daily_record('[4]', -1), daily_record('[2]')]},
+    ])
+    command = energy_command('3.1')
+    assert await device.update_cloud_statistics([command]) == {
+        'power_cost_today': 1, 'power_cost_month': 5,
+    }
+    device.dispatch.reset_mock()
+    assert await device.update_cloud_statistics([command]) == {}
+    assert device.props == {'power_cost_today': 1, 'power_cost_month': 5}
+    device.dispatch.assert_not_called()
+    assert next(iter(device.data['_power_cost_coverage'].values()))['reason'] == 'missing_records'
+    assert await device.update_cloud_statistics([command]) == {
+        'power_cost_today': 2, 'power_cost_month': 6,
+    }
+
+
+async def test_missing_today_platform_recovers_without_recreating_entities(hass, make_device):
+    spec = MiotSpec(hass, {
+        'type': 'urn:miot-spec-v2:device:outlet:0000A002:test-energy:1', 'services': [],
+    })
+    device = make_device(spec, model='test.energy', customizes={
+        'sensor_attributes': 'power_cost_today,power_cost_month',
+        'unit_of_measurement': 'kWh', 'device_class': 'energy',
+        'state_class': 'total_increasing', 'value_ratio': 0.01,
+    })
+    device.available = True
+    device.cloud = SimpleNamespace(async_request_api=AsyncMock(side_effect=[
+        {'code': 0, 'result': [daily_record('[4]', -1)]},
+        {'code': 0, 'result': [daily_record('[4]', -1), daily_record('[3]')]},
+    ]))
+    daily = SensorEntity(device, device.find_converter('sensor.power_cost_today'))
+    monthly = SensorEntity(device, device.find_converter('sensor.power_cost_month'))
+    identities = (daily.unique_id, monthly.unique_id)
+    assert await async_setup_component(hass, 'sensor', {})
+    component = hass.data['sensor']
+    await component.async_add_entities([daily, monthly])
+    try:
+        await device.update_cloud_statistics([energy_command('3.1')])
+        await hass.async_block_till_done()
+        assert hass.states.get(daily.entity_id).state == 'unavailable'
+        assert hass.states.get(monthly.entity_id).state == '0.04'
+        await device.update_cloud_statistics([energy_command('3.1')])
+        await hass.async_block_till_done()
+        assert hass.states.get(daily.entity_id).state == '0.03'
+        assert hass.states.get(monthly.entity_id).state == '0.07'
+        assert (daily.unique_id, monthly.unique_id) == identities
+        assert device.available
+    finally:
+        await component.async_remove_entity(daily.entity_id)
+        await component.async_remove_entity(monthly.entity_id)
+    assert daily.on_device_update not in device.listeners
+    assert monthly.on_device_update not in device.listeners
+
+
+@pytest.mark.parametrize('zone', ['Asia/Shanghai', 'America/New_York'])
+@pytest.mark.parametrize('instant', ['2026-03-08T03:05:00', '2026-11-01T01:30:00'])
+def test_coverage_uses_local_dates_and_ignores_other_periods(zone, instant):
+    from zoneinfo import ZoneInfo
+    now = datetime.fromisoformat(instant).replace(tzinfo=ZoneInfo(zone))
+    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    records = parse_power_cost_records([
+        {'time': int(midnight.timestamp()), 'value': '[0]'},
+        {'time': int((midnight + timedelta(days=1)).timestamp()), 'value': '[999]'},
+        {'time': 1, 'value': '[999]'},
+        {'time': 'invalid', 'value': '[999]'},
+        {'time': int(midnight.timestamp()), 'value': '[null]'},
+    ])
+    assert power_cost_record_dates(records, now) == ({now.date()}, set())
+
+
+async def test_daily_coverage_is_independent_between_statistics_keys(hass):
+    device = cloud_device(hass, [
+        {'code': 0, 'result': [daily_record('[4]', -1)]},
+        {'code': 0, 'result': [daily_record('[1]')]},
+        {'code': 0, 'result': [daily_record('[2]')]},
+        {'code': 0, 'result': [daily_record('[3]')]},
+    ])
+    commands = [energy_command('3.1'), energy_command('11.1')]
+    await device.update_cloud_statistics(commands)
+    attrs = await device.update_cloud_statistics(commands)
+    assert attrs == {'power_cost_today': 2, 'power_cost_today_2': 3, 'power_cost_month_2': 3}
+    assert device.props['power_cost_month'] == 4
+
+
+async def test_coverage_survives_empty_responses_and_resets_only_at_new_month(hass, freezer):
+    freezer.move_to('2026-09-29T12:00:00+00:00')
+    first = daily_record('[4]')
+    device = cloud_device(hass, [
+        {'code': 0, 'result': [first]}, {'code': 0, 'result': []},
+        {'code': 0, 'result': []}, {'code': 0, 'result': []},
+    ])
+    command = energy_command('3.1')
+    await device.update_cloud_statistics([command])
+    assert await device.update_cloud_statistics([command]) == {}
+    freezer.move_to('2026-09-30T12:00:00+00:00')
+    assert await device.update_cloud_statistics([command]) == {}
+    state = next(iter(device.data['_power_cost_coverage'].values()))
+    assert state['dates'] == {datetime.fromtimestamp(first['time'], dt_util.now().tzinfo).date()}
+    freezer.move_to('2026-10-01T12:00:00+00:00')
+    assert await device.update_cloud_statistics([command]) == {}
+    state = next(iter(device.data['_power_cost_coverage'].values()))
+    assert state == {'period': '2026-10', 'dates': set(), 'reason': None}
+    assert device.props['power_cost_month'] == 4
+
+
+def test_decrease_warnings_are_throttled_until_recovery():
+    key = 'power_cost_month'
+    now = datetime.now().astimezone()
+    device = SimpleNamespace(props={key: 40}, data={
+        '_power_cost_periods': {key: power_cost_period(key, now)},
+    }, log=Mock())
+    for value in (30, 31, 32):
+        assert Device._filter_power_cost_statistics(device, {key: value}, now) == {}
+    assert device.log.warning.call_count == 1
+    assert device.log.debug.call_count == 2
+    assert Device._filter_power_cost_statistics(device, {key: 40}, now) == {key: 40}
+    assert Device._filter_power_cost_statistics(device, {key: 39}, now) == {}
+    assert device.log.warning.call_count == 2
 
 
 @pytest.mark.parametrize('response', [None, {}, [], {'code': 1, 'result': []},
@@ -231,6 +535,7 @@ async def test_actual_platform_restore_update_and_unload(hass, make_device, free
     await component.async_add_entities([sensor])
     await hass.async_block_till_done()
     assert sensor.native_value == 17.5
+    assert hass.states.get(sensor.entity_id).state == '17.5'
     assert device.props[key] == 1750
     assert device._filter_power_cost_statistics({key: 0}, now) == {}
     attrs = device._filter_power_cost_statistics({key: 1780}, now)

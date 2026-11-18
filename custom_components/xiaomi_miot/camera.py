@@ -343,6 +343,7 @@ XEntity.CLS[ENTITY_DOMAIN] = CameraEntity
 
 
 class MiotCameraEntity(MiotToggleEntity, BaseCameraEntity):
+    _entity_domain = ENTITY_DOMAIN
     _srv_stream = None
     _act_start_stream = None
     _act_stop_stream = None

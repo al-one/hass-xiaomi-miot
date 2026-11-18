@@ -113,6 +113,7 @@ XEntity.CLS[ENTITY_DOMAIN] = BinarySensorEntity
 
 
 class MiotBinarySensorEntity(MiotToggleEntity, BaseEntity):
+    _entity_domain = ENTITY_DOMAIN
     def __init__(self, config, miot_service: MiotService, **kwargs):
         kwargs.setdefault('logger', _LOGGER)
         super().__init__(miot_service, config=config, **kwargs)
