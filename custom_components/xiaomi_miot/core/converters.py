@@ -243,18 +243,21 @@ class MiotColorTempConv(MiotPropConv):
         super().decode(device, payload, value)
 
     def encode(self, device: 'Device', payload: dict, value: int):
+        vmin, vmax = self.prop.range_min(), self.prop.range_max()
         if self.prop.unit == 'percentage':
             if not value:
                 return
             value = self.kelvin_to_percentage(value)
+            if vmin is None and vmax is None:
+                value = max(0, min(100, value))
         elif self.prop.unit != 'kelvin':
             if not value:
                 return
             value = round(1000000.0 / value)
 
-        if (vmin := self.prop.range_min()) is not None and value < vmin:
+        if vmin is not None and value < vmin:
             value = vmin
-        if (vmax := self.prop.range_max()) is not None and value > vmax:
+        if vmax is not None and value > vmax:
             value = vmax
         super().encode(device, payload, value)
 

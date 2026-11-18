@@ -99,13 +99,20 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
                 # the value range can be missing, HA needs an int for both limits
                 if prop.unit == 'percentage' or prop.range_max() == 100:
                     pmin, pmax = prop.range_min(), prop.range_max()
-                    self._attr_min_color_temp_kelvin = (
-                        DEFAULT_MIN_KELVIN if pmax is None
-                        else int(MiotColorTempConv.percentage_to_kelvin(pmax))
+                    if prop.unit == 'percentage':
+                        # the percentage scale always maps to 6500..2500 kelvin
+                        fallback_min = MiotColorTempConv.percentage_to_kelvin(100)
+                        fallback_max = MiotColorTempConv.percentage_to_kelvin(0)
+                    else:
+                        fallback_min = DEFAULT_MIN_KELVIN
+                        fallback_max = DEFAULT_MAX_KELVIN
+                    self._attr_min_color_temp_kelvin = int(
+                        fallback_min if pmax is None
+                        else MiotColorTempConv.percentage_to_kelvin(pmax)
                     )
-                    self._attr_max_color_temp_kelvin = (
-                        DEFAULT_MAX_KELVIN if pmin is None
-                        else int(MiotColorTempConv.percentage_to_kelvin(pmin))
+                    self._attr_max_color_temp_kelvin = int(
+                        fallback_max if pmin is None
+                        else MiotColorTempConv.percentage_to_kelvin(pmin)
                     )
                     self._attr_names[ATTR_COLOR_TEMP_KELVIN] = attr
                 elif prop.unit in ['kelvin']:
