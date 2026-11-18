@@ -241,7 +241,10 @@ async def test_scene_service_is_not_a_physical_device_deletion(hass, scene_platf
     record = scene_entities(hass)[0]
     registry = dr.async_get(hass)
     device = registry.async_get(record.device_id)
-    assert await integration.async_remove_config_entry_device(hass, config, device) is False
+    # A registry-only service must never enter the physical-device path,
+    # even when an account is not loaded.
+    with patch.object(HassEntry, 'init', side_effect=AssertionError('unexpected account lookup')):
+        assert await integration.async_remove_config_entry_device(hass, config, device) is False
     registry.async_update_device(device.id, name_by_user='delete')
     await hass.async_block_till_done()
     assert registry.async_get(device.id) is not None
