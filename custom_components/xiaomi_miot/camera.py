@@ -280,10 +280,33 @@ class CameraEntity(XEntity, BaseCameraEntity):
     _attr_stream_source = None
     _last_motion_time = None
 
+    _live_srv = None
+    _live_start = None
+    _live_stop = None
+    _live_addr = None
+    _live_exp_prop = None
+    _live_url = None
+    _live_expire = 0
+
     def on_init(self):
         BaseCameraEntity.__init__(self, self.hass)
         self._attr_brand = self.device_info.get('manufacturer')
         self._attr_model = self.device_info.get('model')
+        # Live HLS via the cloud "camera-stream-for-*" services, as the legacy MiotCameraEntity did;
+        # the converter-based entity itself only knows the last motion clip.
+        spec = getattr(self.device, 'spec', None)
+        for name in ('camera_stream_for_google_home', 'camera_stream_for_amazon_alexa'):
+            srv = spec.get_service(name) if spec else None
+            act = srv.get_action('start_hls_stream', 'start_rtsp_stream') if srv else None
+            if not act:
+                continue
+            self._live_srv, self._live_start = srv, act
+            self._live_stop = srv.get_action('stop_stream')
+            self._live_addr = srv.get_property('stream_address')
+            self._live_exp_prop = srv.get_property('expiration_time')
+            self._attr_supported_features |= CameraEntityFeature.STREAM
+            self._supported_features |= CameraEntityFeature.STREAM
+            break
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -299,11 +322,44 @@ class CameraEntity(XEntity, BaseCameraEntity):
             self._attr_should_poll = False
             self.update_motion_video(self.device.props)
 
+    @property
+    def supported_features(self):
+        return CameraEntityFeature(int(self._attr_supported_features or 0) | int(self._supported_features or 0))
+
     async def image_source(self):
-        return self._attr_camera_image
+        return await self.async_get_live_url() or self._attr_camera_image
 
     async def stream_source(self):
-        return self._attr_stream_source
+        return await self.async_get_live_url() or self._attr_stream_source
+
+    async def async_get_live_url(self):
+        if not self._live_start or not self.device.cloud:
+            return None
+        now = time.time()
+        if self._live_url and now < self._live_expire:
+            return self._live_url
+        vav = self.custom_config('video_attribute')
+        vav = int(vav) if vav not in (None, '') else None
+        vap = self._live_srv.get_property('video_attribute')
+        if vav is None and vap and vap.value_list:
+            vav = (vap.value_list[0] or {}).get('value')
+        if self._live_stop:
+            await self.async_call_action(self._live_stop, [], cloud=True)
+        result = await self.async_call_action(self._live_start, [] if vav is None else [vav], cloud=True)
+        raw = getattr(result, 'result', None)
+        if not isinstance(raw, dict):
+            raw = result if isinstance(result, dict) else {}
+        odt = self._live_start.out_results(raw.get('out')) or {}
+        url = self._live_addr.from_dict(odt) if self._live_addr else None
+        exp = self._live_exp_prop.from_dict(odt) if self._live_exp_prop else None
+        # Xiaomi returns expiration in ms; without it the URL is known to live ~5 min.
+        self._live_expire = (int(exp) / 1000 - 10) if exp else now + 270
+        self._live_url = url or None
+        if url:
+            self._attr_extra_state_attributes.update({'stream_address': url, 'expire_at': f'{datetime.fromtimestamp(self._live_expire)}'})
+        else:
+            self.log.warning('Live stream address not returned: %s', result)
+        return self._live_url
 
     def update_motion_video(self, data: dict):
         tim = data.get('motion_video_time')
