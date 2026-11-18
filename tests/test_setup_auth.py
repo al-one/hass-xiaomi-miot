@@ -1,11 +1,13 @@
 """Tests for async_setup_entry setup-time ConfigEntryAuthFailed + cleanup + alias."""
 import asyncio
+import aiohttp
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from homeassistant.config_entries import ConfigEntryAuthFailed, ConfigEntryState
+from homeassistant.exceptions import ConfigEntryNotReady
 
 from custom_components.xiaomi_miot import (
     CONF_XIAOMI_CLOUD,
@@ -189,3 +191,29 @@ async def test_setup_empty_filtered_inventory_does_not_warn(hass, caplog):
         await async_setup_entry(hass, _entry(hass))
     assert "None device in xiaomi cloud" not in caplog.text
     assert "No devices returned by Xiaomi cloud" not in caplog.text
+
+
+_NETWORK_EXCS = [
+    OSError(None, "Timeout while contacting DNS servers"),
+    asyncio.TimeoutError(),
+    aiohttp.ClientConnectionError("down"),
+]
+
+
+@pytest.mark.parametrize("exc", _NETWORK_EXCS)
+@pytest.mark.parametrize("stage", ["get_cloud", "check_auth", "get_devices"])
+async def test_setup_xiaomi_network_error_raises_config_entry_not_ready(hass, exc, stage):
+    init_integration_data(hass)
+    fake_cloud = MiotCloud.__new__(MiotCloud)
+    fake_cloud.sid = "xiaomiio"
+    fake_cloud.async_check_auth = AsyncMock(return_value=True)
+    fake_entry_obj = _make_entry_obj(fake_cloud)
+    if stage == "get_cloud":
+        fake_entry_obj.async_get_cloud = AsyncMock(side_effect=exc)
+    elif stage == "check_auth":
+        fake_cloud.async_check_auth = AsyncMock(side_effect=exc)
+    else:
+        fake_entry_obj.get_cloud_devices = AsyncMock(side_effect=exc)
+    with patch("custom_components.xiaomi_miot.HassEntry.init", return_value=fake_entry_obj),          patch("custom_components.xiaomi_miot.async_setup_customizes", AsyncMock()):
+        with pytest.raises(ConfigEntryNotReady):
+            await async_setup_entry(hass, _entry(hass))

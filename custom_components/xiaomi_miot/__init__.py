@@ -5,6 +5,8 @@ import json
 import os
 import re
 import traceback
+import aiohttp
+import requests
 from datetime import timedelta
 import voluptuous as vol
 
@@ -26,6 +28,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.entity import ToggleEntity, EntityCategory
 from homeassistant.config_entries import ConfigEntry, ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.reload import async_integration_yaml_config
@@ -271,6 +274,17 @@ async def async_setup_entry(hass: hass_core.HomeAssistant, config_entry: config_
     return True
 
 
+# Transient connectivity problems (DNS failure, timeout, connection refused...)
+# while talking to the Xiaomi cloud: HA must retry the setup instead of
+# leaving the config entry in a permanent setup-error state.
+NETWORK_ERRORS = (
+    aiohttp.ClientError,
+    asyncio.TimeoutError,
+    requests.exceptions.RequestException,
+    OSError,
+)
+
+
 async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
     entry_id = config_entry.entry_id
     hass_entry = HassEntry.init(hass, config_entry)
@@ -286,6 +300,8 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         cloud = await hass_entry.async_get_cloud(CloudSid.XIAOMIIO)
     except (MiCloudVerificationError, MiCloudStsUnauthorized) as exc:
         raise ConfigEntryAuthFailed('Xiaomi authentication failed for this account') from exc
+    except NETWORK_ERRORS as exc:
+        raise ConfigEntryNotReady(f'Xiaomi cloud unreachable: {exc}') from exc
     except Exception as exc:
         _LOGGER.error('Setup xiaomi cloud for entry: %s failed: %s', entry_id, exc)
         return False
@@ -297,6 +313,8 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
         raise ConfigEntryAuthFailed('Xiaomi authentication failed for this account')
     except MiCloudException:
         return False
+    except NETWORK_ERRORS as exc:
+        raise ConfigEntryNotReady(f'Xiaomi cloud unreachable: {exc}') from exc
     except Exception:
         return False
     if not ok:
@@ -305,6 +323,8 @@ async def async_setup_xiaomi_cloud(hass: hass_core.HomeAssistant, config_entry: 
     try:
         hass_entry.cloud_devices = await hass_entry.get_cloud_devices()
         devices = hass_entry.cloud_devices or {}
+    except NETWORK_ERRORS as exc:
+        raise ConfigEntryNotReady(f'Xiaomi cloud unreachable: {exc}') from exc
     except (MiCloudException, MiCloudAccessDenied) as exc:
         _LOGGER.error('Setup xiaomi cloud for user: %s failed: %s', username, exc)
         return False
