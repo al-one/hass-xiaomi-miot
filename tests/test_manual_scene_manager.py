@@ -353,16 +353,33 @@ async def test_home_reads_have_bounded_parallelism_and_unload_owns_workers(manag
     manager._store.async_save.assert_not_awaited()
 
 
-async def test_parallel_home_failure_retains_only_its_matching_owner(managers):
+async def test_cancelled_home_read_aborts_snapshot_and_joins_siblings(managers):
     manager, cloud = managers()
     cloud.async_get_manual_scene_homes.return_value = [HOME, {**HOME, 'id': '2'}]
     await manager.async_start()
     await manager._task
+    original = manager.scenes
+    manager._store.async_save.reset_mock()
+    started = asyncio.Event()
+    stopped = asyncio.Event()
+
     async def records(home):
         if home['home_id'] == '1':
-            raise MiCloudException('synthetic failure')
-        return [{'scene_id': '12', 'scene_name': 'New'}]
+            await started.wait()
+            raise asyncio.CancelledError
+        started.set()
+        try:
+            await asyncio.Future()
+        finally:
+            stopped.set()
+
     cloud.async_get_manual_scene_home.side_effect = records
-    await refresh(manager)
-    assert set(manager.scenes) == {KEY, ('2', '12')}
-    assert manager.get_scene(KEY)['owner_uid'] == '1000'
+    manager.request_refresh()
+    task = manager._task
+    done, _ = await asyncio.wait({task}, timeout=3)
+    assert task in done
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert stopped.is_set()
+    assert manager.scenes == original
+    manager._store.async_save.assert_not_awaited()

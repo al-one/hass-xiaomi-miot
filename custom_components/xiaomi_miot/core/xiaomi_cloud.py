@@ -650,17 +650,9 @@ class MiotCloud(micloud.MiCloud):
             except MiCloudException:
                 continue
             try:
-                result = await self._async_request_manual_scene_api(
-                    'GetManualSceneList',
-                    {
-                        'home_id': str(home_id),
-                        'owner_uid': str(owner_uid),
-                        'source': 'zkp',
-                        'get_type': 2,
-                    },
-                )
-                if not isinstance(result, list):
-                    raise MiCloudException('Xiaomi manual scene list is invalid')
+                result = await self.async_get_manual_scene_home({
+                    'home_id': home_id, 'owner_uid': owner_uid,
+                })
             except MiCloudException as exc:
                 _LOGGER.warning(
                     'Unable to get Xiaomi Home manual scenes for %s: %s',

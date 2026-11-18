@@ -209,42 +209,34 @@ class ManualScenes:
         if retained != self._scenes or selected != self._homes:
             self._homes, self._scenes = selected, retained
             self.notify()
-        updated = {}
-
-        async def read_home(home_id, home):
-            try:
-                records = await self.cloud.async_get_manual_scene_home(home)
-                scenes = self._parse_scenes(home, records)
-            except (MiCloudException, ClientError, OSError, TimeoutError, ValueError):
-                old = self._homes.get(home_id)
-                scenes = {key: dict(scene, home_name=home['home_name'])
-                          for key, scene in self._scenes.items()
-                          if old and old['owner_uid'] == home['owner_uid']
-                          and key[0] == home_id}
-                _LOGGER.debug('Manual scene home refresh unavailable; retaining scoped metadata')
-            if not self.enabled:
-                return
-            updated.update(scenes)
-
-        # Bound both requests and worker tasks. The refresh owns every worker,
-        # so cancellation/unload cannot leave background cloud reads running.
+        by_home = {home_id: {} for home_id in selected}
+        for key, scene in retained.items():
+            by_home[key[0]][key] = scene
         homes_to_read = iter(selected.items())
 
-        async def worker():
+        async def read_homes():
             for home_id, home in homes_to_read:
                 if not self.enabled:
                     return
-                await read_home(home_id, home)
+                try:
+                    records = await self.cloud.async_get_manual_scene_home(home)
+                    by_home[home_id] = self._parse_scenes(home, records)
+                except (MiCloudException, ClientError, OSError, TimeoutError, ValueError):
+                    _LOGGER.debug('Manual scene home refresh unavailable; retaining scoped metadata')
 
         async with asyncio.TaskGroup() as group:
-            for _ in range(min(HOME_READ_CONCURRENCY, len(selected))):
-                group.create_task(worker())
+            workers = [group.create_task(read_homes())
+                       for _ in range(min(HOME_READ_CONCURRENCY, len(selected)))]
+            # TaskGroup alone treats a cancelled child as success. Propagate it
+            # so the group joins its siblings without publishing a partial list.
+            await asyncio.gather(*workers)
         if not self.enabled:
             return
+        updated = {key: scene for scenes in by_home.values() for key, scene in scenes.items()}
         self._homes, self._scenes = selected, updated
         self.notify()
         payload = {'account': self._account, 'homes': [
-            {**home, 'scenes': [scene for key, scene in updated.items() if key[0] == home_id]}
+            {**home, 'scenes': list(by_home[home_id].values())}
             for home_id, home in selected.items()
         ]}
         try:
