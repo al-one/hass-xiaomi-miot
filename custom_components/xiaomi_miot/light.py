@@ -10,6 +10,8 @@ from homeassistant.components.light import (
     ATTR_COLOR_TEMP_KELVIN,
     ATTR_RGB_COLOR,
     ATTR_EFFECT,
+    DEFAULT_MIN_KELVIN,
+    DEFAULT_MAX_KELVIN,
 )
 from homeassistant.helpers.restore_state import RestoreEntity
 
@@ -94,13 +96,28 @@ class LightEntity(XEntity, BaseEntity, RestoreEntity):
 
                 # percentage may be incorrectly declared as kelvin
                 # e.g. https://home.miot-spec.com/spec/mrbond.airer.m33a
+                # the value range can be missing, HA needs an int for both limits
                 if prop.unit == 'percentage' or prop.range_max() == 100:
-                    self._attr_min_color_temp_kelvin = MiotColorTempConv.percentage_to_kelvin(prop.range_max())
-                    self._attr_max_color_temp_kelvin = MiotColorTempConv.percentage_to_kelvin(prop.range_min())
+                    pmin, pmax = prop.range_min(), prop.range_max()
+                    if prop.unit == 'percentage':
+                        # the percentage scale always maps to 6500..2500 kelvin
+                        fallback_min = MiotColorTempConv.percentage_to_kelvin(100)
+                        fallback_max = MiotColorTempConv.percentage_to_kelvin(0)
+                    else:
+                        fallback_min = DEFAULT_MIN_KELVIN
+                        fallback_max = DEFAULT_MAX_KELVIN
+                    self._attr_min_color_temp_kelvin = int(
+                        fallback_min if pmax is None
+                        else MiotColorTempConv.percentage_to_kelvin(pmax)
+                    )
+                    self._attr_max_color_temp_kelvin = int(
+                        fallback_max if pmin is None
+                        else MiotColorTempConv.percentage_to_kelvin(pmin)
+                    )
                     self._attr_names[ATTR_COLOR_TEMP_KELVIN] = attr
                 elif prop.unit in ['kelvin']:
-                    self._attr_min_color_temp_kelvin = prop.range_min()
-                    self._attr_max_color_temp_kelvin = prop.range_max()
+                    self._attr_min_color_temp_kelvin = int(prop.range_min() or DEFAULT_MIN_KELVIN)
+                    self._attr_max_color_temp_kelvin = int(prop.range_max() or DEFAULT_MAX_KELVIN)
                     self._attr_names[ATTR_COLOR_TEMP_KELVIN] = attr
                 else:
                     # Convert mireds range to kelvin (mireds min -> kelvin max)

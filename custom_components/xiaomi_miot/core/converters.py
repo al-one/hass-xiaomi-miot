@@ -252,10 +252,10 @@ class MiotColorTempConv(MiotPropConv):
                 return
             value = round(1000000.0 / value)
 
-        if value < self.prop.range_min():
-            value = self.prop.range_min()
-        if value > self.prop.range_max():
-            value = self.prop.range_max()
+        if (vmin := self.prop.range_min()) is not None and value < vmin:
+            value = vmin
+        if (vmax := self.prop.range_max()) is not None and value > vmax:
+            value = vmax
         super().encode(device, payload, value)
 
     @staticmethod
