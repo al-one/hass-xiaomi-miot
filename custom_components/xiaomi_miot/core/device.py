@@ -203,6 +203,10 @@ class Device(CustomConfigHelper):
     async def async_init(self):
         if not self.cloud_only:
             self.local = MiotDevice.from_device(self)
+        # must be set before get_spec(), which builds the converters
+        self._exclude_miot_services = self.custom_config_list('exclude_miot_services', [])
+        self._exclude_miot_properties = self.custom_config_list('exclude_miot_properties', [])
+        self._unreadable_properties = self.custom_config_bool('unreadable_properties')
         spec = await self.get_spec()
         if spec and self.local and not self.cloud_only:
             self.miio2miot = Miio2MiotHelper.from_model(self.hass, self.model, spec)
@@ -217,10 +221,6 @@ class Device(CustomConfigHelper):
                 self.local = parent.local
                 self._proxy_device = parent if self.local else None
                 self.log.info('Proxy local device: %s', self.local)
-
-        self._exclude_miot_services = self.custom_config_list('exclude_miot_services', [])
-        self._exclude_miot_properties = self.custom_config_list('exclude_miot_properties', [])
-        self._unreadable_properties = self.custom_config_bool('unreadable_properties')
 
         if not self.coordinators:
             await self.init_coordinators()
