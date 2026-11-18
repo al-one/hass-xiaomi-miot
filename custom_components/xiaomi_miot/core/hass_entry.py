@@ -9,6 +9,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import SUPPORTED_DOMAINS
 from .xiaomi_cloud import REAUTH_SIDS, CloudSid, MiotCloud
+from .manual_scenes import ManualScenes
 
 if TYPE_CHECKING:
     from .device import Device
@@ -34,6 +35,7 @@ class HassEntry:
         self.cloud_devices = None
         self._cloud_devices_lock = asyncio.Lock()
         self._cloud_devices_updated = 0.0
+        self.manual_scenes = None
 
     @staticmethod
     def init(hass: HomeAssistant, entry: ConfigEntry):
@@ -53,6 +55,9 @@ class HassEntry:
             )
         )
         if ret:
+            if self.manual_scenes:
+                await self.manual_scenes.async_close()
+                self.manual_scenes = None
             for device in self.devices.values():
                 await device.async_unload()
             self.clouds.clear()
@@ -116,6 +121,11 @@ class HassEntry:
             device.add_entities(domain)
 
         return self
+
+    def get_manual_scenes(self):
+        if self.manual_scenes is None:
+            self.manual_scenes = ManualScenes(self)
+        return self.manual_scenes
 
     @property
     def cloud(self):

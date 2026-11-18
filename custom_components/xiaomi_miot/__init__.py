@@ -377,6 +377,11 @@ async def async_unload_entry(hass: hass_core.HomeAssistant, config_entry: config
     return unload_ok
 
 
+async def async_remove_entry(hass: hass_core.HomeAssistant, config_entry: config_entries.ConfigEntry):
+    from .core.manual_scenes import async_remove_scene_cache
+    await async_remove_scene_cache(hass, config_entry.entry_id)
+
+
 def init_integration_data(hass):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN].setdefault('entries', {})
@@ -584,13 +589,20 @@ async def async_setup_config_entry(hass, config_entry, async_setup_platform, asy
     return cls
 
 
+def _is_manual_scene_device(device: dr.DeviceEntry) -> bool:
+    """Identify our account service without depending on a live cloud session."""
+    return (getattr(device, 'entry_type', None) == dr.DeviceEntryType.SERVICE
+            and any(domain == DOMAIN and value.endswith('-manual-scenes')
+                    for domain, value in device.identifiers))
+
+
 async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
     async def updated(event: hass_core.Event):
         action = event.data['action']
         registry = dr.async_get(hass)
         device_id = event.data.get('device_id')
         device = registry.async_get(device_id) if device_id else None
-        if not device or not device.identifiers:
+        if not device or not device.identifiers or _is_manual_scene_device(device):
             return
         identifiers = {identifier for identifier in device.identifiers if identifier[0] == DOMAIN}
         if not identifiers:
@@ -628,6 +640,8 @@ async def _handle_device_registry_event(hass: hass_core.HomeAssistant):
 
 async def async_remove_config_entry_device(hass: hass_core.HomeAssistant, config_entry: ConfigEntry, device: dr.DeviceEntry):
     """Supported from Hass v2022.3"""
+    if _is_manual_scene_device(device):
+        return False
     entry = HassEntry.init(hass, config_entry)
     cloud_device = None
     for identifier in device.identifiers:
