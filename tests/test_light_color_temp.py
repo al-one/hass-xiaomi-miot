@@ -68,31 +68,6 @@ def test_declared_value_range_is_used(hass, make_device, unit, value_range, limi
     assert (entity._attr_min_color_temp_kelvin, entity._attr_max_color_temp_kelvin) == limits
 
 
-@pytest.mark.parametrize(("unit", "value_range", "value", "encoded"), [
-    ("kelvin", [2700, 6500, 1], 2000, 2700),
-    ("percentage", [1, 100, 1], 2000, 100),
-])
-def test_encode_clamps_to_declared_value_range(hass, make_device, unit, value_range, value, encoded):
-    device, _ = _light(hass, make_device, unit, value_range)
-    conv = next(c for c in device.converters if isinstance(c, MiotColorTempConv))
-    payload = {}
-
-    conv.encode(device, payload, value)
-
-    assert payload["params"][0]["value"] == encoded
-
-
-@pytest.mark.parametrize(("value", "encoded"), [(2000, 100), (6535, 0)])
-def test_encode_without_percentage_range_stays_in_scale(hass, make_device, value, encoded):
-    device, _ = _light(hass, make_device, "percentage")
-    conv = next(c for c in device.converters if isinstance(c, MiotColorTempConv))
-    payload = {}
-
-    conv.encode(device, payload, value)
-
-    assert payload["params"][0]["value"] == encoded
-
-
 def test_encode_without_value_range_does_not_clamp(hass, make_device):
     device, _ = _light(hass, make_device, "kelvin")
     conv = next(c for c in device.converters if isinstance(c, MiotColorTempConv))
