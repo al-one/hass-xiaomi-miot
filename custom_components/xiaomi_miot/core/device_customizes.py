@@ -252,6 +252,11 @@ DEVICE_CUSTOMIZES = {
         'select_properties': 'mode,default_power_on_state',
         'number_properties': 'backlighting_br',
     },
+    'cddz.plug.pc03w': {
+        # The standard switch.on converter is redundant: the boot card's
+        # power is controlled through setting.ctrl and reported in 7.3.
+        'exclude_miot_properties': 'switch.on',
+    },
     'cgllc.airm.cgdn1': {
         'exclude_miot_services': 'mac,settings',
     },
