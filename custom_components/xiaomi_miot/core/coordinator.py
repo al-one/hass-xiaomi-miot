@@ -1,4 +1,7 @@
+import asyncio
+import inspect
 import logging
+import time
 from typing import TYPE_CHECKING
 
 from homeassistant.core import HassJob, HassJobType
@@ -9,6 +12,13 @@ if TYPE_CHECKING:
     from .device import Device
 
 _LOGGER = logging.getLogger(__name__)
+
+# Minimum gap in seconds between physical device polls of confirmed-readback
+# (non_optimistic) devices, including write-initiated refreshes that bypass
+# the HA debouncer. The lock and timestamp live on the shared Device so that
+# every coordinator of one physical device obeys the same gap. Legacy
+# optimistic devices are debounced by HA and poll immediately.
+MIN_DEVICE_POLL_GAP_SECONDS = 3.0
 
 class DataCoordinator(DataUpdateCoordinator):
     def __init__(self, device: 'Device', update_method, **kwargs):
@@ -23,11 +33,17 @@ class DataCoordinator(DataUpdateCoordinator):
             raise ValueError('Invalid update method')
         name = kwargs.pop('name', name)
 
+        config_entry = getattr(device.entry, 'entry', getattr(device, 'entry', None)) if hasattr(device, 'entry') else None
+        if config_entry and 'config_entry' in inspect.signature(DataUpdateCoordinator.__init__).parameters:
+            kwargs.setdefault('config_entry', config_entry)
+        self._device_update_method = update_method
+        self._device_update_tasks = set()
+
         super().__init__(
             device.hass,
             logger=device.log,
             name=f'{device.unique_id}-{name}',
-            update_method=update_method,
+            update_method=self._async_update if callable(update_method) else None,
             **kwargs,
         )
         self.device = device
@@ -35,6 +51,39 @@ class DataCoordinator(DataUpdateCoordinator):
         if not hasattr(self, 'setup_method'):
             # hass v2024.7-
             self.async_add_listener(self.coordinator_updated)
+
+    async def _async_update(self):
+        task = asyncio.current_task()
+        if self._shutdown_requested:
+            if task:
+                task.cancel()
+            raise asyncio.CancelledError
+        if task:
+            self._device_update_tasks.add(task)
+        try:
+            # One lock per physical device: chunk coordinators and
+            # write-initiated refreshes must never poll in parallel.
+            async with self.device.poll_lock:
+                if self._shutdown_requested:
+                    if task:
+                        task.cancel()
+                    raise asyncio.CancelledError
+                if self._device_update_method is None:
+                    raise NotImplementedError('Update method not implemented')
+                non_optimistic = self.device.custom_config_bool('non_optimistic')
+                if non_optimistic and self.device.last_poll_monotonic is not None:
+                    delay = MIN_DEVICE_POLL_GAP_SECONDS - (time.monotonic() - self.device.last_poll_monotonic)
+                    if delay > 0:
+                        _LOGGER.debug('%s: Coalesce device poll for %.1fs', self.device.name_model, delay)
+                        await asyncio.sleep(delay)
+                try:
+                    return await self._device_update_method()
+                finally:
+                    if non_optimistic:
+                        self.device.last_poll_monotonic = time.monotonic()
+        finally:
+            if task:
+                self._device_update_tasks.discard(task)
 
     async def async_setup(self, index=0):
         await self._async_setup()
@@ -47,6 +96,11 @@ class DataCoordinator(DataUpdateCoordinator):
             self._unsub_setup_refresh()
             self._unsub_setup_refresh = None
         await super().async_shutdown()
+        tasks = self._device_update_tasks - {asyncio.current_task()}
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _async_setup(self):
         """Set up coordinator."""

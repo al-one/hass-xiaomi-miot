@@ -1350,6 +1350,7 @@
           "access": ["read", "write"],
           "value-list": [
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         },
@@ -1361,6 +1362,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 3, "description": "Auto"},
             {"value": 2, "description": "High"}
           ]
         },
@@ -1372,6 +1374,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         },
@@ -1383,6 +1386,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         }
@@ -1413,6 +1417,7 @@
           "access": ["read", "write"],
           "value-list": [
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         },
@@ -1424,6 +1429,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 3, "description": "Auto"},
             {"value": 2, "description": "High"}
           ]
         },
@@ -1435,6 +1441,7 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
         },
@@ -1446,8 +1453,30 @@
           "value-list": [
             {"value": 0, "description": "Off"},
             {"value": 1, "description": "Low"},
+            {"value": 2, "description": "Auto"},
             {"value": 3, "description": "High"}
           ]
+        },
+        {
+          "iid": 114,
+          "type": "urn:miot-spec-v2:property:heating",
+          "description": "Heating",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 115,
+          "type": "urn:miot-spec-v2:property:blow",
+          "description": "Blow",
+          "format": "bool",
+          "access": ["read", "write"]
+        },
+        {
+          "iid": 116,
+          "type": "urn:miot-spec-v2:property:ventilation",
+          "description": "Ventilation",
+          "format": "bool",
+          "access": ["read", "write"]
         }
       ]
     }
