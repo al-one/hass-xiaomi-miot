@@ -4,6 +4,7 @@ import re
 from typing import TYPE_CHECKING, Optional, Callable
 from datetime import timedelta
 from functools import cached_property
+from aiohttp import ClientError
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import TemplateError
 from homeassistant.const import CONF_HOST, CONF_TOKEN, CONF_MODEL, CONF_USERNAME, EntityCategory
@@ -39,6 +40,7 @@ from .utils import (
     get_value,
     DeviceException,
     is_offline_exception,
+    latest_cloud_property,
     normalize_power_cost_value,
     power_cost_decreased,
     parse_power_cost_records,
@@ -1507,6 +1509,7 @@ class Device(CustomConfigHelper):
             return
 
         attrs = {}
+        properties = self.custom_config('miio_cloud_record_properties', {})
         for c in keys:
             mat = re.match(r'^\s*(?:(\w+)\.?)([\w.]+)(?::(\d+))?(?::(\w+))?\s*$', c)
             if not mat:
@@ -1518,6 +1521,17 @@ class Device(CustomConfigHelper):
             }
             if gby:
                 kws['group'] = gby
+            if prop_attr := properties.get(f'{typ}.{key}'):
+                # Keep the API status and source time for explicitly mapped records.
+                try:
+                    response = await self.cloud.async_get_user_device_data(
+                        self.did, key, typ, raw=True, **kws,
+                    )
+                except (MiCloudException, ClientError, OSError):
+                    response = None
+                    self.log.debug('Cloud property record request failed: %s', prop_attr)
+                self._update_cloud_property(prop_attr, response)
+                continue
             rdt = await self.cloud.async_get_user_device_data(self.did, key, typ, **kws) or []
             tpl = self.custom_config(f'miio_{typ}_{key}_template')
             if tpl:
@@ -1540,6 +1554,42 @@ class Device(CustomConfigHelper):
             self.data['updated'] = dt.now()
             self.dispatch(self.decode_attrs(attrs))
         return attrs
+
+    def _update_cloud_property(self, attr, response):
+        """Commit observations, not poll times; notify only on value/age changes."""
+        if not self.spec:
+            return
+        prop = self.spec.get_property(attr)
+        if not prop or not prop.value_range:
+            return
+        now = dt.now().timestamp()
+        observation = None
+        if (isinstance(response, dict) and type(response.get('code')) is int
+                and response['code'] == 0):
+            observation = latest_cloud_property(response.get('result'), now, prop.value_range)
+            if not observation:
+                self.log.debug('No unambiguous valid cloud property record: %s', attr)
+        elif response is not None:
+            self.log.warning('Invalid cloud property record response: %s', attr)
+        observations = self.data.setdefault('_cloud_record_observations', {})
+        previous = observations.get(attr)
+        changed = False
+        if observation and (not previous or observation['timestamp'] > previous['timestamp']):
+            observations[attr] = observation
+            self.props[attr] = observation['value']
+            changed = True
+        elif observation and previous and observation['timestamp'] == previous['timestamp']:
+            if observation['value'] != previous['value']:
+                self.log.warning('Conflicting cloud property record: %s, time=%s', attr, observation['timestamp'])
+        observation = observations.get(attr)
+        if not observation:
+            return
+        max_age = self.custom_config_integer('miio_cloud_record_max_age', 900)
+        available = self.available and -60 <= now - observation['timestamp'] <= max_age
+        availability = self.data.setdefault('_cloud_record_available', {})
+        if changed or availability.get(attr) != available:
+            availability[attr] = available
+            self.dispatch(self.decode_attrs({attr: observation['value']}))
 
     @cached_property
     def miio_cloud_props(self):
