@@ -1,4 +1,4 @@
-import time
+import asyncio
 import logging
 import voluptuous as vol
 from typing import Tuple
@@ -73,7 +73,7 @@ class Miio2MiotHelper:
         if cls := self.config.get('miio_commands'):
             for c in cls:
                 if dly := c.get('delay', 0):
-                    time.sleep(dly)
+                    await asyncio.sleep(dly)
                 pms = c.get('params', [])
                 try:
                     vls = await device.async_send(c['method'], pms)
