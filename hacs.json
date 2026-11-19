@@ -4,6 +4,6 @@
   "zip_release": true,
   "filename": "xiaomi_miot.zip",
   "render_readme": true,
-  "hide_default_branch": true,
+  "hide_default_branch": false,
   "homeassistant": "2025.6.0"
 }
