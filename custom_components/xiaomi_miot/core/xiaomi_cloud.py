@@ -1209,6 +1209,8 @@ class MiotCloud(micloud.MiCloud):
 
     def get_api_by_host(self, host, api=''):
         srv = self.default_server.lower()
+        if srv in ('tw', 'in') and 'smartcamera.api.io.mi.com' in host:
+            srv = 'sg'
         if srv and srv != 'cn':
             host = f'{srv}.{host}'
         api = str(api).lstrip('/')
