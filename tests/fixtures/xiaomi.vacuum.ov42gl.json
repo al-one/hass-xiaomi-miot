@@ -1,0 +1,3475 @@
+{
+  "type": "urn:miot-spec-v2:device:vacuum:0000A006:xiaomi-ov42gl:2",
+  "description": "Robot Cleaner",
+  "services": [
+    {
+      "iid": 1,
+      "type": "urn:miot-spec-v2:service:device-information:00007801:xiaomi-ov42gl:1",
+      "description": "Device Information",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:manufacturer:00000001:xiaomi-ov42gl:1",
+          "description": "Device Manufacturer",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:model:00000002:xiaomi-ov42gl:1",
+          "description": "Device Model",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:serial-number:00000003:xiaomi-ov42gl:1",
+          "description": "Device ID",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:firmware-revision:00000005:xiaomi-ov42gl:1",
+          "description": "Current Firmware Version",
+          "format": "string",
+          "access": [
+            "read"
+          ]
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:serial-no:000000FF:xiaomi-ov42gl:1",
+          "description": "Serial Number",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 2,
+      "type": "urn:miot-spec-v2:service:vacuum:00007810:xiaomi-ov42gl:1",
+      "description": "Robot Cleaner",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:vacuum-frameware-version:0000026D:xiaomi-ov42gl:1",
+          "description": "Vacuum Frameware Version",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:status:00000007:xiaomi-ov42gl:1",
+          "description": "Status",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "Idle"
+            },
+            {
+              "value": 2,
+              "description": "Charging"
+            },
+            {
+              "value": 3,
+              "description": "BreakCharging"
+            },
+            {
+              "value": 4,
+              "description": "Sweeping"
+            },
+            {
+              "value": 5,
+              "description": "Paused"
+            },
+            {
+              "value": 6,
+              "description": "Go Charging"
+            },
+            {
+              "value": 7,
+              "description": "GoWash"
+            },
+            {
+              "value": 8,
+              "description": "Remote"
+            },
+            {
+              "value": 9,
+              "description": "Charged"
+            },
+            {
+              "value": 10,
+              "description": "BuildingMap"
+            },
+            {
+              "value": 11,
+              "description": "Updating"
+            },
+            {
+              "value": 12,
+              "description": "MultiTaskStationWorking"
+            },
+            {
+              "value": 13,
+              "description": "MultiTaskRecharge"
+            },
+            {
+              "value": 14,
+              "description": "StationWorking"
+            },
+            {
+              "value": 15,
+              "description": "Error"
+            },
+            {
+              "value": 16,
+              "description": "Sweeping and Mopping"
+            },
+            {
+              "value": 17,
+              "description": "Mopping"
+            },
+            {
+              "value": 18,
+              "description": "MappingPause"
+            },
+            {
+              "value": 19,
+              "description": "GoChargeBreak"
+            },
+            {
+              "value": 20,
+              "description": "WashBreak"
+            },
+            {
+              "value": 21,
+              "description": "GoChargeBuildingMap"
+            },
+            {
+              "value": 22,
+              "description": "StationAssistingCleaning"
+            },
+            {
+              "value": 23,
+              "description": "StationAssistingCleaned"
+            },
+            {
+              "value": 24,
+              "description": "GoChargeInStationAssistingCleaning"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:fault:00000009:xiaomi-ov42gl:1",
+          "description": "Device Fault",
+          "format": "uint32",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-range": [
+            0,
+            420000,
+            1
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:sweep-mop-type:00000135:xiaomi-ov42gl:1",
+          "description": "Sweep Mop Type",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "Sweep"
+            },
+            {
+              "value": 2,
+              "description": "Mop"
+            },
+            {
+              "value": 3,
+              "description": "Sweep Mop"
+            },
+            {
+              "value": 4,
+              "description": "Sweep Before Mopping"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:sweep-type:000000D3:xiaomi-ov42gl:1",
+          "description": "Sweep Type",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "Global"
+            },
+            {
+              "value": 2,
+              "description": "Zone"
+            },
+            {
+              "value": 3,
+              "description": "Area"
+            },
+            {
+              "value": 4,
+              "description": "Edge"
+            },
+            {
+              "value": 5,
+              "description": "Costum"
+            },
+            {
+              "value": 6,
+              "description": "Point"
+            },
+            {
+              "value": 7,
+              "description": "Custom Area"
+            },
+            {
+              "value": 8,
+              "description": "Appointment"
+            },
+            {
+              "value": 9,
+              "description": "Linkage"
+            },
+            {
+              "value": 10,
+              "description": "Fast"
+            },
+            {
+              "value": 11,
+              "description": "AI Hosting"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 6,
+          "type": "urn:miot-spec-v2:property:cleaning-area:0000013A:xiaomi-ov42gl:1",
+          "description": "Cleaning Area",
+          "format": "uint32",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-range": [
+            0,
+            4294967295,
+            1
+          ]
+        },
+        {
+          "iid": 7,
+          "type": "urn:miot-spec-v2:property:cleaning-time:00000139:xiaomi-ov42gl:1",
+          "description": "Cleaning Time",
+          "format": "uint32",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "seconds",
+          "value-range": [
+            0,
+            4294967295,
+            1
+          ]
+        },
+        {
+          "iid": 8,
+          "type": "urn:miot-spec-v2:property:clean-times:00000136:xiaomi-ov42gl:1",
+          "description": "Clean Times",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "One Time"
+            },
+            {
+              "value": 2,
+              "description": "Two Time"
+            },
+            {
+              "value": 3,
+              "description": "Three Time"
+            }
+          ]
+        },
+        {
+          "iid": 9,
+          "type": "urn:miot-spec-v2:property:mode:00000008:xiaomi-ov42gl:1",
+          "description": "Mode",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "Silent"
+            },
+            {
+              "value": 2,
+              "description": "Basic"
+            },
+            {
+              "value": 3,
+              "description": "Strong"
+            },
+            {
+              "value": 4,
+              "description": "Full Speed"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 10,
+          "type": "urn:miot-spec-v2:property:mop-water-output-level:00000140:xiaomi-ov42gl:1",
+          "description": "Mop Water Output Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Off"
+            },
+            {
+              "value": 1,
+              "description": "Level1"
+            },
+            {
+              "value": 2,
+              "description": "Level2"
+            },
+            {
+              "value": 3,
+              "description": "Level3"
+            }
+          ]
+        },
+        {
+          "iid": 11,
+          "type": "urn:miot-spec-v2:property:mop-status:0000026C:xiaomi-ov42gl:1",
+          "description": "Mop Status",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 12,
+          "type": "urn:miot-spec-v2:property:zone-ids:00000137:xiaomi-ov42gl:1",
+          "description": "Zone IDs",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 13,
+          "type": "urn:miot-spec-v2:property:restricted-sweep-areas:0000013B:xiaomi-ov42gl:1",
+          "description": "Restricted Sweep Areas",
+          "format": "string",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 14,
+          "type": "urn:miot-spec-v2:property:restricted-walls:0000013D:xiaomi-ov42gl:1",
+          "description": "Restricted Walls",
+          "format": "string",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 15,
+          "type": "urn:miot-spec-v2:property:vacuum-room-ids:0000013E:xiaomi-ov42gl:1",
+          "description": "Vacuum Room IDs",
+          "format": "string",
+          "access": []
+        },
+        {
+          "iid": 16,
+          "type": "urn:miot-spec-v2:property:room-information:0000026B:xiaomi-ov42gl:1",
+          "description": "Room Information",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 17,
+          "type": "urn:miot-spec-v2:property:last-clean-time:00000280:xiaomi-ov42gl:1",
+          "description": "Last Clean Time",
+          "format": "uint32",
+          "access": [
+            "notify",
+            "read"
+          ],
+          "value-range": [
+            0,
+            4294967295,
+            1
+          ]
+        },
+        {
+          "iid": 18,
+          "type": "urn:miot-spec-v2:property:base-station-working-status:00000281:xiaomi-ov42gl:1",
+          "description": "Base Station Working Status",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 19,
+          "type": "urn:miot-spec-v2:property:order-clean:0000027C:xiaomi-ov42gl:1",
+          "description": "Order Clean",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 20,
+          "type": "urn:miot-spec-v2:property:carpet-boost:0000026E:xiaomi-ov42gl:1",
+          "description": "Carpet Boost",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 21,
+          "type": "urn:miot-spec-v2:property:carpet-avoidance:0000026F:xiaomi-ov42gl:1",
+          "description": "Carpet Avoidance",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ]
+        },
+        {
+          "iid": 22,
+          "type": "urn:miot-spec-v2:property:carpet-display:00000270:xiaomi-ov42gl:1",
+          "description": "Carpet Display",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 23,
+          "type": "urn:miot-spec-v2:property:sweep-break-switch:00000271:xiaomi-ov42gl:1",
+          "description": "Sweep Break Switch",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 24,
+          "type": "urn:miot-spec-v2:property:common-params:00000278:xiaomi-ov42gl:1",
+          "description": "Common Params",
+          "format": "string",
+          "access": []
+        },
+        {
+          "iid": 25,
+          "type": "urn:miot-spec-v2:property:sleep-status:000002BE:xiaomi-ov42gl:1",
+          "description": "Sleep Status",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 26,
+          "type": "urn:miot-spec-v2:property:location-status:000002BD:xiaomi-ov42gl:1",
+          "description": "Location Status",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 27,
+          "type": "urn:miot-spec-v2:property:map-complete-dialog:000002BF:xiaomi-ov42gl:1",
+          "description": "Map Complete Dialog",
+          "format": "int32",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ],
+          "value-range": [
+            -1,
+            2147483647,
+            1
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 28,
+          "type": "urn:miot-spec-v2:property:enable-mop-wash:000002C0:xiaomi-ov42gl:1",
+          "description": "Enable Mop Wash",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 29,
+          "type": "urn:miot-spec-v2:property:frequency-mop-wash:000002C1:xiaomi-ov42gl:1",
+          "description": "Frequency Mop Wash",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "By Room"
+            },
+            {
+              "value": 1,
+              "description": "By Area"
+            },
+            {
+              "value": 2,
+              "description": "By TIme"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 30,
+          "type": "urn:miot-spec-v2:property:water-output-for-washing-mop:000002C2:xiaomi-ov42gl:1",
+          "description": "Water Output For Washing Mop",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Deep"
+            },
+            {
+              "value": 1,
+              "description": "Daily"
+            },
+            {
+              "value": 2,
+              "description": "Save Water"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 31,
+          "type": "urn:miot-spec-v2:property:drying-time:0000006A:xiaomi-ov42gl:1",
+          "description": "Drying Time",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "2 Hours"
+            },
+            {
+              "value": 2,
+              "description": "3 Hours"
+            },
+            {
+              "value": 3,
+              "description": "4 Hours"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 32,
+          "type": "urn:miot-spec-v2:property:auto-dust-arrest:000002CB:xiaomi-ov42gl:1",
+          "description": "Auto Dust Arrest",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 33,
+          "type": "urn:miot-spec-v2:property:dust-arrest-frequency:000002CA:xiaomi-ov42gl:1",
+          "description": "Dust Arrest Frequency",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "Once"
+            },
+            {
+              "value": 2,
+              "description": "Twice"
+            },
+            {
+              "value": 3,
+              "description": "Triple"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 34,
+          "type": "urn:miot-spec-v2:property:auto-mop-dry:000002C5:xiaomi-ov42gl:1",
+          "description": "Auto Mop Dry",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 35,
+          "type": "urn:miot-spec-v2:property:auto-water-change:000002C6:xiaomi-ov42gl:1",
+          "description": "Auto Water Change",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 36,
+          "type": "urn:miot-spec-v2:property:use-detergent:000002C7:xiaomi-ov42gl:1",
+          "description": "Use Detergent",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 37,
+          "type": "urn:miot-spec-v2:property:ai-cleaning:000002C8:xiaomi-ov42gl:1",
+          "description": "AI Cleaning",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 38,
+          "type": "urn:miot-spec-v2:property:exit-remote-dialog:000002E0:xiaomi-ov42gl:1",
+          "description": "Exit Remote Dialog",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 39,
+          "type": "urn:miot-spec-v2:property:button-type:0000011F:xiaomi-ov42gl:1",
+          "description": "Button Type",
+          "format": "uint8",
+          "access": [],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "Press Up"
+            },
+            {
+              "value": 2,
+              "description": "Lift Up"
+            },
+            {
+              "value": 3,
+              "description": "Press Left"
+            },
+            {
+              "value": 4,
+              "description": "Lift Left"
+            },
+            {
+              "value": 5,
+              "description": "Press Right"
+            },
+            {
+              "value": 6,
+              "description": "Lift Right"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 40,
+          "type": "urn:miot-spec-v2:property:current-cleaning-config:000002ED:xiaomi-ov42gl:1",
+          "description": "Current Cleaning Config",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 41,
+          "type": "urn:miot-spec-v2:property:hot-water-mop-wash:000002FC:xiaomi-ov42gl:1",
+          "description": "Hot Water Mop Wash",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 42,
+          "type": "urn:miot-spec-v2:property:user-define-sweep-cfg:000002FD:xiaomi-ov42gl:1",
+          "description": "User Define Sweep Cfg",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 43,
+          "type": "urn:miot-spec-v2:property:user-define-sweep-id:000002FE:xiaomi-ov42gl:1",
+          "description": "User Define Sweep Id",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-range": [
+            0,
+            65535,
+            1
+          ]
+        },
+        {
+          "iid": 44,
+          "type": "urn:miot-spec-v2:property:mop-auto-lift:000002FF:xiaomi-ov42gl:1",
+          "description": "Mop Auto Lift",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 45,
+          "type": "urn:miot-spec-v2:property:sweep-ai-detection:00000304:xiaomi-ov42gl:1",
+          "description": "Sweep Ai Detection",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 46,
+          "type": "urn:miot-spec-v2:property:dirt-detection:00000305:xiaomi-ov42gl:1",
+          "description": "Dirt Detection",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 47,
+          "type": "urn:miot-spec-v2:property:object-detection:00000306:xiaomi-ov42gl:1",
+          "description": "Object Detection",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 48,
+          "type": "urn:miot-spec-v2:property:room-detection:0000030B:xiaomi-ov42gl:1",
+          "description": "Room Detection",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 49,
+          "type": "urn:miot-spec-v2:property:floor-material-detection:00000307:xiaomi-ov42gl:1",
+          "description": "Floor Material Detection",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 50,
+          "type": "urn:miot-spec-v2:property:defecation-detection:00000308:xiaomi-ov42gl:1",
+          "description": "Defecation Detection",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 51,
+          "type": "urn:miot-spec-v2:property:liquid-dirt-detection:00000309:xiaomi-ov42gl:1",
+          "description": "Liquid Dirt Detection",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 52,
+          "type": "urn:miot-spec-v2:property:solid-dirt-detection:0000030A:xiaomi-ov42gl:1",
+          "description": "Solid Dirt Detection",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 53,
+          "type": "urn:miot-spec-v2:property:water-check-list:00000320:xiaomi-ov42gl:1",
+          "description": "Water Check List",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 54,
+          "type": "urn:miot-spec-v2:property:water-check-status:00000321:xiaomi-ov42gl:1",
+          "description": "Water Check Status",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Uncheck"
+            },
+            {
+              "value": 1,
+              "description": "Checking"
+            },
+            {
+              "value": 2,
+              "description": "Check Success"
+            },
+            {
+              "value": 3,
+              "description": "Check Fail"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 55,
+          "type": "urn:miot-spec-v2:property:edge-swing-tail-sweep:00000322:xiaomi-ov42gl:1",
+          "description": "Edge Swing Tail Sweep",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 56,
+          "type": "urn:miot-spec-v2:property:sweep-ai-object:00000324:xiaomi-ov42gl:1",
+          "description": "Sweep Ai Object",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 57,
+          "type": "urn:miot-spec-v2:property:sweep-furniture:00000325:xiaomi-ov42gl:1",
+          "description": "Sweep Furniture",
+          "format": "string",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 58,
+          "type": "urn:miot-spec-v2:property:carpet-object:00000326:xiaomi-ov42gl:1",
+          "description": "Carpet Object",
+          "format": "string",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ]
+        },
+        {
+          "iid": 59,
+          "type": "urn:miot-spec-v2:property:detergent-self-delivery:000000D0:xiaomi-ov42gl:1",
+          "description": "Detergent Self Delivery",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 60,
+          "type": "urn:miot-spec-v2:property:mop-water-output-level-no-tank:0000032D:xiaomi-ov42gl:1",
+          "description": "Mop Water Output Level No Tank",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Daily"
+            },
+            {
+              "value": 1,
+              "description": "Deep"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 61,
+          "type": "urn:miot-spec-v2:property:frequency-mop-wash-no-tank:00000338:xiaomi-ov42gl:1",
+          "description": "Frequency Mop Wash No Tank",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Five Square  Meters"
+            },
+            {
+              "value": 1,
+              "description": "Ten Square  Meters"
+            },
+            {
+              "value": 2,
+              "description": "Eight Square  Meters"
+            },
+            {
+              "value": 3,
+              "description": "Fifteen Square  Meters"
+            },
+            {
+              "value": 4,
+              "description": "Twenty Square  Meters"
+            },
+            {
+              "value": 5,
+              "description": "Twenty-five Square  Meters"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 62,
+          "type": "urn:miot-spec-v2:property:auto-water-change-installed:00000339:xiaomi-ov42gl:1",
+          "description": "Auto Water Change Installed",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 63,
+          "type": "urn:miot-spec-v2:property:cut-hair-config:0000033A:xiaomi-ov42gl:1",
+          "description": "Cut Hair Config",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 64,
+          "type": "urn:miot-spec-v2:property:frequency-cut-hair-config:0000033B:xiaomi-ov42gl:1",
+          "description": "Frequency Cut Hair Config",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "1"
+            },
+            {
+              "value": 2,
+              "description": "2"
+            },
+            {
+              "value": 3,
+              "description": "3"
+            },
+            {
+              "value": 4,
+              "description": "4"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 65,
+          "type": "urn:miot-spec-v2:property:vacuum-route:00000347:xiaomi-ov42gl:1",
+          "description": "Vacuum Route",
+          "format": "string",
+          "access": []
+        },
+        {
+          "iid": 66,
+          "type": "urn:miot-spec-v2:property:fault-ids:00000346:xiaomi-ov42gl:1",
+          "description": "Fault Ids",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 67,
+          "type": "urn:miot-spec-v2:property:action-result:00000353:xiaomi-ov42gl:1",
+          "description": "Action Result",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 68,
+          "type": "urn:miot-spec-v2:property:edge-sweep-frequency:0000036F:xiaomi-ov42gl:1",
+          "description": "Edge Sweep Frequency",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "7 Sweeps"
+            },
+            {
+              "value": 2,
+              "description": "Every Time"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 69,
+          "type": "urn:miot-spec-v2:property:ai-managed-cleaning:0000037B:xiaomi-ov42gl:1",
+          "description": "AI Managed Cleaning",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 70,
+          "type": "urn:miot-spec-v2:property:plugin-info-remind:0000037C:xiaomi-ov42gl:1",
+          "description": "Plugin Info Remind",
+          "format": "string",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 71,
+          "type": "urn:miot-spec-v2:property:detergent-depletion-reminder:000003B7:xiaomi-ov42gl:1",
+          "description": "Detergent Depletion Reminder",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 72,
+          "type": "urn:miot-spec-v2:property:notice:000003C8:xiaomi-ov42gl:1",
+          "description": "Notice",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 73,
+          "type": "urn:miot-spec-v2:property:carpet-cleaning-method:000003CA:xiaomi-ov42gl:1",
+          "description": "Carpet Cleaning Method",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Self Adaption"
+            },
+            {
+              "value": 1,
+              "description": "Avoid"
+            },
+            {
+              "value": 2,
+              "description": "Ignore"
+            },
+            {
+              "value": 3,
+              "description": "Span"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 74,
+          "type": "urn:miot-spec-v2:property:sweep-route:000003E1:xiaomi-ov42gl:1",
+          "description": "Sweep Route",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "Quick"
+            },
+            {
+              "value": 2,
+              "description": "Daily"
+            },
+            {
+              "value": 3,
+              "description": "Careful"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 75,
+          "type": "urn:miot-spec-v2:property:obstacle-avoidance-strategy:00000413:xiaomi-ov42gl:1",
+          "description": "Obstacle Avoidance Strategy",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Less Collisions"
+            },
+            {
+              "value": 1,
+              "description": "High Coverage"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 76,
+          "type": "urn:miot-spec-v2:property:carpet-deep-cleaning:00000414:xiaomi-ov42gl:1",
+          "description": "Carpet Deep Cleaning",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 77,
+          "type": "urn:miot-spec-v2:property:carpet-discriminate:000003CC:xiaomi-ov42gl:1",
+          "description": "Carpet Discriminate",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 78,
+          "type": "urn:miot-spec-v2:property:sweep-carpet-first:00000430:xiaomi-ov42gl:1",
+          "description": "Sweep Carpet First",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 79,
+          "type": "urn:miot-spec-v2:property:mop-outer-swing:0000042D:xiaomi-ov42gl:1",
+          "description": "Mop Outer Swing",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 80,
+          "type": "urn:miot-spec-v2:property:mop-outer-swing-frequency:00000431:xiaomi-ov42gl:1",
+          "description": "Mop Outer Swing Frequency",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "7 Sweeps"
+            },
+            {
+              "value": 2,
+              "description": "Every Time"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 81,
+          "type": "urn:miot-spec-v2:property:frequency-mop-wash-by-time:0000042C:xiaomi-ov42gl:1",
+          "description": "Frequency Mop Wash By Time",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-range": [
+            0,
+            255,
+            1
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 82,
+          "type": "urn:miot-spec-v2:property:auto-dust-arrest-power-level:0000042E:xiaomi-ov42gl:1",
+          "description": "Auto Dust Arrest Power Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Silent"
+            },
+            {
+              "value": 1,
+              "description": "Normal"
+            },
+            {
+              "value": 2,
+              "description": "Strong"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 83,
+          "type": "urn:miot-spec-v2:property:worry-free-clean-mode:0000042F:xiaomi-ov42gl:1",
+          "description": "Worry Free Clean Mode",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Silent Clean"
+            },
+            {
+              "value": 1,
+              "description": "Deep Clean"
+            },
+            {
+              "value": 2,
+              "description": "General"
+            },
+            {
+              "value": 3,
+              "description": "Butler"
+            },
+            {
+              "value": 4,
+              "description": "Pet "
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 84,
+          "type": "urn:miot-spec-v2:property:wash-mop-water-temperature:00000444:xiaomi-ov42gl:1",
+          "description": "Wash Mop Water Temperature",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Ordinary Temperature"
+            },
+            {
+              "value": 1,
+              "description": "Warm"
+            },
+            {
+              "value": 2,
+              "description": "Hot"
+            },
+            {
+              "value": 3,
+              "description": "Smart"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 85,
+          "type": "urn:miot-spec-v2:property:statistical-clean-area:0000049A:xiaomi-ov42gl:1",
+          "description": "Statistical Clean Area",
+          "format": "uint32",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-range": [
+            0,
+            4294967295,
+            1
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 86,
+          "type": "urn:miot-spec-v2:property:statistical-cleaning-times:0000049B:xiaomi-ov42gl:1",
+          "description": "Statistical Cleaning Times",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        },
+        {
+          "iid": 87,
+          "type": "urn:miot-spec-v2:property:statistical-cleaning-duration:0000049C:xiaomi-ov42gl:1",
+          "description": "Statistical Cleaning Duration",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            1500,
+            1
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 88,
+          "type": "urn:miot-spec-v2:property:drying-progress:0000049E:xiaomi-ov42gl:1",
+          "description": "Drying Progress",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        },
+        {
+          "iid": 89,
+          "type": "urn:miot-spec-v2:property:cleaning-progress:0000049D:xiaomi-ov42gl:1",
+          "description": "Cleaning Progress",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        },
+        {
+          "iid": 90,
+          "type": "urn:miot-spec-v2:property:dry-left-time:00000174:xiaomi-ov42gl:1",
+          "description": "Dry Left Time",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "minutes",
+          "value-range": [
+            0,
+            9999,
+            1
+          ]
+        },
+        {
+          "iid": 91,
+          "type": "urn:miot-spec-v2:property:brush-outswing:000004A5:xiaomi-ov42gl:1",
+          "description": "Brush Outswing",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 92,
+          "type": "urn:miot-spec-v2:property:repeat-wash-mop:00000496:xiaomi-ov42gl:1",
+          "description": "Repeat Wash Mop",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 93,
+          "type": "urn:miot-spec-v2:property:real-scene-capture:00000497:xiaomi-ov42gl:1",
+          "description": "Real Scene Capture",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 94,
+          "type": "urn:miot-spec-v2:property:auto-night-fill-light:00000499:xiaomi-ov42gl:1",
+          "description": "Auto Night Fill Light",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 95,
+          "type": "urn:miot-spec-v2:property:ai-wake-up:000004AA:xiaomi-ov42gl:1",
+          "description": "Ai Wake Up",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 96,
+          "type": "urn:miot-spec-v2:property:sweep-mop-status:000004D7:xiaomi-ov42gl:1",
+          "description": "Sweep Mop Status",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Idle"
+            },
+            {
+              "value": 1,
+              "description": "Sweeping"
+            },
+            {
+              "value": 2,
+              "description": "Mopping"
+            }
+          ]
+        },
+        {
+          "iid": 97,
+          "type": "urn:miot-spec-v2:property:sewage-tank-status:000004D8:xiaomi-ov42gl:1",
+          "description": "Sewage Tank Status",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Not Full"
+            },
+            {
+              "value": 1,
+              "description": "Full"
+            }
+          ]
+        },
+        {
+          "iid": 98,
+          "type": "urn:miot-spec-v2:property:water-tank-status:000004D9:xiaomi-ov42gl:1",
+          "description": "Water Tank Status",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Not Empty"
+            },
+            {
+              "value": 1,
+              "description": "Empty"
+            }
+          ]
+        },
+        {
+          "iid": 99,
+          "type": "urn:miot-spec-v2:property:sill:000004DC:xiaomi-ov42gl:1",
+          "description": "Sill",
+          "format": "string",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 100,
+          "type": "urn:miot-spec-v2:property:base-station-water-tank-status:000004DD:xiaomi-ov42gl:1",
+          "description": "Base Station Water Tank Status",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Idle"
+            },
+            {
+              "value": 1,
+              "description": "Empting"
+            },
+            {
+              "value": 2,
+              "description": "Empting Completed"
+            },
+            {
+              "value": 3,
+              "description": "Empting Failed"
+            }
+          ]
+        },
+        {
+          "iid": 101,
+          "type": "urn:miot-spec-v2:property:host-water-tank-status:000004DE:xiaomi-ov42gl:1",
+          "description": "Host Water Tank Status",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Idle"
+            },
+            {
+              "value": 1,
+              "description": "Empting"
+            },
+            {
+              "value": 2,
+              "description": "Empting Completed"
+            },
+            {
+              "value": 3,
+              "description": "Empting Failed"
+            }
+          ]
+        },
+        {
+          "iid": 102,
+          "type": "urn:miot-spec-v2:property:furniture-for-automation:000004DF:xiaomi-ov42gl:1",
+          "description": "Furniture For Automation",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:start-sweep:00002804:xiaomi-ov42gl:1",
+          "description": "Start Sweep",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:action:stop-sweeping:00002805:xiaomi-ov42gl:1",
+          "description": "Stop Sweeping",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:action:stop-and-gocharge:000028B4:xiaomi-ov42gl:1",
+          "description": "Stop And Gocharge",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:action:start-only-sweep:0000283A:xiaomi-ov42gl:1",
+          "description": "Start Only Sweep",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:action:start-mop:00002834:xiaomi-ov42gl:1",
+          "description": "Start Mop",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 6,
+          "type": "urn:miot-spec-v2:action:start-sweep-mop:00002835:xiaomi-ov42gl:1",
+          "description": "Start Sweep Mop",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 7,
+          "type": "urn:miot-spec-v2:action:pause-sweeping:00002863:xiaomi-ov42gl:1",
+          "description": "Pause Sweeping",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 8,
+          "type": "urn:miot-spec-v2:action:continue-sweep:000028AA:xiaomi-ov42gl:1",
+          "description": "Continue Sweep",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 9,
+          "type": "urn:miot-spec-v2:action:start-custom-sweep:000028AF:xiaomi-ov42gl:1",
+          "description": "Start Custom Sweep",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 10,
+          "type": "urn:miot-spec-v2:action:get-zone-configs:00002860:xiaomi-ov42gl:1",
+          "description": "Get Zone Configs",
+          "in": [
+            12
+          ],
+          "out": []
+        },
+        {
+          "iid": 11,
+          "type": "urn:miot-spec-v2:action:get-room-configs:00002862:xiaomi-ov42gl:1",
+          "description": "Get Room Configs",
+          "in": [
+            15
+          ],
+          "out": []
+        },
+        {
+          "iid": 12,
+          "type": "urn:miot-spec-v2:action:set-zone:0000285D:xiaomi-ov42gl:1",
+          "description": "Set Zone",
+          "in": [
+            12
+          ],
+          "out": []
+        },
+        {
+          "iid": 13,
+          "type": "urn:miot-spec-v2:action:set-room-clean-configs:00002861:xiaomi-ov42gl:1",
+          "description": "Set Room Clean Configs",
+          "in": [
+            16
+          ],
+          "out": []
+        },
+        {
+          "iid": 14,
+          "type": "urn:miot-spec-v2:action:split-room:0000285C:xiaomi-ov42gl:1",
+          "description": "Split Room",
+          "in": [
+            24
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 15,
+          "type": "urn:miot-spec-v2:action:merge-rooms:0000285B:xiaomi-ov42gl:1",
+          "description": "Merge Rooms",
+          "in": [
+            15
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 16,
+          "type": "urn:miot-spec-v2:action:start-vacuum-room-sweep:00002856:xiaomi-ov42gl:1",
+          "description": "Start Vacuum Room Sweep",
+          "in": [
+            15
+          ],
+          "out": []
+        },
+        {
+          "iid": 17,
+          "type": "urn:miot-spec-v2:action:start-build-map:00002859:xiaomi-ov42gl:1",
+          "description": "Start Build Map",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 18,
+          "type": "urn:miot-spec-v2:action:start-dust-arrest:00002873:xiaomi-ov42gl:1",
+          "description": "Start Dust Arrest",
+          "in": [],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 19,
+          "type": "urn:miot-spec-v2:action:start-mop-wash:00002875:xiaomi-ov42gl:1",
+          "description": "Start Mop Wash",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 20,
+          "type": "urn:miot-spec-v2:action:start-dry:00002877:xiaomi-ov42gl:1",
+          "description": "Start Dry",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 21,
+          "type": "urn:miot-spec-v2:action:start-eject:00002879:xiaomi-ov42gl:1",
+          "description": "Start Eject",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 22,
+          "type": "urn:miot-spec-v2:action:start-call-clean:0000287A:xiaomi-ov42gl:1",
+          "description": "Start Call Clean",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 23,
+          "type": "urn:miot-spec-v2:action:add-order-clean:000028AC:xiaomi-ov42gl:1",
+          "description": "Add Order Clean",
+          "in": [
+            24
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 24,
+          "type": "urn:miot-spec-v2:action:modify-order-clean:000028AD:xiaomi-ov42gl:1",
+          "description": "Modify Order Clean",
+          "in": [
+            24
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 25,
+          "type": "urn:miot-spec-v2:action:delete-order-clean:000028AE:xiaomi-ov42gl:1",
+          "description": "Delete Order Clean",
+          "in": [
+            24
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 26,
+          "type": "urn:miot-spec-v2:action:remote-control:000028AB:xiaomi-ov42gl:1",
+          "description": "Remote Control",
+          "in": [
+            39
+          ],
+          "out": []
+        },
+        {
+          "iid": 27,
+          "type": "urn:miot-spec-v2:action:try-listen:000028B0:xiaomi-ov42gl:1",
+          "description": "Try Listen",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 28,
+          "type": "urn:miot-spec-v2:action:enter-remote:000028B3:xiaomi-ov42gl:1",
+          "description": "Enter Remote",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 29,
+          "type": "urn:miot-spec-v2:action:exit-remote:000028B1:xiaomi-ov42gl:1",
+          "description": "Exit Remote",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 30,
+          "type": "urn:miot-spec-v2:action:get-system-info:000028B2:xiaomi-ov42gl:1",
+          "description": "Get System Info",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 31,
+          "type": "urn:miot-spec-v2:action:stop-mop-wash:00002876:xiaomi-ov42gl:1",
+          "description": "Stop Mop Wash",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 32,
+          "type": "urn:miot-spec-v2:action:stop-dry:00002878:xiaomi-ov42gl:1",
+          "description": "Stop Dry",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 33,
+          "type": "urn:miot-spec-v2:action:continue-build-map:000028BC:xiaomi-ov42gl:1",
+          "description": "Continue Build Map",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 34,
+          "type": "urn:miot-spec-v2:action:stop-build-map-and-gocharge:000028BD:xiaomi-ov42gl:1",
+          "description": "Stop Build Map And Gocharge",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 35,
+          "type": "urn:miot-spec-v2:action:pause-build-map:000028BE:xiaomi-ov42gl:1",
+          "description": "Pause Build Map",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 36,
+          "type": "urn:miot-spec-v2:action:back-mop-wash:000028BF:xiaomi-ov42gl:1",
+          "description": "Back Mop Wash",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 37,
+          "type": "urn:miot-spec-v2:action:start-zone-sweep:00002857:xiaomi-ov42gl:1",
+          "description": "Start Zone Sweep",
+          "in": [
+            12
+          ],
+          "out": []
+        },
+        {
+          "iid": 38,
+          "type": "urn:miot-spec-v2:action:add-user-sweep-setting:000028CB:xiaomi-ov42gl:1",
+          "description": "Add User Sweep Setting",
+          "in": [
+            42
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 39,
+          "type": "urn:miot-spec-v2:action:del-user-sweep-setting:000028CA:xiaomi-ov42gl:1",
+          "description": "Del User Sweep Setting",
+          "in": [
+            43
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 40,
+          "type": "urn:miot-spec-v2:action:modify-user-sweep-setting:000028CC:xiaomi-ov42gl:1",
+          "description": "Modify User Sweep Setting",
+          "in": [
+            42
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 41,
+          "type": "urn:miot-spec-v2:action:user-define-sweep-set:000028CD:xiaomi-ov42gl:1",
+          "description": "User Define Sweep Set",
+          "in": [
+            42
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 42,
+          "type": "urn:miot-spec-v2:action:start-user-define-sweep:000028CE:xiaomi-ov42gl:1",
+          "description": "Start User Define Sweep",
+          "in": [
+            43
+          ],
+          "out": []
+        },
+        {
+          "iid": 43,
+          "type": "urn:miot-spec-v2:action:start-cut-hair:000028CF:xiaomi-ov42gl:1",
+          "description": "Start Cut Hair",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 44,
+          "type": "urn:miot-spec-v2:action:stop-cut-hair:000028D0:xiaomi-ov42gl:1",
+          "description": "Stop Cut Hair",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 45,
+          "type": "urn:miot-spec-v2:action:start-water-self-check:000028D2:xiaomi-ov42gl:1",
+          "description": "Start Water Self Check",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 46,
+          "type": "urn:miot-spec-v2:action:cancel-water-self-check:000028D3:xiaomi-ov42gl:1",
+          "description": "Cancel Water Self Check",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 47,
+          "type": "urn:miot-spec-v2:action:get-vacuum-route:000028D4:xiaomi-ov42gl:1",
+          "description": "Get Vacuum Route",
+          "in": [
+            24
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 48,
+          "type": "urn:miot-spec-v2:action:close-abnormal-card:000028E6:xiaomi-ov42gl:1",
+          "description": "Close Abnormal Card",
+          "in": [
+            24
+          ],
+          "out": []
+        },
+        {
+          "iid": 49,
+          "type": "urn:miot-spec-v2:action:start-base-station-cleaning:00002905:xiaomi-ov42gl:1",
+          "description": "Start Base Station Cleaning",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 50,
+          "type": "urn:miot-spec-v2:action:start-sweep-before-mopping:000028FB:xiaomi-ov42gl:1",
+          "description": "Start Sweep Before Mopping",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 51,
+          "type": "urn:miot-spec-v2:action:stop-working:00002825:xiaomi-ov42gl:1",
+          "description": "Stop Working",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 52,
+          "type": "urn:miot-spec-v2:action:skip-cleaning:000028FD:xiaomi-ov42gl:1",
+          "description": "Skip Cleaning",
+          "in": [
+            15
+          ],
+          "out": []
+        },
+        {
+          "iid": 53,
+          "type": "urn:miot-spec-v2:action:final-cleaning:000028FE:xiaomi-ov42gl:1",
+          "description": "Final Cleaning",
+          "in": [
+            15
+          ],
+          "out": []
+        },
+        {
+          "iid": 54,
+          "type": "urn:miot-spec-v2:action:temporary-cleaning-room:00002901:xiaomi-ov42gl:1",
+          "description": "Temporary Cleaning Room",
+          "in": [
+            15
+          ],
+          "out": []
+        },
+        {
+          "iid": 55,
+          "type": "urn:miot-spec-v2:action:temporary-cleaning-zone:00002900:xiaomi-ov42gl:1",
+          "description": "Temporary Cleaning Zone",
+          "in": [
+            24
+          ],
+          "out": []
+        },
+        {
+          "iid": 56,
+          "type": "urn:miot-spec-v2:action:start-furniture-cleaning:000028FC:xiaomi-ov42gl:1",
+          "description": "Start Furniture Cleaning",
+          "in": [
+            24
+          ],
+          "out": []
+        },
+        {
+          "iid": 57,
+          "type": "urn:miot-spec-v2:action:empty-base-station-water-tank:0000290C:xiaomi-ov42gl:1",
+          "description": "Empty Base Station Water Tank",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 58,
+          "type": "urn:miot-spec-v2:action:empty-host-water-tank:0000290D:xiaomi-ov42gl:1",
+          "description": "Empty Host Water Tank",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 59,
+          "type": "urn:miot-spec-v2:action:spot-cleaning:0000290E:xiaomi-ov42gl:1",
+          "description": "Spot Cleaning",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 60,
+          "type": "urn:miot-spec-v2:action:operate-ai-recognize-obj:0000291A:xiaomi-ov42gl:1",
+          "description": "Operate AI Recognize Obj",
+          "in": [
+            24
+          ],
+          "out": []
+        },
+        {
+          "iid": 61,
+          "type": "urn:miot-spec-v2:action:get-ai-picture-obj:0000291E:xiaomi-ov42gl:1",
+          "description": "Get Ai Picture Obj",
+          "in": [
+            24
+          ],
+          "out": [
+            24
+          ]
+        },
+        {
+          "iid": 62,
+          "type": "urn:miot-spec-v2:action:common-object-clean:0000291F:xiaomi-ov42gl:1",
+          "description": "Common Object Clean",
+          "in": [
+            24
+          ],
+          "out": []
+        },
+        {
+          "iid": 63,
+          "type": "urn:miot-spec-v2:action:start-self-cleaning-of-the-station:00002920:xiaomi-ov42gl:1",
+          "description": "Start Self Cleaning Of The Station",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 64,
+          "type": "urn:miot-spec-v2:action:stop-self-cleaning-of-the-station:00002921:xiaomi-ov42gl:1",
+          "description": "Stop Self Cleaning Of The Station",
+          "in": [],
+          "out": []
+        }
+      ],
+      "events": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:event:build-map-complete:0000503B:xiaomi-ov42gl:1",
+          "description": "Build Map Complete",
+          "arguments": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:event:sweep-complete:0000503A:xiaomi-ov42gl:1",
+          "description": "Sweep Complete",
+          "arguments": []
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:event:dust-arrest-complete:0000503D:xiaomi-ov42gl:1",
+          "description": "Dust Arrest Complete",
+          "arguments": []
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:event:mop-wash-complete:0000503E:xiaomi-ov42gl:1",
+          "description": "Mop Wash Complete",
+          "arguments": []
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:event:dry-complete:0000503F:xiaomi-ov42gl:1",
+          "description": "Dry Complete",
+          "arguments": []
+        },
+        {
+          "iid": 6,
+          "type": "urn:miot-spec-v2:event:eject-complete:00005040:xiaomi-ov42gl:1",
+          "description": "Eject Complete",
+          "arguments": []
+        },
+        {
+          "iid": 7,
+          "type": "urn:miot-spec-v2:event:call-clean-complete:00005041:xiaomi-ov42gl:1",
+          "description": "Call Clean Complete",
+          "arguments": []
+        }
+      ]
+    },
+    {
+      "iid": 3,
+      "type": "urn:miot-spec-v2:service:battery:00007805:xiaomi-ov42gl:1",
+      "description": "Battery",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:battery-level:00000014:xiaomi-ov42gl:1",
+          "description": "Battery Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:charging-state:00000015:xiaomi-ov42gl:1",
+          "description": "Charging State",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 1,
+              "description": "Charging"
+            },
+            {
+              "value": 2,
+              "description": "Not Charging"
+            },
+            {
+              "value": 3,
+              "description": "Not Chargeable"
+            }
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:voltage:00000031:xiaomi-ov42gl:1",
+          "description": "Voltage",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-range": [
+            0,
+            65535,
+            1
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:start-charge:00002802:xiaomi-ov42gl:1",
+          "description": "Start Charge",
+          "in": [],
+          "out": []
+        }
+      ],
+      "events": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:event:low-battery:00005003:xiaomi-ov42gl:1",
+          "description": "Low Battery",
+          "arguments": []
+        }
+      ]
+    },
+    {
+      "iid": 4,
+      "type": "urn:miot-spec-v2:service:alarm:00007804:xiaomi-ov42gl:1",
+      "description": "Alarm",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:alarm:00000012:xiaomi-ov42gl:1",
+          "description": "Alarm",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:volume:00000013:xiaomi-ov42gl:1",
+          "description": "Volume",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 5,
+      "type": "urn:miot-spec-v2:service:physical-controls-locked:00007807:xiaomi-ov42gl:1",
+      "description": "Physical Control Locked",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:physical-controls-locked:0000001D:xiaomi-ov42gl:1",
+          "description": "Physical Control Locked",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:current-physical-control-lock:00000099:xiaomi-ov42gl:1",
+          "description": "Current Physical Control Lock",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 6,
+      "type": "urn:miot-spec-v2:service:identify:0000782C:xiaomi-ov42gl:1",
+      "description": "Identify",
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:identify:00002801:xiaomi-ov42gl:1",
+          "description": "Identify",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 9,
+      "type": "urn:miot-spec-v2:service:mop:000078C2:xiaomi-ov42gl:1",
+      "description": "Mop",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:mop-life-level:00000175:xiaomi-ov42gl:1",
+          "description": "Mop Life Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:mop-left-time:00000176:xiaomi-ov42gl:1",
+          "description": "Mop Left Time",
+          "format": "uint16",
+          "access": [
+            "notify",
+            "read"
+          ],
+          "unit": "hours",
+          "value-range": [
+            0,
+            9999,
+            1
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:reset-mop-life:0000287B:xiaomi-ov42gl:1",
+          "description": "Reset Mop Life",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 10,
+      "type": "urn:miot-spec-v2:service:vacuum-map:000078E2:xiaomi-ov42gl:1",
+      "description": "Vacuum Map",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:map-obj-name:00000272:xiaomi-ov42gl:1",
+          "description": "Map Obj Name",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:trajectory-obj-name:00000273:xiaomi-ov42gl:1",
+          "description": "Trajectory Obj Name",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:clean-record:00000274:xiaomi-ov42gl:1",
+          "description": "Clean Record",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:vacuum-position:00000275:xiaomi-ov42gl:1",
+          "description": "Vacuum Position",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:map-management:00000279:xiaomi-ov42gl:1",
+          "description": "Map Management",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 6,
+          "type": "urn:miot-spec-v2:property:current-map-id:0000027A:xiaomi-ov42gl:1",
+          "description": "Current Map Id",
+          "format": "uint32",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-range": [
+            0,
+            4294967295,
+            1
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 7,
+          "type": "urn:miot-spec-v2:property:carpet-obj-name:0000027B:xiaomi-ov42gl:1",
+          "description": "Carpet Obj Name",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 8,
+          "type": "urn:miot-spec-v2:property:common-params:00000278:xiaomi-ov42gl:1",
+          "description": "Common Params",
+          "format": "string",
+          "access": []
+        },
+        {
+          "iid": 9,
+          "type": "urn:miot-spec-v2:property:map-3d-info:0000032E:xiaomi-ov42gl:1",
+          "description": "Map Three Dimensional Info",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 10,
+          "type": "urn:miot-spec-v2:property:map-switch-method:00000433:xiaomi-ov42gl:1",
+          "description": "Map Switch Method",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Manual"
+            },
+            {
+              "value": 1,
+              "description": "Auto"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 11,
+          "type": "urn:miot-spec-v2:property:map-upload-stop:00000432:xiaomi-ov42gl:1",
+          "description": "Map Upload Stop",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 12,
+          "type": "urn:miot-spec-v2:property:map-upload-stop-action-result:00000434:xiaomi-ov42gl:1",
+          "description": "Map Upload Stop Action Result",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 13,
+          "type": "urn:miot-spec-v2:property:backup-map-list:00000438:xiaomi-ov42gl:1",
+          "description": "Backup Map List",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 14,
+          "type": "urn:miot-spec-v2:property:restore-map-result:00000439:xiaomi-ov42gl:1",
+          "description": "Restore Map Result",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 15,
+          "type": "urn:miot-spec-v2:property:cloud-clean-record:000004D6:xiaomi-ov42gl:1",
+          "description": "Cloud Clean Record",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:clear-map:000028A5:xiaomi-ov42gl:1",
+          "description": "Clear Map",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:action:delete-map:0000285A:xiaomi-ov42gl:1",
+          "description": "Delete Map",
+          "in": [
+            6
+          ],
+          "out": []
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:action:set-map:000028A6:xiaomi-ov42gl:1",
+          "description": "Set Map",
+          "in": [
+            6
+          ],
+          "out": []
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:action:save-map:000028A7:xiaomi-ov42gl:1",
+          "description": "Save Map",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:action:auto-room-partition:000028A8:xiaomi-ov42gl:1",
+          "description": "Auto Room Partition",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 6,
+          "type": "urn:miot-spec-v2:action:set-map-name:000028A9:xiaomi-ov42gl:1",
+          "description": "Set Map Name",
+          "in": [
+            8
+          ],
+          "out": []
+        },
+        {
+          "iid": 7,
+          "type": "urn:miot-spec-v2:action:update-properties-data:000028D7:xiaomi-ov42gl:1",
+          "description": "Update Properties Data",
+          "in": [],
+          "out": []
+        },
+        {
+          "iid": 8,
+          "type": "urn:miot-spec-v2:action:restore-map:000028F7:xiaomi-ov42gl:1",
+          "description": "Restore Map",
+          "in": [
+            6
+          ],
+          "out": []
+        }
+      ],
+      "events": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:event:map-notify:0000506B:xiaomi-ov42gl:1",
+          "description": "Map Notify",
+          "arguments": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:event:trajectory-notify:0000506C:xiaomi-ov42gl:1",
+          "description": "Trajectory Notify",
+          "arguments": []
+        }
+      ]
+    },
+    {
+      "iid": 11,
+      "type": "urn:miot-spec-v2:service:no-disturb:000078BC:xiaomi-ov42gl:1",
+      "description": "No Disturb",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:no-disturb:00000152:xiaomi-ov42gl:1",
+          "description": "No Disturb",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:enable-time-period:00000153:xiaomi-ov42gl:1",
+          "description": "Enable Time Period",
+          "format": "uint32",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-range": [
+            0,
+            4294967295,
+            1
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:current-no-disturb:00000300:xiaomi-ov42gl:1",
+          "description": "Current No Disturb",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 12,
+      "type": "urn:miot-spec-v2:service:brush-cleaner:0000784C:xiaomi-ov42gl:1",
+      "description": "Main Cleaning Brush",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:brush-life-level:00000085:xiaomi-ov42gl:1",
+          "description": "Brush Life Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:brush-left-time:00000086:xiaomi-ov42gl:1",
+          "description": "Brush Left Time",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "hours",
+          "value-range": [
+            0,
+            9999,
+            1
+          ],
+          "gatt-access": []
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:reset-brush-life:00002830:xiaomi-ov42gl:1",
+          "description": "Reset Brush Life",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 13,
+      "type": "urn:miot-spec-v2:service:brush-cleaner:0000784C:xiaomi-ov42gl:1",
+      "description": "Side Cleaning Brush",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:brush-life-level:00000085:xiaomi-ov42gl:1",
+          "description": "Brush Life Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:brush-left-time:00000086:xiaomi-ov42gl:1",
+          "description": "Brush Left Time",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "hours",
+          "value-range": [
+            0,
+            9999,
+            1
+          ],
+          "gatt-access": []
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:reset-brush-life:00002830:xiaomi-ov42gl:1",
+          "description": "Reset Brush Life",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 14,
+      "type": "urn:miot-spec-v2:service:filter:0000780B:xiaomi-ov42gl:1",
+      "description": "Filter",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:filter-life-level:0000001E:xiaomi-ov42gl:1",
+          "description": "Filter Life Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:filter-left-time:0000001F:xiaomi-ov42gl:1",
+          "description": "Filter Left Time",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "hours",
+          "value-range": [
+            0,
+            1000,
+            1
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:reset-filter-life:00002803:xiaomi-ov42gl:1",
+          "description": "Reset Filter Life",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 15,
+      "type": "urn:miot-spec-v2:service:voice-management:000078F3:xiaomi-ov42gl:1",
+      "description": "Voice Management",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:target-voice:0000032F:xiaomi-ov42gl:1",
+          "description": "Target Voice",
+          "format": "string",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:cur-voice:00000330:xiaomi-ov42gl:1",
+          "description": "Cur Voice",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:download-status:00000331:xiaomi-ov42gl:1",
+          "description": "Download Status",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Not Downloaded"
+            },
+            {
+              "value": 1,
+              "description": "Downloading"
+            },
+            {
+              "value": 2,
+              "description": "Downloaded"
+            },
+            {
+              "value": 3,
+              "description": "Download Fail"
+            },
+            {
+              "value": 4,
+              "description": "Apply Success"
+            },
+            {
+              "value": 5,
+              "description": "Apply Fail"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:download-progress:00000332:xiaomi-ov42gl:1",
+          "description": "Download Progress",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        },
+        {
+          "iid": 5,
+          "type": "urn:miot-spec-v2:property:voice-url:00000362:xiaomi-ov42gl:1",
+          "description": "Voice Url",
+          "format": "string",
+          "access": []
+        },
+        {
+          "iid": 6,
+          "type": "urn:miot-spec-v2:property:common-params:00000278:xiaomi-ov42gl:1",
+          "description": "Common Params",
+          "format": "string",
+          "access": []
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:download-voice:000028D6:xiaomi-ov42gl:1",
+          "description": "Download Voice",
+          "in": [
+            1,
+            5,
+            6
+          ],
+          "out": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:action:get-download-status:000028D8:xiaomi-ov42gl:1",
+          "description": "Get Download Status",
+          "in": [],
+          "out": [
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 18,
+      "type": "urn:miot-spec-v2:service:detergent-management:0000788B:xiaomi-ov42gl:1",
+      "description": "Detergent Management",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:detergent-left-level:000000D1:xiaomi-ov42gl:1",
+          "description": "Detergent Left Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:detergent-self-delivery:000000D0:xiaomi-ov42gl:1",
+          "description": "Detergent Self Delivery",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:miot-spec-v2:property:detergent-self-delivery-level:00000184:xiaomi-ov42gl:1",
+          "description": "Detergent Self Delivery Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Few"
+            },
+            {
+              "value": 1,
+              "description": "Standard"
+            },
+            {
+              "value": 2,
+              "description": "Many"
+            },
+            {
+              "value": 3,
+              "description": "Lots Of"
+            }
+          ],
+          "gatt-access": []
+        },
+        {
+          "iid": 4,
+          "type": "urn:miot-spec-v2:property:detergent-left-time:00000386:xiaomi-ov42gl:1",
+          "description": "Detergent Left Time",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "hours",
+          "value-range": [
+            0,
+            9999,
+            1
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:reset-detergent-management-level:000028DC:xiaomi-ov42gl:1",
+          "description": "Reset Detergent Management Level",
+          "in": [],
+          "out": []
+        }
+      ],
+      "events": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:event:low-detergent-level:00005019:xiaomi-ov42gl:1",
+          "description": "Low Detergent Level",
+          "arguments": []
+        }
+      ]
+    },
+    {
+      "iid": 19,
+      "type": "urn:miot-spec-v2:service:dust-bag:000078F9:xiaomi-ov42gl:1",
+      "description": "Dust Bag",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:dust-bag-life-level:00000384:xiaomi-ov42gl:1",
+          "description": "Dust Bag Life Level",
+          "format": "uint8",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "percentage",
+          "value-range": [
+            0,
+            100,
+            1
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:dust-bag-left-time:00000385:xiaomi-ov42gl:1",
+          "description": "Dust Bag Left Time",
+          "format": "uint16",
+          "access": [
+            "read",
+            "notify"
+          ],
+          "unit": "hours",
+          "value-range": [
+            0,
+            9999,
+            1
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:action:reset-dust-bag-life:000028DB:xiaomi-ov42gl:1",
+          "description": "Reset Dust Bag Life",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 22,
+      "type": "urn:miot-spec-v2:service:self-check:000078D7:xiaomi-ov42gl:2",
+      "description": "Self Check",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:miot-spec-v2:property:self-check-items:0000020D:xiaomi-ov42gl:2",
+          "description": "Self Check Items",
+          "format": "uint8",
+          "access": [],
+          "value-list": [
+            {
+              "value": 0,
+              "description": "Item1"
+            },
+            {
+              "value": 1,
+              "description": "Item2"
+            }
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:miot-spec-v2:property:self-check-results:0000020E:xiaomi-ov42gl:2",
+          "description": "Self Check Results",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        }
+      ]
+    },
+    {
+      "iid": 16,
+      "type": "urn:xiaomi-spec:service:imu:00007801:xiaomi-ov42gl:1",
+      "description": "imu",
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:xiaomi-spec:action:imu-calibration:00002801:xiaomi-ov42gl:1",
+          "description": "imu-calibration",
+          "in": [],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 17,
+      "type": "urn:xiaomi-spec:service:ai-small-pictures:00007802:xiaomi-ov42gl:1",
+      "description": "ai-small-pictures",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:xiaomi-spec:property:ai-object-id:00000001:xiaomi-ov42gl:1",
+          "description": "",
+          "format": "uint32",
+          "access": [],
+          "value-range": [
+            0,
+            4294967295,
+            1
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:xiaomi-spec:property:ai-picture-info:00000002:xiaomi-ov42gl:1",
+          "description": "",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:xiaomi-spec:action:request-ai-picture:00002801:xiaomi-ov42gl:1",
+          "description": "request-ai-picture",
+          "in": [
+            1
+          ],
+          "out": []
+        }
+      ]
+    },
+    {
+      "iid": 20,
+      "type": "urn:xiaomi-spec:service:custom:00007803:xiaomi-ov42gl:1",
+      "description": "custom",
+      "properties": [
+        {
+          "iid": 1,
+          "type": "urn:xiaomi-spec:property:common-params:00000001:xiaomi-ov42gl:1",
+          "description": "",
+          "format": "string",
+          "access": []
+        },
+        {
+          "iid": 2,
+          "type": "urn:xiaomi-spec:property:query-id:00000002:xiaomi-ov42gl:1",
+          "description": "",
+          "format": "uint32",
+          "access": [],
+          "value-range": [
+            0,
+            4294967295,
+            1
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:xiaomi-spec:property:updata-difference:00000003:xiaomi-ov42gl:1",
+          "description": "",
+          "format": "string",
+          "access": [
+            "read",
+            "notify"
+          ]
+        },
+        {
+          "iid": 6,
+          "type": "urn:xiaomi-spec:property:spec-test:00000004:xiaomi-ov42gl:2",
+          "description": "",
+          "format": "bool",
+          "access": [
+            "read",
+            "write",
+            "notify"
+          ]
+        },
+        {
+          "iid": 13,
+          "type": "urn:xiaomi-spec:property:water-level-remind:00000005:xiaomi-ov42gl:2",
+          "description": "",
+          "format": "bool",
+          "access": [
+            "read",
+            "notify",
+            "write"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "iid": 1,
+          "type": "urn:xiaomi-spec:action:get-history-obj:00002801:xiaomi-ov42gl:1",
+          "description": "get-history-obj",
+          "in": [
+            2
+          ],
+          "out": [
+            1
+          ]
+        },
+        {
+          "iid": 2,
+          "type": "urn:xiaomi-spec:action:get-user-define:00002802:xiaomi-ov42gl:1",
+          "description": "get-user-define",
+          "in": [
+            2
+          ],
+          "out": [
+            1
+          ]
+        },
+        {
+          "iid": 3,
+          "type": "urn:xiaomi-spec:action:set-stop-upload-map:00002803:xiaomi-ov42gl:1",
+          "description": "set-stop-upload-map",
+          "in": [
+            2
+          ],
+          "out": []
+        },
+        {
+          "iid": 5,
+          "type": "urn:xiaomi-spec:action:get-order-clean:00002805:xiaomi-ov42gl:1",
+          "description": "get-order-clean",
+          "in": [
+            2
+          ],
+          "out": [
+            1
+          ]
+        },
+        {
+          "iid": 6,
+          "type": "urn:xiaomi-spec:action:switch-order-clean:00002806:xiaomi-ov42gl:1",
+          "description": "switch-order-clean",
+          "in": [
+            2
+          ],
+          "out": []
+        }
+      ]
+    }
+  ]
+}
