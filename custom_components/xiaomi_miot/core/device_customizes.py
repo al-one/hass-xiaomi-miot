@@ -1385,6 +1385,10 @@ DEVICE_CUSTOMIZES = {
         'cloud_delay_update': 10,
         'exclude_miot_properties': 'name,mode',
     },
+    'lumi.gateway.mieu01': {
+        # miio gateway (EU); its own spec lacks the illumination service, reuse the v3 spec
+        'miot_type': 'urn:miot-spec-v2:device:gateway:0000A019:lumi-v3:2',
+    },
     'lumi.motion.bmgl01': {
         'use_ble_object': True,
         'sensor_attributes': 'trigger_at',

@@ -715,6 +715,7 @@ MIIO_TO_MIOT_SPECS = {
             'prop.3.1': {'prop': 'light', 'setter': 'toggle_light', 'format': 'onoff'},
         },
     },
+    'lumi.gateway.mieu01': 'lumi.gateway.v3',
     'lumi.gateway.v3': {
         # rgb int packs brightness in the upper byte (1..100) and color in the lower 24 bits (RRGGBB).
         # set_callback keeps the cached rgb in sync after every write, so successive
