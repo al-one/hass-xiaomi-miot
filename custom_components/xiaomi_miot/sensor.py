@@ -601,15 +601,15 @@ class XiaoaiConversationSensor(MiCoordinatorEntity, BaseSensorSubEntity):
             if rdt is None:
                 return {}
             if isinstance(rdt, (str, bytes, bytearray)):
-                rdt = json.loads(rdt) or {}
+                rdt = json.loads(rdt)
             if not isinstance(rdt, dict):
                 return {}
-        except (TypeError, ValueError, Exception) as exc:
-            rdt = {}
+        except Exception as exc:
             _LOGGER.warning(
                 '%s: Got exception while fetch xiaoai conversation: %s',
                 self.name_model, [aid, exc],
             )
+            return {}
         mls = rdt.get('records') or []
         msg = mls.pop(0) if mls else {}
         self.conversation = msg
