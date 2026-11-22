@@ -19,6 +19,9 @@ jobs:
           cache: pip
           cache-dependency-path: requirements_test.txt
 
+      - name: 🎬 Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - name: 📦 Install test dependencies
         run: pip install -r requirements_test.txt
 
@@ -38,6 +41,9 @@ jobs:
           python-version: "3.13"
           cache: pip
           cache-dependency-path: requirements_test_min.txt
+
+      - name: 🎬 Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: 📦 Install minimum-version test dependencies
         run: pip install -r requirements_test_min.txt

@@ -8,7 +8,8 @@
     "http",
     "intent",
     "persistent_notification",
-    "ffmpeg"
+    "ffmpeg",
+    "media_source"
   ],
   "documentation": "https://github.com/al-one/hass-xiaomi-miot",
   "iot_class": "cloud_polling",
