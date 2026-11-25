@@ -3132,6 +3132,24 @@ DEVICE_CUSTOMIZES = {
     'zhimi.humidifier.ca4:water_level': {
         'value_ratio': 100 / 120,
     },
+    'zhimi.humidifier.ca6': {
+        # model blocks replace inherited lists, so the wildcard values are repeated here
+        'sensor_properties': 'water_level,actual_speed,self_clean_percent',
+        'switch_properties': 'alarm,other.clean,humidifier.dry,humidifier.automatic_air_drying',
+        'without_mode_off': True,
+        'chunk_coordinators': [
+            {'interval': 20, 'props': 'humidifier.on,mode,target_humidity,fan_level'},
+            {'interval': 25, 'props': 'relative_humidity,temperature'},
+            {'interval': 300, 'props': 'filter_life_level,filter_left_time,filter_used_time'},
+            # reported as 0 over LAN, the cloud has the real countdown
+            {'interval': 30, 'props': 'self_clean_percent', 'cloud': True},
+        ],
+    },
+    'zhimi.humidifier.ca6:self_clean_percent': {
+        'device_class': 'duration',
+        'unit_of_measurement': 'min',
+        'state_class': 'measurement',
+    },
     'zhimi.humidifier.cb1:water_level': {
         'state_class': 'measurement',
         'unit_of_measurement': '%',
