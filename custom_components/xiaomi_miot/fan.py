@@ -136,8 +136,12 @@ class FanEntity(XEntity, BaseEntity):
             if val is not None:
                 des = self._conv_speed.prop.list_description(val)
                 if self._speed_range:
-                    v = float(val)
-                    if v >= self._speed_range[0] or not self._conv_power:
+                    try:
+                        v = float(val)
+                    except (TypeError, ValueError):
+                        # Some devices report a level name such as 'Level1' for a ranged speed
+                        v = None
+                    if v is not None and (v >= self._speed_range[0] or not self._conv_power):
                         self._attr_percentage = ranged_value_to_percentage(self._speed_range, v)
                 if self._speed_list and val in self._speed_list:
                     self._attr_percentage = ordered_list_item_to_percentage(self._speed_list, val)
