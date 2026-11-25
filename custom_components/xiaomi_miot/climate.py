@@ -170,6 +170,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     _conv_mode = None
     _conv_speed = None
     _conv_swing = None
+    _swing_values = None  # (on, off) raw values of a swing property with a value list
     _conv_swing_h = None
     _conv_target_temp = None
     _conv_current_temp = None
@@ -182,6 +183,7 @@ class ClimateEntity(XEntity, BaseClimateEntity):
         self._power_hvac_mode = None
 
         self._prop_temperature_name = self.custom_config('current_temp_property') or 'indoor_temperature'
+        swing_property = self.custom_config('swing_property')
 
         hvac_modes = set()
         for attr in self.conv.attrs:
@@ -189,6 +191,11 @@ class ClimateEntity(XEntity, BaseClimateEntity):
             prop = getattr(conv, 'prop', None) if conv else None
             if not isinstance(prop, MiotProperty):
                 continue
+            elif swing_property and prop.in_list([swing_property]):
+                self._conv_swing = conv
+                self._swing_values = self.swing_values(prop)
+                self._attr_swing_modes = [SWING_ON, SWING_OFF]
+                self._attr_supported_features |= ClimateEntityFeature.SWING_MODE
             elif prop.in_list(['on']):
                 self._conv_power = conv
                 self._attr_supported_features |= ClimateEntityFeature.TURN_ON
@@ -304,7 +311,11 @@ class ClimateEntity(XEntity, BaseClimateEntity):
                 self._attr_fan_mode = str(val).lower()
         if self._conv_swing:
             val = self._conv_swing.value_from_dict(data)
-            if val is not None:
+            if isinstance(val, str) and self._swing_values:
+                val = self._conv_swing.prop.list_value(val)
+            if val is not None and self._swing_values:
+                self._attr_swing_mode = SWING_ON if val == self._swing_values[0] else SWING_OFF
+            elif val is not None:
                 self._attr_swing_mode = SWING_ON if val else SWING_OFF
         if self._conv_swing_h:
             val = self._conv_swing_h.value_from_dict(data)
@@ -416,7 +427,27 @@ class ClimateEntity(XEntity, BaseClimateEntity):
     async def async_set_swing_mode(self, swing_mode: str):
         if not self._conv_swing:
             return
-        await self.device.async_write({self._conv_swing.full_name: swing_mode == SWING_ON})
+        val = swing_mode == SWING_ON
+        if self._swing_values:
+            val = self._swing_values[0 if val else 1]
+            if self._conv_swing.desc:
+                val = self._conv_swing.prop.list_description(val)
+        await self.device.async_write({self._conv_swing.full_name: val})
+
+    @staticmethod
+    def swing_values(prop: MiotProperty):
+        """(on, off) values of an enum used as swing, e.g. 0 'Fan not swing' / 1 'Fan swing'."""
+        items = [(v.get('value'), str(v.get('description') or '').lower()) for v in prop.value_list or []]
+        if len(items) < 2:
+            return None
+        off = prop.list_first('Off', 'off', 'Close', 'close')
+        if off is None:
+            off_words = {'off', 'not', 'no', 'close', 'stop'}
+            off = next((v for v, des in items if off_words & set(des.split())), items[0][0])
+        on = prop.list_first('On', 'on', 'Swing', 'swing')
+        if on is None or on == off:
+            on = next(v for v, _ in items if v != off)
+        return on, off
 
     async def async_set_swing_horizontal_mode(self, swing_horizontal_mode: str):
         if not self._conv_swing_h:
