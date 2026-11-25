@@ -179,6 +179,7 @@ class Device(CustomConfigHelper):
     _local_state = None
     _cloud_fails = 0
     _cloud_state = None
+    _cloud_chunk_fails = 0
     _lan_check_fails = 0
     _proxy_device = None
     _miot_mapping = None
@@ -639,6 +640,11 @@ class Device(CustomConfigHelper):
                 return result
             return _update
 
+        def cloud_update_factory(mapping):
+            async def _update():
+                return await self.update_miot_cloud_chunk(mapping)
+            return _update
+
         index = 0
         for chunk in chunks:
             index += 1
@@ -656,6 +662,16 @@ class Device(CustomConfigHelper):
             ) or {}
             for k in mapping.keys():
                 all_mapping.pop(k, None)
+            if chunk.get('cloud') and self.cloud and not self.local_only:
+                # values the device misreports locally: always polled through the cloud,
+                # as an auxiliary chunk that never becomes the main coordinator
+                coo = DataCoordinator(
+                    self, cloud_update_factory(mapping),
+                    name=f'chunk_{index}_cloud',
+                    update_interval=timedelta(seconds=inter),
+                )
+                lst.append(coo)
+                continue
             notify = chunk.get('notify')
             chunk_services = chunk.get('chunk_services', 0)
             coo = DataCoordinator(
@@ -1115,6 +1131,34 @@ class Device(CustomConfigHelper):
         self.dispatch_info()
         await self.offline_notify()
         return self.miot_results
+
+    async def update_miot_cloud_chunk(self, mapping) -> MiotResults:
+        """Poll an auxiliary chunk through the cloud (``chunk_coordinators`` with ``cloud: True``).
+
+        Its failures stay with the chunk: they neither mark the device unavailable nor touch
+        the local/cloud state of the main polling, and the state updater is left as is.
+        """
+        result = MiotResults()
+        try:
+            results = await self.cloud.async_get_properties_for_mapping(self.did, mapping)
+            if results is None:
+                raise MiCloudException('Cloud API returned None response, possible timeout or empty data')
+        except MiCloudException as exc:
+            self._cloud_chunk_fails += 1
+            log = self.log.warning if self._cloud_chunk_fails == 3 else self.log.debug
+            log('Cloud chunk %s failed %s times: %s', list(mapping), self._cloud_chunk_fails, exc)
+            result.errors = exc
+            return result
+        if self._cloud_chunk_fails >= 3:
+            self.log.info('Cloud chunk %s succeeded again', list(mapping))
+        self._cloud_chunk_fails = 0
+        results = self.normalize_miot_results(results)
+        result.set_results(results, mapping)
+        result.updater = 'cloud'
+        if results:
+            result.to_attributes(self.props)
+            self.dispatch(self.decode(results))
+        return result
 
     async def offline_notify(self):
         result = self.miot_results
