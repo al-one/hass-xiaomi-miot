@@ -862,6 +862,8 @@ class MiotProperty(MiotSpecInstance):
     def list_search(self, *args, **kwargs):
         rls = []
         get_first = kwargs.get('get_first')
+        # Case-insensitive, e.g. 'Sweeping and Mopping' vs 'Sweeping And Mopping'.
+        args = [str(a).lower() for a in args]
         for v in self.value_list:
             des = str(v.get('description') or '')
             dls = [
@@ -871,7 +873,7 @@ class MiotProperty(MiotSpecInstance):
                 self.get_translation(des, viid=v.get('value', -1)),
             ]
             for d in dls:
-                if d not in args:
+                if str(d).lower() not in args:
                     continue
                 if get_first:
                     return v.get('value')

@@ -126,9 +126,9 @@ class MiotVacuumEntity(MiotEntity, StateVacuumEntity):
             if val is None:
                 pass
             elif val in self._prop_status.list_search(
-                'Cleaning', 'Sweeping', 'Mopping', 'Sweeping And Mopping', 'Sweeping and Mopping',
-                'Washing', 'Go Washing',
-                'Part Sweeping', 'Zone Sweeping', 'Select Sweeping', 'Spot Sweeping', 'Goto Target',
+                'Cleaning', 'Sweeping', 'Mopping', 'Sweeping And Mopping',
+                'Washing', 'Go Washing', 'Part Sweeping', 'Zone Sweeping',
+                'Select Sweeping', 'Spot Sweeping', 'Goto Target',
                 'Starting', 'Working', 'Busy', 'DustCollecting'
             ):
                 self._attr_activity = VacuumActivity.CLEANING
